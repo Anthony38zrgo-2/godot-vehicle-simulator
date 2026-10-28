@@ -1,0 +1,23 @@
+{
+  "tire_filters": {
+    "front": {
+      "combined_lateral_peak_migration": 0.3,
+      "combined_longitudinal_peak_migration": 0.25,
+      "contact_ramp_tau_s": 0.05,
+      "min_relaxation_tau_s": 0.01,
+      "relaxation_recovery_scale": 1.2,
+      "slip_loss_tau_s": 0.06,
+      "slip_recovery_tau_s": 0.2
+    },
+    "rear": {
+      "combined_lateral_peak_migration": 0.3,
+      "combined_longitudinal_peak_migration": 0.25,
+      "contact_ramp_tau_s": 0.05,
+      "min_relaxation_tau_s": 0.01,
+      "relaxation_recovery_scale": 1.2,
+      "slip_loss_tau_s": 0.06,
+      "slip_recovery_tau_s": 0.2
+    },
+    "surface_transition_tau_s": 0.08
+  }
+}

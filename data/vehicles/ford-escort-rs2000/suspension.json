@@ -1,0 +1,303 @@
+{
+  "suspension": {
+    "contact_ray_count": 1,
+    "front": {
+      "arb_ratio": 0.2,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": -0.017453,
+      "camber_gain_rad_per_m": -0.015,
+      "damping_ratio": 0.65,
+      "rebound_damp_multiplier": 1.2,
+      "resting_ratio": 0.35,
+      "spring_length": 0.32,
+      "toe": 0.001745,
+      "toe_gain_rad_per_m": 0.01
+    },
+    "geometry_physical": {
+      "corners": {
+        "FL": {
+          "damper": {
+            "chassis": [
+              -0.084993,
+              -0.356701,
+              -0.97
+            ]
+          },
+          "hub_center": [
+            -0.64,
+            -0.286701,
+            -1.205
+          ],
+          "lower_wishbone": {
+            "inner_front": [
+              -0.14044,
+              -0.318956,
+              -1.250731
+            ],
+            "inner_rear": [
+              -0.162507,
+              -0.317959,
+              -0.793059
+            ],
+            "outer": [
+              -0.497918,
+              -0.318401,
+              -1.208898
+            ]
+          },
+          "provenance": {
+            "note": "Transformed to Escort wheelbase 2.41m and track 1.28m: target hub z=-1.205; Numerical double-wishbone proxy, not a measured Escort MacPherson/live axle model.",
+            "origin": "reconstructed"
+          },
+          "rocker": {
+            "axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "damper_arm": [
+              -0.084993,
+              -0.15626600000000002,
+              -1.03
+            ],
+            "pivot": [
+              -0.084993,
+              -0.15626600000000002,
+              -1.176208
+            ],
+            "pushrod_arm": [
+              -0.084993,
+              -0.15626600000000002,
+              -1.336208
+            ]
+          },
+          "rod": {
+            "attachment": "lower",
+            "outer": [
+              -0.467242,
+              -0.305975,
+              -1.168929
+            ],
+            "type": "pushrod"
+          },
+          "trackrod": {
+            "inner": [
+              -0.139086,
+              -0.319653,
+              -1.336327
+            ],
+            "outer": [
+              -0.494653,
+              -0.320107,
+              -1.316078
+            ]
+          },
+          "upper_wishbone": {
+            "inner_front": [
+              -0.14044,
+              -0.150605,
+              -1.250731
+            ],
+            "inner_rear": [
+              -0.162507,
+              -0.149608,
+              -0.926632
+            ],
+            "outer": [
+              -0.497918,
+              -0.150051,
+              -1.208898
+            ]
+          }
+        },
+        "FR": {
+          "mirror_of": "FL"
+        },
+        "RL": {
+          "damper": {
+            "chassis": [
+              -0.4,
+              0.45,
+              0.805
+            ]
+          },
+          "driveshaft": {
+            "inner": [
+              -0.074741,
+              -0.28001200000000004,
+              1.217802
+            ],
+            "outer": [
+              -0.64,
+              -0.276634,
+              1.205
+            ]
+          },
+          "hub_center": [
+            -0.64,
+            -0.276634,
+            1.205
+          ],
+          "lower_wishbone": {
+            "inner_front": [
+              -0.1,
+              -0.376634,
+              1.0050000000000001
+            ],
+            "inner_rear": [
+              -0.1,
+              -0.376634,
+              1.405
+            ],
+            "outer": [
+              -0.52,
+              -0.376634,
+              1.205
+            ]
+          },
+          "provenance": {
+            "note": "Parallel-link numerical spring proxy; unit design motion ratio and reachable -120/+140 mm stroke. Not a measured Escort live axle.",
+            "origin": "reconstructed"
+          },
+          "rocker": {
+            "axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "damper_arm": [
+              -0.4,
+              0.1,
+              0.805
+            ],
+            "pivot": [
+              -0.4,
+              0.1,
+              1.205
+            ],
+            "pushrod_arm": [
+              -0.4,
+              0.1,
+              0.805
+            ]
+          },
+          "rod": {
+            "attachment": "lower",
+            "outer": [
+              -0.52,
+              -0.376634,
+              1.205
+            ],
+            "type": "pushrod"
+          },
+          "trackrod": {
+            "inner": [
+              -0.1,
+              -0.276634,
+              1.355
+            ],
+            "outer": [
+              -0.52,
+              -0.276634,
+              1.355
+            ]
+          },
+          "upper_wishbone": {
+            "inner_front": [
+              -0.1,
+              -0.17663399999999999,
+              1.0050000000000001
+            ],
+            "inner_rear": [
+              -0.1,
+              -0.17663399999999999,
+              1.405
+            ],
+            "outer": [
+              -0.52,
+              -0.17663399999999999,
+              1.205
+            ]
+          }
+        },
+        "RR": {
+          "mirror_of": "RL"
+        }
+      },
+      "front": {
+        "arb_damper_Ns_per_m": 120.0,
+        "bump_stop_damper_Ns_per_m": 600.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.02,
+        "damper_bump_Ns_per_m": 1800.0,
+        "damper_fast_factor": 0.5,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.45,
+        "damper_min_m": 0.15,
+        "damper_rebound_Ns_per_m": 2400.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.37,
+        "spring_installed_length_m": 0.3,
+        "spring_rate_N_per_m": 28000.0,
+        "wheel_bump_m": 0.22,
+        "wheel_droop_m": 0.18
+      },
+      "front_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.2
+      },
+      "rear": {
+        "arb_damper_Ns_per_m": 80.0,
+        "bump_stop_damper_Ns_per_m": 600.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.02,
+        "damper_bump_Ns_per_m": 3000.0,
+        "damper_fast_factor": 0.8,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.6,
+        "damper_min_m": 0.1,
+        "damper_rebound_Ns_per_m": 5500.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.37,
+        "spring_installed_length_m": 0.3,
+        "spring_rate_N_per_m": 24000.0,
+        "wheel_bump_m": 0.22,
+        "wheel_droop_m": 0.18
+      },
+      "rear_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.08
+      },
+      "version": 1
+    },
+    "model": "geometric",
+    "model_version": 1,
+    "rear": {
+      "arb_ratio": 0.08,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": 0.0,
+      "camber_gain_rad_per_m": 0.0,
+      "damping_ratio": 0.65,
+      "rebound_damp_multiplier": 1.2,
+      "resting_ratio": 0.35,
+      "spring_length": 0.3,
+      "toe": 0.0,
+      "toe_gain_rad_per_m": 0.0
+    },
+    "tri_ray_spacing_ratio": 0.35,
+    "use_authored_wheel_centers": true,
+    "virtual_unsprung_mass_multiplier": 1.15
+  }
+}

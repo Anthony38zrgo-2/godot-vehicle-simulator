@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicle/ford_rally_vehicle.gd" id="1"]
+
+[sub_resource type="BoxShape3D" id="GroundBox"]
+size = Vector3(1000, 1, 1000)
+
+[node name="FordRally" type="RigidBody3D"]
+mass = 1095.0
+can_sleep = false
+script = ExtResource("1")
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="GroundShape" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.5, 0)
+shape = SubResource("GroundBox")
+
+[node name="WheelFrontLeft" type="RayCast3D" parent="."]
+position = Vector3(-0.64, 0.51, -1.205)
+target_position = Vector3(0, -0.6, 0)
+
+[node name="WheelFrontRight" type="RayCast3D" parent="."]
+position = Vector3(0.64, 0.51, -1.205)
+target_position = Vector3(0, -0.6, 0)
+
+[node name="WheelRearLeft" type="RayCast3D" parent="."]
+position = Vector3(-0.64, 0.48, 1.205)
+target_position = Vector3(0, -0.6, 0)
+
+[node name="WheelRearRight" type="RayCast3D" parent="."]
+position = Vector3(0.64, 0.48, 1.205)
+target_position = Vector3(0, -0.6, 0)

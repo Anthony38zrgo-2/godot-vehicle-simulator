@@ -1,0 +1,26 @@
+{
+  "coordinate_contract": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y"
+  },
+  "domains": {
+    "aerodynamics": "aerodynamics.json",
+    "brakes": "brakes.json",
+    "chassis": "chassis.json",
+    "coupled_world": "coupled_world.json",
+    "driving_assistance": "driving_assistance.json",
+    "fuel": "fuel.json",
+    "powertrain": "powertrain.json",
+    "steering": "steering.json",
+    "suspension": "suspension.json",
+    "suspension_filters": "suspension_filters.json",
+    "tire_filters": "tire_filters.json",
+    "tires": "tires.json",
+    "underfloor_contact": "underfloor_contact.json"
+  },
+  "profile_name": "Ford Escort RS2000 1971 - Rally Trophy port (geometric suspension proxy)",
+  "schema_version": 1,
+  "units": "SI",
+  "vehicle_identifier": "ford_escort_rs2000_1971"
+}

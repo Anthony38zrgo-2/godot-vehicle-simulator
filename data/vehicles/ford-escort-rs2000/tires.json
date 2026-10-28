@@ -1,0 +1,140 @@
+{
+  "tires": {
+    "airborne_spin_decay_torque": 1.5,
+    "contact_patch": 0.2,
+    "force_model": {
+      "front": {
+        "budget_blend_width": 0.15,
+        "combined_lateral_peak_migration": 0.3,
+        "combined_longitudinal_peak_migration": 0.25,
+        "contact_ramp_tau_s": 0.05,
+        "falloff_sharpness": 1.2,
+        "lateral_peak_slip_angle_rad": 0.18,
+        "lateral_slide_mu_ratio": 0.94,
+        "longitudinal_peak_slip_ratio": 0.2,
+        "longitudinal_slide_mu_ratio": 0.95,
+        "min_relaxation_tau_s": 0.01,
+        "relaxation_recovery_scale": 1.2,
+        "slip_loss_tau_s": 0.06,
+        "slip_recovery_tau_s": 0.2
+      },
+      "rear": {
+        "budget_blend_width": 0.15,
+        "combined_lateral_peak_migration": 0.3,
+        "combined_longitudinal_peak_migration": 0.25,
+        "contact_ramp_tau_s": 0.05,
+        "falloff_sharpness": 1.2,
+        "lateral_peak_slip_angle_rad": 0.18,
+        "lateral_slide_mu_ratio": 0.94,
+        "longitudinal_peak_slip_ratio": 0.2,
+        "longitudinal_slide_mu_ratio": 0.95,
+        "min_relaxation_tau_s": 0.01,
+        "relaxation_recovery_scale": 1.2,
+        "slip_loss_tau_s": 0.06,
+        "slip_recovery_tau_s": 0.2
+      }
+    },
+    "front": {
+      "airborne_spin_decay_torque": 1.5,
+      "contact_patch": 0.2,
+      "radius": 0.28,
+      "wheel_mass": 20.0,
+      "width": 0.2
+    },
+    "pressure": {
+      "atmospheric_pressure_kpa": 101.325,
+      "cold_kpa_gauge": {
+        "FL": 180.0,
+        "FR": 180.0,
+        "RL": 180.0,
+        "RR": 180.0
+      },
+      "reference_hot_kpa_gauge": {
+        "FL": 225.0,
+        "FR": 225.0,
+        "RL": 225.0,
+        "RR": 225.0
+      },
+      "reference_temperature_c": 25.0,
+      "units": "kPa_gauge"
+    },
+    "pressure_mechanics": {
+      "compliance_sensitivity": 0.6,
+      "response_sensitivity": -0.15,
+      "rolling_resistance_sensitivity": -0.3
+    },
+    "radial_damping_ratio": 0.4,
+    "rear": {
+      "airborne_spin_decay_torque": 1.5,
+      "contact_patch": 0.2,
+      "radius": 0.28,
+      "wheel_mass": 20.0,
+      "width": 0.2
+    },
+    "surface_transition_tau_s": 0.08,
+    "surfaces": {
+      "Curb": {
+        "friction": 1.05,
+        "stiffness": 4.0,
+        "rolling_resistance": 1.2,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      },
+      "Dirt": {
+        "friction": 1.05,
+        "stiffness": 0.9,
+        "rolling_resistance": 2.0,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      },
+      "Grass": {
+        "friction": 0.7,
+        "stiffness": 0.5,
+        "rolling_resistance": 3.5,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      },
+      "Gravel": {
+        "friction": 1.08,
+        "stiffness": 1.0,
+        "rolling_resistance": 2.2,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      },
+      "Road": {
+        "friction": 1.05,
+        "stiffness": 4.0,
+        "rolling_resistance": 1.0,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      },
+      "Sand": {
+        "friction": 0.85,
+        "stiffness": 0.6,
+        "rolling_resistance": 3.0,
+        "longitudinal_grip_ratio": 1.0,
+        "lateral_grip_assist": 0.0
+      }
+    },
+    "thermal": {
+      "optimal_tread_temperature_c": 50.0,
+      "optimal_tread_window_c": 50.0,
+      "overheat_tread_temperature_c": 100.0,
+      "optimal_carcass_temperature_c": 60.0,
+      "initial_temperature_c": 25.0,
+      "ambient_fallback_c": 25.0,
+      "track_fallback_c": 30.0,
+      "tread_zone_heat_capacity_j_k": 6300.0,
+      "carcass_heat_capacity_j_k": 18000.0,
+      "gas_heat_capacity_j_k": 2200.0,
+      "tread_to_carcass_w_k": 60.0,
+      "carcass_to_gas_w_k": 25.0,
+      "tread_to_air_w_k": 30.0,
+      "carcass_to_air_w_k": 15.0,
+      "road_conductance_w_k": 55.0,
+      "lateral_tread_conductance_w_k": 25.0,
+      "slip_heat_efficiency": 0.55,
+      "carcass_hysteresis_efficiency": 0.55
+    }
+  }
+}
