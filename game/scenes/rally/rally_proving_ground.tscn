@@ -1,0 +1,46 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_proving_ground_session.gd" id="1_session"]
+[ext_resource type="PackedScene" path="res://scenes/rally/ford_escort_rs2000_1971.tscn" id="2_ford"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_input_controller.gd" id="3_input"]
+[ext_resource type="Script" path="res://scripts/rally/rally_chase_camera_rig.gd" id="4_camera"]
+[ext_resource type="PackedScene" path="res://scenes/rally/rally_f1_head_up_display.tscn" id="5_head_up_display"]
+[ext_resource type="Script" path="res://scripts/rally/rally_telemetry_recorder.gd" id="6_telemetry"]
+[ext_resource type="PackedScene" path="res://scenes/rally/rally_garage_panel.tscn" id="7_garage"]
+
+[node name="RallyProvingGround" type="Node3D"]
+script = ExtResource("1_session")
+vehicle_path = NodePath("FordEscortRS2000")
+input_controller_path = NodePath("RallyInputController")
+camera_rig_path = NodePath("RallyCameraRig")
+head_up_display_path = NodePath("RallyF1HeadUpDisplay")
+telemetry_recorder_path = NodePath("RallyTelemetryRecorder")
+
+[node name="FordEscortRS2000" parent="." instance=ExtResource("2_ford")]
+
+[node name="RallyInputController" type="Node" parent="."]
+script = ExtResource("3_input")
+vehicle_path = NodePath("../FordEscortRS2000")
+
+[node name="RallyCameraRig" type="Node3D" parent="."]
+script = ExtResource("4_camera")
+vehicle_path = NodePath("../FordEscortRS2000")
+camera_path = NodePath("Camera3D")
+
+[node name="Camera3D" type="Camera3D" parent="RallyCameraRig"]
+current = true
+fov = 68.0
+near = 0.1
+far = 3000.0
+
+[node name="RallyF1HeadUpDisplay" parent="." instance=ExtResource("5_head_up_display")]
+
+[node name="RallyTelemetryRecorder" type="Node" parent="."]
+script = ExtResource("6_telemetry")
+vehicle_path = NodePath("../FordEscortRS2000")
+
+[node name="RallyGaragePanel" parent="." instance=ExtResource("7_garage")]
+circuit_id = "rally-proving-ground"
+circuit_name = "Campo de pruebas"
+circuit_country = "N/A"
+circuit_length_m = 200.0

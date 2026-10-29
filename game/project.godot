@@ -1,0 +1,40 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Rust Godot Vehicle Simulator"
+run/main_scene="res://scenes/rally/rally_proving_ground.tscn"
+config/features=PackedStringArray("4.7")
+
+[autoload]
+
+
+
+
+
+
+
+InputBindings="*res://scripts/input/input_bindings.gd"
+VehicleAudioBus="*res://scripts/audio/ensure_vehicle_bus.gd"
+
+[physics]
+
+common/physics_ticks_per_second=120
+3d/physics_engine="Jolt Physics"
+
+[audio]
+
+driver/output_latency=40
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

@@ -1,0 +1,144 @@
+{
+  "contract_version": 1,
+  "bank_id": "ford_escort_rs2000_rally",
+  "source_repository": "D:/open-formula",
+  "source_directory": "D:/open-formula/staging_rally/cars/ra-escort-rs2000",
+  "nominal_rpm": {
+    "EE_Idle5.wav": 900,
+    "EE_2k5.wav": 2000,
+    "EE_6k5.wav": 4000,
+    "EE_9k5.wav": 6000,
+    "EX_Idle6.wav": 900,
+    "EX_2k5.wav": 2000,
+    "EX_6k5.wav": 4000,
+    "EX_9k5.wav": 6000
+  },
+  "samples": [
+    {
+      "file": "EE_Idle5.wav",
+      "role": "engine",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "73b407e5f962c2e28ee26ce2dda0d8b1923c9487e66fc71ce6a6a8835a19fbdb",
+      "reference_rpm": 900,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EE_2k5.wav",
+      "role": "engine",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "a4fd99acb1dccd9b56b0f8d283d4c072c5fbf53c98c7c196ceae54a698e166c8",
+      "reference_rpm": 2000,
+      "sounds_ini_range_rpm": [
+        0,
+        2750
+      ],
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EE_6k5.wav",
+      "role": "engine",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "5ac1c2016561e52d7bafad073d3e11d347e5d0c8589224070ce6be8a7fddef08",
+      "reference_rpm": 4000,
+      "sounds_ini_range_rpm": [
+        3250,
+        4750
+      ],
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EE_9k5.wav",
+      "role": "engine",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "62f819fe793e09fd380bc920a3e1a59f5428b0916020540d51d5bb3c7458a060",
+      "reference_rpm": 6000,
+      "sounds_ini_range_rpm": [
+        5250,
+        8000
+      ],
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EX_Idle6.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "c2fbaa0e519ed3c3a127da4a0bb6565e2146ffa2803b6c06944ac182f31bb135",
+      "reference_rpm": 900,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EX_2k5.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "7e4aedeef0fc8e315ba08ab7b23e74dc4b931ad969a137dbf3ce98e235a998fb",
+      "reference_rpm": 2000,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "present in the source car folder but not referenced by Sounds.ini"
+    },
+    {
+      "file": "EX_6k5.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "090d508816f78de1d0df364dd91a3e6138f14ab7a5940c7603970090d078d36d",
+      "reference_rpm": 4000,
+      "sounds_ini_range_rpm": [
+        3250,
+        4750
+      ],
+      "used_by_sounds_ini": true
+    },
+    {
+      "file": "EX_9k5.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 22050,
+      "channels": 1,
+      "source_sha256": "ea8aea91ece22abe162609a37d04fcc5dffd750e028c9201a824110cb4de115e",
+      "reference_rpm": 6000,
+      "sounds_ini_range_rpm": [
+        5250,
+        8000
+      ],
+      "used_by_sounds_ini": true
+    }
+  ],
+  "policy": "Reference RPMs and ranges follow the Ford Sounds.ini. GEVP audit blends overlapping playback windows; it is not a DSP reproduction of the original engine audio mixer.",
+  "sounds_ini": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/Sounds.ini",
+  "engine_fade_range_rpm": 1000,
+  "exhaust_fade_range_rpm": 1500,
+  "engine_volume_base": 24,
+  "engine_volume_acceleration": 10,
+  "exhaust_volume_base": 70,
+  "exhaust_volume_acceleration": 30,
+  "engine_attenuation": {
+    "unit_size": 3.0,
+    "max_distance": 400.0
+  },
+  "exhaust_attenuation": {
+    "unit_size": 8.0,
+    "max_distance": 1030.0
+  },
+  "exhaust_playback_aliases": [
+    {
+      "file": "EX_Idle6.wav",
+      "reference_rpm": 900,
+      "role": "idle",
+      "reference_origin": "inherited prototype calibration; not a measured recording RPM"
+    },
+    {
+      "file": "EX_Idle6.wav",
+      "reference_rpm": 2000,
+      "role": "ExhaustSound1",
+      "reference_origin": "Sounds.ini ExhaustSound1Range; recording is intentionally reused by source"
+    }
+  ]
+}

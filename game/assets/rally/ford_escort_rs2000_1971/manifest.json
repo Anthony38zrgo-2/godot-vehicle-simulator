@@ -1,0 +1,176 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "ford_escort_rs2000_1971",
+  "source": {
+    "repository": "D:/open-formula",
+    "blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971.blend",
+    "blend_sha256": "ea058c708b01a32218768167dee36f3bf5cc752563741e1ac049607e35506078",
+    "blender_version": "5.2.0 LTS"
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation",
+    "visual_physics_offset_metres": 0.0,
+    "visual_physics_offset_reason": "The GEVP wheel ray origins are placed so the rigid-body origin rests on the wheel-contact plane; the Stage 1 Rapier chassis-frame offset does not apply to this rig."
+  },
+  "chassis": {
+    "path": "ford_escort_rs2000_1971_chassis.glb",
+    "sha256": "3f699c0a12d4e4d88591939ff7f28252197e1105a042ab8af72ebb5906ac4d84",
+    "size_bytes": 978264,
+    "source_objects": [
+      "body",
+      "hood",
+      "trunk",
+      "interior_hi",
+      "steering_wheel_hi",
+      "wipers",
+      "ext_pipe01",
+      "light_front_left01",
+      "light_front_right01",
+      "light_rear_left",
+      "light_rear_right",
+      "light_brake_left",
+      "light_brake_right",
+      "light_reverse01",
+      "indicator_rpm",
+      "indicator_speed"
+    ],
+    "exported_nodes": [
+      "body",
+      "ext_pipe01",
+      "hood",
+      "indicator_rpm",
+      "indicator_speed",
+      "interior_hi",
+      "light_brake_left",
+      "light_brake_right",
+      "light_front_left01",
+      "light_front_right01",
+      "light_rear_left",
+      "light_rear_right",
+      "light_reverse01",
+      "steering_wheel_hi",
+      "trunk",
+      "wipers"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
+      "sha256": "d47be7077da80fa3c8064263da3a9d4cb3d8645f9922a9d8578c51b913cd569e",
+      "size_bytes": 66372,
+      "source_object": "tire_fl",
+      "mirrored_across_x": false,
+      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+    },
+    "front_right": {
+      "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
+      "sha256": "a732466a73bd3650de916956f77b0d78bc8b83f1c4fb4147d91b060ab80c25c8",
+      "size_bytes": 66372,
+      "source_object": "tire_fr",
+      "mirrored_across_x": false,
+      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+    },
+    "rear_left": {
+      "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
+      "sha256": "1ba25fbd3db65556ff168d955b2d6034c0d7e276fbefabbf0a6e6096e309a1c6",
+      "size_bytes": 66368,
+      "source_object": "tire_rl",
+      "mirrored_across_x": false,
+      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+    },
+    "rear_right": {
+      "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
+      "sha256": "b6040f7b6931cf1c02f528789152090a744bc5febb258dd1b25c63d046902a84",
+      "size_bytes": 66368,
+      "source_object": "tire_rr",
+      "mirrored_across_x": false,
+      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+    }
+  },
+  "collision": {
+    "path": "ford_escort_rs2000_1971_collision.json",
+    "sha256": "0478a4d6e0811149424ff44d43a36afdd219559ecad2aa3eac551b29298a9624"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "tire_fl",
+      "center_metres": {
+        "x": -0.64,
+        "y": 0.28,
+        "z": -1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "front_right": {
+      "blender_object": "tire_fr",
+      "center_metres": {
+        "x": 0.64,
+        "y": 0.28,
+        "z": -1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "rear_left": {
+      "blender_object": "tire_rl",
+      "center_metres": {
+        "x": -0.64,
+        "y": 0.28,
+        "z": 1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "rear_right": {
+      "blender_object": "tire_rr",
+      "center_metres": {
+        "x": 0.64,
+        "y": 0.28,
+        "z": 1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    }
+  },
+  "bounds_world_metres": {
+    "min_blender": [
+      -0.8100000023841858,
+      -2.190000057220459,
+      0.004999987781047821
+    ],
+    "max_blender": [
+      0.8100000023841858,
+      1.8400002717971802,
+      1.2899999618530273
+    ],
+    "min_godot": [
+      -0.8100000023841858,
+      0.004999987781047821,
+      -1.8400002717971802
+    ],
+    "max_godot": [
+      0.8100000023841858,
+      1.2899999618530273,
+      2.190000057220459
+    ]
+  },
+  "excluded_objects": [
+    "body_lod",
+    "body_crash",
+    "hood_crash",
+    "trunk_crash",
+    "tire_fl_lod",
+    "tire_fr_lod",
+    "tire_rl_lod",
+    "tire_rr_lod",
+    "shadow_tire_fl",
+    "shadow_tire_fr",
+    "shadow_tire_rl",
+    "shadow_tire_rr"
+  ]
+}

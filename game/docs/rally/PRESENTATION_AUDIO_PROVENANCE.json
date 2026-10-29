@@ -1,0 +1,29 @@
+{
+  "source_root": "D:/open-formula",
+  "files": {
+    "rust/vehicle-models/src/powertrain.rs": "be8c1193dc634f9ba61a2479407268492f19bc8b795d0fee6feab685cea5b65f",
+    "rust/vehicle-audio-engine/src/state.rs": "32fc9cbd8a33a93c5e53fba6f799e0882a3434e56d2965460b62ecfa2b048569",
+    "rust/vehicle-audio-engine/src/mixer.rs": "163d3eaf6277d3df01b9cb214de1320a1d2abc7d64ba31311637fdd7bc39ea1c",
+    "rust/vehicle-audio-engine/src/powertrain.rs": "665be3bac5d6e8ea4ac976913f254c64573e5721322bd04425a565f30ba6f9e0",
+    "src/modules/graphic/osggraph/Viewer/FormulaHudData.h": "9e20f5c36ec5846d6c52be11b1439ab504f65b6fe0b0ae72ce0a4ccf385c7f1d",
+    "src/modules/graphic/osggraph/Viewer/FormulaHudLayout.cpp": "86f465a1f191eedea38a61e95c79a2afce8fbbe0531acb458aac6c105afd5a01",
+    "src/modules/graphic/osggraph/Viewer/FormulaHudDraw.cpp": "571ed5afb421d0121b4f71c78b2a2a6f6335d9bc43f274de4661693a33c029b9",
+    "distribution/share/games/speed-dreams-2/data/sound/backfire.wav": "8b6475ae2f5c497af33f17ee3410c3a1a262ea0bb9f71778d10183e85f41aa2c",
+    "distribution/share/games/speed-dreams-2/sounds/sound_mixer_config.json": "9346307e8235da4166592fb88dee147003ae5c64b15517c19bc35cc56d93e966",
+    "staging_rally/tracks/russia-stage1/reset1.bin": "508c734822d52fbf756e3e357d23d2aebe8af0623f7ce42f8fc076bb1cb75d40",
+    "tools/integrate_rally_resources.py": "b84d2c91ddeb9baf3cd78341d291138c04277afa07e070303c179f06dd04370d",
+    "src/modules/graphic/osggraph/Viewer/FormulaHud.cpp": "1ff5ca3d516be176944904da005844a95e8718042fe1656cab75c1c529809e41",
+    "staging_rally/cars/ra-escort-rs2000/Sounds.ini": "59428dfcfa01cfe2f3b178186c196e14aeb95f36fd46fd27ea5a0a5b533cade7"
+  },
+  "notes": [
+    "Powertrain RPM coupling and unused clutch-capacity field match the actual Rust consumer.",
+    "Audio policy is translated to GDScript; Godot provides resampling, voices and limiter.",
+    "Backfire threshold normalized from V10 to Ford maximum RPM; harmonic whine is a local approximation.",
+    "Russia timing uses ordered source reset nodes; tread zones remain unavailable.",
+    "Removed uncalibrated harmonic whine and ATAN approximation; PCM-measured RMS-normalized equal-power sample blending."
+  ],
+  "source_head": "a8a0bd171d79ffb9a466d13aff747a8158692164",
+  "local_calibration": {
+    "data/rally/audio_sample_levels.json": "f4526417659b6bcabb97d23a679f50d75ab902749354ba553f45d34b5a43a6ba"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "reference_repository": "D:/open-formula",
+  "reference_git_head": "a8a0bd171d79ffb9a466d13aff747a8158692164",
+  "note": "Hashes describe the source worktree contents read at port time; modified and untracked source files are intentionally included.",
+  "source_code_sha256": {
+    "rust/vehicle-models/src/types.rs": "e41fd726758f333e77e13ff829fff2d7510700c3ac67e80f21f1e788d3410279",
+    "rust/vehicle-models/src/profile.rs": "64b5feefc703aca1713abb7a91d38ecbf9dd54eaf91e5caddbd036989f141f97",
+    "rust/vehicle-models/src/mass.rs": "263d8c43f6b42ff233485a8dbeccab42b30769abdc85d97485f9214a4668b51a",
+    "rust/vehicle-models/src/suspension.rs": "81111ee31921a79421d1c7d018c73716265f46c2ef36e9be2a46621149ae763e",
+    "rust/vehicle-models/src/tire.rs": "2374e98a7a0c214f0eba178011dbfc7b1b244ca2b01bd774450452fe8ac1f253",
+    "rust/vehicle-models/src/powertrain.rs": "be8c1193dc634f9ba61a2479407268492f19bc8b795d0fee6feab685cea5b65f",
+    "rust/vehicle-models/src/thermals_wear.rs": "3d51f48c0fdd8fddddc65a7e4634fd0de01a11a807aa95ba2f698c51472970d4",
+    "rust/vehicle-models/src/aero.rs": "6e298e8521f5a8333426c5f1dd09cee5e784250eaeacae962a3229d52ee06734",
+    "rust/rapier-vehicle-world/src/vehicle_profile.rs": "3cd0b6ca5b5aa1a37f6a05f4e8a32a924b03a158a62d25b5486b3aeb511ecfee",
+    "rust/rapier-vehicle-world/src/ford_assembly.rs": "b364893e3fd1e95f67492ae0e29666039b81792098fafa13769f2c69c8c89156",
+    "rust/vehicle-physics-engine/src/tire.rs": "cb4c1bfdadee9c26ff12dc95afee3361aba4626cd2d395c843fff9cd2327ba79",
+    "rust/vehicle-physics-engine/src/wheel_mechanics.rs": "1ee941efd46d053cbac244e212480ef70a56c025e53beca9f0452454764abead",
+    "rust/vehicle-physics-engine/src/tire_thermals.rs": "c217aa0367196916c57e2672adf21c0fc969fd11367214e3bb527e0e456e5718",
+    "rust/vehicle-physics-engine/src/vehicle_configuration/suspension_filters.rs": "1e27314dec5468284b1fefc6f84cccb5f8e46dad3a78dca74e89888fd7dd575d",
+    "rust/vehicle-physics-engine/src/simplified_contact_kinematics.rs": "b8aa43e10f05944f7e3f75c48a43bbedc766c0d3a6aa15e1e7320291b9441fb7",
+    "rust/vehicle-physics-engine/src/suspension.rs": "45f939e91671c5e81d21dbfa7da7eedfb6f9350db2b4b074a51247bf2b91192d",
+    "rust/vehicle-physics-engine/src/powertrain_thermals.rs": "396571589b453b76a076c3cf9a6d7cf6ef95afb1e659ec62da21fe3dd37fc927",
+    "rust/vehicle-physics-engine/src/vehicle_configuration/legacy_profile.rs": "54e9017897b7fe6d380db4201fd04fa4f2dbcf193a4cbf512cdde6ed9bc48df5"
+  },
+  "profile_json_sha256": {
+    "aerodynamics.json": "1431044fbb373970187d3be7d25fc44932c64a1893fac62b3840078bba414d42",
+    "brakes.json": "be76cf7519ca97d062b6da3602a645ed3971f34e27a589f797c671427e8ed5e7",
+    "chassis.json": "07da88b23fa53d0e8c881a5c31afd5175e286387ef6d4708ff74925e2b3e88de",
+    "coupled_world.json": "adf9eb6884e22ed56ffa39876f8305848ebc9b1388a8e3430f7fa75f524581a6",
+    "driving_assistance.json": "53f593912c93825cfa2aa8eeae54199809e5882df8d2f475f08096fbf4bfd80b",
+    "fuel.json": "76885f2b741ef58ee38c2d5b2683e57a29b9f88dfe89f94ec02d25ef99b45cbb",
+    "port_validation.json": "fc92694a2582347f2ef09fd4e9cbc7f1dd64a1de0680f29f2ab34121d86b7969",
+    "powertrain.json": "c01bdfb7dbdbd987b5a5000d0ca9af3b143ad867624c431d9199fa6169429506",
+    "steering.json": "4d01064b7f1fd36f668e675ce3486a250786aa1dd68213fec48eb88c105776d3",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "suspension.json": "7961a963dd1d50cc90e209aaf0d17dd0d6b5afdf2ce7999d8065d8d7063564cd",
+    "tire_filters.json": "c44095efc3fa472e4a87e7ebccf72e7c54db13b0c1c51b1b7e959831789c9bba",
+    "tires.json": "c273ee0455aec828c3b407652c787d594c7f4ac749c4a14676054f0045355ffa",
+    "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
+    "vehicle.json": "79a93362175256cc4e1ccf1d053eaee03bd1b0a7d7cf30d87ced02b93ce08d37"
+  },
+  "reference_profile_json_sha256": {
+    "suspension_filters.json": "64f09a9963a606333dcf49f1e9ef88a7bac9fe81c3777e8a0301ab453788eec1"
+  },
+  "local_profile_overrides": {
+    "suspension_filters.json": "Activa filtros de altura, amortiguador y ARB siguiendo los rangos documentados en Rust."
+  }
+}

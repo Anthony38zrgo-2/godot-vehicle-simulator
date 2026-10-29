@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "profile_id": "ford_escort_rs2000_1971_rally_gevp",
+  "display_name": "Ford Escort RS2000 1971 - Russia Stage 1 GEVP",
+  "provenance": {
+    "source_repository": "D:/open-formula",
+    "source_profile": "D:/open-formula/rust/data/vehicles/ford-escort-rs2000",
+    "runtime_profile_loader_reference": "D:/open-formula/rust/rapier-vehicle-world/src/vehicle_profile.rs",
+    "authored_semantics_reference": "D:/open-formula/rust/vehicle-physics-engine",
+    "design_report": "scratch/rally_research/ford_profile_report.md",
+    "mass_basis": "990 kg base including uprights + 80 kg wheels + 25 kg fuel = 1095 kg",
+    "centre_of_mass_basis": "Authored inventory composition at 25 kg fuel, height 0.390 m above contact plane, 47.17 percent front",
+    "torque_basis": "Rapier runtime parabola, not the ignored authored 19-point curve",
+    "steering_basis": "30 degree effective input scale used by the Rapier C++ bridge"
+  },
+  "mass_properties": {
+    "total_mass_kilograms": 1095.0,
+    "sprung_mass_kilograms": 1007.0,
+    "unsprung_mass_kilograms": 88.0,
+    "fuel_mass_kilograms": 25.0,
+    "front_weight_distribution": 0.4717,
+    "centre_of_mass_metres": {
+      "x": 0.0,
+      "y": 0.39,
+      "z": 0.068128
+    },
+    "inertia_kilogram_square_metres": {
+      "x": 742.3,
+      "y": 785.4,
+      "z": 204.1
+    }
+  },
+  "geometry": {
+    "wheelbase_metres": 2.41,
+    "front_track_metres": 1.28,
+    "rear_track_metres": 1.28,
+    "front_axle_z_metres": -1.205,
+    "rear_axle_z_metres": 1.205,
+    "front_wheel_ray_height_metres": 0.5095,
+    "rear_wheel_ray_height_metres": 0.4818
+  },
+  "wheels": {
+    "radius_metres": 0.28,
+    "width_metres": 0.2,
+    "mass_kilograms": 20.0,
+    "spin_inertia_kilogram_square_metres": 0.8
+  },
+  "suspension": {
+    "front_spring_length_metres": 0.32,
+    "rear_spring_length_metres": 0.32,
+    "front_resting_ratio": 0.2828,
+    "rear_resting_ratio": 0.369,
+    "front_wheel_rate_newtons_per_metre": 28000.0,
+    "rear_wheel_rate_newtons_per_metre": 24000.0,
+    "front_damping_ratio": 0.35,
+    "rear_damping_ratio": 0.55,
+    "front_bump_multiplier": 1.0,
+    "front_rebound_multiplier": 1.2,
+    "rear_bump_multiplier": 1.0,
+    "rear_rebound_multiplier": 1.2,
+    "front_anti_roll_ratio": 0.2,
+    "rear_anti_roll_ratio": 0.08,
+    "front_camber_radians": -0.017453,
+    "rear_camber_radians": 0.0,
+    "front_toe_radians": 0.001745,
+    "rear_toe_radians": 0.0,
+    "front_bump_stop_multiplier": 1.0,
+    "rear_bump_stop_multiplier": 1.0
+  },
+  "steering": {
+    "maximum_angle_radians": 0.5235987755982988,
+    "steering_speed": 5.0,
+    "countersteer_speed": 8.0,
+    "speed_decay": 0.05,
+    "exponent": 1.1,
+    "front_ratio": 1.0,
+    "rear_ratio": 0.0
+  },
+  "powertrain": {
+    "maximum_torque_newton_metres": 206.0,
+    "maximum_rpm": 9500.0,
+    "idle_rpm": 1800.0,
+    "engine_inertia_kilogram_square_metres": 0.09,
+    "clutch_out_rpm": 2400.0,
+    "maximum_clutch_torque_ratio": 1.35,
+    "gear_ratios": [
+      3.172,
+      1.89,
+      1.297,
+      1.0
+    ],
+    "final_drive": 4.35,
+    "reverse_ratio": 3.317,
+    "shift_time_seconds": 0.1,
+    "automatic_transmission": false,
+    "automatic_time_between_shifts_milliseconds": 450.0,
+    "gear_inertia": 0.025,
+    "front_torque_split": 0.0,
+    "rear_differential_lock_torque_newton_metres": 75.0,
+    "torque_curve": [
+      [
+        0.0,
+        0.747125
+      ],
+      [
+        0.189474,
+        0.747125
+      ],
+      [
+        0.242105,
+        0.816031
+      ],
+      [
+        0.294737,
+        0.874
+      ],
+      [
+        0.347368,
+        0.921031
+      ],
+      [
+        0.4,
+        0.957125
+      ],
+      [
+        0.452632,
+        0.982281
+      ],
+      [
+        0.505263,
+        0.9965
+      ],
+      [
+        0.557895,
+        0.999781
+      ],
+      [
+        0.610526,
+        0.992125
+      ],
+      [
+        0.663158,
+        0.973531
+      ],
+      [
+        0.715789,
+        0.944
+      ],
+      [
+        0.768421,
+        0.903531
+      ],
+      [
+        0.821053,
+        0.852125
+      ],
+      [
+        0.873684,
+        0.789781
+      ],
+      [
+        0.926316,
+        0.7165
+      ],
+      [
+        0.978947,
+        0.632281
+      ],
+      [
+        1.0,
+        0.596
+      ]
+    ]
+  },
+  "brakes": {
+    "front_bias": 0.55,
+    "total_brake_torque_newton_metres": 5500.0,
+    "gevp_force_multiplier": 5.0,
+    "braking_grip_multiplier": 1.4,
+    "front_abs_spin_difference_threshold": 1000.0,
+    "rear_abs_spin_difference_threshold": 1000.0,
+    "front_abs_pulse_time": 0.03,
+    "rear_abs_pulse_time": 0.03
+  },
+  "aerodynamics": {
+    "drag_coefficient": 0.42,
+    "frontal_area_square_metres": 1.85,
+    "air_density_kilograms_per_cubic_metre": 1.225
+  },
+  "tires": {
+    "contact_patch_metres": 0.2,
+    "braking_grip_multiplier": 1.4,
+    "wheel_to_body_torque_multiplier": 0.0,
+    "surfaces": {
+      "Gravel": {
+        "effective_friction": 1.05,
+        "stiffness": 1.0,
+        "rolling_resistance": 2.2,
+        "lateral_grip_assist": 0.0,
+        "longitudinal_grip_ratio": 1.0
+      },
+      "Dirt": {
+        "effective_friction": 0.95,
+        "stiffness": 0.9,
+        "rolling_resistance": 2.0,
+        "lateral_grip_assist": 0.0,
+        "longitudinal_grip_ratio": 1.0
+      },
+      "Road": {
+        "effective_friction": 1.05,
+        "stiffness": 4.0,
+        "rolling_resistance": 1.0,
+        "lateral_grip_assist": 0.03,
+        "longitudinal_grip_ratio": 1.0
+      },
+      "Grass": {
+        "effective_friction": 0.65,
+        "stiffness": 0.5,
+        "rolling_resistance": 3.5,
+        "lateral_grip_assist": 0.0,
+        "longitudinal_grip_ratio": 1.0
+      },
+      "Sand": {
+        "effective_friction": 0.8,
+        "stiffness": 0.6,
+        "rolling_resistance": 3.0,
+        "lateral_grip_assist": 0.0,
+        "longitudinal_grip_ratio": 1.0
+      },
+      "Curb": {
+        "effective_friction": 1.0,
+        "stiffness": 4.0,
+        "rolling_resistance": 1.2,
+        "lateral_grip_assist": 0.0,
+        "longitudinal_grip_ratio": 1.0
+      }
+    }
+  },
+  "driving_aids": {
+    "traction_control_enabled_slip": 8.0,
+    "traction_control_disabled_slip": -1.0,
+    "stability_enabled": false,
+    "stability_yaw_strength": 6.0,
+    "stability_ground_multiplier": 2.0,
+    "stability_upright_spring": 1.0,
+    "stability_upright_damping": 1000.0,
+    "countersteer_assist": 0.9,
+    "steering_slip_assist": 0.15,
+    "abs_enabled_threshold": 12.0,
+    "abs_disabled_threshold": 1000.0,
+    "steering_slip_assist_disabled": 10.0,
+    "steering_slip_assist_enabled": 0.15
+  },
+  "surface_policy": {
+    "track_surface_group": "Gravel",
+    "combination": "GEVP replaces the separate Open Formula tire-compound and surface multiplier with one effective brush-model coefficient per surface. Gravel uses 1.05, not the raw 1.08 surface value, because GEVP subtracts load sensitivity from the coefficient and saturates through its brush model.",
+    "unsupported": [
+      "tire pressure and thermal grip coupling",
+      "load-sensitive peak friction beyond the single subtractive load term",
+      "relaxation length and pneumatic trail",
+      "per-surface peak-slip rescaling"
+    ]
+  }
+}

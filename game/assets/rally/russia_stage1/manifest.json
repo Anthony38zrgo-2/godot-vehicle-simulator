@@ -1,0 +1,124 @@
+{
+  "contract_version": 1,
+  "track_id": "russia_stage1",
+  "source": {
+    "repository": "D:/open-formula",
+    "blend": "D:/open-formula/staging_rally/tracks/russia-stage1/russia_stage1.blend",
+    "blend_sha256": "dc4103a9448bc967f652d2e0e872905367050c5467151cf9a14a61e030c6436e",
+    "blender_version": "5.2.0 LTS",
+    "blend_file_version": [
+      5,
+      2,
+      44
+    ],
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf"
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0,
+    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation"
+  },
+  "start_pose": {
+    "ground_blender": [
+      -2.18,
+      38.388,
+      -1.7963
+    ],
+    "ground_godot": [
+      -2.18,
+      -1.7963,
+      -38.388
+    ],
+    "heading_radians": -0.0008558533301677789,
+    "pitch_degrees": -2.4615,
+    "roll_degrees": 0.21,
+    "spawn_clearance_metres": 0.08,
+    "ground_source": "raycast against the stage visual and collision terrain at the start node, not reset1.bin node elevation",
+    "source": "D:/open-formula/staging_rally/integration/transform.json plus scratch/rally_research/open_formula_assets_report.md"
+  },
+  "visual": {
+    "path": "russia_stage1_visual.glb",
+    "sha256": "04981251d2e1790072cbecc136fb2f9010d3c999e230e279031eb42e7d934c08",
+    "size_bytes": 20663700,
+    "source_objects": [
+      "Track_Road_And_Terrain",
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers"
+    ],
+    "exported_nodes": [
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers",
+      "Track_Road_And_Terrain"
+    ]
+  },
+  "collision": {
+    "path": "russia_stage1_collision.glb",
+    "sha256": "12d1dcc2dbb9ae964c6b006ae532ce0385a09dd37347b77c4b6391959964ea67",
+    "size_bytes": 4884340,
+    "collision_objects": {
+      "Collision_Terrain": 79752,
+      "Collision_Barriers": 4275,
+      "Collision_Buildings": 1528,
+      "Collision_Props": 10705,
+      "Collision_Tree_trunks": 8571
+    },
+    "exported_nodes": [
+      "Collision_Barriers",
+      "Collision_Buildings",
+      "Collision_Props",
+      "Collision_Terrain",
+      "Collision_Tree_trunks"
+    ],
+    "material_policy": {
+      "terrain": [
+        "road_*",
+        "terrain_* except terrain_field_1_alpha"
+      ],
+      "barriers": [
+        "fence_*",
+        "roadbar1",
+        "string_red",
+        "gate_finish"
+      ],
+      "buildings": [
+        "house_*",
+        "building_*",
+        "tent*",
+        "haybarn_*"
+      ],
+      "props": [
+        "pylon_*",
+        "sign_*",
+        "stone_*",
+        "rock_big_*",
+        "power_line_1",
+        "checkpoint"
+      ],
+      "tree_trunks": [
+        "russian_tree_trunks"
+      ],
+      "excluded": [
+        "russian_tree_plane",
+        "forest_mixed_*",
+        "bush_4",
+        "grass",
+        "audience_*",
+        "sand_erosion_*",
+        "ditch_*",
+        "field_background",
+        "terrain_field_1_alpha",
+        "power_line_cord",
+        "polyn_1_wire"
+      ]
+    }
+  },
+  "sky_policy": "ProceduralSkyMaterial tuned to Stage1.txt ambient, sun and exponential fog; stage1sky.BMF is not decoded",
+  "trigger_policy": "Triggers_And_Startpoints has no collision role in this experiment and is not exported"
+}

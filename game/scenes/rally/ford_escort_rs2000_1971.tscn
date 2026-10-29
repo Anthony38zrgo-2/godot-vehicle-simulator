@@ -1,0 +1,53 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
+[ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_chassis.glb" id="2_chassis"]
+[ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_wheel_front_left.glb" id="3_wheel_front_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_wheel_front_right.glb" id="4_wheel_front_right"]
+[ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_wheel_rear_left.glb" id="5_wheel_rear_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_wheel_rear_right.glb" id="6_wheel_rear_right"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ford"]
+friction = 0.9
+bounce = 0.0
+
+[node name="FordEscortRS2000" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 1
+physics_material_override = SubResource("PhysicsMaterial_ford")
+can_sleep = false
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 8
+script = ExtResource("1_vehicle")
+
+[node name="Chassis" parent="." instance=ExtResource("2_chassis")]
+
+[node name="WheelFrontLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontLeft"]
+
+[node name="WheelMesh" parent="WheelFrontLeft/WheelVisual" instance=ExtResource("3_wheel_front_left")]
+
+[node name="WheelFrontRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontRight"]
+
+[node name="WheelMesh" parent="WheelFrontRight/WheelVisual" instance=ExtResource("4_wheel_front_right")]
+
+[node name="WheelRearLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearLeft"]
+
+[node name="WheelMesh" parent="WheelRearLeft/WheelVisual" instance=ExtResource("5_wheel_rear_left")]
+
+[node name="WheelRearRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearRight"]
+
+[node name="WheelMesh" parent="WheelRearRight/WheelVisual" instance=ExtResource("6_wheel_rear_right")]
+
+[node name="VehicleAudio" type="Node3D" parent="."]
+script = ExtResource("7_audio")
+vehicle_path = NodePath("..")

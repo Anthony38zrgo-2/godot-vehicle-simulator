@@ -1,3 +1,11 @@
 .godot/
 *.import
 *.uid
+
+# Generated standalone runtime state and validation/export outputs.
+.tools/appdata/
+.tools/localappdata/
+build/
+dist/
+scratch/
+game/logs/
