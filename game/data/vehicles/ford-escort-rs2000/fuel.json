@@ -9,7 +9,7 @@
     "reference_lap_time_s": 180.0,
     "tank_position_local_m": {
       "x": 0.0,
-      "y": 0.0,
+      "y": 0.45,
       "z": 1.4
     }
   }

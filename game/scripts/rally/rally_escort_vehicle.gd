@@ -24,6 +24,9 @@ var maximum_steering_angle: float = 0.0
 var steering_speed: float = 5.0
 var countersteer_speed: float = 5.0
 var steering_speed_decay: float = 0.05
+var steering_filter_start_kph: float = 20.0
+var steering_filter_reference_kph: float = 65.0
+var steering_filter_minimum_gain: float = 0.20
 var steering_exponent: float = 1.0
 var front_steering_ratio: float = 1.0
 var rear_steering_ratio: float = 0.0
@@ -120,6 +123,9 @@ func apply_vehicle_properties() -> void:
 	steering_speed = float(steering.get("steering_speed", 5.0))
 	countersteer_speed = steering_speed
 	steering_speed_decay = float(steering.get("steering_speed_decay", 0.0))
+	steering_filter_start_kph = maxf(float(steering.get("speed_filter_start_kph", 20.0)), 0.0)
+	steering_filter_reference_kph = maxf(float(steering.get("speed_filter_reference_kph", 65.0)), 1.0)
+	steering_filter_minimum_gain = clampf(float(steering.get("speed_filter_minimum_gain", 0.20)), 0.05, 1.0)
 	front_steering_ratio = simulation.front_steering_ratio
 	rear_steering_ratio = simulation.rear_steering_ratio
 	var aids: Dictionary = simulation.domains.get("driving_assistance", {}).get("aids", {})
@@ -238,8 +244,16 @@ func _physics_process(delta: float) -> void:
 	throttle_amount = _shape_input(throttle_amount, throttle_input, float(_input_smoothing.get("throttle", 0.0)), delta, smoothing_enabled)
 	brake_amount = _shape_input(brake_amount, brake_input, float(_input_smoothing.get("brake", 0.0)), delta, smoothing_enabled)
 	handbrake_amount = clampf(handbrake_input, 0.0, 1.0)
-	var steering_rate := countersteer_speed if absf(steering_input) < absf(steering_amount) else steering_speed / (1.0 + steering_speed_decay * speed)
-	steering_amount = move_toward(steering_amount, clampf(steering_input, -1.0, 1.0), maxf(steering_rate, 0.0) * delta)
+	# Attenuate the command before the existing steering exponent and Ackermann.
+	# Tangential speed avoids reducing authority merely because the car is falling.
+	var local_velocity := global_basis.inverse() * linear_velocity
+	var planar_speed_kph := Vector2(local_velocity.x, local_velocity.z).length() * 3.6
+	var excess_speed := maxf(planar_speed_kph - steering_filter_start_kph, 0.0)
+	var steering_gain := maxf(steering_filter_minimum_gain, 1.0 / (1.0 + pow(excess_speed / steering_filter_reference_kph, 2.0)))
+	var steering_target := clampf(steering_input, -1.0, 1.0) * steering_gain
+	var returning := absf(steering_target) < absf(steering_amount)
+	var steering_rate := countersteer_speed if returning else steering_speed / (1.0 + steering_speed_decay * planar_speed_kph / 3.6)
+	steering_amount = move_toward(steering_amount, steering_target, maxf(steering_rate, 0.0) * steering_gain * delta)
 	true_steering_amount = steering_amount * maximum_steering_angle
 	var auto_clutch: bool = bool(simulation.domains.get("driving_assistance", {}).get("aids", {}).get("auto_clutch_default_enabled", false))
 	clutch_amount = 1.0 - clampf(clutch_input, 0.0, 1.0)

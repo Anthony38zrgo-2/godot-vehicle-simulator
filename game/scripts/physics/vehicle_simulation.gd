@@ -266,8 +266,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(free_thermal_state.get("carcass_c", 25.0))
 			)
 			wheel_slips[i] = Vector2(float(free_result.get("slip_ratio", 0.0)), float(free_result.get("slip_angle_rad", 0.0)))
-			_continue_wheel_spin(i, dt, float(drive_torques[i]), float(brake_torques[i]), 0.0)
-			thermal_model.advance_tire(i, 0.0, 0.0, state.linear_velocity.length(), dt)
+			var free_brake_energy := _continue_wheel_spin(i, dt, float(drive_torques[i]), float(brake_torques[i]), 0.0)
+			var free_brake_power := free_brake_energy / dt
+			thermal_model.advance_tire(i, 0.0, free_brake_power, state.linear_velocity.length(), dt)
 			continue
 		var point: Vector3 = contact["position"]
 		var normal: Vector3 = contact["normal"]
@@ -363,19 +364,38 @@ func update_wheel_visuals(steering_input: float, delta: float) -> void:
 			wheel_visuals[i].rotation = Vector3(wheel_rotation_angles[i], 0.0, wheel_camber)
 
 
-func _continue_wheel_spin(index: int, delta: float, drive_torque: float, brake_torque: float, tire_reaction_torque: float) -> void:
+func _continue_wheel_spin(index: int, delta: float, drive_torque: float, brake_torque: float, tire_reaction_torque: float) -> float:
+	# Input brake torque is a capacity (positive magnitude). Return dissipated
+	# work in joules, integrating only the interval where the rotor actually moves.
 	var inertia := maxf(mass_model.wheel_spin_inertia[index], 0.01)
 	if powertrain_model.wheel_is_driven(index):
 		# Reflect engine and gearbox inertia through the active ratio onto each driven wheel.
 		inertia += maxf(powertrain_model.drive_inertia_kg_m2, 0.0)
 	var substeps := maxi(1, ceili(delta / maximum_substep_seconds))
 	var substep := delta / float(substeps)
+	var capacity := absf(brake_torque)
+	var external_torque := drive_torque - tire_reaction_torque
+	var dissipated_j := 0.0
 	for _step in substeps:
-		var angular_acceleration := (drive_torque - brake_torque - tire_reaction_torque) / inertia
-		var next_spin := wheel_spins[index] + angular_acceleration * substep
-		if signf(wheel_spins[index]) != signf(next_spin) and absf(brake_torque) > 0.0 and absf(drive_torque - tire_reaction_torque) < absf(brake_torque):
+		var before := wheel_spins[index]
+		if absf(before) < 1.0e-9 and absf(external_torque) <= capacity:
+			wheel_spins[index] = 0.0
+			continue
+		var direction := signf(before) if absf(before) >= 1.0e-9 else signf(external_torque)
+		var angular_acceleration := (external_torque - capacity * direction) / inertia
+		var next_spin := before + angular_acceleration * substep
+		if before * next_spin < 0.0 or (before != 0.0 and next_spin == 0.0):
+			var stop_time := clampf(-before / angular_acceleration, 0.0, substep)
+			dissipated_j += capacity * absf(before) * stop_time * 0.5
 			next_spin = 0.0
+			if absf(external_torque) > capacity:
+				var remaining := substep - stop_time
+				next_spin = (external_torque - capacity * signf(external_torque)) / inertia * remaining
+				dissipated_j += capacity * absf(next_spin) * remaining * 0.5
+		else:
+			dissipated_j += capacity * (absf(before) + absf(next_spin)) * substep * 0.5
 		wheel_spins[index] = clampf(next_spin, -1800.0, 1800.0)
+	return dissipated_j
 
 
 func _wheel_steer_angle(index: int, input_value: float) -> float:
@@ -459,8 +479,7 @@ func _solve_contact_wheel(index: int, dt: float, load_n: float, surface: String,
 		result = tire_model.evaluate(index, load_n, surface, vx, vy, wheel_spins[index], wheel_radii[index], camber, thermal_model.tire_grip_factor(index), pressure, dt, carcass_temperature_c)
 		for key in ["longitudinal_force_n", "lateral_force_n", "aligning_torque_nm", "friction_power_w"]:
 			averages[key] += float(result.get(key, 0.0)) / float(count)
-		averages.brake_power_w += absf(brake * wheel_spins[index]) / float(count)
-		var direction := signf(wheel_spins[index]) if absf(wheel_spins[index]) > 0.2 else signf(vx)
-		_continue_wheel_spin(index, h, drive, brake * direction, float(result.get("longitudinal_force_n", 0.0)) * wheel_radii[index])
+		var brake_energy := _continue_wheel_spin(index, h, drive, brake, float(result.get("longitudinal_force_n", 0.0)) * wheel_radii[index])
+		averages.brake_power_w += brake_energy / dt
 	result.merge(averages, true)
 	return result

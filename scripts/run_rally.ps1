@@ -32,6 +32,12 @@ function Resolve-Godot([string]$ExplicitPath) {
     if ($env:GODOT_BIN -and (Test-Path -LiteralPath $env:GODOT_BIN -PathType Leaf)) {
         return (Resolve-Path -LiteralPath $env:GODOT_BIN).Path
     }
+    # The desktop app may predate a global per-user installation. Read its
+    # persisted setting too, without requiring the user to restart the app.
+    $userGodotBin = [Environment]::GetEnvironmentVariable('GODOT_BIN', 'User')
+    if ($userGodotBin -and (Test-Path -LiteralPath $userGodotBin -PathType Leaf)) {
+        return (Resolve-Path -LiteralPath $userGodotBin).Path
+    }
     $neighboringFormula90sTools = Join-Path (Split-Path -Parent $repositoryRoot) 'Formula90s\.tools\godot'
     foreach ($candidate in @(
         (Join-Path $repositoryRoot '.tools\godot\Godot_v4.7.1-stable_win64_console.exe'),
@@ -51,7 +57,7 @@ function Resolve-Godot([string]$ExplicitPath) {
             return $command.Source
         }
     }
-    throw 'Godot 4.7.1 no encontrado en el proyecto, Formula90s, GODOT_BIN ni PATH. Use -GodotPath o defina GODOT_BIN.'
+    throw 'Godot no encontrado en GODOT_BIN (sesion o usuario), las herramientas locales ni PATH. Use -GodotPath o defina GODOT_BIN.'
 }
 
 function Assert-File([string]$Path, [string]$Label) {

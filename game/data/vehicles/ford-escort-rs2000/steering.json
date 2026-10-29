@@ -8,6 +8,9 @@
     "steering_exponent": 1.1,
     "steering_slip_assist": 0.0,
     "steering_speed": 5.0,
-    "steering_speed_decay": 0.05
+    "steering_speed_decay": 0.05,
+    "speed_filter_start_kph": 20.0,
+    "speed_filter_reference_kph": 65.0,
+    "speed_filter_minimum_gain": 0.2
   }
 }

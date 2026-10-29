@@ -49,6 +49,13 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 			if wheel_index < wheel_spin_inertia.size():
 				var component_inertia := _inertia_diagonal(properties)
 				wheel_spin_inertia[wheel_index] = maxf(component_inertia.x, 0.01)
+		elif str(attachment.get("kind", "body")) == "upright":
+			var wheel_index := WHEEL_NAMES.find(str(attachment.get("wheel", "")))
+			if wheel_index < 0:
+				return {"ok": false, "error": "Unknown upright wheel attachment: " + str(attachment.get("wheel", ""))}
+			# Upright centres are authored relative to their wheel, not body origin.
+			# Their mass remains part of the single rigid-body approximation.
+			offset = wheel_centres[wheel_index]
 		elif str(attachment.get("kind", "body")) != "body":
 			unsupported_attachment_components.append(component_name)
 		var inertia_center := _inertia_matrix(properties)

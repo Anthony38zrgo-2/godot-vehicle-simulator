@@ -19,6 +19,10 @@ var fuel_capacity_litres: float = 0.0
 var fuel_density_kg_litre: float = 0.74
 var fuel_burned_litres: float = 0.0
 var ambient_temperature_c: float = 25.0
+var brake_thermal_config: Dictionary = {}
+var brake_disc_heat_capacity_j_k: Array[float] = []
+var brake_disc_area_m2: Array[float] = []
+var brake_disc_emissivity: Array[float] = []
 
 
 func configure(domains: Dictionary) -> Dictionary:
@@ -38,6 +42,22 @@ func configure(domains: Dictionary) -> Dictionary:
 	fuel_density_kg_litre = float(fuel.get("density_kg_per_litre", 0.74))
 	fuel_capacity_litres = float(fuel.get("capacity_kg", 0.0)) / maxf(fuel_density_kg_litre, 0.000001)
 	fuel_remaining_litres = float(fuel.get("initial_kg", fuel.get("capacity_kg", 0.0))) / maxf(fuel_density_kg_litre, 0.000001)
+	var brakes: Dictionary = domains.get("brakes", {}).get("brakes", {})
+	brake_thermal_config = brakes.get("thermal", {}).duplicate(true)
+	brake_disc_heat_capacity_j_k.clear()
+	brake_disc_area_m2.clear()
+	brake_disc_emissivity.clear()
+	for axle in ["front", "front", "rear", "rear"]:
+		var rotor: Dictionary = brake_thermal_config.get(axle, {})
+		# Grey cast iron specific heat: 500 J/(kg K), published material value.
+		# Area is the two swept faces; hub/rim cooling is not assumed here.
+		var radius_outer := float(rotor.get("rotor_outer_diameter_m", 0.0)) * 0.5
+		var radius_inner := float(rotor.get("rotor_inner_diameter_m", 0.0)) * 0.5
+		var rotor_mass := float(rotor.get("rotor_mass_kg", 0.0))
+		var face_area := 2.0 * PI * maxf(radius_outer * radius_outer - radius_inner * radius_inner, 0.0)
+		brake_disc_heat_capacity_j_k.append(maxf(rotor_mass * 500.0, 1.0))
+		brake_disc_area_m2.append(face_area)
+		brake_disc_emissivity.append(float(rotor.get("rotor_radiation_emissivity", 0.7)))
 	var cold_pressures: Dictionary = pressure_config.get("cold_kpa_gauge", {})
 	var reference_temp := float(pressure_config.get("reference_temperature_c", 25.0))
 	var initial_tire_temp := float(tire_config.get("initial_temperature_c", ambient_temperature_c))
@@ -56,7 +76,9 @@ func configure(domains: Dictionary) -> Dictionary:
 			"pressure_reference_bar_gauge": reference_pressure_bar,
 			"pressure_reference_temp_c": reference_temp,
 			"wear_fraction": 0.0,
-			"brake_disc_c": ambient_temperature_c,
+			"brake_disc_c": maxf(float(brake_thermal_config.get("initial_temperature_c", ambient_temperature_c)), ambient_temperature_c),
+			"brake_heating_w": 0.0,
+			"brake_cooling_w": 0.0,
 		})
 	_update_torque_derating()
 	return {"ok": true}
@@ -144,11 +166,48 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
 	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.5, 4.0)
 	state.wear_fraction = clampf(float(state.wear_fraction) + maxf(friction_power_w, 0.0) * dt * 1.0e-9, 0.0, 1.0)
-	var cooling_speed := maxf(absf(speed_m_s), 1.0)
-	var disc_cooling := 20.0 + 12.0 * cooling_speed
 	var disc_temperature := float(state.brake_disc_c)
-	state.brake_disc_c = clampf(disc_temperature + (maxf(braking_power_w, 0.0) - disc_cooling * (disc_temperature - ambient_temperature_c)) / 2500.0 * dt, ambient_temperature_c, 900.0)
+	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
+	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s)
+	var cooling_w := float(losses.cooling_w)
+	var heat_fraction := float(brake_thermal_config.get("braking_heat_fraction", 0.95))
+	state.brake_heating_w = maxf(braking_power_w, 0.0) * clampf(heat_fraction, 0.0, 1.0)
+	state.brake_cooling_w = cooling_w
+	state.brake_convection_w_k = losses.convection_w_k
+	var next_disc_temperature := disc_temperature + (float(state.brake_heating_w) - cooling_w) / heat_capacity * dt
+	state.brake_disc_c = clampf(next_disc_temperature, ambient_temperature_c, 1200.0)
 	tire_states[index] = state
+
+
+func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> Dictionary:
+	var rotor: Dictionary = brake_thermal_config.get("front" if index < 2 else "rear", {})
+	var length_m := maxf(float(rotor.get("rotor_outer_diameter_m", 0.245)), 0.01)
+	var area := brake_disc_area_m2[index]
+	var disc_k := temperature_c + 273.15
+	var air_k := ambient_temperature_c + 273.15
+	var film_k := maxf(0.5 * (disc_k + air_k), 200.0)
+	# Air at one atmosphere, Sutherland viscosity; conductivity approximation.
+	var viscosity := 1.716e-5 * pow(film_k / 273.15, 1.5) * 383.55 / (film_k + 110.4)
+	var density := 101325.0 / (287.05 * film_k)
+	var conductivity := 0.02624 * pow(film_k / 300.0, 0.85)
+	var prandtl := 1005.0 * viscosity / conductivity
+	var nu := viscosity / density
+	var local_speed := absf(speed_m_s) * clampf(float(rotor.get("installation_airflow_scale", 0.6)), 0.0, 1.0)
+	var reynolds := local_speed * length_m / nu
+	# Flat-plate equivalent for the exposed annular faces, not a duct model.
+	# ASHRAE/Incropera average laminar and transitional correlations.
+	var forced_nusselt := 0.664 * sqrt(reynolds) * pow(prandtl, 1.0 / 3.0)
+	if reynolds > 500000.0:
+		forced_nusselt = (0.037 * pow(reynolds, 0.8) - 871.0) * pow(prandtl, 1.0 / 3.0)
+	var delta_t := maxf(temperature_c - ambient_temperature_c, 0.0)
+	var diffusivity := conductivity / (density * 1005.0)
+	var rayleigh := 9.80665 * delta_t * pow(length_m, 3.0) / (film_k * nu * diffusivity)
+	# Churchill-Chu vertical-surface approximation for stationary cooling.
+	var natural_nusselt := pow(0.825 + 0.387 * pow(rayleigh, 1.0 / 6.0) / pow(1.0 + pow(0.492 / prandtl, 9.0 / 16.0), 8.0 / 27.0), 2.0)
+	var conductance := area * conductivity / length_m * maxf(natural_nusselt, forced_nusselt)
+	var view_factor := clampf(float(rotor.get("rotor_radiation_ambient_view_factor", 0.4)), 0.0, 1.0)
+	var radiation := brake_disc_emissivity[index] * 5.670374419e-8 * area * view_factor * (pow(disc_k, 4.0) - pow(air_k, 4.0))
+	return {"cooling_w": conductance * delta_t + radiation, "convection_w_k": conductance}
 
 
 func tire_grip_factor(index: int) -> float:
@@ -170,9 +229,16 @@ func tire_grip_factor(index: int) -> float:
 
 func brake_fade_factor(index: int) -> float:
 	var temperature := float(tire_states[index].brake_disc_c)
-	if temperature <= 550.0:
+	var start := float(brake_thermal_config.get("fade_start_temperature_c", 550.0))
+	var critical := float(brake_thermal_config.get("critical_temperature_c", 750.0))
+	var minimum := float(brake_thermal_config.get("minimum_fade_efficiency", 0.5))
+	var cold_efficiency := float(brake_thermal_config.get("cold_efficiency", 0.85))
+	var optimal_minimum := float(brake_thermal_config.get("optimal_min_temperature_c", 150.0))
+	if temperature < optimal_minimum:
+		return lerpf(clampf(cold_efficiency, 0.0, 1.0), 1.0, clampf(temperature / maxf(optimal_minimum, 1.0), 0.0, 1.0))
+	if temperature <= start:
 		return 1.0
-	return clampf(1.0 - 0.50 * ((temperature - 550.0) / 300.0), 0.40, 1.0)
+	return lerpf(1.0, clampf(minimum, 0.0, 1.0), clampf((temperature - start) / maxf(critical - start, 1.0), 0.0, 1.0))
 
 
 func advance_fuel(engine_power_w: float, delta: float) -> float:
@@ -232,6 +298,9 @@ func get_tire_thermal_state_snapshot(index: int) -> Dictionary:
 		"pressure_kpa_gauge": float(state.pressure_bar_gauge) * 100.0,
 		"wear_fraction": state.wear_fraction,
 		"brake_disc_c": state.brake_disc_c,
+		"brake_heating_w": state.get("brake_heating_w", 0.0),
+		"brake_cooling_w": state.get("brake_cooling_w", 0.0),
+		"brake_convection_w_k": state.get("brake_convection_w_k", 0.0),
 		"grip_factor": tire_grip_factor(index),
 		"brake_fade_factor": brake_fade_factor(index),
 	}
