@@ -49,6 +49,7 @@ func configure(domains: Dictionary) -> Dictionary:
 		tire_states.append({
 			"surface_c": initial_tire_temp,
 			"tread_c": initial_tire_temp,
+			"tread_zones_c": [initial_tire_temp, initial_tire_temp, initial_tire_temp],
 			"carcass_c": initial_tire_temp,
 			"gas_c": initial_tire_temp,
 			"pressure_bar_gauge": reference_pressure_bar,
@@ -93,24 +94,47 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var state: Dictionary = tire_states[index]
 	var dt := maxf(delta, 0.0)
-	var tread := float(state.tread_c)
+	var zones: Array = state.get("tread_zones_c", [state.tread_c, state.tread_c, state.tread_c]).duplicate()
+	var tread := (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var carcass := float(state.carcass_c)
 	var gas := float(state.gas_c)
 	var tread_to_carcass := float(tire_config.get("tread_to_carcass_w_k", 0.0)) * (tread - carcass)
 	var carcass_to_gas := float(tire_config.get("carcass_to_gas_w_k", 0.0)) * (carcass - gas)
 	var slip_heat := maxf(friction_power_w, 0.0) * float(tire_config.get("slip_heat_efficiency", 0.0))
-	var tread_capacity := maxf(float(tire_config.get("tread_zone_heat_capacity_j_k", 1.0)), 1.0)
+	var tread_capacity := maxf(float(tire_config.get("tread_zone_heat_capacity_j_k", 1.0)) / 3.0, 1.0)
 	var carcass_capacity := maxf(float(tire_config.get("carcass_heat_capacity_j_k", 1.0)), 1.0)
 	var gas_capacity := maxf(float(tire_config.get("gas_heat_capacity_j_k", 1.0)), 1.0)
-	var next_tread := tread + dt * (slip_heat - tread_to_carcass - float(tire_config.get("tread_to_air_w_k", 0.0)) * (tread - ambient_temperature_c) - float(tire_config.get("road_conductance_w_k", 0.0)) * (tread - float(tire_config.get("track_fallback_c", ambient_temperature_c)))) / tread_capacity
+	# Camber changes shoulder loading. Positive physical camber biases heat outward;
+	# the center remains nearly neutral and total generated heat stays conserved.
+	var shoulder_bias := clampf(camber_rad / deg_to_rad(8.0), -1.0, 1.0) * 0.18
+	var heat_shares := [1.0 / 3.0 - shoulder_bias, 1.0 / 3.0, 1.0 / 3.0 + shoulder_bias]
+	var air_conductance := float(tire_config.get("tread_to_air_w_k", 0.0)) / 3.0
+	var road_conductance := float(tire_config.get("road_conductance_w_k", 0.0)) / 3.0
+	var carcass_conductance := float(tire_config.get("tread_to_carcass_w_k", 0.0)) / 3.0
+	var lateral_conductance := float(tire_config.get("lateral_tread_conductance_w_k", 0.0)) / 2.0
+	for zone_index in 3:
+		var zone_temperature := float(zones[zone_index])
+		var lateral_heat := 0.0
+		if zone_index > 0:
+			lateral_heat += lateral_conductance * (float(zones[zone_index - 1]) - zone_temperature)
+		if zone_index < 2:
+			lateral_heat += lateral_conductance * (float(zones[zone_index + 1]) - zone_temperature)
+		var zone_to_carcass := carcass_conductance * (zone_temperature - carcass)
+		var zone_heat := slip_heat * float(heat_shares[zone_index]) - zone_to_carcass
+		zone_heat -= air_conductance * (zone_temperature - ambient_temperature_c)
+		zone_heat -= road_conductance * (zone_temperature - float(tire_config.get("track_fallback_c", ambient_temperature_c)))
+		zone_heat += lateral_heat
+		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, ambient_temperature_c, 150.0)
+	tread = (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var next_carcass := carcass + dt * (tread_to_carcass - carcass_to_gas - float(tire_config.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
 	var next_gas := gas + dt * carcass_to_gas / gas_capacity
-	state.tread_c = clampf(next_tread, ambient_temperature_c, 150.0)
+	state.tread_zones_c = zones
+	state.tread_c = tread
 	state.surface_c = state.tread_c
 	state.carcass_c = clampf(next_carcass, ambient_temperature_c, 180.0)
 	state.gas_c = clampf(next_gas, ambient_temperature_c, 180.0)
@@ -199,6 +223,9 @@ func get_tire_thermal_state_snapshot(index: int) -> Dictionary:
 	return {
 		"surface_c": state.surface_c,
 		"tread_c": state.tread_c,
+		"tread_inner_c": float(state.tread_zones_c[0]),
+		"tread_center_c": float(state.tread_zones_c[1]),
+		"tread_outer_c": float(state.tread_zones_c[2]),
 		"carcass_c": state.carcass_c,
 		"gas_c": state.gas_c,
 		"pressure_bar_gauge": state.pressure_bar_gauge,

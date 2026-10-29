@@ -169,6 +169,7 @@ func service_new_tires() -> void:
 		var state: Dictionary = simulation.thermal_model.tire_states[index]
 		state.surface_c = simulation.thermal_model.ambient_temperature_c
 		state.tread_c = simulation.thermal_model.ambient_temperature_c
+		state.tread_zones_c = [simulation.thermal_model.ambient_temperature_c, simulation.thermal_model.ambient_temperature_c, simulation.thermal_model.ambient_temperature_c]
 		state.carcass_c = simulation.thermal_model.ambient_temperature_c
 		state.gas_c = simulation.thermal_model.ambient_temperature_c
 		state.wear_fraction = 0.0

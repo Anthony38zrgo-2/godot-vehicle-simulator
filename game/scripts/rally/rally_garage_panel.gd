@@ -10,13 +10,13 @@ const CAR_TEXTURE: Texture2D = preload("res://assets/rally/garage/formula-car-to
 const C_BG := Color("#171b1f")
 const C_PANEL := Color("#1e2429")
 const C_PANEL_ALT := Color("#242c32")
-const C_LINE := Color("#39434a")
+const C_LINE := Color("#607e91")
 const C_STEEL := Color("#607e91")
-const C_STEEL_DARK := Color("#354b59")
+const C_STEEL_DARK := Color("#343e46")
 const C_GOLD := Color("#e3b23c")
 const C_WHITE := Color("#e9ece8")
-const C_MUTED := Color("#98a2a7")
-const C_RED := Color("#c86c5b")
+const C_MUTED := Color("#a8b5ba")
+const C_RED := Color("#ff6b61")
 const PAD_NAME_CHARACTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
 
 @export var vehicle_path: NodePath

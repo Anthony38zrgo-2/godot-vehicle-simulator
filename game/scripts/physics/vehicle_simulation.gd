@@ -301,7 +301,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		wheel_slips[i] = Vector2(float(tire_result.get("slip_ratio", 0.0)), float(tire_result.get("slip_angle_rad", 0.0)))
 		tire_powers[i] = float(tire_result.get("friction_power_w", 0.0))
 		brake_powers[i] = float(tire_result.get("brake_power_w", 0.0))
-		thermal_model.advance_tire(i, tire_powers[i], brake_powers[i], point_velocity.length(), dt)
+		thermal_model.advance_tire(i, tire_powers[i], brake_powers[i], point_velocity.length(), dt, wheel_camber)
 	var shaft_torque := float(drive_torques[0]) + float(drive_torques[1]) + float(drive_torques[2]) + float(drive_torques[3])
 	if absf(shaft_torque) > 0.0:
 		state.apply_torque(-body_right * shaft_torque)
