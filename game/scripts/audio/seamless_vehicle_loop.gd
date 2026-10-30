@@ -4,7 +4,10 @@ extends RefCounted
 # PCM16 RIFF loader: smooth the wrap by the Rust core's 512/44100 s window.
 # The bank bytes remain untouched. Godot owns audio-thread mixing/resampling.
 static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = {}) -> AudioStreamWAV:
-	var file := FileAccess.open(path, FileAccess.READ)
+	# Exports normally replace WAV sources with imported resources. The build
+	# packs an untouched .pcm copy for this RIFF reader and its seamless loops.
+	var source_path := path + ".pcm" if FileAccess.file_exists(path + ".pcm") else path
+	var file := FileAccess.open(source_path, FileAccess.READ)
 	if file == null:
 		return null
 	var bytes := file.get_buffer(file.get_length())

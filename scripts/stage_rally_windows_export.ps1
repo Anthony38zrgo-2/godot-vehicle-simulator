@@ -59,6 +59,11 @@ Copy-SourceDirectory (Join-Path $gameRoot 'data\rally') (Join-Path $stageRoot 'd
 Copy-SourceDirectory (Join-Path $gameRoot 'data\input') (Join-Path $stageRoot 'data\input')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\ford_escort_rs2000_rally') (Join-Path $stageRoot 'sounds\banks\ford_escort_rs2000_rally')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\commons') (Join-Path $stageRoot 'sounds\banks\commons')
+# Preserve RIFF bytes for SeamlessVehicleLoop without replacing the imported
+# AudioStreamWAV resources used by event sounds.
+foreach ($wave in Get-ChildItem -LiteralPath (Join-Path $stageRoot 'sounds') -Filter '*.wav' -Recurse -File) {
+    Copy-Item -LiteralPath $wave.FullName -Destination ($wave.FullName + '.pcm') -Force
+}
 Copy-SourceDirectory (Join-Path $gameRoot 'scripts\audio') (Join-Path $stageRoot 'scripts\audio')
 New-Item -ItemType Directory -Force -Path (Join-Path $stageRoot 'scripts\input') | Out-Null
 Copy-Item -LiteralPath (Join-Path $gameRoot 'scripts\input\input_bindings.gd') -Destination (Join-Path $stageRoot 'scripts\input\input_bindings.gd') -Force
@@ -120,7 +125,7 @@ runnable=true
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter=""
+include_filter="*.json,*.md,*.txt,*.sql,*.pcm"
 exclude_filter=""
 export_path="FordEscortRS2000Rally.exe"
 encryption_include_filters=""
@@ -209,6 +214,11 @@ if (-not (Test-Path -LiteralPath $executablePath -PathType Leaf)) {
 }
 Remove-Item -LiteralPath $mediumExecutablePath -Force
 
+# Exported GDExtension DLLs must accompany the final executable, too.
+foreach ($dependency in Get-ChildItem -LiteralPath $mediumOutputDirectory -Filter '*.dll' -File) {
+    Copy-Item -LiteralPath $dependency.FullName -Destination $outputDirectory -Force
+}
+
 $head = (& git -C $repositoryRoot rev-parse HEAD).Trim()
 $branch = (& git -C $repositoryRoot branch --show-current).Trim()
 $sourceFiles = Get-ChildItem -LiteralPath $stageRoot -Recurse -File | Where-Object {
@@ -234,7 +244,7 @@ $manifest = [ordered]@{
     executable_size_bytes = (Get-Item -LiteralPath $executablePath).Length
     staged_project = $stageRoot
     staged_files = $sourceFiles
-    native_extension = 'none; the active vehicle uses GDScript and Godot Jolt'
+    native_extension = 'godot-sqlite for saved setups; vehicle physics uses GDScript and built-in Godot Jolt'
     built_from_source = 'the isolated GDScript Rally project and local Open Formula asset manifests'
 }
 $manifestJson = $manifest | ConvertTo-Json -Depth 5
