@@ -113,6 +113,25 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	return {"ok": true, "profile_id": str(loaded.get("profile_id", "")), "domain_hashes": domain_hashes.duplicate(true)}
 
 
+func adjust_live_tire_pressure(delta_kpa: float) -> void:
+	# Runtime tuning aid: modify only inflation, never fuel, temperatures or motion.
+	var pressure: Dictionary = domains.get("tires", {}).get("tires", {}).get("pressure", {})
+	var cold: Dictionary = pressure.get("cold_kpa_gauge", {})
+	var atmosphere := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
+	var reference_temp := float(pressure.get("reference_temperature_c", 25.0))
+	for i in 4:
+		var key: String = ["FL", "FR", "RL", "RR"][i]
+		var field := RallySetupCatalog.field_for_path("tires.pressure.cold_kpa_gauge." + key)
+		var next_kpa := clampf(float(cold.get(key, 180.0)) + delta_kpa, float(field.min), float(field.max))
+		cold[key] = next_kpa
+		var tire: Dictionary = thermal_model.tire_states[i]
+		tire.pressure_reference_bar_gauge = next_kpa / 100.0
+		tire.pressure_reference_temp_c = reference_temp
+		tire.pressure_bar_gauge = maxf((next_kpa / 100.0 + atmosphere) * (float(tire.gas_c) + 273.15) / maxf(reference_temp + 273.15, 1.0) - atmosphere, 0.0)
+		thermal_model.tire_states[i] = tire
+	pressure["cold_kpa_gauge"] = cold
+
+
 func apply_setup_values(values: Dictionary) -> Dictionary:
 	var validation := RallySetupCatalog.validate(values)
 	if not bool(validation.get("ok", false)):
@@ -185,7 +204,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		state.pressure_reference_temp_c = temperature_reference
 		var reference_kelvin := maxf(temperature_reference + 273.15, 1.0)
 		var gas_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-		state.pressure_bar_gauge = maxf((cold_bar + atmosphere_bar) * gas_kelvin / reference_kelvin - atmosphere_bar, 0.5)
+		state.pressure_bar_gauge = maxf((cold_bar + atmosphere_bar) * gas_kelvin / reference_kelvin - atmosphere_bar, 0.0)
 		thermal_model.tire_states[wheel_index] = state
 	var fuel: Dictionary = domains.get("fuel", {}).get("fuel", {})
 	var fuel_kg := clampf(float(fuel.get("initial_kg", mass_model.fuel_initial_kg)), 0.0, mass_model.fuel_capacity_kg)
@@ -378,7 +397,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var wheels: Array[Dictionary] = []
 	for index in 4:
 		var wheel := thermal_model.get_tire_thermal_state_snapshot(index)
-		wheel.merge({"surface": wheel_surfaces[index], "load_n": wheel_loads[index], "spin_rad_s": wheel_spins[index], "slip_ratio": wheel_slips[index].x, "slip_angle_rad": wheel_slips[index].y, "patch_pos": tire_model.states[index].patch_pos, "patch_energy_j": tire_model.states[index].patch_energy_j, "unsprung_mass_kg": mass_model.unsprung_mass_kg[index], "radial_deflection_m": unsprung_rig.radial_deflection_m[index], "suspension_force_n": unsprung_rig.spring_forces_n[index]})
+		wheel.merge({"surface": wheel_surfaces[index], "load_n": wheel_loads[index], "spin_rad_s": wheel_spins[index], "slip_ratio": wheel_slips[index].x, "slip_angle_rad": wheel_slips[index].y, "patch_pos": tire_model.states[index].patch_pos, "patch_energy_j": tire_model.states[index].patch_energy_j, "unsprung_mass_kg": mass_model.unsprung_mass_kg[index], "radial_deflection_m": unsprung_rig.radial_deflection_m[index], "radial": unsprung_rig.radial_states[index].duplicate(), "suspension_force_n": unsprung_rig.spring_forces_n[index]})
 		wheels.append(wheel)
 	published_state = {"sequence": publication_sequence, "generation": session_generation, "time_s": simulation_time_s, "dt_s": dt, "rpm": powertrain_model.engine_rpm, "rpm_max": powertrain_model.maximum_rpm, "rpm_idle": powertrain_model.idle_rpm, "gear": powertrain_model.current_gear, "torque_nm": powertrain_model.engine_torque_nm, "autoblip_active": powertrain_model.autoblip_active, "autoblip_target_rpm": powertrain_model.autoblip_target_rpm, "autoblip_throttle": powertrain_model.autoblip_throttle, "shift_phase": powertrain_model.shift_phase, "pending_gear": powertrain_model.pending_gear, "clutch_engagement": powertrain_model.clutch_engagement, "clutch_torque_nm": powertrain_model.clutch_torque_nm, "clutch_slip_power_w": powertrain_model.clutch_slip_power_w, "input_shaft_rad_s": powertrain_model.input_shaft_omega_rad_s, "driveline": {"enabled": powertrain_model.driveline_compliance_enabled, "twist_rad": powertrain_model.driveline_twist_rad, "torque_nm": powertrain_model.driveline_torque_nm, "energy_j": powertrain_model.driveline_energy_j, "dissipation_w": powertrain_model.driveline_dissipation_w, "output_rad_s": powertrain_model.output_shaft_omega_rad_s}, "load": clampf(absf(powertrain_model.engine_torque_nm) / maxf(powertrain_model.peak_torque_nm, 1.0), 0.0, 1.0), "speed_kph": state.linear_velocity.length() * 3.6, "throttle": float(inputs.get("throttle", 0.0)), "brake": float(inputs.get("brake", 0.0)), "steering": float(inputs.get("steering", 0.0)), "engine": thermal_model.get_engine_thermal_state_snapshot(), "fuel": thermal_model.get_fuel_state_snapshot(), "wheels": wheels, "contact_queries": contact_query_count, "aids": {"automatic_transmission": bool(inputs.get("automatic_transmission", false)), "traction_control": traction_control_enabled, "stability": stability_enabled, "anti_lock_brakes": abs_enabled}, "aids_available": assistance_available.duplicate()}
 

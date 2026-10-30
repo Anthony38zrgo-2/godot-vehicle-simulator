@@ -38,6 +38,7 @@
       "airborne_spin_decay_torque": 1.5,
       "contact_patch": 0.2,
       "radius": 0.28,
+      "rim_diameter_inches": 13.0,
       "wheel_mass": 20.0,
       "width": 0.2
     },
@@ -63,11 +64,21 @@
       "response_sensitivity": -0.15,
       "rolling_resistance_sensitivity": -0.3
     },
-    "radial_damping_ratio": 0.4,
+    "radial_model": {
+      "carcass_stiffness_n_m": 30000.0,
+      "pressure_stiffness_n_m_per_kpa": 666.6666666667,
+      "reference_sidewall_m": 0.1149,
+      "reference_width_m": 0.2,
+      "damping_ratio": 0.12,
+      "damping_contact_ramp_m": 0.005,
+      "rim_stop_start_sidewall_fraction": 0.75,
+      "rim_stop_stiffness_n_m": 300000.0
+    },
     "rear": {
       "airborne_spin_decay_torque": 1.5,
       "contact_patch": 0.2,
       "radius": 0.28,
+      "rim_diameter_inches": 13.0,
       "wheel_mass": 20.0,
       "width": 0.2
     },

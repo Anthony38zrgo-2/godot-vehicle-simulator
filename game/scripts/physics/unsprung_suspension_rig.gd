@@ -7,6 +7,7 @@ var joints: Array[Generic6DOFJoint3D] = []
 var neutral_positions: Array[Vector3] = []
 var radial_deflection_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_dissipation_w: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var radial_states: Array[Dictionary] = [{}, {}, {}, {}]
 var spring_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
@@ -56,6 +57,7 @@ func reset() -> void:
 		hubs[i].constant_force = Vector3.ZERO
 		radial_deflection_m[i] = 0.0
 		radial_dissipation_w[i] = 0.0
+		radial_states[i] = {}
 
 
 func sync_freeze() -> void:
@@ -77,9 +79,6 @@ func solve(state: PhysicsDirectBodyState3D, suspension: VehicleSuspensionModel, 
 		suspension.previous_samples[i] = true
 	spring_forces_n = suspension.suspension_forces()
 	var normal_loads: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var radial: Dictionary = domains.get("coupled_world", {}).get("coupled_world", {}).get("suspension", {})
-	var stiffnesses: Array = radial.get("tire_vertical_stiffness_newtons_per_metre", [180000.0, 180000.0, 180000.0, 180000.0])
-	var dampers: Array = radial.get("tire_vertical_damping_newton_seconds_per_metre", [1100.0, 1100.0, 1100.0, 1100.0])
 	for i in 4:
 		var hub := hubs[i]
 		var spring_force := up * spring_forces_n[i]
@@ -87,6 +86,7 @@ func solve(state: PhysicsDirectBodyState3D, suspension: VehicleSuspensionModel, 
 		hub.apply_central_force(-spring_force)
 		radial_deflection_m[i] = 0.0
 		radial_dissipation_w[i] = 0.0
+		radial_states[i] = {}
 		if not bool(contacts[i].get("hit", false)):
 			suspension.contact_active[i] = false
 			continue
@@ -102,18 +102,10 @@ func solve(state: PhysicsDirectBodyState3D, suspension: VehicleSuspensionModel, 
 		var compression_speed := -(hub.linear_velocity - road_velocity).dot(normal)
 		var tire_state := thermal.get_tire_thermal_state_snapshot(i)
 		var tires: Dictionary = domains.get("tires", {}).get("tires", {})
-		var mechanics: Dictionary = tires.get("pressure_mechanics", {})
-		var reference_pressure := maxf(float(tires.get("pressure", {}).get("reference_hot_kpa_gauge", {}).get(["FL", "FR", "RL", "RR"][i], 225.0)), 20.0)
-		var pressure_ratio := clampf(float(tire_state.get("pressure_kpa_gauge", 180.0)) / reference_pressure, 0.45, 1.8)
-		var pressure_scale := clampf(pow(pressure_ratio, float(mechanics.get("compliance_sensitivity", 0.6))), 0.55, 1.8)
-		var optimal_carcass := float(tires.get("thermal", {}).get("optimal_carcass_temperature_c", 60.0))
-		var thermal_scale := clampf(1.0 - 0.0015 * (float(tire_state.get("carcass_c", 25.0)) - optimal_carcass), 0.88, 1.12)
-		var tire_force := 0.0
-		if deflection > 0.0:
-			tire_force = maxf(float(stiffnesses[i]) * pressure_scale * thermal_scale * deflection + float(dampers[i]) * compression_speed, 0.0)
-			# Only the damper portion actually included in unilateral force dissipates.
-			var elastic_force := float(stiffnesses[i]) * pressure_scale * thermal_scale * deflection
-			radial_dissipation_w[i] = maxf((tire_force - elastic_force) * compression_speed, 0.0)
+		var radial := TireRadialModel.evaluate(tires, "front" if i < 2 else "rear", float(tire_state.get("pressure_kpa_gauge", 180.0)), float(tire_state.get("carcass_c", 25.0)), hub.mass, deflection, compression_speed)
+		radial_states[i] = radial
+		var tire_force := float(radial.force_n)
+		radial_dissipation_w[i] = float(radial.dissipation_w)
 		normal_loads[i] = tire_force
 		suspension.contact_active[i] = tire_force > 0.0
 		hub.apply_central_force(normal * tire_force)

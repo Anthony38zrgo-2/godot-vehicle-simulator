@@ -164,7 +164,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
 	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.5, 4.0)
+	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
 	state.wear_fraction = clampf(float(state.wear_fraction) + maxf(friction_power_w, 0.0) * dt * 1.0e-9, 0.0, 1.0)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0

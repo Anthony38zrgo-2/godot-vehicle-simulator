@@ -103,7 +103,7 @@ Assert-File $vehicleProfilePath 'Manifiesto de dominios del Ford'
 Assert-File $provenancePath 'Hashes de procedencia Open Formula'
 Assert-File $fordManifestPath 'Manifest del Ford'
 Assert-File $stageManifestPath 'Manifest de Rusia Stage 1'
-foreach ($physicsModule in @('profile_loader.gd', 'mass_model.gd', 'suspension_model.gd', 'unsprung_suspension_rig.gd', 'tire_model.gd', 'powertrain_model.gd', 'brake_model.gd', 'aerodynamic_model.gd', 'thermal_model.gd', 'vehicle_simulation.gd')) {
+foreach ($physicsModule in @('profile_loader.gd', 'mass_model.gd', 'suspension_model.gd', 'unsprung_suspension_rig.gd', 'tire_radial_model.gd', 'tire_model.gd', 'powertrain_model.gd', 'brake_model.gd', 'aerodynamic_model.gd', 'thermal_model.gd', 'vehicle_simulation.gd')) {
     Assert-File (Join-Path $gameRoot ('scripts\physics\' + $physicsModule)) ('Modulo de fisicas ' + $physicsModule)
 }
 Assert-File (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') 'Controlador GDScript del Ford'

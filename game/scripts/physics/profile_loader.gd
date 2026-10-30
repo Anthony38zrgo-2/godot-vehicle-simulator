@@ -44,6 +44,21 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		domains[str(domain_name)] = domain_value
 		domain_hashes[str(domain_name)] = domain_result["sha256"]
 
+	var tires: Dictionary = domains["tires"].get("tires", {})
+	for axle in ["front", "rear"]:
+		var tire: Dictionary = tires.get(axle, {})
+		var geometry := TireRadialModel.geometry(tire)
+		if not is_finite(float(geometry.radius_m)) or not is_finite(float(geometry.rim_radius_m)) or float(geometry.rim_radius_m) <= 0.0 or float(geometry.sidewall_m) <= 0.01 or not is_finite(float(geometry.width_m)) or float(geometry.width_m) <= 0.0:
+			return _failure(axle + " tire requires a positive width and outer radius greater than rim radius + 10 mm.")
+	var radial: Dictionary = tires.get("radial_model", {})
+	for key in ["carcass_stiffness_n_m", "pressure_stiffness_n_m_per_kpa", "reference_sidewall_m", "reference_width_m", "damping_contact_ramp_m", "rim_stop_stiffness_n_m"]:
+		var value := float(radial.get(key, 1.0))
+		if not is_finite(value) or value <= 0.0:
+			return _failure("tires.radial_model." + key + " must be finite and positive.")
+	var zeta := float(radial.get("damping_ratio", 0.12))
+	var stop_fraction := float(radial.get("rim_stop_start_sidewall_fraction", 0.75))
+	if not is_finite(zeta) or zeta < 0.0 or not is_finite(stop_fraction) or stop_fraction <= 0.0 or stop_fraction >= 1.0:
+		return _failure("Tire radial damping must be nonnegative and rim stop fraction must lie between zero and one.")
 	var suspension_doc: Dictionary = domains["suspension"]
 	var suspension: Dictionary = suspension_doc.get("suspension", {})
 	if str(suspension.get("contact_query_type", "")) != "ShapeCast3D" or int(suspension.get("contact_shape_count", -1)) != 1:

@@ -1,7 +1,6 @@
 class_name TireModel
 extends RefCounted
 
-const STATIC_TIRE_DEFLECTION_M := 0.008
 const CONTACT_PATCH_LOAD_GAIN := 0.12
 const CONTACT_PATCH_DEFLECTION_GAIN := 0.20
 const FRONT_CAMBER_THRUST_GAIN := 0.18
@@ -19,14 +18,15 @@ var load_sensitivity_per_newton: float = 1.5e-5
 var rolling_resistance_coefficient: float = 0.015
 var pneumatic_trail_m: float = 0.035
 var pressure_relaxation_sensitivity: float = 0.0
-var pressure_compliance_sensitivity: float = 0.0
 var pressure_rolling_resistance_sensitivity: float = 0.0
 var optimal_carcass_temperature_c: float = 60.0
+var radial_tires: Dictionary = {}
 var states: Array[Dictionary] = []
 
 
 func configure(domains: Dictionary, resolved_filters: Dictionary, static_wheel_loads: Array) -> void:
 	var tires: Dictionary = domains.get("tires", {}).get("tires", {})
+	radial_tires = tires
 	surfaces = tires.get("surfaces", {}).duplicate(true)
 	surface_transition_tau_s = float(resolved_filters.get("surface_transition_tau_s", 0.0))
 	var front_tire: Dictionary = tires.get("front", {})
@@ -50,12 +50,11 @@ func configure(domains: Dictionary, resolved_filters: Dictionary, static_wheel_l
 		base_contact_patch_m.append(contact_patch)
 		base_relaxation_length_m.append(contact_patch * (1.65 if i < 2 else 1.80))
 		static_wheel_load_n.append(maxf(float(static_wheel_loads[i]) if i < static_wheel_loads.size() else 0.0, 100.0))
-		maximum_tire_deflection_m.append(maxf(tire_radius * 0.12, 0.001))
+		maximum_tire_deflection_m.append(float(TireRadialModel.geometry(axle_tire).sidewall_m))
 		reference_hot_pressure_kpa.append(maxf(float(hot_pressures.get(wheel_keys[i], 225.0)), 20.0))
 	optimal_carcass_temperature_c = float(tire_thermal.get("optimal_carcass_temperature_c", 60.0))
 	var pressure_mechanics: Dictionary = tires.get("pressure_mechanics", {})
 	pressure_relaxation_sensitivity = float(pressure_mechanics.get("response_sensitivity", 0.0))
-	pressure_compliance_sensitivity = float(pressure_mechanics.get("compliance_sensitivity", 0.0))
 	pressure_rolling_resistance_sensitivity = float(pressure_mechanics.get("rolling_resistance_sensitivity", 0.0))
 	axle_profiles = [resolved_filters.get("front", {}).duplicate(true), resolved_filters.get("front", {}).duplicate(true), resolved_filters.get("rear", {}).duplicate(true), resolved_filters.get("rear", {}).duplicate(true)]
 	states.clear()
@@ -140,14 +139,10 @@ func evaluate(
 	var planar_speed := Vector2(longitudinal_speed_m_s, lateral_speed_m_s).length()
 	var reference_load := maxf(static_wheel_load_n[index], 100.0)
 	var load_ratio := maxf(maxf(normal_load_n, 0.0) / reference_load, 0.05)
-	var pressure_ratio := clampf(pressure_kpa_gauge / reference_hot_pressure_kpa[index], 0.45, 1.80)
-	var compliance_scale := clampf(pow(pressure_ratio, clampf(pressure_compliance_sensitivity, -3.0, 3.0)), 0.55, 1.80)
-	var carcass_structure := clampf(1.0 - 0.0015 * (carcass_temperature_c - optimal_carcass_temperature_c), 0.88, 1.12)
-	var vertical_stiffness_scale := clampf(compliance_scale * carcass_structure, 0.55, 1.65)
-	# This GDScript model has no separate unsprung-mass/carcass solver. Estimate its
-	# quasi-static deflection from wheel load and the Rust reference radial stiffness
-	# (static corner load / 8 mm), adjusted by pressure and carcass temperature.
-	var estimated_deflection := STATIC_TIRE_DEFLECTION_M * load_ratio / vertical_stiffness_scale
+	var pressure_ratio := maxf(pressure_kpa_gauge / reference_hot_pressure_kpa[index], 0.001)
+	var radial := TireRadialModel.evaluate(radial_tires, "front" if index < 2 else "rear", pressure_kpa_gauge, carcass_temperature_c, 1.0, 0.0, 0.0)
+	# Runtime uses the actual unsprung deflection; this is a diagnostic fallback.
+	var estimated_deflection := maxf(normal_load_n, 0.0) / maxf(float(radial.stiffness_n_m), 1.0)
 	if state.has("radial_deflection_m"):
 		estimated_deflection = float(state.radial_deflection_m)
 	estimated_deflection = clampf(estimated_deflection, 0.0, maximum_tire_deflection_m[index] * 1.5)

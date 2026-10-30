@@ -153,6 +153,9 @@ func _has_unapplied_changes() -> bool:
 
 func _input(event: InputEvent) -> void:
 	if not visible:
+		if event is InputEventKey and event.pressed and not event.echo and event.ctrl_pressed and event.keycode in [KEY_PAGEUP, KEY_PAGEDOWN] and is_instance_valid(vehicle) and not get_tree().paused:
+			vehicle.simulation.adjust_live_tire_pressure(5.0 if event.keycode == KEY_PAGEUP else -5.0)
+			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		_handle_key(event as InputEventKey)
@@ -654,6 +657,7 @@ func _draw_aero_wheels_page() -> void:
 	_draw_group_panel(Rect2(926.0, 180.0, 330.0, 234.0), "DELANTERA DERECHA", _paths(["tires.pressure.cold_kpa_gauge.FR", "suspension.front.camber", "suspension.front.toe"]))
 	_draw_group_panel(Rect2(926.0, 426.0, 330.0, 236.0), "TRASERA DERECHA", _paths(["tires.pressure.cold_kpa_gauge.RR", "suspension.rear.camber", "suspension.rear.toe"]))
 	_draw_car_card(Rect2(374.0, 180.0, 528.0, 284.0), "PRESIONES Y GEOMETRÍA")
+	_draw_text(Vector2(394.0, 448.0), "EN PISTA: CTRL + REPÁG / AVPÁG  ·  ±5 kPa", 12, C_MUTED)
 	_draw_group_panel(Rect2(374.0, 476.0, 528.0, 186.0), "AERODINÁMICA Y FRENOS", _paths(["aero.model.front_wing.incidence_deg", "aero.model.rear_wing.incidence_deg", "brakes.front_brake_bias", "brakes.max_brake_torque"]), 34.0)
 
 
