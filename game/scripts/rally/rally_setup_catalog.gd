@@ -2,6 +2,8 @@ class_name RallySetupCatalog
 extends RefCounted
 
 const FIELDS: Array[Dictionary] = [
+	{"page": 0, "label": "Frecuencia natural delantera", "path": "suspension.front.ride_frequency_hz", "min": 0.5, "max": 3.5, "step": 0.01, "suffix": " Hz", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA", "default": 1.67},
+	{"page": 0, "label": "Frecuencia natural trasera", "path": "suspension.rear.ride_frequency_hz", "min": 0.5, "max": 3.5, "step": 0.01, "suffix": " Hz", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA", "default": 1.70},
 	{"page": 0, "label": "Altura de marcha delantera", "path": "suspension.front.resting_ratio", "min": 0.20, "max": 0.80, "step": 0.005, "suffix": "", "scale": 1.0, "digits": 3, "group": "SUSPENSION DELANTERA"},
 	{"page": 0, "label": "Altura de marcha trasera", "path": "suspension.rear.resting_ratio", "min": 0.20, "max": 0.80, "step": 0.005, "suffix": "", "scale": 1.0, "digits": 3, "group": "SUSPENSION TRASERA"},
 	{"page": 0, "label": "Relación de amortiguación delantera", "path": "suspension.front.damping_ratio", "min": 0.05, "max": 1.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA"},
@@ -91,6 +93,9 @@ static func validate(values: Dictionary) -> Dictionary:
 		result[str(key)] = snappedf(clampf(float(value), float(field.min), float(field.max)), float(field.step))
 	for field in FIELDS:
 		if not result.has(str(field.path)):
+			if field.has("default"):
+				result[str(field.path)] = float(field.default)
+				continue
 			return {"ok": false, "error": "El reglaje no incluye " + str(field.path)}
 	return {"ok": true, "values": result}
 

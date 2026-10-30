@@ -1,18 +1,22 @@
 {
   "suspension": {
-    "contact_ray_count": 1,
+    "contact_shape_count": 1,
+    "contact_query_type": "ShapeCast3D",
     "front": {
+      "spring_architecture": "macpherson_coil",
+      "spring_can_unseat": true,
       "arb_ratio": 0.2,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.017453,
       "camber_gain_rad_per_m": -0.015,
-      "damping_ratio": 0.65,
-      "rebound_damp_multiplier": 1.2,
+      "damping_ratio": 0.3380336517607532,
+      "rebound_damp_multiplier": 1.3333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.32,
       "toe": 0.001745,
-      "toe_gain_rad_per_m": 0.01
+      "toe_gain_rad_per_m": 0.01,
+      "ride_frequency_hz": 1.6737692722839896
     },
     "geometry_physical": {
       "corners": {
@@ -284,17 +288,20 @@
     "model": "geometric",
     "model_version": 1,
     "rear": {
+      "spring_architecture": "live_axle_leaf",
+      "spring_can_unseat": false,
       "arb_ratio": 0.08,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": 0.0,
       "camber_gain_rad_per_m": 0.0,
-      "damping_ratio": 0.65,
-      "rebound_damp_multiplier": 1.2,
+      "damping_ratio": 0.6680211208461856,
+      "rebound_damp_multiplier": 1.8333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.3,
       "toe": 0.0,
-      "toe_gain_rad_per_m": 0.0
+      "toe_gain_rad_per_m": 0.0,
+      "ride_frequency_hz": 1.701101815559341
     },
     "tri_ray_spacing_ratio": 0.35,
     "use_authored_wheel_centers": true,

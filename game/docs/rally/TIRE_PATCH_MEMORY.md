@@ -1,0 +1,19 @@
+# Memoria elastica de huella
+
+Actualizacion: la deformacion radial ya procede de hubs Jolt independientes y una ley radial de muelle/amortiguador, como se describe en [UNSPRUNG_SUSPENSION.md](UNSPRUNG_SUSPENSION.md). La referencia a carcasa vertical cuasiestatica al final describe la etapa anterior.
+
+Cada rueda mantiene patch_pos (Vector2, metros): x longitudinal y y lateral en el marco del neumatico. Se transporta al marco de contacto nuevo al cambiar direccion, camber o normal del suelo; se elimina al perder carga o restablecer el vehiculo. Es una implementacion propia de memoria de deformacion inspirada en el concepto de huella elastica, no una copia del solver de g4-svd.
+
+La ecuacion integrada a entradas constantes por subpaso es dq/dt = v_slip - lambda*q, con lambda = max(|v_longitudinal|, |omega*r|)/L y L la longitud de relajacion existente. La solucion exponencial evita una integracion explicita inestable de la renovacion de la banda. En reposo lambda tiende a cero y q acumula el desplazamiento relativo, permitiendo fuerzas elasticas sin dividir por velocidad de avance.
+
+La rigidez tangencial (N/m) se deriva de la pendiente inicial de las curvas existentes: Kx = Fx_max*rise/(peak_slip*L), Ky = Fy_max*rise/(peak_angle*L). La presion afecta a L mediante la mecanica de huella ya existente. El camber conserva la aproximacion de empuje lateral del modelo anterior.
+
+La revision brush combina primero la demanda d=(Kx*qx, Ky*qy), s=|d|. El techo comun es M=mu*Fz, donde mu ya contiene superficie, sensibilidad a carga, temperatura y desgaste. La perdida postpico reduce ese mismo techo con un factor compartido (nunca aumenta M). Con theta=min(s/(3*M),1), F_total=M*(3*theta - 3*theta^2 + theta^3), y el vector F=d*F_total/s. Cerca de cero F tiende a d: se conserva la rigidez inicial. A s=3*M la fuerza alcanza la saturacion comun con pendiente nula. El retorno plastico limita la demanda almacenada a 3*M, evitando acumulacion ilimitada de deformacion durante el derrape. El factor longitudinal del perfil cambia la rigidez longitudinal, pero no permite superar el techo comun. La resistencia de rodadura tambien se limita dentro del presupuesto final.
+
+Las antiguas fuerzas por eje, la migracion independiente de los picos y el escalado combinado anterior ya no participan en la fuerza activa. Se conservan los filtros de perdida postpico como modificador empirico del coeficiente comun. Geometricamente, si la frenada consume 0.8*M de fuerza longitudinal, queda como maximo 0.6*M lateral: sqrt(1-0.8^2)=0.6. Es un limite superior; la ley brush puede entregar menos segun la demanda.
+
+El estado se integra secuencialmente en subpasos h cuya suma es dt. Ya no se restaura la memoria desde el principio del callback en cada subpaso. La energia almacenada estimada es E = 0.5*(F_brush dot q), incluyendo el factor de contacto. Es una aproximacion concentrada, no la integral exacta de energia de una distribucion de cerdas. La potencia de calentamiento se aproxima como max(trabajo de contacto por segundo - variacion de E/dt, 0), mas las perdidas de rodadura. Con cambios de rigidez/carga y proyecciones es un balance aproximado, no una garantia exacta de conservacion energetica.
+
+Limites: las rigideces se derivan de curvas genericas; no estan medidas para el neumatico del Escort. No representa una malla de cerdas, una carcasa de elementos finitos ni hundimiento en grava. La respuesta postpico conserva filtros empiricos. La carcasa vertical sigue siendo cuasiestatica.
+
+El snapshot de cada rueda publica patch_pos y patch_energy_j para inspeccion. Se mantienen ShapeCast3D y el paso principal de 120 Hz. Compilacion/carga de scripts con Godot 4.7.1 y ejecucion breve de Rusia completadas sin errores de scripts. Log inicial: game/logs/rally/rally_godot_20261029_182103.log; cuatro contactos y dt=0.00833333376795053 s. El arranque no acredita el comportamiento al conducir.

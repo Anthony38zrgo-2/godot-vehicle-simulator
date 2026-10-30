@@ -116,7 +116,7 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var state: Dictionary = tire_states[index]
@@ -153,7 +153,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 		zone_heat += lateral_heat
 		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, ambient_temperature_c, 150.0)
 	tread = (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
-	var next_carcass := carcass + dt * (tread_to_carcass - carcass_to_gas - float(tire_config.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
+	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) - carcass_to_gas - float(tire_config.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
 	var next_gas := gas + dt * carcass_to_gas / gas_capacity
 	state.tread_zones_c = zones
 	state.tread_c = tread

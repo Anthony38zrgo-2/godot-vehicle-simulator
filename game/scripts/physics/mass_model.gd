@@ -11,6 +11,7 @@ var inventory_mass_kg: float = 0.0
 var inventory_base_budget_kg: float = 0.0
 var non_wheel_inventory_mass_kg: float = 0.0
 var unsupported_attachment_components: PackedStringArray = PackedStringArray()
+var unsprung_mass_kg: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 const WHEEL_NAMES := ["FrontLeft", "FrontRight", "RearLeft", "RearRight"]
 const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
@@ -18,6 +19,7 @@ const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
 
 func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	chassis_components.clear()
+	unsprung_mass_kg.fill(0.0)
 	unsupported_attachment_components.clear()
 	var chassis_doc: Dictionary = domains.get("chassis", {})
 	var inventory: Dictionary = chassis_doc.get("physical_mass_inventory", {})
@@ -54,16 +56,34 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 			if wheel_index < 0:
 				return {"ok": false, "error": "Unknown upright wheel attachment: " + str(attachment.get("wheel", ""))}
 			# Upright centres are authored relative to their wheel, not body origin.
-			# Their mass remains part of the single rigid-body approximation.
+			# Their mass is transferred to the independently moving hub below.
 			offset = wheel_centres[wheel_index]
 		elif str(attachment.get("kind", "body")) != "body":
 			unsupported_attachment_components.append(component_name)
 		var inertia_center := _inertia_matrix(properties)
-		chassis_components.append({
+		var allocation: Array = component_value.get("unsprung_mass_distribution_kg", [0.0, 0.0, 0.0, 0.0])
+		if allocation.size() != 4:
+			return {"ok": false, "error": "Unsprung allocation must have four entries: " + component_name}
+		if not rotating_wheel.is_empty():
+			allocation[WHEEL_NAMES.find(rotating_wheel)] = mass
+		elif str(attachment.get("kind", "body")) == "upright":
+			allocation[WHEEL_NAMES.find(str(attachment.get("wheel", "")))] = mass
+		var removed_mass := 0.0
+		for i in 4:
+			var corner_mass := float(allocation[i])
+			if corner_mass < 0.0 or not is_finite(corner_mass):
+				return {"ok": false, "error": "Invalid unsprung allocation for " + component_name}
+			unsprung_mass_kg[i] += corner_mass
+			removed_mass += corner_mass
+		if removed_mass > mass + 1.0e-6:
+			return {"ok": false, "error": "Unsprung allocation exceeds component mass: " + component_name}
+		var sprung_mass := maxf(mass - removed_mass, 0.0)
+		if sprung_mass > 0.0:
+			chassis_components.append({
 			"name": component_name,
-			"mass_kg": mass,
+			"mass_kg": sprung_mass,
 			"position": offset + center,
-			"inertia": inertia_center,
+			"inertia": inertia_center * (sprung_mass / mass),
 		})
 		inventory_mass_kg += mass
 		if rotating_wheel.is_empty():
@@ -111,6 +131,8 @@ func resolve(fuel_mass_kg: float) -> Dictionary:
 	)
 	return {
 		"mass_kg": total_mass,
+		"vehicle_total_mass_kg": total_mass + unsprung_mass_kg[0] + unsprung_mass_kg[1] + unsprung_mass_kg[2] + unsprung_mass_kg[3],
+		"unsprung_mass_kg": unsprung_mass_kg.duplicate(),
 		"center_of_mass": center,
 		"inertia": diagonal,
 		"inertia_tensor": tensor,

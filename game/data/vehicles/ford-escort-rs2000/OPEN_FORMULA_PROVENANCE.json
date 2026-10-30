@@ -25,30 +25,34 @@
   "profile_json_sha256": {
     "aerodynamics.json": "1431044fbb373970187d3be7d25fc44932c64a1893fac62b3840078bba414d42",
     "brakes.json": "be76cf7519ca97d062b6da3602a645ed3971f34e27a589f797c671427e8ed5e7",
-    "chassis.json": "5153a98fad797e52371115bd2422824aa67fb77dec00c663daeaa2d2a48177b3",
+    "chassis.json": "776b2e5677461014ab2ce3df029bdfd6a2fefe316726e77f67959449171fa4ac",
     "coupled_world.json": "adf9eb6884e22ed56ffa39876f8305848ebc9b1388a8e3430f7fa75f524581a6",
     "driving_assistance.json": "53f593912c93825cfa2aa8eeae54199809e5882df8d2f475f08096fbf4bfd80b",
     "fuel.json": "54c93a0f067635767879e0d331a792928675c259cb51a0095e6f528971cf8e8c",
     "port_validation.json": "fc92694a2582347f2ef09fd4e9cbc7f1dd64a1de0680f29f2ab34121d86b7969",
-    "powertrain.json": "c01bdfb7dbdbd987b5a5000d0ca9af3b143ad867624c431d9199fa6169429506",
+    "powertrain.json": "9cbfd3fcdaf7ec6f6244a592c9f2d6e36f3ba5456a604c1e44278f51e76df261",
     "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "suspension.json": "7961a963dd1d50cc90e209aaf0d17dd0d6b5afdf2ce7999d8065d8d7063564cd",
+    "suspension.json": "039dd4978140b1fa9a45885779608b75fdfbe98f21a87c36c22ae9f57cae97f2",
     "tire_filters.json": "c44095efc3fa472e4a87e7ebccf72e7c54db13b0c1c51b1b7e959831789c9bba",
     "tires.json": "c273ee0455aec828c3b407652c787d594c7f4ac749c4a14676054f0045355ffa",
     "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
     "vehicle.json": "79a93362175256cc4e1ccf1d053eaee03bd1b0a7d7cf30d87ced02b93ce08d37"
   },
   "reference_profile_json_sha256": {
+    "powertrain.json": "c01bdfb7dbdbd987b5a5000d0ca9af3b143ad867624c431d9199fa6169429506",
     "suspension_filters.json": "64f09a9963a606333dcf49f1e9ef88a7bac9fe81c3777e8a0301ab453788eec1",
     "chassis.json": "07da88b23fa53d0e8c881a5c31afd5175e286387ef6d4708ff74925e2b3e88de",
     "fuel.json": "76885f2b741ef58ee38c2d5b2683e57a29b9f88dfe89f94ec02d25ef99b45cbb",
-    "steering.json": "4d01064b7f1fd36f668e675ce3486a250786aa1dd68213fec48eb88c105776d3"
+    "steering.json": "4d01064b7f1fd36f668e675ce3486a250786aa1dd68213fec48eb88c105776d3",
+    "suspension.json": "7961a963dd1d50cc90e209aaf0d17dd0d6b5afdf2ce7999d8065d8d7063564cd"
   },
   "local_profile_overrides": {
+    "powertrain.json": "Staged shifts: release clutch over 40 ms, synchronize input shaft with a 25 Nm bounded cone torque, engage only within 0.1 rad/s, and restore clutch capacity over 180 ms. These are configurable calibration estimates, not measured Ford data. Configurable downshift autoblip disabled in the Ford profile: torque-driven engine rev matching to the pending ratio, capped at 92 percent maximum RPM; no direct engine-speed assignment. Enabled wheel-side equivalent output-shaft compliance: inertia 0.2 kg m2, stiffness 8000 Nm/rad, damping 120 Nms/rad; implicit coupled integration. Effective calibration estimates, not measured Ford shaft geometry.",
     "suspension_filters.json": "Activa filtros de altura, amortiguador y ARB siguiendo los rangos documentados en Rust.",
-    "chassis.json": "Reauthor mass centres in the active ground-plane coordinate frame; packaging estimates documented in game/docs/rally/MASS_DISTRIBUTION.md.",
+    "chassis.json": "Ground-plane mass centres and explicit per-wheel unsprung allocations; moving masses removed from chassis.",
     "fuel.json": "Reauthor mass centres in the active ground-plane coordinate frame; packaging estimates documented in game/docs/rally/MASS_DISTRIBUTION.md.",
-    "steering.json": "Progressive command gain and slew reduction with planar speed; full command below 20 km/h."
+    "steering.json": "Progressive command gain and slew reduction with planar speed; full command below 20 km/h.",
+    "suspension.json": "ShapeCast3D contacts with sprung-mass frequency reference, real unsprung hubs and radial tire compliance; initial k and c preserved. Front coils unseat without clamping dampers or ARBs; attached rear leaf springs remain bilateral."
   }
 }

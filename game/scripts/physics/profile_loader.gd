@@ -46,8 +46,8 @@ static func load_profile(manifest_path: String) -> Dictionary:
 
 	var suspension_doc: Dictionary = domains["suspension"]
 	var suspension: Dictionary = suspension_doc.get("suspension", {})
-	if int(suspension.get("contact_ray_count", -1)) != 1:
-		return _failure("This vehicle contract requires exactly one central contact ray per wheel.")
+	if str(suspension.get("contact_query_type", "")) != "ShapeCast3D" or int(suspension.get("contact_shape_count", -1)) != 1:
+		return _failure("This vehicle contract requires one ShapeCast3D per wheel.")
 	var inventory: Dictionary = domains["chassis"].get("physical_mass_inventory", {})
 	if not inventory.get("components", []) is Array or inventory.get("components", []).is_empty():
 		return _failure("chassis.physical_mass_inventory.components is required.")

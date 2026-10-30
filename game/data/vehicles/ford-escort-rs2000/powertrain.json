@@ -18,6 +18,10 @@
       "wheel_spin_weight": 0.6
     },
     "automatic_transmission": false,
+    "clutch_release_seconds": 0.04,
+    "clutch_reengage_seconds": 0.18,
+    "synchronizer_capacity_nm": 25.0,
+    "synchronizer_tolerance_rad_s": 0.1,
     "clutch_out_rpm_offset": 600.0,
     "constant_brake_ratio": 0.01,
     "differential": {
@@ -29,10 +33,18 @@
       "slip_transition_threshold_rad_s": 4.0
     },
     "downshift_blip_torque_fraction": 0.8,
+    "downshift_blip_response_seconds": 0.04,
+    "downshift_blip_tolerance_rpm": 25.0,
     "downshift_clutch_reengagement_seconds": 0.12,
     "downshift_maximum_target_revolutions_per_minute_fraction": 0.92,
     "downshift_minimum_interval_seconds": 0.25,
-    "downshift_rev_matching_enabled": true,
+    "downshift_rev_matching_enabled": false,
+    "driveline_compliance": {
+      "enabled": true,
+      "output_inertia_kg_m2": 0.2,
+      "stiffness_nm_per_rad": 8000.0,
+      "damping_nms_per_rad": 120.0
+    },
     "final_drive": 4.35,
     "front_torque_split": 0.0,
     "gear_inertia": 0.025,

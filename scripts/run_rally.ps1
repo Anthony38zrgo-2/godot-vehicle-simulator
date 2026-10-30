@@ -103,7 +103,7 @@ Assert-File $vehicleProfilePath 'Manifiesto de dominios del Ford'
 Assert-File $provenancePath 'Hashes de procedencia Open Formula'
 Assert-File $fordManifestPath 'Manifest del Ford'
 Assert-File $stageManifestPath 'Manifest de Rusia Stage 1'
-foreach ($physicsModule in @('profile_loader.gd', 'mass_model.gd', 'suspension_model.gd', 'tire_model.gd', 'powertrain_model.gd', 'brake_model.gd', 'aerodynamic_model.gd', 'thermal_model.gd', 'vehicle_simulation.gd')) {
+foreach ($physicsModule in @('profile_loader.gd', 'mass_model.gd', 'suspension_model.gd', 'unsprung_suspension_rig.gd', 'tire_model.gd', 'powertrain_model.gd', 'brake_model.gd', 'aerodynamic_model.gd', 'thermal_model.gd', 'vehicle_simulation.gd')) {
     Assert-File (Join-Path $gameRoot ('scripts\physics\' + $physicsModule)) ('Modulo de fisicas ' + $physicsModule)
 }
 Assert-File (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') 'Controlador GDScript del Ford'
@@ -175,7 +175,7 @@ if ($godotVersion -notmatch '^4\.') {
     throw "Godot incompatible: $godotVersion. Se requiere Godot 4.x."
 }
 
-$runIdentifier = Get-Date -Format 'yyyyMMdd_HHmmss'
+$runIdentifier = (Get-Date -Format 'yyyyMMdd_HHmmss_fff') + '_' + $PID
 $logDirectory = Join-Path $gameRoot 'logs\rally'
 $launcherLogPath = Join-Path $logDirectory ("rally_launcher_" + $runIdentifier + ".log")
 $godotLogPath = Join-Path $logDirectory ("rally_godot_" + $runIdentifier + ".log")
@@ -306,7 +306,7 @@ if ($ExportWindows) {
     exit 0
 }
 
-Write-Host "Iniciando Rusia Stage 1 con Ford Escort RS2000 1971" -ForegroundColor Green
+Write-Host "Iniciando $rallyScene con Ford Escort RS2000 1971" -ForegroundColor Green
 $previousErrorAction = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 $runArguments = @('--path', $gameRoot, '--log-file', $godotLogPath)

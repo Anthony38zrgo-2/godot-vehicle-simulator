@@ -61,6 +61,11 @@ func configure(domains: Dictionary, resolved_filters: Dictionary, static_wheel_l
 	states.clear()
 	for i in 4:
 		states.append({
+			"patch_pos": Vector2.ZERO,
+			"patch_forward": Vector3.ZERO,
+			"patch_right": Vector3.ZERO,
+			"patch_energy_j": 0.0,
+			"brush_demand_n": 0.0,
 			"effective_slip_angle": 0.0,
 			"effective_slip_ratio": 0.0,
 			"post_peak_decay_lat": 0.0,
@@ -121,7 +126,7 @@ func evaluate(
 	else:
 		var contact_alpha := 1.0 - exp(-maxf(delta, 0.0) / contact_tau)
 		state.contact_blend = clampf(float(state.contact_blend) + ((1.0 if contact_target else 0.0) - float(state.contact_blend)) * contact_alpha, 0.0, 1.0)
-	if not contact_target and float(state.contact_blend) <= 1e-6:
+	if not contact_target:
 		_advance_unloaded(index, delta)
 		return _output(state)
 
@@ -143,6 +148,8 @@ func evaluate(
 	# quasi-static deflection from wheel load and the Rust reference radial stiffness
 	# (static corner load / 8 mm), adjusted by pressure and carcass temperature.
 	var estimated_deflection := STATIC_TIRE_DEFLECTION_M * load_ratio / vertical_stiffness_scale
+	if state.has("radial_deflection_m"):
+		estimated_deflection = float(state.radial_deflection_m)
 	estimated_deflection = clampf(estimated_deflection, 0.0, maximum_tire_deflection_m[index] * 1.5)
 	var deflection_ratio := clampf(estimated_deflection / maximum_tire_deflection_m[index], 0.0, 1.5)
 	var patch_scale := clampf(
@@ -186,44 +193,76 @@ func evaluate(
 	var signed_camber := camber_rad * (1.0 if index in [0, 2] else -1.0)
 	var camber_gain := FRONT_CAMBER_THRUST_GAIN if index < 2 else REAR_CAMBER_THRUST_GAIN
 	var alpha_with_camber := alpha + signed_camber * camber_gain
-	var base_lat := _pure_curve(absf(alpha_with_camber), base_peak_lat, slide_lat, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
-	var base_lon := _pure_curve(absf(kappa), base_peak_lon, slide_lon, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
-	var lateral_demand := clampf(absf(alpha_with_camber) / base_peak_lat, 0.0, 1.0)
-	var longitudinal_demand := clampf(absf(kappa) / base_peak_lon, 0.0, 1.0)
-	var lat_peak := base_peak_lat * maxf(0.1, 1.0 - clampf(float(profile.get("combined_lateral_peak_migration", 0.0)), 0.0, 0.9) * longitudinal_demand)
-	var lon_peak := base_peak_lon * maxf(0.1, 1.0 - clampf(float(profile.get("combined_longitudinal_peak_migration", 0.0)), 0.0, 0.9) * lateral_demand)
-	var lat_response := _pure_curve(absf(alpha_with_camber), lat_peak, slide_lat, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
-	var lon_response := _pure_curve(absf(kappa), lon_peak, slide_lon, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
+	# The old curves now supply only post-peak friction loss. Brush saturation
+	# below replaces independent axis forces and the old combined-budget blend.
+	var lat_response := _pure_curve(absf(alpha_with_camber), base_peak_lat, slide_lat, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
+	var lon_response := _pure_curve(absf(kappa), base_peak_lon, slide_lon, rise_gamma, float(profile.get("falloff_sharpness", 1.2)))
 	state.post_peak_decay_lat = _advance_memory(float(state.post_peak_decay_lat), float(lat_response.decay), profile, delta)
 	state.post_peak_decay_lon = _advance_memory(float(state.post_peak_decay_lon), float(lon_response.decay), profile, delta)
-	var lat_flat := float(lat_response.coefficient) / maxf(1.0 - float(lat_response.decay) * (1.0 - slide_lat), 1e-6)
-	var lon_flat := float(lon_response.coefficient) / maxf(1.0 - float(lon_response.decay) * (1.0 - slide_lon), 1e-6)
-	var lat_coefficient := lat_flat * (1.0 - float(state.post_peak_decay_lat) * (1.0 - slide_lat))
-	var lon_coefficient := lon_flat * (1.0 - float(state.post_peak_decay_lon) * (1.0 - slide_lon))
-	var candidate_x := fx_capacity * lon_coefficient * signf(kappa)
-	var candidate_y := fy_capacity * lat_coefficient * signf(alpha_with_camber)
-	var base_norm := Vector2(float(base_lon.coefficient), float(base_lat.coefficient)).length()
-	var migrated_norm := Vector2(lon_coefficient, lat_coefficient).length()
-	var demand := maxf(base_norm, migrated_norm)
-	var budget_scale := _combined_budget_scale(demand, float(profile.get("budget_blend_width", 0.15)))
 	var blend := float(state.contact_blend)
-	var fx := candidate_x * budget_scale * blend
-	var fy := candidate_y * budget_scale * blend
+	# Elastic bristle displacement in metres: longitudinal / lateral.
+	# dq/dt = relative tread velocity - rolling_speed / relaxation_length * q.
+	# Integrate analytically at fixed substep inputs, avoiding an extra slip filter.
+	var patch_before: Vector2 = state.patch_pos
+	var transport_speed := maxf(absf(longitudinal_speed_m_s), absf(rim_speed))
+	var renewal_rate := transport_speed / maxf(relaxation_length, 0.001)
+	var patch_velocity := Vector2(rim_speed - longitudinal_speed_m_s, -lateral_speed_m_s)
+	# Camber thrust uses the same virtual lateral slip convention as the old model.
+	patch_velocity.y += absf(longitudinal_speed_m_s) * tan(signed_camber * camber_gain)
+	var patch_dt := maxf(delta, 0.0)
+	var renewal := exp(-renewal_rate * patch_dt)
+	var integrated_time := (1.0 - renewal) / renewal_rate if renewal_rate > 1.0e-6 else patch_dt
+	var patch_pos := patch_before * renewal + patch_velocity * integrated_time
+	# Match the old curve's small-slip stiffness, expressed in N/m of deflection.
+	var stiffness_x := fx_capacity * rise_gamma / (base_peak_lon * maxf(relaxation_length, 0.001))
+	var stiffness_y := fy_capacity * rise_gamma / (base_peak_lat * maxf(relaxation_length, 0.001))
+	var mu_fz := maxf(mu * fz, 0.0)
+	var sliding_fraction := maxf(float(state.post_peak_decay_lon), float(state.post_peak_decay_lat))
+	var grip_limit := mu_fz * lerpf(1.0, minf(slide_lon, slide_lat), sliding_fraction)
+	var trial := Vector2(stiffness_x * patch_pos.x, stiffness_y * patch_pos.y)
+	# Brush reaches full sliding at s=3*mu*Fz. Retain elastic history up to
+	# that threshold, then release excess deformation as plastic slip.
+	var demand_length := trial.length()
+	if grip_limit <= 1.0e-6:
+		patch_pos = Vector2.ZERO
+		trial = Vector2.ZERO
+	elif demand_length > 3.0 * grip_limit:
+		var plastic_scale := 3.0 * grip_limit / demand_length
+		patch_pos *= plastic_scale
+		trial *= plastic_scale
+	var brush := _brush_force(trial, grip_limit) * blend
+	var fx := brush.x
+	var fy := brush.y
+	# Effective stored-energy estimate; the distributed brush is represented
+	# by one lumped displacement, not a full bristle energy distribution.
+	var patch_energy := 0.5 * brush.dot(patch_pos)
+	var previous_patch_energy := float(state.patch_energy_j)
+	state.patch_pos = patch_pos
+	state.patch_energy_j = patch_energy
 	var rolling_force := 0.0
 	if absf(longitudinal_speed_m_s) > 0.05:
 		rolling_force = fz * rolling_resistance_coefficient * float(state.surface_rolling) * pressure_rr * signf(longitudinal_speed_m_s)
 		fx -= rolling_force * blend
+	# Rolling resistance also shares the finite contact-force budget.
+	var total_contact := Vector2(fx, fy).limit_length(grip_limit * blend)
+	fx = total_contact.x
+	fy = total_contact.y
 	var normalized_x := clampf(absf(fx) / fx_capacity, 0.0, 1.0)
 	var normalized_y := clampf(absf(fy) / fy_capacity, 0.0, 1.0)
 	var trail := pneumatic_trail_m * exp(-2.5 * normalized_y) * maxf(1.0 - 0.65 * normalized_x * normalized_x, 0.0)
 	var aligning_torque := -fy * trail
 	var slip_longitudinal_speed := rim_speed - longitudinal_speed_m_s
-	var friction_power := absf(fx * slip_longitudinal_speed) + absf(fy * lateral_speed_m_s)
+	# Signed contact work can release stored strain; do not heat the tread with
+	# reversible spring charging. This is a substep energy-budget approximation.
+	var contact_power := (fx + rolling_force * blend) * slip_longitudinal_speed - fy * lateral_speed_m_s
+	var friction_power := maxf(contact_power - (patch_energy - previous_patch_energy) / maxf(patch_dt, 1.0e-6), 0.0)
+	friction_power += absf(rolling_force * blend * longitudinal_speed_m_s)
 	state.longitudinal_force = fx
 	state.lateral_force = fy
 	state.aligning_torque = aligning_torque
 	state.friction_power = friction_power
-	state.combined_utilization = demand * budget_scale * blend
+	state.combined_utilization = Vector2(fx, fy).length() / maxf(mu_fz, 1.0e-6)
+	state.brush_demand_n = trial.length()
 	states[index] = state
 	return _output(state)
 
@@ -232,12 +271,36 @@ func state_for(index: int) -> Dictionary:
 	return states[index].duplicate(true) if index >= 0 and index < states.size() else {}
 
 
+func reset_patch(index: int) -> void:
+	states[index].patch_pos = Vector2.ZERO
+	states[index].patch_forward = Vector3.ZERO
+	states[index].patch_right = Vector3.ZERO
+	states[index].patch_energy_j = 0.0
+
+
+func rotate_patch_frame(index: int, forward: Vector3, right: Vector3) -> void:
+	var state: Dictionary = states[index]
+	var previous_forward: Vector3 = state.patch_forward
+	if previous_forward.length_squared() > 0.5:
+		var patch: Vector2 = state.patch_pos
+		var world_patch := previous_forward * patch.x + (state.patch_right as Vector3) * patch.y
+		state.patch_pos = Vector2(world_patch.dot(forward), world_patch.dot(right))
+	state.patch_forward = forward
+	state.patch_right = right
+	states[index] = state
+
+
 func _advance_unloaded(index: int, delta: float) -> void:
 	var state: Dictionary = states[index]
 	var profile: Dictionary = axle_profiles[index]
 	var recovery_tau := float(profile.get("slip_recovery_tau_s", 0.0))
 	var release := 0.0 if recovery_tau <= 1e-6 else exp(-maxf(delta, 0.0) / recovery_tau)
 	state.effective_slip_angle = 0.0
+	# Detached tread cannot keep its ground anchor for the next landing.
+	state.patch_pos = Vector2.ZERO
+	state.patch_forward = Vector3.ZERO
+	state.patch_right = Vector3.ZERO
+	state.patch_energy_j = 0.0
 	state.effective_slip_ratio = 0.0
 	state.post_peak_decay_lat *= release
 	state.post_peak_decay_lon *= release
@@ -246,6 +309,7 @@ func _advance_unloaded(index: int, delta: float) -> void:
 	state.aligning_torque = 0.0
 	state.friction_power = 0.0
 	state.combined_utilization = 0.0
+	state.brush_demand_n = 0.0
 	states[index] = state
 
 
@@ -264,6 +328,15 @@ func _pure_curve(slip: float, peak: float, slide: float, rise: float, sharpness:
 	var distance := clampf(sharpness, 0.1, 16.0) * (normalized - 1.0)
 	var decay := distance * distance / (1.0 + distance * distance)
 	return {"coefficient": clampf(slide + (1.0 - slide) * (1.0 - decay), 0.0, 1.0), "decay": decay}
+
+
+func _brush_force(demand: Vector2, friction_limit_n: float) -> Vector2:
+	var magnitude := demand.length()
+	if magnitude <= 1.0e-9 or friction_limit_n <= 1.0e-6:
+		return Vector2.ZERO
+	var theta := clampf(magnitude / (3.0 * friction_limit_n), 0.0, 1.0)
+	var force_magnitude := friction_limit_n * (3.0 * theta - 3.0 * theta * theta + theta * theta * theta)
+	return demand * (force_magnitude / magnitude)
 
 
 func _combined_budget_scale(utilization: float, blend_width: float) -> float:
@@ -299,4 +372,7 @@ func _output(state: Dictionary) -> Dictionary:
 		"slip_angle_rad": float(state.slip_angle),
 		"combined_utilization": float(state.combined_utilization),
 		"surface": str(state.surface),
+		"patch_pos": state.patch_pos,
+		"patch_energy_j": state.patch_energy_j,
+		"brush_demand_n": state.get("brush_demand_n", 0.0),
 	}

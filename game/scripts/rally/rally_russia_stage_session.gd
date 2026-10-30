@@ -149,6 +149,7 @@ func place_vehicle_on_stage() -> void:
 	var start_basis := Basis(right_axis, surface_normal, -forward_axis)
 	start_position = surface_position + surface_normal * SPAWN_CLEARANCE_METRES
 	vehicle.global_transform = Transform3D(start_basis, start_position)
+	vehicle.simulation.unsprung_rig.reset()
 	vehicle.linear_velocity = Vector3.ZERO
 	vehicle.angular_velocity = Vector3.ZERO
 	vehicle.sleeping = false

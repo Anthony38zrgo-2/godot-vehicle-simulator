@@ -330,6 +330,7 @@ func build_ramp(position: Vector3) -> void:
 
 func place_vehicle() -> void:
 	vehicle.global_transform = Transform3D(Basis(Vector3.UP, SPAWN_HEADING), SPAWN_POSITION)
+	vehicle.simulation.unsprung_rig.reset()
 	vehicle.linear_velocity = Vector3.ZERO
 	vehicle.angular_velocity = Vector3.ZERO
 	vehicle.sleeping = false

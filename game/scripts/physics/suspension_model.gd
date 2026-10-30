@@ -53,17 +53,28 @@ func configure(domains: Dictionary, chassis_geometry: Dictionary, resolved_mass:
 			return {"ok": false, "error": axle + " suspension spring rate must be positive."}
 		var spring_free_length := float(values.get("spring_free_length_m", corner_tune.get("spring_length", 0.3)))
 		var static_load := total_mass * gravity * float(axle_fractions[i]) * 0.5
-		static_corner_loads_n[i] = static_load
+		var reference_mass := static_load / maxf(gravity, 0.001)
+		var frequency := float(corner_tune.get("ride_frequency_hz", sqrt(spring_rate / reference_mass) / TAU))
+		if not is_finite(frequency) or frequency <= 0.0:
+			return {"ok": false, "error": axle + " ride frequency must be positive and finite."}
+		spring_rate = reference_mass * pow(TAU * frequency, 2.0)
+		var critical_damping := 2.0 * sqrt(spring_rate * reference_mass)
+		var damping_ratio := maxf(float(corner_tune.get("damping_ratio", 0.65)), 0.0)
+		var unsprung: Array = resolved_mass.get("unsprung_mass_kg", [0.0, 0.0, 0.0, 0.0])
+		static_corner_loads_n[i] = static_load + float(unsprung[i]) * gravity
 		axle_parameters.append({
 			"spring_rate": spring_rate,
+			"spring_can_unseat": bool(corner_tune.get("spring_can_unseat", true)),
+			"frequency_reference_mass_kg": reference_mass,
+			"ride_frequency_hz": frequency,
 			"free_length": spring_free_length,
 			"installed_length": float(values.get("spring_installed_length_m", spring_free_length)),
-			"bump_damping": float(values.get("damper_bump_Ns_per_m", 0.0)),
-			"rebound_damping": float(values.get("damper_rebound_Ns_per_m", values.get("damper_bump_Ns_per_m", 0.0))),
+			"bump_damping": critical_damping * damping_ratio * float(corner_tune.get("bump_damp_multiplier", 1.0)),
+			"rebound_damping": critical_damping * damping_ratio * float(corner_tune.get("rebound_damp_multiplier", 1.0)),
 			"fast_factor": float(values.get("damper_fast_factor", 1.0)),
 			"knee_speed": float(values.get("damper_knee_m_per_s", INF)),
 			"bump_stop_travel": float(values.get("bump_stop_travel_m", 0.0)),
-			"bump_stop_stiffness": float(values.get("spring_rate_N_per_m", 0.0)) * float(values.get("bump_stop_mult", 1.0)) * 8.0,
+			"bump_stop_stiffness": spring_rate * float(values.get("bump_stop_mult", 1.0)) * 8.0,
 			"bump_stop_damping": float(values.get("bump_stop_damper_Ns_per_m", 0.0)),
 			"bump_m": float(values.get("wheel_bump_m", 0.22)),
 			"droop_m": float(values.get("wheel_droop_m", 0.18)),
@@ -77,6 +88,9 @@ func configure(domains: Dictionary, chassis_geometry: Dictionary, resolved_mass:
 			"static_load": static_load,
 			"rest_compression_offset": 0.0,
 		})
+	front_arb_stiffness_n_per_m = float(axle_parameters[0].spring_rate) * float(front_arb.get("ratio", 0.0))
+	rear_arb_stiffness_n_per_m = float(axle_parameters[2].spring_rate) * float(rear_arb.get("ratio", 0.0))
+	print("RALLY_SUSPENSION_FREQUENCY ", JSON.stringify({"front": {"mass_kg": axle_parameters[0].frequency_reference_mass_kg, "hz": axle_parameters[0].ride_frequency_hz, "k_n_m": axle_parameters[0].spring_rate, "c_bump_ns_m": axle_parameters[0].bump_damping, "c_rebound_ns_m": axle_parameters[0].rebound_damping}, "rear": {"mass_kg": axle_parameters[2].frequency_reference_mass_kg, "hz": axle_parameters[2].ride_frequency_hz, "k_n_m": axle_parameters[2].spring_rate, "c_bump_ns_m": axle_parameters[2].bump_damping, "c_rebound_ns_m": axle_parameters[2].rebound_damping}}))
 	return {"ok": true}
 
 
@@ -98,8 +112,9 @@ func update_contact(index: int, ray_distance: float, delta: float, wheel_radius_
 			filtered_ray_distance[index] += clampf(target_length - filtered_ray_distance[index], -maximum_change, maximum_change)
 		else:
 			filtered_ray_distance[index] = target_length
-	# The central ray begins at the authored wheel centre. Its distance equals the
-	# tire radius at nominal ride height; deviations become suspension travel.
+	# The contact adapter supplies radius + swept-centre displacement. This
+	# equivalent length equals the radius at neutral ride height; it is not
+	# the distance from the wheel centre to a shoulder contact point.
 	var next_compression := wheel_radius_m - maxf(filtered_ray_distance[index], 0.0)
 	var raw_velocity := 0.0
 	if previous_samples[index] and delta > 0.0:
@@ -132,28 +147,26 @@ func set_airborne(index: int) -> void:
 func suspension_forces() -> Array[float]:
 	var forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	for i in 4:
-		if not contact_active[i]:
-			continue
 		var p: Dictionary = axle_parameters[i]
 		var travel := compression[i]
 		var speed := compression_velocity[i]
 		var damper_rate := float(p.bump_damping if speed >= 0.0 else p.rebound_damping)
 		if absf(speed) > float(p.knee_speed):
 			damper_rate *= float(p.fast_factor)
-		var force := float(p.static_load) + float(p.spring_rate) * (travel - float(p.get("rest_compression_offset", 0.0))) + damper_rate * speed
+		var elastic_force := float(p.static_load) + float(p.spring_rate) * (travel - float(p.get("rest_compression_offset", 0.0)))
+		# A seated coil cannot pull; an attached leaf spring remains bilateral.
+		# Never clamp the damper, bump stop or anti-roll-bar contributions here.
+		if bool(p.spring_can_unseat):
+			elastic_force = maxf(elastic_force, 0.0)
+		var force := elastic_force + damper_rate * speed
 		var bump_threshold := float(p.bump_m) - float(p.bump_stop_travel)
 		if travel > bump_threshold:
 			var overtravel := travel - bump_threshold
 			force += float(p.bump_stop_stiffness) * overtravel * (1.0 + 5.0 * overtravel)
 			force += float(p.bump_stop_damping) * maxf(speed, 0.0)
-		var hard_overtravel := travel - float(p.bump_m)
-		if hard_overtravel > float(p.hard_stop_overtravel):
-			var excess := hard_overtravel - float(p.hard_stop_overtravel)
-			force += float(p.hard_stop_stiffness) * excess + float(p.hard_stop_damping) * maxf(speed, 0.0)
-		var rebound_overtravel := -travel - float(p.droop_m)
-		if rebound_overtravel > 0.0:
-			force -= float(p.hard_stop_stiffness) * rebound_overtravel + float(p.hard_stop_damping) * maxf(-speed, 0.0)
-		forces[i] = maxf(force, 0.0)
+		# Travel hard limits are enforced by Jolt suspension-guide constraints.
+		# Internal suspension forces act even while the tire is airborne.
+		forces[i] = force
 	var front_roll := filtered_arb_travel[0] - filtered_arb_travel[1]
 	var rear_roll := filtered_arb_travel[2] - filtered_arb_travel[3]
 	var front_arb := front_arb_stiffness_n_per_m * front_roll
@@ -162,9 +175,6 @@ func suspension_forces() -> Array[float]:
 	forces[1] -= front_arb
 	forces[2] += rear_arb
 	forces[3] -= rear_arb
-	for i in 4:
-		if contact_active[i]:
-			forces[i] = maxf(forces[i], 0.0)
 	return forces
 
 

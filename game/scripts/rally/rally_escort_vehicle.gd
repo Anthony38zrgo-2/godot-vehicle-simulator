@@ -107,13 +107,14 @@ func _ready() -> void:
 	apply_vehicle_properties()
 	build_collision_shapes(collision_document)
 	bind_wheel_visuals()
+	simulation.create_wheel_contact_casts(self)
 	add_to_group("rally_vehicle")
 	contact_monitor = true
 	max_contacts_reported = 8
 	if not body_entered.is_connected(record_impact):
 		body_entered.connect(record_impact)
 	_physics_ready = true
-	print("RALLY_VEHICLE_PROFILE_READY id=", rally_profile.profile_id, " mass_kg=", mass, " domains=", simulation.domain_hashes.size(), " ray_count=4")
+	print("RALLY_VEHICLE_PROFILE_READY id=", rally_profile.profile_id, " sprung_mass_kg=", mass, " vehicle_mass_kg=", simulation.mass_model.resolve(simulation.mass_model.fuel_initial_kg).vehicle_total_mass_kg, " domains=", simulation.domain_hashes.size(), " contact_type=ShapeCast3D shape_count=4")
 
 
 func apply_vehicle_properties() -> void:
@@ -238,6 +239,7 @@ func _physics_process(delta: float) -> void:
 		_reset_pending = false
 	if not _physics_ready:
 		return
+	simulation.unsprung_rig.sync_freeze()
 	simulation.update_wheel_visuals(steering_amount, delta)
 	_sync_mass_from_fuel()
 	var smoothing_enabled := bool(_input_smoothing.get("enabled", false))

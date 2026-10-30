@@ -640,8 +640,8 @@ func _draw_tabs() -> void:
 
 
 func _draw_suspension_page() -> void:
-	_draw_group_panel(Rect2(24.0, 180.0, 330.0, 234.0), "SUSPENSIÓN DELANTERA", _paths(["suspension.front.resting_ratio", "suspension.front.damping_ratio", "suspension.front.bump_damp_multiplier", "suspension.front.rebound_damp_multiplier", "suspension.front.bump_stop_multiplier"]))
-	_draw_group_panel(Rect2(24.0, 426.0, 330.0, 236.0), "SUSPENSIÓN TRASERA", _paths(["suspension.rear.resting_ratio", "suspension.rear.damping_ratio", "suspension.rear.bump_damp_multiplier", "suspension.rear.rebound_damp_multiplier", "suspension.rear.bump_stop_multiplier"]))
+	_draw_group_panel(Rect2(24.0, 180.0, 330.0, 234.0), "SUSPENSIÓN DELANTERA", _paths(["suspension.front.ride_frequency_hz", "suspension.front.resting_ratio", "suspension.front.damping_ratio", "suspension.front.bump_damp_multiplier", "suspension.front.rebound_damp_multiplier", "suspension.front.bump_stop_multiplier"]), 31.0)
+	_draw_group_panel(Rect2(24.0, 426.0, 330.0, 236.0), "SUSPENSIÓN TRASERA", _paths(["suspension.rear.ride_frequency_hz", "suspension.rear.resting_ratio", "suspension.rear.damping_ratio", "suspension.rear.bump_damp_multiplier", "suspension.rear.rebound_damp_multiplier", "suspension.rear.bump_stop_multiplier"]), 31.0)
 	_draw_group_panel(Rect2(926.0, 180.0, 330.0, 234.0), "BARRA DELANTERA", _paths(["suspension.geometry_physical.front_arb.ratio"]))
 	_draw_group_panel(Rect2(926.0, 426.0, 330.0, 236.0), "BARRA TRASERA", _paths(["suspension.geometry_physical.rear_arb.ratio"]))
 	_draw_car_card(Rect2(374.0, 180.0, 528.0, 482.0), "BALANCE DEL CHASIS")

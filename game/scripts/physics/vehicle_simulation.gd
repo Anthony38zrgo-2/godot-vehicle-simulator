@@ -10,6 +10,7 @@ var asset_manifest: Dictionary = {}
 var domain_hashes: Dictionary = {}
 var mass_model := VehicleMassModel.new()
 var suspension_model := VehicleSuspensionModel.new()
+var unsprung_rig := UnsprungSuspensionRig.new()
 var tire_model := TireModel.new()
 var powertrain_model := VehiclePowertrainModel.new()
 var brake_model := VehicleBrakeModel.new()
@@ -28,6 +29,9 @@ var wheel_visual_pivots: Array[Node3D] = []
 var wheel_visuals: Array[Node3D] = []
 var wheel_rotation_angles: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var contact_query_count: int = 0
+var wheel_contact_casts: Array[ShapeCast3D] = []
+var contact_frequency_samples: int = 0
+var contact_frequency_elapsed_s: float = 0.0
 var mass_state: Dictionary = {}
 var maximum_substep_seconds: float = 0.002
 var last_step_seconds: float = 0.0
@@ -125,29 +129,27 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		var trim: Dictionary = suspension.get(axle, {})
 		var elements: Dictionary = physical.get(axle, {})
 		var design: Dictionary = setup_design_axles[axle_index]
-		var damping_base := maxf(float(design.get("damping_ratio", 1.0)), 0.000001)
-		var bump_base := maxf(float(design.get("bump_multiplier", 1.0)), 0.000001)
-		var rebound_base := maxf(float(design.get("rebound_multiplier", 1.0)), 0.000001)
 		var stop_base := maxf(float(design.get("stop_multiplier", 1.0)), 0.000001)
-		var damping_ratio := float(trim.get("damping_ratio", damping_base)) / damping_base
-		var bump_multiplier := float(trim.get("bump_damp_multiplier", bump_base)) / bump_base
-		var rebound_multiplier := float(trim.get("rebound_damp_multiplier", rebound_base)) / rebound_base
 		var stop_multiplier := float(trim.get("bump_stop_multiplier", stop_base)) / stop_base
-		var bump_coefficient := float(design.get("bump_damping", 0.0)) * damping_ratio * bump_multiplier
-		var rebound_coefficient := float(design.get("rebound_damping", 0.0)) * damping_ratio * rebound_multiplier
 		var bump_stop_mult := float(design.get("physical_bump_stop_multiplier", 1.0)) * stop_multiplier
 		for wheel_index in ([0, 1] if axle_index == 0 else [2, 3]):
 			var parameters: Dictionary = suspension_model.axle_parameters[wheel_index]
-			parameters.bump_damping = bump_coefficient
-			parameters.rebound_damping = rebound_coefficient
-			parameters.bump_stop_stiffness = float(elements.get("spring_rate_N_per_m", 0.0)) * bump_stop_mult * 8.0
 			parameters.camber = float(trim.get("camber", 0.0))
 			parameters.toe = float(trim.get("toe", 0.0))
 			var current_rest := float(trim.get("spring_length", 0.3)) * float(trim.get("resting_ratio", 0.35))
 			parameters.rest_compression_offset = current_rest - float(design.get("rest_compression", current_rest))
+			var reference_mass := float(parameters.frequency_reference_mass_kg)
+			var frequency := float(trim.get("ride_frequency_hz", parameters.ride_frequency_hz))
+			var derived_k := reference_mass * pow(TAU * frequency, 2.0)
+			var critical_c := 2.0 * sqrt(derived_k * reference_mass)
+			parameters.ride_frequency_hz = frequency
+			parameters.spring_rate = derived_k
+			parameters.bump_damping = critical_c * float(trim.get("damping_ratio", 0.65)) * float(trim.get("bump_damp_multiplier", 1.0))
+			parameters.rebound_damping = critical_c * float(trim.get("damping_ratio", 0.65)) * float(trim.get("rebound_damp_multiplier", 1.0))
+			parameters.bump_stop_stiffness = derived_k * bump_stop_mult * 8.0
 			suspension_model.axle_parameters[wheel_index] = parameters
 		var arb: Dictionary = physical.get(axle + "_arb", {})
-		var spring_rate := float(elements.get("spring_rate_N_per_m", 0.0))
+		var spring_rate := float(suspension_model.axle_parameters[axle_index * 2].spring_rate)
 		if axle_index == 0:
 			suspension_model.front_arb_stiffness_n_per_m = spring_rate * float(arb.get("ratio", 0.0))
 		else:
@@ -216,22 +218,59 @@ func bind_wheel_visuals(pivots: Array[Node3D], visuals: Array[Node3D]) -> void:
 	wheel_visuals = visuals
 
 
+func create_wheel_contact_casts(body: RigidBody3D) -> void:
+	unsprung_rig.create(body, wheel_positions_local, mass_model.unsprung_mass_kg, suspension_model)
+	for old_cast in wheel_contact_casts:
+		old_cast.queue_free()
+	wheel_contact_casts.clear()
+	for i in 4:
+		var cast := ShapeCast3D.new()
+		cast.name = "WheelContact_" + WHEEL_KEYS[i]
+		var cylinder := CylinderShape3D.new()
+		cylinder.radius = wheel_radii[i]
+		cylinder.height = wheel_widths[i]
+		cast.shape = cylinder
+		# Only the integration callback updates the cast: no duplicate automatic query.
+		cast.enabled = false
+		cast.margin = 0.002
+		cast.max_results = 8
+		cast.collide_with_areas = false
+		cast.collide_with_bodies = true
+		body.add_child(cast)
+		cast.add_exception_rid(body.get_rid())
+		wheel_contact_casts.append(cast)
+
+
 func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary) -> void:
 	var dt := state.step
-	if dt <= 0.0 or wheel_positions_local.size() != 4:
+	if dt <= 0.0 or wheel_positions_local.size() != 4 or wheel_contact_casts.size() != 4:
 		return
 	last_step_seconds = dt
+	if contact_frequency_samples < 120:
+		contact_frequency_samples += 1
+		contact_frequency_elapsed_s += dt
+		if contact_frequency_samples == 120:
+			print("RALLY_CONTACT_FREQUENCY ", JSON.stringify({"query_type": "ShapeCast3D", "wheel_count": wheel_contact_casts.size(), "configured_hz": Engine.physics_ticks_per_second, "integration_hz": contact_frequency_samples / contact_frequency_elapsed_s, "dt_s": dt}))
 	var contacts: Array[Dictionary] = []
 	contact_query_count = 0
 	for i in 4:
-		var pivot_world: Vector3 = state.transform * wheel_positions_local[i]
-		var ray_length := wheel_radii[i] + float(suspension_model.axle_parameters[i].get("bump_m", 0.22)) + float(suspension_model.axle_parameters[i].get("droop_m", 0.18)) + 0.08
-		var ray_end := pivot_world - state.transform.basis.y.normalized() * ray_length
-		var query := PhysicsRayQueryParameters3D.create(pivot_world, ray_end, body.collision_mask)
-		query.exclude = [body.get_rid()]
-		query.collide_with_areas = false
-		query.collide_with_bodies = true
-		var hit := body.get_world_3d().direct_space_state.intersect_ray(query)
+		var cast := wheel_contact_casts[i]
+		var bump := float(suspension_model.axle_parameters[i].get("bump_m", 0.22)) + 0.02
+		var travel := bump + float(suspension_model.axle_parameters[i].get("droop_m", 0.18))
+		var steer := _wheel_steer_angle(i, float(inputs.get("steering", 0.0))) + suspension_model.dynamic_toe(i)
+		var orientation := Basis(Vector3.UP, steer) * Basis(Vector3.FORWARD, suspension_model.dynamic_wheel_camber(i)) * Basis(Vector3.BACK, PI * 0.5)
+		cast.global_transform = state.transform * Transform3D(orientation, wheel_positions_local[i] + Vector3.UP * bump)
+		cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
+		cast.collision_mask = body.collision_mask
+		cast.force_shapecast_update()
+		var hit: Dictionary = {}
+		var support := 0.1
+		for collision_index in cast.get_collision_count():
+			var normal := cast.get_collision_normal(collision_index).normalized()
+			var alignment := normal.dot(state.transform.basis.y.normalized())
+			if alignment > support:
+				support = alignment
+				hit = {"position": cast.get_collision_point(collision_index), "normal": normal, "collider": cast.get_collider(collision_index)}
 		contact_query_count += 1
 		if hit.is_empty():
 			suspension_model.set_airborne(i)
@@ -239,15 +278,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			wheel_surfaces[i] = "Unknown"
 			contacts.append({"hit": false})
 			continue
-		var ray_distance: float = pivot_world.distance_to(hit["position"])
-		suspension_model.update_contact(i, ray_distance, dt, wheel_radii[i])
+		# Suspension length comes from swept wheel-centre displacement, not the
+		# distance to a contact point that may lie at the tire's shoulder.
+		var ray_distance: float = wheel_radii[i] + travel * cast.get_closest_collision_safe_fraction() - bump
 		wheel_contact_points[i] = hit["position"]
 		wheel_contact_normals[i] = (hit["normal"] as Vector3).normalized()
 		wheel_surfaces[i] = _surface_for_collider(hit.get("collider"))
-		contacts.append({"hit": true, "position": wheel_contact_points[i], "normal": wheel_contact_normals[i], "distance": ray_distance, "surface": wheel_surfaces[i]})
-	var normal_loads := suspension_model.suspension_forces()
-	var body_com_world: Vector3 = state.transform * body.center_of_mass
-	var drive_torques := _drive_torques(dt, inputs)
+		contacts.append({"hit": true, "position": wheel_contact_points[i], "normal": wheel_contact_normals[i], "distance": ray_distance, "surface": wheel_surfaces[i], "collider": hit.get("collider")})
+	var normal_loads := unsprung_rig.solve(state, suspension_model, contacts, wheel_radii, domains, thermal_model)
 	var fade_factors: Array[float] = []
 	for i in 4:
 		fade_factors.append(thermal_model.brake_fade_factor(i))
@@ -255,57 +293,71 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var brake_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var body_right := state.transform.basis.x.normalized()
-	for i in 4:
-		var contact: Dictionary = contacts[i]
-		if not bool(contact.get("hit", false)):
-			var free_thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
-			var free_result := tire_model.evaluate(
-				i, 0.0, "Gravel", 0.0, 0.0, wheel_spins[i], wheel_radii[i], 0.0,
-				thermal_model.tire_grip_factor(i),
-				float(free_thermal_state.get("pressure_kpa_gauge", 180.0)), dt,
-				float(free_thermal_state.get("carcass_c", 25.0))
+	var count := maxi(1, ceili(dt / maximum_substep_seconds))
+	var h := dt / float(count)
+	var force_weight := 1.0 / float(count)
+	for _substep_index in count:
+		_prepare_powertrain(h, inputs)
+		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_cambers: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		for i in 4:
+			var contact: Dictionary = contacts[i]
+			tire_model.states[i].radial_deflection_m = unsprung_rig.radial_deflection_m[i]
+			wheel_loads[i] = normal_loads[i]
+			if not bool(contact.get("hit", false)) or normal_loads[i] <= 0.0:
+				var free_thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
+				var free_result := tire_model.evaluate(
+					i, 0.0, "Gravel", 0.0, 0.0, wheel_spins[i], wheel_radii[i], 0.0,
+					thermal_model.tire_grip_factor(i),
+					float(free_thermal_state.get("pressure_kpa_gauge", 180.0)), h,
+					float(free_thermal_state.get("carcass_c", 25.0))
+				)
+				wheel_slips[i] = Vector2(float(free_result.get("slip_ratio", 0.0)), float(free_result.get("slip_angle_rad", 0.0)))
+				tire_powers[i] = 0.0
+				thermal_speeds[i] = state.linear_velocity.length()
+				continue
+			var point: Vector3 = contact["position"]
+			var normal: Vector3 = contact["normal"]
+			var hub := unsprung_rig.hubs[i]
+			var point_velocity := hub.linear_velocity + hub.angular_velocity.cross(point - hub.global_position)
+			var steer_angle := _wheel_steer_angle(i, float(inputs.get("steering", 0.0)))
+			var toe := suspension_model.dynamic_toe(i)
+			var camber := suspension_model.dynamic_camber(i)
+			var wheel_camber := suspension_model.dynamic_wheel_camber(i)
+			var forward := (-state.transform.basis.z).rotated(normal, steer_angle + toe)
+			forward = (forward - normal * forward.dot(normal)).normalized()
+			if forward.length_squared() < 0.5:
+				forward = (-state.transform.basis.z).normalized()
+			var right := forward.cross(normal).normalized()
+			right = right.rotated(forward, wheel_camber).normalized()
+			var longitudinal_speed := point_velocity.dot(forward)
+			var lateral_speed := point_velocity.dot(right)
+			var normal_load := maxf(float(normal_loads[i]), 0.0)
+			wheel_loads[i] = normal_load
+			var thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
+			tire_model.rotate_patch_frame(i, forward, right)
+			var tire_result := _solve_contact_wheel(
+				i, h, normal_load, str(contact["surface"]), longitudinal_speed, lateral_speed,
+				camber, float(thermal_state.get("pressure_kpa_gauge", 180.0)),
+				float(thermal_state.get("carcass_c", 25.0))
 			)
-			wheel_slips[i] = Vector2(float(free_result.get("slip_ratio", 0.0)), float(free_result.get("slip_angle_rad", 0.0)))
-			var free_brake_energy := _continue_wheel_spin(i, dt, float(drive_torques[i]), float(brake_torques[i]), 0.0)
-			var free_brake_power := free_brake_energy / dt
-			thermal_model.advance_tire(i, 0.0, free_brake_power, state.linear_velocity.length(), dt)
-			continue
-		var point: Vector3 = contact["position"]
-		var normal: Vector3 = contact["normal"]
-		var point_velocity := state.linear_velocity + state.angular_velocity.cross(point - body_com_world)
-		var steer_angle := _wheel_steer_angle(i, float(inputs.get("steering", 0.0)))
-		var toe := suspension_model.dynamic_toe(i)
-		var camber := suspension_model.dynamic_camber(i)
-		var wheel_camber := suspension_model.dynamic_wheel_camber(i)
-		var forward := (-state.transform.basis.z).rotated(normal, steer_angle + toe)
-		forward = (forward - normal * forward.dot(normal)).normalized()
-		if forward.length_squared() < 0.5:
-			forward = (-state.transform.basis.z).normalized()
-		var right := forward.cross(normal).normalized()
-		right = right.rotated(forward, wheel_camber).normalized()
-		var longitudinal_speed := point_velocity.dot(forward)
-		var lateral_speed := point_velocity.dot(right)
-		var normal_load := maxf(float(normal_loads[i]), 0.0)
-		wheel_loads[i] = normal_load
-		var thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
-		var tire_result := _solve_contact_wheel(
-			i, dt, normal_load, str(contact["surface"]), longitudinal_speed, lateral_speed,
-			camber, float(thermal_state.get("pressure_kpa_gauge", 180.0)),
-			float(thermal_state.get("carcass_c", 25.0)),
-			float(drive_torques[i]), float(brake_torques[i])
-		)
-		var tire_force := forward * float(tire_result.get("longitudinal_force_n", 0.0)) + right * float(tire_result.get("lateral_force_n", 0.0))
-		if normal_load > 0.0:
-			state.apply_force(normal * normal_load, point - state.transform.origin)
-			state.apply_force(tire_force, point - state.transform.origin)
-			state.apply_torque(normal * float(tire_result.get("aligning_torque_nm", 0.0)))
-		wheel_slips[i] = Vector2(float(tire_result.get("slip_ratio", 0.0)), float(tire_result.get("slip_angle_rad", 0.0)))
-		tire_powers[i] = float(tire_result.get("friction_power_w", 0.0))
-		brake_powers[i] = float(tire_result.get("brake_power_w", 0.0))
-		thermal_model.advance_tire(i, tire_powers[i], brake_powers[i], point_velocity.length(), dt, wheel_camber)
-	var shaft_torque := float(drive_torques[0]) + float(drive_torques[1]) + float(drive_torques[2]) + float(drive_torques[3])
-	if absf(shaft_torque) > 0.0:
-		state.apply_torque(-body_right * shaft_torque)
+			var tire_force := forward * float(tire_result.get("longitudinal_force_n", 0.0)) + right * float(tire_result.get("lateral_force_n", 0.0))
+			if normal_load > 0.0:
+				hub.apply_force(tire_force * force_weight, point - hub.global_position)
+				hub.apply_torque(normal * float(tire_result.get("aligning_torque_nm", 0.0)) * force_weight)
+			wheel_slips[i] = Vector2(float(tire_result.get("slip_ratio", 0.0)), float(tire_result.get("slip_angle_rad", 0.0)))
+			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0))
+			tire_reactions[i] = float(tire_result.get("longitudinal_force_n", 0.0)) * wheel_radii[i]
+			thermal_speeds[i] = point_velocity.length()
+			thermal_cambers[i] = wheel_camber
+		var rotation := powertrain_model.solve_rotation(h, wheel_spins, mass_model.wheel_spin_inertia, tire_reactions, brake_torques)
+		var brake_work: Array = rotation.brake_work_j
+		for i in 4:
+			brake_powers[i] = float(brake_work[i]) / h
+			thermal_model.advance_tire(i, tire_powers[i], brake_powers[i], thermal_speeds[i], h, thermal_cambers[i], unsprung_rig.radial_dissipation_w[i] if normal_loads[i] > 0.0 else 0.0)
+		state.apply_torque(-body_right * float(rotation.shaft_torque_nm) * force_weight)
+
 	var velocity := state.linear_velocity
 	if velocity.length_squared() > 0.01:
 		var speed := velocity.length()
@@ -320,35 +372,23 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	if bool(inputs.get("automatic_transmission", false)):
 		_update_automatic_shift(float(inputs.get("throttle", 0.0)))
 	publication_sequence += 1
+	if publication_sequence == 240:
+		print("RALLY_UNSPRUNG_STATE ", JSON.stringify({"radial_deflection_m": unsprung_rig.radial_deflection_m, "suspension_compression_m": suspension_model.compression, "normal_load_n": normal_loads, "spring_force_n": unsprung_rig.spring_forces_n, "sprung_mass_kg": body.mass, "vehicle_mass_kg": mass_model.resolve(thermal_model.fuel_remaining_litres * mass_model.fuel_density_kg_per_litre).vehicle_total_mass_kg}))
 	simulation_time_s += dt
 	var wheels: Array[Dictionary] = []
 	for index in 4:
 		var wheel := thermal_model.get_tire_thermal_state_snapshot(index)
-		wheel.merge({"surface": wheel_surfaces[index], "load_n": wheel_loads[index], "spin_rad_s": wheel_spins[index], "slip_ratio": wheel_slips[index].x, "slip_angle_rad": wheel_slips[index].y})
+		wheel.merge({"surface": wheel_surfaces[index], "load_n": wheel_loads[index], "spin_rad_s": wheel_spins[index], "slip_ratio": wheel_slips[index].x, "slip_angle_rad": wheel_slips[index].y, "patch_pos": tire_model.states[index].patch_pos, "patch_energy_j": tire_model.states[index].patch_energy_j, "unsprung_mass_kg": mass_model.unsprung_mass_kg[index], "radial_deflection_m": unsprung_rig.radial_deflection_m[index], "suspension_force_n": unsprung_rig.spring_forces_n[index]})
 		wheels.append(wheel)
-	published_state = {"sequence": publication_sequence, "generation": session_generation, "time_s": simulation_time_s, "dt_s": dt, "rpm": powertrain_model.engine_rpm, "rpm_max": powertrain_model.maximum_rpm, "rpm_idle": powertrain_model.idle_rpm, "gear": powertrain_model.current_gear, "torque_nm": powertrain_model.engine_torque_nm, "load": clampf(absf(powertrain_model.engine_torque_nm) / maxf(powertrain_model.peak_torque_nm, 1.0), 0.0, 1.0), "speed_kph": state.linear_velocity.length() * 3.6, "throttle": float(inputs.get("throttle", 0.0)), "brake": float(inputs.get("brake", 0.0)), "steering": float(inputs.get("steering", 0.0)), "engine": thermal_model.get_engine_thermal_state_snapshot(), "fuel": thermal_model.get_fuel_state_snapshot(), "wheels": wheels, "contact_queries": contact_query_count, "aids": {"automatic_transmission": bool(inputs.get("automatic_transmission", false)), "traction_control": traction_control_enabled, "stability": stability_enabled, "anti_lock_brakes": abs_enabled}, "aids_available": assistance_available.duplicate()}
+	published_state = {"sequence": publication_sequence, "generation": session_generation, "time_s": simulation_time_s, "dt_s": dt, "rpm": powertrain_model.engine_rpm, "rpm_max": powertrain_model.maximum_rpm, "rpm_idle": powertrain_model.idle_rpm, "gear": powertrain_model.current_gear, "torque_nm": powertrain_model.engine_torque_nm, "autoblip_active": powertrain_model.autoblip_active, "autoblip_target_rpm": powertrain_model.autoblip_target_rpm, "autoblip_throttle": powertrain_model.autoblip_throttle, "shift_phase": powertrain_model.shift_phase, "pending_gear": powertrain_model.pending_gear, "clutch_engagement": powertrain_model.clutch_engagement, "clutch_torque_nm": powertrain_model.clutch_torque_nm, "clutch_slip_power_w": powertrain_model.clutch_slip_power_w, "input_shaft_rad_s": powertrain_model.input_shaft_omega_rad_s, "driveline": {"enabled": powertrain_model.driveline_compliance_enabled, "twist_rad": powertrain_model.driveline_twist_rad, "torque_nm": powertrain_model.driveline_torque_nm, "energy_j": powertrain_model.driveline_energy_j, "dissipation_w": powertrain_model.driveline_dissipation_w, "output_rad_s": powertrain_model.output_shaft_omega_rad_s}, "load": clampf(absf(powertrain_model.engine_torque_nm) / maxf(powertrain_model.peak_torque_nm, 1.0), 0.0, 1.0), "speed_kph": state.linear_velocity.length() * 3.6, "throttle": float(inputs.get("throttle", 0.0)), "brake": float(inputs.get("brake", 0.0)), "steering": float(inputs.get("steering", 0.0)), "engine": thermal_model.get_engine_thermal_state_snapshot(), "fuel": thermal_model.get_fuel_state_snapshot(), "wheels": wheels, "contact_queries": contact_query_count, "aids": {"automatic_transmission": bool(inputs.get("automatic_transmission", false)), "traction_control": traction_control_enabled, "stability": stability_enabled, "anti_lock_brakes": abs_enabled}, "aids_available": assistance_available.duplicate()}
 
 
 
-func _drive_torques(delta: float, inputs: Dictionary) -> Array[float]:
-	var front_speeds := Vector2(wheel_spins[0], wheel_spins[1])
-	var rear_speeds := Vector2(wheel_spins[2], wheel_spins[3])
-	var front_reactions := Vector2(
-		_tire_reaction_torque(0),
-		_tire_reaction_torque(1))
-	var rear_reactions := Vector2(
-		_tire_reaction_torque(2),
-		_tire_reaction_torque(3))
-	var thermal_factor := thermal_model.engine_torque_factor()
+func _prepare_powertrain(delta: float, inputs: Dictionary) -> void:
 	var clutch := clampf(float(inputs.get("clutch", 1.0)), 0.0, 1.0)
-	powertrain_model.advance(delta, float(inputs.get("throttle", 0.0)), clutch, rear_speeds, thermal_factor, rear_reactions, front_speeds, front_reactions)
-	return powertrain_model.drive_torques(float(inputs.get("throttle", 0.0)), clutch, rear_speeds, thermal_factor)
-
-
-func _tire_reaction_torque(index: int) -> float:
-	if index < 0 or index >= tire_model.states.size() or index >= wheel_radii.size():
-		return 0.0
-	return -float(tire_model.states[index].get("longitudinal_force", 0.0)) * wheel_radii[index]
+	var split := powertrain_model.front_torque_split
+	var carrier := 0.5 * (split * (wheel_spins[0] + wheel_spins[1]) + (1.0 - split) * (wheel_spins[2] + wheel_spins[3]))
+	powertrain_model.advance(delta, float(inputs.get("throttle", 0.0)), clutch, thermal_model.engine_torque_factor(), carrier)
 
 
 func update_wheel_visuals(steering_input: float, delta: float) -> void:
@@ -357,45 +397,13 @@ func update_wheel_visuals(steering_input: float, delta: float) -> void:
 		var toe := suspension_model.dynamic_toe(i)
 		var wheel_camber := suspension_model.dynamic_wheel_camber(i)
 		var pivot := wheel_visual_pivots[i]
-		pivot.position = wheel_positions_local[i] - Vector3.UP * suspension_model.compression[i]
+		pivot.position = wheel_positions_local[i] + Vector3.UP * suspension_model.compression[i]
 		pivot.rotation.y = steer_angle + toe
 		if i < wheel_visuals.size():
 			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * delta, TAU)
 			wheel_visuals[i].rotation = Vector3(wheel_rotation_angles[i], 0.0, wheel_camber)
 
 
-func _continue_wheel_spin(index: int, delta: float, drive_torque: float, brake_torque: float, tire_reaction_torque: float) -> float:
-	# Input brake torque is a capacity (positive magnitude). Return dissipated
-	# work in joules, integrating only the interval where the rotor actually moves.
-	var inertia := maxf(mass_model.wheel_spin_inertia[index], 0.01)
-	if powertrain_model.wheel_is_driven(index):
-		# Reflect engine and gearbox inertia through the active ratio onto each driven wheel.
-		inertia += maxf(powertrain_model.drive_inertia_kg_m2, 0.0)
-	var substeps := maxi(1, ceili(delta / maximum_substep_seconds))
-	var substep := delta / float(substeps)
-	var capacity := absf(brake_torque)
-	var external_torque := drive_torque - tire_reaction_torque
-	var dissipated_j := 0.0
-	for _step in substeps:
-		var before := wheel_spins[index]
-		if absf(before) < 1.0e-9 and absf(external_torque) <= capacity:
-			wheel_spins[index] = 0.0
-			continue
-		var direction := signf(before) if absf(before) >= 1.0e-9 else signf(external_torque)
-		var angular_acceleration := (external_torque - capacity * direction) / inertia
-		var next_spin := before + angular_acceleration * substep
-		if before * next_spin < 0.0 or (before != 0.0 and next_spin == 0.0):
-			var stop_time := clampf(-before / angular_acceleration, 0.0, substep)
-			dissipated_j += capacity * absf(before) * stop_time * 0.5
-			next_spin = 0.0
-			if absf(external_torque) > capacity:
-				var remaining := substep - stop_time
-				next_spin = (external_torque - capacity * signf(external_torque)) / inertia * remaining
-				dissipated_j += capacity * absf(next_spin) * remaining * 0.5
-		else:
-			dissipated_j += capacity * (absf(before) + absf(next_spin)) * substep * 0.5
-		wheel_spins[index] = clampf(next_spin, -1800.0, 1800.0)
-	return dissipated_j
 
 
 func _wheel_steer_angle(index: int, input_value: float) -> float:
@@ -434,6 +442,7 @@ func _surface_for_collider(collider: Variant) -> String:
 
 
 func reset_dynamics() -> void:
+	unsprung_rig.reset()
 	session_generation += 1
 	simulation_time_s = 0.0
 	published_state = {}
@@ -442,6 +451,7 @@ func reset_dynamics() -> void:
 	wheel_loads.fill(0.0)
 	wheel_rotation_angles.fill(0.0)
 	for i in 4:
+		tire_model.reset_patch(i)
 		suspension_model.compression[i] = 0.0
 		suspension_model.compression_velocity[i] = 0.0
 		suspension_model.contact_active[i] = false
@@ -450,12 +460,14 @@ func reset_dynamics() -> void:
 			wheel_visuals[i].rotation = Vector3.ZERO
 	powertrain_model.current_gear = 0
 	powertrain_model.engine_rpm = powertrain_model.idle_rpm
-	powertrain_model.shift_remaining_seconds = 0.0
+	powertrain_model.reset_shift()
 	powertrain_model.engine_torque_nm = 0.0
 	powertrain_model.engine_attack_limited_torque_nm = 0.0
 	powertrain_model.clutch_engagement = 0.0
 	powertrain_model.clutch_torque_nm = 0.0
-	powertrain_model.drive_inertia_kg_m2 = 0.0
+	powertrain_model.input_shaft_omega_rad_s = 0.0
+	powertrain_model.reset_compliance()
+	powertrain_model.clutch_slip_power_w = 0.0
 
 
 func _vector_from_document(value: Variant, fallback: Vector3) -> Vector3:
@@ -466,20 +478,7 @@ func _vector_from_document(value: Variant, fallback: Vector3) -> Vector3:
 	return fallback
 
 
-# Trials reuse the accepted contact and original filter state. Only the final
-# state is committed, so relaxation/memory advance by dt once, not N * dt.
-func _solve_contact_wheel(index: int, dt: float, load_n: float, surface: String, vx: float, vy: float, camber: float, pressure: float, carcass_temperature_c: float, drive: float, brake: float) -> Dictionary:
-	var initial_state: Dictionary = tire_model.states[index].duplicate(true)
-	var count := maxi(1, ceili(dt / maximum_substep_seconds))
-	var h := dt / float(count)
-	var averages := {"longitudinal_force_n": 0.0, "lateral_force_n": 0.0, "aligning_torque_nm": 0.0, "friction_power_w": 0.0, "brake_power_w": 0.0}
-	var result: Dictionary = {}
-	for iteration in count:
-		tire_model.states[index] = initial_state.duplicate(true)
-		result = tire_model.evaluate(index, load_n, surface, vx, vy, wheel_spins[index], wheel_radii[index], camber, thermal_model.tire_grip_factor(index), pressure, dt, carcass_temperature_c)
-		for key in ["longitudinal_force_n", "lateral_force_n", "aligning_torque_nm", "friction_power_w"]:
-			averages[key] += float(result.get(key, 0.0)) / float(count)
-		var brake_energy := _continue_wheel_spin(index, h, drive, brake, float(result.get("longitudinal_force_n", 0.0)) * wheel_radii[index])
-		averages.brake_power_w += brake_energy / dt
-	result.merge(averages, true)
-	return result
+# Advance tire memory sequentially by h; the sum of substeps is dt.
+func _solve_contact_wheel(index: int, dt: float, load_n: float, surface: String, vx: float, vy: float, camber: float, pressure: float, carcass_temperature_c: float) -> Dictionary:
+	# Called once per shared rotational substep; all wheel speeds are solved together.
+	return tire_model.evaluate(index, load_n, surface, vx, vy, wheel_spins[index], wheel_radii[index], camber, thermal_model.tire_grip_factor(index), pressure, dt, carcass_temperature_c)
