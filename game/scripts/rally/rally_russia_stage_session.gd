@@ -14,6 +14,23 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var telemetry_recorder_path: NodePath
 @export var track_collision_path: NodePath
 @export var track_visual_path: NodePath
+@export var weather_enabled: bool = true
+@export var weather_season_path: String = "res://data/weather/russia_winter_overcast.tres"
+@export var weather_start_weather: int = 0
+@export var weather_speed_multiplier: float = 1.0
+@export_group("Sky3D")
+@export var sky3d_time_of_day: float = 11.0
+@export var sky3d_minutes_per_day: float = 24.0
+@export var sky3d_cumulus_coverage: float = 0.68
+@export var sky3d_cirrus_coverage: float = 0.55
+@export var sky3d_cumulus_intensity: float = 0.85
+@export var sky3d_fog_density: float = 0.0004
+@export var sky3d_fog_end: float = 3000.0
+@export var couple_clouds_to_weather: bool = true
+@export var sky3d_precipitation_cloud_coverage: float = 0.92
+@export_group("TCA")
+@export var tca_wind_speed: float = 4.0
+@export var tca_wind_direction_degrees: float = 35.0
 
 var vehicle: RallyEscortVehicle
 var input_controller: RallyVehicleInputController
@@ -29,6 +46,12 @@ var session_ready: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
 var course := RallyStageProgress.new()
+var weather_sky_node: Node = null
+var weather_sky_dome: Node = null
+var weather_controller_node: Node = null
+var weather_wind: Node = null
+var terrain_wetness: Node = null
+var weather_is_raining: bool = false
 
 
 func _ready() -> void:
@@ -72,6 +95,220 @@ func _ready() -> void:
 
 
 func build_environment() -> void:
+	if weather_enabled and _build_weather_system():
+		return
+	_build_legacy_environment()
+
+
+## Reparto de responsabilidades:
+##   Sky3D -> cielo, atmosfera, nubes, niebla y ciclo dia/noche (sol, luna, hora).
+##   TCA   -> calendario de climas, precipitacion (lluvia/nieve), transiciones y viento.
+##   Propio-> humedad del terreno acumulada por la lluvia de TCA.
+func _build_weather_system() -> bool:
+	const SKY3D_SCRIPT := "res://addons/sky_3d/src/Sky3D.gd"
+	const TCA_WEATHER_SCRIPT := "res://addons/TCA_Weather_System/scripts/WeatherController.gd"
+	const TCA_WIND_SCRIPT := "res://addons/TCA_Weather_System/scripts/wind_controller.gd"
+	if not FileAccess.file_exists(SKY3D_SCRIPT):
+		push_warning("Sky3D addon missing, using legacy environment")
+		return false
+	if not FileAccess.file_exists(TCA_WEATHER_SCRIPT) or not FileAccess.file_exists(TCA_WIND_SCRIPT):
+		push_warning("TCA addon missing, using legacy environment")
+		return false
+	if not FileAccess.file_exists(weather_season_path):
+		push_warning("TCA season missing, using legacy environment")
+		return false
+	var season_res: Resource = load(weather_season_path)
+	if season_res == null:
+		push_warning("TCA season failed to load, using legacy environment")
+		return false
+	if not _build_sky3d(SKY3D_SCRIPT):
+		return false
+	if not _build_tca_precipitation(TCA_WEATHER_SCRIPT, season_res):
+		return false
+	_build_tca_wind(TCA_WIND_SCRIPT)
+	_build_terrain_wetness()
+	var weather_count: int = 0
+	var season_weathers: Variant = season_res.get("weathers")
+	if season_weathers is Array:
+		weather_count = (season_weathers as Array).size()
+	print("RALLY_WEATHER_READY scene=russia_stage1 sky=Sky3D precipitation=TCA wind=TCA season=", weather_season_path, " weathers=", weather_count)
+	return true
+
+
+func _build_sky3d(script_path: String) -> bool:
+	var sky_script := load(script_path) as Script
+	if sky_script == null:
+		push_warning("Sky3D script failed to load, using legacy environment")
+		return false
+	var sky_node: Node = sky_script.new()
+	if sky_node == null:
+		push_warning("Sky3D failed to instantiate, using legacy environment")
+		return false
+	sky_node.name = "Sky3D"
+	add_child(sky_node)
+	weather_sky_node = sky_node
+	weather_sky_dome = sky_node.get("sky")
+	sky_node.set("current_time", sky3d_time_of_day)
+	sky_node.set("minutes_per_day", sky3d_minutes_per_day)
+	sky_node.set("game_time_enabled", true)
+	var environment: Environment = sky_node.get("environment")
+	if environment != null:
+		# La niebla y la atmosfera las aporta Sky3D (SkyDome); se apagan las de Godot.
+		environment.fog_enabled = false
+		environment.volumetric_fog_enabled = false
+		environment.fog_sky_affect = 0.0
+	var sun := sky_node.get("sun") as DirectionalLight3D
+	if sun != null:
+		sun.shadow_enabled = true
+		sun.directional_shadow_max_distance = 280.0
+	var moon := sky_node.get("moon") as DirectionalLight3D
+	if moon != null:
+		moon.shadow_enabled = false
+	if weather_sky_dome != null:
+		weather_sky_dome.set("cumulus_visible", true)
+		weather_sky_dome.set("cirrus_visible", true)
+		weather_sky_dome.set("cumulus_coverage", sky3d_cumulus_coverage)
+		weather_sky_dome.set("cumulus_intensity", sky3d_cumulus_intensity)
+		weather_sky_dome.set("cirrus_coverage", sky3d_cirrus_coverage)
+		weather_sky_dome.set("fog_visible", true)
+		weather_sky_dome.set("fog_density", sky3d_fog_density)
+		weather_sky_dome.set("fog_start", 0.0)
+		weather_sky_dome.set("fog_end", sky3d_fog_end)
+	return true
+
+
+func _build_tca_precipitation(script_path: String, season_res: Resource) -> bool:
+	var weather_script := load(script_path) as Script
+	if weather_script == null:
+		push_warning("TCA WeatherController failed to load, using legacy environment")
+		return false
+	var controller: Node = weather_script.new()
+	if controller == null:
+		push_warning("TCA WeatherController failed to instantiate, using legacy environment")
+		return false
+	controller.name = "TCAWeatherController"
+	# Sky3D manda sobre cielo, niebla y luces: TCA solo lleva clima y precipitacion.
+	controller.set("drive_environment", false)
+	var seasons: Array = controller.get("seasons")
+	if seasons == null:
+		seasons = []
+		controller.set("seasons", seasons)
+	seasons.clear()
+	seasons.append(season_res)
+	# Un dia de TCA dura los mismos minutos reales que un dia de Sky3D.
+	var minutes_per_day: float = maxf(sky3d_minutes_per_day, 0.1)
+	var tca_speed: float = (86400.0 / (minutes_per_day * 60.0)) * maxf(weather_speed_multiplier, 0.01)
+	controller.set("time_speed_multiplier", tca_speed)
+	controller.set("start_time", clampf(sky3d_time_of_day, 0.0, 23.99) / 24.0 * 86400.0)
+	controller.set("start_season", 0)
+	controller.set("start_weather", weather_start_weather)
+	# Las senales se conectan antes de entrar al arbol: el clima inicial se emite en _ready().
+	controller.connect(&"weather_changed", _on_tca_weather_changed)
+	controller.connect(&"weather_ended", _on_tca_weather_ended)
+	controller.connect(&"season_changed", _on_tca_season_changed)
+	add_child(controller)
+	weather_controller_node = controller
+	return true
+
+
+func _build_tca_wind(script_path: String) -> void:
+	var wind_script := load(script_path) as Script
+	if wind_script == null:
+		push_warning("TCA WindController failed to load; clouds will not drift with wind")
+		return
+	var wind: Node = wind_script.new()
+	if wind == null:
+		return
+	wind.name = "TCAWindController"
+	wind.set("wind_speed", tca_wind_speed)
+	var radians := deg_to_rad(tca_wind_direction_degrees)
+	wind.set("wind_direction", Vector2(cos(radians), sin(radians)))
+	add_child(wind)
+	weather_wind = wind
+
+
+func _build_terrain_wetness() -> void:
+	if track_visual == null:
+		return
+	const WETNESS_SCRIPT := "res://scripts/rally/rally_terrain_wetness.gd"
+	if not FileAccess.file_exists(WETNESS_SCRIPT):
+		return
+	var wetness_script := load(WETNESS_SCRIPT) as Script
+	if wetness_script == null:
+		return
+	var wetness_node: Node = wetness_script.new()
+	if wetness_node == null:
+		return
+	wetness_node.name = "RallyTerrainWetness"
+	wetness_node.set("visual_root", track_visual)
+	add_child(wetness_node)
+	terrain_wetness = wetness_node
+
+
+func sync_weather_wind() -> void:
+	if weather_wind == null or weather_sky_dome == null:
+		return
+	var speed: float = float(weather_wind.call("get_wind_speed"))
+	var direction: Vector2 = weather_wind.call("get_wind_direction")
+	weather_sky_dome.set("wind_speed", speed)
+	if direction.length_squared() > 0.000001:
+		weather_sky_dome.set("wind_direction", atan2(direction.y, direction.x))
+
+
+func _process(_delta: float) -> void:
+	sync_weather_wind()
+
+
+func _on_tca_weather_changed(weather) -> void:
+	var description := describe_tca_weather(weather)
+	var precipitation: Variant = weather.get("precipitation")
+	var is_precipitating := precipitation != null
+	weather_is_raining = is_precipitating and description.contains("RAIN")
+	if terrain_wetness != null:
+		terrain_wetness.set_rain_intensity(1.0 if weather_is_raining else 0.0)
+	# Las nubes siguen siendo de Sky3D; esto solo ajusta su cobertura cuando TCA
+	# anuncia precipitacion, para no tener nieve cayendo de un cielo despejado.
+	if couple_clouds_to_weather and weather_sky_dome != null:
+		var coverage: float = sky3d_precipitation_cloud_coverage if is_precipitating else sky3d_cumulus_coverage
+		weather_sky_dome.set("cumulus_coverage", coverage)
+	print("RALLY_WEATHER_CHANGED ", description, " precipitation=", is_precipitating, " raining=", weather_is_raining)
+	if head_up_display != null and session_ready:
+		head_up_display.show_status("WEATHER " + description.to_upper(), Color(0.62, 0.78, 0.95), 2.4)
+
+
+func _on_tca_weather_ended(_weather) -> void:
+	print("RALLY_WEATHER_ENDED")
+
+
+func _on_tca_season_changed(season) -> void:
+	print("RALLY_SEASON_CHANGED season=", season.get("season_id"))
+
+
+func describe_tca_weather(weather) -> String:
+	if weather == null:
+		return "UNKNOWN"
+	var precipitation: Variant = weather.get("precipitation")
+	if precipitation != null:
+		var particles: Variant = precipitation.get("particles")
+		var particles_path := ""
+		if particles is PackedScene:
+			particles_path = (particles as PackedScene).resource_path.to_lower()
+		var is_snow := particles_path.contains("snow")
+		if float(weather.get("large_cloud_cover")) >= 0.9:
+			return "HEAVY SNOW" if is_snow else "HEAVY RAIN"
+		return "SNOW" if is_snow else "RAIN"
+	if float(weather.get("fog_density")) > 0.01:
+		return "FOG"
+	if float(weather.get("fog_density")) > 0.003:
+		return "LIGHT FOG"
+	if float(weather.get("large_cloud_cover")) >= 0.6:
+		return "OVERCAST"
+	if float(weather.get("large_cloud_cover")) >= 0.35:
+		return "CLOUDY"
+	return "CLEAR"
+
+
+func _build_legacy_environment() -> void:
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	var sky_material := ProceduralSkyMaterial.new()

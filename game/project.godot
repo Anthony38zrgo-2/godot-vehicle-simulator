@@ -25,6 +25,10 @@ config/features=PackedStringArray("4.7")
 InputBindings="*res://scripts/input/input_bindings.gd"
 VehicleAudioBus="*res://scripts/audio/ensure_vehicle_bus.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/sky_3d/plugin.cfg", "res://addons/TCA_Weather_System/plugin.cfg")
+
 [physics]
 
 common/physics_ticks_per_second=120
@@ -36,5 +40,5 @@ driver/output_latency=40
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="forward_plus"
