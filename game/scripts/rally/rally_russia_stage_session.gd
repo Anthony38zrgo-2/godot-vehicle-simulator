@@ -28,6 +28,13 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var sky3d_fog_end: float = 3000.0
 @export var couple_clouds_to_weather: bool = true
 @export var sky3d_precipitation_cloud_coverage: float = 0.92
+@export_group("Sky3D Brillo")
+@export var sky3d_ambient_sky_contribution: float = 0.3
+@export var sky3d_ambient_energy: float = 0.45
+@export var sky3d_sun_energy: float = 0.75
+@export var sky3d_skydome_energy: float = 0.9
+@export var sky3d_atm_sun_intensity: float = 9.0
+@export var sky3d_camera_exposure: float = 0.9
 @export_group("TCA")
 @export var tca_wind_speed: float = 4.0
 @export var tca_wind_direction_degrees: float = 35.0
@@ -174,6 +181,14 @@ func _build_sky3d(script_path: String) -> bool:
 		weather_sky_dome.set("fog_density", sky3d_fog_density)
 		weather_sky_dome.set("fog_start", 0.0)
 		weather_sky_dome.set("fog_end", sky3d_fog_end)
+		weather_sky_dome.set("atm_sun_intensity", sky3d_atm_sun_intensity)
+	# Rebalanceo de brillo: Sky3D trae sky_contribution=1.0 (ambiente 100% del cielo),
+	# que lava el suelo. Se baja el aporte del cielo y se compensa con ambiente fijo moderado.
+	sky_node.set("sky_contribution", sky3d_ambient_sky_contribution)
+	sky_node.set("ambient_energy", sky3d_ambient_energy)
+	sky_node.set("sun_energy", sky3d_sun_energy)
+	sky_node.set("skydome_energy", sky3d_skydome_energy)
+	sky_node.set("camera_exposure", sky3d_camera_exposure)
 	return true
 
 
