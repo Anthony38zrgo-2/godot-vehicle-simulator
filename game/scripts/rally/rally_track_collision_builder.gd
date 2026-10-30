@@ -6,6 +6,21 @@ extends Node3D
 @export var collision_layer: int = 1
 @export var body_friction: float = 0.9
 
+# Collision node name (lowercase) -> physics surface group. Nodes not in
+# this table keep the legacy behavior: "terrain" nodes join
+# terrain_surface_group, everything else gets no surface group (the tire
+# model then falls back to its default surface).
+const SURFACE_GROUP_BY_NODE := {
+	# NOTE: in this rally blend `road_*` materials are the gravel stage road
+	# (road_gravel_*), so the rally's main "road" is Gravel, not paved. Map
+	# it to Gravel. The "Road" -> surf_road (asphalt) rule stays available in
+	# the audio policy for genuinely paved tracks only.
+	"collision_road": "Gravel",
+	"collision_terrain_grass": "Grass",
+	"collision_terrain_dirt": "Dirt",
+	"collision_terrain_sand": "Sand",
+}
+
 var generated_body_count: int = 0
 var generated_triangle_count: int = 0
 var generated_shape_count: int = 0
@@ -53,10 +68,13 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 	static_body.collision_layer = collision_layer
 	static_body.collision_mask = 0
 	var source_name := str(mesh_instance.name).to_lower()
-	var role := "terrain" if "terrain" in source_name else ("barrier" if "barrier" in source_name else "obstacle")
+	var role := "terrain" if ("terrain" in source_name or "road" in source_name) else ("barrier" if "barrier" in source_name else "obstacle")
 	static_body.set_meta("collision_role", role)
-	if role == "terrain":
-		static_body.add_to_group(terrain_surface_group)
+	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
+	if role == "terrain" and surface_group.is_empty():
+		surface_group = terrain_surface_group
+	if not surface_group.is_empty():
+		static_body.add_to_group(surface_group)
 	var physics_material := PhysicsMaterial.new()
 	physics_material.friction = body_friction
 	physics_material.bounce = 0.0

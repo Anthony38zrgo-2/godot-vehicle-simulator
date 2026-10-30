@@ -60,23 +60,36 @@
   },
   "collision": {
     "path": "russia_stage1_collision.glb",
-    "sha256": "12d1dcc2dbb9ae964c6b006ae532ce0385a09dd37347b77c4b6391959964ea67",
-    "size_bytes": 4884340,
+    "sha256": "d8774f4df11328eecaebbfbf54768c8584922521f16268dee4b18a257fb27e79",
+    "size_bytes": 9221416,
     "collision_objects": {
-      "Collision_Terrain": 79752,
-      "Collision_Barriers": 4275,
+      "Collision_Road": 42423,
+      "Collision_Terrain_Grass": 29413,
+      "Collision_Terrain_Dirt": 15352,
+      "Collision_Terrain_Sand": 356,
+      "Collision_Barriers": 4277,
       "Collision_Buildings": 1528,
       "Collision_Props": 10705,
       "Collision_Tree_trunks": 8571
     },
     "exported_nodes": [
+      "Collision_Road",
+      "Collision_Terrain_Grass",
+      "Collision_Terrain_Dirt",
+      "Collision_Terrain_Sand",
       "Collision_Barriers",
       "Collision_Buildings",
       "Collision_Props",
-      "Collision_Terrain",
       "Collision_Tree_trunks"
     ],
+    "surface_mapping": {
+      "Collision_Road": "Gravel",
+      "Collision_Terrain_Grass": "Grass",
+      "Collision_Terrain_Dirt": "Dirt",
+      "Collision_Terrain_Sand": "Sand"
+    },
     "material_policy": {
+      "terrain_split": "terrain faces are partitioned by material into Collision_Road (road_*), Collision_Terrain_Grass (terrain_grass_*), Collision_Terrain_Dirt (terrain_field_*, terrain_potatofield_1, ditch_*), Collision_Terrain_Sand (terrain_housesand_1)",
       "terrain": [
         "road_*",
         "terrain_* except terrain_field_1_alpha"
@@ -111,7 +124,6 @@
         "grass",
         "audience_*",
         "sand_erosion_*",
-        "ditch_*",
         "field_background",
         "terrain_field_1_alpha",
         "power_line_cord",

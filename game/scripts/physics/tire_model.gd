@@ -3,8 +3,8 @@ extends RefCounted
 
 const CONTACT_PATCH_LOAD_GAIN := 0.12
 const CONTACT_PATCH_DEFLECTION_GAIN := 0.20
-const FRONT_CAMBER_THRUST_GAIN := 0.18
-const REAR_CAMBER_THRUST_GAIN := 0.15
+const FRONT_CAMBER_THRUST_GAIN := 0.13
+const REAR_CAMBER_THRUST_GAIN := 0.18
 
 var axle_profiles: Array[Dictionary] = []
 var surfaces: Dictionary = { }
@@ -55,7 +55,7 @@ func configure(
 		)
 		var tire_radius := front_radius if i < 2 else rear_radius
 		base_contact_patch_m.append(contact_patch)
-		base_relaxation_length_m.append(contact_patch * (1.65 if i < 2 else 1.80))
+		base_relaxation_length_m.append(contact_patch * (1.85 if i < 2 else 1.55))
 		static_wheel_load_n.append(
 			maxf(float(static_wheel_loads[i]) if i < static_wheel_loads.size() else 0.0, 100.0)
 		)
@@ -244,10 +244,11 @@ func evaluate(
 		0.75,
 		1.50,
 	)
+	var axle_load_mult := 2.85 if index < 2 else 2.15
 	var load_sensitivity_exp := clampf(
-		load_sensitivity_per_newton * reference_load * 2.5,
+		load_sensitivity_per_newton * reference_load * axle_load_mult,
 		0.08,
-		0.22,
+		0.25,
 	)
 	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
 	var mu := maxf(float(state.surface_friction), 0.0) * load_scale * clampf(
@@ -260,8 +261,10 @@ func evaluate(
 		0.10,
 		1.50,
 	)
+	var lateral_assist := float(target_surface.get("lateral_grip_assist", 0.0))
+	var rear_lat_bonus := 1.0 + (lateral_assist if index >= 2 else 0.0)
 	var fx_capacity := maxf(mu * longitudinal_ratio * fz, 1e-6)
-	var fy_capacity := maxf(mu * fz, 1e-6)
+	var fy_capacity := maxf(mu * rear_lat_bonus * fz, 1e-6)
 	var stiffness_scale := sqrt(clampf(maxf(float(state.surface_stiffness), 0.0) / 5.0, 0.15, 2.5))
 	var rise_gamma := clampf(2.0 * stiffness_scale, 1.2, 4.0)
 	var base_peak_lat := maxf(float(profile.get("lateral_peak_slip_angle_rad", 0.18)), 1e-6)
@@ -291,7 +294,13 @@ func evaluate(
 	var stiffness_y := fy_capacity * rise_gamma / (base_peak_lat * maxf(relaxation_length, 0.001))
 	var trial := Vector2(stiffness_x * patch_pos.x, stiffness_y * patch_pos.y)
 
-	var norm_demand_x := absf(trial.x) / fx_capacity
+	var is_rear_accelerating := index >= 2 and patch_pos.x > 0.0
+	var lon_coupling_relief := float(profile.get("combined_lateral_peak_migration", 0.3))
+	var effective_norm_x := absf(trial.x) / fx_capacity
+	if is_rear_accelerating:
+		effective_norm_x *= (1.0 - clampf(lon_coupling_relief, 0.0, 0.65))
+
+	var norm_demand_x := effective_norm_x
 	var norm_demand_y := absf(trial.y) / fy_capacity
 	var combined_theta := Vector2(norm_demand_x, norm_demand_y).length() / 3.0
 	var sharpness := clampf(float(profile.get("falloff_sharpness", 1.2)), 0.2, 8.0)
@@ -343,7 +352,12 @@ func evaluate(
 			patch_pos *= plastic_scale
 			trial *= plastic_scale
 
-	var brush := _brush_force_elliptical(trial, limit_x, limit_y) * blend
+	var brush_trial := trial
+	if is_rear_accelerating:
+		var max_coupled_fx := limit_x * (1.25 - 0.5 * clampf(lon_coupling_relief, 0.0, 0.8))
+		brush_trial.x = minf(trial.x, max_coupled_fx)
+
+	var brush := _brush_force_elliptical(brush_trial, limit_x, limit_y) * blend
 	var fx := brush.x
 	var fy := brush.y
 	var patch_energy := 0.5 * brush.dot(patch_pos)
