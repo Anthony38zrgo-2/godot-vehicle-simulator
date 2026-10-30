@@ -29,12 +29,17 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var couple_clouds_to_weather: bool = true
 @export var sky3d_precipitation_cloud_coverage: float = 0.92
 @export_group("Sky3D Brillo")
-@export var sky3d_ambient_sky_contribution: float = 0.3
-@export var sky3d_ambient_energy: float = 0.45
-@export var sky3d_sun_energy: float = 0.75
+@export var sky3d_ambient_sky_contribution: float = 0.5
+@export var sky3d_ambient_energy: float = 0.65
+@export var sky3d_sun_energy: float = 0.8
 @export var sky3d_skydome_energy: float = 0.9
 @export var sky3d_atm_sun_intensity: float = 9.0
-@export var sky3d_camera_exposure: float = 0.9
+@export var sky3d_camera_exposure: float = 0.92
+@export var sky3d_sun_shadow_opacity: float = 0.75
+@export_group("Sky3D Color")
+@export var sky3d_adjustment_saturation: float = 1.22
+@export var sky3d_adjustment_contrast: float = 1.02
+@export var sky3d_adjustment_brightness: float = 1.0
 @export_group("TCA")
 @export var tca_wind_speed: float = 4.0
 @export var tca_wind_direction_degrees: float = 35.0
@@ -164,10 +169,16 @@ func _build_sky3d(script_path: String) -> bool:
 		environment.fog_enabled = false
 		environment.volumetric_fog_enabled = false
 		environment.fog_sky_affect = 0.0
+		# Gradado de color: sube la saturacion para que suelo y vegetacion no se vean opacos.
+		environment.adjustment_enabled = true
+		environment.adjustment_saturation = sky3d_adjustment_saturation
+		environment.adjustment_contrast = sky3d_adjustment_contrast
+		environment.adjustment_brightness = sky3d_adjustment_brightness
 	var sun := sky_node.get("sun") as DirectionalLight3D
 	if sun != null:
 		sun.shadow_enabled = true
 		sun.directional_shadow_max_distance = 280.0
+		sun.shadow_opacity = sky3d_sun_shadow_opacity
 	var moon := sky_node.get("moon") as DirectionalLight3D
 	if moon != null:
 		moon.shadow_enabled = false
