@@ -51,6 +51,9 @@ func accept(packet: Dictionary) -> Dictionary:
 	# The limiter loop gain follows this instead of a binary gate.
 	var rev_limit_band := maxf(maximum * 0.025, 100.0)
 	var limiter_cut := 1.0 - clampf((maximum - rpm) / rev_limit_band, 0.0, 1.0)
+	# Engine disconnected from the gearbox: clutch open, mid-shift, or neutral.
+	# The whole gearbox group (gear clunks + transmission whine) only sounds here.
+	var clutch_open := float(packet.get("clutch_engagement", 1.0)) < 0.5 or int(packet.gear) == 0 or str(packet.get("shift_phase", "idle")) != "idle"
 	# Lift latch: the packet throttle is smoothed, so a full-to-zero lift
 	# never lands inside a single frame pair. Arm at high throttle, fire on
 	# the release while RPM is still inside the backfire window.
@@ -84,6 +87,6 @@ func accept(packet: Dictionary) -> Dictionary:
 		"sand": surface_key = "surf_sand"
 		"rumble", "curb": surface_key = "surf_rumble"
 	var bed_gain := 0.25 + 0.55 * clampf(slip, 0.0, 1.0) + 0.12 * minf(float(packet.speed_kph), 120.0) / 120.0
-	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "surface": surface_key, "surface_gain": bed_gain if highest_load > 0.0 and float(packet.speed_kph) > 0.5 else 0.0, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "events": events, "dt": dt}
+	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "surface": surface_key, "surface_gain": bed_gain if highest_load > 0.0 and float(packet.speed_kph) > 0.5 else 0.0, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "clutch_open": clutch_open, "events": events, "dt": dt}
 	previous = packet
 	return mix

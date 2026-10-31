@@ -32,6 +32,14 @@
     "EX_Idle6.wav": {
       "source_rms_db": -8.092059412149755,
       "gain": 0.6376802561994386
+    },
+    "rs-cos.wav": {
+      "source_rms_db": -10.51,
+      "gain": 0.842364
+    },
+    "rt-cos.wav": {
+      "source_rms_db": -6.75,
+      "gain": 0.546387
     }
   }
 }

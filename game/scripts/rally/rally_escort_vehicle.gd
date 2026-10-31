@@ -296,11 +296,20 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var impulse_peak := 0.0
 	var scrape_power := 0.0
 	var ground_drag_power := 0.0
+	# Strongest closing contact this frame: speed selects the impact tier
+	# (<40 small, 40-70 medium, >70 large km/h) and the local position stages
+	# the one-shot in 3D where the hit landed.
+	var impact_speed_ms := 0.0
+	var impact_position := Vector3.ZERO
 	for index in state.get_contact_count():
 		var impulse := state.get_contact_impulse(index).length()
 		impulse_peak = maxf(impulse_peak, impulse)
 		var normal := (state.transform.basis * state.get_contact_local_normal(index)).normalized()
 		var velocity := state.get_contact_local_velocity_at_position(index) - state.get_contact_collider_velocity_at_position(index)
+		var closing_speed := absf(velocity.dot(normal))
+		if closing_speed > impact_speed_ms:
+			impact_speed_ms = closing_speed
+			impact_position = state.get_contact_local_position(index)
 		var tangent_speed := (velocity - normal * velocity.dot(normal)).length()
 		var force := impulse / maxf(state.step, 0.0001)
 		if force > mass * 9.81 * 0.10 and tangent_speed > 0.5:
@@ -310,7 +319,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				ground_drag_power += force * tangent_speed
 			else:
 				scrape_power += force * tangent_speed
-	body_contact_audio = {"count": state.get_contact_count(), "impulse_ns": impulse_peak, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
+	body_contact_audio = {"count": state.get_contact_count(), "impulse_ns": impulse_peak, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
 	simulation.step(self, state, {
 		"throttle": throttle_amount,
 		"brake": brake_amount,

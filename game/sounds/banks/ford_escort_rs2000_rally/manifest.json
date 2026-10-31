@@ -11,7 +11,19 @@
     "EX_Idle6.wav": 900,
     "EX_2k5.wav": 2000,
     "EX_6k5.wav": 4000,
-    "EX_9k5.wav": 6000
+    "EX_9k5.wav": 6000,
+    "fm-cos.wav": 4000,
+    "rm-cos.wav": 4000,
+    "rs-cos.wav": 2500,
+    "rt-cos.wav": 6000,
+    "ft-cos.wav": 6000,
+    "whine.wav": null,
+    "chatter.wav": null,
+    "det1.wav": null,
+    "det2.wav": null,
+    "det3.wav": null,
+    "det4.wav": null,
+    "detidle.wav": 900
   },
   "samples": [
     {
@@ -109,6 +121,138 @@
         8000
       ],
       "used_by_sounds_ini": true
+    },
+    {
+      "file": "fm-cos.wav",
+      "role": "engine_retention",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "b0991aaee15c38eb24fca3470accb39360d4f3fc74b2bdad656192050566f95d",
+      "reference_rpm": 4000,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "rm-cos.wav",
+      "role": "engine_retention",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "208a5f93d119dc76aa9049f7b787cdf8eb95128a6a11ce22bde93fe2a40ac20f",
+      "reference_rpm": 4000,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "rs-cos.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "78154595419866638ba990bbceba5272a3eaf65392d9b03097a69afe3dcef9b4",
+      "reference_rpm": 2500,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "rt-cos.wav",
+      "role": "exhaust",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "abe3102e2bf0b7836ae5413817c4611cec6921855b9829ec4f630a166380d195",
+      "reference_rpm": 6000,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "ft-cos.wav",
+      "role": "gearbox_whine",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "b6b75ccc8665a448ced10c4d760f7b43c38edebdc770f11bc6dab8d64985d666",
+      "reference_rpm": 6000,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "whine.wav",
+      "role": "gearbox_whine",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "50e4d1704f62fe59b3e6c091c9480bdb6d76771554e8b7e760d9fe3c7f7ab574",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "chatter.wav",
+      "role": "gearbox_chatter",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "883bf606eb9a6f3846b702683b4068c2d63e82ecc27bcde5e34d25ed2155bef7",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "det1.wav",
+      "role": "backfire",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "41e98b0849d407f113c902b5ce122f897cd0e790a902a5aebbf521311dc2d72e",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "det2.wav",
+      "role": "backfire",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "0d501a50be2041fadb56f8b3245c9c82510f753b5c3c65d011982079bc08f064",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "det3.wav",
+      "role": "backfire",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "f9548354de82f9c8f27189493ef59e98f519c191f835885f38d4ab97bdaecd61",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "det4.wav",
+      "role": "backfire",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "4b7d45d1a9d278e63673a96b6c9b5707dfd1328b703376d3459eb27732ac1e96",
+      "reference_rpm": null,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+    },
+    {
+      "file": "detidle.wav",
+      "role": "engine_idle",
+      "mix_rate_hz": 44100,
+      "channels": 1,
+      "source_sha256": "f26b74f31f2d4459a714ff90df9f524f64423ce24658a2aaa9fbd35380ad4800",
+      "reference_rpm": 900,
+      "sounds_ini_range_rpm": null,
+      "used_by_sounds_ini": false,
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
     }
   ],
   "policy": "Reference RPMs and ranges follow the Ford Sounds.ini. GEVP audit blends overlapping playback windows; it is not a DSP reproduction of the original engine audio mixer.",
