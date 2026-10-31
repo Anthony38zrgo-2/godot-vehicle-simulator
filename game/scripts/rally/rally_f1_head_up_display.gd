@@ -42,14 +42,22 @@ func _ready() -> void:
 		aid_message.visible = false
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if retro_hud != null and vehicle != null:
-		retro_hud.set_powertrain_configuration({"max_rpm": vehicle.max_rpm})
+		retro_hud.set_powertrain_configuration({
+			"max_rpm": vehicle.max_rpm,
+			"idle_rpm": vehicle.idle_rpm,
+			"vehicle_profile_path": vehicle.rally_profile_path
+		})
 
 
 func set_vehicle(target_vehicle: RallyEscortVehicle) -> void:
 	vehicle = target_vehicle
 	vehicle_path = vehicle.get_path()
 	if retro_hud != null:
-		retro_hud.set_powertrain_configuration({"max_rpm": vehicle.max_rpm})
+		retro_hud.set_powertrain_configuration({
+			"max_rpm": vehicle.max_rpm,
+			"idle_rpm": vehicle.idle_rpm,
+			"vehicle_profile_path": vehicle.rally_profile_path
+		})
 
 
 func set_telemetry_path(path: String) -> void:

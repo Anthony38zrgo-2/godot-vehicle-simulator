@@ -30,11 +30,14 @@ const DELTA_LABEL_FONT_SIZE := 64
 const DELTA_VALUE_FONT_SIZE := 108
 
 @export_file("*.json") var config_path := "res://features/retro_hud/config/retro_hud.json"
+@export_file("*.json") var vehicle_profile_path := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
 @export var apply_layout_from_config := false
 
 var state: RetroHudState = STATE_SCRIPT.new()
 var config: RetroHudConfig = CONFIG_SCRIPT.new()
 var _peak_rpm := 0.0
+var _cached_vehicle_max_rpm := 0.0
+var _cached_vehicle_idle_rpm := 0.0
 var _design_origin := Vector2.ZERO
 var _design_scale_factor := 1.0
 var _powertrain_configuration: Dictionary = {}
@@ -55,8 +58,8 @@ func is_ribbon_style() -> bool:
 
 func get_ribbon_size() -> Vector2:
 	if config == null:
-		return Vector2(612.0, 142.0)
-	return Vector2(384.0 + 16.0 + 212.0, config.card_height)
+		return Vector2(932.0, 142.0)
+	return Vector2(704.0 + 16.0 + 212.0, config.card_height)
 
 
 func set_readout(
@@ -121,6 +124,12 @@ func set_state(next_state: RetroHudState) -> void:
 
 func reload_config() -> void:
 	config = CONFIG_SCRIPT.load_from_json(config_path)
+	_cached_vehicle_max_rpm = _load_vehicle_max_rpm_from_json()
+	_cached_vehicle_idle_rpm = _load_vehicle_idle_rpm_from_json()
+	if _cached_vehicle_max_rpm > 0.0 and not _powertrain_configuration.has("max_rpm"):
+		_powertrain_configuration["max_rpm"] = _cached_vehicle_max_rpm
+	if _cached_vehicle_idle_rpm > 0.0 and not _powertrain_configuration.has("idle_rpm"):
+		_powertrain_configuration["idle_rpm"] = _cached_vehicle_idle_rpm
 	config.apply_powertrain_configuration(_powertrain_configuration)
 	_card_style_box.bg_color = config.background_color
 	_card_style_box.border_color = config.divider_color
@@ -139,7 +148,137 @@ func reload_config() -> void:
 
 func set_powertrain_configuration(powertrain_configuration: Dictionary) -> void:
 	_powertrain_configuration = powertrain_configuration.duplicate(true)
+	if powertrain_configuration.has("vehicle_profile_path"):
+		vehicle_profile_path = str(powertrain_configuration["vehicle_profile_path"])
+	_cached_vehicle_max_rpm = 0.0
+	_cached_vehicle_idle_rpm = 0.0
 	reload_config()
+
+
+func get_vehicle_max_rpm() -> float:
+	if _cached_vehicle_max_rpm > 0.0:
+		return _cached_vehicle_max_rpm
+	_cached_vehicle_max_rpm = _load_vehicle_max_rpm_from_json()
+	return _cached_vehicle_max_rpm
+
+
+func get_vehicle_idle_rpm() -> float:
+	if _cached_vehicle_idle_rpm > 0.0:
+		return _cached_vehicle_idle_rpm
+	_cached_vehicle_idle_rpm = _load_vehicle_idle_rpm_from_json()
+	return _cached_vehicle_idle_rpm
+
+
+func _load_vehicle_max_rpm_from_json(path_hint: String = "") -> float:
+	var path_candidates: Array[String] = []
+	if not path_hint.is_empty():
+		path_candidates.append(path_hint)
+	if _powertrain_configuration.has("vehicle_profile_path") and not str(_powertrain_configuration["vehicle_profile_path"]).is_empty():
+		path_candidates.append(str(_powertrain_configuration["vehicle_profile_path"]))
+	if not vehicle_profile_path.is_empty():
+		path_candidates.append(vehicle_profile_path)
+	path_candidates.append("res://data/vehicles/ford-escort-rs2000/vehicle.json")
+	path_candidates.append("res://data/vehicles/ford-escort-rs2000/powertrain.json")
+
+	for candidate in path_candidates:
+		if not FileAccess.file_exists(candidate):
+			continue
+		var file := FileAccess.open(candidate, FileAccess.READ)
+		if file == null:
+			continue
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if not (parsed is Dictionary):
+			continue
+		var doc: Dictionary = parsed
+
+		# Case 1: vehicle.json with domains
+		if doc.has("domains") and doc["domains"] is Dictionary:
+			var domains: Dictionary = doc["domains"]
+			if domains.has("powertrain"):
+				var pt_rel: String = str(domains["powertrain"]).replace("\\", "/")
+				var pt_path := candidate.get_base_dir().path_join(pt_rel)
+				if FileAccess.file_exists(pt_path):
+					var pt_file := FileAccess.open(pt_path, FileAccess.READ)
+					if pt_file != null:
+						var pt_parsed: Variant = JSON.parse_string(pt_file.get_as_text())
+						if pt_parsed is Dictionary and pt_parsed.has("powertrain") and pt_parsed["powertrain"] is Dictionary:
+							var rpm_val := float(pt_parsed["powertrain"].get("max_rpm", 0.0))
+							if rpm_val > 0.0:
+								return rpm_val
+
+		# Case 2: powertrain.json directly
+		if doc.has("powertrain") and doc["powertrain"] is Dictionary:
+			var rpm_val := float(doc["powertrain"].get("max_rpm", 0.0))
+			if rpm_val > 0.0:
+				return rpm_val
+
+		# Case 3: root max_rpm
+		if doc.has("max_rpm"):
+			var rpm_val := float(doc.get("max_rpm", 0.0))
+			if rpm_val > 0.0:
+				return rpm_val
+
+	# Fallback to powertrain configuration or config
+	var fallback := float(_powertrain_configuration.get("max_rpm", config.revolutions_per_minute_maximum))
+	if fallback > 0.0:
+		return fallback
+	return 7500.0
+
+
+func _load_vehicle_idle_rpm_from_json(path_hint: String = "") -> float:
+	var path_candidates: Array[String] = []
+	if not path_hint.is_empty():
+		path_candidates.append(path_hint)
+	if _powertrain_configuration.has("vehicle_profile_path") and not str(_powertrain_configuration["vehicle_profile_path"]).is_empty():
+		path_candidates.append(str(_powertrain_configuration["vehicle_profile_path"]))
+	if not vehicle_profile_path.is_empty():
+		path_candidates.append(vehicle_profile_path)
+	path_candidates.append("res://data/vehicles/ford-escort-rs2000/vehicle.json")
+	path_candidates.append("res://data/vehicles/ford-escort-rs2000/powertrain.json")
+
+	for candidate in path_candidates:
+		if not FileAccess.file_exists(candidate):
+			continue
+		var file := FileAccess.open(candidate, FileAccess.READ)
+		if file == null:
+			continue
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if not (parsed is Dictionary):
+			continue
+		var doc: Dictionary = parsed
+
+		# Case 1: vehicle.json with domains
+		if doc.has("domains") and doc["domains"] is Dictionary:
+			var domains: Dictionary = doc["domains"]
+			if domains.has("powertrain"):
+				var pt_rel: String = str(domains["powertrain"]).replace("\\", "/")
+				var pt_path := candidate.get_base_dir().path_join(pt_rel)
+				if FileAccess.file_exists(pt_path):
+					var pt_file := FileAccess.open(pt_path, FileAccess.READ)
+					if pt_file != null:
+						var pt_parsed: Variant = JSON.parse_string(pt_file.get_as_text())
+						if pt_parsed is Dictionary and pt_parsed.has("powertrain") and pt_parsed["powertrain"] is Dictionary:
+							var rpm_val := float(pt_parsed["powertrain"].get("idle_rpm", 0.0))
+							if rpm_val > 0.0:
+								return rpm_val
+
+		# Case 2: powertrain.json directly
+		if doc.has("powertrain") and doc["powertrain"] is Dictionary:
+			var rpm_val := float(doc["powertrain"].get("idle_rpm", 0.0))
+			if rpm_val > 0.0:
+				return rpm_val
+
+		# Case 3: root idle_rpm
+		if doc.has("idle_rpm"):
+			var rpm_val := float(doc.get("idle_rpm", 0.0))
+			if rpm_val > 0.0:
+				return rpm_val
+
+	# Fallback to powertrain configuration or default
+	var fallback := float(_powertrain_configuration.get("idle_rpm", 1000.0))
+	if fallback > 0.0:
+		return fallback
+	return 1000.0
 
 
 func apply_hud_layout(scale_value: float, visible_value: bool) -> void:
@@ -188,11 +327,11 @@ func _draw() -> void:
 # ==============================================================================
 
 func _draw_cards_ribbon() -> void:
-	var center_w := 384.0
+	var center_w := 704.0
 	var fuel_w := 212.0
 	var card_h := config.card_height
 
-	if size.x >= 700.0:
+	if size.x >= 960.0:
 		var card_y := size.y - card_h - 24.0
 		# 1. Center Driving Card: perfectly centered horizontally
 		var center_x := roundf((size.x - center_w) * 0.5)
@@ -224,7 +363,7 @@ func _draw_card_background(rect: Rect2) -> void:
 
 
 func _draw_center_driving_card(rect: Rect2) -> void:
-	# Single outer card frame encompassing all 4 driving telemetry sections
+	# Single outer card frame encompassing all 5 driving telemetry sections
 	_draw_card_background(rect)
 
 	# Section 0: Steering (width 92px)
@@ -263,9 +402,182 @@ func _draw_center_driving_card(rect: Rect2) -> void:
 		1.0
 	)
 
-	# Section 3: RPM & Speed (width 108px)
-	var s3_rect := Rect2(rect.position.x + 276.0, rect.position.y, 108.0, rect.size.y)
-	_draw_card_speed_rpm(s3_rect)
+	# Section 3: Tachometer (width 320px) - 20 vertical bars (double horizontal size) and 5 numbers
+	var s3_rect := Rect2(rect.position.x + 276.0, rect.position.y, 320.0, rect.size.y)
+	_draw_card_tachometer(s3_rect)
+
+	# Vertical divider line 4
+	draw_line(
+		Vector2(rect.position.x + 596.0, rect.position.y + 12.0),
+		Vector2(rect.position.x + 596.0, rect.position.y + rect.size.y - 12.0),
+		config.divider_color.darkened(0.35),
+		1.0
+	)
+
+	# Section 4: RPM & Speed (width 108px)
+	var s4_rect := Rect2(rect.position.x + 596.0, rect.position.y, 108.0, rect.size.y)
+	_draw_card_speed_rpm(s4_rect)
+
+
+func _get_tachometer_scale_milestones(rpm_min: float, rpm_max: float) -> Array[float]:
+	var span := rpm_max - rpm_min
+	if is_equal_approx(rpm_min, 1000.0) and is_equal_approx(rpm_max, 8000.0):
+		var default_milestones: Array[float] = [1000.0, 2000.0, 4000.0, 6000.0, 8000.0]
+		return default_milestones
+
+	# General fallback to 5 nicely rounded milestones
+	var milestones: Array[float] = [rpm_min]
+	var steps: Array[float] = [0.20, 0.45, 0.72]
+	for step: float in steps:
+		var target: float = rpm_min + span * step
+		var rounded: float = roundf(target / 1000.0) * 1000.0
+		if rounded <= milestones[-1]:
+			rounded = milestones[-1] + 1000.0
+		milestones.append(rounded)
+	milestones.append(rpm_max)
+	return milestones
+
+
+func _get_tachometer_bar_polygon(
+		bar_index: int,
+		start_x: float,
+		bar_w: float,
+		bar_gap: float,
+		bar_top_y: float,
+		bar_bottom_y: float,
+		meseta_h: float) -> PackedVector2Array:
+	var bx := start_x + float(bar_index) * (bar_w + bar_gap)
+	var bx_r := bx + bar_w
+	var y_tl: float
+	var y_tr: float
+	var y_bl: float
+	var y_br: float
+
+	if bar_index <= 3:
+		# Tramo 1 (Barras 0..3, bajo '1' y '2'): Base inferior plana, techo en rampa continua biselada
+		var ramp_x_start := start_x
+		var ramp_x_end := start_x + 3.0 * (bar_w + bar_gap) + bar_w
+		var frac_l := clampf((bx - ramp_x_start) / (ramp_x_end - ramp_x_start), 0.0, 1.0)
+		var frac_r := clampf((bx_r - ramp_x_start) / (ramp_x_end - ramp_x_start), 0.0, 1.0)
+		y_bl = bar_bottom_y
+		y_br = bar_bottom_y
+		y_tl = bar_bottom_y - lerpf(16.0, bar_bottom_y - bar_top_y, frac_l)
+		y_tr = bar_bottom_y - lerpf(16.0, bar_bottom_y - bar_top_y, frac_r)
+	elif bar_index <= 6:
+		# Tramo 2 (Barras 4..6): Techo horizontal en bar_top_y, base inferior en rampa continua biselada
+		var trans_x_start := start_x + 4.0 * (bar_w + bar_gap)
+		var trans_x_end := start_x + 6.0 * (bar_w + bar_gap) + bar_w
+		var frac_l := clampf((bx - trans_x_start) / (trans_x_end - trans_x_start), 0.0, 1.0)
+		var frac_r := clampf((bx_r - trans_x_start) / (trans_x_end - trans_x_start), 0.0, 1.0)
+		y_tl = bar_top_y
+		y_tr = bar_top_y
+		y_bl = lerpf(bar_bottom_y, bar_top_y + meseta_h, frac_l)
+		y_br = lerpf(bar_bottom_y, bar_top_y + meseta_h, frac_r)
+	else:
+		# Tramo 3 (Barras 7..19, bajo '4', '6' y '8'): Meseta horizontal superior suspendida
+		y_tl = bar_top_y
+		y_tr = bar_top_y
+		y_bl = bar_top_y + meseta_h
+		y_br = bar_top_y + meseta_h
+
+	return PackedVector2Array([
+		Vector2(bx, y_tl),
+		Vector2(bx_r, y_tr),
+		Vector2(bx_r, y_br),
+		Vector2(bx, y_bl)
+	])
+
+
+func _draw_card_tachometer(rect: Rect2) -> void:
+	var vehicle_max := get_vehicle_max_rpm()
+	var vehicle_idle := get_vehicle_idle_rpm()
+	var current_rpm := maxf(state.engine_revolutions_per_minute, 0.0)
+
+	# Competition Scale (Option 3):
+	# Starts at idle rounded down to the nearest thousand (min 1000.0)
+	# Ends at vehicle max rounded up to the nearest thousand (e.g. 7500 -> 8000.0)
+	var rpm_min := maxf(1000.0, floorf(vehicle_idle / 1000.0) * 1000.0)
+	var rpm_max := maxf(rpm_min + 3000.0, ceilf(vehicle_max / 1000.0) * 1000.0)
+	var rpm_range := rpm_max - rpm_min
+	var total_bar_count := 20
+	var rpm_per_bar := rpm_range / float(total_bar_count)
+
+	var redline_rpm := vehicle_max
+	var ideal_shift_rpm := minf(config.ideal_shift_revolutions_per_minute, redline_rpm * 0.88)
+	var urgent_shift_rpm := minf(config.urgent_shift_revolutions_per_minute, redline_rpm * 0.97)
+	var urgent_shift := current_rpm >= urgent_shift_rpm
+
+	# Top label: "RPM"
+	_draw_card_text("RPM", Vector2(rect.position.x, rect.position.y + 20.0), rect.size.x, 12, config.label_color, LIBRON_BOLD_FONT)
+
+	# Bar and Number dimensions (20 bars, 12px width, 3px gap -> 297px total)
+	var bar_w := 12.0
+	var bar_gap := 3.0
+	var total_bars_w := float(total_bar_count) * bar_w + float(total_bar_count - 1) * bar_gap  # 297.0px
+	var start_x := rect.position.x + (rect.size.x - total_bars_w) * 0.5
+
+	var max_bar_h := 50.0
+	var bar_top_y := rect.position.y + 54.0
+	var bar_bottom_y := bar_top_y + max_bar_h
+	var meseta_h := 26.0
+	var num_baseline_y := rect.position.y + 44.0
+
+	var bar_0_center_x := start_x + bar_w * 0.5
+	var bar_last_center_x := start_x + float(total_bar_count - 1) * (bar_w + bar_gap) + bar_w * 0.5
+
+	# 1. Draw 5 numbers: the first digits of the RPM (e.g. 4 -> 4000)
+	# Milestones for 1000-8000: [1, 2, 4, 6, 8]
+	var milestones := _get_tachometer_scale_milestones(rpm_min, rpm_max)
+	for m_rpm: float in milestones:
+		var num_val := roundi(m_rpm / 1000.0)
+		var num_text := str(num_val)
+
+		var fraction := clampf((m_rpm - rpm_min) / rpm_range, 0.0, 1.0)
+		var num_center_x: float = lerpf(bar_0_center_x, bar_last_center_x, fraction)
+
+		var is_milestone_active := current_rpm >= m_rpm
+		var num_color := config.inactive_color.darkened(0.1)
+		if is_milestone_active:
+			if urgent_shift or m_rpm >= urgent_shift_rpm:
+				num_color = config.alert_color
+			elif m_rpm >= ideal_shift_rpm:
+				num_color = config.thermal_warm_color
+			else:
+				num_color = config.digital_color
+
+		draw_string(LIBRON_BOLD_FONT, Vector2(num_center_x - 16.0, num_baseline_y), num_text, HORIZONTAL_ALIGNMENT_CENTER, 32.0, 14, num_color)
+
+	# 2. Draw 20 vertical bars with Option 4 (Continuous Slanted Chamfer & Anti-Aliased Edges):
+	# White below optimal shift, Yellow for optimal shift, Red for limiter
+	for i in total_bar_count:
+		var bar_pts := _get_tachometer_bar_polygon(i, start_x, bar_w, bar_gap, bar_top_y, bar_bottom_y, meseta_h)
+		var bar_outline := PackedVector2Array([bar_pts[0], bar_pts[1], bar_pts[2], bar_pts[3], bar_pts[0]])
+		var bar_start_rpm := rpm_min + float(i) * rpm_per_bar
+		var bar_target_rpm := bar_start_rpm + rpm_per_bar
+
+		# Dark background track for each bar
+		draw_colored_polygon(bar_pts, config.bar_background_color)
+		draw_polyline(bar_outline, config.divider_color.darkened(0.55), 1.0, true)
+
+		# Bar activation threshold: active if engine rpm reaches this bar's range
+		var is_bar_active := current_rpm >= bar_start_rpm
+
+		if is_bar_active:
+			var bar_color: Color
+			if urgent_shift:
+				bar_color = config.alert_color
+			elif bar_target_rpm >= urgent_shift_rpm:
+				bar_color = config.alert_color
+			elif bar_target_rpm >= ideal_shift_rpm:
+				bar_color = config.thermal_warm_color
+			else:
+				bar_color = config.digital_color
+
+			draw_colored_polygon(bar_pts, bar_color)
+			draw_polyline(bar_outline, bar_color.lightened(0.2), 1.0, true)
+
+	# Bottom label: "x1000"
+	_draw_card_text("x1000", Vector2(rect.position.x, rect.position.y + 124.0), rect.size.x, 11, config.label_color, LIBRON_BOLD_FONT)
 
 
 func _draw_card_steering(rect: Rect2) -> void:

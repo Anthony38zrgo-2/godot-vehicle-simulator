@@ -3,7 +3,11 @@ extends RefCounted
 
 # PCM16 RIFF loader: smooth the wrap by the Rust core's 512/44100 s window.
 # The bank bytes remain untouched. Godot owns audio-thread mixing/resampling.
-static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = {}) -> AudioStreamWAV:
+# loop = {"start_s": float, "end_s": float} sets an explicit loop region (bank
+# manifest). The 512-frame crossfade then blends the frames before end_s into
+# the frames at start_s, so the wrap uses the chosen loop point instead of the
+# file end. Without loop data the whole file loops, as before.
+static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = {}, loop: Dictionary = {}) -> AudioStreamWAV:
 	# Exports normally replace WAV sources with imported resources. The build
 	# packs an untouched .pcm copy for this RIFF reader and its seamless loops.
 	var source_path := path + ".pcm" if FileAccess.file_exists(path + ".pcm") else path
@@ -34,7 +38,13 @@ static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = 
 	if channels < 1 or channels > 2 or rate <= 0 or pcm.is_empty():
 		return null
 	var frames := int(pcm.size() / (channels * 2))
-	var fade := mini(int(512.0 * rate / 44100.0), int(frames / 4)) if looping else 0
+	var loop_start := 0
+	var loop_end := frames
+	if looping and loop.has("end_s"):
+		loop_start = clampi(int(float(loop.get("start_s", 0.0)) * rate), 0, frames - 2)
+		loop_end = clampi(int(float(loop.get("end_s", 0.0)) * rate), loop_start + 2, frames)
+	var span := loop_end - loop_start
+	var fade := mini(int(512.0 * rate / 44100.0), int(span / 4)) if looping else 0
 	if not looping and bool(envelope.get("enabled", false)):
 		var attack := float(envelope.get("attack_ms", 0.0)) * rate / 1000.0
 		var decay := float(envelope.get("decay_ms", 0.0)) * rate / 1000.0
@@ -54,8 +64,8 @@ static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = 
 	for frame in fade:
 		var alpha := float(frame) / maxf(float(fade - 1), 1.0)
 		for channel in channels:
-			var tail := ((frames - fade + frame) * channels + channel) * 2
-			var head := (frame * channels + channel) * 2
+			var tail := ((loop_end - fade + frame) * channels + channel) * 2
+			var head := ((loop_start + frame) * channels + channel) * 2
 			pcm.encode_s16(tail, roundi(lerpf(float(pcm.decode_s16(tail)), float(pcm.decode_s16(head)), alpha)))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
@@ -63,6 +73,6 @@ static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = 
 	stream.stereo = channels == 2
 	stream.data = pcm
 	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD if looping else AudioStreamWAV.LOOP_DISABLED
-	stream.loop_begin = fade
-	stream.loop_end = frames
+	stream.loop_begin = loop_start + fade
+	stream.loop_end = loop_end
 	return stream

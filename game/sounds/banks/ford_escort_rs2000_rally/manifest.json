@@ -34,7 +34,27 @@
       "source_sha256": "73b407e5f962c2e28ee26ce2dda0d8b1923c9487e66fc71ce6a6a8835a19fbdb",
       "reference_rpm": 900,
       "sounds_ini_range_rpm": null,
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "125": 1.0,
+            "250": 0.5,
+            "1000": -0.5
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 35
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.716825,
+        "correlation": 0.807,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "EE_2k5.wav",
@@ -47,7 +67,28 @@
         0,
         2750
       ],
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "125": 1.0,
+            "250": 0.5,
+            "500": -0.5,
+            "2000": -1.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 35
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.271066,
+        "correlation": 0.838,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "EE_6k5.wav",
@@ -60,7 +101,28 @@
         3250,
         4750
       ],
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "125": 0.5,
+            "500": -1.0,
+            "1000": -2.0,
+            "2000": -2.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 35
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.387619,
+        "correlation": 0.839,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "EE_9k5.wav",
@@ -73,7 +135,23 @@
         5250,
         8000
       ],
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "250": 0.5,
+            "1000": -2.0,
+            "2000": -3.0,
+            "4000": -3.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 40,
+          "lpf_hz": 1800
+        }
+      }
     },
     {
       "file": "EX_Idle6.wav",
@@ -83,7 +161,26 @@
       "source_sha256": "c2fbaa0e519ed3c3a127da4a0bb6565e2146ffa2803b6c06944ac182f31bb135",
       "reference_rpm": 900,
       "sounds_ini_range_rpm": null,
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "250": 2.0,
+            "500": 1.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 150
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.223447,
+        "correlation": 0.971,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "EX_2k5.wav",
@@ -107,7 +204,27 @@
         3250,
         4750
       ],
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "500": 1.0,
+            "1000": 1.0,
+            "2000": -1.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 120
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.219048,
+        "correlation": 0.939,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "EX_9k5.wav",
@@ -120,7 +237,26 @@
         5250,
         8000
       ],
-      "used_by_sounds_ini": true
+      "used_by_sounds_ini": true,
+      "space": {
+        "eq": {
+          "enabled": true,
+          "bands_db": {
+            "1000": 1.0,
+            "2000": 1.0
+          },
+          "output_db": 0.0
+        },
+        "filter": {
+          "hpf_hz": 250
+        }
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.47288,
+        "correlation": 0.772,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "fm-cos.wav",
@@ -131,7 +267,19 @@
       "reference_rpm": 4000,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 110
+        },
+        "lateral_x": -0.35
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.024286,
+        "correlation": 0.777,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "rm-cos.wav",
@@ -142,7 +290,13 @@
       "reference_rpm": 4000,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 110
+        },
+        "lateral_x": 0.35
+      }
     },
     {
       "file": "rs-cos.wav",
@@ -153,7 +307,19 @@
       "reference_rpm": 2500,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "lpf_hz": 160
+        },
+        "lateral_x": 0.0
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.677347,
+        "correlation": 0.993,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "rt-cos.wav",
@@ -164,7 +330,20 @@
       "reference_rpm": 6000,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 350,
+          "lpf_hz": 1600
+        },
+        "lateral_x": 0.25
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.792902,
+        "correlation": 0.95,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "ft-cos.wav",
@@ -175,7 +354,20 @@
       "reference_rpm": 6000,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 900,
+          "lpf_hz": 3000
+        },
+        "lateral_x": -0.25
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.801179,
+        "correlation": 0.751,
+        "rule": "best_end_corr_512"
+      }
     },
     {
       "file": "whine.wav",
@@ -186,7 +378,16 @@
       "reference_rpm": null,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "reverb": {
+          "enabled": false
+        },
+        "filter": {
+          "hpf_hz": 2000
+        },
+        "lateral_x": -0.3
+      }
     },
     {
       "file": "chatter.wav",
@@ -197,7 +398,13 @@
       "reference_rpm": null,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 1200
+        },
+        "lateral_x": 0.45
+      }
     },
     {
       "file": "det1.wav",
@@ -252,7 +459,19 @@
       "reference_rpm": 900,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured"
+      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
+      "space": {
+        "filter": {
+          "hpf_hz": 300
+        },
+        "lateral_x": 0.2
+      },
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.701995,
+        "correlation": 0.978,
+        "rule": "best_end_corr_512"
+      }
     }
   ],
   "policy": "Reference RPMs and ranges follow the Ford Sounds.ini. GEVP audit blends overlapping playback windows; it is not a DSP reproduction of the original engine audio mixer.",

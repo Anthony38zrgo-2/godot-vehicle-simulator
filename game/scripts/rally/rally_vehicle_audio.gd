@@ -303,7 +303,7 @@ func build_sample_layer(
 func load_looping_stream(path: String) -> AudioStream:
 	if not ResourceLoader.exists(path):
 		return null
-	var seamless := SeamlessVehicleLoop.load_pcm(path)
+	var seamless := SeamlessVehicleLoop.load_pcm(path, true, {}, routing.loop_for(path.get_file().get_basename()))
 	if seamless != null:
 		return seamless
 	push_warning("Unsupported PCM loop format: " + path)
