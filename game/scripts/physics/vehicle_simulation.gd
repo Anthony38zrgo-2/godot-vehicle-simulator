@@ -461,6 +461,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var thermal_cambers: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_slip_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_surfaces: Array[String] = ["Gravel", "Gravel", "Gravel", "Gravel"]
+		var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var substep_force_sum := Vector3.ZERO
 		var substep_torque_sum := Vector3.ZERO
 
@@ -490,6 +494,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				)
 				tire_powers[i] = 0.0
 				thermal_speeds[i] = substep_linear_vel.length()
+				thermal_slip_speeds[i] = 0.0
+				thermal_surfaces[i] = "Gravel"
+				thermal_vx[i] = 0.0
+				thermal_fy[i] = 0.0
 				continue
 
 			var point: Vector3 = contact["position"]
@@ -552,6 +560,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			tire_reactions[i] = fx * wheel_radii[i]
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
+			thermal_slip_speeds[i] = wheel_spins[i] * wheel_radii[i] - longitudinal_speed
+			thermal_surfaces[i] = str(contact["surface"])
+			thermal_vx[i] = longitudinal_speed
+			thermal_fy[i] = fy
 
 		var rotation := powertrain_model.solve_rotation(
 			h,
@@ -571,6 +583,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				h,
 				thermal_cambers[i],
 				unsprung_rig.radial_dissipation_w[i] if normal_loads[i] > 0.0 else 0.0,
+				thermal_slip_speeds[i],
+				thermal_surfaces[i],
+				maxf(float(normal_loads[i]), 0.0),
+				thermal_fy[i],
+				wheel_spins[i],
+				thermal_vx[i],
+				wheel_radii[i] if i < wheel_radii.size() else 0.28,
 			)
 		var driveline_reaction_torque := -body_right * float(rotation.shaft_torque_nm)
 		state.apply_torque(driveline_reaction_torque * force_weight)

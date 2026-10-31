@@ -130,7 +130,7 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var axle_cfg := _axle_tire_config(index)
@@ -143,7 +143,13 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var gas := float(state.gas_c)
 	var tread_to_carcass := float(axle_cfg.get("tread_to_carcass_w_k", 0.0)) * (tread - carcass)
 	var carcass_to_gas := float(axle_cfg.get("carcass_to_gas_w_k", 0.0)) * (carcass - gas)
-	var slip_heat := maxf(friction_power_w, 0.0) * float(axle_cfg.get("slip_heat_efficiency", 0.0))
+	# Opcion 4: particion de calor en grava. Patinando fuerte se excava y la
+	# energia se va en piedras proyectadas, no al tread. Solo superficies sueltas.
+	var eject_k := maxf(float(axle_cfg.get("gravel_eject_k", 0.0)), 0.0)
+	var loose_surface := str(surface_name) in ["Gravel", "Dirt", "Sand"]
+	var eta_base := float(axle_cfg.get("slip_heat_efficiency", 0.0))
+	var eta_eff := eta_base / (1.0 + eject_k * absf(longitudinal_slip_speed_m_s)) if loose_surface else eta_base
+	var slip_heat := maxf(friction_power_w, 0.0) * eta_eff
 	var tread_capacity := maxf(float(axle_cfg.get("tread_zone_heat_capacity_j_k", 1.0)) / 3.0, 1.0)
 	var carcass_capacity := maxf(float(axle_cfg.get("carcass_heat_capacity_j_k", 1.0)), 1.0)
 	var gas_capacity := maxf(float(axle_cfg.get("gas_heat_capacity_j_k", 1.0)), 1.0)
@@ -151,7 +157,19 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	# the center remains nearly neutral and total generated heat stays conserved.
 	var shoulder_bias := clampf(camber_rad / deg_to_rad(8.0), -1.0, 1.0) * 0.18
 	var heat_shares := [1.0 / 3.0 - shoulder_bias, 1.0 / 3.0, 1.0 / 3.0 + shoulder_bias]
-	var air_conductance := float(axle_cfg.get("tread_to_air_w_k", 0.0)) / 3.0
+	# Opcion 5c: conveccion dependiente de la velocidad del aire.
+	# Combina avance del coche y centrifugacion de la rueda. Sin ganancia
+	# configurada se conserva el comportamiento legacy constante.
+	var base_air_total := float(axle_cfg.get("tread_to_air_w_k", 0.0))
+	var conv_gain := maxf(float(axle_cfg.get("convection_velocity_gain_w_k", 0.0)), 0.0)
+	var conv_alpha := clampf(float(axle_cfg.get("convection_alpha_airflow", 0.6)), 0.0, 1.0)
+	var conv_ref := maxf(float(axle_cfg.get("convection_ref_speed_m_s", 20.0)), 1.0)
+	var dyn_air_total := 0.0
+	if conv_gain > 1e-9:
+		var rim_speed := absf(wheel_omega_rad_s) * maxf(wheel_radius_m, 0.05)
+		var v_air := conv_alpha * absf(speed_m_s) + (1.0 - conv_alpha) * rim_speed
+		dyn_air_total = conv_gain * pow(v_air / conv_ref, 0.8)
+	var air_conductance := (base_air_total + dyn_air_total) / 3.0
 	var road_conductance := float(axle_cfg.get("road_conductance_w_k", 0.0)) / 3.0
 	var carcass_conductance := float(axle_cfg.get("tread_to_carcass_w_k", 0.0)) / 3.0
 	var lateral_conductance := float(axle_cfg.get("lateral_tread_conductance_w_k", 0.0)) / 2.0
@@ -170,7 +188,14 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, ambient_temperature_c, 150.0)
 	tread = (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var hysteresis_eff := clampf(float(axle_cfg.get("carcass_hysteresis_efficiency", 0.55)), 0.0, 1.0)
-	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) * hysteresis_eff - carcass_to_gas - float(axle_cfg.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
+	# Opcion 5a: histeresis de rodadura por carga vertical. Calienta el eje
+	# cargado (delantero en frenada/apoyo) aunque no patine.
+	var roll_hyst_coef := maxf(float(axle_cfg.get("rolling_hysteresis_coef", 0.0)), 0.0)
+	var p_roll_hyst := roll_hyst_coef * maxf(normal_load_n, 0.0) * absf(longitudinal_speed_m_s)
+	# Opcion 5b: flexion lateral de tacos. Calor viscoelastico por deriva.
+	var block_power := maxf(float(axle_cfg.get("block_bending_power_w", 0.0)), 0.0)
+	var p_block := block_power * pow(absf(lateral_force_n) / 3000.0, 2.0) * (absf(wheel_omega_rad_s) / 90.0)
+	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) * hysteresis_eff + p_roll_hyst + p_block - carcass_to_gas - float(axle_cfg.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
 	var next_gas := gas + dt * carcass_to_gas / gas_capacity
 	state.tread_zones_c = zones
 	state.tread_c = tread
