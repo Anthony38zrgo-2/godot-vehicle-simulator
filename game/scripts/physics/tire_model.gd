@@ -8,18 +8,31 @@ const REAR_CAMBER_THRUST_GAIN := 0.18
 
 var axle_profiles: Array[Dictionary] = []
 var surfaces: Dictionary = { }
+var axle_surfaces: Array[Dictionary] = []
 var surface_transition_tau_s: float = 0.0
+var axle_surface_tau_s: Array[float] = []
 var base_contact_patch_m: Array[float] = []
 var base_relaxation_length_m: Array[float] = []
 var static_wheel_load_n: Array[float] = []
 var maximum_tire_deflection_m: Array[float] = []
 var reference_hot_pressure_kpa: Array[float] = []
 var load_sensitivity_per_newton: float = 1.5e-5
+var axle_load_sensitivity: Array[float] = []
+var axle_load_mult: Array[float] = []
 var rolling_resistance_coefficient: float = 0.015
+var axle_rolling_coefficient: Array[float] = []
 var pneumatic_trail_m: float = 0.035
+var axle_pneumatic_trail: Array[float] = []
+var axle_camber_gain: Array[float] = []
+var axle_relaxation_scale: Array[float] = []
+var axle_contact_load_gain: Array[float] = []
+var axle_contact_deflection_gain: Array[float] = []
 var pressure_relaxation_sensitivity: float = 0.0
 var pressure_rolling_resistance_sensitivity: float = 0.0
+var axle_pressure_relaxation: Array[float] = []
+var axle_pressure_rolling: Array[float] = []
 var optimal_carcass_temperature_c: float = 60.0
+var axle_optimal_carcass_c: Array[float] = []
 var radial_tires: Dictionary = { }
 var states: Array[Dictionary] = []
 
@@ -31,10 +44,10 @@ func configure(
 ) -> void:
 	var tires: Dictionary = domains.get("tires", { }).get("tires", { })
 	radial_tires = tires
-	surfaces = tires.get("surfaces", { }).duplicate(true)
-	surface_transition_tau_s = float(resolved_filters.get("surface_transition_tau_s", 0.0))
-	var front_tire: Dictionary = tires.get("front", { })
-	var rear_tire: Dictionary = tires.get("rear", { })
+	surfaces = (tires.get("surfaces", { }) as Dictionary).duplicate(true)
+	surface_transition_tau_s = float(resolved_filters.get("surface_transition_tau_s", tires.get("surface_transition_tau_s", 0.0)))
+	var front_tire: Dictionary = _axle_dict(tires, "front")
+	var rear_tire: Dictionary = _axle_dict(tires, "rear")
 	var axle_tires: Array[Dictionary] = [front_tire, front_tire, rear_tire, rear_tire]
 	var tire_thermal: Dictionary = tires.get("thermal", { })
 	var tire_pressure: Dictionary = tires.get("pressure", { })
@@ -42,6 +55,99 @@ func configure(
 	var wheel_keys := ["FL", "FR", "RL", "RR"]
 	var front_radius := float(front_tire.get("radius", tires.get("radius", 0.28)))
 	var rear_radius := float(rear_tire.get("radius", tires.get("radius", 0.28)))
+	# Per-axle scalar defaults: filter axle > tires axle > tires global > builtin.
+	var front_filter_scalars: Dictionary = _filter_scalars(resolved_filters, "front")
+	var rear_filter_scalars: Dictionary = _filter_scalars(resolved_filters, "rear")
+	var axle_scalar_dicts: Array[Dictionary] = [
+		front_tire, front_tire, rear_tire, rear_tire,
+	]
+	var filter_scalar_dicts: Array[Dictionary] = [
+		front_filter_scalars, front_filter_scalars, rear_filter_scalars, rear_filter_scalars,
+	]
+	axle_surfaces.clear()
+	axle_surface_tau_s.clear()
+	axle_load_sensitivity.clear()
+	axle_load_mult.clear()
+	axle_rolling_coefficient.clear()
+	axle_pneumatic_trail.clear()
+	axle_camber_gain.clear()
+	axle_relaxation_scale.clear()
+	axle_contact_load_gain.clear()
+	axle_contact_deflection_gain.clear()
+	axle_pressure_relaxation.clear()
+	axle_pressure_rolling.clear()
+	axle_optimal_carcass_c.clear()
+	var global_pressure_mechanics: Dictionary = tires.get("pressure_mechanics", {}) if tires.get("pressure_mechanics", {}) is Dictionary else {}
+	for i in 4:
+		var is_front := i < 2
+		var axle_tire: Dictionary = axle_scalar_dicts[i]
+		var filter_scalars: Dictionary = filter_scalar_dicts[i]
+		var default_tau := surface_transition_tau_s
+		var axle_tau := _resolve_scalar(
+			axle_tire, tires, filter_scalars, "surface_transition_tau_s", default_tau, 0.0, 2.0
+		)
+		axle_surface_tau_s.append(axle_tau)
+		var global_surfaces: Dictionary = surfaces
+		var axle_override_raw: Variant = axle_tire.get("surfaces", {})
+		var axle_override: Dictionary = (axle_override_raw as Dictionary) if axle_override_raw is Dictionary else {}
+		var filter_override_raw: Variant = resolved_filters.get("front_surfaces" if is_front else "rear_surfaces", {})
+		var filter_override: Dictionary = (filter_override_raw as Dictionary) if filter_override_raw is Dictionary else {}
+		axle_surfaces.append(_resolve_axle_surfaces(global_surfaces, axle_override, filter_override, is_front))
+		axle_load_sensitivity.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "load_sensitivity_per_newton", 1.5e-5, 0.0, 1.0e-3
+		))
+		axle_load_mult.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "load_sensitivity_axle_mult",
+			2.85 if is_front else 2.15, 0.1, 8.0
+		))
+		axle_rolling_coefficient.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "rolling_resistance_coefficient", 0.015, 0.0, 0.2
+		))
+		axle_pneumatic_trail.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "pneumatic_trail_m", 0.035, 0.0, 0.2
+		))
+		axle_camber_gain.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "camber_thrust_gain",
+			FRONT_CAMBER_THRUST_GAIN if is_front else REAR_CAMBER_THRUST_GAIN, 0.0, 1.0
+		))
+		axle_relaxation_scale.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "relaxation_length_scale",
+			1.85 if is_front else 1.55, 0.2, 5.0
+		))
+		axle_contact_load_gain.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "contact_patch_load_gain",
+			CONTACT_PATCH_LOAD_GAIN, 0.0, 1.0
+		))
+		axle_contact_deflection_gain.append(_resolve_scalar(
+			axle_tire, tires, filter_scalars, "contact_patch_deflection_gain",
+			CONTACT_PATCH_DEFLECTION_GAIN, 0.0, 1.0
+		))
+		var axle_pm_raw: Variant = axle_tire.get("pressure_mechanics", {})
+		var axle_pm: Dictionary = (axle_pm_raw as Dictionary) if axle_pm_raw is Dictionary else {}
+		var filter_pm_raw: Variant = resolved_filters.get("front_pressure_mechanics" if is_front else "rear_pressure_mechanics", {})
+		var filter_pm: Dictionary = (filter_pm_raw as Dictionary) if filter_pm_raw is Dictionary else {}
+		axle_pressure_relaxation.append(clampf(_resolve_pm_scalar(
+			axle_pm, global_pressure_mechanics, filter_pm, "response_sensitivity", 0.0
+		), -3.0, 3.0))
+		axle_pressure_rolling.append(clampf(_resolve_pm_scalar(
+			axle_pm, global_pressure_mechanics, filter_pm, "rolling_resistance_sensitivity", 0.0
+		), -3.0, 3.0))
+		var axle_thermal_raw: Variant = axle_tire.get("thermal", {})
+		var axle_thermal: Dictionary = (axle_thermal_raw as Dictionary) if axle_thermal_raw is Dictionary else {}
+		var filter_thermal_raw: Variant = resolved_filters.get("front_thermal" if is_front else "rear_thermal", {})
+		var filter_thermal: Dictionary = (filter_thermal_raw as Dictionary) if filter_thermal_raw is Dictionary else {}
+		var global_opt := float(tire_thermal.get("optimal_carcass_temperature_c", 60.0))
+		var axle_opt := float(axle_thermal.get("optimal_carcass_temperature_c", global_opt))
+		if filter_thermal.has("optimal_carcass_temperature_c"):
+			axle_opt = float(filter_thermal.get("optimal_carcass_temperature_c", axle_opt))
+		axle_optimal_carcass_c.append(axle_opt)
+	# Keep legacy globals in sync with the front axle for debug/HUD readers.
+	load_sensitivity_per_newton = float(axle_load_sensitivity[0]) if axle_load_sensitivity.size() == 4 else 1.5e-5
+	rolling_resistance_coefficient = float(axle_rolling_coefficient[0]) if axle_rolling_coefficient.size() == 4 else 0.015
+	pneumatic_trail_m = float(axle_pneumatic_trail[0]) if axle_pneumatic_trail.size() == 4 else 0.035
+	pressure_relaxation_sensitivity = float(axle_pressure_relaxation[0]) if axle_pressure_relaxation.size() == 4 else 0.0
+	pressure_rolling_resistance_sensitivity = float(axle_pressure_rolling[0]) if axle_pressure_rolling.size() == 4 else 0.0
+	optimal_carcass_temperature_c = float(axle_optimal_carcass_c[0]) if axle_optimal_carcass_c.size() == 4 else 60.0
 	base_contact_patch_m.clear()
 	base_relaxation_length_m.clear()
 	static_wheel_load_n.clear()
@@ -55,7 +161,7 @@ func configure(
 		)
 		var tire_radius := front_radius if i < 2 else rear_radius
 		base_contact_patch_m.append(contact_patch)
-		base_relaxation_length_m.append(contact_patch * (1.85 if i < 2 else 1.55))
+		base_relaxation_length_m.append(contact_patch * float(axle_relaxation_scale[i]))
 		static_wheel_load_n.append(
 			maxf(float(static_wheel_loads[i]) if i < static_wheel_loads.size() else 0.0, 100.0)
 		)
@@ -63,12 +169,6 @@ func configure(
 		reference_hot_pressure_kpa.append(
 			maxf(float(hot_pressures.get(wheel_keys[i], 225.0)), 20.0)
 		)
-	optimal_carcass_temperature_c = float(tire_thermal.get("optimal_carcass_temperature_c", 60.0))
-	var pressure_mechanics: Dictionary = tires.get("pressure_mechanics", { })
-	pressure_relaxation_sensitivity = float(pressure_mechanics.get("response_sensitivity", 0.0))
-	pressure_rolling_resistance_sensitivity = float(
-		pressure_mechanics.get("rolling_resistance_sensitivity", 0.0)
-	)
 	axle_profiles = [
 		resolved_filters.get("front", { }).duplicate(true),
 		resolved_filters.get("front", { }).duplicate(true),
@@ -123,9 +223,12 @@ func evaluate(
 	carcass_temperature_c: float,
 ) -> Dictionary:
 	var state: Dictionary = states[index]
-	var target_surface: Dictionary = surfaces.get(
+	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
+	if axle_surface_set.is_empty():
+		axle_surface_set = surfaces
+	var target_surface: Dictionary = axle_surface_set.get(
 		surface_name,
-		surfaces.get("Gravel", surfaces.get("Road", { })),
+		axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", { })))),
 	)
 	if target_surface.is_empty():
 		target_surface = {
@@ -135,7 +238,7 @@ func evaluate(
 			"longitudinal_grip_ratio": 1.0,
 			"lateral_grip_assist": 0.0,
 		}
-	var tau_surface := maxf(surface_transition_tau_s, 0.0)
+	var tau_surface := maxf(float(axle_surface_tau_s[index]) if index >= 0 and index < axle_surface_tau_s.size() else surface_transition_tau_s, 0.0)
 	if not bool(state.surface_initialized):
 		state.surface_friction = float(target_surface.get("friction", 1.0))
 		state.surface_stiffness = float(target_surface.get("stiffness", 1.0))
@@ -208,15 +311,15 @@ func evaluate(
 		1.5,
 	)
 	var patch_scale := clampf(
-		1.0 + CONTACT_PATCH_LOAD_GAIN * (load_ratio - 1.0)
-		+ CONTACT_PATCH_DEFLECTION_GAIN * deflection_ratio,
+		1.0 + float(axle_contact_load_gain[index]) * (load_ratio - 1.0)
+		+ float(axle_contact_deflection_gain[index]) * deflection_ratio,
 		0.70,
 		1.45,
 	)
 	var dynamic_contact_patch := base_contact_patch_m[index] * patch_scale
 	var patch_ratio := clampf(dynamic_contact_patch / base_contact_patch_m[index], 0.70, 1.50)
 	var pressure_relaxation_scale := clampf(
-		pow(pressure_ratio, clampf(pressure_relaxation_sensitivity, -3.0, 3.0)),
+		pow(pressure_ratio, clampf(float(axle_pressure_relaxation[index]), -3.0, 3.0)),
 		0.80,
 		1.30,
 	)
@@ -240,13 +343,13 @@ func evaluate(
 
 	var fz := maxf(normal_load_n, 0.0)
 	var pressure_rr := clampf(
-		pow(pressure_ratio, clampf(pressure_rolling_resistance_sensitivity, -3.0, 3.0)),
+		pow(pressure_ratio, clampf(float(axle_pressure_rolling[index]), -3.0, 3.0)),
 		0.75,
 		1.50,
 	)
-	var axle_load_mult := 2.85 if index < 2 else 2.15
+	var axle_mult := float(axle_load_mult[index])
 	var load_sensitivity_exp := clampf(
-		load_sensitivity_per_newton * reference_load * axle_load_mult,
+		float(axle_load_sensitivity[index]) * reference_load * axle_mult,
 		0.08,
 		0.25,
 	)
@@ -261,10 +364,10 @@ func evaluate(
 		0.10,
 		1.50,
 	)
-	var lateral_assist := float(target_surface.get("lateral_grip_assist", 0.0))
-	var rear_lat_bonus := 1.0 + (lateral_assist if index >= 2 else 0.0)
+	var lateral_assist := clampf(float(target_surface.get("lateral_grip_assist", 0.0)), -0.5, 1.0)
+	var lateral_bonus := 1.0 + lateral_assist
 	var fx_capacity := maxf(mu * longitudinal_ratio * fz, 1e-6)
-	var fy_capacity := maxf(mu * rear_lat_bonus * fz, 1e-6)
+	var fy_capacity := maxf(mu * lateral_bonus * fz, 1e-6)
 	var stiffness_scale := sqrt(clampf(maxf(float(state.surface_stiffness), 0.0) / 5.0, 0.15, 2.5))
 	var rise_gamma := clampf(2.0 * stiffness_scale, 1.2, 4.0)
 	var base_peak_lat := maxf(float(profile.get("lateral_peak_slip_angle_rad", 0.18)), 1e-6)
@@ -278,7 +381,7 @@ func evaluate(
 	)
 	var slide_lon := clampf(float(profile.get("longitudinal_slide_mu_ratio", 0.95)), 0.0, 1.0)
 	var signed_camber := camber_rad * (1.0 if index in [0, 2] else -1.0)
-	var camber_gain := FRONT_CAMBER_THRUST_GAIN if index < 2 else REAR_CAMBER_THRUST_GAIN
+	var camber_gain := float(axle_camber_gain[index])
 	var blend := float(state.contact_blend)
 
 	var patch_before: Vector2 = state.patch_pos
@@ -366,7 +469,7 @@ func evaluate(
 	state.patch_energy_j = patch_energy
 	var rolling_force := 0.0
 	if absf(longitudinal_speed_m_s) > 0.05:
-		rolling_force = fz * rolling_resistance_coefficient * float(state.surface_rolling) * pressure_rr * signf(
+		rolling_force = fz * float(axle_rolling_coefficient[index]) * float(state.surface_rolling) * pressure_rr * signf(
 			longitudinal_speed_m_s
 		)
 		fx -= rolling_force * blend
@@ -384,7 +487,7 @@ func evaluate(
 		1.0,
 	)
 	var lon_theta := clampf(absf(trial.x) / maxf(3.0 * limit_x, 1.0e-6), 0.0, 1.0)
-	var trail := pneumatic_trail_m * pow(1.0 - brush_theta, 1.35) * (1.0 - 0.75 * lon_theta)
+	var trail := float(axle_pneumatic_trail[index]) * pow(1.0 - brush_theta, 1.35) * (1.0 - 0.75 * lon_theta)
 	var aligning_torque := -fy * trail
 	var slip_longitudinal_speed := rim_speed - longitudinal_speed_m_s
 	var contact_power := (fx + rolling_force * blend) * slip_longitudinal_speed - fy * lateral_speed_m_s
@@ -546,3 +649,80 @@ func _output(state: Dictionary) -> Dictionary:
 		"patch_energy_j": state.patch_energy_j,
 		"brush_demand_n": state.get("brush_demand_n", 0.0),
 	}
+
+
+static func _axle_dict(tires: Dictionary, axle: String) -> Dictionary:
+	var d: Variant = tires.get(axle, { })
+	return (d as Dictionary).duplicate(true) if d is Dictionary else { }
+
+
+static func _filter_scalars(resolved_filters: Dictionary, axle: String) -> Dictionary:
+	var d: Variant = resolved_filters.get(axle + "_tire_scalars", { })
+	if d is Dictionary:
+		return (d as Dictionary).duplicate(true)
+	return { }
+
+
+static func _resolve_scalar(
+	axle_tire: Dictionary, tires_global: Dictionary, filter_scalars: Dictionary,
+	key: String, default_value: float, min_value: float, max_value: float,
+) -> float:
+	if filter_scalars.has(key):
+		return clampf(float(filter_scalars.get(key, default_value)), min_value, max_value)
+	if axle_tire.has(key):
+		return clampf(float(axle_tire.get(key, default_value)), min_value, max_value)
+	if tires_global.has(key):
+		return clampf(float(tires_global.get(key, default_value)), min_value, max_value)
+	return clampf(default_value, min_value, max_value)
+
+
+static func _resolve_pm_scalar(
+	axle_pm: Dictionary, global_pm: Dictionary, filter_pm: Dictionary,
+	key: String, default_value: float,
+) -> float:
+	if filter_pm.has(key):
+		return float(filter_pm.get(key, default_value))
+	if axle_pm is Dictionary and axle_pm.has(key):
+		return float(axle_pm.get(key, default_value))
+	if global_pm is Dictionary and global_pm.has(key):
+		return float(global_pm.get(key, default_value))
+	return default_value
+
+
+static func _resolve_axle_surfaces(
+	global_surfaces: Dictionary, axle_override: Variant, filter_override: Variant, is_front: bool,
+) -> Dictionary:
+	var axle_dict: Dictionary = (axle_override as Dictionary).duplicate(true) if axle_override is Dictionary else { }
+	var filter_dict: Dictionary = (filter_override as Dictionary).duplicate(true) if filter_override is Dictionary else { }
+	var names := { }
+	for k in global_surfaces:
+		names[k] = true
+	for k in axle_dict:
+		names[k] = true
+	for k in filter_dict:
+		names[k] = true
+	var resolved := { }
+	for surface_name in names:
+		var base: Dictionary = ((global_surfaces.get(surface_name, { }) as Dictionary).duplicate(true) if global_surfaces.get(surface_name, { }) is Dictionary else { })
+		if base.is_empty():
+			base = {
+				"friction": 1.0,
+				"stiffness": 1.0,
+				"rolling_resistance": 1.0,
+				"longitudinal_grip_ratio": 1.0,
+				"lateral_grip_assist": 0.0,
+			}
+		var ax: Dictionary = axle_dict.get(surface_name, { }) if axle_dict.get(surface_name, { }) is Dictionary else { }
+		var flt: Dictionary = filter_dict.get(surface_name, { }) if filter_dict.get(surface_name, { }) is Dictionary else { }
+		for k in ax:
+			base[k] = ax[k]
+		for k in flt:
+			base[k] = flt[k]
+		if is_front:
+			# Compatibilidad: el delantero ignoraba lateral_grip_assist global.
+			# Solo aplica assist delante si viene explícito en su override por eje.
+			var front_explicit := (ax is Dictionary and ax.has("lateral_grip_assist")) or (flt is Dictionary and flt.has("lateral_grip_assist"))
+			if not front_explicit:
+				base["lateral_grip_assist"] = 0.0
+		resolved[surface_name] = base
+	return resolved

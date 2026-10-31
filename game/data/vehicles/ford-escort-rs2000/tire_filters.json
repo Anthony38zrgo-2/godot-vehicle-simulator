@@ -7,7 +7,25 @@
       "min_relaxation_tau_s": 0.015,
       "relaxation_recovery_scale": 1.45,
       "slip_loss_tau_s": 0.04,
-      "slip_recovery_tau_s": 0.28
+      "slip_recovery_tau_s": 0.28,
+      "surface_transition_tau_s": 0.08,
+      "rolling_resistance_coefficient": 0.015,
+      "load_sensitivity_per_newton": 1.5e-5,
+      "load_sensitivity_axle_mult": 2.85,
+      "pneumatic_trail_m": 0.035,
+      "camber_thrust_gain": 0.13,
+      "relaxation_length_scale": 1.85,
+      "contact_patch_load_gain": 0.12,
+      "contact_patch_deflection_gain": 0.2,
+      "surfaces": {
+        "Gravel": {
+          "friction": 1.08,
+          "stiffness": 1.0,
+          "rolling_resistance": 2.2,
+          "longitudinal_grip_ratio": 0.92,
+          "lateral_grip_assist": 0.0
+        }
+      }
     },
     "rear": {
       "combined_lateral_peak_migration": 0.45,
@@ -15,8 +33,26 @@
       "contact_ramp_tau_s": 0.04,
       "min_relaxation_tau_s": 0.008,
       "relaxation_recovery_scale": 0.95,
-      "slip_loss_tau_s": 0.10,
-      "slip_recovery_tau_s": 0.12
+      "slip_loss_tau_s": 0.1,
+      "slip_recovery_tau_s": 0.12,
+      "surface_transition_tau_s": 0.07,
+      "rolling_resistance_coefficient": 0.015,
+      "load_sensitivity_per_newton": 1.5e-5,
+      "load_sensitivity_axle_mult": 2.15,
+      "pneumatic_trail_m": 0.038,
+      "camber_thrust_gain": 0.18,
+      "relaxation_length_scale": 1.55,
+      "contact_patch_load_gain": 0.12,
+      "contact_patch_deflection_gain": 0.2,
+      "surfaces": {
+        "Gravel": {
+          "friction": 1.08,
+          "stiffness": 1.0,
+          "rolling_resistance": 2.2,
+          "longitudinal_grip_ratio": 1.0,
+          "lateral_grip_assist": 0.08
+        }
+      }
     },
     "surface_transition_tau_s": 0.08
   }

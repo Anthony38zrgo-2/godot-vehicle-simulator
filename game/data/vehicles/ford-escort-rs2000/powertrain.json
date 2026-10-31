@@ -48,12 +48,7 @@
     "final_drive": 4.35,
     "front_torque_split": 0.0,
     "gear_inertia": 0.025,
-    "gear_ratios": [
-      3.172,
-      1.89,
-      1.297,
-      1.0
-    ],
+    "gear_ratios": [3.45, 2.02, 1.36, 1.0],
     "handbrake_torque_fraction": 1.0,
     "idle_disengagement_hysteresis_rpm": 150.0,
     "idle_rpm": 1050.0,
@@ -83,7 +78,7 @@
         "drag_coefficient": 0.4,
         "heat_exchanger_conductance_watts_per_kelvin": 2000.0,
         "maximum_inlet_area_square_meters": 0.06,
-        "opening": 0.5,
+        "opening": 0.1,
         "pressure_recovery": 0.7
       },
       "oil_critical_temperature_celsius": 135.0,
@@ -101,7 +96,7 @@
         "drag_coefficient": 0.5,
         "heat_exchanger_conductance_watts_per_kelvin": 4000.0,
         "maximum_inlet_area_square_meters": 0.2,
-        "opening": 0.75,
+        "opening": 0.1,
         "pressure_recovery": 0.75
       },
       "water_critical_temperature_celsius": 115.0,
@@ -172,23 +167,23 @@
       ],
       [
         0.7894736842105263,
-        0.979
+        0.985
       ],
       [
         0.8421052631578947,
-        0.938
+        0.96
       ],
       [
         0.8947368421052632,
-        0.75
+        0.9
       ],
       [
         0.9473684210526315,
-        0.4
+        0.82
       ],
       [
         1.0,
-        0.0
+        0.7
       ]
     ],
     "variable_drag_ratio": 0.05

@@ -23,14 +23,19 @@ static func evaluate(
 	speed: float,
 ) -> Dictionary:
 	var g := geometry(tires.get(axle, { }))
-	var model: Dictionary = tires.get("radial_model", { })
+	var model_global: Dictionary = tires.get("radial_model", { })
+	var axle_dict: Dictionary = tires.get(axle, { }) if tires.get(axle, { }) is Dictionary else { }
+	var model_axle: Dictionary = axle_dict.get("radial_model", { }) if axle_dict.get("radial_model", { }) is Dictionary else { }
+	var model := _merged(model_global, model_axle)
 	var sidewall := float(g.sidewall_m)
 	var reference_height := float(model.get("reference_sidewall_m", 0.1149))
 	var geometry_scale := float(g.width_m) / maxf(float(model.get("reference_width_m", 0.2)), 0.05) * reference_height / maxf(
 		sidewall,
 		0.02,
 	)
-	var optimal := float(tires.get("thermal", { }).get("optimal_carcass_temperature_c", 60.0))
+	var thermal_global: Dictionary = tires.get("thermal", { })
+	var thermal_axle: Dictionary = axle_dict.get("thermal", { }) if axle_dict.get("thermal", { }) is Dictionary else { }
+	var optimal := float(thermal_axle.get("optimal_carcass_temperature_c", thermal_global.get("optimal_carcass_temperature_c", 60.0)))
 	var thermal_scale := clampf(1.0 - 0.0015 * (temperature_c - optimal), 0.88, 1.12)
 	var carcass_k := float(model.get("carcass_stiffness_n_m", 30000.0)) * geometry_scale * thermal_scale
 	var pressure_k := float(model.get("pressure_stiffness_n_m_per_kpa", 666.6666667)) * maxf(
@@ -80,3 +85,10 @@ static func evaluate(
 		"rim_stop_force_n": stop_force,
 		"dissipation_w": dissipation,
 	}
+
+
+static func _merged(global_dict: Dictionary, axle_dict: Dictionary) -> Dictionary:
+	var out := (global_dict as Dictionary).duplicate(true)
+	for k in axle_dict:
+		out[k] = axle_dict[k]
+	return out

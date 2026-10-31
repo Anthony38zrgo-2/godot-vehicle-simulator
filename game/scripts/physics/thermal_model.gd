@@ -3,8 +3,14 @@ extends RefCounted
 
 var engine_config: Dictionary = {}
 var tire_config: Dictionary = {}
+var tire_config_front: Dictionary = {}
+var tire_config_rear: Dictionary = {}
 var pressure_config: Dictionary = {}
+var pressure_config_front: Dictionary = {}
+var pressure_config_rear: Dictionary = {}
 var pressure_mechanics: Dictionary = {}
+var pressure_mechanics_front: Dictionary = {}
+var pressure_mechanics_rear: Dictionary = {}
 var powertrain_aero: VehicleAerodynamicModel
 var engine_block_temperature_c: float = 0.0
 var water_temperature_c: float = 0.0
@@ -34,9 +40,17 @@ func configure(domains: Dictionary) -> Dictionary:
 	water_temperature_c = float(engine_config.get("initial_water_temperature_celsius", 82.0))
 	oil_temperature_c = float(engine_config.get("initial_oil_temperature_celsius", 85.0))
 	var tires: Dictionary = domains.get("tires", {}).get("tires", {})
-	tire_config = tires.get("thermal", {}).duplicate(true)
-	pressure_config = tires.get("pressure", {}).duplicate(true)
-	pressure_mechanics = tires.get("pressure_mechanics", {}).duplicate(true)
+	tire_config = (tires.get("thermal", {}) as Dictionary).duplicate(true)
+	pressure_config = (tires.get("pressure", {}) as Dictionary).duplicate(true)
+	pressure_mechanics = (tires.get("pressure_mechanics", {}) as Dictionary).duplicate(true)
+	var front_tire: Dictionary = tires.get("front", {}) if tires.get("front", {}) is Dictionary else {}
+	var rear_tire: Dictionary = tires.get("rear", {}) if tires.get("rear", {}) is Dictionary else {}
+	tire_config_front = _merged_config(tire_config, front_tire.get("thermal", {}))
+	tire_config_rear = _merged_config(tire_config, rear_tire.get("thermal", {}))
+	pressure_config_front = _merged_config(pressure_config, front_tire.get("pressure", {}))
+	pressure_config_rear = _merged_config(pressure_config, rear_tire.get("pressure", {}))
+	pressure_mechanics_front = _merged_config(pressure_mechanics, front_tire.get("pressure_mechanics", {}))
+	pressure_mechanics_rear = _merged_config(pressure_mechanics, rear_tire.get("pressure_mechanics", {}))
 	ambient_temperature_c = float(tire_config.get("ambient_fallback_c", 25.0))
 	var fuel: Dictionary = domains.get("fuel", {}).get("fuel", {})
 	fuel_density_kg_litre = float(fuel.get("density_kg_per_litre", 0.74))
@@ -119,26 +133,28 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
+	var axle_cfg := _axle_tire_config(index)
+	var axle_pressure_cfg := _axle_pressure_config(index)
 	var state: Dictionary = tire_states[index]
 	var dt := maxf(delta, 0.0)
 	var zones: Array = state.get("tread_zones_c", [state.tread_c, state.tread_c, state.tread_c]).duplicate()
 	var tread := (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var carcass := float(state.carcass_c)
 	var gas := float(state.gas_c)
-	var tread_to_carcass := float(tire_config.get("tread_to_carcass_w_k", 0.0)) * (tread - carcass)
-	var carcass_to_gas := float(tire_config.get("carcass_to_gas_w_k", 0.0)) * (carcass - gas)
-	var slip_heat := maxf(friction_power_w, 0.0) * float(tire_config.get("slip_heat_efficiency", 0.0))
-	var tread_capacity := maxf(float(tire_config.get("tread_zone_heat_capacity_j_k", 1.0)) / 3.0, 1.0)
-	var carcass_capacity := maxf(float(tire_config.get("carcass_heat_capacity_j_k", 1.0)), 1.0)
-	var gas_capacity := maxf(float(tire_config.get("gas_heat_capacity_j_k", 1.0)), 1.0)
+	var tread_to_carcass := float(axle_cfg.get("tread_to_carcass_w_k", 0.0)) * (tread - carcass)
+	var carcass_to_gas := float(axle_cfg.get("carcass_to_gas_w_k", 0.0)) * (carcass - gas)
+	var slip_heat := maxf(friction_power_w, 0.0) * float(axle_cfg.get("slip_heat_efficiency", 0.0))
+	var tread_capacity := maxf(float(axle_cfg.get("tread_zone_heat_capacity_j_k", 1.0)) / 3.0, 1.0)
+	var carcass_capacity := maxf(float(axle_cfg.get("carcass_heat_capacity_j_k", 1.0)), 1.0)
+	var gas_capacity := maxf(float(axle_cfg.get("gas_heat_capacity_j_k", 1.0)), 1.0)
 	# Camber changes shoulder loading. Positive physical camber biases heat outward;
 	# the center remains nearly neutral and total generated heat stays conserved.
 	var shoulder_bias := clampf(camber_rad / deg_to_rad(8.0), -1.0, 1.0) * 0.18
 	var heat_shares := [1.0 / 3.0 - shoulder_bias, 1.0 / 3.0, 1.0 / 3.0 + shoulder_bias]
-	var air_conductance := float(tire_config.get("tread_to_air_w_k", 0.0)) / 3.0
-	var road_conductance := float(tire_config.get("road_conductance_w_k", 0.0)) / 3.0
-	var carcass_conductance := float(tire_config.get("tread_to_carcass_w_k", 0.0)) / 3.0
-	var lateral_conductance := float(tire_config.get("lateral_tread_conductance_w_k", 0.0)) / 2.0
+	var air_conductance := float(axle_cfg.get("tread_to_air_w_k", 0.0)) / 3.0
+	var road_conductance := float(axle_cfg.get("road_conductance_w_k", 0.0)) / 3.0
+	var carcass_conductance := float(axle_cfg.get("tread_to_carcass_w_k", 0.0)) / 3.0
+	var lateral_conductance := float(axle_cfg.get("lateral_tread_conductance_w_k", 0.0)) / 2.0
 	for zone_index in 3:
 		var zone_temperature := float(zones[zone_index])
 		var lateral_heat := 0.0
@@ -149,18 +165,19 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 		var zone_to_carcass := carcass_conductance * (zone_temperature - carcass)
 		var zone_heat := slip_heat * float(heat_shares[zone_index]) - zone_to_carcass
 		zone_heat -= air_conductance * (zone_temperature - ambient_temperature_c)
-		zone_heat -= road_conductance * (zone_temperature - float(tire_config.get("track_fallback_c", ambient_temperature_c)))
+		zone_heat -= road_conductance * (zone_temperature - float(axle_cfg.get("track_fallback_c", ambient_temperature_c)))
 		zone_heat += lateral_heat
 		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, ambient_temperature_c, 150.0)
 	tread = (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
-	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) - carcass_to_gas - float(tire_config.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
+	var hysteresis_eff := clampf(float(axle_cfg.get("carcass_hysteresis_efficiency", 0.55)), 0.0, 1.0)
+	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) * hysteresis_eff - carcass_to_gas - float(axle_cfg.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
 	var next_gas := gas + dt * carcass_to_gas / gas_capacity
 	state.tread_zones_c = zones
 	state.tread_c = tread
 	state.surface_c = state.tread_c
 	state.carcass_c = clampf(next_carcass, ambient_temperature_c, 180.0)
 	state.gas_c = clampf(next_gas, ambient_temperature_c, 180.0)
-	var atmosphere_bar := float(pressure_config.get("atmospheric_pressure_kpa", 101.325)) / 100.0
+	var atmosphere_bar := float(axle_pressure_cfg.get("atmospheric_pressure_kpa", 101.325)) / 100.0
 	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
 	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
@@ -211,13 +228,16 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> D
 
 
 func tire_grip_factor(index: int) -> float:
+	if index < 0 or index >= tire_states.size():
+		return 1.0
+	var axle_cfg := _axle_tire_config(index)
 	var state: Dictionary = tire_states[index]
-	var optimum := float(tire_config.get("optimal_tread_temperature_c", 50.0))
-	var half_window := float(tire_config.get("optimal_tread_window_c", 50.0)) * 0.5
+	var optimum := float(axle_cfg.get("optimal_tread_temperature_c", 50.0))
+	var half_window := float(axle_cfg.get("optimal_tread_window_c", 50.0)) * 0.5
 	var upper := optimum + half_window
 	var lower := optimum - half_window
 	var tread := float(state.tread_c)
-	var overheat := float(tire_config.get("overheat_tread_temperature_c", 100.0))
+	var overheat := float(axle_cfg.get("overheat_tread_temperature_c", 100.0))
 	var thermal_factor := 1.0
 	if tread < lower:
 		thermal_factor = clampf(0.80 + 0.20 * clampf((tread - (lower - 30.0)) / 30.0, 0.0, 1.0), 0.70, 1.0)
@@ -349,3 +369,29 @@ func _cooling_duct(duct: Dictionary, density: float, speed: float) -> Dictionary
 	var conductance := capacity_rate * (1.0 - exp(-exchanger / capacity_rate)) if capacity_rate > 1.0e-9 and exchanger > 0.0 else 0.0
 	var drag := dynamic_pressure * maxf(float(duct.get("drag_coefficient", 0.0)), 0.0) * area
 	return {"conductance": conductance, "drag": drag}
+
+
+func _axle_tire_config(index: int) -> Dictionary:
+	if index < 2:
+		return tire_config_front if not tire_config_front.is_empty() else tire_config
+	return tire_config_rear if not tire_config_rear.is_empty() else tire_config
+
+
+func _axle_pressure_config(index: int) -> Dictionary:
+	if index < 2:
+		return pressure_config_front if not pressure_config_front.is_empty() else pressure_config
+	return pressure_config_rear if not pressure_config_rear.is_empty() else pressure_config
+
+
+func _axle_pressure_mechanics(index: int) -> Dictionary:
+	if index < 2:
+		return pressure_mechanics_front if not pressure_mechanics_front.is_empty() else pressure_mechanics
+	return pressure_mechanics_rear if not pressure_mechanics_rear.is_empty() else pressure_mechanics
+
+
+static func _merged_config(global_dict: Dictionary, axle_override: Variant) -> Dictionary:
+	var out := (global_dict as Dictionary).duplicate(true) if global_dict is Dictionary else { }
+	if axle_override is Dictionary:
+		for k in (axle_override as Dictionary):
+			out[k] = (axle_override as Dictionary)[k]
+	return out
