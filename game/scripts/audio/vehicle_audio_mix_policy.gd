@@ -77,7 +77,11 @@ func accept(packet: Dictionary) -> Dictionary:
 	var surface_key := ""
 	match surface.to_lower():
 		"grass": surface_key = "surf_grass"
-		"sand", "gravel": surface_key = "surf_sand"
+		"gravel": surface_key = "surf_gravel"
+		# Loose dirt shoulders reuse the gravel loop (no dedicated CMR2 dirt
+		# loop was promoted); sand keeps its own loop.
+		"dirt": surface_key = "surf_gravel"
+		"sand": surface_key = "surf_sand"
 		"rumble", "curb": surface_key = "surf_rumble"
 	var bed_gain := 0.25 + 0.55 * clampf(slip, 0.0, 1.0) + 0.12 * minf(float(packet.speed_kph), 120.0) / 120.0
 	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "surface": surface_key, "surface_gain": bed_gain if highest_load > 0.0 and float(packet.speed_kph) > 0.5 else 0.0, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "events": events, "dt": dt}

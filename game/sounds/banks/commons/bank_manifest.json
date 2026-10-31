@@ -147,153 +147,117 @@
       }
     },
     {
-      "dc_offset": -1.5e-05,
-      "duration_s": 2.44322,
+      "dc_offset": 0.0,
+      "duration_s": 1.89243,
       "file": "impact_barrier.wav",
       "loop": false,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -9.72,
-      "peak": 0.919983,
-      "provenance": "derived from original samples (game/sounds/bank_sources/legacy_formula_one_1998); remastered with modular synthesis (impact stages)",
+      "loudness_dbfs": -14.12,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis6.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "impact_barrier",
-      "sha256": "846e3156f14cfd869d780ebb2792199bb3289144edb30d621a0317e45292b4da",
+      "sha256": "20d669a1821105b5e881ce018d9206030ea2725385c68af2046ee3c1ed904aba",
       "synthesis": {
         "category": "impact",
-        "remaster": {
-          "kind": "barrier",
-          "recipe": "impact_remaster_v1"
-        },
-        "source_file": "GP_barrier.wav",
-        "source_rate": 44100,
-        "source_sha256": "c4c3210cdc1119f4ef38055e15e843a085111806e45b1bdea28c8a8d87784b68"
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis6.wav",
+        "target_rate": 44100
       }
     },
     {
-      "dc_offset": -1.5e-05,
-      "duration_s": 0.351519,
+      "dc_offset": 0.0,
+      "duration_s": 0.64145,
       "file": "impact_cone.wav",
       "loop": false,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -15.32,
-      "peak": 0.919983,
-      "provenance": "derived from original samples (game/sounds/bank_sources/legacy_formula_one_1998); remastered with modular synthesis (impact stages)",
+      "loudness_dbfs": -14.53,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis1.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "impact_cone",
-      "sha256": "0e9cd6cb035dba091be061c216feda098669aa8a67d27e64e640e77c45da478a",
+      "sha256": "e234896b817a44868ec75827f8edf5bbf71b6389a3f988bde5f52c0c2b8303fa",
       "synthesis": {
         "category": "impact",
-        "remaster": {
-          "kind": "cone",
-          "recipe": "impact_remaster_v1"
-        },
-        "source_file": "GP_conehit.wav",
-        "source_rate": 22050,
-        "source_sha256": "664225b6d640c799d2752cf37a45d3258fdcc478ace3f41d011c1af5e7552ee4"
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis1.wav",
+        "target_rate": 44100
       }
     },
     {
-      "dc_offset": -0.0,
-      "duration_s": 0.802812,
+      "dc_offset": 0.0,
+      "duration_s": 0.68209,
       "file": "impact_hit_1.wav",
       "loop": false,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -13.6,
-      "peak": 0.89,
-      "provenance": "derived from original user-supplied replacement samples",
+      "loudness_dbfs": -16.23,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis2.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "impact_hit",
-      "sha256": "4f0fa91a560a835fbe2c10822bea10a74f1d4395505f6ea74959cffa2030f6b9",
+      "sha256": "b63b5bb268f5278dd90003589f78f848f5405a4767d466715205ba4b8bc02c0f",
       "synthesis": {
         "category": "impact",
-        "processing": {
-          "remove_dc": true,
-          "source_rate": 44100,
-          "target_peak": 0.89,
-          "target_rate": 44100
-        },
-        "promotion_recipe": "f1_2026_2008_replacement_overlay_v1",
-        "source_file": "game/sounds/bank_sources/replacements/formula_one_2026_2008/impact_hit_1.wav",
-        "source_rate": 44100,
-        "source_sha256": "e59cd6af9b5c0896f3b53a3ed0e5d6892914fb74a54b0123b38c95cdcde3bfc6"
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis2.wav",
+        "target_rate": 44100
       }
     },
     {
       "dc_offset": 0.0,
-      "duration_s": 3.791315,
+      "duration_s": 0.81415,
       "file": "impact_hit_2.wav",
       "loop": false,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -15.86,
-      "peak": 0.89,
-      "provenance": "derived from original user-supplied replacement samples",
+      "loudness_dbfs": -15.2,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis3.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "impact_hit",
-      "sha256": "9b0a8d71b74308be22c0c36c9ffd4e97fa3410bb49b6e16d6f488492aacbdc30",
+      "sha256": "69b4737a3bf0ed82a9d610969f5a2475ae479ac289edd4d2e41792019ecf7f23",
       "synthesis": {
         "category": "impact",
-        "processing": {
-          "remove_dc": true,
-          "source_rate": 44100,
-          "target_peak": 0.89,
-          "target_rate": 44100
-        },
-        "promotion_recipe": "f1_2026_2008_replacement_overlay_v1",
-        "source_file": "game/sounds/bank_sources/replacements/formula_one_2026_2008/impact_hit_2.wav",
-        "source_rate": 44100,
-        "source_sha256": "3b786278bc4a973062c08c1660d88c4a76b75fec574c03ffd339913f293d102b"
-      }
-    },
-    {
-      "dc_offset": -0.0,
-      "duration_s": 2.010816,
-      "file": "impact_hit_3.wav",
-      "loop": false,
-      "loop_end_s": null,
-      "loop_start_s": null,
-      "loudness_dbfs": -17.36,
-      "peak": 0.89,
-      "provenance": "derived from original user-supplied replacement samples",
-      "role": "impact_hit",
-      "sha256": "646853434ff983ed3e80ed19a11a541ffaff0fb0b0c36800f4ecf8114e2add1f",
-      "synthesis": {
-        "category": "impact",
-        "processing": {
-          "remove_dc": true,
-          "source_rate": 44100,
-          "target_peak": 0.89,
-          "target_rate": 44100
-        },
-        "promotion_recipe": "f1_2026_2008_replacement_overlay_v1",
-        "source_file": "game/sounds/bank_sources/replacements/formula_one_2026_2008/impact_hit_3.wav",
-        "source_rate": 44100,
-        "source_sha256": "3fd60300fdf32893570044a5e59f149d8ed1b42e4a74cc3dc97864fb7ec47995"
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis3.wav",
+        "target_rate": 44100
       }
     },
     {
       "dc_offset": 0.0,
-      "duration_s": 0.802812,
+      "duration_s": 0.76045,
+      "file": "impact_hit_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -15.81,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis4.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
+      "role": "impact_hit",
+      "sha256": "af04d40481b04a830bcd95c20bc6319b3cd4f5cfaa08616975d3c7a0ca580d14",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis4.wav",
+        "target_rate": 44100
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 1.05234,
       "file": "impact_hit_4.wav",
       "loop": false,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -13.86,
-      "peak": 0.89,
-      "provenance": "derived from original user-supplied replacement samples",
+      "loudness_dbfs": -13.64,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:collis5.wav; upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "impact_hit",
-      "sha256": "ab73167de4c68c5fe87a334f774ee07bedbfe50b1d94684a639e1aa45da2fb0d",
+      "sha256": "3d97853ecd6e4f38fdb717fdd13ad57c8960faab4c5b767829c01afedcdc0893",
       "synthesis": {
         "category": "impact",
-        "processing": {
-          "remove_dc": true,
-          "source_rate": 44100,
-          "target_peak": 0.89,
-          "target_rate": 44100
-        },
-        "promotion_recipe": "f1_2026_2008_replacement_overlay_v1",
-        "source_file": "game/sounds/bank_sources/replacements/formula_one_2026_2008/impact_hit_4.wav",
-        "source_rate": 44100,
-        "source_sha256": "6abd874896c3b925b0c8d5b9ba9cce50217e3fc43026a1c10c04f148f8233767"
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "collis5.wav",
+        "target_rate": 44100
       }
     },
     {
@@ -371,59 +335,78 @@
     },
     {
       "dc_offset": 0.0,
-      "duration_s": 1.547846,
+      "duration_s": 0.50984,
       "file": "surf_grass.wav",
       "loop": true,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -11.21,
-      "peak": 0.89,
-      "provenance": "derived from original samples (game/sounds/bank_sources/legacy_formula_one_1998)",
+      "loudness_dbfs": -13.27,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Sounds/surface.bfl:02_o00.wav (outside rolling); upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "surf_grass",
-      "sha256": "eb0295ab5d3ccf630e5cef7c869a509c7dcc6ae2dc27becc7e26dfd057ded57b",
+      "sha256": "0a48c235248a6ab2ffb1ae096b6b4e73a45ab3dee8f30fa1e891f42db1a3905b",
       "synthesis": {
         "category": "surface",
-        "source_file": "GP_grass_2.wav",
-        "source_rate": 11025,
-        "source_sha256": "03e80386d5b1ac4dc7546340c290137d17f007210f545b71b57b4b5ccff2ec23"
+        "source_archive": "Sounds/surface.bfl",
+        "source_name": "02_o00.wav",
+        "target_rate": 44100
+      }
+    },
+    {
+      "file": "surf_gravel.wav",
+      "dc_offset": 0.0,
+      "duration_s": 1.37868,
+      "loop": true,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -16.76,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Sounds/surface.bfl:06_o00.wav (outside rolling); upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
+      "role": "surf_gravel",
+      "sha256": "57de9f022d71e160fa32c61b4e75b37da54cb159ae99d55699e171374a3d2c1d",
+      "synthesis": {
+        "category": "surface",
+        "source_archive": "Sounds/surface.bfl",
+        "source_name": "06_o00.wav",
+        "target_rate": 44100
       }
     },
     {
       "dc_offset": 0.0,
-      "duration_s": 2.0,
+      "duration_s": 0.41379,
       "file": "surf_rumble.wav",
       "loop": true,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -8.28,
-      "peak": 0.89,
-      "provenance": "derived from original samples (game/sounds/bank_sources/legacy_formula_one_1998)",
+      "loudness_dbfs": -13.46,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Sounds/surface.bfl:14_o00.wav (outside rolling); upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "surf_rumble",
-      "sha256": "2bd139d9eb8e00473b111877ab33213db23c094507240f36c07c38d4ea70f74f",
+      "sha256": "f9b9b8a32c01b0ab160fe4e62b02f8dd3828ecf4ec10a916f55429e88539ab56",
       "synthesis": {
         "category": "surface",
-        "source_file": "GP_rumble_2.wav",
-        "source_rate": 44100,
-        "source_sha256": "4579d32366de7d78ac3282ae0ff90d2506f01cdd2a1eab5e83144f76f69d879e"
+        "source_archive": "Sounds/surface.bfl",
+        "source_name": "14_o00.wav",
+        "target_rate": 44100
       }
     },
     {
       "dc_offset": 0.0,
-      "duration_s": 2.174966,
+      "duration_s": 0.73578,
       "file": "surf_sand.wav",
       "loop": true,
       "loop_end_s": null,
       "loop_start_s": null,
-      "loudness_dbfs": -15.61,
-      "peak": 0.89,
-      "provenance": "derived from original samples (game/sounds/bank_sources/legacy_formula_one_1998)",
+      "loudness_dbfs": -15.24,
+      "peak": 0.889954,
+      "provenance": "extracted from original Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Sounds/surface.bfl:13_o00.wav (outside rolling); upsampled to 44.1 kHz where needed, mono PCM16, mean removed, peak 0.89; rolling loops get a 120 ms equal-power loop crossfade",
       "role": "surf_sand",
-      "sha256": "ba5020c2f6eb9e33b6665209d44ccef147610bc636cd23bf80f3a5291bc1b8c6",
+      "sha256": "2b5b8483eea7eae3eb234fa52addd3f6bd058855b6965c133f730c3698ee0bdb",
       "synthesis": {
         "category": "surface",
-        "source_file": "GP_sand_2.wav",
-        "source_rate": 44100,
-        "source_sha256": "16268a8e60bfc8b5a5f1801507200e220d3f171b960be961e31265a5490e1875"
+        "source_archive": "Sounds/surface.bfl",
+        "source_name": "13_o00.wav",
+        "target_rate": 44100
       }
     },
     {
@@ -482,7 +465,7 @@
       }
     }
   ],
-  "generator": "formula90s commons bank (non-specific effects pruned 2026-09-20)",
+  "generator": "commons bank with Colin McRae Rally 2 surface/impact promotion (tyre_scrub retained)",
   "pcm_bits": 16,
   "sample_rate": 44100,
   "schema_version": 1,

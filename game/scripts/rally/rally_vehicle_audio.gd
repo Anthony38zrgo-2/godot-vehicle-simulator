@@ -42,6 +42,11 @@ const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 # chops land at the car's speed instead of screaming at V10 rate.
 const LIMITER_NATIVE_RPM := 18000.0
 const LIMITER_GAIN := 0.30
+# Rolling-surface bed level. The bed law (0.25 base + slip/speed terms) only
+# reaches ~0.31 at cruise, so this factor sets the audible result: 0.6 puts
+# gravel at ≈-37 dBFS cruising (≈8 dB under the engine bed) and ≈-32 dBFS
+# sliding, in line with the scrub (0.55) / scrape (0.62) family scaling.
+const SURFACE_GAIN := 0.6
 const IMPACT_SAMPLE_PATHS := [
 	"res://sounds/banks/commons/impact_hit_1.wav",
 	"res://sounds/banks/commons/impact_hit_2.wav",
@@ -227,7 +232,7 @@ func _physics_process(delta: float) -> void:
 	for key in surface_players:
 		var player: AudioStreamPlayer3D = surface_players[key]
 		var gain := float(acoustic.get("surface_gain", 0.0)) if key == str(acoustic.get("surface", "")) else 0.0
-		player.volume_linear = lerpf(player.volume_linear, gain * 0.08 * clampf((float(packet.speed_kph) - 2.0) / 25.0, 0.0, 1.0), smoothing)
+		player.volume_linear = lerpf(player.volume_linear, gain * SURFACE_GAIN * clampf((float(packet.speed_kph) - 2.0) / 25.0, 0.0, 1.0), smoothing)
 		player.stream_paused = player.volume_linear < 0.00001
 	if scrape_player != null:
 		var gain := 0.62 * clampf(float(vehicle.body_contact_audio.get("scrape_power_w", 0.0)) / 15000.0, 0.0, 1.0)
@@ -352,7 +357,7 @@ func play_impact(_other_body: Node) -> void:
 
 
 func build_auxiliary_audio() -> void:
-	for key in ["surf_grass", "surf_sand", "surf_rumble"]:
+	for key in ["surf_grass", "surf_gravel", "surf_sand", "surf_rumble"]:
 		var player := continuous_player("res://sounds/banks/commons/" + key + ".wav")
 		if player != null:
 			surface_players[key] = player

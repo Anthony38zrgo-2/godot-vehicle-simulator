@@ -646,6 +646,41 @@
         "bus": "",
         "send_db": -120.0
       }
+    },
+    "surf_gravel": {
+      "volume": 0.5,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": false,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 5.8,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": true,
+        "bands_db": {
+          "1000": 0.4,
+          "125": -0.5,
+          "8000": -1.2
+        },
+        "q": 0.7,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "surface_ambience",
+        "send_db": -22.0
+      }
     }
   },
   "reverb_buses": {
