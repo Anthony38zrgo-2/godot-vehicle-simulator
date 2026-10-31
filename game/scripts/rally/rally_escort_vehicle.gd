@@ -289,10 +289,19 @@ func _apply_resolved_mass(mass_state: Dictionary) -> void:
 
 
 var body_contact_audio: Dictionary = {}
+var _prev_body_contact_count: int = 0
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if not _physics_ready or freeze:
 		return
+	var contact_count := state.get_contact_count()
+	# Toma de tierra: primer frame con contactos tras venir volando y cayendo.
+	var landing_speed_ms := 0.0
+	if contact_count > 0 and _prev_body_contact_count == 0:
+		var fall_speed := -state.linear_velocity.y
+		if fall_speed >= 2.5:
+			landing_speed_ms = fall_speed
+	_prev_body_contact_count = contact_count
 	var impulse_peak := 0.0
 	var scrape_power := 0.0
 	var ground_drag_power := 0.0
@@ -319,7 +328,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				ground_drag_power += force * tangent_speed
 			else:
 				scrape_power += force * tangent_speed
-	body_contact_audio = {"count": state.get_contact_count(), "impulse_ns": impulse_peak, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
+	body_contact_audio = {"count": state.get_contact_count(), "impulse_ns": impulse_peak, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
 	simulation.step(self, state, {
 		"throttle": throttle_amount,
 		"brake": brake_amount,

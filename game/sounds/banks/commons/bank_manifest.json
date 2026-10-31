@@ -124,6 +124,66 @@
     },
     {
       "dc_offset": 0.0,
+      "duration_s": 0.496,
+      "file": "impact_land_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -13.45,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land3.wav (leve <4 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "361b7f9b38bd75edb8e0bd91130b627eb27797bf69096c67e817dc5904e00bad",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land3.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "leve <4 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.821,
+      "file": "impact_land_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -9.46,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land1.wav (media 4-7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "7d88abb37a0518f24c20f515c02c6f3006c65b024d547f418d0701e7fd086f49",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land1.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "media 4-7 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.922,
+      "file": "impact_land_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.56,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land2.wav (dura >7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "244c177eea2579c2ba9738c294ff64f960685b82fb08f2fe5ae2143348ef8183",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land2.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "dura >7 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
       "duration_s": 1.138,
       "file": "impact_large.wav",
       "loop": false,

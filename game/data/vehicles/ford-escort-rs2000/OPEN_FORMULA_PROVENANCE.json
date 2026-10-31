@@ -23,19 +23,19 @@
     "rust/vehicle-physics-engine/src/vehicle_configuration/legacy_profile.rs": "54e9017897b7fe6d380db4201fd04fa4f2dbcf193a4cbf512cdde6ed9bc48df5"
   },
   "profile_json_sha256": {
-    "aerodynamics.json": "1431044fbb373970187d3be7d25fc44932c64a1893fac62b3840078bba414d42",
+    "aerodynamics.json": "26ca3744352b5688b97bfb96672066c1ddf1aabacc3112eeb4027e1f688ccb3e",
     "brakes.json": "ed2056033c7b735173b9ec789932c75166a0d92f06548c332898d8245c861439",
     "chassis.json": "776b2e5677461014ab2ce3df029bdfd6a2fefe316726e77f67959449171fa4ac",
     "coupled_world.json": "adf9eb6884e22ed56ffa39876f8305848ebc9b1388a8e3430f7fa75f524581a6",
     "driving_assistance.json": "53f593912c93825cfa2aa8eeae54199809e5882df8d2f475f08096fbf4bfd80b",
     "fuel.json": "54c93a0f067635767879e0d331a792928675c259cb51a0095e6f528971cf8e8c",
     "port_validation.json": "fc92694a2582347f2ef09fd4e9cbc7f1dd64a1de0680f29f2ab34121d86b7969",
-    "powertrain.json": "925c481bf5fb9326518777c0b865a2ec3ce3e4320e93d61d8f01f66073abb748",
+    "powertrain.json": "e5fafd0c8ffb3ebaaeae1594d8c37c67af673ae47212cda5161a40403b613ba3",
     "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "suspension.json": "db8d6407a69c58f24288ec627d676d5f48d795361af77255484c59b7c60102a3",
-    "tire_filters.json": "77d00c128e0479bd2cc457a0b01900b9bdd2a4f69c4bfc7088561837f0925cdd",
-    "tires.json": "6b30e034696771a53e1093ff6b5a0096da7b0c9867a8f7c9df4973a64c5c3138",
+    "tire_filters.json": "1f432938a77335f38e9c4924cf775d5f87f8ba3386bd0bc4a51dde6010093b04",
+    "tires.json": "8030c1353dccabde5aff89b3c0a59e189828ddc89f4cd2067a2ca1c4b53d53fc",
     "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
     "vehicle.json": "79a93362175256cc4e1ccf1d053eaee03bd1b0a7d7cf30d87ced02b93ce08d37"
   },

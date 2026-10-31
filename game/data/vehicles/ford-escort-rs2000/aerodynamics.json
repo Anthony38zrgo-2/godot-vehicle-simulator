@@ -13,7 +13,7 @@
       },
       "front_wing": {
         "area_m2": 0.0,
-        "incidence_deg": 4.0,
+        "incidence_deg": 0.0,
         "max_angle_deg": 10.0,
         "min_angle_deg": 0.0,
         "polar": [
@@ -48,7 +48,7 @@
       },
       "rear_wing": {
         "area_m2": 0.0,
-        "incidence_deg": 4.0,
+        "incidence_deg": 0.0,
         "max_angle_deg": 10.0,
         "min_angle_deg": 0.0,
         "polar": [

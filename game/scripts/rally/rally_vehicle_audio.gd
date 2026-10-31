@@ -146,6 +146,18 @@ const IMPACT_SMALL_KPH := 40.0
 const IMPACT_LARGE_KPH := 70.0
 const IMPACT_MIN_KPH := 5.0
 const IMPACT_POSITION_CLAMP := Vector3(1.2, 1.2, 2.4)
+# Tomas de tierra CMR2 (land1-3): voz dedicada por velocidad vertical de
+# caida, con prioridad sobre el impacto generico (comparten cooldown).
+const IMPACT_LAND_PATHS := [
+	"res://sounds/banks/commons/impact_land_1.wav",
+	"res://sounds/banks/commons/impact_land_2.wav",
+	"res://sounds/banks/commons/impact_land_3.wav",
+]
+const LAND_VOLUME_DB := [-14.0, -11.0, -8.0]
+const LAND_MIN_MS := 2.5
+const LAND_MID_MS := 4.0
+const LAND_HIGH_MS := 7.0
+const LAND_POSITION := Vector3(0.0, -0.2, 0.0)
 const SCRUB_SAMPLE_PATH := "res://sounds/banks/commons/tyre_scrub.wav"
 
 const ENGINE_VOLUME_BASE := 0.24
@@ -168,6 +180,7 @@ var scrub_player: AudioStreamPlayer3D
 var impact_small_players: Array[AudioStreamPlayer3D] = []
 var impact_medium_players: Array[AudioStreamPlayer3D] = []
 var impact_large_players: Array[AudioStreamPlayer3D] = []
+var land_players: Array[AudioStreamPlayer3D] = []
 var smoothed_revolutions: float = 1800.0
 var current_slip_ratio: float = 0.0
 var impact_cooldown: float = 0.0
@@ -350,6 +363,21 @@ func build_impact_players() -> void:
 	build_impact_tier(impact_small_players, IMPACT_SMALL_PATHS, -12.0, 12.0, 120.0)
 	build_impact_tier(impact_medium_players, IMPACT_MEDIUM_PATHS, -9.0, 16.0, 160.0)
 	build_impact_tier(impact_large_players, IMPACT_LARGE_PATHS, -6.0, 24.0, 240.0)
+	for i in IMPACT_LAND_PATHS.size():
+		var stream := load_event_stream(IMPACT_LAND_PATHS[i], IMPACT_LAND_PATHS[i].get_file().get_basename())
+		if stream == null:
+			continue
+		var land_player := AudioStreamPlayer3D.new()
+		land_player.stream = stream
+		land_player.position = LAND_POSITION
+		routing.route(land_player, IMPACT_LAND_PATHS[i].get_file().get_basename())
+		land_player.volume_db = LAND_VOLUME_DB[i] if i < LAND_VOLUME_DB.size() else -11.0
+		land_player.unit_size = 10.0
+		land_player.max_distance = 160.0
+		land_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		land_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		add_child(land_player)
+		land_players.append(land_player)
 
 
 func build_impact_tier(
@@ -423,7 +451,9 @@ func _physics_process(delta: float) -> void:
 		accepted_generation = int(packet.generation)
 		accepted_sequence = int(packet.sequence)
 
-	if float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) > vehicle.mass * 0.8:
+	if float(vehicle.body_contact_audio.get("landing_speed_ms", 0.0)) >= LAND_MIN_MS:
+		play_landing(vehicle)
+	elif float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) > vehicle.mass * 0.8:
 		play_impact(vehicle)
 
 	update_scrub_audio(delta)
@@ -627,6 +657,24 @@ func update_scrub_audio(delta: float) -> void:
 		volume_smoothing,
 	)
 	scrub_player.stream_paused = scrub_player.volume_linear < 0.00001
+
+
+func play_landing(_other_body: Node) -> void:
+	if land_players.is_empty() or impact_cooldown > 0.0:
+		return
+	var fall := float(vehicle.body_contact_audio.get("landing_speed_ms", 0.0))
+	if fall < LAND_MIN_MS:
+		return
+	var index := 0
+	if fall >= LAND_HIGH_MS:
+		index = 2
+	elif fall >= LAND_MID_MS:
+		index = 1
+	var player := land_players[clampi(index, 0, land_players.size() - 1)]
+	player.pitch_scale = 0.97 + float(impact_index % 3) * 0.015
+	player.play()
+	impact_index += 1
+	impact_cooldown = impact_cooldown_seconds
 
 
 func play_impact(_other_body: Node) -> void:
