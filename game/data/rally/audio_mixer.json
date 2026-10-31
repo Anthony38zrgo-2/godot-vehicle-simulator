@@ -398,6 +398,254 @@
         "bus": "surface_ambience",
         "send_db": -22.0
       }
+    },
+    "backfire_burst_3": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "impact_short",
+        "send_db": -16.0
+      }
+    },
+    "backfire_burst_4": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "impact_short",
+        "send_db": -16.0
+      }
+    },
+    "backfire_burst_5": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "impact_short",
+        "send_db": -16.0
+      }
+    },
+    "backfire_burst_6": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "impact_short",
+        "send_db": -16.0
+      }
+    },
+    "backfire_burst_7": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "impact_short",
+        "send_db": -16.0
+      }
+    },
+    "upshift_event": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "mechanical_small",
+        "send_db": -18.0
+      }
+    },
+    "downshift_event": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": true,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 40.0,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": true,
+        "bus": "mechanical_small",
+        "send_db": -18.0
+      }
+    },
+    "limiter_cut_loop": {
+      "volume": 1.0,
+      "pan": 0.0,
+      "adsr": {
+        "enabled": false,
+        "attack_ms": 0.0,
+        "decay_ms": 0.0,
+        "sustain": 1.0,
+        "release_ms": 5.8,
+        "curve": "linear"
+      },
+      "eq": {
+        "enabled": false,
+        "bands_db": {},
+        "q": 1.0,
+        "output_db": 0.0,
+        "tube_color": {
+          "enabled": false,
+          "amount": 0.0,
+          "boost_link": 0.2,
+          "bias": 0.02,
+          "mix": 0.0,
+          "auto_gain": true
+        }
+      },
+      "reverb": {
+        "enabled": false,
+        "bus": "",
+        "send_db": -120.0
+      }
     }
   },
   "reverb_buses": {

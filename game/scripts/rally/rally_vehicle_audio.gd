@@ -15,6 +15,33 @@ const EXHAUST_SAMPLE_DEFINITIONS := [
 	{"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_9k5.wav", "reference": 6000.0, "lower": 4500.0, "upper": 9500.0},
 ]
 const SHIFT_SAMPLE_PATH := "res://sounds/banks/commons/neutral_first_gear_transition.wav"
+# Shared commons event one-shots promoted from the Formula90s v10-v2-bank.
+# Group semantics mirror the Grand Prix sampler manifest: upshift/downshift
+# are single-variant groups (voice_limit 2, retrigger 0.03/0.10 s), backfire is
+# a seeded-cycle group over 5 burst variants (voice_limit 1, retrigger 1.0 s,
+# trigger lift_edge). Applies to every car: the bank is shared, not per-engine.
+const UPSHIFT_SAMPLE_PATH := "res://sounds/banks/commons/upshift_event.wav"
+const DOWNSHIFT_SAMPLE_PATH := "res://sounds/banks/commons/downshift_event.wav"
+const BACKFIRE_SAMPLE_PATHS := [
+	"res://sounds/banks/commons/backfire_burst_3.wav",
+	"res://sounds/banks/commons/backfire_burst_4.wav",
+	"res://sounds/banks/commons/backfire_burst_5.wav",
+	"res://sounds/banks/commons/backfire_burst_6.wav",
+	"res://sounds/banks/commons/backfire_burst_7.wav",
+]
+# Spatial staging: backfires sit at the exhaust pipe (same rear anchor as the
+# exhaust layer), shifts sit at the car centre (gearbox/drivetrain).
+const BACKFIRE_POSITION := Vector3(0.0, 0.20, 1.50)
+const SHIFT_EVENT_POSITION := Vector3(0.0, 0.6, 0.4)
+const UPSHIFT_RETRIGGER_SECONDS := 0.03
+const DOWNSHIFT_RETRIGGER_SECONDS := 0.10
+const BACKFIRE_RETRIGGER_SECONDS := 1.0
+const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
+# Native rev context of the prepared limiter loop (V10 bank coverage maximum).
+# Playback rate follows the car's own tachometer: rpm / native, so the cut
+# chops land at the car's speed instead of screaming at V10 rate.
+const LIMITER_NATIVE_RPM := 18000.0
+const LIMITER_GAIN := 0.30
 const IMPACT_SAMPLE_PATHS := [
 	"res://sounds/banks/commons/impact_hit_1.wav",
 	"res://sounds/banks/commons/impact_hit_2.wav",
@@ -38,7 +65,17 @@ var scrub_player: AudioStreamPlayer3D
 var impact_players: Array[AudioStreamPlayer3D] = []
 var smoothed_revolutions: float = 1800.0
 var impact_cooldown: float = 0.0
-var previous_gear: int = 0
+var upshift_players: Array[AudioStreamPlayer3D] = []
+var downshift_players: Array[AudioStreamPlayer3D] = []
+var backfire_players: Array[AudioStreamPlayer3D] = []
+var upshift_index: int = 0
+var downshift_index: int = 0
+var upshift_cooldown: float = 0.0
+var downshift_cooldown: float = 0.0
+var backfire_event_cooldown: float = 0.0
+# Seeded xorshift64 cycle over the 5 backfire variants, same selection family
+# as the Grand Prix sampler (event_selection_seed 1, SeededCycle).
+var backfire_rng_state: int = 1
 var policy := VehicleAudioMixPolicy.new()
 var routing := VehicleSoundRouting.new()
 var acoustic: Dictionary = {}
@@ -46,7 +83,7 @@ var accepted_sequence: int = -1
 var accepted_generation: int = -1
 var surface_players: Dictionary = {}
 var scrape_player: AudioStreamPlayer3D
-var backfire_player: AudioStreamPlayer3D
+var limiter_player: AudioStreamPlayer3D
 var whine_player: AudioStreamPlayer3D
 var impact_index: int = 0
 var exhaust_crackle_s: float = 0.0
@@ -158,6 +195,9 @@ func _physics_process(delta: float) -> void:
 	if vehicle == null:
 		return
 	impact_cooldown = maxf(0.0, impact_cooldown - delta)
+	upshift_cooldown = maxf(0.0, upshift_cooldown - delta)
+	downshift_cooldown = maxf(0.0, downshift_cooldown - delta)
+	backfire_event_cooldown = maxf(0.0, backfire_event_cooldown - delta)
 	exhaust_crackle_s = maxf(0.0, exhaust_crackle_s - delta)
 	var packet := vehicle.get_presentation_snapshot()
 	if packet.is_empty():
@@ -168,13 +208,17 @@ func _physics_process(delta: float) -> void:
 	var smoothing := 1.0 - exp(-24.0 * delta)
 	update_layer(engine_players, smoothed_revolutions, smoothing)
 	update_layer(exhaust_players, smoothed_revolutions, smoothing)
+	update_limiter_audio(smoothing)
 	if accepted_generation != int(packet.generation) or accepted_sequence != int(packet.sequence):
 		for event in acoustic.get("events", []):
 			if event == "neutral_first":
 				shift_player.play()
-			elif event == "backfire" and backfire_player != null:
-				backfire_player.play()
-				exhaust_crackle_s = 0.12
+			elif event == "upshift":
+				play_upshift_event()
+			elif event == "downshift":
+				play_downshift_event()
+			elif event == "backfire":
+				play_backfire_event()
 		accepted_generation = int(packet.generation)
 		accepted_sequence = int(packet.sequence)
 	if float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) > vehicle.mass * 0.8:
@@ -232,13 +276,47 @@ func sample_weight(revolutions: float, reference: float, lower: float, upper: fl
 	return clampf((upper - revolutions) / maxf(upper - reference, 1.0), 0.0, 1.0)
 
 
-func update_shift_audio() -> void:
-	if shift_player == null:
+# Grand Prix sampler event groups, reinterpreted for the Rally packet:
+# single-variant upshift/downshift (voice_limit 2 each) and seeded-cycle
+# backfire over 5 bursts (voice_limit 1). Pitch stays at unity: the manifest
+# declares no trigger-pitch reference for these variants.
+func play_upshift_event() -> void:
+	if upshift_players.is_empty() or upshift_cooldown > 0.0:
 		return
-	if vehicle.current_gear != previous_gear:
-		shift_player.pitch_scale = 0.75 + 0.05 * absf(float(vehicle.current_gear - previous_gear))
-		shift_player.play()
-		previous_gear = vehicle.current_gear
+	var player := upshift_players[upshift_index % upshift_players.size()]
+	upshift_index += 1
+	player.pitch_scale = 1.0
+	player.play()
+	upshift_cooldown = UPSHIFT_RETRIGGER_SECONDS
+
+
+func play_downshift_event() -> void:
+	if downshift_players.is_empty() or downshift_cooldown > 0.0:
+		return
+	var player := downshift_players[downshift_index % downshift_players.size()]
+	downshift_index += 1
+	player.pitch_scale = 1.0
+	player.play()
+	downshift_cooldown = DOWNSHIFT_RETRIGGER_SECONDS
+
+
+func play_backfire_event() -> void:
+	if backfire_players.is_empty() or backfire_event_cooldown > 0.0:
+		return
+	backfire_rng_state = _next_rng_state(backfire_rng_state)
+	var player := backfire_players[int((backfire_rng_state >> 33) % backfire_players.size())]
+	player.pitch_scale = 1.0
+	player.play()
+	backfire_event_cooldown = BACKFIRE_RETRIGGER_SECONDS
+	exhaust_crackle_s = 0.12
+
+
+func _next_rng_state(state: int) -> int:
+	var value := maxi(state, 1)
+	value ^= (value << 13) & 0x7FFFFFFFFFFFFFFF
+	value ^= value >> 7
+	value ^= (value << 17) & 0x7FFFFFFFFFFFFFFF
+	return maxi(value & 0x7FFFFFFFFFFFFFFF, 1)
 
 
 func update_scrub_audio(delta: float) -> void:
@@ -279,16 +357,71 @@ func build_auxiliary_audio() -> void:
 		if player != null:
 			surface_players[key] = player
 	scrape_player = continuous_player("res://sounds/banks/commons/impact_scrape.wav")
-	var path := "res://sounds/banks/ford_escort_rs2000_rally/backfire.wav"
-	if ResourceLoader.exists(path):
-		backfire_player = AudioStreamPlayer3D.new()
-		backfire_player.stream = load_event_stream(path, "engine_backfire")
-		backfire_player.bus = "Vehicle"
-		backfire_player.volume_db = -14.0
-		backfire_player.unit_size = 8.0
-		add_child(backfire_player)
+	limiter_player = build_limiter_player()
+	# Voice counts mirror the sampler voice_limit: 2 shift voices per group so a
+	# fresh cut never steals a still-ringing one; 1 effective backfire voice
+	# pool drawn from 5 burst variants (all 5 streams stay loaded, the seeded
+	# cycle picks one per lift_edge, voice_limit 1 enforced by the cooldown).
+	build_event_voice_pool(upshift_players, [UPSHIFT_SAMPLE_PATH], SHIFT_EVENT_POSITION, -11.0, 12.0, 80.0, 2)
+	build_event_voice_pool(downshift_players, [DOWNSHIFT_SAMPLE_PATH], SHIFT_EVENT_POSITION, -11.0, 12.0, 80.0, 2)
+	build_event_voice_pool(backfire_players, BACKFIRE_SAMPLE_PATHS, BACKFIRE_POSITION, -10.0, 8.0, 160.0, 1)
 	# No calibrated Ford transmission recording exists. Do not synthesize a
 	# permanent sine underneath the engine. whine_player intentionally stays null.
+
+
+func build_event_voice_pool(players: Array[AudioStreamPlayer3D], paths: Array, local_position: Vector3, volume_db: float, unit_size: float, maximum_distance: float, voices_per_variant: int) -> void:
+	for path in paths:
+		if not ResourceLoader.exists(path):
+			push_warning("Missing commons event sample: " + str(path))
+			continue
+		for voice in voices_per_variant:
+			var player := AudioStreamPlayer3D.new()
+			# Route by variant name so audio_mixer.json entries apply per
+			# sample (backfire_burst_3..7); single-variant groups resolve to
+			# their own upshift_event/downshift_event entry all the same.
+			var voice_key := str(path).get_file().get_basename()
+			player.stream = load_event_stream(path, voice_key)
+			if player.stream == null:
+				continue
+			player.position = local_position
+			routing.route(player, voice_key)
+			player.volume_db = volume_db
+			player.unit_size = unit_size
+			player.max_distance = maximum_distance
+			player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+			add_child(player)
+			players.append(player)
+
+
+# Limiter group, same role as the Grand Prix sampler: the prepared cut loop
+# plays while the physical cut is active (no entry one-shot). Gain follows the
+# car's own cut depth from the mix policy; pitch follows the car's tachometer
+# against the loop's native V10 rev context. Staged at the exhaust pipe, where
+# the cuts bang through.
+func build_limiter_player() -> AudioStreamPlayer3D:
+	var stream := load_looping_stream(LIMITER_SAMPLE_PATH)
+	if stream == null:
+		return null
+	var player := AudioStreamPlayer3D.new()
+	player.stream = stream
+	player.position = BACKFIRE_POSITION
+	routing.route(player, LIMITER_SAMPLE_PATH.get_file().get_basename())
+	player.volume_linear = 0.0
+	player.unit_size = 8.0
+	player.max_distance = 160.0
+	player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+	add_child(player)
+	player.play()
+	return player
+
+
+func update_limiter_audio(smoothing: float) -> void:
+	if limiter_player == null:
+		return
+	var cut := clampf(float(acoustic.get("limiter_cut", 0.0)), 0.0, 1.0)
+	var rpm := float(acoustic.get("rpm", 0.0))
+	limiter_player.volume_linear = lerpf(limiter_player.volume_linear, cut * LIMITER_GAIN, smoothing)
+	limiter_player.pitch_scale = clampf(rpm / LIMITER_NATIVE_RPM, 0.30, 1.0)
 
 
 func continuous_player(path: String) -> AudioStreamPlayer3D:
