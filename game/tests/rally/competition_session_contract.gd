@@ -21,6 +21,8 @@ func run() -> void:
 		return
 	var panel = scene.head_up_display.competition_panel
 	check(scene.input_controller.controls_enabled, "prestage driving enabled")
+	check(scene.start_click.stream != null and scene.start_horn.stream != null, "generated countdown audio loads")
+	check(scene.start_sequence.readout().phase == "off" and is_zero_approx(scene.course.elapsed_s), "map loads into dark start lights with stopped clock")
 	var preparation := JSON.stringify(scene.competition.initial_rows)
 	panel.retire_requested.emit()
 	await process_frame
@@ -33,6 +35,8 @@ func run() -> void:
 	await process_frame
 	check(not scene.competition.complete and scene.input_controller.controls_enabled, "practice retry restores controls")
 	check(JSON.stringify(scene.competition.initial_rows) == preparation, "retry preserves DNS preparation")
+	scene._physics_process(3.5)
+	check(scene.course.clock_started and scene.start_sequence.readout().phase == "go", "green starts the session clock")
 	var elapsed := 0
 	for i in 10:
 		elapsed += int(scene.competition.reference[i] * 1000.0)
@@ -53,12 +57,22 @@ func run() -> void:
 	await physics_frame
 	await process_frame
 	check(scene.competition.leg == 1 and scene.competition.player_previous_ms == 0, "new rally clears accumulated total")
+	scene.reset_start_sequence()
+	scene.vehicle.global_position += Vector3(1.0, 0.0, 0.0)
+	scene._physics_process(0.25)
+	check(scene.competition.player_penalty_ms == 10000 and is_zero_approx(scene.course.elapsed_s), "early movement penalized before clock starts")
+	scene._physics_process(0.25)
+	check(scene.competition.player_penalty_ms == 10000 and scene.start_sequence.readout().phase == "ready", "red does not repeat false-start sanction")
+	scene._physics_process(3.0)
+	check(scene.course.clock_started and is_zero_approx(scene.course.elapsed_s), "go begins at zero even after false start")
+	scene._physics_process(1.0)
+	check(is_equal_approx(scene.course.elapsed_s, 1.0), "clock runs after green while parked")
 	scene.course.running = true
 	scene.course.next_checkpoint = 5
 	scene.course.elapsed_s = 12.0
 	scene.on_vehicle_reset_requested()
 	check(scene.course.next_checkpoint == 5 and is_equal_approx(scene.course.elapsed_s, 12.0), "rescue preserves checkpoint and official clock")
-	check(scene.competition.player_penalty_ms == 30000 and not scene.competition.player_retired, "rescue applies one penalty without retirement")
+	check(scene.competition.player_penalty_ms == 40000 and not scene.competition.player_retired, "rescue applies one penalty without retirement")
 	print("COMPETITION_SESSION_CONTRACT ", "PASS" if failures.is_empty() else failures)
 	scene.queue_free()
 	await process_frame

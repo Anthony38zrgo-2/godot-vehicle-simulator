@@ -172,13 +172,19 @@ func draw_course(course: Dictionary) -> void:
 		maximum = maximum.max(Vector2(point.x, point.z))
 	var extent := maximum - minimum
 	var factor := minf(215.0 / maxf(extent.x, 1.0), 238.0 / maxf(extent.y, 1.0))
-	var origin := Vector2(28, 427) + (Vector2(215, 238) - extent * factor) * 0.5
-	draw_style_box(_panel(), Rect2(Vector2(14, 399), Vector2(243, 288)))
-	text_at(Vector2(28, 422), "RUSSIA STAGE 1", 18, palette.digital_color, true)
+	var origin := Vector2(28, 447) + (Vector2(215, 238) - extent * factor) * 0.5
+	draw_style_box(_panel(), Rect2(Vector2(14, 419), Vector2(243, 288)))
+	text_at(Vector2(28, 442), "RUSSIA STAGE 1", 18, palette.digital_color, true)
 	var line := PackedVector2Array()
 	for point: Vector3 in points:
 		line.append(origin + (Vector2(point.x, point.z) - minimum) * factor)
 	draw_polyline(line, palette.divider_color, 3.0, true)
+	var split_positions: Array = course.get("split_positions", [])
+	for i in split_positions.size():
+		var marker: Vector3 = split_positions[i]
+		var marker_position := origin + (Vector2(marker.x, marker.z) - minimum) * factor
+		var passed := i < int(course.get("next_partial", 1)) - 1
+		draw_circle(marker_position, 3.5, palette.map_start_color if passed else palette.digital_color)
 	draw_circle(line[0], 4.0, palette.map_start_color)
 	draw_circle(line[-1], 4.0, palette.thermal_hot_color)
 	var position: Vector3 = course.get("position", Vector3.ZERO)

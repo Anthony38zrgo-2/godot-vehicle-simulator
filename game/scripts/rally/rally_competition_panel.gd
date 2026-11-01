@@ -7,7 +7,8 @@ signal new_rally_requested
 const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
 var compact: PanelContainer
 var heading: Label
-var standings: VBoxContainer
+var standings: Tree
+var penalty_notice: Label
 var retire_button: Button
 var results: PanelContainer
 var title: Label
@@ -37,7 +38,21 @@ func _ready() -> void:
 	compact.add_child(box)
 	heading = Label.new()
 	box.add_child(heading)
-	standings = VBoxContainer.new()
+	penalty_notice = Label.new()
+	penalty_notice.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	penalty_notice.custom_minimum_size.x = 500
+	penalty_notice.add_theme_color_override("font_color", Color(1.0, 0.45, 0.15))
+	box.add_child(penalty_notice)
+	standings = Tree.new()
+	standings.hide_root = true
+	standings.columns = 4
+	standings.column_titles_visible = true
+	standings.custom_minimum_size = Vector2(500, 140)
+	for i in 4:
+		standings.set_column_title(i, ["Pos", "Piloto", "Parcial oficial", "Penal."][i])
+		standings.set_column_clip_content(i, true)
+		standings.set_column_expand(i, true)
+		standings.set_column_custom_minimum_width(i, [35, 185, 135, 80][i])
 	box.add_child(standings)
 	retire_button = Button.new()
 	retire_button.text = "Abandonar especial"
@@ -94,12 +109,15 @@ func clock(milliseconds: Variant) -> String:
 	return "%d:%02d.%03d" % [value / 60000, (value / 1000) % 60, value % 1000]
 
 func present(state: Dictionary, viewport_size: Vector2) -> void:
-	if compact == null or state.is_empty():
+	if compact == null:
+		return
+	visible = not state.is_empty()
+	if state.is_empty():
 		return
 	var factor := minf(viewport_size.x / 1920.0, viewport_size.y / 1080.0)
 	compact.position = Vector2(14, 170) * factor
 	compact.scale = Vector2.ONE * factor
-	compact.custom_minimum_size = Vector2(355, 205)
+	compact.custom_minimum_size = Vector2(520, 220)
 	results.visible = bool(state.complete)
 	compact.visible = not results.visible
 	var signature := JSON.stringify(state)
@@ -109,32 +127,33 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 	heading.text = "GENERAL · Parcial %d/%d" % [state.sector, state.sector_count] if int(state.sector) > 0 else "GENERAL · Sin parcial"
 	if int(state.sector) > 0 and not state.player_retired:
 		heading.text += "   Δ %+.3f s" % (float(state.delta_ms) / 1000.0)
-	for child in standings.get_children():
-		standings.remove_child(child)
-		child.queue_free()
-	var player_index := 0
-	for i in state.rows.size():
-		if state.rows[i].player:
-			player_index = i
-	var selected: Array = [0]
-	for i in range(maxi(1, player_index - 1), mini(state.rows.size(), player_index + 3)):
-		selected.append(i)
-	for i in state.rows.size():
-		if selected.size() >= 5:
-			break
-		if i not in selected:
-			selected.append(i)
-	selected.sort()
-	for i: int in selected:
-		var row: Dictionary = state.rows[i]
-		var line := Label.new()
-		var rank := str(row.position) if int(row.position) > 0 and int(state.sector) > 0 else "—"
-		line.text = "%s  %s  %s" % [rank, row.name, clock(row.stage_ms) if int(state.sector) > 0 else row.status]
-		line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		line.custom_minimum_size.x = 350
+	var player_penalty := 0
+	var reasons: Array = []
+	for row: Dictionary in state.rows:
 		if row.player:
-			line.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-		standings.add_child(line)
+			player_penalty = int(row.get("penalty_ms", 0))
+			for event: Dictionary in row.get("penalties", []):
+				if str(event.reason) not in reasons:
+					reasons.append(str(event.reason))
+	penalty_notice.text = "PENALIZACIÓN +%.0f s · %s" % [player_penalty / 1000.0, ", ".join(reasons)] if player_penalty > 0 else "Sin penalizaciones"
+	standings.clear()
+	var standings_root := standings.create_item()
+	var player_item: TreeItem = null
+	for row: Dictionary in state.rows:
+		var item := standings.create_item(standings_root)
+		var rank := str(row.position) if int(row.position) > 0 and int(state.sector) > 0 else "—"
+		var partial_index := int(row.get("partial_index", 0))
+		var partial := "P%d %s" % [partial_index, clock(row.get("partial_ms"))] if partial_index > 0 else "—"
+		var sanction := "+%.0f s" % (float(row.get("penalty_ms", 0)) / 1000.0) if int(row.get("penalty_ms", 0)) > 0 else "—"
+		var values := [rank, row.name, partial, sanction]
+		for i in 4:
+			item.set_text(i, values[i])
+			item.set_tooltip_text(i, "Parcial oficial (incluye sanciones): %s · %s · %s · %s" % [row.name, partial, sanction, row.status])
+			if row.player:
+				player_item = item
+				item.set_custom_color(i, Color(1.0, 0.85, 0.3))
+	if player_item != null:
+		standings.scroll_to_item(player_item, true)
 	if not results.visible:
 		return
 	title.text = "RESULTADOS · Especial %d · Rusia Stage 1 · Clasificación general" % state.leg
@@ -146,7 +165,7 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 	var root := table.create_item()
 	for row: Dictionary in state.rows:
 		var item := table.create_item(root)
-		var columns := [str(row.position) if int(row.position) > 0 else "—", row.name, row.car + " - " + row.team, clock(row.stage_ms), clock(row.total_ms), row.status]
+		var columns := [str(row.position) if int(row.position) > 0 else "—", row.name, row.car + " - " + row.team, clock(row.stage_ms), clock(row.total_ms), row.status + (" (+%.0f s)" % (float(row.get("penalty_ms", 0)) / 1000.0) if int(row.get("penalty_ms", 0)) > 0 else "")]
 		for i in columns.size():
 			item.set_text(i, columns[i])
 			item.set_tooltip_text(i, columns[i])

@@ -63,6 +63,9 @@ var elapsed_seconds: float = 0.0
 var session_ready: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
+var start_sequence = preload("res://scripts/rally/rally_start_sequence.gd").new()
+var start_click: AudioStreamPlayer
+var start_horn: AudioStreamPlayer
 var course := RallyStageProgress.new()
 var competition = preload("res://scripts/rally/rally_competition.gd").new()
 var weather_sky_node: Node = null
@@ -97,6 +100,9 @@ func _ready() -> void:
 		push_error("Rally competition: " + competition.error)
 		return
 	course.sector_indices = competition.stage.sector_checkpoint_indices
+	if not course.configure_timing_gates(competition.stage.timing_gates):
+		push_error("Original rally split gates could not be configured")
+		return
 	if competition.restore() and not competition.complete and competition.started:
 		competition.retire_player("Abandono — sesión interrumpida")
 	build_environment()
@@ -121,6 +127,8 @@ func _ready() -> void:
 	panel.retry_requested.connect(retry_competition_attempt)
 	panel.next_requested.connect(continue_competition)
 	panel.new_rally_requested.connect(start_new_competition)
+	setup_start_audio()
+	reset_start_sequence()
 	apply_competition_controls()
 	print("RALLY_SESSION_READY scene=russia_stage1 vehicle=ford_escort_rs2000_1971 spawn=", start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
@@ -525,11 +533,12 @@ func on_vehicle_reset_requested() -> void:
 		course.generation = vehicle.simulation.session_generation
 		course.previous_position = target
 		competition.generation = course.generation
-		competition.player_penalty_ms += int(competition.balance.reset_penalty_ms)
-		competition.save()
+		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
 		camera_rig.snap_to_target()
 		head_up_display.show_status("RESCATE +30 s", Color(0.95, 0.72, 0.24), 2.2)
 	else:
+		course.generation = vehicle.simulation.session_generation
+		course.previous_position = vehicle.global_position
 		head_up_display.show_status("VEHICLE RESET TO START", Color(0.95, 0.72, 0.24), 2.2)
 
 
@@ -538,8 +547,23 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed_seconds += delta
 	if not competition.complete:
-		course.advance(vehicle.global_position, delta, vehicle.simulation.session_generation, vehicle.linear_velocity.length())
-		competition.update(course.readout())
+		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
+		for event: String in signal_state.events:
+			if event == "click":
+				start_click.play()
+			elif event == "go":
+				course.clock_started = true
+				start_horn.play()
+			elif event == "false_start":
+				competition.add_penalty("player", 10000, "Salida anticipada")
+				head_up_display.show_status("FALSE START +10 s", Color(1.0, 0.25, 0.1), 3.0)
+		var previous_sector: int = competition.sector
+		course.advance(vehicle.global_position, float(signal_state.racing_dt), vehicle.simulation.session_generation, vehicle.linear_velocity.length())
+		if course.clock_started:
+			competition.update(course.readout())
+			if competition.sector > previous_sector and not competition.complete:
+				var summary: Dictionary = competition.readout()
+				head_up_display.show_status("PARCIAL %d/9   %.3f s   DELTA %+.3f s" % [competition.sector, float(competition.player_ms + competition.player_penalty_ms) / 1000.0, float(summary.delta_ms) / 1000.0], Color(0.45, 0.9, 0.6), 3.0)
 		if competition.complete:
 			apply_competition_controls()
 	if vehicle.global_position.y < MINIMUM_WORLD_HEIGHT_METRES and not competition.complete:
@@ -555,6 +579,7 @@ func get_session_state() -> Dictionary:
 		"elapsed_seconds": elapsed_seconds,
 		"course": course.readout(),
 		"competition": competition.readout(),
+		"start_sequence": start_sequence.readout() if not competition.complete else {},
 		"run_identifier": run_identifier,
 		"physics_engine": str(ProjectSettings.get_setting("physics/3d/physics_engine")),
 		"physics_ticks_per_second": Engine.physics_ticks_per_second,
@@ -586,6 +611,7 @@ func reset_competition_car() -> void:
 	course.reset_attempt()
 	vehicle.reset_to_pose(start_position, start_heading)
 	course.generation = vehicle.simulation.session_generation
+	reset_start_sequence()
 	camera_rig.snap_to_target()
 	apply_competition_controls()
 
@@ -614,3 +640,24 @@ func start_new_competition() -> void:
 func _exit_tree() -> void:
 	if session_ready and competition.started:
 		competition.save()
+
+
+func setup_start_audio() -> void:
+	start_click = AudioStreamPlayer.new()
+	start_click.stream = preload("res://scripts/audio/seamless_vehicle_loop.gd").load_pcm("res://sounds/rally_start/ready_click.wav", false)
+	start_click.volume_db = -5.0
+	add_child(start_click)
+	start_horn = AudioStreamPlayer.new()
+	start_horn.stream = preload("res://scripts/audio/seamless_vehicle_loop.gd").load_pcm("res://sounds/rally_start/go_horn.wav", false)
+	start_horn.volume_db = -5.0
+	add_child(start_horn)
+
+func reset_start_sequence() -> void:
+	course.external_start = true
+	course.clock_started = false
+	course.generation = vehicle.simulation.session_generation
+	course.previous_position = vehicle.global_position
+	start_sequence.reset(vehicle.global_position)
+	if start_click != null:
+		start_click.stop()
+		start_horn.stop()

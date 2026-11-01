@@ -17,6 +17,7 @@ var session_state: Dictionary = {}
 var status_remaining_seconds: float = 0.0
 var formula_panels: Control
 var published: Dictionary = {}
+var start_lights: Control
 var competition_panel: Control
 var hud_palette: RetroHudConfig
 
@@ -32,6 +33,9 @@ func _ready() -> void:
 	competition_panel = preload("res://scripts/rally/rally_competition_panel.gd").new()
 	competition_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(competition_panel)
+	start_lights = preload("res://scripts/rally/rally_start_lights.gd").new()
+	start_lights.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(start_lights)
 	formula_panels.call("set_palette", hud_palette)
 	if driving_controls != null:
 		driving_controls.call("set_palette", hud_palette)
@@ -92,6 +96,7 @@ func _process(delta: float) -> void:
 		return
 	published = vehicle.get_presentation_snapshot()
 	published["course"] = session_state.get("course", {})
+	start_lights.call("present", session_state.get("start_sequence", {}))
 	if competition_panel != null:
 		competition_panel.call("present", session_state.get("competition", {}), size)
 	update_retro_hud()

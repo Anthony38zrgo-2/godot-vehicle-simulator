@@ -12,7 +12,7 @@ La tabla final tiene posición general, piloto, coche-equipo, tiempo de especial
 
 ## Referencia y adaptación
 
-Los diez sectores se capturan en controles obligatorios de la ruta, con cruce barrido e interpolación temporal. Se asignaron los diez `CPUSplit` originales de Rusia 1 a sectores de longitud aproximadamente igual: esta correspondencia es una aproximación de diseño, no una recuperación verificada de los puntos de cronometraje originales. La escala de tiempos puede calibrarse en `game/data/competition/stages/russia_stage1.json`.
+Los diez sectores terminan en los planos originales `split_00` a `split_09`, recuperados de las mallas ocultas del FBX fuente. Los nueve primeros coinciden con los carteles `checkpoint` del GLB; el último corresponde a la meta. El GLB visual agrupa la geometría y omite los triggers invisibles, por lo que el runtime carga sus posiciones, orientación y dimensiones desde `russia_stage1_timing_gates.json`. El cruce hacia delante se barre e interpola entre frames. Los 493 puntos de rescate sirven para proyectar el progreso local y estimar ritmo; perder uno ya no bloquea el cronometraje. La meta queda después del último punto de rescate, de modo que se extiende la ruta en memoria hasta el plano real. Los diez `CPUSplit` originales se asignan a estos diez sectores reales. La escala de tiempos puede calibrarse en `game/data/competition/stages/russia_stage1.json`.
 
 Si no hay información del jugador se utiliza el respaldo original de dificultad intermedia. Antes del primer parcial, al menos diez microsecciones y quince segundos de conducción útil permiten una estimación limitada de ritmo. Las observaciones extraordinariamente lentas/rápidas se descartan para adaptar el nivel, pero siguen contando en el reloj oficial. El primer parcial permite una calibración inicial más amplia cuando hay microsecciones limpias suficientes, para acomodar jugadores alejados del ritmo original. Después se adapta el ritmo por sectores, con límites configurables. El abandono congela esa referencia. Los tiempos publicados nunca se recalculan.
 
@@ -40,3 +40,23 @@ Se guarda al comenzar, publicar un parcial, rescatar, finalizar y cerrar normalm
 `godot --headless --path game --script res://tests/rally/competition_session_contract.gd`: escena real, señales de botones, controles, resultados de 24 participantes, reintento, meta, siguiente especial, nuevo rally y rescate con penalización.
 
 `godot --path game --rendering-method gl_compatibility --script res://tests/rally/competition_visual_probe.gd`: capturas de HUD y resultados en 720p y 1080p bajo `user://`. La validación de dificultad y naturalidad requiere conducción; los tests no la sustituyen. La escena sigue notificando instancias ObjectDB sin liberar al salir.
+
+## Semáforo y penalizaciones de salida
+
+Después de cargar y colocar el coche, el semáforo aparece 0,5 s con las dos luces apagadas. A los 0,5/1,5/2,5 s suenan tres clics con roja y «Ready». A los 3,5 s cambia a verde, aparece «Go!» y suena la bocina. El reloj empieza en ese instante, aunque el coche no se mueva. Cada nuevo intento o especial repite la secuencia. Abrir el garaje pausa también la cuenta.
+
+Desplazarse más de 0,75 m en horizontal antes de verde produce una única sanción de 10 s por salida anticipada. La tolerancia evita confundir el asentamiento de suspensión con una salida. Se conservan los controles de ruta atravesados antes de verde y el tiempo permanece en cero hasta «Go!». La sanción aparece inmediatamente encima del mapa, se conserva en el guardado y se suma una vez al parcial, al tiempo de especial y al acumulado.
+
+La clasificación compacta permite desplazar la lista de todos los participantes y muestra posición, piloto, número/tiempo de su último parcial oficial y penalizaciones. Los parciales oficiales incluyen las sanciones; la columna «Penal.» las desglosa y no supone volver a sumarlas. Los rivales también pueden tener sanciones de salida simuladas; las averías y salidas recuperadas son pérdidas de tiempo de conducción, no sanciones deportivas. Al terminar, las sanciones también se identifican en Estado.
+
+Los sonidos originales sintetizados están en `game/sounds/rally_start/`. Se regeneran con `python tools/rally/generate_start_sounds.py` (PCM mono de 16 bits a 48 kHz). El empaquetado conserva copias RIFF `.pcm` para cargarlos sin depender de WAV fuente importados.
+
+Prueba de secuencia, límites temporales, salida falsa y parciales penalizados: `godot --headless --path game --script res://tests/rally/start_sequence_contract.gd`.
+
+## Recuperación y comprobación de parciales originales
+
+`tools/rally/extract_stage_gates.py` se ejecuta con Blender en segundo plano, con parámetros `--fbx`, `--glb`, `--route` y `--output`. Exporta los vértices originales de los diez planos de material `nul_1`, la conversión a coordenadas Godot, el cruce con la ruta y hashes de los archivos fuente. También verifica que cada plano tenga carteles visuales próximos en el GLB. La menor separación entre geometría de cartel y plano es inferior a 0,7 m en los nueve parciales y 1,4 m en meta.
+
+Los cruces se ordenan por estos planos, no por radios de 8 m alrededor de cada nodo de rescate ni por fracciones iguales de longitud. Se mantiene control local del progreso para rechazar teletransportes. El minimapa marca los puntos de parcial; cada captura actualiza la IA y muestra un aviso con tiempo y delta.
+
+`godot --headless --path game --script res://tests/rally/official_split_contract.gd` recorre la ruta real incluyendo una desviación lateral de 12 m, comprueba nueve parciales, meta real, propagación inmediata a la IA, tiempos crecientes, ausencia de dobles capturas y rechazo de teletransporte. Es una comprobación de recorrido programado, no una conducción manual.

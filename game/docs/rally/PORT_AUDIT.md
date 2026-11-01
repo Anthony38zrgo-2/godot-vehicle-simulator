@@ -16,7 +16,7 @@ La referencia visual es `FormulaHud.cpp`, `FormulaHudData.h` y `FormulaHudLayout
 
 Agua y aceite se integran en el panel principal con límites del perfil. El panel de ruedas muestra banda, carcasa, gas, presión manométrica, desgaste, disco y eficacia de frenos. Interior/centro/exterior permanecen `--`: el modelo simplificado tiene una banda única. Tampoco se fabrica una temperatura de llanta. Ayudas no disponibles se muestran `--`. Los pedales muestran lo aplicado después del suavizado.
 
-El minimapa usa los 493 nodos de `reset1.bin`, convertidos a las mismas coordenadas del escenario. El reloj de tramo comienza al mover el coche cerca de la salida; exige los nodos en orden y termina al alcanzar el último. Reiniciar cancela la tentativa y conserva último/mejor tiempo durante la sesión. El radio de paso de 8 m es una regla local explícita; no replica un sistema oficial de penalizaciones. El campo de pruebas muestra tiempo de sesión. No se inventan vueltas ni consumo medio por vuelta.
+Actualización de cronometraje: el reloj comienza en Go del semáforo. Se recuperaron los planos originales split_00 a split_09 del FBX fuente, contrastados con los carteles checkpoint y gate_finish del GLB visual. Los nodos reset1.bin guían el progreso local, sin exigir visitar cada punto dentro de un radio de 8 m. Se detectan nueve parciales y la meta real, que está después del último nodo de rescate. R realiza rescate con penalización de 30 s; una salida anticipada añade 10 s. Contrato y pruebas: ai_simulation/README.md.
 
 ## Audio reinterpretado
 

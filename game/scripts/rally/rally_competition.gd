@@ -17,6 +17,7 @@ var started: bool = false
 var error: String = ""
 var player_ms: int = 0
 var player_penalty_ms: int = 0
+var player_penalties: Array = []
 var player_status: String = "En carrera"
 var player_retired: bool = false
 var player_splits: Array = []
@@ -50,6 +51,8 @@ func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_see
 	seed_value = race_seed
 	balance = read_json(DATA + "simulation_balance.json")
 	stage = read_json(stage_path)
+	if stage.has("timing_gates_path"):
+		stage.timing_gates = read_json(stage.timing_gates_path).get("gates", [])
 	var catalog := read_json(DATA + "historical_profiles_1974.json")
 	var field := read_json(DATA + "entries.json")
 	if not error.is_empty():
@@ -108,6 +111,7 @@ func begin_stage(carried: Array = []) -> void:
 	sector = 0
 	player_ms = 0
 	player_penalty_ms = 0
+	player_penalties.clear()
 	player_splits.clear()
 	player_status = "En carrera"
 	player_retired = false
@@ -125,7 +129,7 @@ func begin_stage(carried: Array = []) -> void:
 				health = old.health.duplicate(true)
 				retired = old.retired
 				old_events = old.get("events", []).duplicate(true)
-		var row := {"id": entry.driver_id, "name": entry.name, "car": entry.car, "team": entry.team, "ratings": entry.ratings, "vehicle_id": entry.vehicle_id, "support": entry.support, "health": health, "retired": retired, "start_status": "pending", "status": "Retirado del rally" if retired else "En carrera", "time_ms": 0, "splits": [], "events": [], "past_events": old_events, "fatigue": minf(0.5, (leg - 1) * 0.04)}
+		var row := {"id": entry.driver_id, "name": entry.name, "car": entry.car, "team": entry.team, "ratings": entry.ratings, "vehicle_id": entry.vehicle_id, "support": entry.support, "health": health, "retired": retired, "start_status": "pending", "status": "Retirado del rally" if retired else "En carrera", "time_ms": 0, "penalty_ms": 0, "penalties": [], "splits": [], "events": [], "past_events": old_events, "fatigue": minf(0.5, (leg - 1) * 0.04)}
 		if not retired:
 			var random := stream(row.id, "preparation")
 			var lowest := 1.0
@@ -141,6 +145,9 @@ func begin_stage(carried: Array = []) -> void:
 				row.events.append({"type": "dns", "component": lowest_component, "sector": -1, "loss_ms": 0})
 			else:
 				row.start_status = "started"
+				if stream(row.id, "start_discipline").randf() < float(balance.get("false_start_probability", 0.008)):
+					row.penalty_ms = 10000
+					row.penalties.append({"reason": "Salida anticipada", "milliseconds": 10000, "sector": 0})
 		rows.append(row)
 	initial_rows = rows.duplicate(true)
 	initial_level = level
@@ -162,6 +169,7 @@ func reset_attempt() -> void:
 	sector = 0
 	player_ms = 0
 	player_penalty_ms = 0
+	player_penalties.clear()
 	player_splits.clear()
 	complete = false
 	started = false
@@ -286,7 +294,7 @@ func advance_sector() -> void:
 				add_event(row, "crash" if terminal else "off_road", "driver", loss, severity, km * random.randf())
 		row.time_ms = int(row.time_ms) + maxi(1, int(round(seconds * 1000.0)))
 		if not row.retired:
-			row.splits.append(row.time_ms)
+			row.splits.append(int(row.time_ms) + int(row.get("penalty_ms", 0)))
 	sector += 1
 
 func retire_player(reason: String = "Abandono voluntario") -> void:
@@ -298,6 +306,24 @@ func retire_player(reason: String = "Abandono voluntario") -> void:
 	while sector < reference.size():
 		advance_sector()
 	finalize()
+
+func add_penalty(entry_id: String, milliseconds: int, reason: String) -> void:
+	if complete or milliseconds <= 0:
+		return
+	var event := {"reason": reason, "milliseconds": milliseconds, "sector": sector}
+	if entry_id == "player":
+		player_penalty_ms += milliseconds
+		player_penalties.append(event)
+		if reason == "Salida anticipada":
+			started = true
+	else:
+		for row: Dictionary in rows:
+			if row.id == entry_id:
+				row.penalty_ms = int(row.get("penalty_ms", 0)) + milliseconds
+				if not row.has("penalties"):
+					row.penalties = []
+				row.penalties.append(event)
+	save()
 
 func finalize() -> void:
 	if complete:
@@ -316,7 +342,7 @@ func next_stage() -> bool:
 	history.append(readout().duplicate(true))
 	for row: Dictionary in rows:
 		if not row.retired:
-			previous_totals[row.id] = int(previous_totals.get(row.id, 0)) + int(row.time_ms)
+			previous_totals[row.id] = int(previous_totals.get(row.id, 0)) + int(row.time_ms) + int(row.get("penalty_ms", 0))
 		# Limited team service; retired cars remain retired.
 		var service_budget := float(balance.service_seconds) * float(row.support)
 		for component: String in balance.components:
@@ -334,11 +360,14 @@ func readout() -> Dictionary:
 	var ordered: Array = []
 	for row: Dictionary in rows:
 		var result := row.duplicate(true)
-		result.stage_ms = null if row.retired else int(row.time_ms)
-		result.total_ms = null if row.retired else int(previous_totals.get(row.id, 0)) + int(row.time_ms)
+		result.stage_ms = null if row.retired else int(row.time_ms) + int(row.get("penalty_ms", 0))
+		result.total_ms = null if row.retired else int(previous_totals.get(row.id, 0)) + int(row.time_ms) + int(row.get("penalty_ms", 0))
+		result.penalty_ms = int(row.get("penalty_ms", 0))
+		result.partial_index = row.splits.size()
+		result.partial_ms = null if row.splits.is_empty() else row.splits[-1]
 		result.player = false
 		ordered.append(result)
-	ordered.append({"id": "player", "name": "Jugador", "car": "Ford Escort RS2000", "team": "Privado", "stage_ms": null if player_retired else player_ms + player_penalty_ms, "total_ms": null if player_retired else player_previous_ms + player_ms + player_penalty_ms, "retired": player_retired, "status": player_status, "player": true, "splits": player_splits.duplicate()})
+	ordered.append({"id": "player", "name": "Jugador", "car": "Ford Escort RS2000", "team": "Privado", "stage_ms": null if player_retired else player_ms + player_penalty_ms, "total_ms": null if player_retired else player_previous_ms + player_ms + player_penalty_ms, "retired": player_retired, "status": player_status, "player": true, "penalty_ms": player_penalty_ms, "penalties": player_penalties.duplicate(true), "partial_index": player_splits.size(), "partial_ms": null if player_splits.is_empty() else player_ms + player_penalty_ms, "splits": player_splits.duplicate()})
 	ordered.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a.retired != b.retired:
 			return not a.retired
@@ -367,7 +396,7 @@ func readout() -> Dictionary:
 func save() -> bool:
 	if save_path.is_empty():
 		return true
-	var document := {"version": VERSION, "configuration_hash": configuration_hash, "stage_id": stage.id, "seed": seed_value, "leg": leg, "sector": sector, "initial_confidence": initial_confidence, "initial_level": initial_level, "level": level, "confidence": confidence, "complete": complete, "started": started, "rows": rows, "initial_rows": initial_rows, "player_ms": player_ms, "player_penalty_ms": player_penalty_ms, "player_retired": player_retired, "player_status": player_status, "player_splits": player_splits, "previous_totals": previous_totals, "player_previous_ms": player_previous_ms, "history": history}
+	var document := {"version": VERSION, "configuration_hash": configuration_hash, "stage_id": stage.id, "seed": seed_value, "leg": leg, "sector": sector, "initial_confidence": initial_confidence, "initial_level": initial_level, "level": level, "confidence": confidence, "complete": complete, "started": started, "rows": rows, "initial_rows": initial_rows, "player_ms": player_ms, "player_penalty_ms": player_penalty_ms, "player_penalties": player_penalties, "player_retired": player_retired, "player_status": player_status, "player_splits": player_splits, "previous_totals": previous_totals, "player_previous_ms": player_previous_ms, "history": history}
 	var file := FileAccess.open(save_path + ".tmp", FileAccess.WRITE)
 	if file == null:
 		error = "No se pudo guardar competición"
@@ -421,6 +450,7 @@ func restore() -> bool:
 	initial_rows = data.initial_rows
 	player_ms = int(data.player_ms)
 	player_penalty_ms = int(data.player_penalty_ms)
+	player_penalties = data.get("player_penalties", [])
 	player_retired = bool(data.player_retired)
 	player_status = data.player_status
 	player_splits = data.player_splits
