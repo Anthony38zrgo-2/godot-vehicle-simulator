@@ -41,7 +41,20 @@ El `coupled_world.json` copiado tiene el objeto `coupled_world` anidado y no con
 
 Estas decisiones producen una sesión conducible como primer modelo, no una equivalencia numérica completa de la suspensión multibody de Rapier ni una reconstrucción medida del Escort. La aceptación final de conducción y el ajuste fino corresponden a pruebas al volante.
 
-La comparaci�n actualizada de HUD, audio, transmisi�n y pruebas est� en [PORT_AUDIT.md](PORT_AUDIT.md). La presentaci�n y el audio consumen una publicaci�n com�n del paso f�sico. Rusia incluye minimapa y tiempos de tramo con los nodos de origen; las zonas de neum�tico que el modelo no publica permanecen ausentes.
+La comparaci�n actualizada de HUD, audio, transmisi�n y pruebas est� en [PORT_AUDIT.md](PORT_AUDIT.md). La presentaci�n y el audio consumen una publicaci�n com�n del paso f�sico. Rusia incluye minimapa y tiempos de tramo con los nodos de origen; las zonas de neum�tico que el modelo no publica permanecen ausentes.
 
 
 Audio del Ford (2026-11-01): motor y escape conservan sus crossfades Rally Trophy. Se eliminan los refuerzos simultáneos rs/rt-cos, dos silbidos adicionales, detidle y los pops periódicos al ralentí. Queda un silbido de transmisión; fm/rm-cos entran al soltar gas mediante una rampa entre 1.5 y 3 veces las RPM de ralentí, a mitad de su ganancia anterior. Los det1–4 se conservan únicamente como eventos al levantar a altas RPM. chatter.wav y backfire.wav fueron retirados del banco; el segundo ya no tenía referencia activa. Son decisiones locales de mezcla, pendientes de aceptación auditiva en conducción. Superficies, neumáticos, impactos y ambiente conservan su mezcla.
+
+
+## Superficies CMR4 (2026-11-01)
+
+El banco independiente `sounds/banks/surfaces/manifest.json` sustituye rodadura CMR2 y tyre_scrub de commons. Grava usa grv_er11/grv_es1; hierba grs_er11/grs_es1; tierra drt_er11/drt_es1. Asfalto usa tar_er21, tar_s2, tar_p2 y tar_l2. Los números identifican conjuntos/variantes de la configuración original, no bandas de velocidad verificadas. Arena y rumble conservan los WAV anteriores bajo surfaces/legacy. Barro, nieve, hielo, mul y eventos especiales están inventariados pero inactivos.
+
+SurfaceMix pondera las cuatro ruedas por carga y conserva como máximo dos superficies. Rodadura y deslizamiento tienen ganancias base 0.15 y 0.135, transiciones de 80 ms y pitch moderado. El deslizamiento reduce hasta un 70% la rodadura. Solo un rol de deslizamiento domina por superficie; en materiales sueltos skid sustituye peel/lock con la misma muestra. Los umbrales y ganancias son aproximaciones locales. La mezcla se apaga progresivamente sin contacto y por debajo de 2 km/h. Solo se usan voces exteriores; no hay cámara interior real.
+
+Extracción/preparación/verificación: `python -m tools.audio.cmr4_surfaces extract`, `prepare`, `verify`. Requiere Python y numpy. Las 59 fuentes PCM16 mono 22050 Hz se conservan en bank_sources/cmr4/surfaces; hashes y roles se registran junto al archivo original y la configuración. La preparación quita DC, ajusta RMS con techo de pico de muestra de -1 dBFS y hornea un fundido de bucle de 120 ms; no garantiza un techo true-peak. El reproductor no aplica un segundo fundido. La exportación incluye el banco y sus copias RIFF .pcm.
+
+Validación: `surface_audio_contract.gd` verifica mezcla, límite de superficies, silencio detenido/en aire, sustitución de rodadura por slip, suavizado y carga real de voces. Smoke y hashes se comprueban por separado. La aceptación auditiva en conducción queda pendiente; la muestra offline se reproduce con `python -m tools.audio.preview_surfaces` y no incluye espacialización, motor ni ambiente.
+
+Arena sobre carrocería: `python -m tools.audio.synthesize_sand_impact` genera un one-shot original PCM16 mono 22050 Hz de 0.72 s, semilla 43017, pico -9 dBFS. Procedencia y SHA-256 en surfaces/synthetic/manifest.json. Contacto Sand o Gravel, desde 12 km/h, presencia ponderada por carga y velocidad; voz única, intervalos 0.85–1.50 s, ganancia máxima 0.10 antes del bus 0.55 y atenuación 3D. HPF 300 / LPF 4500 Hz; cockpit atenúa y filtra como las demás superficies. Aproximación acústica local; no sustituye la rodadura.

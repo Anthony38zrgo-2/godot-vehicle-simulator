@@ -41,5 +41,371 @@
       "source_rms_db": -6.75,
       "gain": 0.546387
     }
+  },
+  "surfaces": {
+    "bank": "sounds/banks/surfaces/manifest.json",
+    "baked": true,
+    "target_rms_dbfs": {
+      "roll": -16.737,
+      "slip": -13.295
+    },
+    "peak_ceiling_dbfs": -1.0,
+    "law": "gain = min(target_rms / source_rms, ceiling / source_peak); target = median RMS of exterior/shared samples per role class",
+    "samples": {
+      "cmr4/dirt/drt_er11.wav": {
+        "source_rms_dbfs": -16.046,
+        "gain_db": -1.0,
+        "prepared_rms_dbfs": -16.933,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/dirt/drt_er12.wav": {
+        "source_rms_dbfs": -17.592,
+        "gain_db": -0.894,
+        "prepared_rms_dbfs": -18.473,
+        "prepared_peak_dbfs": -1.295
+      },
+      "cmr4/dirt/drt_er13.wav": {
+        "source_rms_dbfs": -17.799,
+        "gain_db": -0.999,
+        "prepared_rms_dbfs": -18.678,
+        "prepared_peak_dbfs": -1.055
+      },
+      "cmr4/dirt/drt_es1.wav": {
+        "source_rms_dbfs": -12.063,
+        "gain_db": -1.232,
+        "prepared_rms_dbfs": -13.286,
+        "prepared_peak_dbfs": -1.344
+      },
+      "cmr4/grass/grs_er11.wav": {
+        "source_rms_dbfs": -18.115,
+        "gain_db": -0.973,
+        "prepared_rms_dbfs": -19.115,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/grass/grs_er21.wav": {
+        "source_rms_dbfs": -15.994,
+        "gain_db": -0.744,
+        "prepared_rms_dbfs": -16.759,
+        "prepared_peak_dbfs": -2.091
+      },
+      "cmr4/grass/grs_es1.wav": {
+        "source_rms_dbfs": -15.546,
+        "gain_db": -0.559,
+        "prepared_rms_dbfs": -16.124,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/grass/grs_es2.wav": {
+        "source_rms_dbfs": -15.722,
+        "gain_db": -0.149,
+        "prepared_rms_dbfs": -15.827,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/gravel/grv_er11.wav": {
+        "source_rms_dbfs": -16.071,
+        "gain_db": -0.965,
+        "prepared_rms_dbfs": -17.016,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/gravel/grv_er21.wav": {
+        "source_rms_dbfs": -16.393,
+        "gain_db": -0.345,
+        "prepared_rms_dbfs": -16.902,
+        "prepared_peak_dbfs": -3.312
+      },
+      "cmr4/gravel/grv_er31.wav": {
+        "source_rms_dbfs": -16.785,
+        "gain_db": -1.0,
+        "prepared_rms_dbfs": -17.907,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/gravel/grv_es1.wav": {
+        "source_rms_dbfs": -12.671,
+        "gain_db": -1.001,
+        "prepared_rms_dbfs": -13.469,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/gravel/grv_es2.wav": {
+        "source_rms_dbfs": -12.513,
+        "gain_db": -0.884,
+        "prepared_rms_dbfs": -13.315,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/gravel/grv_es3.wav": {
+        "source_rms_dbfs": -11.965,
+        "gain_db": -1.33,
+        "prepared_rms_dbfs": -13.142,
+        "prepared_peak_dbfs": -1.489
+      },
+      "cmr4/gravel/grv_ir11.wav": {
+        "source_rms_dbfs": -13.472,
+        "gain_db": -3.266,
+        "prepared_rms_dbfs": -16.634,
+        "prepared_peak_dbfs": -3.276
+      },
+      "cmr4/gravel/grv_ir12.wav": {
+        "source_rms_dbfs": -14.658,
+        "gain_db": -2.08,
+        "prepared_rms_dbfs": -16.647,
+        "prepared_peak_dbfs": -5.309
+      },
+      "cmr4/gravel/grv_ir13.wav": {
+        "source_rms_dbfs": -14.071,
+        "gain_db": -2.666,
+        "prepared_rms_dbfs": -16.872,
+        "prepared_peak_dbfs": -5.151
+      },
+      "cmr4/gravel/grv_is1.wav": {
+        "source_rms_dbfs": -18.765,
+        "gain_db": 0.765,
+        "prepared_rms_dbfs": -17.996,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/ice/ice_er11.wav": {
+        "source_rms_dbfs": -19.944,
+        "gain_db": 3.206,
+        "prepared_rms_dbfs": -16.773,
+        "prepared_peak_dbfs": -2.521
+      },
+      "cmr4/ice/ice_es1.wav": {
+        "source_rms_dbfs": -16.741,
+        "gain_db": 1.898,
+        "prepared_rms_dbfs": -14.589,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/ice/ice_ir11.wav": {
+        "source_rms_dbfs": -16.254,
+        "gain_db": -0.484,
+        "prepared_rms_dbfs": -16.814,
+        "prepared_peak_dbfs": -4.595
+      },
+      "cmr4/ice/ice_is1.wav": {
+        "source_rms_dbfs": -20.393,
+        "gain_db": 4.194,
+        "prepared_rms_dbfs": -16.086,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/mud/mud_er11.wav": {
+        "source_rms_dbfs": -14.505,
+        "gain_db": -2.232,
+        "prepared_rms_dbfs": -16.702,
+        "prepared_peak_dbfs": -4.306
+      },
+      "cmr4/mud/mud_er12.wav": {
+        "source_rms_dbfs": -14.211,
+        "gain_db": -2.526,
+        "prepared_rms_dbfs": -16.801,
+        "prepared_peak_dbfs": -4.742
+      },
+      "cmr4/mud/mud_er13.wav": {
+        "source_rms_dbfs": -14.27,
+        "gain_db": -2.467,
+        "prepared_rms_dbfs": -16.774,
+        "prepared_peak_dbfs": -4.762
+      },
+      "cmr4/mud/mud_es1.wav": {
+        "source_rms_dbfs": -12.632,
+        "gain_db": -0.825,
+        "prepared_rms_dbfs": -13.364,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/snow/sno_er11.wav": {
+        "source_rms_dbfs": -16.252,
+        "gain_db": -0.485,
+        "prepared_rms_dbfs": -16.692,
+        "prepared_peak_dbfs": -3.869
+      },
+      "cmr4/snow/sno_er21.wav": {
+        "source_rms_dbfs": -18.907,
+        "gain_db": 2.169,
+        "prepared_rms_dbfs": -16.748,
+        "prepared_peak_dbfs": -3.404
+      },
+      "cmr4/snow/sno_es1.wav": {
+        "source_rms_dbfs": -16.438,
+        "gain_db": 2.564,
+        "prepared_rms_dbfs": -13.791,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/snow/sno_es2.wav": {
+        "source_rms_dbfs": -15.955,
+        "gain_db": 2.09,
+        "prepared_rms_dbfs": -13.729,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/snow/sno_ir11.wav": {
+        "source_rms_dbfs": -16.249,
+        "gain_db": -0.489,
+        "prepared_rms_dbfs": -16.813,
+        "prepared_peak_dbfs": -4.6
+      },
+      "cmr4/snow/sno_ir21.wav": {
+        "source_rms_dbfs": -14.941,
+        "gain_db": -1.796,
+        "prepared_rms_dbfs": -16.695,
+        "prepared_peak_dbfs": -4.981
+      },
+      "cmr4/snow/sno_is1.wav": {
+        "source_rms_dbfs": -18.099,
+        "gain_db": 4.019,
+        "prepared_rms_dbfs": -13.91,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/snow/sno_is2.wav": {
+        "source_rms_dbfs": -17.877,
+        "gain_db": 3.607,
+        "prepared_rms_dbfs": -14.265,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/special/Bridge.wav": {
+        "source_rms_dbfs": -11.431,
+        "gain_db": -5.306,
+        "prepared_rms_dbfs": -16.737,
+        "prepared_peak_dbfs": -8.847
+      },
+      "cmr4/special/catgrid.wav": {
+        "source_rms_dbfs": -14.605,
+        "gain_db": -2.133,
+        "prepared_rms_dbfs": -16.737,
+        "prepared_peak_dbfs": -3.82
+      },
+      "cmr4/special/mul_er11.wav": {
+        "source_rms_dbfs": -17.627,
+        "gain_db": 0.094,
+        "prepared_rms_dbfs": -17.487,
+        "prepared_peak_dbfs": -1.3
+      },
+      "cmr4/special/mul_er12.wav": {
+        "source_rms_dbfs": -16.69,
+        "gain_db": -0.383,
+        "prepared_rms_dbfs": -17.03,
+        "prepared_peak_dbfs": -2.112
+      },
+      "cmr4/special/mul_er13.wav": {
+        "source_rms_dbfs": -16.443,
+        "gain_db": -1.0,
+        "prepared_rms_dbfs": -17.435,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/special/mul_es1.wav": {
+        "source_rms_dbfs": -12.72,
+        "gain_db": -0.837,
+        "prepared_rms_dbfs": -13.443,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/special/mul_ir11.wav": {
+        "source_rms_dbfs": -16.304,
+        "gain_db": -0.433,
+        "prepared_rms_dbfs": -17.03,
+        "prepared_peak_dbfs": -4.328
+      },
+      "cmr4/special/mul_ir12.wav": {
+        "source_rms_dbfs": -16.618,
+        "gain_db": -0.119,
+        "prepared_rms_dbfs": -16.502,
+        "prepared_peak_dbfs": -1.305
+      },
+      "cmr4/special/mul_ir13.wav": {
+        "source_rms_dbfs": -20.391,
+        "gain_db": 3.653,
+        "prepared_rms_dbfs": -16.581,
+        "prepared_peak_dbfs": -4.059
+      },
+      "cmr4/special/splash.wav": {
+        "source_rms_dbfs": -14.304,
+        "gain_db": -2.434,
+        "prepared_rms_dbfs": -16.737,
+        "prepared_peak_dbfs": -3.086
+      },
+      "cmr4/tarmac/tar_er11.wav": {
+        "source_rms_dbfs": -20.233,
+        "gain_db": 3.495,
+        "prepared_rms_dbfs": -16.716,
+        "prepared_peak_dbfs": -4.218
+      },
+      "cmr4/tarmac/tar_er21.wav": {
+        "source_rms_dbfs": -19.327,
+        "gain_db": 2.589,
+        "prepared_rms_dbfs": -16.684,
+        "prepared_peak_dbfs": -5.074
+      },
+      "cmr4/tarmac/tar_er31.wav": {
+        "source_rms_dbfs": -21.143,
+        "gain_db": 4.405,
+        "prepared_rms_dbfs": -16.802,
+        "prepared_peak_dbfs": -4.32
+      },
+      "cmr4/tarmac/tar_ir11.wav": {
+        "source_rms_dbfs": -18.935,
+        "gain_db": 2.198,
+        "prepared_rms_dbfs": -16.696,
+        "prepared_peak_dbfs": -4.437
+      },
+      "cmr4/tarmac/tar_ir21.wav": {
+        "source_rms_dbfs": -15.038,
+        "gain_db": -1.699,
+        "prepared_rms_dbfs": -16.697,
+        "prepared_peak_dbfs": -4.708
+      },
+      "cmr4/tarmac/tar_ir31.wav": {
+        "source_rms_dbfs": -18.816,
+        "gain_db": 2.079,
+        "prepared_rms_dbfs": -16.697,
+        "prepared_peak_dbfs": -4.063
+      },
+      "cmr4/tarmac/tar_l1.wav": {
+        "source_rms_dbfs": -13.685,
+        "gain_db": -0.908,
+        "prepared_rms_dbfs": -14.3,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/tarmac/tar_l2.wav": {
+        "source_rms_dbfs": -13.237,
+        "gain_db": -0.623,
+        "prepared_rms_dbfs": -13.787,
+        "prepared_peak_dbfs": -1.0
+      },
+      "cmr4/tarmac/tar_l3.wav": {
+        "source_rms_dbfs": -13.771,
+        "gain_db": 0.476,
+        "prepared_rms_dbfs": -13.37,
+        "prepared_peak_dbfs": -2.402
+      },
+      "cmr4/tarmac/tar_p1.wav": {
+        "source_rms_dbfs": -15.141,
+        "gain_db": 0.953,
+        "prepared_rms_dbfs": -14.616,
+        "prepared_peak_dbfs": -1.462
+      },
+      "cmr4/tarmac/tar_p2.wav": {
+        "source_rms_dbfs": -15.077,
+        "gain_db": 1.782,
+        "prepared_rms_dbfs": -13.197,
+        "prepared_peak_dbfs": -1.095
+      },
+      "cmr4/tarmac/tar_p3.wav": {
+        "source_rms_dbfs": -13.353,
+        "gain_db": 0.058,
+        "prepared_rms_dbfs": -13.459,
+        "prepared_peak_dbfs": -1.502
+      },
+      "cmr4/tarmac/tar_s1.wav": {
+        "source_rms_dbfs": -9.978,
+        "gain_db": -3.317,
+        "prepared_rms_dbfs": -13.291,
+        "prepared_peak_dbfs": -3.241
+      },
+      "cmr4/tarmac/tar_s2.wav": {
+        "source_rms_dbfs": -11.392,
+        "gain_db": -1.903,
+        "prepared_rms_dbfs": -13.3,
+        "prepared_peak_dbfs": -2.225
+      },
+      "cmr4/tarmac/tar_s3.wav": {
+        "source_rms_dbfs": -11.357,
+        "gain_db": -1.938,
+        "prepared_rms_dbfs": -13.386,
+        "prepared_peak_dbfs": -2.093
+      }
+    }
   }
 }

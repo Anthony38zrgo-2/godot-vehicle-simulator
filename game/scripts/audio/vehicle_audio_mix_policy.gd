@@ -37,13 +37,8 @@ func accept(packet: Dictionary) -> Dictionary:
 	var throttle := clampf(float(packet.throttle), 0.0, 1.0)
 	var maximum := maxf(float(packet.rpm_max), 1.0)
 	var slip := 0.0
-	var surface := "Unknown"
-	var highest_load := 0.0
 	for wheel in packet.get("wheels", []):
 		slip = maxf(slip, maxf(absf(float(wheel.slip_ratio)), absf(float(wheel.slip_angle_rad))))
-		if float(wheel.load_n) > highest_load:
-			highest_load = float(wheel.load_n)
-			surface = str(wheel.surface)
 	var events: Array[String] = []
 	var limiter := rpm > maximum
 	# Physical cut depth, same band the powertrain model uses to ramp torque
@@ -77,16 +72,6 @@ func accept(packet: Dictionary) -> Dictionary:
 		if limiter and float(previous.rpm) <= float(previous.rpm_max) and limiter_cooldown <= 0.0:
 			events.append("limiter")
 			limiter_cooldown = 0.25
-	var surface_key := ""
-	match surface.to_lower():
-		"grass": surface_key = "surf_grass"
-		"gravel": surface_key = "surf_gravel"
-		# Loose dirt shoulders reuse the gravel loop (no dedicated CMR2 dirt
-		# loop was promoted); sand keeps its own loop.
-		"dirt": surface_key = "surf_gravel"
-		"sand": surface_key = "surf_sand"
-		"rumble", "curb": surface_key = "surf_rumble"
-	var bed_gain := 0.25 + 0.55 * clampf(slip, 0.0, 1.0) + 0.12 * minf(float(packet.speed_kph), 120.0) / 120.0
-	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "surface": surface_key, "surface_gain": bed_gain if highest_load > 0.0 and float(packet.speed_kph) > 0.5 else 0.0, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "clutch_open": clutch_open, "events": events, "dt": dt}
+	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "clutch_open": clutch_open, "events": events, "dt": dt}
 	previous = packet
 	return mix

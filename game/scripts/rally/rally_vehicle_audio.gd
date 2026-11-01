@@ -26,7 +26,7 @@ const ENGINE_SAMPLE_DEFINITIONS := [
 	{
 		"path": "res://sounds/banks/ford_escort_rs2000_rally/EE_2k5.wav",
 		"reference": 2000.0,
-		"lower": 0.0,
+		"lower": 900.0,
 		"upper": 3500.0,
 	},
 	{
@@ -50,9 +50,9 @@ const EXHAUST_SAMPLE_DEFINITIONS := [
 		"upper": 2000.0,
 	},
 	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_Idle6.wav",
+		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_2k5.wav",
 		"reference": 2000.0,
-		"lower": 0.0,
+		"lower": 900.0,
 		"upper": 3500.0,
 	},
 	{
@@ -139,10 +139,11 @@ const LAND_MIN_MS := 2.5
 const LAND_MID_MS := 4.0
 const LAND_HIGH_MS := 7.0
 const LAND_POSITION := Vector3(0.0, -0.2, 0.0)
-const SCRUB_SAMPLE_PATH := "res://sounds/banks/commons/tyre_scrub.wav"
+const SURFACE_BANK := "res://sounds/banks/surfaces/"
+const SurfaceMixer = preload("res://scripts/audio/surface_mix.gd")
 
-const ENGINE_VOLUME_BASE := 0.24
-const ENGINE_VOLUME_ACCELERATION := 0.10
+const ENGINE_VOLUME_BASE := 0.269
+const ENGINE_VOLUME_ACCELERATION := 0.112
 const EXHAUST_VOLUME_BASE := 0.70
 const EXHAUST_VOLUME_ACCELERATION := 0.30
 # Desplazamiento del banco de samples bajo carga (cambia el timbre hacia samples más altos sin falsear el pitch)
@@ -157,7 +158,9 @@ var exhaust_voices: Array[SampleVoice] = []
 var neutral_player: AudioStreamPlayer3D
 var clunk_scale: float = 1.0
 var packet_rpm_idle: float = 1050.0
-var scrub_player: AudioStreamPlayer3D
+var surface_map: Dictionary = {}
+var sand_impact_player: AudioStreamPlayer3D
+var sand_impact_cooldown := 0.0
 var impact_small_players: Array[AudioStreamPlayer3D] = []
 var impact_medium_players: Array[AudioStreamPlayer3D] = []
 var impact_large_players: Array[AudioStreamPlayer3D] = []
@@ -191,6 +194,8 @@ var impact_index: int = 0
 var exhaust_crackle_s: float = 0.0
 var sample_levels: Dictionary = { }
 var camera_rig: Node = null
+var cockpit_audio_blend := 0.0
+var cockpit_filter_buses: Dictionary = {}
 var view_engine_gain := 1.0
 var view_exhaust_gain := 1.0
 
@@ -211,7 +216,7 @@ func _ready() -> void:
 		ENGINE_SAMPLE_DEFINITIONS,
 		engine_voices,
 		Vector3(0.0, 0.55, -0.8),
-		3.0,
+		4.5,
 		400.0,
 		ENGINE_VOLUME_BASE,
 		ENGINE_VOLUME_ACCELERATION,
@@ -221,14 +226,14 @@ func _ready() -> void:
 		EXHAUST_SAMPLE_DEFINITIONS,
 		exhaust_voices,
 		Vector3(0.0, 0.20, 1.50),
-		8.0,
+		6.0,
 		1030.0,
 		EXHAUST_VOLUME_BASE,
 		EXHAUST_VOLUME_ACCELERATION,
 		true,
 	)
 	build_neutral_player()
-	build_scrub_player()
+	build_surface_players()
 	build_impact_players()
 	build_auxiliary_audio()
 	play_layer(engine_voices)
@@ -253,7 +258,7 @@ func build_sample_layer(
 		var player := AudioStreamPlayer3D.new()
 		player.stream = stream
 		player.position = local_position
-		player.bus = "Vehicle"
+		routing.route(player, path_str.get_file().get_basename())
 		player.volume_db = -80.0
 		player.unit_size = unit_size
 		player.max_distance = maximum_distance
@@ -317,19 +322,39 @@ func update_neutral_audio(_smoothing: float) -> void:
 	clunk_scale = smoothstep(idle, idle * (1.0 + NEUTRAL_FADE_WIDTH), rpm)
 
 
-func build_scrub_player() -> void:
-	var stream := load_looping_stream(SCRUB_SAMPLE_PATH)
-	if stream == null:
-		return
-	scrub_player = AudioStreamPlayer3D.new()
-	scrub_player.stream = stream
-	scrub_player.position = Vector3(0.0, 0.1, 0.0)
-	routing.route(scrub_player, "tyre_scrub")
-	scrub_player.volume_db = -80.0
-	scrub_player.unit_size = 14.0
-	scrub_player.max_distance = 90.0
-	add_child(scrub_player)
-	scrub_player.play()
+func build_surface_players() -> void:
+	sand_impact_player = AudioStreamPlayer3D.new()
+	sand_impact_player.stream = load_event_stream(SURFACE_BANK + "synthetic/sand_body_impact.wav", "surface_sand_body_impact")
+	sand_impact_player.position = Vector3(0.0, -0.1, 0.3)
+	sand_impact_player.unit_size = 8.0
+	sand_impact_player.max_distance = 45.0
+	sand_impact_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+	routing.route(sand_impact_player, "surface_sand_body_impact")
+	add_child(sand_impact_player)
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SURFACE_BANK + "manifest.json"))
+	surface_map = manifest["runtime_map"]
+	for surface in surface_map:
+		for role in surface_map[surface]:
+			var path: String = SURFACE_BANK + str(surface_map[surface][role])
+			# The preparation tool already baked the loop seam. Do not crossfade twice.
+			var stream := SeamlessVehicleLoop.load_pcm(path, false)
+			if stream == null:
+				push_error("Missing surface sample: " + path)
+				continue
+			stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			stream.loop_begin = 0
+			stream.loop_end = stream.data.size() / 2
+			var player := AudioStreamPlayer3D.new()
+			player.stream = stream
+			player.position = Vector3(0.0, 0.1, 0.0)
+			player.unit_size = 10.0
+			player.max_distance = 90.0
+			player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+			routing.route(player, "surface_" + str(surface) + "_" + str(role))
+			player.volume_linear = 0.0
+			add_child(player)
+			player.play()
+			surface_players[str(surface) + ":" + str(role)] = player
 
 
 func build_impact_players() -> void:
@@ -404,6 +429,7 @@ func _physics_process(delta: float) -> void:
 	var smoothing := 1.0 - exp(-24.0 * delta)
 
 	update_view_balance()
+	update_cockpit_audio(delta)
 	update_layer(engine_voices, smoothed_revolutions, smoothing)
 	update_layer(exhaust_voices, smoothed_revolutions, smoothing)
 	update_limiter_audio(smoothing)
@@ -428,26 +454,7 @@ func _physics_process(delta: float) -> void:
 	elif float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) > vehicle.mass * 0.8:
 		play_impact(vehicle)
 
-	update_scrub_audio(delta)
-
-	var speed_kph := float(packet.get("speed_kph", 0.0))
-	var active_surface := str(acoustic.get("surface", ""))
-	var base_surface_gain := float(acoustic.get("surface_gain", 0.0))
-	var speed_ramp := clampf((speed_kph - 2.0) / 25.0, 0.0, 1.0)
-	# El deslizamiento lateral incrementa la proyección de piedras/grava contra el chasis
-	var slip_boost := 1.0 + current_slip_ratio * 0.45
-
-	for key in surface_players:
-		var player: AudioStreamPlayer3D = surface_players[key]
-		var is_current: bool = (key == active_surface)
-		var target_vol := base_surface_gain * SURFACE_GAIN * speed_ramp * slip_boost if is_current else 0.0
-		player.volume_linear = lerpf(player.volume_linear, target_vol, smoothing)
-		player.pitch_scale = lerpf(
-			player.pitch_scale,
-			clampf(0.95 + speed_ramp * 0.15 + current_slip_ratio * 0.20, 0.85, 1.30),
-			smoothing,
-		)
-		player.stream_paused = player.volume_linear < 0.00001
+	update_surface_audio(packet, delta)
 
 	if scrape_player != null:
 		var gain := 0.62 * clampf(
@@ -463,6 +470,28 @@ func _physics_process(delta: float) -> void:
 
 
 #352 vista (chase 0 / capo 1) conmuta el peso motor/escape como en CMR2.
+func update_cockpit_audio(delta: float) -> void:
+	var is_cockpit := camera_rig != null and int(camera_rig.get("camera_mode")) == 2
+	cockpit_audio_blend = lerpf(cockpit_audio_blend, 1.0 if is_cockpit else 0.0, 1.0 - exp(-delta / 0.15))
+	var players: Array = surface_players.values() + upshift_players + downshift_players
+	if sand_impact_player != null:
+		players.append(sand_impact_player)
+	if neutral_player != null:
+		players.append(neutral_player)
+	for player: AudioStreamPlayer3D in players:
+		var bus := AudioServer.get_bus_index(player.bus)
+		if bus < 0:
+			continue
+		if not cockpit_filter_buses.has(player.bus):
+			var filter := AudioEffectLowPassFilter.new()
+			filter.cutoff_hz = 20500.0
+			AudioServer.add_bus_effect(bus, filter)
+			cockpit_filter_buses[player.bus] = filter
+		var cutoff := 4000.0 if str(player.bus).begins_with("Rally:surface_") else 3500.0
+		var effect: AudioEffectLowPassFilter = cockpit_filter_buses[player.bus]
+		effect.cutoff_hz = lerpf(20500.0, cutoff, cockpit_audio_blend)
+
+
 func update_view_balance() -> void:
 	if camera_rig == null and vehicle != null and vehicle.get_parent() != null:
 		camera_rig = vehicle.get_parent().get_node_or_null("RallyCameraRig")
@@ -511,7 +540,7 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 			if not bool(exhaust_cfg.get("enabled", true)):
 				gain = 0.0
 			if exhaust_crackle_s > 0.0:
-				gain += float(exhaust_cfg.get("crackle_gain", 0.1)) * (exhaust_crackle_s / 0.12)
+				gain *= 1.0 + float(exhaust_cfg.get("crackle_gain", 0.1)) * (exhaust_crackle_s / 0.12)
 
 		voice.layer_level = lerpf(voice.layer_level, gain, volume_smoothing)
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
@@ -601,32 +630,46 @@ func _next_rng_state(state: int) -> int:
 	return maxi(value & 0x7FFFFFFFFFFFFFFF, 1)
 
 
-func update_scrub_audio(delta: float) -> void:
-	var maximum_slip := 0.0
-	for slip in vehicle.get_wheel_slip_vectors():
-		maximum_slip = maxf(maximum_slip, absf(slip.x))
-		maximum_slip = maxf(maximum_slip, absf(slip.y) * 2.0)
+func update_surface_audio(packet: Dictionary, delta: float) -> void:
+	var state: Dictionary = SurfaceMixer.evaluate(packet.get("wheels", []), absf(float(packet.get("speed_kph", 0.0))), float(packet.get("throttle", 0.0)), maxf(float(packet.get("brake", 0.0)), float(packet.get("handbrake", 0.0))), vehicle.mass * 9.81)
+	update_sand_impacts(state, absf(float(packet.get("speed_kph", 0.0))), delta)
+	current_slip_ratio = float(state.slip_total)
+	for key in surface_players:
+		var parts: PackedStringArray = str(key).split(":")
+		var surface := parts[0]
+		var role := parts[1]
+		var target := 0.0
+		if role == "roll":
+			target = float(state.roll.get(surface, 0.0)) * 0.15
+		else:
+			# One slip role per surface; lateral and longitudinal slip never stack voices.
+			var roles: Dictionary = state.slip.get(surface, {})
+			var strongest := "skid"
+			for candidate in ["peel", "lock"]:
+				if float(roles.get(candidate, 0.0)) > float(roles.get(strongest, 0.0)):
+					strongest = candidate
+			var selected := strongest if surface_map[surface].has(strongest) else "skid"
+			if role == selected:
+				target = float(roles.get(strongest, 0.0)) * 0.135
+		target *= lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+		var player: AudioStreamPlayer3D = surface_players[key]
+		player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
+		player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, float(state.roll_pitch if role == "roll" else state.slip_pitch), delta, 0.12)
+		player.stream_paused = player.volume_linear < 0.00001
 
-	var speed_factor := clampf(vehicle.speed / 18.0, 0.0, 1.0)
-	var slip_factor := clampf((maximum_slip - 0.08) / 0.5, 0.0, 1.0)
-	current_slip_ratio = slip_factor
 
-	if scrub_player == null:
+func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> void:
+	sand_impact_cooldown = maxf(0.0, sand_impact_cooldown - delta)
+	var sand_share := clampf(float(state.shares.get("sand", 0.0)) + float(state.shares.get("gravel", 0.0)), 0.0, 1.0)
+	if sand_impact_player == null or sand_share <= 0.0 or speed_kph < 12.0:
 		return
-
-	var road := false
-	for surface in vehicle.get_wheel_surface_types():
-		road = road or str(surface).to_lower() in ["road", "asphalt", "tarmac"]
-
-	var target_gain := speed_factor * slip_factor * 0.55 if road else 0.0
-	var volume_smoothing := 1.0 - exp(-15.0 * delta)
-	scrub_player.volume_linear = lerpf(scrub_player.volume_linear, target_gain, volume_smoothing)
-	scrub_player.pitch_scale = lerpf(
-		scrub_player.pitch_scale,
-		clampf(0.86 + slip_factor * 0.28 + speed_factor * 0.10, 0.80, 1.25),
-		volume_smoothing,
-	)
-	scrub_player.stream_paused = scrub_player.volume_linear < 0.00001
+	if sand_impact_cooldown > 0.0 or sand_impact_player.playing:
+		return
+	var presence := smoothstep(12.0, 70.0, speed_kph) * sand_share * float(state.load_factor)
+	sand_impact_player.volume_linear = 0.10 * presence * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+	sand_impact_player.pitch_scale = randf_range(0.92, 1.08)
+	sand_impact_player.play()
+	sand_impact_cooldown = randf_range(0.85, 1.50)
 
 
 func play_landing(_other_body: Node) -> void:
@@ -676,10 +719,6 @@ func play_impact(_other_body: Node) -> void:
 
 
 func build_auxiliary_audio() -> void:
-	for key in ["surf_grass", "surf_gravel", "surf_sand", "surf_rumble"]:
-		var player := continuous_player("res://sounds/banks/commons/" + key + ".wav")
-		if player != null:
-			surface_players[key] = player
 	scrape_player = continuous_player("res://sounds/banks/commons/impact_scrape.wav")
 	limiter_player = build_limiter_player()
 	# 2 voces por variante en cambios para no cortar la cola de resonancia en rebajes rápidos
@@ -746,7 +785,7 @@ func update_whine_audio(smoothing: float) -> void:
 	# y cae a un leve arrastre inercial cuando se pisa el embrague (clutch_open == true)
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
 	var torque_stress := absf(float(acoustic.get("load", 0.0)))
-	var target := (0.008 + 0.028 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
+	var target := (0.004 + 0.014 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
 	for index in whine_players.size():
 		var player := whine_players[index]
 		player.pitch_scale = clampf(shaft / 30.0, 0.5, 3.5)
@@ -781,10 +820,13 @@ func build_retention_voice(path: String, local_position: Vector3) -> AudioStream
 func update_retention_audio(smoothing: float) -> void:
 	var rpm_presence := smoothstep(packet_rpm_idle * 1.5, packet_rpm_idle * 3.0, float(acoustic.get("rpm", 0.0)))
 	var lift := (1.0 - clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)) * rpm_presence
+	var ret_pitch := clampf(smoothed_revolutions / 4000.0, 0.5, 2.0)
 	if retention_front_player != null:
+		retention_front_player.pitch_scale = ret_pitch
 		retention_front_player.volume_linear = lerpf(retention_front_player.volume_linear, lift * RETENTION_FRONT_GAIN * view_engine_gain, smoothing)
 		retention_front_player.stream_paused = retention_front_player.volume_linear < 0.00001
 	if retention_rear_player != null:
+		retention_rear_player.pitch_scale = ret_pitch
 		retention_rear_player.volume_linear = lerpf(retention_rear_player.volume_linear, lift * RETENTION_REAR_GAIN * view_exhaust_gain, smoothing)
 		retention_rear_player.stream_paused = retention_rear_player.volume_linear < 0.00001
 

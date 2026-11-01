@@ -21,9 +21,12 @@ func probe() -> void:
 			continue
 		var state: Dictionary = vehicle.get_presentation_snapshot()
 		var voices: Array = []
-		for player in audio.engine_players + audio.exhaust_players:
-			voices.append({"sample": player.stream.resource_path, "role": player.get_meta("role"), "reference": player.get_meta("reference_revolutions"), "pitch": player.pitch_scale, "db": player.volume_db})
-		rows.append({"aux": {"scrape": audio.scrape_player.volume_linear, "scrape_paused": audio.scrape_player.stream_paused, "scrub": audio.scrub_player.volume_linear, "scrub_paused": audio.scrub_player.stream_paused, "surface": audio.surface_players["surf_sand"].volume_linear, "impacts": audio.impact_index}, "body_contacts": vehicle.body_contact_audio.duplicate(), "t": frame / 120.0, "rpm": state.rpm, "speed_kph": state.speed_kph, "audio_rpm": audio.smoothed_revolutions, "voices": voices})
+		for voice in audio.engine_voices + audio.exhaust_voices:
+			voices.append({"reference": voice.reference_rpm, "pitch": voice.player.pitch_scale, "db": voice.player.volume_db})
+		var surfaces: Dictionary = {}
+		for key in audio.surface_players:
+			surfaces[key] = audio.surface_players[key].volume_linear
+		rows.append({"surfaces": surfaces, "rpm": state.rpm, "speed_kph": state.speed_kph, "voices": voices})
 	Input.action_release(InputBindings.THROTTLE)
 	var file := FileAccess.open("res://logs/rally/audio_pitch_probe.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(rows, "  "))

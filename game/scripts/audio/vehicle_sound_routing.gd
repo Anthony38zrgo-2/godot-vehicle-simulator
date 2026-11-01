@@ -33,10 +33,17 @@ func _load_bank_manifest(path: String) -> void:
 		if sample.has("loop"):
 			loops[key] = sample["loop"]
 
+func _deep_merge(target: Dictionary, patch: Dictionary) -> void:
+	for key in patch:
+		if target.has(key) and target[key] is Dictionary and patch[key] is Dictionary:
+			_deep_merge(target[key], patch[key])
+		else:
+			target[key] = patch[key].duplicate(true) if patch[key] is Dictionary or patch[key] is Array else patch[key]
+
 func settings(key: String) -> Dictionary:
 	var value: Dictionary = config.get("defaults", {}).duplicate(true)
-	value.merge(config.get("sounds", {}).get(key, {}), true)
-	value.merge(space.get(key, {}), true)
+	_deep_merge(value, space.get(key, {}))
+	_deep_merge(value, config.get("sounds", {}).get(key, {}))
 	return value
 
 func loop_for(key: String) -> Dictionary:
@@ -87,13 +94,13 @@ func route(player: AudioStreamPlayer3D, key: String) -> void:
 			effect.damping = float(reverb.get("damping", 0.5))
 			effect.room_size = clampf(float(reverb.get("decay_s", 0.5)) / 2.0, 0.0, 1.0)
 			effect.spread = float(reverb.get("stereo_width", 0.5))
+			effect.hipass = clampf(float(reverb.get("low_cut_hz", 0.0)) / 1000.0, 0.0, 1.0)
 			effect.dry = 1.0
 			effect.wet = db_to_linear(float(send.get("send_db", -120.0)) + float(reverb.get("wet_db", 0.0)))
 			AudioServer.add_bus_effect(index, effect)
 	player.bus = bus
-	# Lateral placement per voice: mono sources pan through their 3D position.
+	# Track the applied offset per player so rerouting is idempotent.
 	var lateral := float(sound.get("lateral_x", 0.0))
-	if lateral != 0.0:
-		var position := player.position
-		position.x += lateral
-		player.position = position
+	var previous_offset := float(player.get_meta("rally_audio_lateral_offset", 0.0))
+	player.position.x += lateral - previous_offset
+	player.set_meta("rally_audio_lateral_offset", lateral)

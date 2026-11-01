@@ -40,7 +40,9 @@
           "bands_db": {
             "125": 1.0,
             "250": 0.5,
-            "1000": -0.5
+            "1000": 0.3,
+            "2000": 1.0,
+            "4000": 0.8
           },
           "output_db": 0.0
         },
@@ -74,7 +76,9 @@
             "125": 1.0,
             "250": 0.5,
             "500": -0.5,
-            "2000": -1.0
+            "2000": 0.0,
+            "1000": 0.8,
+            "4000": 0.8
           },
           "output_db": 0.0
         },
@@ -107,8 +111,9 @@
           "bands_db": {
             "125": 0.5,
             "500": -1.0,
-            "1000": -2.0,
-            "2000": -2.0
+            "1000": -1.2,
+            "2000": -1.0,
+            "4000": 0.8
           },
           "output_db": 0.0
         },
@@ -140,15 +145,15 @@
           "enabled": true,
           "bands_db": {
             "250": 0.5,
-            "1000": -2.0,
-            "2000": -3.0,
-            "4000": -3.0
+            "1000": -1.2,
+            "2000": -2.0,
+            "4000": -2.2
           },
           "output_db": 0.0
         },
         "filter": {
           "hpf_hz": 40,
-          "lpf_hz": 1800
+          "lpf_hz": 2800
         }
       }
     },
@@ -190,7 +195,12 @@
       "reference_rpm": 2000,
       "sounds_ini_range_rpm": null,
       "used_by_sounds_ini": false,
-      "role_note": "present in the source car folder but not referenced by Sounds.ini"
+      "role_note": "present in the source car folder but not referenced by Sounds.ini",
+      "space": {
+        "filter": {
+          "hpf_hz": 130
+        }
+      }
     },
     {
       "file": "EX_6k5.wav",
