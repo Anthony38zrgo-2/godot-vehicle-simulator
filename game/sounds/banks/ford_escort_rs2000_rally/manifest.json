@@ -18,7 +18,6 @@
     "rt-cos.wav": 6000,
     "ft-cos.wav": 6000,
     "whine.wav": null,
-    "chatter.wav": null,
     "det1.wav": null,
     "det2.wav": null,
     "det3.wav": null,
@@ -387,23 +386,6 @@
           "hpf_hz": 2000
         },
         "lateral_x": -0.3
-      }
-    },
-    {
-      "file": "chatter.wav",
-      "role": "gearbox_chatter",
-      "mix_rate_hz": 44100,
-      "channels": 1,
-      "source_sha256": "883bf606eb9a6f3846b702683b4068c2d63e82ecc27bcde5e34d25ed2155bef7",
-      "reference_rpm": null,
-      "sounds_ini_range_rpm": null,
-      "used_by_sounds_ini": false,
-      "role_note": "CMR2 Cosworth bank: role and reference estimated from bank position, not measured",
-      "space": {
-        "filter": {
-          "hpf_hz": 1200
-        },
-        "lateral_x": 0.45
       }
     },
     {

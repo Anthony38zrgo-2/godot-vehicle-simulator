@@ -42,3 +42,6 @@ El `coupled_world.json` copiado tiene el objeto `coupled_world` anidado y no con
 Estas decisiones producen una sesión conducible como primer modelo, no una equivalencia numérica completa de la suspensión multibody de Rapier ni una reconstrucción medida del Escort. La aceptación final de conducción y el ajuste fino corresponden a pruebas al volante.
 
 La comparaci�n actualizada de HUD, audio, transmisi�n y pruebas est� en [PORT_AUDIT.md](PORT_AUDIT.md). La presentaci�n y el audio consumen una publicaci�n com�n del paso f�sico. Rusia incluye minimapa y tiempos de tramo con los nodos de origen; las zonas de neum�tico que el modelo no publica permanecen ausentes.
+
+
+Audio del Ford (2026-11-01): motor y escape conservan sus crossfades Rally Trophy. Se eliminan los refuerzos simultáneos rs/rt-cos, dos silbidos adicionales, detidle y los pops periódicos al ralentí. Queda un silbido de transmisión; fm/rm-cos entran al soltar gas mediante una rampa entre 1.5 y 3 veces las RPM de ralentí, a mitad de su ganancia anterior. Los det1–4 se conservan únicamente como eventos al levantar a altas RPM. chatter.wav y backfire.wav fueron retirados del banco; el segundo ya no tenía referencia activa. Son decisiones locales de mezcla, pendientes de aceptación auditiva en conducción. Superficies, neumáticos, impactos y ambiente conservan su mezcla.

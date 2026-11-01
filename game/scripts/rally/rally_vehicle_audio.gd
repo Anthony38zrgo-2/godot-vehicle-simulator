@@ -67,20 +67,7 @@ const EXHAUST_SAMPLE_DEFINITIONS := [
 		"lower": 4500.0,
 		"upper": 9500.0,
 	},
-	# Refuerzo trasero CMR2 (par RearSlow/RearTurbo del Cosworth): el grave
-	# abajo y la textura arriba. Referencias estimadas del banco original.
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/rs-cos.wav",
-		"reference": 2500.0,
-		"lower": 0.0,
-		"upper": 3500.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/rt-cos.wav",
-		"reference": 6000.0,
-		"lower": 4500.0,
-		"upper": 9500.0,
-	},
+
 ]
 const NEUTRAL_SAMPLE_PATH := "res://sounds/banks/commons/neutral_first_gear_transition.wav"
 const NEUTRAL_FADE_WIDTH := 0.15
@@ -97,17 +84,11 @@ const GEAR_DOWN_PATHS := [
 ]
 const GEAR_WHINE_PATH := "res://sounds/banks/ford_escort_rs2000_rally/whine.wav"
 # Colin McRae Rally 2 — banco del Escort Cosworth, mismos roles que el original:
-# par Load (retencion x (1-throttle)), traseras al escape, whine + chatter,
-# detonaciones como backfire con probabilidad por marcha, detidle al ralenti.
+# Retención al levantar y detonaciones puntuales; motor/escape RT son la base.
 const COS_RETENTION_FRONT := "res://sounds/banks/ford_escort_rs2000_rally/fm-cos.wav"
 const COS_RETENTION_REAR := "res://sounds/banks/ford_escort_rs2000_rally/rm-cos.wav"
-const COS_WHINE_FRONT := "res://sounds/banks/ford_escort_rs2000_rally/ft-cos.wav"
-const COS_WHINE_REAR := "res://sounds/banks/ford_escort_rs2000_rally/rt-cos.wav"
-const COS_CHATTER_PATH := "res://sounds/banks/ford_escort_rs2000_rally/chatter.wav"
-const COS_DETIDLE_PATH := "res://sounds/banks/ford_escort_rs2000_rally/detidle.wav"
-const DETIDLE_GAIN := 0.30
-const RETENTION_FRONT_GAIN := 0.10
-const RETENTION_REAR_GAIN := 0.12
+const RETENTION_FRONT_GAIN := 0.05
+const RETENTION_REAR_GAIN := 0.06
 const BACKFIRE_SAMPLE_PATHS := [
 	"res://sounds/banks/ford_escort_rs2000_rally/det1.wav",
 	"res://sounds/banks/ford_escort_rs2000_rally/det2.wav",
@@ -204,16 +185,8 @@ var surface_players: Dictionary = { }
 var scrape_player: AudioStreamPlayer3D
 var limiter_player: AudioStreamPlayer3D
 var whine_players: Array[AudioStreamPlayer3D] = []
-var whine_voice_gains := [1.0, 0.8, 1.0]
-var whine_was_audible := false
-var chatter_player: AudioStreamPlayer3D
-var chatter_cooldown := 0.0
 var retention_front_player: AudioStreamPlayer3D
 var retention_rear_player: AudioStreamPlayer3D
-var detidle_player: AudioStreamPlayer3D
-var idle_pop_players: Array[AudioStreamPlayer3D] = []
-var idle_pop_timer := 0.0
-var idle_pop_index := 0
 var impact_index: int = 0
 var exhaust_crackle_s: float = 0.0
 var sample_levels: Dictionary = { }
@@ -417,7 +390,6 @@ func _physics_process(delta: float) -> void:
 	upshift_cooldown = maxf(0.0, upshift_cooldown - delta)
 	downshift_cooldown = maxf(0.0, downshift_cooldown - delta)
 	backfire_event_cooldown = maxf(0.0, backfire_event_cooldown - delta)
-	chatter_cooldown = maxf(0.0, chatter_cooldown - delta)
 	exhaust_crackle_s = maxf(0.0, exhaust_crackle_s - delta)
 
 	var packet := vehicle.get_presentation_snapshot()
@@ -488,8 +460,6 @@ func _physics_process(delta: float) -> void:
 
 	update_whine_audio(smoothing)
 	update_retention_audio(smoothing)
-	update_detidle_audio(smoothing)
-	update_idle_pops(delta)
 
 
 #352 vista (chase 0 / capo 1) conmuta el peso motor/escape como en CMR2.
@@ -742,18 +712,12 @@ func build_auxiliary_audio() -> void:
 	)
 	build_whine_voices()
 	build_retention_voices()
-	build_chatter_voice()
-	build_detidle_voice()
-	build_idle_pop_voices()
 
 
-# Par de whine CMR2 (ft/rt) + textura de whine: ganancia x embrague y par,
-# como el original. El chatter suena una vez al entrar en rango audible.
+# Una sola voz de transmisión, modulada por velocidad de eje y par.
 func build_whine_voices() -> void:
 	var defs := [
 		[GEAR_WHINE_PATH, SHIFT_EVENT_POSITION],
-		[COS_WHINE_FRONT, SHIFT_EVENT_POSITION],
-		[COS_WHINE_REAR, SHIFT_EVENT_POSITION],
 	]
 	for entry in defs:
 		var stream := load_looping_stream(str(entry[0]))
@@ -783,37 +747,14 @@ func update_whine_audio(smoothing: float) -> void:
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
 	var torque_stress := absf(float(acoustic.get("load", 0.0)))
 	var target := (0.008 + 0.028 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
-	var audible := target > 0.004
-	if audible and not whine_was_audible and chatter_player != null and chatter_cooldown <= 0.0:
-		chatter_player.play()
-		chatter_cooldown = 0.8
-	whine_was_audible = audible
 	for index in whine_players.size():
 		var player := whine_players[index]
 		player.pitch_scale = clampf(shaft / 30.0, 0.5, 3.5)
-		var scale: float = whine_voice_gains[index] if index < whine_voice_gains.size() else 1.0
-		player.volume_linear = lerpf(player.volume_linear, target * scale, smoothing)
+		player.volume_linear = lerpf(player.volume_linear, target, smoothing)
 		player.stream_paused = player.volume_linear < 0.00001
 
 
-func build_chatter_voice() -> void:
-	if not ResourceLoader.exists(COS_CHATTER_PATH):
-		return
-	chatter_player = AudioStreamPlayer3D.new()
-	chatter_player.stream = load_event_stream(COS_CHATTER_PATH, COS_CHATTER_PATH.get_file().get_basename())
-	if chatter_player.stream == null:
-		chatter_player = null
-		return
-	chatter_player.position = SHIFT_EVENT_POSITION
-	routing.route(chatter_player, COS_CHATTER_PATH.get_file().get_basename())
-	chatter_player.volume_db = -14.0
-	chatter_player.unit_size = 12.0
-	chatter_player.max_distance = 80.0
-	add_child(chatter_player)
-
-
-# Par Load de CMR2 (fm/rm): canta con (1 - throttle), es lo que mantiene el
-# escape vivo al soltar en vez de apagarse con el motor.
+# Retención complementaria, fuera del ralentí.
 func build_retention_voices() -> void:
 	retention_front_player = build_retention_voice(COS_RETENTION_FRONT, Vector3(0.0, 0.55, -0.8))
 	retention_rear_player = build_retention_voice(COS_RETENTION_REAR, BACKFIRE_POSITION)
@@ -838,74 +779,14 @@ func build_retention_voice(path: String, local_position: Vector3) -> AudioStream
 
 
 func update_retention_audio(smoothing: float) -> void:
-	var lift := 1.0 - clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)
+	var rpm_presence := smoothstep(packet_rpm_idle * 1.5, packet_rpm_idle * 3.0, float(acoustic.get("rpm", 0.0)))
+	var lift := (1.0 - clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)) * rpm_presence
 	if retention_front_player != null:
 		retention_front_player.volume_linear = lerpf(retention_front_player.volume_linear, lift * RETENTION_FRONT_GAIN * view_engine_gain, smoothing)
 		retention_front_player.stream_paused = retention_front_player.volume_linear < 0.00001
 	if retention_rear_player != null:
 		retention_rear_player.volume_linear = lerpf(retention_rear_player.volume_linear, lift * RETENTION_REAR_GAIN * view_exhaust_gain, smoothing)
 		retention_rear_player.stream_paused = retention_rear_player.volume_linear < 0.00001
-
-
-# detidle: ralentí del escape (lleno abajo, fundido a +15%), convive con el
-# loop neutral de caja que usa la misma banda.
-func build_detidle_voice() -> void:
-	var stream := load_looping_stream(COS_DETIDLE_PATH)
-	if stream == null:
-		return
-	detidle_player = AudioStreamPlayer3D.new()
-	detidle_player.stream = stream
-	detidle_player.position = BACKFIRE_POSITION
-	routing.route(detidle_player, COS_DETIDLE_PATH.get_file().get_basename())
-	detidle_player.volume_linear = 0.0
-	detidle_player.unit_size = 3.0
-	detidle_player.max_distance = 400.0
-	detidle_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	detidle_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
-	add_child(detidle_player)
-	detidle_player.play()
-
-
-func update_detidle_audio(smoothing: float) -> void:
-	if detidle_player == null:
-		return
-	detidle_player.volume_linear = lerpf(detidle_player.volume_linear, (1.0 - clunk_scale) * DETIDLE_GAIN * view_engine_gain, smoothing)
-	detidle_player.stream_paused = detidle_player.volume_linear < 0.00001
-
-
-# Pops de ralenti CMR2: detonaciones suaves periodicas por debajo de 4000 rpm.
-func build_idle_pop_voices() -> void:
-	var defs := ["res://sounds/banks/ford_escort_rs2000_rally/det1.wav", "res://sounds/banks/ford_escort_rs2000_rally/det3.wav"]
-	for path in defs:
-		if not ResourceLoader.exists(path):
-			continue
-		var player := AudioStreamPlayer3D.new()
-		player.stream = load_event_stream(path, path.get_file().get_basename())
-		if player.stream == null:
-			continue
-		player.position = BACKFIRE_POSITION
-		routing.route(player, path.get_file().get_basename())
-		player.volume_db = -20.0
-		player.unit_size = 8.0
-		player.max_distance = 160.0
-		add_child(player)
-		idle_pop_players.append(player)
-
-
-func update_idle_pops(delta: float) -> void:
-	idle_pop_timer = maxf(0.0, idle_pop_timer - delta)
-	if idle_pop_timer > 0.0 or idle_pop_players.is_empty():
-		return
-	var rpm := float(acoustic.get("rpm", 0.0))
-	var throttle := clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)
-	if rpm < 4000.0 and throttle < 0.3:
-		var player := idle_pop_players[idle_pop_index % idle_pop_players.size()]
-		idle_pop_index += 1
-		player.pitch_scale = 0.95 + randf() * 0.1
-		player.play()
-		idle_pop_timer = randf_range(0.4, 1.2)
-	else:
-		idle_pop_timer = 0.2
 
 
 func build_event_voice_pool(
