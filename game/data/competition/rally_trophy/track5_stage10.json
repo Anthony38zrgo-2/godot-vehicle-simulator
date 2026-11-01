@@ -1,0 +1,25 @@
+{
+  "source_game": "Rally Trophy",
+  "source_archive": "Tracks/track5/data.bzf",
+  "source_archive_sha256": "01bc958d655ae30a191f39d8efdba7140762c98471e61e5fbfc0794286d082c9",
+  "source_file": "stagetimes10.ini",
+  "source_ini_sha256": "f023b3b635f25065f295e3d400429062b0354d06f557a26d4320907dbece25b8",
+  "raw_ini": "\n# fast, ok, bad\nCommentTimes      =       {160.0, 175.0, 190.0};\nCPUSplit0       = 20.0;\nCPUSplit1       = 20.0;\nCPUSplit2       = 20.0;\nCPUSplit3       = 20.0;\nCPUSplit4       = 20.0;\nCPUSplit5       = 20.0;\nCPUSplit6       = 20.0;\nCPUSplit7       = 20.0;\nCPUSplit8       = 20.0;\nCPUSplit9       = 20.0;\n",
+  "track": "track5",
+  "stage_index": 10,
+  "difficulty_order": [
+    "novice",
+    "intermediate",
+    "expert"
+  ],
+  "values_seconds": {
+    "CommentTimes": [
+      160.0,
+      175.0,
+      190.0
+    ]
+  },
+  "has_cpu_reference": false,
+  "fallback_status": "unavailable_original_has_no_cpu_splits",
+  "usage": "Original game parameters, not a verified executable formula. Route mapping and physics calibration are design inputs."
+}

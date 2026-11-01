@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "basis": "Gameplay coefficients requiring driving calibration; not historical failure frequencies.",
+  "adaptation_alpha": 0.2,
+  "adaptation_limit": 0.02,
+  "initial_level": 1.0,
+  "dns_probability": 0.012,
+  "mechanical_rate_per_km": 0.003,
+  "error_rate_per_km": 0.004,
+  "terminal_severity": 0.87,
+  "wear_per_km": 0.007,
+  "service_repair": 0.3,
+  "service_seconds": 900,
+  "reset_penalty_ms": 30000,
+  "vehicles": {
+    "lancia_stratos": {
+      "pace_factor": 0.985,
+      "vulnerable": [
+        "engine",
+        "steering",
+        "structure"
+      ]
+    },
+    "lancia_fulvia": {
+      "pace_factor": 1.1,
+      "vulnerable": [
+        "electrical"
+      ]
+    },
+    "lancia_beta": {
+      "pace_factor": 1.02,
+      "vulnerable": [
+        "transmission",
+        "electrical"
+      ]
+    },
+    "fiat_124_abarth": {
+      "pace_factor": 1.02,
+      "vulnerable": [
+        "transmission",
+        "suspension",
+        "steering",
+        "brakes"
+      ]
+    },
+    "ford_escort_rs1600": {
+      "pace_factor": 0.99,
+      "vulnerable": [
+        "engine",
+        "transmission"
+      ]
+    },
+    "porsche_911": {
+      "pace_factor": 1.02,
+      "vulnerable": [
+        "suspension",
+        "transmission"
+      ]
+    },
+    "alpine_a110": {
+      "pace_factor": 1.025,
+      "vulnerable": [
+        "suspension",
+        "electrical",
+        "structure"
+      ]
+    },
+    "renault_17": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "renault_12": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "mitsubishi_lancer": {
+      "pace_factor": 1.06,
+      "vulnerable": []
+    },
+    "saab_96": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "opel_ascona": {
+      "pace_factor": 1.02,
+      "vulnerable": [
+        "engine",
+        "transmission",
+        "suspension"
+      ]
+    },
+    "bmw_2002": {
+      "pace_factor": 1.02,
+      "vulnerable": [
+        "transmission",
+        "brakes"
+      ]
+    },
+    "peugeot_504": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "toyota_celica": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "datsun_260z": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "datsun_160j": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    },
+    "datsun_unspecified": {
+      "pace_factor": 1.02,
+      "vulnerable": []
+    }
+  },
+  "components": {
+    "engine": "motor",
+    "transmission": "transmisión",
+    "suspension": "suspensión",
+    "steering": "dirección",
+    "brakes": "frenos",
+    "tyres": "neumáticos",
+    "electrical": "electricidad",
+    "structure": "estructura"
+  },
+  "first_split_calibration_weight": 0.75,
+  "minimum_level": 0.35,
+  "maximum_level": 3.0
+}

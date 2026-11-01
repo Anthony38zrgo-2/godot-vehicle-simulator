@@ -64,6 +64,7 @@ var session_ready: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
 var course := RallyStageProgress.new()
+var competition = preload("res://scripts/rally/rally_competition.gd").new()
 var weather_sky_node: Node = null
 var weather_sky_dome: Node = null
 var weather_controller_node: Node = null
@@ -92,6 +93,12 @@ func _ready() -> void:
 	if not course.configure("res://data/rally/russia_stage1_route.json"):
 		push_error("Russia course timing route is missing")
 		return
+	if not competition.configure():
+		push_error("Rally competition: " + competition.error)
+		return
+	course.sector_indices = competition.stage.sector_checkpoint_indices
+	if competition.restore() and not competition.complete and competition.started:
+		competition.retire_player("Abandono — sesión interrumpida")
 	build_environment()
 	apply_start_pose_from_manifest()
 	if track_collision == null:
@@ -109,6 +116,12 @@ func _ready() -> void:
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	session_ready = true
+	var panel: Control = head_up_display.competition_panel
+	panel.retire_requested.connect(retire_competition_player)
+	panel.retry_requested.connect(retry_competition_attempt)
+	panel.next_requested.connect(continue_competition)
+	panel.new_rally_requested.connect(start_new_competition)
+	apply_competition_controls()
 	print("RALLY_SESSION_READY scene=russia_stage1 vehicle=ford_escort_rs2000_1971 spawn=", start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
 
@@ -502,17 +515,36 @@ func on_driving_assistance_changed(state: Dictionary) -> void:
 
 
 func on_vehicle_reset_requested() -> void:
-	head_up_display.show_status("VEHICLE RESET TO START", Color(0.95, 0.72, 0.24), 2.2)
-	print("RALLY_VEHICLE_RESET time_seconds=", elapsed_seconds)
+	if course.running and not competition.complete:
+		# Rescue at the last validated control, preserving official progress/time.
+		var index := maxi(0, course.next_checkpoint - 1)
+		var target: Vector3 = course.points[index] + Vector3.UP * 0.2
+		var direction: Vector3 = course.points[mini(index + 1, course.points.size() - 1)] - course.points[index]
+		var heading := atan2(-direction.x, -direction.z)
+		vehicle.reset_to_pose(target, heading)
+		course.generation = vehicle.simulation.session_generation
+		course.previous_position = target
+		competition.generation = course.generation
+		competition.player_penalty_ms += int(competition.balance.reset_penalty_ms)
+		competition.save()
+		camera_rig.snap_to_target()
+		head_up_display.show_status("RESCATE +30 s", Color(0.95, 0.72, 0.24), 2.2)
+	else:
+		head_up_display.show_status("VEHICLE RESET TO START", Color(0.95, 0.72, 0.24), 2.2)
 
 
 func _physics_process(delta: float) -> void:
 	if not session_ready or vehicle == null:
 		return
 	elapsed_seconds += delta
-	course.advance(vehicle.global_position, delta, vehicle.simulation.session_generation, vehicle.linear_velocity.length())
-	if vehicle.global_position.y < MINIMUM_WORLD_HEIGHT_METRES:
-		vehicle.reset_to_pose(start_position, start_heading)
+	if not competition.complete:
+		course.advance(vehicle.global_position, delta, vehicle.simulation.session_generation, vehicle.linear_velocity.length())
+		competition.update(course.readout())
+		if competition.complete:
+			apply_competition_controls()
+	if vehicle.global_position.y < MINIMUM_WORLD_HEIGHT_METRES and not competition.complete:
+		competition.retire_player("Abandono — salida de pista")
+		apply_competition_controls()
 	if vehicle.sleeping:
 		vehicle.sleeping = false
 	head_up_display.set_session_state(get_session_state())
@@ -522,6 +554,7 @@ func get_session_state() -> Dictionary:
 	return {
 		"elapsed_seconds": elapsed_seconds,
 		"course": course.readout(),
+		"competition": competition.readout(),
 		"run_identifier": run_identifier,
 		"physics_engine": str(ProjectSettings.get_setting("physics/3d/physics_engine")),
 		"physics_ticks_per_second": Engine.physics_ticks_per_second,
@@ -535,3 +568,49 @@ func reset_vehicle_to_start() -> void:
 	vehicle.reset_to_pose(start_position, start_heading)
 	camera_rig.snap_to_target()
 	head_up_display.show_status("VEHICLE RESET TO START", Color(0.95, 0.72, 0.24), 2.2)
+
+
+func apply_competition_controls() -> void:
+	input_controller.set_controls_enabled(not competition.complete)
+	vehicle.freeze = competition.complete
+	if competition.complete:
+		vehicle.linear_velocity = Vector3.ZERO
+		vehicle.angular_velocity = Vector3.ZERO
+	head_up_display.set_session_state(get_session_state())
+
+func retire_competition_player() -> void:
+	competition.retire_player()
+	apply_competition_controls()
+
+func reset_competition_car() -> void:
+	course.reset_attempt()
+	vehicle.reset_to_pose(start_position, start_heading)
+	course.generation = vehicle.simulation.session_generation
+	camera_rig.snap_to_target()
+	apply_competition_controls()
+
+func retry_competition_attempt() -> void:
+	competition.reset_attempt()
+	competition.save()
+	reset_competition_car()
+
+func continue_competition() -> void:
+	if competition.next_stage():
+		reset_competition_car()
+
+func start_new_competition() -> void:
+	competition.leg = 1
+	competition.history.clear()
+	competition.previous_totals.clear()
+	competition.player_previous_ms = 0
+	competition.confidence = 0.0
+	competition.level = 1.0
+	competition.seed_value += 1
+	competition.begin_stage()
+	competition.save()
+	reset_competition_car()
+
+
+func _exit_tree() -> void:
+	if session_ready and competition.started:
+		competition.save()

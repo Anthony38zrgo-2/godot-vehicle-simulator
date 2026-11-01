@@ -73,3 +73,7 @@ Commons conserva neutral, limitador e impactos; superficies conserva rodadura y 
 Validación: `escort_audio_contract.gd` pasó (35 hashes/PCM nativos, 22 capas, eventos y barrido 1050–7500 RPM a acelerador 0/0.5/1, sin huecos silenciosos). `run_rally.ps1 -Smoke` pasó. Godot advierte 76 instancias ObjectDB al salir. El contrato antiguo `presentation_audio_contract.gd` no es ejecutable con el controlador actual: referencia `engine_players`, propiedad retirada; no se usa como evidencia de aceptación auditiva.
 
 Cambios WRC9: wrc9_shifts contiene 32 PCM16 decodificados del EscortMKII1800.bank con nombres, indices y hashes. gearbox_force01-04 son la capa mecanica general de subida (asignacion local); gear_down01-03 para reduccion. P206 onboard y M3E30R cockpit solo se disparan en camera_mode 2 y se detienen al salir. Los dos eventos F2002 de commons permanecen superpuestos y se mantiene el ajuste previo de ganancia 0.75. Motor, escape y whine conservan CMR4.
+
+## Competición virtual
+
+La sesión Rusia incorpora rivales simulados, parciales, fiabilidad, abandono del jugador, clasificación sobre el mapa y resultados persistentes. Uso, datos originales por especial, límites de calibración y pruebas: [ai_simulation/README.md](ai_simulation/README.md).

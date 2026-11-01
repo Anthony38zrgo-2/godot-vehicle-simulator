@@ -172,9 +172,9 @@ func draw_course(course: Dictionary) -> void:
 		maximum = maximum.max(Vector2(point.x, point.z))
 	var extent := maximum - minimum
 	var factor := minf(215.0 / maxf(extent.x, 1.0), 238.0 / maxf(extent.y, 1.0))
-	var origin := Vector2(28, 207) + (Vector2(215, 238) - extent * factor) * 0.5
-	draw_style_box(_panel(), Rect2(Vector2(14, 179), Vector2(243, 288)))
-	text_at(Vector2(28, 202), "RUSSIA STAGE 1", 18, palette.digital_color, true)
+	var origin := Vector2(28, 427) + (Vector2(215, 238) - extent * factor) * 0.5
+	draw_style_box(_panel(), Rect2(Vector2(14, 399), Vector2(243, 288)))
+	text_at(Vector2(28, 422), "RUSSIA STAGE 1", 18, palette.digital_color, true)
 	var line := PackedVector2Array()
 	for point: Vector3 in points:
 		line.append(origin + (Vector2(point.x, point.z) - minimum) * factor)
