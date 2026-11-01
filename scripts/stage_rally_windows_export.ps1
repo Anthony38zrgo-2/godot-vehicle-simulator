@@ -57,7 +57,7 @@ Copy-SourceDirectory (Join-Path $gameRoot 'addons\godot-sqlite') (Join-Path $sta
 Copy-SourceDirectory (Join-Path $gameRoot 'data\vehicles\ford-escort-rs2000') (Join-Path $stageRoot 'data\vehicles\ford-escort-rs2000')
 Copy-SourceDirectory (Join-Path $gameRoot 'data\rally') (Join-Path $stageRoot 'data\rally')
 Copy-SourceDirectory (Join-Path $gameRoot 'data\input') (Join-Path $stageRoot 'data\input')
-Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\ford_escort_rs2000_rally') (Join-Path $stageRoot 'sounds\banks\ford_escort_rs2000_rally')
+Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\EscortRS1600') (Join-Path $stageRoot 'sounds\banks\EscortRS1600')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\commons') (Join-Path $stageRoot 'sounds\banks\commons')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\surfaces') (Join-Path $stageRoot 'sounds\banks\surfaces')
 # Preserve RIFF bytes for SeamlessVehicleLoop without replacing the imported

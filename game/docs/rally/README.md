@@ -58,3 +58,18 @@ Extracción/preparación/verificación: `python -m tools.audio.cmr4_surfaces ext
 Validación: `surface_audio_contract.gd` verifica mezcla, límite de superficies, silencio detenido/en aire, sustitución de rodadura por slip, suavizado y carga real de voces. Smoke y hashes se comprueban por separado. La aceptación auditiva en conducción queda pendiente; la muestra offline se reproduce con `python -m tools.audio.preview_surfaces` y no incluye espacialización, motor ni ambiente.
 
 Arena sobre carrocería: `python -m tools.audio.synthesize_sand_impact` genera un one-shot original PCM16 mono 22050 Hz de 0.72 s, semilla 43017, pico -9 dBFS. Procedencia y SHA-256 en surfaces/synthetic/manifest.json. Contacto Sand o Gravel, desde 12 km/h, presencia ponderada por carga y velocidad; voz única, intervalos 0.85–1.50 s, ganancia máxima 0.10 antes del bus 0.55 y atenuación 3D. HPF 300 / LPF 4500 Hz; cockpit atenúa y filtra como las demás superficies. Aproximación acústica local; no sustituye la rodadura.
+
+
+## Escort RS1600 CMR4 (2026-11-01)
+El banco activo es `sounds/banks/EscortRS1600`, extraído con `python -m tools.audio.cmr4_escort`.
+Conserva 35 WAV originales PCM16 mono y hashes SHA-256; motor/escape ~32 kHz y efectos 22050 Hz, sin resamplear.
+Las 22 voces continuas usan stat como ralentí y cinco capas thr/idle como carga/retención, con fundido por acelerador.
+Centros estimados: 1050, 1800, 3000, 4200, 5500 y 6800 RPM. No son RPM medidas ni curvas FL/NMAP decodificadas.
+whinelo/hi se cruzan por velocidad de eje; gearup1-4 para subidas, clunk para reducciones y loadoff1-4 para eventos al soltar.
+Estos últimos no se presentan como detonaciones de combustión verificadas. Ignition/stall quedan inventariados, sin evento de arranque/calado conectado.
+El RS1600 es una aproximación acústica al Pinto RS2000 del vehículo; la aceptación auditiva en conducción sigue pendiente.
+Commons conserva neutral, limitador e impactos; superficies conserva rodadura y deslizamiento. El banco anterior queda archivado sin referencias activas.
+
+Validación: `escort_audio_contract.gd` pasó (35 hashes/PCM nativos, 22 capas, eventos y barrido 1050–7500 RPM a acelerador 0/0.5/1, sin huecos silenciosos). `run_rally.ps1 -Smoke` pasó. Godot advierte 76 instancias ObjectDB al salir. El contrato antiguo `presentation_audio_contract.gd` no es ejecutable con el controlador actual: referencia `engine_players`, propiedad retirada; no se usa como evidencia de aceptación auditiva.
+
+Cambios WRC9: wrc9_shifts contiene 32 PCM16 decodificados del EscortMKII1800.bank con nombres, indices y hashes. gearbox_force01-04 son la capa mecanica general de subida (asignacion local); gear_down01-03 para reduccion. P206 onboard y M3E30R cockpit solo se disparan en camera_mode 2 y se detienen al salir. Los dos eventos F2002 de commons permanecen superpuestos y se mantiene el ajuste previo de ganancia 0.75. Motor, escape y whine conservan CMR4.

@@ -243,7 +243,7 @@ foreach ($artifact in @(
         $needsImport = $true
     }
 }
-foreach ($audioFile in Get-ChildItem -LiteralPath (Join-Path $gameRoot 'sounds\banks\ford_escort_rs2000_rally') -Filter '*.wav' -File) {
+foreach ($audioFile in Get-ChildItem -LiteralPath (Join-Path $gameRoot 'sounds\banks\EscortRS1600') -Filter '*.wav' -File) {
     if (-not (Test-Path -LiteralPath ($audioFile.FullName + '.import') -PathType Leaf)) {
         $needsImport = $true
     }

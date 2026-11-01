@@ -1,7 +1,7 @@
 class_name VehicleSoundRouting
 extends RefCounted
 
-const FORD_MANIFEST_PATH := "res://sounds/banks/ford_escort_rs2000_rally/manifest.json"
+const FORD_MANIFEST_PATH := "res://sounds/banks/EscortRS1600/manifest.json"
 
 var config: Dictionary = {}
 # Per-voice space (EQ, filters, reverb, lateral offset) and loop points, read

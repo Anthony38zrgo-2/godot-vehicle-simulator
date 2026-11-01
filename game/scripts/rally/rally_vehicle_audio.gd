@@ -8,6 +8,7 @@ class SampleVoice:
 	var reference_rpm: float
 	var lower_rpm: float
 	var upper_rpm: float
+	var mode: String = "drive"
 	var is_exhaust: bool
 	var level_gain: float
 	var base_gain: float
@@ -16,84 +17,89 @@ class SampleVoice:
 	var layer_level: float = 0.0
 
 
+# CMR4 native samples; RPM centres are local estimates (see bank manifest).
 const ENGINE_SAMPLE_DEFINITIONS := [
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EE_Idle5.wav",
-		"reference": 900.0,
-		"lower": 0.0,
-		"upper": 2000.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EE_2k5.wav",
-		"reference": 2000.0,
-		"lower": 900.0,
-		"upper": 3500.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EE_6k5.wav",
-		"reference": 4000.0,
-		"lower": 2500.0,
-		"upper": 5500.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EE_9k5.wav",
-		"reference": 6000.0,
-		"lower": 4500.0,
-		"upper": 9500.0,
-	},
+	{"path": "res://sounds/banks/EscortRS1600/e_stat.wav", "reference": 1050.0, "lower": 0.0, "upper": 1800.0, "mode": "idle"},
+	{"path": "res://sounds/banks/EscortRS1600/e_thr01.wav", "reference": 1800.0, "lower": 1050.0, "upper": 3000.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/e_thr02.wav", "reference": 3000.0, "lower": 1800.0, "upper": 4200.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/e_thr03.wav", "reference": 4200.0, "lower": 3000.0, "upper": 5500.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/e_thr04.wav", "reference": 5500.0, "lower": 4200.0, "upper": 6800.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/e_thr05.wav", "reference": 6800.0, "lower": 5500.0, "upper": 9500.0, "mode": "drive"},
 ]
 const EXHAUST_SAMPLE_DEFINITIONS := [
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_Idle6.wav",
-		"reference": 900.0,
-		"lower": 0.0,
-		"upper": 2000.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_2k5.wav",
-		"reference": 2000.0,
-		"lower": 900.0,
-		"upper": 3500.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_6k5.wav",
-		"reference": 4000.0,
-		"lower": 2500.0,
-		"upper": 5500.0,
-	},
-	{
-		"path": "res://sounds/banks/ford_escort_rs2000_rally/EX_9k5.wav",
-		"reference": 6000.0,
-		"lower": 4500.0,
-		"upper": 9500.0,
-	},
-
+	{"path": "res://sounds/banks/EscortRS1600/x_stat.wav", "reference": 1050.0, "lower": 0.0, "upper": 1800.0, "mode": "idle"},
+	{"path": "res://sounds/banks/EscortRS1600/x_thr01.wav", "reference": 1800.0, "lower": 1050.0, "upper": 3000.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/x_thr02.wav", "reference": 3000.0, "lower": 1800.0, "upper": 4200.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/x_thr03.wav", "reference": 4200.0, "lower": 3000.0, "upper": 5500.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/x_thr04.wav", "reference": 5500.0, "lower": 4200.0, "upper": 6800.0, "mode": "drive"},
+	{"path": "res://sounds/banks/EscortRS1600/x_thr05.wav", "reference": 6800.0, "lower": 5500.0, "upper": 9500.0, "mode": "drive"},
 ]
+const COAST_ENGINE_DEFINITIONS := [
+	{"path": "res://sounds/banks/EscortRS1600/e_idle01.wav", "reference": 1800.0, "lower": 0.0, "upper": 3000.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/e_idle02.wav", "reference": 3000.0, "lower": 1800.0, "upper": 4200.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/e_idle03.wav", "reference": 4200.0, "lower": 3000.0, "upper": 5500.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/e_idle04.wav", "reference": 5500.0, "lower": 4200.0, "upper": 6800.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/e_idle05.wav", "reference": 6800.0, "lower": 5500.0, "upper": 9500.0, "mode": "coast"},
+]
+const COAST_EXHAUST_DEFINITIONS := [
+	{"path": "res://sounds/banks/EscortRS1600/x_idle01.wav", "reference": 1800.0, "lower": 0.0, "upper": 3000.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/x_idle02.wav", "reference": 3000.0, "lower": 1800.0, "upper": 4200.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/x_idle03.wav", "reference": 4200.0, "lower": 3000.0, "upper": 5500.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/x_idle04.wav", "reference": 5500.0, "lower": 4200.0, "upper": 6800.0, "mode": "coast"},
+	{"path": "res://sounds/banks/EscortRS1600/x_idle05.wav", "reference": 6800.0, "lower": 5500.0, "upper": 9500.0, "mode": "coast"},
+]
+
 const NEUTRAL_SAMPLE_PATH := "res://sounds/banks/commons/neutral_first_gear_transition.wav"
 const NEUTRAL_FADE_WIDTH := 0.15
 
 const GEAR_UP_PATHS := [
-	"res://sounds/banks/commons/gear_up_1.wav",
-	"res://sounds/banks/commons/gear_up_2.wav",
-	"res://sounds/banks/commons/gear_up_3.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force02.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force01.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force03.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force04.wav",
 ]
 const GEAR_DOWN_PATHS := [
-	"res://sounds/banks/commons/gear_down_1.wav",
-	"res://sounds/banks/commons/gear_down_2.wav",
-	"res://sounds/banks/commons/gear_down_3.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down02.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down01.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down03.wav",
 ]
-const GEAR_WHINE_PATH := "res://sounds/banks/ford_escort_rs2000_rally/whine.wav"
-# Colin McRae Rally 2 — banco del Escort Cosworth, mismos roles que el original:
-# Retención al levantar y detonaciones puntuales; motor/escape RT son la base.
-const COS_RETENTION_FRONT := "res://sounds/banks/ford_escort_rs2000_rally/fm-cos.wav"
-const COS_RETENTION_REAR := "res://sounds/banks/ford_escort_rs2000_rally/rm-cos.wav"
-const RETENTION_FRONT_GAIN := 0.05
-const RETENTION_REAR_GAIN := 0.06
+const ONBOARD_UP_PATHS := [
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift11.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift08.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift07.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_03.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift04.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift14.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_06.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift02.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_05.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_04.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift06.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_01.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_02.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift05.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift10.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift01.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift03.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift13.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift12.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift09.wav",
+]
+const ONBOARD_DOWN_PATHS := [
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_01.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_04.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_02.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_05.wav",
+	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_03.wav",
+]
+const GEAR_WHINE_PATH := "res://sounds/banks/EscortRS1600/whinelo.wav"
+const GEAR_WHINE_HIGH_PATH := "res://sounds/banks/EscortRS1600/whinehi.wav"
+# CMR4 lift-off events; not claimed to be isolated combustion detonations.
 const BACKFIRE_SAMPLE_PATHS := [
-	"res://sounds/banks/ford_escort_rs2000_rally/det1.wav",
-	"res://sounds/banks/ford_escort_rs2000_rally/det2.wav",
-	"res://sounds/banks/ford_escort_rs2000_rally/det3.wav",
-	"res://sounds/banks/ford_escort_rs2000_rally/det4.wav",
+	"res://sounds/banks/EscortRS1600/loadoff1.wav",
+	"res://sounds/banks/EscortRS1600/loadoff2.wav",
+	"res://sounds/banks/EscortRS1600/loadoff3.wav",
+	"res://sounds/banks/EscortRS1600/loadoff4.wav",
 ]
 # Probabilidad de pop al soltar, por marcha (CMR2: mas probable en cortas).
 const BACKFIRE_GEAR_PROB := [0.5, 0.9, 0.65, 0.4, 0.2]
@@ -106,7 +112,7 @@ const DOWNSHIFT_RETRIGGER_SECONDS := 0.10
 const BACKFIRE_RETRIGGER_SECONDS := 1.0
 const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
-const LIMITER_GAIN := 0.30
+const LIMITER_GAIN := 0.225
 const SURFACE_GAIN := 0.45
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
@@ -155,6 +161,10 @@ const LOAD_TIMBRE_RPM_OFFSET := 380.0
 var vehicle: RallyEscortVehicle
 var engine_voices: Array[SampleVoice] = []
 var exhaust_voices: Array[SampleVoice] = []
+var tyre_contact_players: Array[AudioStreamPlayer3D] = []
+var tyre_contact_filters: Array[AudioEffectLowPassFilter] = []
+var tyre_previous_velocity: Array[float] = []
+var tyre_contact_cooldowns: Array[float] = []
 var neutral_player: AudioStreamPlayer3D
 var clunk_scale: float = 1.0
 var packet_rpm_idle: float = 1050.0
@@ -171,6 +181,10 @@ var impact_cooldown: float = 0.0
 
 var upshift_players: Array[AudioStreamPlayer3D] = []
 var downshift_players: Array[AudioStreamPlayer3D] = []
+var onboard_upshift_players: Array[AudioStreamPlayer3D] = []
+var onboard_downshift_players: Array[AudioStreamPlayer3D] = []
+var extra_upshift_players: Array[AudioStreamPlayer3D] = []
+var extra_downshift_players: Array[AudioStreamPlayer3D] = []
 var backfire_players: Array[AudioStreamPlayer3D] = []
 var upshift_cooldown: float = 0.0
 var downshift_cooldown: float = 0.0
@@ -188,14 +202,15 @@ var surface_players: Dictionary = { }
 var scrape_player: AudioStreamPlayer3D
 var limiter_player: AudioStreamPlayer3D
 var whine_players: Array[AudioStreamPlayer3D] = []
-var retention_front_player: AudioStreamPlayer3D
-var retention_rear_player: AudioStreamPlayer3D
+var coast_engine_voices: Array[SampleVoice] = []
+var coast_exhaust_voices: Array[SampleVoice] = []
 var impact_index: int = 0
 var exhaust_crackle_s: float = 0.0
 var sample_levels: Dictionary = { }
 var camera_rig: Node = null
 var cockpit_audio_blend := 0.0
 var cockpit_filter_buses: Dictionary = {}
+var cockpit_surface_reverbs: Dictionary = {}
 var view_engine_gain := 1.0
 var view_exhaust_gain := 1.0
 
@@ -232,6 +247,7 @@ func _ready() -> void:
 		EXHAUST_VOLUME_ACCELERATION,
 		true,
 	)
+	build_tyre_contact_players()
 	build_neutral_player()
 	build_surface_players()
 	build_impact_players()
@@ -268,6 +284,7 @@ func build_sample_layer(
 
 		var voice := SampleVoice.new()
 		voice.player = player
+		voice.mode = str(definition.get("mode", "drive"))
 		voice.reference_rpm = float(definition["reference"])
 		voice.lower_rpm = float(definition["lower"])
 		voice.upper_rpm = float(definition["upper"])
@@ -289,7 +306,7 @@ func load_looping_stream(path: String) -> AudioStream:
 
 
 # Contacto neutral/primera como one-shot (no loop): suena una sola vez por
-# flanco N<->1, con volumen segun RPM (lleno al ralenti, mudo por encima).
+# cada cambio confirmado, con presencia constante a cualquier RPM.
 func build_neutral_player() -> void:
 	var stream := load_event_stream(NEUTRAL_SAMPLE_PATH, NEUTRAL_SAMPLE_PATH.get_file().get_basename())
 	if stream == null:
@@ -305,14 +322,18 @@ func build_neutral_player() -> void:
 	add_child(neutral_player)
 
 
-func play_neutral_event() -> void:
+func shift_random_pitch(ascending: bool) -> float:
+	var semitones := randf_range(0.0, 2.0) * (1.0 if ascending else -1.0)
+	return pow(2.0, semitones / 12.0)
+
+
+func play_neutral_event(ascending: bool) -> void:
 	if neutral_player == null:
 		return
-	var presence := 1.0 - clunk_scale
-	if presence < 0.05:
-		return
-	neutral_player.volume_db = -11.0 + linear_to_db(maxf(presence, 0.001))
-	neutral_player.pitch_scale = 1.0
+	var bus_index := AudioServer.get_bus_index(neutral_player.bus)
+	var bus_db := AudioServer.get_bus_volume_db(bus_index) if bus_index >= 0 else 0.0
+	neutral_player.volume_db = 2.0 - bus_db if is_onboard_camera() else -11.0 + linear_to_db(0.75 * 0.85 * 2.0)
+	neutral_player.pitch_scale = shift_random_pitch(ascending)
 	neutral_player.play()
 
 
@@ -369,7 +390,7 @@ func build_impact_players() -> void:
 		land_player.stream = stream
 		land_player.position = LAND_POSITION
 		routing.route(land_player, IMPACT_LAND_PATHS[i].get_file().get_basename())
-		land_player.volume_db = LAND_VOLUME_DB[i] if i < LAND_VOLUME_DB.size() else -11.0
+		land_player.volume_db = (LAND_VOLUME_DB[i] if i < LAND_VOLUME_DB.size() else -11.0) + linear_to_db(0.75 * 0.75)
 		land_player.unit_size = 10.0
 		land_player.max_distance = 160.0
 		land_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
@@ -438,11 +459,11 @@ func _physics_process(delta: float) -> void:
 	if accepted_generation != int(packet.generation) or accepted_sequence != int(packet.sequence):
 		var target_gear := int(packet.get("gear", 1))
 		for event in acoustic.get("events", []):
-			if event == "neutral_first":
-				play_neutral_event()
-			elif event == "upshift":
+			if event == "upshift":
+				play_neutral_event(true)
 				play_upshift_event(target_gear)
 			elif event == "downshift":
+				play_neutral_event(false)
 				play_downshift_event(target_gear)
 			elif event == "backfire":
 				play_backfire_event(target_gear)
@@ -451,9 +472,10 @@ func _physics_process(delta: float) -> void:
 
 	if float(vehicle.body_contact_audio.get("landing_speed_ms", 0.0)) >= LAND_MIN_MS:
 		play_landing(vehicle)
-	elif float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) > vehicle.mass * 0.8:
+	elif float(vehicle.body_contact_audio.get("lateral_impulse_ns", 0.0)) > vehicle.mass * 0.8:
 		play_impact(vehicle)
 
+	update_tyre_contacts(delta)
 	update_surface_audio(packet, delta)
 
 	if scrape_player != null:
@@ -471,9 +493,15 @@ func _physics_process(delta: float) -> void:
 
 #352 vista (chase 0 / capo 1) conmuta el peso motor/escape como en CMR2.
 func update_cockpit_audio(delta: float) -> void:
-	var is_cockpit := camera_rig != null and int(camera_rig.get("camera_mode")) == 2
+	var is_cockpit := is_onboard_camera()
+	if not is_cockpit:
+		for player in onboard_upshift_players + onboard_downshift_players:
+			player.stop()
 	cockpit_audio_blend = lerpf(cockpit_audio_blend, 1.0 if is_cockpit else 0.0, 1.0 - exp(-delta / 0.15))
-	var players: Array = surface_players.values() + upshift_players + downshift_players
+	var players: Array = surface_players.values() + upshift_players + downshift_players + extra_upshift_players + extra_downshift_players + onboard_upshift_players + onboard_downshift_players
+	for voice in engine_voices:
+		if voice.mode == "idle":
+			players.append(voice.player)
 	if sand_impact_player != null:
 		players.append(sand_impact_player)
 	if neutral_player != null:
@@ -487,9 +515,20 @@ func update_cockpit_audio(delta: float) -> void:
 			filter.cutoff_hz = 20500.0
 			AudioServer.add_bus_effect(bus, filter)
 			cockpit_filter_buses[player.bus] = filter
-		var cutoff := 4000.0 if str(player.bus).begins_with("Rally:surface_") else 3500.0
+		var cutoff := 20500.0 if player == neutral_player else (2500.0 if player.bus == "Rally:e_stat" else (4800.0 if str(player.bus).begins_with("Rally:surface_") else 3500.0))
 		var effect: AudioEffectLowPassFilter = cockpit_filter_buses[player.bus]
 		effect.cutoff_hz = lerpf(20500.0, cutoff, cockpit_audio_blend)
+		if str(player.bus).begins_with("Rally:surface_"):
+			if not cockpit_surface_reverbs.has(player.bus):
+				var reverb := AudioEffectReverb.new()
+				reverb.room_size = 0.35
+				reverb.damping = 0.6
+				reverb.dry = 1.0
+				reverb.wet = 0.0
+				AudioServer.add_bus_effect(bus, reverb)
+				cockpit_surface_reverbs[player.bus] = reverb
+			var reverb: AudioEffectReverb = cockpit_surface_reverbs[player.bus]
+			reverb.wet = 0.18 * cockpit_audio_blend
 
 
 func update_view_balance() -> void:
@@ -542,6 +581,11 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 			if exhaust_crackle_s > 0.0:
 				gain *= 1.0 + float(exhaust_cfg.get("crackle_gain", 0.1)) * (exhaust_crackle_s / 0.12)
 
+		# Equal-power transition between loaded and coast recordings.
+		if voice.mode == "coast":
+			gain *= sqrt(1.0 - throttle) * smoothstep(packet_rpm_idle, packet_rpm_idle * 1.7, revolutions)
+		elif voice.mode == "drive":
+			gain *= sqrt(throttle)
 		voice.layer_level = lerpf(voice.layer_level, gain, volume_smoothing)
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
 		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain
@@ -554,17 +598,33 @@ func sample_weight(revolutions: float, reference: float, lower: float, upper: fl
 	return clampf((upper - revolutions) / maxf(upper - reference, 1.0), 0.0, 1.0)
 
 
-func play_upshift_event(target_gear: int) -> void:
-	upshift_rr_index = _trigger_gear_clunk(upshift_players, target_gear, upshift_rr_index, true)
+func play_upshift_event(_target_gear: int) -> void:
+	if extra_upshift_players.is_empty() or clunk_scale < 0.05 or upshift_cooldown > 0.0:
+		return
+	upshift_rr_index += 1
+	play_extra_shift(extra_upshift_players, upshift_rr_index, true)
+	upshift_cooldown = UPSHIFT_RETRIGGER_SECONDS
 
 
-func play_downshift_event(target_gear: int) -> void:
-	downshift_rr_index = _trigger_gear_clunk(
-		downshift_players,
-		target_gear,
-		downshift_rr_index,
-		false,
-	)
+func play_downshift_event(_target_gear: int) -> void:
+	if extra_downshift_players.is_empty() or clunk_scale < 0.05 or downshift_cooldown > 0.0:
+		return
+	downshift_rr_index += 1
+	play_extra_shift(extra_downshift_players, downshift_rr_index, false)
+	downshift_cooldown = DOWNSHIFT_RETRIGGER_SECONDS
+
+
+func is_onboard_camera() -> bool:
+	return camera_rig != null and int(camera_rig.get("camera_mode")) == 2
+
+
+func play_extra_shift(players: Array[AudioStreamPlayer3D], sequence: int, ascending: bool) -> void:
+	if players.is_empty():
+		return
+	var player := players[(sequence - 1) % players.size()]
+	player.pitch_scale = shift_random_pitch(ascending)
+	player.volume_db = -20.0 + linear_to_db(0.75 * 0.85 * 0.85 * maxf(clunk_scale, 0.001))
+	player.play()
 
 
 func _trigger_gear_clunk(
@@ -582,7 +642,7 @@ func _trigger_gear_clunk(
 
 	# Variante fijada por la marcha destino (1 -> primera, 2 -> segunda, 3+ -> tercera):
 	# el up siempre suena a up y el down a down, sin rotar entre tomas.
-	var player := players[clampi(target_gear - 1, 0, players.size() - 1)]
+	var player := players[rr_index % players.size()]
 
 	# Tensión mecánica por marcha + micro-jitter determinista para evitar repetición robótica
 	var gear_pitch_offset := float(clampi(target_gear, 1, 6) - 3) * 0.022
@@ -594,7 +654,7 @@ func _trigger_gear_clunk(
 	var load_stress := absf(float(acoustic.get("load", 0.5)))
 	var dynamic_force := lerpf(0.65, 1.18, rpm_norm * 0.65 + load_stress * 0.35)
 
-	player.volume_db = -20.0 + linear_to_db(maxf(clunk_scale * dynamic_force, 0.001))
+	player.volume_db = -20.0 + linear_to_db(0.75 * maxf(clunk_scale * dynamic_force, 0.001))
 	player.play()
 
 	if is_upshift:
@@ -651,7 +711,7 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 			var selected := strongest if surface_map[surface].has(strongest) else "skid"
 			if role == selected:
 				target = float(roles.get(strongest, 0.0)) * 0.135
-		target *= lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+		target *= 0.75 * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
 		var player: AudioStreamPlayer3D = surface_players[key]
 		player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
 		player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, float(state.roll_pitch if role == "roll" else state.slip_pitch), delta, 0.12)
@@ -666,7 +726,7 @@ func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> v
 	if sand_impact_cooldown > 0.0 or sand_impact_player.playing:
 		return
 	var presence := smoothstep(12.0, 70.0, speed_kph) * sand_share * float(state.load_factor)
-	sand_impact_player.volume_linear = 0.10 * presence * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+	sand_impact_player.volume_linear = 0.075 * presence * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
 	sand_impact_player.pitch_scale = randf_range(0.92, 1.08)
 	sand_impact_player.play()
 	sand_impact_cooldown = randf_range(0.85, 1.50)
@@ -693,9 +753,9 @@ func play_landing(_other_body: Node) -> void:
 func play_impact(_other_body: Node) -> void:
 	if impact_cooldown > 0.0:
 		return
-	if float(vehicle.body_contact_audio.get("impulse_ns", 0.0)) <= vehicle.mass * 0.8:
+	if float(vehicle.body_contact_audio.get("lateral_impulse_ns", 0.0)) <= vehicle.mass * 0.8:
 		return
-	var speed_kph := float(vehicle.body_contact_audio.get("impact_speed_kph", 0.0))
+	var speed_kph := float(vehicle.body_contact_audio.get("lateral_speed_kph", 0.0))
 	if speed_kph < IMPACT_MIN_KPH:
 		return
 	var players := impact_small_players
@@ -707,7 +767,7 @@ func play_impact(_other_body: Node) -> void:
 		return
 	var player := players[impact_index % players.size()]
 	impact_index += 1
-	var local := vehicle.body_contact_audio.get("impact_position", Vector3.ZERO) as Vector3
+	var local := vehicle.body_contact_audio.get("lateral_position", Vector3.ZERO) as Vector3
 	player.position = Vector3(
 		clampf(local.x, -IMPACT_POSITION_CLAMP.x, IMPACT_POSITION_CLAMP.x),
 		clampf(local.y, -IMPACT_POSITION_CLAMP.y, IMPACT_POSITION_CLAMP.y),
@@ -721,25 +781,6 @@ func play_impact(_other_body: Node) -> void:
 func build_auxiliary_audio() -> void:
 	scrape_player = continuous_player("res://sounds/banks/commons/impact_scrape.wav")
 	limiter_player = build_limiter_player()
-	# 2 voces por variante en cambios para no cortar la cola de resonancia en rebajes rápidos
-	build_event_voice_pool(
-		upshift_players,
-		GEAR_UP_PATHS,
-		SHIFT_EVENT_POSITION,
-		-11.0,
-		12.0,
-		80.0,
-		2,
-	)
-	build_event_voice_pool(
-		downshift_players,
-		GEAR_DOWN_PATHS,
-		SHIFT_EVENT_POSITION,
-		-11.0,
-		12.0,
-		80.0,
-		2,
-	)
 	build_event_voice_pool(
 		backfire_players,
 		BACKFIRE_SAMPLE_PATHS,
@@ -749,6 +790,8 @@ func build_auxiliary_audio() -> void:
 		160.0,
 		1,
 	)
+	build_event_voice_pool(extra_upshift_players, ["res://sounds/banks/commons/f2002_gearup.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
+	build_event_voice_pool(extra_downshift_players, ["res://sounds/banks/commons/f2002_geardn.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
 	build_whine_voices()
 	build_retention_voices()
 
@@ -757,6 +800,7 @@ func build_auxiliary_audio() -> void:
 func build_whine_voices() -> void:
 	var defs := [
 		[GEAR_WHINE_PATH, SHIFT_EVENT_POSITION],
+		[GEAR_WHINE_HIGH_PATH, SHIFT_EVENT_POSITION],
 	]
 	for entry in defs:
 		var stream := load_looping_stream(str(entry[0]))
@@ -785,50 +829,27 @@ func update_whine_audio(smoothing: float) -> void:
 	# y cae a un leve arrastre inercial cuando se pisa el embrague (clutch_open == true)
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
 	var torque_stress := absf(float(acoustic.get("load", 0.0)))
-	var target := (0.004 + 0.014 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
+	var target := 0.75 * (0.004 + 0.014 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
 	for index in whine_players.size():
 		var player := whine_players[index]
 		player.pitch_scale = clampf(shaft / 30.0, 0.5, 3.5)
-		player.volume_linear = lerpf(player.volume_linear, target, smoothing)
+		var high_weight := smoothstep(20.0, 70.0, shaft)
+		var band_weight := sqrt(1.0 - high_weight) if index == 0 else sqrt(high_weight)
+		player.volume_linear = lerpf(player.volume_linear, target * band_weight, smoothing)
 		player.stream_paused = player.volume_linear < 0.00001
 
 
-# Retención complementaria, fuera del ralentí.
+# Five RPM layers for closed-throttle engine and exhaust, replacing CMR2 retention.
 func build_retention_voices() -> void:
-	retention_front_player = build_retention_voice(COS_RETENTION_FRONT, Vector3(0.0, 0.55, -0.8))
-	retention_rear_player = build_retention_voice(COS_RETENTION_REAR, BACKFIRE_POSITION)
-
-
-func build_retention_voice(path: String, local_position: Vector3) -> AudioStreamPlayer3D:
-	var stream := load_looping_stream(path)
-	if stream == null:
-		return null
-	var player := AudioStreamPlayer3D.new()
-	player.stream = stream
-	player.position = local_position
-	routing.route(player, path.get_file().get_basename())
-	player.volume_linear = 0.0
-	player.unit_size = 8.0
-	player.max_distance = 160.0
-	player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
-	add_child(player)
-	player.play()
-	return player
+	build_sample_layer(COAST_ENGINE_DEFINITIONS, coast_engine_voices, Vector3(0.0, 0.55, -0.8), 4.5, 400.0, ENGINE_VOLUME_BASE, ENGINE_VOLUME_ACCELERATION, false)
+	build_sample_layer(COAST_EXHAUST_DEFINITIONS, coast_exhaust_voices, BACKFIRE_POSITION, 6.0, 1030.0, EXHAUST_VOLUME_BASE, EXHAUST_VOLUME_ACCELERATION, true)
+	play_layer(coast_engine_voices)
+	play_layer(coast_exhaust_voices)
 
 
 func update_retention_audio(smoothing: float) -> void:
-	var rpm_presence := smoothstep(packet_rpm_idle * 1.5, packet_rpm_idle * 3.0, float(acoustic.get("rpm", 0.0)))
-	var lift := (1.0 - clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)) * rpm_presence
-	var ret_pitch := clampf(smoothed_revolutions / 4000.0, 0.5, 2.0)
-	if retention_front_player != null:
-		retention_front_player.pitch_scale = ret_pitch
-		retention_front_player.volume_linear = lerpf(retention_front_player.volume_linear, lift * RETENTION_FRONT_GAIN * view_engine_gain, smoothing)
-		retention_front_player.stream_paused = retention_front_player.volume_linear < 0.00001
-	if retention_rear_player != null:
-		retention_rear_player.pitch_scale = ret_pitch
-		retention_rear_player.volume_linear = lerpf(retention_rear_player.volume_linear, lift * RETENTION_REAR_GAIN * view_exhaust_gain, smoothing)
-		retention_rear_player.stream_paused = retention_rear_player.volume_linear < 0.00001
+	update_layer(coast_engine_voices, smoothed_revolutions, smoothing)
+	update_layer(coast_exhaust_voices, smoothed_revolutions, smoothing)
 
 
 func build_event_voice_pool(
@@ -936,3 +957,41 @@ func layer_weights(voices: Array[SampleVoice], revolutions: float) -> Array[floa
 	elif not weights.is_empty():
 		weights[nearest] = 1.0
 	return weights
+
+
+# Per-wheel upward velocity change is an effective vertical impact proxy.
+# 0.6 m/s rejects road chatter; 4 m/s opens the LPF fully. Local calibration.
+func build_tyre_contact_players() -> void:
+	for i in 4:
+		var player := AudioStreamPlayer3D.new()
+		player.stream = load_event_stream("res://sounds/banks/commons/tyre_contact.wav", "tyre_contact")
+		player.unit_size = 8.0
+		player.max_distance = 90.0
+		player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		routing.route(player, "tyre_contact_wheel_" + str(i))
+		var filter := AudioEffectLowPassFilter.new()
+		filter.cutoff_hz = 1200.0
+		AudioServer.add_bus_effect(AudioServer.get_bus_index(player.bus), filter)
+		add_child(player)
+		tyre_contact_players.append(player)
+		tyre_contact_filters.append(filter)
+		tyre_previous_velocity.append(0.0)
+		tyre_contact_cooldowns.append(0.3)
+
+
+func update_tyre_contacts(delta: float) -> void:
+	for i in tyre_contact_players.size():
+		var hub: RigidBody3D = vehicle.simulation.unsprung_rig.hubs[i]
+		var speed := hub.linear_velocity.y
+		var impact := maxf(speed - tyre_previous_velocity[i] - 9.81 * delta, 0.0)
+		tyre_previous_velocity[i] = speed
+		tyre_contact_cooldowns[i] = maxf(tyre_contact_cooldowns[i] - delta, 0.0)
+		var player := tyre_contact_players[i]
+		player.global_position = hub.global_position
+		if not vehicle.simulation.suspension_model.contact_active[i] or impact < 0.6 or tyre_contact_cooldowns[i] > 0.0:
+			continue
+		var strength := clampf((impact - 0.6) / 3.4, 0.0, 1.0)
+		player.volume_linear = lerpf(0.09375, 1.3125, strength)
+		tyre_contact_filters[i].cutoff_hz = lerpf(1200.0, 20500.0, strength)
+		player.play()
+		tyre_contact_cooldowns[i] = 0.12

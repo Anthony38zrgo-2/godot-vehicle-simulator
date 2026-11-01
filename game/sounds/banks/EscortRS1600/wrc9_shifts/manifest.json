@@ -1,0 +1,230 @@
+{
+  "source": "D:\\SteamLibrary\\steamapps\\common\\WRC 9 FIA World Rally Championship\\WIN32\\Sounds\\VEHICLES\\EscortMKII1800.bank",
+  "samples": [
+    {
+      "file": "P206_onboard_shift11.wav",
+      "source_name": "P206_onboard_shift11",
+      "subsong": 1,
+      "role": "onboard_up",
+      "sha256": "26f890ac1a9fa3c08c972a1a59eed28cf7505dc3f0974220efac86231162fe2b"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_downshift_01.wav",
+      "source_name": "M3E30R cockpit gear downshift 01",
+      "subsong": 5,
+      "role": "onboard_down",
+      "sha256": "f879b5a69dc8885eee1f47788a31163b02d5f17ce266ac5ed1af61de12d403f6"
+    },
+    {
+      "file": "gearbox_force02.wav",
+      "source_name": "gearbox_force02",
+      "subsong": 7,
+      "role": "up",
+      "sha256": "254aaee257829ab856d816ab0cc9174a8864d1f0cb250f16434a00e7004e3977"
+    },
+    {
+      "file": "gearbox_force01.wav",
+      "source_name": "gearbox_force01",
+      "subsong": 13,
+      "role": "up",
+      "sha256": "36f029add93778df28fbe04144b866d17c9c8746ee6790ab0c9e7a581b91945c"
+    },
+    {
+      "file": "P206_onboard_shift08.wav",
+      "source_name": "P206_onboard_shift08",
+      "subsong": 14,
+      "role": "onboard_up",
+      "sha256": "ecef0ac65c1185490f906233aec5fef66cd71d76369d3366789adbb5e23ab39c"
+    },
+    {
+      "file": "P206_onboard_shift07.wav",
+      "source_name": "P206_onboard_shift07",
+      "subsong": 15,
+      "role": "onboard_up",
+      "sha256": "4c60cbf329ba6f80d50b17a768a2d60d4e668b4af848d2140b29d53c59ed53d2"
+    },
+    {
+      "file": "gear_down02.wav",
+      "source_name": "gear_down02",
+      "subsong": 16,
+      "role": "down",
+      "sha256": "8416717734cb4d6e50e9ef097041bdf07a60ec57d58e0e0012a733a8af8e09d2"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_03.wav",
+      "source_name": "M3E30R cockpit gear shift 03",
+      "subsong": 19,
+      "role": "onboard_up",
+      "sha256": "d3571961690f5442a3bb1c10cb282c1656039f581fb0e3fb9deed3946770ec42"
+    },
+    {
+      "file": "P206_onboard_shift04.wav",
+      "source_name": "P206_onboard_shift04",
+      "subsong": 22,
+      "role": "onboard_up",
+      "sha256": "441d520d276d8069cc197d05a6e7bb73817f6df95241e767671461ab34c0beeb"
+    },
+    {
+      "file": "P206_onboard_shift14.wav",
+      "source_name": "P206_onboard_shift14",
+      "subsong": 30,
+      "role": "onboard_up",
+      "sha256": "d87f2a46d34382c34fe7b57fb8ab23f66aebd8ee7a76a51a94686ddfbcbcec0f"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_06.wav",
+      "source_name": "M3E30R cockpit gear shift 06",
+      "subsong": 33,
+      "role": "onboard_up",
+      "sha256": "90c16cb6dcaa64a67d5400fd6e41ba92103b50cf2b0e188f4cd5134a99ff01a5"
+    },
+    {
+      "file": "P206_onboard_shift02.wav",
+      "source_name": "P206_onboard_shift02",
+      "subsong": 36,
+      "role": "onboard_up",
+      "sha256": "190ed52de59758c65f777fde854944a46d0fc2017d434eff6c7a2915ca17d061"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_05.wav",
+      "source_name": "M3E30R cockpit gear shift 05",
+      "subsong": 43,
+      "role": "onboard_up",
+      "sha256": "2bd5d98f09ce1edc3356a3eafc9166c149282200f5cd884756e5c1d12d78ac61"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_downshift_04.wav",
+      "source_name": "M3E30R cockpit gear downshift 04",
+      "subsong": 45,
+      "role": "onboard_down",
+      "sha256": "9477138c05d185bb6bdaf8cc7f0e0a00065f9e99772ea671dca3f2ef03743814"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_04.wav",
+      "source_name": "M3E30R cockpit gear shift 04",
+      "subsong": 50,
+      "role": "onboard_up",
+      "sha256": "7834b2854cf2f80375808ec8ac22ace5992f37eaa7ac8eddeead3eaa9c47fab4"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_downshift_02.wav",
+      "source_name": "M3E30R cockpit gear downshift 02",
+      "subsong": 52,
+      "role": "onboard_down",
+      "sha256": "98141f194496f0757b6a11043deee225f64389d7ae33d64a69dae9c5e54c01fd"
+    },
+    {
+      "file": "gear_down01.wav",
+      "source_name": "gear_down01",
+      "subsong": 53,
+      "role": "down",
+      "sha256": "e52525793043690a005460370cda83d965ab1da8c99db6911a66af2dfbca84a1"
+    },
+    {
+      "file": "P206_onboard_shift06.wav",
+      "source_name": "P206_onboard_shift06",
+      "subsong": 61,
+      "role": "onboard_up",
+      "sha256": "bc53ed5e8f345437e356e7952e1ad981fee35b7f33193f5f5c349f020c10d4a0"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_01.wav",
+      "source_name": "M3E30R cockpit gear shift 01",
+      "subsong": 62,
+      "role": "onboard_up",
+      "sha256": "54ee1f67fc70f544360c36a2419d81da4a6b319c779bfe53b3f186457d12a785"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_shift_02.wav",
+      "source_name": "M3E30R cockpit gear shift 02",
+      "subsong": 69,
+      "role": "onboard_up",
+      "sha256": "21d4907ed0cb6429539c3dacccd9af4fae5d670853be76d756eb3751fcd52c04"
+    },
+    {
+      "file": "gearbox_force03.wav",
+      "source_name": "gearbox_force03",
+      "subsong": 70,
+      "role": "up",
+      "sha256": "7cd10ed9baafa704130d50481b660aee6ac9df9ae18325a66ace4f8c5ceeab40"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_downshift_05.wav",
+      "source_name": "M3E30R cockpit gear downshift 05",
+      "subsong": 86,
+      "role": "onboard_down",
+      "sha256": "dc862125af61faa08d0e35e8f3f711f5d7069aadb291ee6ccbba9f01b7d58212"
+    },
+    {
+      "file": "P206_onboard_shift05.wav",
+      "source_name": "P206_onboard_shift05",
+      "subsong": 89,
+      "role": "onboard_up",
+      "sha256": "85f514cb34a8b07e6705fef29138572f68b6c4e6cacc434efbaaea01d893cf79"
+    },
+    {
+      "file": "P206_onboard_shift10.wav",
+      "source_name": "P206_onboard_shift10",
+      "subsong": 92,
+      "role": "onboard_up",
+      "sha256": "a519bfde2870fad2efab3c6cedaf4869d3c93362917e3fda7020e24ed630d6e5"
+    },
+    {
+      "file": "gear_down03.wav",
+      "source_name": "gear_down03",
+      "subsong": 97,
+      "role": "down",
+      "sha256": "297e2ca0506dd8e79b4a7da8c0348efdad4cfe37c6a2742e5df0ba5bade952a3"
+    },
+    {
+      "file": "P206_onboard_shift01.wav",
+      "source_name": "P206_onboard_shift01",
+      "subsong": 100,
+      "role": "onboard_up",
+      "sha256": "67f660eed89dce76bcf595eb8ce182658202ee61f059f00569fefd88a3fed2be"
+    },
+    {
+      "file": "M3E30R_cockpit_gear_downshift_03.wav",
+      "source_name": "M3E30R cockpit gear downshift 03",
+      "subsong": 108,
+      "role": "onboard_down",
+      "sha256": "f2d57ebd69fc8ece267714f127784e33048a810866f6d5c533335f66789d7f69"
+    },
+    {
+      "file": "P206_onboard_shift03.wav",
+      "source_name": "P206_onboard_shift03",
+      "subsong": 109,
+      "role": "onboard_up",
+      "sha256": "b295099c46e67f0194954c14a3009e02153290e234cd37ff75746b2d3fe33e53"
+    },
+    {
+      "file": "P206_onboard_shift13.wav",
+      "source_name": "P206_onboard_shift13",
+      "subsong": 112,
+      "role": "onboard_up",
+      "sha256": "b24b2ba8bfe1395513793a355a7c835ec3b75e5f27d8d233326b5d3cb5a13c35"
+    },
+    {
+      "file": "gearbox_force04.wav",
+      "source_name": "gearbox_force04",
+      "subsong": 113,
+      "role": "up",
+      "sha256": "9c5df7c398ab979fb56c611e8549b5f21ad67df6b0648a1f726816f24cb68f74"
+    },
+    {
+      "file": "P206_onboard_shift12.wav",
+      "source_name": "P206_onboard_shift12",
+      "subsong": 114,
+      "role": "onboard_up",
+      "sha256": "3ffc2e845ef39388ee4a08da71bfd56f95411631c8cdc244ebdf93c63e34577f"
+    },
+    {
+      "file": "P206_onboard_shift09.wav",
+      "source_name": "P206_onboard_shift09",
+      "subsong": 120,
+      "role": "onboard_up",
+      "sha256": "57205b80c30a230721b215462a0e1f4e253e6caa69fa3bbcf5c2fecbdd675077"
+    }
+  ],
+  "policy": "Decoded PCM16 via vgmstream; roles inferred from names. gearbox_force used as exterior upshift mechanical layer; onboard/cockpit restricted to camera 2."
+}

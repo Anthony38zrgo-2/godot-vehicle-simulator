@@ -374,6 +374,35 @@
         "source_sha256": "2ed935b08d633d5179c08336b71e733524f42c1f5d47d03c2072f1b89e22d0fc",
         "tool_revision": 1
       }
+    },
+    {
+      "file": "f2002_gearup.wav",
+      "role": "gearbox_upshift",
+      "sha256": "f656d22c4b161d16e70bda277066246b99e73d83d0dd5833fa5c2d63ae9d0657",
+      "duration_s": 0.2960770975056689,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\gearup.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16
+    },
+    {
+      "file": "f2002_geardn.wav",
+      "role": "gearbox_downshift",
+      "sha256": "421a7136b22b1624fda39fe9c0540de73b8a9b8c170e328bc44c4db44e09ee3e",
+      "duration_s": 0.19376417233560092,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\geardn.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16
+    },
+    {
+      "file": "tyre_contact.wav",
+      "role": "wheel_vertical_impact",
+      "loop": false,
+      "sha256": "f878e0e70b8be140d7755a3419dde1dc5f3dff59fb8326681e6af1161ed321a5",
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\tyre_contact.wav"
     }
   ],
   "generator": "commons bank with Rush Rally 3 car-contact collisions (speed-tiered), gear clunks, neutral contact, limiter and underfloor scrape; rolling surfaces moved to sounds/banks/surfaces",
