@@ -8,6 +8,13 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 @export var rally_profile_path: String = PROFILE_PATH
 @export var asset_manifest_path: String = ASSET_MANIFEST_PATH
 @export var rally_collision_path: String = COLLISION_PATH
+@export_group("Dreamcast Vehicle Aesthetics")
+@export var dreamcast_car_visuals: bool = true
+@export var dc_enable_blob_shadow: bool = true
+@export var dc_blob_shadow_size: Vector2 = Vector2(1.95, 4.35)
+@export var dc_blob_shadow_opacity: float = 0.78
+
+var _blob_shadow_decal: Decal = null
 
 var simulation := FordRallyVehicleSimulation.new()
 var rally_profile: Dictionary = {}
@@ -107,6 +114,8 @@ func _ready() -> void:
 	apply_vehicle_properties()
 	build_collision_shapes(collision_document)
 	bind_wheel_visuals()
+	if dreamcast_car_visuals:
+		_apply_dreamcast_vehicle_visuals()
 	simulation.create_wheel_contact_casts(self)
 	add_to_group("rally_vehicle")
 	contact_monitor = true
@@ -488,3 +497,44 @@ func _load_json_document(path: String) -> Dictionary:
 
 func get_presentation_snapshot() -> Dictionary:
 	return simulation.published_state.duplicate(true)
+
+
+func _apply_dreamcast_vehicle_visuals() -> void:
+	# Unica parte activa del pipeline visual: sombra blob bajo el chasis.
+	# El coche va en la capa 2 para que el Decal (capa 1) no se proyecte sobre el propio coche.
+	_set_vehicle_layers(self)
+	if dc_enable_blob_shadow:
+		_create_blob_shadow()
+	print("RALLY_VEHICLE_BLOB_SHADOW_READY")
+
+
+func _set_vehicle_layers(node: Node) -> void:
+	if node is VisualInstance3D:
+		(node as VisualInstance3D).layers = 2
+	for child in node.get_children():
+		_set_vehicle_layers(child)
+
+
+func _create_blob_shadow() -> void:
+	# Sombra suave bajo el chasis. Solo proyecta sobre la capa 1 (terreno); el coche esta en la capa 2.
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	for y in 64:
+		var ny := (float(y) / 63.0) * 2.0 - 1.0
+		for x in 64:
+			var nx := (float(x) / 63.0) * 2.0 - 1.0
+			# Silueta de chasis con esquinas redondeadas
+			var dist := pow(absf(nx), 2.4) + pow(absf(ny), 3.2)
+			var alpha := clampf(1.0 - dist, 0.0, 1.0)
+			alpha = smoothstep(0.0, 1.0, alpha) * dc_blob_shadow_opacity
+			img.set_pixel(x, y, Color(0.0, 0.0, 0.0, alpha))
+
+	var shadow_tex := ImageTexture.create_from_image(img)
+	_blob_shadow_decal = Decal.new()
+	_blob_shadow_decal.name = "DreamcastBlobShadow"
+	_blob_shadow_decal.size = Vector3(dc_blob_shadow_size.x, 1.8, dc_blob_shadow_size.y)
+	_blob_shadow_decal.position = Vector3(0.0, -0.35, 0.0)
+	_blob_shadow_decal.texture_albedo = shadow_tex
+	_blob_shadow_decal.upper_fade = 0.05
+	_blob_shadow_decal.lower_fade = 0.35
+	_blob_shadow_decal.cull_mask = 1
+	add_child(_blob_shadow_decal)

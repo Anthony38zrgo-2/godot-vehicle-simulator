@@ -3,9 +3,33 @@
   "vehicle_id": "ford_escort_rs2000_1971",
   "source": {
     "repository": "D:/open-formula",
-    "blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971.blend",
-    "blend_sha256": "ea058c708b01a32218768167dee36f3bf5cc752563741e1ac049607e35506078",
-    "blender_version": "5.2.0 LTS"
+    "blend": "D:/games/rally-throphy/exports_flatout/ford-escort-rs2000/ford_escort_rs2000_occupants.blend",
+    "blend_sha256": "74e183e1f91111cb5041965f8069636cb116803faf53eda6904d7ded6048d43a",
+    "blender_version": "5.2.0 LTS",
+    "occupants_glb": "D:/games/rally-throphy/exports_flatout/ford-escort-rs2000/ford_escort_rs2000_occupants.glb",
+    "occupants_note": "Driver/co-driver/arms (19 steering morph targets per arm, frame09 neutral) merged from the validated occupants GLB built by exports_flatout/build_scenes.py; lights/ext_pipe hidden per the same filter. Rear tub, side glass, window and roof liner cut from interior_lo (y<=-0.44, hi cockpit covers the front) to close the rear cockpit; the original has no separate seat meshes, the lo tub carries the seat shapes. Two complete original seats subsequently recovered directly from car_12.bzf/model.BMF/interior_lo, preserving original UVs and texture; exported as seat_driver and seat_co_driver.",
+    "base_blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971.blend",
+    "seats": {
+      "archive": "D:/games/rally-throphy/Program Files/JoWooD/Rally Trophy/Data/Cars/car_12.bzf",
+      "mesh": "model.BMF/interior_lo",
+      "texture": "interior_lo.tga",
+      "objects": [
+        "seat_driver",
+        "seat_co_driver"
+      ],
+      "triangles_per_seat": 44,
+      "sprung_offset_metres": 0.1,
+      "generator": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/integrate_original_seats.py"
+    },
+    "runtime_blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971_with_seats.blend",
+    "runtime_blend_sha256": "d41dfdca35604eaff99d1919fefaaf7dc2bd779ce0cd0440db967c9e9a74fc57",
+    "arm_animation": {
+      "poses_per_arm": 19,
+      "neutral_pose": 9,
+      "morph_targets": "steer_00 through steer_18",
+      "source": "driver1.bzf/arm_left_lo.BMF + arm_right_lo.BMF",
+      "generator": "D:/games/rally-throphy/exports_flatout/export_cockpit_animation.py"
+    }
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -18,8 +42,8 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "3f699c0a12d4e4d88591939ff7f28252197e1105a042ab8af72ebb5906ac4d84",
-    "size_bytes": 978264,
+    "sha256": "5ab5d293a36c8e225c23ffa148cf80b4fe9f45640eaf436783ec6f8a25f5abe8",
+    "size_bytes": 1575024,
     "source_objects": [
       "body",
       "hood",
@@ -27,34 +51,46 @@
       "interior_hi",
       "steering_wheel_hi",
       "wipers",
-      "ext_pipe01",
-      "light_front_left01",
-      "light_front_right01",
-      "light_rear_left",
-      "light_rear_right",
-      "light_brake_left",
-      "light_brake_right",
-      "light_reverse01",
       "indicator_rpm",
-      "indicator_speed"
+      "indicator_speed",
+      "Driver_driver_body",
+      "Driver_driver_head",
+      "co_Driver_Surface1",
+      "co_Driver_Surface2",
+      "co_Driver_co_driver_head",
+      "DriverArm_left_frame09",
+      "DriverArm_right_frame09",
+      "interior_rear_tub",
+      "interior_rear_side_left",
+      "interior_rear_side_right",
+      "interior_rear_window",
+      "interior_roof",
+      "seat_driver",
+      "seat_co_driver"
     ],
     "exported_nodes": [
       "body",
-      "ext_pipe01",
+      "co_Driver_Surface1",
+      "co_Driver_Surface2",
+      "co_Driver_co_driver_head",
+      "Driver_driver_body",
+      "Driver_driver_head",
+      "DriverArm_left_frame09",
+      "DriverArm_right_frame09",
       "hood",
       "indicator_rpm",
       "indicator_speed",
       "interior_hi",
-      "light_brake_left",
-      "light_brake_right",
-      "light_front_left01",
-      "light_front_right01",
-      "light_rear_left",
-      "light_rear_right",
-      "light_reverse01",
+      "interior_rear_side_left",
+      "interior_rear_side_right",
+      "interior_rear_tub",
+      "interior_rear_window",
+      "interior_roof",
       "steering_wheel_hi",
       "trunk",
-      "wipers"
+      "wipers",
+      "seat_driver",
+      "seat_co_driver"
     ]
   },
   "wheels": {
@@ -171,6 +207,16 @@
     "shadow_tire_fl",
     "shadow_tire_fr",
     "shadow_tire_rl",
-    "shadow_tire_rr"
+    "shadow_tire_rr",
+    "ext_pipe01",
+    "light_front_left01",
+    "light_front_right01",
+    "light_rear_left",
+    "light_rear_right",
+    "light_brake_left",
+    "light_brake_right",
+    "light_reverse01",
+    "interior_lo",
+    "steering_wheel_lo"
   ]
 }

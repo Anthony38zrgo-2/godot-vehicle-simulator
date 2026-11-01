@@ -153,33 +153,64 @@ func simulation_initial_tire_temperature() -> float:
 	return float(vehicle.simulation.thermal_model.tire_config.get("initial_temperature_c", vehicle.simulation.thermal_model.ambient_temperature_c))
 
 
+func _create_dc_material(color: Color) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
+	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	mat.roughness = 1.0
+	return mat
+
+
 func build_environment() -> void:
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_SKY
+
+	# Cielo estilo Sega Arcade (azul cobalto saturado arriba, cian luminoso en el horizonte)
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.28, 0.42, 0.58)
-	sky_material.sky_horizon_color = Color(0.7, 0.73, 0.74)
-	sky_material.ground_bottom_color = Color(0.18, 0.18, 0.16)
-	sky_material.ground_horizon_color = Color(0.45, 0.44, 0.38)
+	sky_material.sky_top_color = Color(0.08, 0.35, 0.82)
+	sky_material.sky_horizon_color = Color(0.65, 0.85, 0.98)
+	sky_material.ground_bottom_color = Color(0.22, 0.20, 0.18)
+	sky_material.ground_horizon_color = Color(0.65, 0.85, 0.98)
+	sky_material.sky_curve = 0.08
+
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.sky = sky
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	environment.ambient_light_energy = 0.72
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+
+	# Luz ambiental plana con color directo (evita el tinte PBR complejo del cielo)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.68, 0.72, 0.78)
+	environment.ambient_light_energy = 0.85
+
+	# CLAVE DREAMCAST: Tonemapper Lineal + ligero contraste duro
+	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	environment.tonemap_exposure = 1.05
+	environment.adjustment_enabled = true
+	environment.adjustment_contrast = 1.12
+	environment.adjustment_saturation = 1.25
+
+	# Table Fog de PowerVR2 (Niebla por profundidad lineal, no exponencial)
 	environment.fog_enabled = true
-	environment.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	environment.fog_light_color = Color(0.55, 0.58, 0.6)
-	environment.fog_density = 0.002
+	environment.fog_mode = Environment.FOG_MODE_DEPTH
+	environment.fog_light_color = Color(0.68, 0.82, 0.94)
+	environment.fog_light_energy = 1.0
+	environment.fog_depth_begin = 65.0
+	environment.fog_depth_end = 240.0
+	environment.fog_depth_curve = 1.0
+
 	var world_environment := WorldEnvironment.new()
 	world_environment.environment = environment
 	add_child(world_environment)
+
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52.0, -30.0, 0.0)
-	sun.light_color = Color(1.0, 0.9, 0.72)
-	sun.light_energy = 1.2
+	sun.light_color = Color(1.0, 0.96, 0.86)
+	sun.light_energy = 1.1
+	# Sombras mas suaves/claras para no generar manchas negras duras sobre geometria low-poly
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 180.0
+	sun.shadow_opacity = 0.55
+	sun.directional_shadow_max_distance = 120.0
 	add_child(sun)
 
 
@@ -204,10 +235,7 @@ func build_ground() -> void:
 	ground_mesh.size = Vector3(400.0, 2.0, 400.0)
 	ground_visual.mesh = ground_mesh
 	ground_visual.position = Vector3(0.0, -1.0, 0.0)
-	var ground_material := StandardMaterial3D.new()
-	ground_material.albedo_color = Color(0.34, 0.31, 0.24)
-	ground_material.roughness = 1.0
-	ground_visual.material_override = ground_material
+	ground_visual.material_override = _create_dc_material(Color(0.34, 0.31, 0.24))
 	add_child(ground_visual)
 	for lane_index in 21:
 		var lane := MeshInstance3D.new()
@@ -215,9 +243,7 @@ func build_ground() -> void:
 		lane_mesh.size = Vector3(0.06, 0.01, 300.0)
 		lane.mesh = lane_mesh
 		lane.position = Vector3(-20.0 + lane_index * 2.0, 0.005, 0.0)
-		var lane_material := StandardMaterial3D.new()
-		lane_material.albedo_color = Color(0.55, 0.52, 0.4)
-		lane.material_override = lane_material
+		lane.material_override = _create_dc_material(Color(0.55, 0.52, 0.4))
 		add_child(lane)
 	for stripe_index in 31:
 		var stripe := MeshInstance3D.new()
@@ -225,9 +251,7 @@ func build_ground() -> void:
 		stripe_mesh.size = Vector3(300.0, 0.01, 0.06)
 		stripe.mesh = stripe_mesh
 		stripe.position = Vector3(0.0, 0.005, -150.0 + stripe_index * 10.0)
-		var stripe_material := StandardMaterial3D.new()
-		stripe_material.albedo_color = Color(0.55, 0.52, 0.4)
-		stripe.material_override = stripe_material
+		stripe.material_override = _create_dc_material(Color(0.55, 0.52, 0.4))
 		add_child(stripe)
 
 
@@ -260,9 +284,7 @@ func build_tree(position: Vector3) -> void:
 	trunk_mesh.height = 4.2
 	trunk_visual.mesh = trunk_mesh
 	trunk_visual.position = Vector3(0.0, 2.1, 0.0)
-	var trunk_material := StandardMaterial3D.new()
-	trunk_material.albedo_color = Color(0.3, 0.19, 0.11)
-	trunk_visual.material_override = trunk_material
+	trunk_visual.material_override = _create_dc_material(Color(0.3, 0.19, 0.11))
 	tree_body.add_child(trunk_visual)
 	var foliage_visual := MeshInstance3D.new()
 	var foliage_mesh := SphereMesh.new()
@@ -270,9 +292,7 @@ func build_tree(position: Vector3) -> void:
 	foliage_mesh.height = 4.4
 	foliage_visual.mesh = foliage_mesh
 	foliage_visual.position = Vector3(0.0, 5.0, 0.0)
-	var foliage_material := StandardMaterial3D.new()
-	foliage_material.albedo_color = Color(0.18, 0.38, 0.18)
-	foliage_visual.material_override = foliage_material
+	foliage_visual.material_override = _create_dc_material(Color(0.18, 0.38, 0.18))
 	tree_body.add_child(foliage_visual)
 	add_child(tree_body)
 
@@ -297,9 +317,7 @@ func build_box(position: Vector3, size: Vector3, color: Color) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	visual.mesh = mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	visual.material_override = material
+	visual.material_override = _create_dc_material(color)
 	body.add_child(visual)
 	add_child(body)
 
@@ -321,9 +339,7 @@ func build_ramp(position: Vector3) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(8.0, 0.3, 12.0)
 	visual.mesh = mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.42, 0.38, 0.3)
-	visual.material_override = material
+	visual.material_override = _create_dc_material(Color(0.42, 0.38, 0.3))
 	body.add_child(visual)
 	add_child(body)
 

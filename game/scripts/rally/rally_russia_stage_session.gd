@@ -28,18 +28,24 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var sky3d_fog_end: float = 3000.0
 @export var couple_clouds_to_weather: bool = true
 @export var sky3d_precipitation_cloud_coverage: float = 0.92
+@export_group("Dreamcast Aesthetics")
+@export var dreamcast_visual_mode: bool = true
+@export var dc_fog_begin: float = 55.0
+@export var dc_fog_end: float = 230.0
+@export var dc_fog_color_day: Color = Color(0.62, 0.68, 0.74)
 @export_group("Sky3D Brillo")
-@export var sky3d_ambient_sky_contribution: float = 0.5
-@export var sky3d_ambient_energy: float = 0.65
-@export var sky3d_sun_energy: float = 0.8
-@export var sky3d_skydome_energy: float = 0.9
-@export var sky3d_atm_sun_intensity: float = 9.0
-@export var sky3d_camera_exposure: float = 0.92
-@export var sky3d_sun_shadow_opacity: float = 0.75
+# Bajamos el aporte del cielo a 0.15 para evitar que Sky3D tina el suelo con PBR moderno
+@export var sky3d_ambient_sky_contribution: float = 0.15
+@export var sky3d_ambient_energy: float = 0.85
+@export var sky3d_sun_energy: float = 0.95
+@export var sky3d_skydome_energy: float = 0.85
+@export var sky3d_atm_sun_intensity: float = 6.0
+@export var sky3d_camera_exposure: float = 1.0
+@export var sky3d_sun_shadow_opacity: float = 0.45
 @export_group("Sky3D Color")
-@export var sky3d_adjustment_saturation: float = 1.22
-@export var sky3d_adjustment_contrast: float = 1.02
-@export var sky3d_adjustment_brightness: float = 1.0
+@export var sky3d_adjustment_saturation: float = 1.30
+@export var sky3d_adjustment_contrast: float = 1.14
+@export var sky3d_adjustment_brightness: float = 1.02
 @export_group("TCA")
 @export var tca_wind_speed: float = 4.0
 @export var tca_wind_direction_degrees: float = 35.0
@@ -165,10 +171,21 @@ func _build_sky3d(script_path: String) -> bool:
 	sky_node.set("game_time_enabled", true)
 	var environment: Environment = sky_node.get("environment")
 	if environment != null:
-		# La niebla y la atmosfera las aporta Sky3D (SkyDome); se apagan las de Godot.
-		environment.fog_enabled = false
 		environment.volumetric_fog_enabled = false
-		environment.fog_sky_affect = 0.0
+		if dreamcast_visual_mode:
+			# Gama cromatica lineal de finales de los 90 (sin compresion filmica)
+			environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+			# Table Fog lineal de Godot por encima de la niebla atmosferica de Sky3D
+			environment.fog_enabled = true
+			environment.fog_mode = Environment.FOG_MODE_DEPTH
+			environment.fog_light_color = dc_fog_color_day
+			environment.fog_depth_begin = dc_fog_begin
+			environment.fog_depth_end = dc_fog_end
+			environment.fog_depth_curve = 1.0
+			environment.fog_sky_affect = 0.35
+		else:
+			environment.fog_enabled = false
+			environment.fog_sky_affect = 0.0
 		# Gradado de color: sube la saturacion para que suelo y vegetacion no se vean opacos.
 		environment.adjustment_enabled = true
 		environment.adjustment_saturation = sky3d_adjustment_saturation
@@ -177,7 +194,7 @@ func _build_sky3d(script_path: String) -> bool:
 	var sun := sky_node.get("sun") as DirectionalLight3D
 	if sun != null:
 		sun.shadow_enabled = true
-		sun.directional_shadow_max_distance = 280.0
+		sun.directional_shadow_max_distance = 140.0 if dreamcast_visual_mode else 280.0
 		sun.shadow_opacity = sky3d_sun_shadow_opacity
 	var moon := sky_node.get("moon") as DirectionalLight3D
 	if moon != null:
@@ -188,7 +205,8 @@ func _build_sky3d(script_path: String) -> bool:
 		weather_sky_dome.set("cumulus_coverage", sky3d_cumulus_coverage)
 		weather_sky_dome.set("cumulus_intensity", sky3d_cumulus_intensity)
 		weather_sky_dome.set("cirrus_coverage", sky3d_cirrus_coverage)
-		weather_sky_dome.set("fog_visible", true)
+		# Con Table Fog Dreamcast se apaga la niebla interna del SkyDome
+		weather_sky_dome.set("fog_visible", not dreamcast_visual_mode)
 		weather_sky_dome.set("fog_density", sky3d_fog_density)
 		weather_sky_dome.set("fog_start", 0.0)
 		weather_sky_dome.set("fog_end", sky3d_fog_end)
@@ -254,7 +272,8 @@ func _build_tca_wind(script_path: String) -> void:
 
 
 func _build_terrain_wetness() -> void:
-	if track_visual == null:
+	# En modo Dreamcast evitamos que el script de humedad active reflejos PBR en el barro/asfalto
+	if dreamcast_visual_mode or track_visual == null:
 		return
 	const WETNESS_SCRIPT := "res://scripts/rally/rally_terrain_wetness.gd"
 	if not FileAccess.file_exists(WETNESS_SCRIPT):
@@ -350,14 +369,24 @@ func _build_legacy_environment() -> void:
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	environment.ambient_light_energy = 0.72
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.tonemap_exposure = 1.0
 	environment.fog_enabled = true
-	environment.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	environment.fog_light_color = Color(0.21, 0.25, 0.28)
-	environment.fog_density = 0.0026
-	environment.fog_sun_scatter = 0.18
-	environment.fog_aerial_perspective = 0.25
+	if dreamcast_visual_mode:
+		# Gama lineal y Table Fog de profundidad, igual que en el entorno de Sky3D
+		environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+		environment.tonemap_exposure = 1.0
+		environment.fog_mode = Environment.FOG_MODE_DEPTH
+		environment.fog_light_color = dc_fog_color_day
+		environment.fog_depth_begin = dc_fog_begin
+		environment.fog_depth_end = dc_fog_end
+		environment.fog_depth_curve = 1.0
+	else:
+		environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+		environment.tonemap_exposure = 1.0
+		environment.fog_mode = Environment.FOG_MODE_EXPONENTIAL
+		environment.fog_light_color = Color(0.21, 0.25, 0.28)
+		environment.fog_density = 0.0026
+		environment.fog_sun_scatter = 0.18
+		environment.fog_aerial_perspective = 0.25
 	var world_environment := WorldEnvironment.new()
 	world_environment.name = "RallyWorldEnvironment"
 	world_environment.environment = environment
@@ -453,7 +482,7 @@ func configure_runtime_paths() -> void:
 
 func on_camera_mode_toggle_requested() -> void:
 	camera_rig.toggle_camera_mode()
-	head_up_display.show_status("CAMERA MODE " + ("CHASE" if camera_rig.camera_mode == 0 else "BONNET"), Color(0.94, 0.55, 0.16), 1.6)
+	head_up_display.show_status("CAMERA MODE " + camera_rig.get_camera_mode_label(), Color(0.94, 0.55, 0.16), 1.6)
 
 
 func on_driving_assistance_changed(state: Dictionary) -> void:
