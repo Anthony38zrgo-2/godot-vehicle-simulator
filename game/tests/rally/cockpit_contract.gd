@@ -16,15 +16,6 @@ func _initialize() -> void:
 func run_contract() -> void:
 	var scene_path := "res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn" if "--russia-preview" in OS.get_cmdline_user_args() else "res://scenes/rally/rally_proving_ground.tscn"
 	var scene: Node = load(scene_path).instantiate()
-	if "--castrol-preview" in OS.get_cmdline_user_args():
-		var previous := scene.get_node("FordEscortRS2000")
-		var original_index := previous.get_index()
-		scene.remove_child(previous)
-		previous.free()
-		var replacement: Node = load("res://scenes/rally/ford_escort_castrol.tscn").instantiate()
-		scene.add_child(replacement)
-		replacement.owner = scene
-		scene.move_child(replacement, original_index)
 	root.add_child(scene)
 	current_scene = scene
 	await physics_frame
@@ -32,11 +23,9 @@ func run_contract() -> void:
 	var vehicle := scene.get_node("FordEscortRS2000") as RallyEscortVehicle
 	var rig := scene.get_node("RallyCameraRig") as RallyChaseCameraRig
 	var cockpit := vehicle.get_node("CockpitAnimation") as RallyCockpitAnimation
-	var is_castrol := vehicle.asset_manifest_path.contains("ford_escort_rs1600")
-	var visual := vehicle.get_node("Chassis/Body") if is_castrol else vehicle.get_node("Chassis")
-	if is_castrol:
-		check(vehicle.has_node("Chassis/Driver") and vehicle.has_node("Chassis/CoDriver"), "Godot must assemble independent driver and co-driver assets")
-		check(visual.find_child("Driver_driver_head", true, false) == null, "Car GLB must not contain baked occupants")
+	var visual := vehicle.get_node("Chassis")
+	check(vehicle.asset_manifest_path == "res://assets/rally/ford_escort_rs2000_1971/manifest.json", "Original RS2000 manifest must be active")
+	check(visual.find_child("Driver_driver_head", true, false) == null, "Car GLB must not contain baked occupants")
 	else:
 		check(vehicle.asset_manifest_path == "res://assets/rally/ford_escort_rs2000_1971/manifest.json", "Original RS2000 manifest must be active")
 	check(visual.find_child("seat_driver", true, false) != null and visual.find_child("seat_co_driver", true, false) != null, "Both seat meshes must exist")
@@ -64,7 +53,7 @@ func run_contract() -> void:
 		var vertex_count := 0
 		for surface in arm.mesh.get_surface_count():
 			vertex_count += arm.mesh.surface_get_array_len(surface)
-		check(vertex_count > (1000 if is_castrol else 70), "Active character arm geometry must load")
+		check(vertex_count > 70, "Active character arm geometry must load")
 	var rest_basis := cockpit.steering_wheel.basis
 	var shaft_axis := rest_basis * cockpit.steering_wheel_axis.normalized()
 	for command: float in [0.0, 1.0, -1.0, 0.5, 0.0]:

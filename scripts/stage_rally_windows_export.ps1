@@ -41,7 +41,7 @@ function Copy-SourceDirectory([string]$Source, [string]$Destination) {
 
 Copy-SourceDirectory (Join-Path $gameRoot 'assets\rally') (Join-Path $stageRoot 'assets\rally')
 New-Item -ItemType Directory -Force -Path (Join-Path $stageRoot 'scenes\rally') | Out-Null
-foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'ford_escort_castrol.tscn', 'rally_proving_ground.tscn', 'rally_f1_head_up_display.tscn', 'russia_stage1_ford_escort_rs2000.tscn', 'rally_garage_panel.tscn')) {
+foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'rally_proving_ground.tscn', 'rally_f1_head_up_display.tscn', 'russia_stage1_ford_escort_rs2000.tscn', 'rally_garage_panel.tscn')) {
     $sourceScene = Join-Path $gameRoot ('scenes\rally\' + $sceneName)
     if (-not (Test-Path -LiteralPath $sourceScene -PathType Leaf)) {
         throw "Escena Rally necesaria para el staging faltante: $sourceScene"

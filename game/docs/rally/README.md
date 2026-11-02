@@ -80,4 +80,3 @@ La sesión Rusia incorpora rivales simulados, parciales, fiabilidad, abandono de
 
 ## Nuevo modelo visual del Escort
 
-La variante `ford_escort_castrol.tscn` conserva el Escort Castrol del segundo ZIP y sus personajes independientes. Temporalmente vuelve a estar activo el RS2000 original, con el interior trasero revisado: [auditoría](RS2000_REAR_GEOMETRY_AUDIT.md). Fuentes `.blend`, GLB, retarget de 19 poses, asientos y procedencia: [ESCORT_VISUAL_REPLACEMENT.md](ESCORT_VISUAL_REPLACEMENT.md).
