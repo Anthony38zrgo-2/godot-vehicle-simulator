@@ -203,6 +203,7 @@ func _build_sky3d(script_path: String) -> bool:
 			environment.fog_enabled = true
 			environment.fog_mode = Environment.FOG_MODE_DEPTH
 			environment.fog_light_color = dc_fog_color_day
+			environment.fog_aerial_perspective = 0.20
 			environment.fog_depth_begin = dc_fog_begin
 			environment.fog_depth_end = dc_fog_end
 			environment.fog_depth_curve = 1.0
@@ -400,6 +401,7 @@ func _build_legacy_environment() -> void:
 		environment.tonemap_exposure = 1.0
 		environment.fog_mode = Environment.FOG_MODE_DEPTH
 		environment.fog_light_color = dc_fog_color_day
+		environment.fog_aerial_perspective = 0.20
 		environment.fog_depth_begin = dc_fog_begin
 		environment.fog_depth_end = dc_fog_end
 		environment.fog_depth_curve = 1.0

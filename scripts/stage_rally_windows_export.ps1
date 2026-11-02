@@ -40,6 +40,7 @@ function Copy-SourceDirectory([string]$Source, [string]$Destination) {
 }
 
 Copy-SourceDirectory (Join-Path $gameRoot 'assets\rally') (Join-Path $stageRoot 'assets\rally')
+Copy-SourceDirectory (Join-Path $gameRoot 'assets\vfx') (Join-Path $stageRoot 'assets\vfx')
 New-Item -ItemType Directory -Force -Path (Join-Path $stageRoot 'scenes\rally') | Out-Null
 foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'rally_proving_ground.tscn', 'rally_f1_head_up_display.tscn', 'russia_stage1_ford_escort_rs2000.tscn', 'rally_garage_panel.tscn')) {
     $sourceScene = Join-Path $gameRoot ('scenes\rally\' + $sceneName)
@@ -49,7 +50,7 @@ foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'rally_proving_ground.t
     Copy-Item -LiteralPath $sourceScene -Destination (Join-Path $stageRoot ('scenes\rally\' + $sceneName)) -Force
 }
 New-Item -ItemType Directory -Force -Path (Join-Path $stageRoot 'scripts\rally') | Out-Null
-foreach ($rallyScript in @('rally_escort_vehicle.gd', 'rally_vehicle_input_controller.gd', 'rally_chase_camera_rig.gd', 'rally_cockpit_animation.gd', 'rally_f1_head_up_display.gd', 'rally_proving_ground_session.gd', 'rally_russia_stage_session.gd', 'rally_track_collision_builder.gd', 'rally_stage_visual_material_adjuster.gd', 'rally_telemetry_recorder.gd', 'rally_vehicle_audio.gd', 'formula_hud_panels.gd', 'rally_stage_progress.gd', 'rally_garage_panel.gd', 'rally_setup_database.gd', 'rally_setup_catalog.gd', 'rally_competition.gd', 'rally_competition_panel.gd', 'rally_start_sequence.gd', 'rally_start_lights.gd')) {
+foreach ($rallyScript in @('rally_escort_vehicle.gd', 'rally_vehicle_input_controller.gd', 'rally_chase_camera_rig.gd', 'rally_cockpit_animation.gd', 'rally_f1_head_up_display.gd', 'rally_proving_ground_session.gd', 'rally_russia_stage_session.gd', 'rally_track_collision_builder.gd', 'rally_stage_visual_material_adjuster.gd', 'rally_telemetry_recorder.gd', 'rally_vehicle_audio.gd', 'rally_vehicle_vfx.gd', 'rally_vehicle_vfx.gdshader', 'formula_hud_panels.gd', 'rally_stage_progress.gd', 'rally_garage_panel.gd', 'rally_setup_database.gd', 'rally_setup_catalog.gd', 'rally_competition.gd', 'rally_competition_panel.gd', 'rally_start_sequence.gd', 'rally_start_lights.gd')) {
     Copy-Item -LiteralPath (Join-Path $gameRoot ('scripts\rally\' + $rallyScript)) -Destination (Join-Path $stageRoot ('scripts\rally\' + $rallyScript)) -Force
 }
 Copy-SourceDirectory (Join-Path $gameRoot 'scripts\physics') (Join-Path $stageRoot 'scripts\physics')

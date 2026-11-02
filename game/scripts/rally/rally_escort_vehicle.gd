@@ -301,9 +301,11 @@ func _apply_resolved_mass(mass_state: Dictionary) -> void:
 
 
 var body_contact_audio: Dictionary = {}
+var body_contact_vfx: Array[Dictionary] = []
 var _prev_body_contact_count: int = 0
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	body_contact_vfx.clear()
 	if not _physics_ready or freeze:
 		return
 	var contact_count := state.get_contact_count()
@@ -344,6 +346,19 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			impact_speed_ms = closing_speed
 			impact_position = state.get_contact_local_position(index)
 		var tangent_speed := (velocity - normal * velocity.dot(normal)).length()
+		var vfx_collider := state.get_contact_collider_object(index) as Node
+		var vfx_surface := ""
+		if vfx_collider != null:
+			for group in ["Gravel", "Grass", "Dirt", "Sand", "Road", "Asphalt"]:
+				if vfx_collider.is_in_group(group):
+					vfx_surface = group
+					break
+		body_contact_vfx.append({
+			"position": state.get_contact_collider_position(index), "normal": normal,
+			"impulse_ns": impulse, "speed_ms": closing_speed, "tangent_ms": tangent_speed,
+			"surface": vfx_surface,
+			"collider_name": str(vfx_collider.name).to_lower() if vfx_collider != null else "",
+		})
 		var force := impulse / maxf(state.step, 0.0001)
 		if force > mass * 9.81 * 0.10 and tangent_speed > 0.5:
 			var collider := state.get_contact_collider_object(index)

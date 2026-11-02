@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_chassis.glb" id="2_chassis"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_wheel_rear_right.glb" id="6_wheel_rear_right"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
 [ext_resource type="Script" path="res://scripts/rally/rally_cockpit_animation.gd" id="8_cockpit"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="9_vfx"]
 
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ford"]
@@ -28,6 +29,9 @@ script = ExtResource("1_vehicle")
 
 [node name="CockpitAnimation" type="Node" parent="."]
 script = ExtResource("8_cockpit")
+
+[node name="VehicleVFX" type="Node3D" parent="."]
+script = ExtResource("9_vfx")
 
 [node name="WheelFrontLeft" type="Node3D" parent="."]
 
