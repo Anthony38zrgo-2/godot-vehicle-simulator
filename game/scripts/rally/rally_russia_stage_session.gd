@@ -68,6 +68,8 @@ var start_click: AudioStreamPlayer
 var start_horn: AudioStreamPlayer
 var course := RallyStageProgress.new()
 var competition = preload("res://scripts/rally/rally_competition.gd").new()
+var pacenotes = preload("res://scripts/rally/rally_pacenote_controller.gd").new()
+var pacenote_hud: Control = null
 var weather_sky_node: Node = null
 var weather_sky_dome: Node = null
 var weather_controller_node: Node = null
@@ -128,6 +130,7 @@ func _ready() -> void:
 	panel.next_requested.connect(continue_competition)
 	panel.new_rally_requested.connect(start_new_competition)
 	setup_start_audio()
+	setup_pacenotes()
 	reset_start_sequence()
 	apply_competition_controls()
 	print("RALLY_SESSION_READY scene=russia_stage1 vehicle=ford_escort_rs2000_1971 spawn=", start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
@@ -535,6 +538,7 @@ func on_vehicle_reset_requested() -> void:
 		competition.generation = course.generation
 		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
 		camera_rig.snap_to_target()
+		pacenotes.on_rescue(target)
 		head_up_display.show_status("RESCATE +30 s", Color(0.95, 0.72, 0.24), 2.2)
 	else:
 		course.generation = vehicle.simulation.session_generation
@@ -551,20 +555,25 @@ func _physics_process(delta: float) -> void:
 		for event: String in signal_state.events:
 			if event == "click":
 				start_click.play()
+				var remaining: int = 3 - int(floor(start_sequence.elapsed - 0.5))
+				pacenotes.on_start_countdown(clampi(remaining, 1, 3))
 			elif event == "go":
 				course.clock_started = true
 				start_horn.play()
+				pacenotes.on_start_countdown(0)
 			elif event == "false_start":
 				competition.add_penalty("player", 10000, "Salida anticipada")
 				head_up_display.show_status("FALSE START +10 s", Color(1.0, 0.25, 0.1), 3.0)
 		var previous_sector: int = competition.sector
 		course.advance(vehicle.global_position, float(signal_state.racing_dt), vehicle.simulation.session_generation, vehicle.linear_velocity.length())
+		pacenotes.advance(vehicle.global_position, float(signal_state.racing_dt) if course.clock_started else delta)
 		if course.clock_started:
 			competition.update(course.readout())
 			if competition.sector > previous_sector and not competition.complete:
 				var summary: Dictionary = competition.readout()
 				head_up_display.show_status("PARCIAL %d/9   %.3f s   DELTA %+.3f s" % [competition.sector, float(competition.player_ms + competition.player_penalty_ms) / 1000.0, float(summary.delta_ms) / 1000.0], Color(0.45, 0.9, 0.6), 3.0)
 		if competition.complete:
+			pacenotes.on_retire()
 			apply_competition_controls()
 	if vehicle.global_position.y < MINIMUM_WORLD_HEIGHT_METRES and not competition.complete:
 		competition.retire_player("Abandono — salida de pista")
@@ -579,6 +588,7 @@ func get_session_state() -> Dictionary:
 		"elapsed_seconds": elapsed_seconds,
 		"course": course.readout(),
 		"competition": competition.readout(),
+		"pacenotes": {"next_gate": pacenotes.tracker.next_gate, "active_call": pacenotes.call_queue.get_active_record()},
 		"start_sequence": start_sequence.readout() if not competition.complete else {},
 		"run_identifier": run_identifier,
 		"physics_engine": str(ProjectSettings.get_setting("physics/3d/physics_engine")),
@@ -605,10 +615,12 @@ func apply_competition_controls() -> void:
 
 func retire_competition_player() -> void:
 	competition.retire_player()
+	pacenotes.on_retire()
 	apply_competition_controls()
 
 func reset_competition_car() -> void:
 	course.reset_attempt()
+	pacenotes.on_retry()
 	vehicle.reset_to_pose(start_position, start_heading)
 	course.generation = vehicle.simulation.session_generation
 	reset_start_sequence()
@@ -640,6 +652,16 @@ func start_new_competition() -> void:
 func _exit_tree() -> void:
 	if session_ready and competition.started:
 		competition.save()
+
+
+func setup_pacenotes() -> void:
+	pacenotes.name = "RallyPacenotes"
+	add_child(pacenotes)
+	if head_up_display != null:
+		pacenote_hud = preload("res://scenes/rally/cmr2_pacenote_hud.tscn").instantiate()
+		head_up_display.add_child(pacenote_hud)
+		pacenotes.set_hud(pacenote_hud)
+	pacenotes.configure("res://data/rally/pacenotes/russia_stage1.json")
 
 
 func setup_start_audio() -> void:

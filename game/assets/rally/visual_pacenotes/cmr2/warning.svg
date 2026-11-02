@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 107 92" width="107" height="92">
+  <defs>
+    <style>
+      .tri { fill: #ffffff; }
+      .border { fill: #000000; }
+      .mark { fill: #000000; fill-rule: evenodd; }
+    </style>
+  </defs>
+  <path class="tri" d="M 52,3 L 50,4 L 49,6 L 47,9 L 40,21 L 10,73 L 6,80 L 5,82 L 5,85 L 6,87 L 8,87 L 9,88 L 97,88 L 98,87 L 100,87 L 101,85 L 101,82 L 100,80 L 95,73 L 89,61 L 70,28 L 59,9 L 56,4 L 54,3 Z" />
+  <path class="border" d="M 50,5 L 50,6 L 48,8 L 42,20 L 37,27 L 12,72 L 7,79 L 6,85 L 6,86 L 100,86 L 101,84 L 100,81 L 99,79 L 96,74 L 88,61 L 69,27 L 64,20 L 58,8 L 56,6 L 56,5 Z" />
+  <path class="mark" d="M 53,6 L 55,8 L 58,13 L 65,25 L 95,77 L 96,80 L 97,85 L 8,83 L 10,80 L 11,77 L 18,66 L 41,25 L 48,13 L 51,8 Z" />
+  <path class="mark" d="M 49,66 L 48,68 L 48,72 L 50,74 L 54,74 L 57,73 L 58,71 L 58,68 L 57,66 L 55,65 Z" />
+  <path class="mark" d="M 50,28 L 48,30 L 48,38 L 49,43 L 52,52 L 52,57 L 53,59 L 53,56 L 54,55 L 54,50 L 57,41 L 58,36 L 58,31 L 55,28 Z" />
+</svg>

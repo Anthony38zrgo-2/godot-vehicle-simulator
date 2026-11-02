@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102 102" width="102" height="102">
+  <defs>
+    <style>
+      .badge { fill: #ff0028; }
+      .border { fill: #000000; }
+      .glyph { fill: #000000; fill-rule: evenodd; }
+    </style>
+  </defs>
+  <path class="badge" d="M 8,3 L 6,5 L 6,96 L 8,98 L 93,98 L 96,95 L 96,6 L 93,3 Z" />
+  <path class="border" d="M 11,5 L 91,5 L 94,8 L 94,93 L 91,96 L 11,96 L 9,95 L 9,6 Z" />
+  <path class="glyph" d="M 41,21 L 38,24 L 37,27 L 36,30 L 35,35 L 34,43 L 33,51 L 33,60 L 32,71 L 30,75 L 27,77 L 27,81 L 28,84 L 30,85 L 34,85 L 37,82 L 37,77 L 33,72 L 34,61 L 35,51 L 36,42 L 37,35 L 38,30 L 39,27 L 40,25 L 44,22 L 46,23 L 50,26 L 56,32 L 61,38 L 62,43 L 59,44 L 57,44 L 60,46 L 65,48 L 71,52 L 75,54 L 75,51 L 72,44 L 72,41 L 69,34 L 68,36 L 67,39 L 65,40 L 63,38 L 59,32 L 51,24 L 47,21 L 45,21 Z" />
+</svg>
