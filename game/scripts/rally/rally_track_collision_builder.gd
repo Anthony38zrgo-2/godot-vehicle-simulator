@@ -26,7 +26,7 @@ var generated_triangle_count: int = 0
 var generated_shape_count: int = 0
 
 
-func build_collision() -> bool:
+func build_collision(visual_root: Node = null) -> bool:
 	if not ResourceLoader.exists(collision_scene_path):
 		push_error("Rally collision scene is unavailable: " + collision_scene_path)
 		return false
@@ -44,10 +44,35 @@ func build_collision() -> bool:
 		return false
 	for mesh_instance in mesh_instances:
 		build_static_body(mesh_instance)
+	if visual_root != null:
+		build_erosion_bank_collision(visual_root)
 	collision_source.queue_free()
 	await get_tree().process_frame
 	print("RALLY_COLLISION_READY bodies=", generated_body_count, " shapes=", generated_shape_count, " triangles=", generated_triangle_count)
 	return generated_shape_count > 0
+
+
+func build_erosion_bank_collision(visual_root: Node) -> void:
+	# The exported collision GLB excludes sand_erosion_* even though these
+	# surfaces form raised roadside banks rather than flat decorative decals.
+	var meshes: Array[MeshInstance3D] = []
+	collect_mesh_instances(visual_root, meshes)
+	for source in meshes:
+		if source.mesh == null:
+			continue
+		for surface_index in source.mesh.get_surface_count():
+			var material := source.mesh.surface_get_material(surface_index)
+			if material == null or not material.resource_name.to_lower().begins_with("sand_erosion_"):
+				continue
+			var bank_mesh := ArrayMesh.new()
+			bank_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, source.mesh.surface_get_arrays(surface_index))
+			var bank := MeshInstance3D.new()
+			bank.name = "Collision_Terrain_Dirt"
+			bank.mesh = bank_mesh
+			add_child(bank)
+			bank.global_transform = source.global_transform
+			build_static_body(bank)
+			bank.free()
 
 
 func collect_mesh_instances(node: Node, output: Array[MeshInstance3D]) -> void:
@@ -69,7 +94,8 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 	static_body.collision_mask = 0
 	var source_name := str(mesh_instance.name).to_lower()
 	var role := "terrain" if ("terrain" in source_name or "road" in source_name) else ("barrier" if "barrier" in source_name else "obstacle")
-	if role == "barrier" and shape is ConcavePolygonShape3D:
+	# Terrain banks are thin meshes: keep chassis contacts from their reverse side too.
+	if role in ["terrain", "barrier"] and shape is ConcavePolygonShape3D:
 		(shape as ConcavePolygonShape3D).backface_collision = true
 	static_body.set_meta("collision_role", role)
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))

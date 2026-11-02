@@ -112,7 +112,7 @@ func _ready() -> void:
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
 		return
-	var collision_ready: bool = await track_collision.build_collision()
+	var collision_ready: bool = await track_collision.build_collision(track_visual)
 	if not collision_ready:
 		push_error("Rally session cannot build the stage collision")
 		return
