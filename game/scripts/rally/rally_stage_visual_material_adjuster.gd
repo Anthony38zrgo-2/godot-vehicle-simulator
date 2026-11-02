@@ -59,6 +59,11 @@ func adjust_material(material: BaseMaterial3D) -> void:
 	var material_name := material.resource_name.to_lower()
 	var is_cutout := CUTOUT_MATERIAL_NAMES.has(material_name)
 
+	# Sponsor banners already contain opposing faces with their own UVs.
+	# Drawing both sides of each face makes the coplanar fronts/backs fight.
+	if material_name == "sponsors":
+		material.cull_mode = BaseMaterial3D.CULL_BACK
+
 	if enforce_dreamcast_pipeline:
 		# 1. Gouraud Shading (Iluminacion por vertice clasica de fines de los 90)
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
