@@ -29,6 +29,9 @@ var brake_thermal_config: Dictionary = {}
 var brake_disc_heat_capacity_j_k: Array[float] = []
 var brake_disc_area_m2: Array[float] = []
 var brake_disc_emissivity: Array[float] = []
+var active_compound_id: String = "gravel_normal"
+var active_compound: Dictionary = {}
+var compound_catalog: Dictionary = {}
 
 
 func configure(domains: Dictionary) -> Dictionary:
@@ -101,8 +104,46 @@ func configure(domains: Dictionary) -> Dictionary:
 func engine_torque_factor() -> float:
 	return available_engine_torque_fraction
 
+
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
+	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
+	active_compound_id = cid
+	if not catalog.is_empty():
+		compound_catalog = (catalog as Dictionary).duplicate(true)
+	if compound_catalog.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
+		if parsed is Dictionary:
+			compound_catalog = parsed
+	active_compound = ((compound_catalog.get("compounds", {}) as Dictionary).get(cid, {}) as Dictionary).duplicate(true) if compound_catalog.has("compounds") else {}
+	_apply_compound_to_configs()
+
+
+func _apply_compound_to_configs() -> void:
+	if active_compound.is_empty():
+		return
+	# Ventanas/objetivos térmicos del compuesto elegido (banda y carcasa).
+	for key in ["tire_config", "tire_config_front", "tire_config_rear"]:
+		var cfg: Dictionary = get(key)
+		cfg["optimal_tread_temperature_c"] = float(active_compound.get("tread_optimum_c", cfg.get("optimal_tread_temperature_c", 50.0)))
+		cfg["optimal_tread_window_c"] = float(active_compound.get("tread_window_c", cfg.get("optimal_tread_window_c", 50.0)))
+		cfg["overheat_tread_temperature_c"] = float(active_compound.get("overheat_tread_c", cfg.get("overheat_tread_temperature_c", 100.0)))
+		cfg["optimal_carcass_temperature_c"] = float(active_compound.get("carcass_optimum_c", cfg.get("optimal_carcass_temperature_c", 60.0)))
+		cfg["tread_zone_heat_capacity_j_k"] = float(active_compound.get("tread_zone_heat_capacity_j_k", cfg.get("tread_zone_heat_capacity_j_k", 6300.0)))
+		cfg["carcass_heat_capacity_j_k"] = float(active_compound.get("carcass_heat_capacity_j_k", cfg.get("carcass_heat_capacity_j_k", 18000.0)))
+		cfg["gas_heat_capacity_j_k"] = float(active_compound.get("gas_heat_capacity_j_k", cfg.get("gas_heat_capacity_j_k", 2200.0)))
+		cfg["tread_to_carcass_w_k"] = float(active_compound.get("tread_to_carcass_w_k", cfg.get("tread_to_carcass_w_k", 60.0)))
+		cfg["carcass_to_gas_w_k"] = float(active_compound.get("carcass_to_gas_w_k", cfg.get("carcass_to_gas_w_k", 25.0)))
+		cfg["tread_to_air_w_k"] = float(active_compound.get("tread_to_air_w_k", cfg.get("tread_to_air_w_k", 30.0)))
+		cfg["carcass_to_air_w_k"] = float(active_compound.get("carcass_to_air_w_k", cfg.get("carcass_to_air_w_k", 15.0)))
+		cfg["road_conductance_w_k"] = float(active_compound.get("road_conductance_w_k", cfg.get("road_conductance_w_k", 55.0)))
+		cfg["lateral_tread_conductance_w_k"] = float(active_compound.get("lateral_tread_conductance_w_k", cfg.get("lateral_tread_conductance_w_k", 25.0)))
+		cfg["slip_heat_efficiency"] = float(active_compound.get("slip_heat_efficiency", cfg.get("slip_heat_efficiency", 0.55)))
+		set(key, cfg)
+
+
 func reset_for_stage(domains: Dictionary) -> void:
 	configure(domains)
+	_apply_compound_to_configs()
 	fuel_burned_litres = 0.0
 	water_cooling_conductance_w_k = 0.0
 	oil_cooling_conductance_w_k = 0.0
@@ -157,13 +198,18 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var axle_cfg := _axle_tire_config(index)
 	var axle_pressure_cfg := _axle_pressure_config(index)
 	var state: Dictionary = tire_states[index]
 	var dt := maxf(delta, 0.0)
+	# Condiciones locales por contacto (mismas que alimentan el grip).
+	var local_ground := float(axle_cfg.get("track_fallback_c", ambient_temperature_c)) if ground_c > 9000.0 else ground_c
+	var local_air := ambient_temperature_c if air_c > 9000.0 else air_c
+	var local_water := clampf(water_mm, 0.0, 12.0)
+	var local_snow := clampf(snow_mm, 0.0, 8.0)
 	var zones: Array = state.get("tread_zones_c", [state.tread_c, state.tread_c, state.tread_c]).duplicate()
 	var tread := (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var carcass := float(state.carcass_c)
@@ -200,6 +246,21 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var road_conductance := float(axle_cfg.get("road_conductance_w_k", 0.0)) / 3.0
 	var carcass_conductance := float(axle_cfg.get("tread_to_carcass_w_k", 0.0)) / 3.0
 	var lateral_conductance := float(axle_cfg.get("lateral_tread_conductance_w_k", 0.0)) / 2.0
+	# Balance por compuesto: el agua residual enfría aunque haya dejado de llover;
+	# la nieve ligera/moderada también enfría. Ganancias por compuesto.
+	var water_gain := 1.0
+	var snow_gain := 1.0
+	var deform_gain := 1.0
+	if not active_compound.is_empty():
+		water_gain = float(active_compound.get("water_cooling_gain", 1.0))
+		snow_gain = float(active_compound.get("snow_cooling_gain", 1.0))
+		# Lluvia acumula más calor en seco por deformación del dibujo.
+		if local_water < 0.4 and local_snow < 0.3:
+			deform_gain = float(active_compound.get("deformation_heating_dry", 1.0))
+		else:
+			deform_gain = float(active_compound.get("deformation_heating_wet", 1.0))
+	var water_cool_w_k := local_water * 9.0 * water_gain
+	var snow_cool_w_k := local_snow * 7.0 * snow_gain
 	for zone_index in 3:
 		var zone_temperature := float(zones[zone_index])
 		var lateral_heat := 0.0
@@ -209,20 +270,22 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 			lateral_heat += lateral_conductance * (float(zones[zone_index + 1]) - zone_temperature)
 		var zone_to_carcass := carcass_conductance * (zone_temperature - carcass)
 		var zone_heat := slip_heat * float(heat_shares[zone_index]) - zone_to_carcass
-		zone_heat -= air_conductance * (zone_temperature - ambient_temperature_c)
-		zone_heat -= road_conductance * (zone_temperature - float(axle_cfg.get("track_fallback_c", ambient_temperature_c)))
+		zone_heat -= air_conductance * (zone_temperature - local_air)
+		zone_heat -= road_conductance * (zone_temperature - local_ground)
+		zone_heat -= (water_cool_w_k / 3.0) * (zone_temperature - minf(local_ground, local_air))
+		zone_heat -= (snow_cool_w_k / 3.0) * (zone_temperature - minf(local_ground, 2.0))
 		zone_heat += lateral_heat
-		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, ambient_temperature_c, 150.0)
+		zones[zone_index] = clampf(zone_temperature + dt * zone_heat / tread_capacity, minf(local_air, local_ground) - 5.0, 150.0)
 	tread = (float(zones[0]) + float(zones[1]) + float(zones[2])) / 3.0
 	var hysteresis_eff := clampf(float(axle_cfg.get("carcass_hysteresis_efficiency", 0.55)), 0.0, 1.0)
 	# Opcion 5a: histeresis de rodadura por carga vertical. Calienta el eje
 	# cargado (delantero en frenada/apoyo) aunque no patine.
 	var roll_hyst_coef := maxf(float(axle_cfg.get("rolling_hysteresis_coef", 0.0)), 0.0)
-	var p_roll_hyst := roll_hyst_coef * maxf(normal_load_n, 0.0) * absf(longitudinal_speed_m_s)
+	var p_roll_hyst := roll_hyst_coef * maxf(normal_load_n, 0.0) * absf(longitudinal_speed_m_s) * deform_gain
 	# Opcion 5b: flexion lateral de tacos. Calor viscoelastico por deriva.
 	var block_power := maxf(float(axle_cfg.get("block_bending_power_w", 0.0)), 0.0)
-	var p_block := block_power * pow(absf(lateral_force_n) / 3000.0, 2.0) * (absf(wheel_omega_rad_s) / 90.0)
-	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) * hysteresis_eff + p_roll_hyst + p_block - carcass_to_gas - float(axle_cfg.get("carcass_to_air_w_k", 0.0)) * (carcass - ambient_temperature_c)) / carcass_capacity
+	var p_block := block_power * pow(absf(lateral_force_n) / 3000.0, 2.0) * (absf(wheel_omega_rad_s) / 90.0) * deform_gain
+	var next_carcass := carcass + dt * (tread_to_carcass + maxf(radial_damping_power_w, 0.0) * hysteresis_eff + p_roll_hyst + p_block - carcass_to_gas - float(axle_cfg.get("carcass_to_air_w_k", 0.0)) * (carcass - local_air)) / carcass_capacity
 	var next_gas := gas + dt * carcass_to_gas / gas_capacity
 	state.tread_zones_c = zones
 	state.tread_c = tread
@@ -234,7 +297,10 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
 	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
-	state.wear_fraction = clampf(float(state.wear_fraction) + maxf(friction_power_w, 0.0) * dt * 1.0e-9, 0.0, 1.0)
+	var wear_rate := 1.0e-9
+	if not active_compound.is_empty():
+		wear_rate = float(active_compound.get("wear_per_mj", 1.0e-9))
+	state.wear_fraction = clampf(float(state.wear_fraction) + maxf(friction_power_w, 0.0) * dt * wear_rate, 0.0, 1.0)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
 	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s)

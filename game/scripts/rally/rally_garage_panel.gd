@@ -4,19 +4,30 @@ extends Control
 signal garage_closed(applied: bool)
 
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
+
 const FONT_REGULAR: Font = preload("res://fonts/libron/Libron-Regular.ttf")
 const FONT_BOLD: Font = preload("res://fonts/libron/Libron-Bold.ttf")
-const CAR_TEXTURE: Texture2D = preload("res://assets/rally/garage/formula-car-top-ui-silhouette-v2.png")
-const C_BG := Color("#171b1f")
-const C_PANEL := Color("#1e2429")
-const C_PANEL_ALT := Color("#242c32")
-const C_LINE := Color("#607e91")
-const C_STEEL := Color("#607e91")
-const C_STEEL_DARK := Color("#343e46")
+const FONT_DIN_REGULAR: Font = preload("res://fonts/D-DIN.ttf")
+const FONT_DIN_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+
+# --- Recalibrated Motorsport Palette ---
+const C_BG := Color("#111518")
+const C_PANEL := Color("#171e24")
+const C_PANEL_ALT := Color("#1f2730")
+const C_PANEL_HOVER := Color("#27333e")
+const C_BORDER := Color("#2c3842")
+const C_BORDER_FOCUS := Color("#4c6475")
+const C_STEEL := Color("#4a7187")
+const C_STEEL_DARK := Color("#232c35")
 const C_GOLD := Color("#e3b23c")
-const C_WHITE := Color("#e9ece8")
-const C_MUTED := Color("#a8b5ba")
-const C_RED := Color("#ff6b61")
+const C_GOLD_BRIGHT := Color("#f5c449")
+const C_WHITE := Color("#edf0ee")
+const C_MUTED := Color("#879aa4")
+const C_RED := Color("#e0534a")
+const C_GREEN := Color("#44b365")
+const C_SLIDER_TRACK := Color("#12161a")
+const C_SLIDER_FILL := Color("#395768")
+
 const PAD_NAME_CHARACTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
 
 @export var vehicle_path: NodePath
@@ -51,6 +62,29 @@ var modal_mode: String = ""
 var modal_text: String = ""
 var notice: String = ""
 var notice_time: float = 0.0
+var draft_compound_id: String = "gravel_normal"
+var opening_compound_id: String = "gravel_normal"
+var confirmed_compound_id: String = "gravel_normal"
+var compound_change_allowed: bool = true
+var mandatory_confirmation: bool = false
+var forecast_summary: String = ""
+var forecast_advice: String = ""
+var setup_window_label: String = ""
+var compound_catalog: Dictionary = {}
+var draft_spare_wheels: int = 1
+var opening_spare_wheels: int = 1
+var draft_wheel_compounds: Dictionary = {
+	"FL": "gravel_normal",
+	"FR": "gravel_normal",
+	"RL": "gravel_normal",
+	"RR": "gravel_normal"
+}
+var opening_wheel_compounds: Dictionary = {
+	"FL": "gravel_normal",
+	"FR": "gravel_normal",
+	"RL": "gravel_normal",
+	"RR": "gravel_normal"
+}
 var _hit_regions: Array[Dictionary] = []
 var _page_field_paths: Array[String] = []
 var _canvas_scale: float = 1.0
@@ -63,14 +97,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	set_process_input(false)
-	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
+	if vehicle == null and not vehicle_path.is_empty():
+		vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	input_controller = get_node_or_null(input_controller_path) as RallyVehicleInputController
 	if input_controller != null and not input_controller.garage_menu_requested.is_connected(open_garage):
 		input_controller.garage_menu_requested.connect(open_garage)
-	if vehicle == null:
-		database_status = "No se encontro el coche de Rally."
-		push_error(database_status)
-		return
 	var opened := database.open_database()
 	database_ready = bool(opened.get("ok", false))
 	database_status = str(opened.get("path", "SQLite no disponible")) if database_ready else str(opened.get("error", "Error SQLite"))
@@ -97,6 +128,12 @@ func _resize_canvas() -> void:
 
 
 func open_garage() -> void:
+	open_garage_for_event({})
+
+
+func open_garage_for_event(options: Dictionary = {}) -> void:
+	if vehicle == null and not vehicle_path.is_empty():
+		vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if visible or vehicle == null:
 		return
 	_restore_tree_paused = get_tree().paused
@@ -106,9 +143,38 @@ func open_garage() -> void:
 	draft_values = opening_values.duplicate(true)
 	pending_values = {}
 	new_tires_service = false
-	page = 0
+	opening_compound_id = vehicle.get_tire_compound() if vehicle.has_method("get_tire_compound") else "gravel_normal"
+	draft_compound_id = str(options.get("compound_id", opening_compound_id))
+	if draft_compound_id == "":
+		draft_compound_id = opening_compound_id
+	confirmed_compound_id = opening_compound_id
+	compound_change_allowed = bool(options.get("compound_change_allowed", true))
+	mandatory_confirmation = bool(options.get("confirmation_required", false))
+	forecast_summary = str(options.get("forecast_summary", ""))
+	forecast_advice = str(options.get("forecast_advice", ""))
+	setup_window_label = str(options.get("window_label", ""))
+	compound_catalog = RallyTireCompound.load_catalog() if FileAccess.file_exists(RallyTireCompound.CATALOG_PATH) else {}
+	
+	draft_spare_wheels = int(options.get("spare_wheels", 1))
+	opening_spare_wheels = draft_spare_wheels
+	var initial_wheel_compounds: Dictionary = options.get("wheel_compounds", {})
+	draft_wheel_compounds = {
+		"FL": str(initial_wheel_compounds.get("FL", draft_compound_id)),
+		"FR": str(initial_wheel_compounds.get("FR", draft_compound_id)),
+		"RL": str(initial_wheel_compounds.get("RL", draft_compound_id)),
+		"RR": str(initial_wheel_compounds.get("RR", draft_compound_id))
+	}
+	opening_wheel_compounds = draft_wheel_compounds.duplicate()
+	
+	var initial_tab := str(options.get("initial_tab", ""))
+	if initial_tab == "tires":
+		page = 1
+	elif initial_tab == "strategy":
+		page = 3
+	else:
+		page = int(options.get("initial_page", 0))
 	selected_field_path = ""
-	_set_page(0)
+	_set_page(page)
 	active_setup_id = -1
 	active_setup_name = "Ajuste actual"
 	modal_mode = ""
@@ -125,19 +191,38 @@ func open_garage() -> void:
 func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 	if not visible:
 		return
+	if mandatory_confirmation and not apply_changes and not confirmed_discard:
+		_show_notice("Confirma el reglaje para iniciar (Aceptar).", true)
+		return
 	if not apply_changes and _has_unapplied_changes() and not confirmed_discard:
 		modal_mode = "discard"
 		queue_redraw()
 		return
 	if apply_changes:
+		if draft_compound_id != opening_compound_id and not compound_change_allowed:
+			_show_notice("Cambio de compuesto bloqueado fuera de ventana de servicio.", true)
+			return
 		var applied := vehicle.apply_setup_values(draft_values)
 		if not bool(applied.get("ok", false)):
 			_show_notice(str(applied.get("error", "No se pudo aplicar el reglaje.")), true)
 			return
-		if new_tires_service:
-			vehicle.service_new_tires()
+		
+		var wet_count := 0
+		for w in draft_wheel_compounds.values():
+			if w == "gravel_wet":
+				wet_count += 1
+		draft_compound_id = "gravel_wet" if wet_count >= 2 else "gravel_normal"
+		
+		if draft_compound_id != opening_compound_id:
+			vehicle.set_tire_compound(draft_compound_id)
+			vehicle.service_new_tires(draft_compound_id)
+			confirmed_compound_id = draft_compound_id
+		elif new_tires_service:
+			vehicle.service_new_tires(vehicle.get_tire_compound())
 	else:
 		vehicle.apply_setup_values(opening_values)
+		if vehicle.has_method("get_tire_compound") and vehicle.get_tire_compound() != opening_compound_id:
+			vehicle.set_tire_compound(opening_compound_id)
 	visible = false
 	set_process_input(false)
 	get_tree().paused = _restore_tree_paused
@@ -147,8 +232,18 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 	queue_redraw()
 
 
+func get_confirmed_setup() -> Dictionary:
+	return {
+		"compound_id": confirmed_compound_id if not visible else draft_compound_id,
+		"wheel_compounds": draft_wheel_compounds.duplicate(),
+		"spare_wheels": draft_spare_wheels,
+		"values": draft_values.duplicate(true),
+		"confirmed": not visible
+	}
+
+
 func _has_unapplied_changes() -> bool:
-	return draft_values != opening_values or new_tires_service
+	return draft_values != opening_values or new_tires_service or draft_compound_id != opening_compound_id or draft_spare_wheels != opening_spare_wheels or draft_wheel_compounds != opening_wheel_compounds
 
 
 func _input(event: InputEvent) -> void:
@@ -211,6 +306,9 @@ func _handle_key(event: InputEventKey) -> void:
 			close_garage(false)
 		KEY_F5:
 			close_garage(true)
+		KEY_C:
+			if page == 3 or page == 1:
+				_select_compound("gravel_wet" if draft_compound_id == "gravel_normal" else "gravel_normal")
 		KEY_PAGEUP:
 			_set_page(page - 1)
 		KEY_PAGEDOWN:
@@ -300,7 +398,8 @@ func _handle_click(point: Vector2) -> void:
 			"field":
 				selected_field_path = str(region.path)
 				if bool(region.slider):
-					_set_from_slider(str(region.path), point.x, region.rect as Rect2)
+					var track_box: Rect2 = region.get("track", region.rect as Rect2)
+					_set_from_slider(str(region.path), point.x, track_box)
 			"adjust":
 				selected_field_path = str(region.path)
 				_adjust_field(str(region.path), float(region.amount))
@@ -312,8 +411,44 @@ func _handle_click(point: Vector2) -> void:
 				selected_field_path = ""
 			"service":
 				new_tires_service = not new_tires_service
+			"compound":
+				_select_compound(str(region.compound_id))
+			"spare_wheels":
+				draft_spare_wheels = int(region.count)
+			"wheel_compound":
+				var w_id: String = str(region.wheel)
+				var c_id: String = str(region.compound_id)
+				if compound_change_allowed:
+					draft_wheel_compounds[w_id] = c_id
+					# Update global compound reference to majority
+					var wet_c := 0
+					for comp in draft_wheel_compounds.values():
+						if comp == "gravel_wet":
+							wet_c += 1
+					draft_compound_id = "gravel_wet" if wet_c >= 2 else "gravel_normal"
+				else:
+					_show_notice("Cambio de compuesto bloqueado fuera de servicio.", true)
+			"all_compounds":
+				var all_cid: String = str(region.compound_id)
+				if compound_change_allowed:
+					for w_k in draft_wheel_compounds.keys():
+						draft_wheel_compounds[w_k] = all_cid
+					draft_compound_id = all_cid
+				else:
+					_show_notice("Cambio de compuesto bloqueado fuera de servicio.", true)
 		queue_redraw()
 		return
+
+
+func _select_compound(compound_id: String) -> void:
+	if not compound_change_allowed:
+		_show_notice("Cambio de compuesto bloqueado fuera de ventana de servicio.", true)
+		return
+	if compound_id in ["gravel_normal", "gravel_wet"]:
+		draft_compound_id = compound_id
+		for k in draft_wheel_compounds.keys():
+			draft_wheel_compounds[k] = compound_id
+		queue_redraw()
 
 
 func _set_page(next_page: int) -> void:
@@ -324,7 +459,7 @@ func _set_page(next_page: int) -> void:
 		var path: String = field.path
 		if not _page_field_paths.has(path):
 			_page_field_paths.append(path)
-	for extra_path in (["steering.max_steering_angle", "brakes.max_brake_torque"] if page == 2 else []):
+	for extra_path in (["steering.max_steering_angle"] if page == 0 else []):
 		if not _page_field_paths.has(extra_path):
 			_page_field_paths.append(extra_path)
 	if not _page_field_paths.has(selected_field_path):
@@ -371,13 +506,11 @@ func _adjust_field(path: String, direction: float) -> void:
 	_update_value(path, next_value)
 
 
-func _set_from_slider(path: String, x: float, rect: Rect2) -> void:
+func _set_from_slider(path: String, x: float, track: Rect2) -> void:
 	var field := RallySetupCatalog.field_for_path(path)
 	if field.is_empty():
 		return
-	var track_start := rect.position.x + 34.0
-	var track_width := maxf(rect.size.x - 68.0, 1.0)
-	var normalized := clampf((x - track_start) / track_width, 0.0, 1.0)
+	var normalized := clampf((x - track.position.x) / maxf(track.size.x, 1.0), 0.0, 1.0)
 	var value := lerpf(float(field.min), float(field.max), normalized)
 	_update_value(path, value)
 
@@ -386,7 +519,11 @@ func _update_value(path: String, value: float) -> void:
 	var field := RallySetupCatalog.field_for_path(path)
 	if field.is_empty():
 		return
-	var clamped := snappedf(clampf(value, float(field.min), float(field.max)), float(field.step))
+	var max_val := float(field.max)
+	# Engine RPM ceiling constraint: strictly respect engine maximum
+	if path == "powertrain.max_rpm":
+		max_val = minf(max_val, 7200.0)
+	var clamped := snappedf(clampf(value, float(field.min), max_val), float(field.step))
 	draft_values[path] = clamped
 	var result := vehicle.apply_setup_values(draft_values)
 	if not bool(result.get("ok", false)):
@@ -479,24 +616,16 @@ func _save_selected_setup() -> void:
 func _commit_new_setup() -> void:
 	var setup_name := modal_text.strip_edges()
 	if setup_name.is_empty():
-		_show_notice("Escribe un nombre para el reglaje.", true)
-		return
-	if not database_ready:
-		modal_mode = ""
-		_show_notice("SQLite no esta disponible: " + database_status, true)
+		_show_notice("El nombre del reglaje no puede quedar vacio.", true)
 		return
 	var result := database.create_setup(_database_context(), setup_name, draft_values)
 	modal_mode = ""
 	if bool(result.get("ok", false)):
 		active_setup_id = int(result.get("id", -1))
 		active_setup_name = setup_name
-		_show_notice("Reglaje creado y guardado.")
+		selected_setup_id = active_setup_id
+		_show_notice("Nuevo reglaje guardado.")
 		_refresh_setups()
-		for index in setup_rows.size():
-			if int(setup_rows[index].get("id", -1)) == active_setup_id:
-				selected_setup_index = index
-				selected_setup_id = active_setup_id
-				break
 	else:
 		_show_notice(str(result.get("error", "No se pudo crear el reglaje.")), true)
 	queue_redraw()
@@ -504,24 +633,26 @@ func _commit_new_setup() -> void:
 
 func _load_selected_setup() -> void:
 	if selected_setup_id < 0:
-		_show_notice("Selecciona un reglaje guardado.", true)
+		_show_notice("Selecciona un reglaje para cargar.", true)
 		return
 	var result := database.load_setup(_database_context(), selected_setup_id)
 	if not bool(result.get("ok", false)):
-		_show_notice(str(result.get("error", "No se pudo cargar.")), true)
+		_show_notice(str(result.get("error", "No se pudo cargar el reglaje.")), true)
 		return
-	var validation := RallySetupCatalog.validate(result.values)
+	var loaded_values: Dictionary = result.get("values", {})
+	var validation := RallySetupCatalog.validate(loaded_values)
 	if not bool(validation.get("ok", false)):
 		_show_notice(str(validation.get("error", "Reglaje incompatible.")), true)
 		return
-	var applied := vehicle.apply_setup_values(validation.values)
-	if not bool(applied.get("ok", false)):
-		_show_notice(str(applied.get("error", "No se pudo aplicar el reglaje.")), true)
-		return
-	draft_values = applied.values
-	active_setup_id = selected_setup_id
-	active_setup_name = str(result.get("name", "Reglaje"))
-	_show_notice("Reglaje aplicado en tiempo real: " + active_setup_name)
+	draft_values = validation.values
+	var applied := vehicle.apply_setup_values(draft_values)
+	if bool(applied.get("ok", false)):
+		draft_values = applied.values
+		active_setup_id = selected_setup_id
+		active_setup_name = str(result.get("name", "Reglaje cargado"))
+		_show_notice("Reglaje cargado y aplicado.")
+	else:
+		_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 	page = 0
 	_set_page(page)
 
@@ -569,21 +700,27 @@ func _database_context() -> Dictionary:
 
 func _show_notice(message: String, is_error: bool = false) -> void:
 	notice = message
-	notice_time = 3.5
-	if is_error:
-		push_warning("Rally garage: " + message)
+	notice_time = 3.0
 	queue_redraw()
 
 
 func _process(delta: float) -> void:
 	if notice_time > 0.0:
-		notice_time = maxf(notice_time - delta, 0.0)
-		queue_redraw()
+		notice_time -= delta
+		if notice_time <= 0.0:
+			notice = ""
+			queue_redraw()
 
 
 func _to_logical(point: Vector2) -> Vector2:
-	return (point - _canvas_offset) / maxf(_canvas_scale, 0.0001)
+	if _canvas_scale <= 0.0:
+		return point
+	return (point - _canvas_offset) / _canvas_scale
 
+
+# ==============================================================================
+# DRAWING ROUTINES
+# ==============================================================================
 
 func _draw() -> void:
 	_hit_regions.clear()
@@ -594,14 +731,13 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), C_BG)
 	draw_set_transform(_canvas_offset, 0.0, Vector2.ONE * _canvas_scale)
 	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), C_BG)
-	draw_rect(Rect2(0.0, 0.0, 1280.0, 5.0), C_GOLD)
 	_draw_header()
 	_draw_tabs()
 	match page:
 		0:
 			_draw_suspension_page()
 		1:
-			_draw_aero_wheels_page()
+			_draw_wheels_page()
 		2:
 			_draw_powertrain_page()
 		3:
@@ -617,146 +753,579 @@ func _draw() -> void:
 
 
 func _draw_header() -> void:
-	_draw_panel(Rect2(24.0, 24.0, 1232.0, 72.0), C_PANEL)
-	_draw_text(Vector2(48.0, 55.0), "FORMULA 90s", 18, C_GOLD, true)
-	_draw_text(Vector2(48.0, 79.0), "GARAGE  /  REGLAJES", 17, C_WHITE, true)
-	_draw_line(Vector2(286.0, 38.0), Vector2(286.0, 82.0), C_LINE, 1.0)
-	_draw_text(Vector2(312.0, 54.0), "FORD ESCORT RS2000", 18, C_WHITE, true)
-	_draw_text(Vector2(312.0, 77.0), circuit_name.to_upper() + "  ·  " + circuit_country.to_upper(), 13, C_MUTED)
-	_draw_text(Vector2(1230.0, 53.0), "MODO " + mode.to_upper(), 14, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT)
-	_draw_text(Vector2(1230.0, 77.0), "SETUP: " + active_setup_name.to_upper(), 12, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT)
+	var rect := Rect2(24.0, 18.0, 1232.0, 70.0)
+	_draw_panel(rect, C_PANEL, C_BORDER)
+	draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 3.0), C_GOLD)
+	
+	_draw_text(Vector2(46.0, 48.0), "GRUPO 4 - GARAJE", 18, C_GOLD, true)
+	_draw_text(Vector2(46.0, 68.0), "PARC FERMÉ  ·  SETUP Y ESTRATEGIA DE COMPETICIÓN", 10, C_WHITE, true)
+	
+	_draw_line(Vector2(380.0, 30.0), Vector2(380.0, 76.0), C_BORDER, 1.0)
+	
+	_draw_text(Vector2(404.0, 48.0), "FORD ESCORT RS2000 (1971)", 16, C_WHITE, true)
+	_draw_text(Vector2(404.0, 68.0), circuit_name.to_upper() + "  ·  " + circuit_country.to_upper(), 11, C_MUTED)
+	
+	_draw_text(Vector2(rect.end.x - 20.0, 48.0), "MODO " + mode.to_upper(), 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_text(Vector2(rect.end.x - 20.0, 68.0), "SETUP: " + active_setup_name.to_upper(), 11, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _draw_tabs() -> void:
 	var titles: Array = RallySetupCatalog.PAGE_TITLES
 	var x := 24.0
-	var gap := 7.0
+	var gap := 6.0
 	var width := (1232.0 - gap * 4.0) / 5.0
+	var y := 100.0
+	var height := 44.0
 	for index in titles.size():
-		var rect := Rect2(x + float(index) * (width + gap), 112.0, width, 48.0)
+		var rect := Rect2(x + float(index) * (width + gap), y, width, height)
 		var active := index == page
-		_draw_rect(rect, C_STEEL if active else C_PANEL, true)
-		_draw_rect(rect, C_GOLD if active else C_LINE, false, 1.0)
-		_draw_text(rect.get_center() + Vector2(0.0, 5.0), str(titles[index]), 15, C_WHITE if active else C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_rect(rect, C_PANEL_ALT if active else C_PANEL, true)
+		_draw_rect(rect, C_BORDER_FOCUS if active else C_BORDER, false, 1.0)
+		if active:
+			draw_rect(Rect2(rect.position.x, rect.end.y - 3.0, rect.size.x, 3.0), C_GOLD)
+		_draw_text(rect.get_center() + Vector2(0.0, 4.0), str(titles[index]), 12, C_GOLD if active else C_MUTED, active, HORIZONTAL_ALIGNMENT_CENTER)
 		_hit_regions.append({"rect": rect, "kind": "tab", "page": index})
-	_draw_line(Vector2(24.0, 170.0), Vector2(1256.0, 170.0), C_LINE, 1.0)
 
 
 func _draw_suspension_page() -> void:
-	_draw_group_panel(Rect2(24.0, 180.0, 330.0, 234.0), "SUSPENSIÓN DELANTERA", _paths(["suspension.front.ride_frequency_hz", "suspension.front.resting_ratio", "suspension.front.damping_ratio", "suspension.front.bump_damp_multiplier", "suspension.front.rebound_damp_multiplier", "suspension.front.bump_stop_multiplier"]), 31.0)
-	_draw_group_panel(Rect2(24.0, 426.0, 330.0, 236.0), "SUSPENSIÓN TRASERA", _paths(["suspension.rear.ride_frequency_hz", "suspension.rear.resting_ratio", "suspension.rear.damping_ratio", "suspension.rear.bump_damp_multiplier", "suspension.rear.rebound_damp_multiplier", "suspension.rear.bump_stop_multiplier"]), 31.0)
-	_draw_group_panel(Rect2(926.0, 180.0, 330.0, 234.0), "BARRA DELANTERA", _paths(["suspension.geometry_physical.front_arb.ratio"]))
-	_draw_group_panel(Rect2(926.0, 426.0, 330.0, 236.0), "BARRA TRASERA", _paths(["suspension.geometry_physical.rear_arb.ratio"]))
-	_draw_car_card(Rect2(374.0, 180.0, 528.0, 482.0), "BALANCE DEL CHASIS")
-	_draw_field_row(RallySetupCatalog.field_for_path("steering.max_steering_angle"), Rect2(404.0, 592.0, 468.0, 56.0))
+	var y := 158.0
+	var h := 524.0
+	var col_w := 370.0
+	
+	# Left Column: Front Damper & Spring (6) + Front ARB (1)
+	_draw_group_panel(Rect2(24.0, y, col_w, 360.0), "SUSPENSIÓN DELANTERA", _paths([
+		"suspension.front.ride_frequency_hz",
+		"suspension.front.resting_ratio",
+		"suspension.front.damping_ratio",
+		"suspension.front.bump_damp_multiplier",
+		"suspension.front.rebound_damp_multiplier",
+		"suspension.front.bump_stop_multiplier"
+	]), 36.0)
+	_draw_group_panel(Rect2(24.0, y + 372.0, col_w, 152.0), "BARRA ESTABILIZADORA DELANTERA", _paths([
+		"suspension.geometry_physical.front_arb.ratio"
+	]), 44.0)
+	
+	# Right Column: Rear Damper & Spring (6) + Rear ARB (1)
+	var right_x := 1280.0 - 24.0 - col_w
+	_draw_group_panel(Rect2(right_x, y, col_w, 360.0), "SUSPENSIÓN TRASERA", _paths([
+		"suspension.rear.ride_frequency_hz",
+		"suspension.rear.resting_ratio",
+		"suspension.rear.damping_ratio",
+		"suspension.rear.bump_damp_multiplier",
+		"suspension.rear.rebound_damp_multiplier",
+		"suspension.rear.bump_stop_multiplier"
+	]), 36.0)
+	_draw_group_panel(Rect2(right_x, y + 372.0, col_w, 152.0), "BARRA ESTABILIZADORA TRASERA", _paths([
+		"suspension.geometry_physical.rear_arb.ratio"
+	]), 44.0)
+	
+	# Center Column: Chassis Balance and Steering Angle (Rally schematic, no F1 silhouette)
+	var center_x := 24.0 + col_w + 16.0
+	var center_w := right_x - center_x - 16.0
+	var center_rect := Rect2(center_x, y, center_w, h)
+	_draw_chassis_balance_card(center_rect)
 
 
-func _draw_aero_wheels_page() -> void:
-	_draw_group_panel(Rect2(24.0, 180.0, 330.0, 234.0), "DELANTERA IZQUIERDA", _paths(["tires.pressure.cold_kpa_gauge.FL", "suspension.front.camber", "suspension.front.toe"]))
-	_draw_group_panel(Rect2(24.0, 426.0, 330.0, 236.0), "TRASERA IZQUIERDA", _paths(["tires.pressure.cold_kpa_gauge.RL", "suspension.rear.camber", "suspension.rear.toe"]))
-	_draw_group_panel(Rect2(926.0, 180.0, 330.0, 234.0), "DELANTERA DERECHA", _paths(["tires.pressure.cold_kpa_gauge.FR", "suspension.front.camber", "suspension.front.toe"]))
-	_draw_group_panel(Rect2(926.0, 426.0, 330.0, 236.0), "TRASERA DERECHA", _paths(["tires.pressure.cold_kpa_gauge.RR", "suspension.rear.camber", "suspension.rear.toe"]))
-	_draw_car_card(Rect2(374.0, 180.0, 528.0, 284.0), "PRESIONES Y GEOMETRÍA")
-	_draw_text(Vector2(394.0, 448.0), "EN PISTA: CTRL + REPÁG / AVPÁG  ·  ±5 kPa", 12, C_MUTED)
-	_draw_group_panel(Rect2(374.0, 476.0, 528.0, 186.0), "AERODINÁMICA Y FRENOS", _paths(["aero.model.front_wing.incidence_deg", "aero.model.rear_wing.incidence_deg", "brakes.front_brake_bias", "brakes.max_brake_torque"]), 34.0)
+func _draw_chassis_balance_card(rect: Rect2) -> void:
+	_draw_panel(rect, C_PANEL, C_BORDER)
+	_draw_text(Vector2(rect.get_center().x, rect.position.y + 26.0), "BALANCE DEL CHASIS Y DIRECCIÓN", 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text(Vector2(rect.get_center().x, rect.position.y + 44.0), "DISTRIBUCIÓN ESTÁTICA Y BALANCE DE EJES", 10, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+	
+	var card_cx := rect.get_center().x
+	var card_top := rect.position.y + 60.0
+	
+	# Technical Rally Chassis Schematic (Escort RS2000 Proportions)
+	var sch_w := 140.0
+	var sch_h := 240.0
+	var sch_rect := Rect2(card_cx - sch_w * 0.5, card_top + 10.0, sch_w, sch_h)
+	
+	# Chassis Main Body Contour
+	_draw_rect(sch_rect, Color(C_PANEL_ALT, 0.7), true)
+	_draw_rect(sch_rect, C_STEEL, false, 1.5)
+	
+	# Front hood & cabin lines
+	var front_y := sch_rect.position.y + 65.0
+	var cabin_rear_y := sch_rect.position.y + 175.0
+	_draw_line(Vector2(sch_rect.position.x + 10.0, front_y), Vector2(sch_rect.end.x - 10.0, front_y), C_BORDER_FOCUS, 1.0)
+	_draw_line(Vector2(sch_rect.position.x + 10.0, cabin_rear_y), Vector2(sch_rect.end.x - 10.0, cabin_rear_y), C_BORDER_FOCUS, 1.0)
+	_draw_line(Vector2(card_cx, sch_rect.position.y + 15.0), Vector2(card_cx, sch_rect.end.y - 15.0), Color(C_BORDER, 0.8), 1.0)
+	
+	# Axle lines
+	var f_axle_y := sch_rect.position.y + 45.0
+	var r_axle_y := sch_rect.position.y + 195.0
+	_draw_line(Vector2(sch_rect.position.x - 18.0, f_axle_y), Vector2(sch_rect.end.x + 18.0, f_axle_y), C_GOLD, 2.0)
+	_draw_line(Vector2(sch_rect.position.x - 18.0, r_axle_y), Vector2(sch_rect.end.x + 18.0, r_axle_y), C_STEEL, 2.0)
+	
+	# Wheel footprints
+	var wh_w := 14.0
+	var wh_h := 36.0
+	_draw_rect(Rect2(sch_rect.position.x - 22.0, f_axle_y - wh_h * 0.5, wh_w, wh_h), C_GOLD, true)
+	_draw_rect(Rect2(sch_rect.end.x + 8.0, f_axle_y - wh_h * 0.5, wh_w, wh_h), C_GOLD, true)
+	_draw_rect(Rect2(sch_rect.position.x - 22.0, r_axle_y - wh_h * 0.5, wh_w, wh_h), C_WHITE, true)
+	_draw_rect(Rect2(sch_rect.end.x + 8.0, r_axle_y - wh_h * 0.5, wh_w, wh_h), C_WHITE, true)
+	
+	# Center of Gravity Badge (53% Front / 47% Rear)
+	var cg_y := f_axle_y + (r_axle_y - f_axle_y) * 0.47
+	draw_circle(Vector2(card_cx, cg_y), 7.0, C_GOLD)
+	draw_circle(Vector2(card_cx, cg_y), 3.0, C_BG)
+	_draw_line(Vector2(card_cx - 10.0, cg_y), Vector2(card_cx + 10.0, cg_y), C_GOLD, 1.0)
+	_draw_line(Vector2(card_cx, cg_y - 10.0), Vector2(card_cx, cg_y + 10.0), C_GOLD, 1.0)
+	_draw_text(Vector2(card_cx + 14.0, cg_y + 4.0), "CG 53 / 47", 10, C_GOLD, true)
+	
+	# Side telemetry readouts
+	var f_freq := float(draft_values.get("suspension.front.ride_frequency_hz", 1.67))
+	var r_freq := float(draft_values.get("suspension.rear.ride_frequency_hz", 1.70))
+	_draw_text(Vector2(rect.position.x + 20.0, f_axle_y + 4.0), "%0.2f Hz" % f_freq, 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_LEFT, -1.0, true)
+	_draw_text(Vector2(rect.position.x + 20.0, f_axle_y - 12.0), "EJE DELANTERO", 9, C_MUTED, true)
+	
+	_draw_text(Vector2(rect.end.x - 20.0, f_axle_y + 4.0), "ARB %0.2f" % float(draft_values.get("suspension.geometry_physical.front_arb.ratio", 0.0)), 12, C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_text(Vector2(rect.end.x - 20.0, f_axle_y - 12.0), "ESTABILIZADORA", 9, C_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	
+	_draw_text(Vector2(rect.position.x + 20.0, r_axle_y + 4.0), "%0.2f Hz" % r_freq, 12, C_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT, -1.0, true)
+	_draw_text(Vector2(rect.position.x + 20.0, r_axle_y - 12.0), "EJE TRASERO", 9, C_MUTED, true)
+	
+	_draw_text(Vector2(rect.end.x - 20.0, r_axle_y + 4.0), "ARB %0.2f" % float(draft_values.get("suspension.geometry_physical.rear_arb.ratio", 0.0)), 12, C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_text(Vector2(rect.end.x - 20.0, r_axle_y - 12.0), "ESTABILIZADORA", 9, C_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	
+	# ARB Distribution Capsule Bar
+	var arb_f := float(draft_values.get("suspension.geometry_physical.front_arb.ratio", 0.0))
+	var arb_r := float(draft_values.get("suspension.geometry_physical.rear_arb.ratio", 0.0))
+	var arb_tot := arb_f + arb_r
+	var arb_ratio := arb_f / maxf(arb_tot, 0.001) if arb_tot > 0.001 else 0.5
+	var bar_y := sch_rect.end.y + 24.0
+	var bar_w := rect.size.x - 60.0
+	var bar_x := rect.position.x + 30.0
+	_draw_text(Vector2(bar_x, bar_y - 8.0), "BALANCE RIGIDEZ ANTIBALANCE (ARB)", 10, C_MUTED, true)
+	_draw_text(Vector2(bar_x + bar_w, bar_y - 8.0), "%0.0f%% DEL  /  %0.0f%% TRAS" % [arb_ratio * 100.0, (1.0 - arb_ratio) * 100.0], 11, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_capsule_bar(Vector2(bar_x, bar_y), bar_w, 8.0, C_SLIDER_TRACK)
+	_draw_capsule_bar(Vector2(bar_x, bar_y), bar_w * arb_ratio, 8.0, C_GOLD)
+	
+	# Bottom field: Steering angle slider
+	_draw_field_row(RallySetupCatalog.field_for_path("steering.max_steering_angle"), Rect2(rect.position.x + 18.0, rect.end.y - 62.0, rect.size.x - 36.0, 48.0))
+
+
+func _draw_wheels_page() -> void:
+	var y := 158.0
+	var col_w := 350.0
+	var wheel_h := 248.0
+	var row_y1 := y
+	var row_y2 := row_y1 + wheel_h + 16.0
+	
+	# Left: FL & RL
+	_draw_group_panel(Rect2(24.0, row_y1, col_w, wheel_h), "DELANTERA IZQUIERDA (FL)", _paths([
+		"tires.pressure.cold_kpa_gauge.FL",
+		"suspension.front.camber",
+		"suspension.front.toe"
+	]), 44.0)
+	_draw_group_panel(Rect2(24.0, row_y2, col_w, wheel_h), "TRASERA IZQUIERDA (RL)", _paths([
+		"tires.pressure.cold_kpa_gauge.RL",
+		"suspension.rear.camber",
+		"suspension.rear.toe"
+	]), 44.0)
+	
+	# Right: FR & RR
+	var right_x := 1280.0 - 24.0 - col_w
+	_draw_group_panel(Rect2(right_x, row_y1, col_w, wheel_h), "DELANTERA DERECHA (FR)", _paths([
+		"tires.pressure.cold_kpa_gauge.FR",
+		"suspension.front.camber",
+		"suspension.front.toe"
+	]), 44.0)
+	_draw_group_panel(Rect2(right_x, row_y2, col_w, wheel_h), "TRASERA DERECHA (RR)", _paths([
+		"tires.pressure.cold_kpa_gauge.RR",
+		"suspension.rear.camber",
+		"suspension.rear.toe"
+	]), 44.0)
+	
+	# Center: Top Wheel Geometry Alignment + Bottom Brake System
+	var center_x := 24.0 + col_w + 16.0
+	var center_w := right_x - center_x - 16.0
+	_draw_wheel_geometry_card(Rect2(center_x, row_y1, center_w, wheel_h))
+	_draw_brakes_panel(Rect2(center_x, row_y2, center_w, wheel_h))
+
+
+func _draw_wheel_geometry_card(rect: Rect2) -> void:
+	_draw_panel(rect, C_PANEL, C_BORDER)
+	_draw_text(Vector2(rect.get_center().x, rect.position.y + 24.0), "GEOMETRÍA Y CAÍDAS", 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text(Vector2(rect.get_center().x, rect.position.y + 40.0), "ALINEACIÓN DE EJES DELANTERO Y TRASERO", 10, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+	
+	var f_camber := float(draft_values.get("suspension.front.camber", 0.0)) * 57.2957795
+	var r_camber := float(draft_values.get("suspension.rear.camber", 0.0)) * 57.2957795
+	var f_toe := float(draft_values.get("suspension.front.toe", 0.0)) * 57.2957795
+	var r_toe := float(draft_values.get("suspension.rear.toe", 0.0)) * 57.2957795
+	
+	var box_w := (rect.size.x - 48.0) * 0.5
+	var box_h := rect.size.y - 64.0
+	var box_f := Rect2(rect.position.x + 16.0, rect.position.y + 50.0, box_w, box_h)
+	var box_r := Rect2(rect.position.x + 32.0 + box_w, rect.position.y + 50.0, box_w, box_h)
+	
+	_draw_panel(box_f, C_PANEL_ALT, C_BORDER)
+	_draw_text(Vector2(box_f.position.x + 14.0, box_f.position.y + 24.0), "EJE DELANTERO", 12, C_GOLD, true)
+	_draw_text(Vector2(box_f.position.x + 14.0, box_f.position.y + 52.0), "Caída estática:", 11, C_MUTED)
+	_draw_text(Vector2(box_f.end.x - 14.0, box_f.position.y + 52.0), "%0.2f°" % f_camber, 13, C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_text(Vector2(box_f.position.x + 14.0, box_f.position.y + 82.0), "Convergencia:", 11, C_MUTED)
+	_draw_text(Vector2(box_f.end.x - 14.0, box_f.position.y + 82.0), "%0.2f°" % f_toe, 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_line(Vector2(box_f.position.x + 14.0, box_f.position.y + 104.0), Vector2(box_f.end.x - 14.0, box_f.position.y + 104.0), C_BORDER, 1.0)
+	_draw_text(Vector2(box_f.position.x + 14.0, box_f.position.y + 128.0), "Geometría MacPherson", 10, C_MUTED)
+	_draw_text(Vector2(box_f.position.x + 14.0, box_f.position.y + 146.0), "Optimizada para tierra y gravilla", 10, C_WHITE)
+	
+	_draw_panel(box_r, C_PANEL_ALT, C_BORDER)
+	_draw_text(Vector2(box_r.position.x + 14.0, box_r.position.y + 24.0), "EJE TRASERO", 12, C_GOLD, true)
+	_draw_text(Vector2(box_r.position.x + 14.0, box_r.position.y + 52.0), "Caída estática:", 11, C_MUTED)
+	_draw_text(Vector2(box_r.end.x - 14.0, box_r.position.y + 52.0), "%0.2f°" % r_camber, 13, C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_text(Vector2(box_r.position.x + 14.0, box_r.position.y + 82.0), "Convergencia:", 11, C_MUTED)
+	_draw_text(Vector2(box_r.end.x - 14.0, box_r.position.y + 82.0), "%0.2f°" % r_toe, 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	_draw_line(Vector2(box_r.position.x + 14.0, box_r.position.y + 104.0), Vector2(box_r.end.x - 14.0, box_r.position.y + 104.0), C_BORDER, 1.0)
+	_draw_text(Vector2(box_r.position.x + 14.0, box_r.position.y + 128.0), "Eje Rígido Salisbury 4-Link", 10, C_MUTED)
+	_draw_text(Vector2(box_r.position.x + 14.0, box_r.position.y + 146.0), "Tracción longitudinal máxima", 10, C_WHITE)
+
+
+func _draw_brakes_panel(rect: Rect2) -> void:
+	_draw_panel(rect, C_PANEL, C_BORDER)
+	_draw_text(Vector2(rect.position.x + 16.0, rect.position.y + 24.0), "SISTEMA DE FRENOS", 12, C_GOLD, true)
+	_draw_line(Vector2(rect.position.x + 14.0, rect.position.y + 34.0), Vector2(rect.end.x - 14.0, rect.position.y + 34.0), C_BORDER, 1.0)
+	
+	var bias := float(draft_values.get("brakes.front_brake_bias", 0.60))
+	var f1 := RallySetupCatalog.field_for_path("brakes.front_brake_bias")
+	var f2 := RallySetupCatalog.field_for_path("brakes.max_brake_torque")
+	
+	_draw_field_row(f1, Rect2(rect.position.x + 12.0, rect.position.y + 44.0, rect.size.x - 24.0, 52.0))
+	_draw_field_row(f2, Rect2(rect.position.x + 12.0, rect.position.y + 102.0, rect.size.x - 24.0, 52.0))
+	
+	# Brake distribution capsule bar
+	var bar_y := rect.end.y - 36.0
+	var bar_w := rect.size.x - 40.0
+	var bar_x := rect.position.x + 20.0
+	_draw_text(Vector2(bar_x, bar_y - 8.0), "REPARTO: DELANTERA %0.1f%%" % (bias * 100.0), 10, C_GOLD, true)
+	_draw_text(Vector2(bar_x + bar_w, bar_y - 8.0), "TRASERA %0.1f%%" % ((1.0 - bias) * 100.0), 10, C_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_capsule_bar(Vector2(bar_x, bar_y), bar_w, 8.0, C_SLIDER_TRACK)
+	_draw_capsule_bar(Vector2(bar_x, bar_y), bar_w * bias, 8.0, C_GOLD)
 
 
 func _draw_powertrain_page() -> void:
-	_draw_group_panel(Rect2(24.0, 180.0, 388.0, 482.0), "MOTOR", _paths(["powertrain.max_rpm", "powertrain.final_drive"]))
-	_draw_group_panel(Rect2(446.0, 180.0, 388.0, 482.0), "DIFERENCIAL SALISBURY", _paths(["powertrain.differential.preload_nm", "powertrain.differential.power_ramp_angle_deg", "powertrain.differential.coast_ramp_angle_deg", "powertrain.differential.clutches"]))
-	_draw_group_panel(Rect2(868.0, 180.0, 388.0, 482.0), "DIRECCIÓN / FRENADA", _paths(["steering.max_steering_angle", "steering.steering_speed", "brakes.max_brake_torque"]))
-	_draw_text(Vector2(640.0, 640.0), "RELACIONES DE MARCHA", 12, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
-	var ratios: Array = vehicle.simulation.powertrain_model.gear_ratios
-	var gear_text := "R " + str(snappedf(vehicle.simulation.powertrain_model.reverse_ratio, 0.01))
-	for index in ratios.size():
-		gear_text += "     " + str(index + 1) + "ª " + str(snappedf(float(ratios[index]), 0.01))
-	_draw_text(Vector2(640.0, 656.0), gear_text, 12, C_WHITE, false, HORIZONTAL_ALIGNMENT_CENTER)
+	var y := 158.0
+	var h := 524.0
+	var col_w := 388.0
+	var gap := 18.0
+	
+	# Col 1: Motor & Final Drive
+	var col1_x := 24.0
+	_draw_group_panel(Rect2(col1_x, y, col_w, 230.0), "MOTOR RS2000 (GRUPO 4)", _paths([
+		"powertrain.max_rpm",
+		"powertrain.final_drive"
+	]), 52.0)
+	_draw_group_panel(Rect2(col1_x, y + 244.0, col_w, 140.0), "DIRECCIÓN Y ASISTENCIA", _paths([
+		"steering.steering_speed"
+	]), 54.0)
+	
+	# Col 1 Bottom note
+	var note_rect := Rect2(col1_x, y + 398.0, col_w, 126.0)
+	_draw_panel(note_rect, C_PANEL, C_BORDER)
+	_draw_text(Vector2(note_rect.position.x + 14.0, note_rect.position.y + 24.0), "ESPECIFICACIONES DEL MOTOR", 11, C_GOLD, true)
+	_draw_text(Vector2(note_rect.position.x + 14.0, note_rect.position.y + 48.0), "Motor Ford Pinto 2.0L OHC (Grupo 4 Rally)", 11, C_WHITE)
+	_draw_text(Vector2(note_rect.position.x + 14.0, note_rect.position.y + 70.0), "Régimen máximo homologado: 7.200 rpm", 11, C_MUTED)
+	_draw_text(Vector2(note_rect.position.x + 14.0, note_rect.position.y + 92.0), "Potencia estimada: 245 CV @ 7.000 rpm", 11, C_GOLD, true)
+	
+	# Col 2: Gear Ratios Interactive Sliders (1a, 2a, 3a, 4a, R)
+	var col2_x := col1_x + col_w + gap
+	_draw_group_panel(Rect2(col2_x, y, col_w, h), "RELACIONES DE CAMBIO (4 MARCHAS + R)", _paths([
+		"powertrain.gear_ratios.0",
+		"powertrain.gear_ratios.1",
+		"powertrain.gear_ratios.2",
+		"powertrain.gear_ratios.3",
+		"powertrain.reverse_ratio"
+	]), 52.0)
+	
+	# Col 3: Salisbury Differential
+	var col3_x := col2_x + col_w + gap
+	_draw_group_panel(Rect2(col3_x, y, col_w, h), "DIFERENCIAL SALISBURY", _paths([
+		"powertrain.differential.preload_nm",
+		"powertrain.differential.power_ramp_angle_deg",
+		"powertrain.differential.coast_ramp_angle_deg",
+		"powertrain.differential.clutches"
+	]), 52.0)
 
 
 func _draw_strategy_page() -> void:
-	_draw_panel(Rect2(24.0, 180.0, 1232.0, 482.0), C_PANEL)
-	_draw_text(Vector2(54.0, 218.0), "ESTRATEGIA DE CARRERA", 20, C_WHITE, true)
-	_draw_text(Vector2(54.0, 247.0), "Combustible y servicio de neumáticos", 14, C_MUTED)
+	var y := 158.0
+	var h := 524.0
+	
+	# Left: Fuel and Tire Service Panel
+	var left_w := 580.0
+	var left_rect := Rect2(24.0, y, left_w, h)
+	_draw_panel(left_rect, C_PANEL, C_BORDER)
+	
+	# Unified Fuel & Autonomy Card
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 28.0), "COMBUSTIBLE Y AUTONOMÍA", 14, C_GOLD, true)
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 46.0), "Depósito de seguridad: capacidad total 45.0 kg", 11, C_MUTED)
+	
 	var fuel_field := RallySetupCatalog.field_for_path("fuel.initial_kg")
-	_draw_field_row(fuel_field, Rect2(52.0, 278.0, 458.0, 56.0))
-	var fuel_capacity := float(vehicle.simulation.mass_model.fuel_capacity_kg)
-	_draw_text(Vector2(66.0, 365.0), "CAPACIDAD DEL DEPÓSITO", 12, C_MUTED, true)
-	_draw_text(Vector2(498.0, 365.0), "%0.1f kg" % fuel_capacity, 14, C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT)
-	_draw_rect(Rect2(64.0, 384.0, 430.0, 9.0), C_STEEL_DARK, true)
-	var fuel_fraction := clampf(float(draft_values.get("fuel.initial_kg", 0.0)) / maxf(fuel_capacity, 0.001), 0.0, 1.0)
-	_draw_rect(Rect2(64.0, 384.0, 430.0 * fuel_fraction, 9.0), C_GOLD, true)
-	var service_rect := Rect2(54.0, 424.0, 454.0, 54.0)
-	_draw_rect(service_rect, C_PANEL_ALT, true)
-	_draw_rect(Rect2(70.0, 439.0, 22.0, 22.0), C_LINE, false, 2.0)
+	var fuel_val := float(draft_values.get("fuel.initial_kg", 25.0))
+	var fuel_cap := 45.0
+	var fuel_pct := clampf(fuel_val / fuel_cap, 0.0, 1.0) * 100.0
+	
+	# Unified interactive fuel slider row
+	var fuel_row_rect := Rect2(left_rect.position.x + 16.0, left_rect.position.y + 60.0, left_w - 32.0, 58.0)
+	_draw_rect(fuel_row_rect, C_PANEL_ALT, true)
+	_draw_rect(fuel_row_rect, C_GOLD if selected_field_path == "fuel.initial_kg" else C_BORDER, false, 1.0)
+	
+	_draw_text(Vector2(fuel_row_rect.position.x + 14.0, fuel_row_rect.position.y + 20.0), "Carga de combustible", 12, C_WHITE, true)
+	_draw_text(Vector2(fuel_row_rect.end.x - 14.0, fuel_row_rect.position.y + 20.0), "%0.1f / %0.1f kg  (%0.0f%%)" % [fuel_val, fuel_cap, fuel_pct], 13, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	
+	var fuel_track := Rect2(fuel_row_rect.position.x + 36.0, fuel_row_rect.position.y + 38.0, fuel_row_rect.size.x - 72.0, 8.0)
+	_draw_capsule_bar(fuel_track.position, fuel_track.size.x, 8.0, C_SLIDER_TRACK)
+	var fill_fw := fuel_track.size.x * (fuel_val / fuel_cap)
+	_draw_capsule_bar(fuel_track.position, fill_fw, 8.0, C_GOLD)
+	draw_circle(Vector2(fuel_track.position.x + fill_fw, fuel_track.position.y + 4.0), 6.0, C_WHITE)
+	draw_circle(Vector2(fuel_track.position.x + fill_fw, fuel_track.position.y + 4.0), 3.0, C_BG)
+	
+	_draw_text(Vector2(fuel_row_rect.position.x + 14.0, fuel_row_rect.position.y + 45.0), "−", 12, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text(Vector2(fuel_row_row_rect_end(fuel_row_rect) - 14.0, fuel_row_rect.position.y + 45.0), "+", 12, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
+	
+	_hit_regions.append({"rect": fuel_row_rect, "kind": "field", "path": "fuel.initial_kg", "slider": false})
+	_hit_regions.append({"rect": fuel_track.grow(8.0), "kind": "field", "path": "fuel.initial_kg", "slider": true, "track": fuel_track})
+	_hit_regions.append({"rect": Rect2(fuel_row_rect.position.x, fuel_row_rect.position.y + 26.0, 30.0, 26.0), "kind": "adjust", "path": "fuel.initial_kg", "amount": -1.0})
+	_hit_regions.append({"rect": Rect2(fuel_row_rect.end.x - 30.0, fuel_row_rect.position.y + 26.0, 30.0, 26.0), "kind": "adjust", "path": "fuel.initial_kg", "amount": 1.0})
+	
+	# Calculation for First Leg before Service
+	var leg_box := Rect2(left_rect.position.x + 16.0, left_rect.position.y + 128.0, left_w - 32.0, 112.0)
+	_draw_panel(leg_box, Color(C_PANEL_ALT, 0.6), C_BORDER)
+	_draw_text(Vector2(leg_box.position.x + 14.0, leg_box.position.y + 22.0), "PRIMERA SECCIÓN (SS1 – SS5 HASTA ASISTENCIA):", 11, C_GOLD, true)
+	_draw_text(Vector2(leg_box.position.x + 14.0, leg_box.position.y + 44.0), "5 tramos cronometrados acumulados · Distancia: ~28.5 km", 11, C_WHITE)
+	_draw_text(Vector2(leg_box.position.x + 14.0, leg_box.position.y + 64.0), "Consumo estimado: ~0.62 kg/km  ·  Mínimo necesario: 17.7 kg", 11, C_MUTED)
+	
+	var margin := fuel_val - 17.7
+	var status_text := ""
+	var status_col := C_GREEN
+	if fuel_val < 17.7:
+		status_text = "⚠️ INSUFICIENTE: Faltan %0.1f kg para llegar a la asistencia" % (17.7 - fuel_val)
+		status_col = C_RED
+	elif fuel_val < 21.5:
+		status_text = "⚠️ AJUSTADO: Margen escaso (+%0.1f kg de reserva)" % margin
+		status_col = C_GOLD
+	else:
+		status_text = "✓ AUTONOMÍA ÓPTIMA: +%0.1f kg de reserva de seguridad" % margin
+		status_col = C_GREEN
+	_draw_text(Vector2(leg_box.position.x + 14.0, leg_box.position.y + 92.0), status_text, 11, status_col, true)
+	
+	_draw_line(Vector2(left_rect.position.x + 16.0, left_rect.position.y + 252.0), Vector2(left_rect.end.x - 16.0, left_rect.position.y + 252.0), C_BORDER, 1.0)
+	
+	# Spare Wheels Selector
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 276.0), "RUEDAS DE REPUESTO EN EL COCHE (A BORDO)", 13, C_GOLD, true)
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 294.0), "Feature pendiente de sustitución en tramo en desarrollo", 10, C_MUTED)
+	
+	var opt_w := (left_w - 48.0) / 3.0
+	for count_idx in 3:
+		var opt_rect := Rect2(left_rect.position.x + 16.0 + float(count_idx) * (opt_w + 8.0), left_rect.position.y + 306.0, opt_w, 42.0)
+		var is_sel := draft_spare_wheels == count_idx
+		_draw_rect(opt_rect, C_PANEL_ALT if is_sel else C_BG, true)
+		_draw_rect(opt_rect, C_GOLD if is_sel else C_BORDER, false, 1.5 if is_sel else 1.0)
+		var lbl := "%d RUEDAS" % count_idx
+		if count_idx == 1:
+			lbl = "1 RUEDA (REC)"
+		elif count_idx == 0:
+			lbl = "0 (LIGERO)"
+		_draw_text(opt_rect.get_center() + Vector2(0.0, 4.0), lbl, 11, C_WHITE if is_sel else C_MUTED, is_sel, HORIZONTAL_ALIGNMENT_CENTER)
+		_hit_regions.append({"rect": opt_rect, "kind": "spare_wheels", "count": count_idx})
+	
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 364.0), "Peso añadido en maletero: +%d kg sobre eje trasero" % (draft_spare_wheels * 18), 10, C_MUTED)
+	
+	_draw_line(Vector2(left_rect.position.x + 16.0, left_rect.position.y + 382.0), Vector2(left_rect.end.x - 16.0, left_rect.position.y + 382.0), C_BORDER, 1.0)
+	
+	# Tire Service Checkbox Card
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 406.0), "ASISTENCIA EN EL PARQUE DE TRABAJO", 13, C_WHITE, true)
+	var service_rect := Rect2(left_rect.position.x + 16.0, left_rect.position.y + 422.0, left_w - 32.0, 68.0)
+	_draw_rect(service_rect, C_PANEL_ALT if new_tires_service else Color(C_PANEL_ALT, 0.5), true)
+	_draw_rect(service_rect, C_GOLD if new_tires_service else C_BORDER, false, 1.5 if new_tires_service else 1.0)
+	
+	var box_rect := Rect2(service_rect.position.x + 16.0, service_rect.position.y + 22.0, 24.0, 24.0)
+	_draw_rect(box_rect, C_BG, true)
+	_draw_rect(box_rect, C_GOLD if new_tires_service else C_BORDER, false, 1.5)
 	if new_tires_service:
-		_draw_rect(Rect2(74.0, 443.0, 14.0, 14.0), C_GOLD, true)
-	_draw_text(Vector2(108.0, 458.0), "MONTAR NEUMÁTICOS NUEVOS", 15, C_WHITE, true)
-	_draw_text(Vector2(56.0, 514.0), "El servicio se ejecuta al aplicar y volver al coche.", 12, C_MUTED)
+		_draw_rect(Rect2(box_rect.position.x + 5.0, box_rect.position.y + 5.0, 14.0, 14.0), C_GOLD, true)
+	_draw_text(Vector2(service_rect.position.x + 52.0, service_rect.position.y + 32.0), "MONTAR JUEGO NUEVO DE NEUMÁTICOS", 12, C_WHITE, true)
+	_draw_text(Vector2(service_rect.position.x + 52.0, service_rect.position.y + 50.0), "El juego actual se renueva por completo en la asistencia", 10, C_MUTED)
 	_hit_regions.append({"rect": service_rect, "kind": "service"})
-	_draw_car_card(Rect2(554.0, 198.0, 636.0, 432.0), "ESTADO DE LOS NEUMÁTICOS")
-	var wheel_labels := ["FL", "FR", "RL", "RR"]
-	for index in 4:
-		var wheel: Dictionary = vehicle.get_tire_thermal_state(index)
-		var x := 580.0 + float(index % 2) * 410.0
-		var y := 548.0 + float(index >> 1) * 38.0
-		_draw_text(Vector2(x, y), "%s   %0.0f kPa   ·   %0.0f °C" % [wheel_labels[index], float(wheel.get("pressure_kpa_gauge", 0.0)), float(wheel.get("tread_c", 0.0))], 12, C_WHITE, true)
-	_draw_text(Vector2(105.0, 630.0), "CIRCUITO   " + circuit_name.to_upper(), 14, C_STEEL, true)
-	_draw_text(Vector2(510.0, 630.0), "DISTANCIA   %0.1f km" % (circuit_length_m / 1000.0), 14, C_STEEL, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	
+	# Right: Per-Wheel Compound Selection & Weather Forecast
+	var right_x := left_rect.end.x + 18.0
+	var right_w := 1280.0 - 24.0 - right_x
+	var right_rect := Rect2(right_x, y, right_w, h)
+	_draw_panel(right_rect, C_PANEL, C_BORDER)
+	
+	_draw_text(Vector2(right_rect.position.x + 20.0, right_rect.position.y + 28.0), "TIPO DE COMPUESTO POR NEUMÁTICO", 14, C_GOLD, true)
+	_draw_text(Vector2(right_rect.position.x + 20.0, right_rect.position.y + 46.0), "Selección independiente por cada rueda del coche", 11, C_MUTED)
+	
+	# 4 Wheel Compound Cards
+	var wheels_info := [
+		{"key": "FL", "label": "DELANTERA IZQ (FL)"},
+		{"key": "FR", "label": "DELANTERA DER (FR)"},
+		{"key": "RL", "label": "TRASERA IZQ (RL)"},
+		{"key": "RR", "label": "TRASERA DER (RR)"}
+	]
+	
+	var card_w := (right_w - 44.0) * 0.5
+	var card_h := 88.0
+	for wi in 4:
+		var w_item: Dictionary = wheels_info[wi]
+		var wk: String = w_item.key
+		var col_idx := wi % 2
+		var row_idx := wi / 2
+		var wx := right_rect.position.x + 16.0 + float(col_idx) * (card_w + 12.0)
+		var wy := right_rect.position.y + 60.0 + float(row_idx) * (card_h + 12.0)
+		var w_rect := Rect2(wx, wy, card_w, card_h)
+		_draw_panel(w_rect, C_PANEL_ALT, C_BORDER)
+		_draw_text(Vector2(wx + 12.0, wy + 22.0), str(w_item.label), 11, C_WHITE, true)
+		
+		var cur_comp: String = str(draft_wheel_compounds.get(wk, "gravel_normal"))
+		var btn_w := (card_w - 28.0) * 0.5
+		var btn_h := 34.0
+		var btn_sec := Rect2(wx + 10.0, wy + 38.0, btn_w, btn_h)
+		var btn_llu := Rect2(wx + 18.0 + btn_w, wy + 38.0, btn_w, btn_h)
+		
+		var is_sec := cur_comp == "gravel_normal"
+		var is_llu := cur_comp == "gravel_wet"
+		
+		_draw_rect(btn_sec, C_PANEL_HOVER if is_sec else C_BG, true)
+		_draw_rect(btn_sec, C_GOLD if is_sec else C_BORDER, false, 1.5 if is_sec else 1.0)
+		_draw_text(btn_sec.get_center() + Vector2(0.0, 4.0), "NORMAL / SECO", 10, C_GOLD if is_sec else C_MUTED, is_sec, HORIZONTAL_ALIGNMENT_CENTER)
+		_hit_regions.append({"rect": btn_sec, "kind": "wheel_compound", "wheel": wk, "compound_id": "gravel_normal"})
+		
+		_draw_rect(btn_llu, C_PANEL_HOVER if is_llu else C_BG, true)
+		_draw_rect(btn_llu, C_GOLD if is_llu else C_BORDER, false, 1.5 if is_llu else 1.0)
+		_draw_text(btn_llu.get_center() + Vector2(0.0, 4.0), "LLUVIA / BARRO", 10, C_GOLD if is_llu else C_MUTED, is_llu, HORIZONTAL_ALIGNMENT_CENTER)
+		_hit_regions.append({"rect": btn_llu, "kind": "wheel_compound", "wheel": wk, "compound_id": "gravel_wet"})
+	
+	# Global Compound Batch Quick Actions
+	var quick_y := right_rect.position.y + 266.0
+	_draw_text(Vector2(right_rect.position.x + 20.0, quick_y + 16.0), "APLICAR A LAS 4 RUEDAS:", 10, C_MUTED, true)
+	var q_btn_w := (right_w - 44.0) * 0.5
+	var q_rect1 := Rect2(right_rect.position.x + 16.0, quick_y + 26.0, q_btn_w, 34.0)
+	var q_rect2 := Rect2(right_rect.position.x + 28.0 + q_btn_w, quick_y + 26.0, q_btn_w, 34.0)
+	
+	_draw_rect(q_rect1, C_PANEL_ALT, true)
+	_draw_rect(q_rect1, C_BORDER_FOCUS, false, 1.0)
+	_draw_text(q_rect1.get_center() + Vector2(0.0, 4.0), "MONTAR 4 SECO", 11, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_hit_regions.append({"rect": q_rect1, "kind": "all_compounds", "compound_id": "gravel_normal"})
+	
+	_draw_rect(q_rect2, C_PANEL_ALT, true)
+	_draw_rect(q_rect2, C_BORDER_FOCUS, false, 1.0)
+	_draw_text(q_rect2.get_center() + Vector2(0.0, 4.0), "MONTAR 4 LLUVIA", 11, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_hit_regions.append({"rect": q_rect2, "kind": "all_compounds", "compound_id": "gravel_wet"})
+	
+	_draw_line(Vector2(right_rect.position.x + 16.0, quick_y + 74.0), Vector2(right_rect.end.x - 16.0, quick_y + 74.0), C_BORDER, 1.0)
+	
+	# Weather Forecast and Stage Environment
+	var fore_y := quick_y + 86.0
+	_draw_text(Vector2(right_rect.position.x + 20.0, fore_y + 16.0), "PRONÓSTICO METEOROLÓGICO Y CONDICIONES", 12, C_GOLD, true)
+	
+	var fore_box := Rect2(right_rect.position.x + 16.0, fore_y + 28.0, right_w - 32.0, 116.0)
+	_draw_panel(fore_box, C_PANEL_ALT, C_BORDER)
+	
+	var f_summary := forecast_summary if not forecast_summary.is_empty() else "Seco · Cielos despejados con zonas de gravilla compacta"
+	_draw_text(Vector2(fore_box.position.x + 16.0, fore_box.position.y + 28.0), "PRÓXIMA SECCIÓN: " + f_summary.to_upper(), 11, C_WHITE, true)
+	_draw_text(Vector2(fore_box.position.x + 16.0, fore_box.position.y + 54.0), "Superficie: Pistas forestales mixtas · Agarre: Medio-Alto", 11, C_MUTED)
+	var adv := forecast_advice if not forecast_advice.is_empty() else "Compuesto recomendado: Normal (Seco/Mixto)"
+	_draw_text(Vector2(fore_box.position.x + 16.0, fore_box.position.y + 78.0), "Recomendación del ingeniero: " + adv, 11, C_GOLD, true)
+	_draw_text(Vector2(fore_box.position.x + 16.0, fore_box.position.y + 102.0), "Permitido cambiar neumáticos en cada parque de trabajo oficial", 10, C_MUTED)
+
+
+func fuel_row_row_rect_end(r: Rect2) -> float:
+	return r.end.x
 
 
 func _draw_setups_page() -> void:
-	_draw_panel(Rect2(24.0, 180.0, 842.0, 482.0), C_PANEL)
-	_draw_text(Vector2(52.0, 216.0), "REGLAJES GUARDADOS", 20, C_WHITE, true)
-	_draw_text(Vector2(52.0, 241.0), circuit_name.to_upper() + "  ·  " + mode.to_upper() + "  ·  FORD ESCORT RS2000", 12, C_MUTED)
-	var list_rect := Rect2(44.0, 260.0, 802.0, 346.0)
-	_draw_rect(list_rect, C_BG, true)
+	var y := 158.0
+	var h := 524.0
+	
+	# Left: Saved Setups Table
+	var left_w := 820.0
+	var left_rect := Rect2(24.0, y, left_w, h)
+	_draw_panel(left_rect, C_PANEL, C_BORDER)
+	
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 32.0), "REGLAJES GUARDADOS EN BASE DE DATOS", 16, C_WHITE, true)
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.position.y + 54.0), circuit_name.to_upper() + "  ·  " + mode.to_upper() + "  ·  FORD ESCORT RS2000", 11, C_MUTED)
+	
+	# Table Header
+	var th_y := left_rect.position.y + 72.0
+	_draw_rect(Rect2(left_rect.position.x + 16.0, th_y, left_w - 32.0, 28.0), C_PANEL_ALT, true)
+	_draw_text(Vector2(left_rect.position.x + 32.0, th_y + 19.0), "NOMBRE DEL REGLAJE", 11, C_GOLD, true)
+	_draw_text(Vector2(left_rect.position.x + 460.0, th_y + 19.0), "EQUIPO / AUTOR", 11, C_GOLD, true)
+	_draw_text(Vector2(left_rect.end.x - 32.0, th_y + 19.0), "FECHA MODIFICADO", 11, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	
+	var list_y := th_y + 36.0
 	for visible_index in mini(maxi(setup_rows.size() - setup_scroll_offset, 0), 7):
 		var index := setup_scroll_offset + visible_index
 		var row := setup_rows[index]
-		var rect := Rect2(54.0, 270.0 + float(visible_index) * 46.0, 782.0, 40.0)
+		var rect := Rect2(left_rect.position.x + 16.0, list_y + float(visible_index) * 48.0, left_w - 32.0, 42.0)
 		var selected := index == selected_setup_index
-		_draw_rect(rect, C_STEEL_DARK if selected else C_PANEL, true)
+		_draw_rect(rect, C_PANEL_HOVER if selected else C_PANEL_ALT, true)
+		_draw_rect(rect, C_BORDER_FOCUS if selected else C_BORDER, false, 1.0)
 		if selected:
 			_draw_rect(Rect2(rect.position.x, rect.position.y, 4.0, rect.size.y), C_GOLD, true)
-		_draw_text(Vector2(rect.position.x + 16.0, rect.position.y + 26.0), str(row.get("name", "Reglaje")), 14, C_WHITE, true)
-		_draw_text(Vector2(rect.position.x + 414.0, rect.position.y + 26.0), team_name.to_upper(), 10, C_MUTED)
-		_draw_text(Vector2(rect.end.x - 12.0, rect.position.y + 26.0), _short_timestamp(str(row.get("modified_at", ""))), 10, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT)
+		_draw_text(Vector2(rect.position.x + 16.0, rect.position.y + 26.0), str(row.get("name", "Reglaje")), 13, C_WHITE, true)
+		_draw_text(Vector2(rect.position.x + 444.0, rect.position.y + 26.0), team_name.to_upper(), 11, C_MUTED)
+		_draw_text(Vector2(rect.end.x - 16.0, rect.position.y + 26.0), _short_timestamp(str(row.get("modified_at", ""))), 11, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
 		_hit_regions.append({"rect": rect, "kind": "setup_row", "index": index})
+		
 	if setup_rows.is_empty():
-		_draw_text(list_rect.get_center() + Vector2(0.0, 4.0), "NO HAY REGLAJES GUARDADOS PARA ESTE CIRCUITO", 13, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_text(Vector2(52.0, 638.0), database_status, 10, C_MUTED)
-	_draw_panel(Rect2(888.0, 180.0, 368.0, 482.0), C_PANEL)
-	_draw_text(Vector2(920.0, 216.0), "GESTIÓN", 18, C_WHITE, true)
-	_draw_button(Rect2(918.0, 250.0, 308.0, 48.0), "NUEVO REGLAJE", "new", true)
-	_draw_button(Rect2(918.0, 312.0, 308.0, 48.0), "GUARDAR SELECCIONADO", "save")
-	_draw_button(Rect2(918.0, 374.0, 308.0, 48.0), "CARGAR Y APLICAR", "load")
-	_draw_button(Rect2(918.0, 436.0, 308.0, 48.0), "ELIMINAR", "delete")
-	_draw_line(Vector2(918.0, 512.0), Vector2(1226.0, 512.0), C_LINE, 1.0)
-	_draw_text(Vector2(920.0, 540.0), "ALMACENAMIENTO", 11, C_GOLD, true)
-	_draw_text(Vector2(920.0, 565.0), "SQLite local  ·  user://open_formula.db", 11, C_MUTED)
-	_draw_text(Vector2(920.0, 591.0), "Perfil: " + str(vehicle.rally_profile.get("profile_id", "Ford Escort")), 10, C_MUTED)
-	_draw_text(Vector2(920.0, 617.0), "Modo: " + mode.to_upper(), 11, C_STEEL, true)
+		_draw_text(Vector2(left_rect.get_center().x, left_rect.get_center().y), "NO HAY REGLAJES GUARDADOS PARA ESTE CIRCUITO", 13, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+		
+	_draw_text(Vector2(left_rect.position.x + 20.0, left_rect.end.y - 18.0), "Base de datos de reglajes activa", 11, C_MUTED)
+	
+	# Right: Action Buttons & Setup Info (No Local Storage text block)
+	var right_x := left_rect.end.x + 20.0
+	var right_w := 1280.0 - 24.0 - right_x
+	var right_rect := Rect2(right_x, y, right_w, h)
+	_draw_panel(right_rect, C_PANEL, C_BORDER)
+	
+	_draw_text(Vector2(right_rect.position.x + 20.0, right_rect.position.y + 32.0), "GESTIÓN DE REGLAJES", 14, C_WHITE, true)
+	
+	var btn_w := right_w - 40.0
+	var btn_h := 46.0
+	var by := right_rect.position.y + 60.0
+	_draw_button(Rect2(right_rect.position.x + 20.0, by, btn_w, btn_h), "NUEVO REGLAJE", "new", true)
+	_draw_button(Rect2(right_rect.position.x + 20.0, by + 56.0, btn_w, btn_h), "GUARDAR SELECCIONADO", "save")
+	_draw_button(Rect2(right_rect.position.x + 20.0, by + 112.0, btn_w, btn_h), "CARGAR Y APLICAR", "load")
+	_draw_button(Rect2(right_rect.position.x + 20.0, by + 168.0, btn_w, btn_h), "ELIMINAR REGLAJE", "delete", false, true)
+	
+	_draw_line(Vector2(right_rect.position.x + 20.0, by + 236.0), Vector2(right_rect.end.x - 20.0, by + 236.0), C_BORDER, 1.0)
+	
+	# Setup Guide card
+	var guide_box := Rect2(right_rect.position.x + 20.0, by + 256.0, btn_w, 180.0)
+	_draw_panel(guide_box, C_PANEL_ALT, C_BORDER)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 24.0), "INFORMACIÓN DEL PERFIL", 11, C_GOLD, true)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 48.0), "Vehículo activo: Ford Escort RS2000", 11, C_WHITE)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 70.0), "Categoría: Grupo 4 Histórico FIA", 11, C_MUTED)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 92.0), "Reglaje activo: " + active_setup_name, 11, C_GOLD, true)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 120.0), "Los reglajes se aplican directamente", 10, C_MUTED)
+	_draw_text(Vector2(guide_box.position.x + 14.0, guide_box.position.y + 138.0), "a las físicas y dinámicas del coche.", 10, C_MUTED)
 
 
 func _draw_footer() -> void:
-	_draw_line(Vector2(24.0, 696.0), Vector2(1256.0, 696.0), C_LINE, 1.0)
+	var line_y := 698.0
+	_draw_line(Vector2(24.0, line_y), Vector2(1256.0, line_y), C_BORDER, 1.0)
+	
+	var btn_y := 718.0
+	var btn_h := 48.0
+	
 	if page == 4:
-		_draw_button(Rect2(24.0, 718.0, 210.0, 52.0), "RESTAURAR PERFIL", "reset")
-		_draw_button(Rect2(944.0, 718.0, 130.0, 52.0), "CANCELAR", "cancel")
-		_draw_button(Rect2(1084.0, 718.0, 172.0, 52.0), "APLICAR Y VOLVER", "apply", true)
+		_draw_button(Rect2(24.0, btn_y, 200.0, btn_h), "RESTAURAR PERFIL", "reset")
+		_draw_button(Rect2(930.0, btn_y, 140.0, btn_h), "CANCELAR", "cancel")
+		_draw_button(Rect2(1082.0, btn_y, 174.0, btn_h), "APLICAR Y SALIR", "apply", true)
 	else:
-		_draw_button(Rect2(24.0, 718.0, 210.0, 52.0), "RESTABLECER", "reset")
-		_draw_text(Vector2(640.0, 750.0), "W/S O ↑/↓ NAVEGAR     Q/E O ←/→ AJUSTAR     RE PÁG/AV PÁG CAMBIAR PÁGINA", 11, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_button(Rect2(944.0, 718.0, 130.0, 52.0), "CANCELAR", "cancel")
-		_draw_button(Rect2(1084.0, 718.0, 172.0, 52.0), "APLICAR Y VOLVER", "apply", true)
-	_draw_text(Vector2(1256.0, 792.0), "F5 / START  APLICAR     ESC / B  CANCELAR", 9, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT)
+		_draw_button(Rect2(24.0, btn_y, 180.0, btn_h), "RESTABLECER", "reset")
+		_draw_text(Vector2(640.0, btn_y + 28.0), "W/S O ↑/↓ NAVEGAR   ·   Q/E O ←/→ AJUSTAR   ·   RE PÁG/AV PÁG CAMBIAR PÁGINA", 11, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_button(Rect2(930.0, btn_y, 140.0, btn_h), "CANCELAR", "cancel")
+		_draw_button(Rect2(1082.0, btn_y, 174.0, btn_h), "APLICAR Y SALIR", "apply", true)
+		
+	_draw_text(Vector2(1256.0, 788.0), "F5 / START APLICAR   ·   ESC / B CANCELAR", 10, C_MUTED, false, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
-func _draw_group_panel(rect: Rect2, title: String, paths: Array[String], row_height: float = 36.0) -> void:
-	_draw_panel(rect, C_PANEL)
+func _draw_group_panel(rect: Rect2, title: String, paths: Array[String], row_height: float) -> void:
+	_draw_panel(rect, C_PANEL, C_BORDER)
 	_draw_text(Vector2(rect.position.x + 16.0, rect.position.y + 24.0), title, 12, C_GOLD, true)
-	_draw_line(Vector2(rect.position.x + 14.0, rect.position.y + 34.0), Vector2(rect.end.x - 14.0, rect.position.y + 34.0), C_LINE, 1.0)
-	var row_y := rect.position.y + 41.0
+	_draw_line(Vector2(rect.position.x + 14.0, rect.position.y + 34.0), Vector2(rect.end.x - 14.0, rect.position.y + 34.0), C_BORDER, 1.0)
+	var row_y := rect.position.y + 42.0
 	for path in paths:
 		var field := RallySetupCatalog.field_for_path(path)
 		if field.is_empty():
@@ -768,95 +1337,131 @@ func _draw_group_panel(rect: Rect2, title: String, paths: Array[String], row_hei
 func _draw_field_row(field: Dictionary, rect: Rect2) -> void:
 	var path: String = str(field.path)
 	var selected := selected_field_path == path
-	_draw_rect(rect, C_PANEL_ALT if selected else Color(C_PANEL_ALT, 0.45), true)
+	_draw_rect(rect, C_PANEL_HOVER if selected else Color(C_PANEL_ALT, 0.45), true)
+	_draw_rect(rect, C_BORDER_FOCUS if selected else Color(C_BORDER, 0.5), false, 1.0)
 	if selected:
 		_draw_rect(Rect2(rect.position.x, rect.position.y, 3.0, rect.size.y), C_GOLD, true)
+		
 	var display_value := float(draft_values.get(path, 0.0)) * float(field.scale)
-	var formatted := String.num(display_value, int(field.digits)) + str(field.suffix)
-	_draw_text(Vector2(rect.position.x + 8.0, rect.position.y + 14.0), str(field.label), 10 if rect.size.x < 360.0 else 12, C_WHITE if selected else C_MUTED)
-	_draw_text(Vector2(rect.end.x - 8.0, rect.position.y + 14.0), formatted, 11 if rect.size.x < 360.0 else 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_RIGHT)
-	var track_rect := Rect2(rect.position.x + 34.0, rect.position.y + rect.size.y - 9.0, rect.size.x - 68.0, 2.0)
-	_draw_rect(track_rect, C_LINE, true)
+	var formatted := ("%0.*f" % [int(field.digits), display_value]) + str(field.suffix)
+	
+	_draw_text(Vector2(rect.position.x + 10.0, rect.position.y + 15.0), str(field.label), 11, C_WHITE if selected else C_MUTED)
+	_draw_text(Vector2(rect.end.x - 10.0, rect.position.y + 15.0), formatted, 13, C_GOLD if selected else C_WHITE, true, HORIZONTAL_ALIGNMENT_RIGHT, -1.0, true)
+	
+	var track_h := 6.0
+	var track_rect := Rect2(rect.position.x + 36.0, rect.position.y + rect.size.y - 12.0, rect.size.x - 72.0, track_h)
+	_draw_capsule_bar(track_rect.position, track_rect.size.x, track_h, C_SLIDER_TRACK)
+	
 	var range_value := maxf(float(field.max) - float(field.min), 0.0001)
 	var fraction := clampf((float(draft_values.get(path, 0.0)) - float(field.min)) / range_value, 0.0, 1.0)
-	_draw_rect(Rect2(track_rect.position, Vector2(track_rect.size.x * fraction, track_rect.size.y)), C_STEEL, true)
-	draw_circle(Vector2(track_rect.position.x + track_rect.size.x * fraction, track_rect.position.y + 1.0), 4.0, C_GOLD if selected else C_WHITE)
+	var fill_w := track_rect.size.x * fraction
+	if fill_w > 0.0:
+		_draw_capsule_bar(track_rect.position, fill_w, track_h, C_GOLD if selected else C_SLIDER_FILL)
+	
+	var knob_center := Vector2(track_rect.position.x + fill_w, track_rect.position.y + track_h * 0.5)
+	draw_circle(knob_center, 5.0, C_GOLD if selected else C_WHITE)
+	draw_circle(knob_center, 2.5, C_BG)
+	
 	_hit_regions.append({"rect": rect, "kind": "field", "path": path, "slider": false})
-	_hit_regions.append({"rect": track_rect.grow(6.0), "kind": "field", "path": path, "slider": true})
-	_hit_regions.append({"rect": Rect2(rect.position.x + 2.0, rect.end.y - 17.0, 24.0, 16.0), "kind": "adjust", "path": path, "amount": -1.0})
-	_hit_regions.append({"rect": Rect2(rect.end.x - 26.0, rect.end.y - 17.0, 24.0, 16.0), "kind": "adjust", "path": path, "amount": 1.0})
-	_draw_text(Vector2(rect.position.x + 12.0, rect.end.y - 2.0), "−", 11, C_MUTED, true)
-	_draw_text(Vector2(rect.end.x - 12.0, rect.end.y - 2.0), "+", 11, C_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	_hit_regions.append({"rect": track_rect.grow(8.0), "kind": "field", "path": path, "slider": true, "track": track_rect})
+	_hit_regions.append({"rect": Rect2(rect.position.x + 2.0, rect.end.y - 22.0, 26.0, 20.0), "kind": "adjust", "path": path, "amount": -1.0})
+	_hit_regions.append({"rect": Rect2(rect.end.x - 28.0, rect.end.y - 22.0, 26.0, 20.0), "kind": "adjust", "path": path, "amount": 1.0})
+	
+	_draw_text(Vector2(rect.position.x + 14.0, rect.end.y - 5.0), "−", 11, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text(Vector2(rect.end.x - 14.0, rect.end.y - 5.0), "+", 11, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
 
 
-func _draw_car_card(rect: Rect2, title: String) -> void:
-	_draw_panel(rect, C_PANEL)
-	_draw_text(Vector2(rect.get_center().x, rect.position.y + 26.0), title, 13, C_MUTED, true, HORIZONTAL_ALIGNMENT_CENTER)
-	var image_height := minf(rect.size.y - 72.0, 365.0)
-	var image_width := image_height * 0.55
-	var image_rect := Rect2(rect.get_center().x - image_width * 0.5, rect.position.y + 40.0, image_width, image_height)
-	draw_texture_rect(CAR_TEXTURE, image_rect, false, Color(1.0, 1.0, 1.0, 0.88))
-	_draw_line(Vector2(rect.position.x + 26.0, rect.end.y - 22.0), Vector2(rect.end.x - 26.0, rect.end.y - 22.0), C_LINE, 1.0)
+func _draw_capsule_bar(pos: Vector2, width: float, height: float, color: Color) -> void:
+	if width <= 0.0 or height <= 0.0:
+		return
+	var radius := height * 0.5
+	if width <= height:
+		draw_circle(pos + Vector2(radius, radius), radius, color)
+		return
+	draw_rect(Rect2(pos.x + radius, pos.y, width - height, height), color, true)
+	draw_circle(Vector2(pos.x + radius, pos.y + radius), radius, color)
+	draw_circle(Vector2(pos.x + width - radius, pos.y + radius), radius, color)
 
 
-func _draw_button(rect: Rect2, label: String, action: String, primary: bool = false) -> void:
-	var fill := C_STEEL if primary else C_PANEL
+func _draw_button(rect: Rect2, label: String, action: String, primary: bool = false, danger: bool = false) -> void:
+	var fill := C_GOLD if primary else (Color(C_RED, 0.18) if danger else C_PANEL_ALT)
+	var border := C_GOLD if primary else (C_RED if danger else C_BORDER_FOCUS)
+	var text_color := C_BG if primary else (C_RED if danger else C_WHITE)
 	_draw_rect(rect, fill, true)
-	_draw_rect(rect, C_GOLD if primary else C_LINE, false, 1.0)
-	_draw_text(rect.get_center() + Vector2(0.0, 5.0), label, 12, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_rect(rect, border, false, 1.0)
+	_draw_text(rect.get_center() + Vector2(0.0, 4.0), label, 12, text_color, true, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_regions.append({"rect": rect, "kind": "button", "action": action})
 
 
 func _draw_modal() -> void:
-	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), Color(0.0, 0.0, 0.0, 0.70))
-	var rect := Rect2(384.0, 280.0, 512.0, 230.0)
-	_draw_panel(rect, C_PANEL_ALT)
-	_draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 4.0), C_GOLD, true)
+	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), Color(0.0, 0.0, 0.0, 0.78))
+	var rect := Rect2(380.0, 260.0, 520.0, 240.0)
+	_draw_panel(rect, C_PANEL_ALT, C_BORDER_FOCUS)
+	draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 3.0), C_GOLD)
+	
 	if modal_mode == "name":
-		_draw_text(Vector2(640.0, 332.0), "GUARDAR REGLAJE", 20, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text(Vector2(424.0, 376.0), "Nombre (1–100 caracteres)", 13, C_MUTED)
-		_draw_rect(Rect2(424.0, 392.0, 432.0, 42.0), C_BG, true)
-		_draw_rect(Rect2(424.0, 392.0, 432.0, 42.0), C_STEEL, false, 1.0)
-		_draw_text(Vector2(440.0, 419.0), modal_text + "▌", 15, C_WHITE)
-		_draw_text(Vector2(640.0, 474.0), "ENTER GUARDAR    ·    ESC CANCELAR", 11, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text(Vector2(640.0, 495.0), "MANDO: ←/→ ELEGIR   ·   A AÑADIR   ·   LB BORRAR   ·   START GUARDAR", 9, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 310.0), "GUARDAR NUEVO REGLAJE", 18, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(414.0, 350.0), "Nombre del reglaje (1–100 caracteres)", 12, C_MUTED)
+		var input_rect := Rect2(414.0, 366.0, 452.0, 44.0)
+		_draw_rect(input_rect, C_BG, true)
+		_draw_rect(input_rect, C_GOLD, false, 1.5)
+		_draw_text(Vector2(426.0, 394.0), modal_text + "▌", 14, C_WHITE)
+		_draw_text(Vector2(640.0, 448.0), "ENTER GUARDAR   ·   ESC CANCELAR", 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 472.0), "MANDO: ←/→ ELEGIR  ·  A AÑADIR  ·  LB BORRAR  ·  START GUARDAR", 10, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
 	elif modal_mode == "delete":
-		_draw_text(Vector2(640.0, 350.0), "ELIMINAR REGLAJE", 20, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 320.0), "ELIMINAR REGLAJE", 18, C_RED, true, HORIZONTAL_ALIGNMENT_CENTER)
 		var selected_name := "este reglaje"
 		for row in setup_rows:
 			if int(row.get("id", -1)) == selected_setup_id:
 				selected_name = str(row.get("name", selected_name))
-		_draw_text(Vector2(640.0, 394.0), "¿Eliminar «" + selected_name + "»?", 14, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text(Vector2(640.0, 458.0), "ENTER ELIMINAR    ·    ESC CANCELAR", 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 370.0), "¿Deseas eliminar definitivamente «" + selected_name + "»?", 13, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 440.0), "ENTER ELIMINAR   ·   ESC CANCELAR", 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
-		_draw_text(Vector2(640.0, 350.0), "DESCARTAR CAMBIOS", 20, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text(Vector2(640.0, 394.0), "Se restaurará el reglaje que tenías al abrir el garage.", 13, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text(Vector2(640.0, 458.0), "ENTER / ACEPTAR DESCARTE    ·    ESC / B SEGUIR EDITANDO", 11, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 320.0), "DESCARTAR CAMBIOS", 18, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 370.0), "Se restaurarán los valores previos a la apertura del garaje.", 13, C_MUTED, false, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text(Vector2(640.0, 440.0), "ENTER ACEPTAR DESCARTE   ·   ESC SEGUIR EDITANDO", 12, C_GOLD, true, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 func _draw_notice() -> void:
 	var is_error := notice.to_lower().contains("no se") or notice.to_lower().contains("error") or notice.to_lower().contains("incompatible")
-	var rect := Rect2(310.0, 664.0, 660.0, 34.0)
-	_draw_rect(rect, C_RED if is_error else C_STEEL_DARK, true)
-	_draw_text(rect.get_center() + Vector2(0.0, 5.0), notice, 11, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+	var rect := Rect2(320.0, 656.0, 640.0, 34.0)
+	_draw_rect(rect, Color(C_RED if is_error else C_PANEL_ALT, 0.95), true)
+	_draw_rect(rect, C_RED if is_error else C_BORDER_FOCUS, false, 1.0)
+	_draw_text(rect.get_center() + Vector2(0.0, 4.0), notice, 11, C_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
 
 
-func _draw_panel(rect: Rect2, color: Color) -> void:
+func _draw_panel(rect: Rect2, color: Color, border_color: Color = C_BORDER) -> void:
 	_draw_rect(rect, color, true)
-	_draw_rect(rect, C_LINE, false, 1.0)
+	_draw_rect(rect, border_color, false, 1.0)
 
 
 func _draw_rect(rect: Rect2, color: Color, filled: bool, width: float = 1.0) -> void:
-	draw_rect(rect, color, filled, width)
+	if filled:
+		draw_rect(rect, color)
+	else:
+		draw_rect(rect, color, false, width)
 
 
 func _draw_line(from: Vector2, to: Vector2, color: Color, width: float) -> void:
 	draw_line(from, to, color, width)
 
 
-func _draw_text(baseline: Vector2, text: String, font_size: int, color: Color, bold: bool = false, alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT) -> void:
-	var font := FONT_BOLD if bold else FONT_REGULAR
-	draw_string(font, baseline, text, alignment, -1.0, font_size, color)
+func _draw_text(baseline: Vector2, text: String, font_size: int, color: Color, bold: bool = false, alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT, width: float = -1.0, is_numeric: bool = false) -> void:
+	var font: Font
+	if is_numeric:
+		font = FONT_DIN_BOLD if bold else FONT_DIN_REGULAR
+	else:
+		font = FONT_BOLD if bold else FONT_REGULAR
+	var pos := baseline
+	if width < 0.0:
+		var text_size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		if alignment == HORIZONTAL_ALIGNMENT_CENTER:
+			pos.x -= text_size.x * 0.5
+		elif alignment == HORIZONTAL_ALIGNMENT_RIGHT:
+			pos.x -= text_size.x
+		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, color)
+	else:
+		draw_string(font, pos, text, alignment, width, font_size, color)
 
 
 func _paths(paths: Array) -> Array[String]:

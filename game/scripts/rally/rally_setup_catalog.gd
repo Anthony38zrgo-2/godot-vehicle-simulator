@@ -24,22 +24,27 @@ const FIELDS: Array[Dictionary] = [
 	{"page": 1, "label": "Presión delantera derecha", "path": "tires.pressure.cold_kpa_gauge.FR", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
 	{"page": 1, "label": "Presión trasera izquierda", "path": "tires.pressure.cold_kpa_gauge.RL", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
 	{"page": 1, "label": "Presión trasera derecha", "path": "tires.pressure.cold_kpa_gauge.RR", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
-	{"page": 1, "label": "Ala delantera", "path": "aero.model.front_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA"},
-	{"page": 1, "label": "Ala trasera", "path": "aero.model.rear_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA"},
+	{"page": -1, "label": "Ala delantera", "path": "aero.model.front_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
+	{"page": -1, "label": "Ala trasera", "path": "aero.model.rear_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
 	{"page": 1, "label": "Reparto de frenada delantero", "path": "brakes.front_brake_bias", "min": 0.30, "max": 0.80, "step": 0.005, "suffix": "%", "scale": 100.0, "digits": 1, "group": "FRENOS"},
 	{"page": 1, "label": "Par máximo de freno", "path": "brakes.max_brake_torque", "min": 500.0, "max": 8000.0, "step": 50.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "FRENOS"},
-	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 6000.0, "max": 22000.0, "step": 100.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR"},
+	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 5000.0, "max": 7200.0, "step": 50.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR", "default": 7200.0},
 	{"page": 2, "label": "Relación final", "path": "powertrain.final_drive", "min": 2.0, "max": 6.0, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN"},
+	{"page": 2, "label": "1ª Marcha", "path": "powertrain.gear_ratios.0", "min": 1.80, "max": 3.60, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 2.54},
+	{"page": 2, "label": "2ª Marcha", "path": "powertrain.gear_ratios.1", "min": 1.20, "max": 2.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.66},
+	{"page": 2, "label": "3ª Marcha", "path": "powertrain.gear_ratios.2", "min": 0.90, "max": 1.80, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.25},
+	{"page": 2, "label": "4ª Marcha", "path": "powertrain.gear_ratios.3", "min": 0.70, "max": 1.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.00},
+	{"page": 2, "label": "Marcha atrás (R)", "path": "powertrain.reverse_ratio", "min": 2.20, "max": 4.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 3.32},
 	{"page": 2, "label": "Precarga del diferencial", "path": "powertrain.differential.preload_nm", "min": 0.0, "max": 120.0, "step": 1.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 2, "label": "Rampa de aceleración", "path": "powertrain.differential.power_ramp_angle_deg", "min": 5.0, "max": 80.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 2, "label": "Rampa de retención", "path": "powertrain.differential.coast_ramp_angle_deg", "min": 5.0, "max": 80.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 2, "label": "Paquetes de discos", "path": "powertrain.differential.clutches", "min": 1.0, "max": 8.0, "step": 1.0, "suffix": "", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 0, "label": "Ángulo máximo de dirección", "path": "steering.max_steering_angle", "min": 0.15, "max": 0.70, "step": 0.005, "suffix": "°", "scale": 57.2957795, "digits": 1, "group": "DIRECCIÓN"},
 	{"page": 2, "label": "Velocidad de dirección", "path": "steering.steering_speed", "min": 1.0, "max": 12.0, "step": 0.05, "suffix": " /s", "scale": 1.0, "digits": 2, "group": "DIRECCIÓN"},
-	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 0.0, "max": 120.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA"},
+	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 5.0, "max": 45.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA", "default": 25.0},
 ]
 
-const PAGE_TITLES := ["SUSPENSIÓN", "AERO / RUEDAS", "MOTOR / TRANSMISIÓN", "ESTRATEGIA / BOXES", "REGLAJES"]
+const PAGE_TITLES := ["SUSPENSIÓN", "RUEDAS", "MOTOR / TRANSMISIÓN", "ESTRATEGIA / BOXES", "REGLAJES"]
 
 
 static func defaults(domains: Dictionary) -> Dictionary:
@@ -126,18 +131,45 @@ static func _domain_segments(path: String) -> PackedStringArray:
 
 
 static func _read_segments(node: Variant, segments: PackedStringArray, index: int) -> Variant:
-	if index >= segments.size() or not node is Dictionary:
+	if index >= segments.size() or node == null:
 		return null
 	var segment: String = segments[index]
-	if not node.has(segment):
-		return null
-	return node[segment] if index == segments.size() - 1 else _read_segments(node[segment], segments, index + 1)
+	if node is Dictionary:
+		var dict: Dictionary = node
+		if not dict.has(segment):
+			return null
+		return dict[segment] if index == segments.size() - 1 else _read_segments(dict[segment], segments, index + 1)
+	elif node is Array:
+		var arr: Array = node
+		var idx := segment.to_int()
+		if idx < 0 or idx >= arr.size():
+			return null
+		return arr[idx] if index == segments.size() - 1 else _read_segments(arr[idx], segments, index + 1)
+	return null
 
 
-static func _write_segments(node: Dictionary, segments: PackedStringArray, index: int, value: float) -> void:
-	if index == segments.size() - 1:
-		node[segments[index]] = value
+static func _write_segments(node: Variant, segments: PackedStringArray, index: int, value: float) -> void:
+	if index >= segments.size() or node == null:
 		return
-	var child: Dictionary = node.get(segments[index], {})
-	_write_segments(child, segments, index + 1, value)
-	node[segments[index]] = child
+	var segment: String = segments[index]
+	if node is Dictionary:
+		var dict: Dictionary = node
+		if index == segments.size() - 1:
+			dict[segment] = value
+			return
+		var child: Variant = dict.get(segment, null)
+		if child == null:
+			var next_is_int := (index + 1 < segments.size()) and segments[index + 1].is_valid_int()
+			child = [] if next_is_int else {}
+			dict[segment] = child
+		_write_segments(child, segments, index + 1, value)
+		dict[segment] = child
+	elif node is Array:
+		var arr: Array = node
+		var idx := segment.to_int()
+		while arr.size() <= idx:
+			arr.append(0.0)
+		if index == segments.size() - 1:
+			arr[idx] = value
+			return
+		_write_segments(arr[idx], segments, index + 1, value)

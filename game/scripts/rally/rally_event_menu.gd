@@ -30,7 +30,9 @@ func _build_ui() -> void:
 	seed_edit = SpinBox.new()
 	seed_edit.min_value = 1
 	seed_edit.max_value = 99999
-	seed_edit.value = 1974
+	var random := RandomNumberGenerator.new()
+	random.randomize()
+	seed_edit.value = random.randi_range(1, 99999)
 	box.add_child(seed_edit)
 	days_option = OptionButton.new()
 	days_option.add_item("Dos jornadas", 0)
@@ -51,18 +53,23 @@ func _build_ui() -> void:
 	days_option.item_selected.connect(func(_i: int) -> void: _refresh_preview())
 	rate_option.item_selected.connect(func(_i: int) -> void: _refresh_preview())
 
-func _choices() -> Dictionary:
-	return {
+func _choices(preview: bool = false) -> Dictionary:
+	var c := {
 		"difficulty": difficulty_option.get_selected_id(),
 		"seed": int(seed_edit.value),
 		"single_day": days_option.get_selected_id() == 1,
 		"ambient_rate": float(rate_option.get_selected_id()) / 10.0,
 	}
+	if preview:
+		c["preview"] = true
+	return c
+
 
 func _refresh_preview() -> void:
 	var tmp = EventManagerScript.new()
 	tmp.load_event()
-	tmp.begin_event(_choices())
+	# Vista previa sin escritura oficial: usa copia de estado.
+	tmp.begin_event(_choices(true))
 	var lines: Array = []
 	for entry in tmp.itinerary:
 		lines.append("%s · %s %s" % [entry.get("stage_id", ""), entry.get("date", ""), entry.get("start", "")])

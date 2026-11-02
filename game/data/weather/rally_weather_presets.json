@@ -1,0 +1,378 @@
+{
+  "visual_response": {
+    "cumulus_intensity": 0.6,
+    "cirrus_intensity": 0.6,
+    "cumulus_mie_intensity": 0.15,
+    "sun_energy_clear": 0.95,
+    "sun_energy_overcast": 0.18,
+    "fog_clear_end_m": 800.0,
+    "fog_storm_end_m": 210.0,
+    "fog_density_reference": 0.004,
+    "fog_start_fraction": 0.2,
+    "rain_opacity": 0.4,
+    "rain_trail_seconds": 0.06,
+    "atmosphere_sun_intensity": 6.0,
+    "rain_width_m": 0.1,
+    "rain_near_fade_start_m": 1.0,
+    "rain_near_fade_end_m": 4.0
+  },
+  "precipitation_adapter": {
+    "rain_scene": "res://addons/TCA_Weather_System/particles/rain_particles.tscn",
+    "snow_scene": "res://addons/TCA_Weather_System/particles/snow_particles.tscn",
+    "full_intensity_mm_h": 20.0
+  },
+  "format_version": 1,
+  "generator_version": 1,
+  "units": {
+    "temperature": "celsius",
+    "precipitation_rate": "mm_per_hour",
+    "water_depth": "mm",
+    "snow_depth": "mm_water_equivalent",
+    "wind_speed": "m_per_s",
+    "irradiance": "w_per_m2_effective",
+    "cloud_coverage": "fraction_0_1",
+    "fog_density": "per_meter_exp",
+    "distance": "m",
+    "pressure": "kPa"
+  },
+  "ordered_states": [
+    "clear",
+    "sunny",
+    "cloudy",
+    "light_precipitation",
+    "medium_precipitation",
+    "heavy_precipitation"
+  ],
+  "state_labels": {
+    "clear": "Despejado; cielo abierto, baja nubosidad y menor irradiancia que Soleado",
+    "sunny": "Soleado; mayor irradiancia efectiva",
+    "cloudy": "Nublado",
+    "light_precipitation": "Precipitación ligera",
+    "medium_precipitation": "Precipitación media",
+    "heavy_precipitation": "Precipitación intensa"
+  },
+  "presets": {
+    "clear": {
+      "label": "Despejado",
+      "cumulus_coverage": [
+        0.04,
+        0.16
+      ],
+      "cirrus_coverage": [
+        0.05,
+        0.2
+      ],
+      "irradiance_w_m2": [
+        420.0,
+        620.0
+      ],
+      "air_temperature_c": [
+        14.0,
+        22.0
+      ],
+      "precipitation_mm_h": [
+        0.0,
+        0.0
+      ],
+      "fog_density": [
+        0.0,
+        0.0004
+      ],
+      "wind_m_s": [
+        1.0,
+        4.5
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "sunny": {
+      "label": "Soleado",
+      "cumulus_coverage": [
+        0.04,
+        0.18
+      ],
+      "cirrus_coverage": [
+        0.05,
+        0.22
+      ],
+      "irradiance_w_m2": [
+        640.0,
+        920.0
+      ],
+      "air_temperature_c": [
+        18.0,
+        27.0
+      ],
+      "precipitation_mm_h": [
+        0.0,
+        0.0
+      ],
+      "fog_density": [
+        0.0,
+        0.0003
+      ],
+      "wind_m_s": [
+        0.8,
+        4.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "cloudy": {
+      "label": "Nublado",
+      "cumulus_coverage": [
+        0.55,
+        0.75
+      ],
+      "cirrus_coverage": [
+        0.15,
+        0.35
+      ],
+      "irradiance_w_m2": [
+        120.0,
+        280.0
+      ],
+      "air_temperature_c": [
+        12.0,
+        19.0
+      ],
+      "precipitation_mm_h": [
+        0.0,
+        0.2
+      ],
+      "fog_density": [
+        0.0,
+        0.0012
+      ],
+      "wind_m_s": [
+        2.0,
+        6.5
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "light_precipitation": {
+      "label": "Precipitación ligera",
+      "cumulus_coverage": [
+        0.75,
+        0.95
+      ],
+      "cirrus_coverage": [
+        0.5,
+        0.8
+      ],
+      "irradiance_w_m2": [
+        60.0,
+        160.0
+      ],
+      "air_temperature_c": [
+        10.0,
+        17.0
+      ],
+      "precipitation_mm_h": [
+        0.6,
+        2.5
+      ],
+      "fog_density": [
+        0.0002,
+        0.002
+      ],
+      "wind_m_s": [
+        2.5,
+        7.5
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "medium_precipitation": {
+      "label": "Precipitación media",
+      "cumulus_coverage": [
+        0.85,
+        1.0
+      ],
+      "cirrus_coverage": [
+        0.6,
+        0.9
+      ],
+      "irradiance_w_m2": [
+        30.0,
+        110.0
+      ],
+      "air_temperature_c": [
+        8.0,
+        15.0
+      ],
+      "precipitation_mm_h": [
+        2.5,
+        8.0
+      ],
+      "fog_density": [
+        0.0005,
+        0.0035
+      ],
+      "wind_m_s": [
+        3.0,
+        9.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "heavy_precipitation": {
+      "label": "Precipitación intensa",
+      "cumulus_coverage": [
+        0.92,
+        1.0
+      ],
+      "cirrus_coverage": [
+        0.7,
+        1.0
+      ],
+      "irradiance_w_m2": [
+        15.0,
+        70.0
+      ],
+      "air_temperature_c": [
+        6.0,
+        13.0
+      ],
+      "precipitation_mm_h": [
+        8.0,
+        22.0
+      ],
+      "fog_density": [
+        0.001,
+        0.006
+      ],
+      "wind_m_s": [
+        4.0,
+        11.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    }
+  },
+  "regional_profiles": {
+    "russia_summer": {
+      "label": "Rusia veraniega (junio, grava/tierra)",
+      "initial_state_weights": {
+        "clear": 3.0,
+        "sunny": 3.0,
+        "cloudy": 4.0,
+        "light_precipitation": 2.0,
+        "medium_precipitation": 1.0,
+        "heavy_precipitation": 0.4
+      },
+      "within_stage_advance_weight": 0.55,
+      "within_stage_retreat_weight": 0.45,
+      "solar_elevation_uses_time_of_day": true,
+      "night_irradiance_w_m2": 0.0,
+      "precipitation_type": {
+        "favors": "rain",
+        "rain_above_c": 2.0,
+        "snow_below_c": 0.0,
+        "hysteresis_c": 1.0,
+        "note": "Sin hielo ni clavos en esta iteración; nieve ligera/moderada afecta grip y enfriamiento."
+      },
+      "surface_profiles": {
+        "Gravel": {
+          "solar_absorption": 0.62,
+          "thermal_capacity_kj_m2_k": 900.0,
+          "air_exchange_w_m2_k": 9.0,
+          "water_exchange_w_m2_k": 55.0,
+          "drainage_mm_h": 6.0,
+          "evaporation_mm_h_per_100w": 0.35,
+          "water_grip_response": 1.0,
+          "snow_grip_response": 1.0
+        },
+        "Dirt": {
+          "solar_absorption": 0.66,
+          "thermal_capacity_kj_m2_k": 1050.0,
+          "air_exchange_w_m2_k": 8.0,
+          "water_exchange_w_m2_k": 50.0,
+          "drainage_mm_h": 4.5,
+          "evaporation_mm_h_per_100w": 0.32,
+          "water_grip_response": 1.05,
+          "snow_grip_response": 1.0
+        },
+        "Road": {
+          "solar_absorption": 0.78,
+          "thermal_capacity_kj_m2_k": 1400.0,
+          "air_exchange_w_m2_k": 10.0,
+          "water_exchange_w_m2_k": 60.0,
+          "drainage_mm_h": 9.0,
+          "evaporation_mm_h_per_100w": 0.4,
+          "water_grip_response": 0.9,
+          "snow_grip_response": 0.95
+        },
+        "Grass": {
+          "solar_absorption": 0.55,
+          "thermal_capacity_kj_m2_k": 700.0,
+          "air_exchange_w_m2_k": 11.0,
+          "water_exchange_w_m2_k": 45.0,
+          "drainage_mm_h": 7.0,
+          "evaporation_mm_h_per_100w": 0.38,
+          "water_grip_response": 1.0,
+          "snow_grip_response": 1.0
+        },
+        "Sand": {
+          "solar_absorption": 0.5,
+          "thermal_capacity_kj_m2_k": 750.0,
+          "air_exchange_w_m2_k": 10.0,
+          "water_exchange_w_m2_k": 48.0,
+          "drainage_mm_h": 12.0,
+          "evaporation_mm_h_per_100w": 0.42,
+          "water_grip_response": 0.85,
+          "snow_grip_response": 0.9
+        }
+      },
+      "antecedent_policy": {
+        "mode": "regional_shared_context",
+        "initial_water_mm": [
+          0.0,
+          1.2
+        ],
+        "initial_saturation": [
+          0.05,
+          0.35
+        ],
+        "initial_snow_mm": [
+          0.0,
+          0.0
+        ],
+        "initial_ground_c": [
+          13.0,
+          21.0
+        ],
+        "initial_air_c_follows_preset": true,
+        "shared_sections": []
+      },
+      "evolution": {
+        "max_step_s": 5.0,
+        "stable_gap_integration": "bounded_substeps_or_steady_state",
+        "note": "No simular dos horas con un único dt."
+      }
+    }
+  },
+  "hud": {
+    "surface_temperature": {
+      "visible": true,
+      "unit": "celsius",
+      "precision_digits": 0,
+      "update_hz": 4.0,
+      "invalid_text": "—",
+      "label": "Superficie"
+    }
+  }
+}

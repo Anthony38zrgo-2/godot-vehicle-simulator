@@ -35,6 +35,37 @@ var optimal_carcass_temperature_c: float = 60.0
 var axle_optimal_carcass_c: Array[float] = []
 var radial_tires: Dictionary = { }
 var states: Array[Dictionary] = []
+var active_compound_id: String = "gravel_normal"
+var active_compound: Dictionary = {}
+
+
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
+	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
+	active_compound_id = cid
+	var cat := catalog
+	if cat.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
+		if parsed is Dictionary:
+			cat = parsed
+	if not cat.is_empty() and (cat as Dictionary).has("compounds"):
+		active_compound = (((cat as Dictionary).get("compounds", {}) as Dictionary).get(cid, {}) as Dictionary).duplicate(true)
+	else:
+		active_compound = {}
+
+
+func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float) -> Dictionary:
+	if active_compound.is_empty():
+		return {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
+	var w := clampf(water_mm, 0.0, 12.0)
+	var s := clampf(snow_mm, 0.0, 8.0)
+	var wf := maxf(1.0 - w * float(active_compound.get("water_grip_loss_per_mm", 0.12)), float(active_compound.get("water_grip_floor", 0.6)))
+	var sf := maxf(1.0 - s * float(active_compound.get("snow_grip_loss_per_mm", 0.09)), float(active_compound.get("snow_grip_floor", 0.6)))
+	var gf := 1.0
+	if ground_c < 5.0:
+		gf = lerpf(0.92, 1.0, clampf((ground_c + 5.0) / 10.0, 0.0, 1.0))
+	elif ground_c > 32.0:
+		gf = lerpf(1.0, 0.96, clampf((ground_c - 32.0) / 12.0, 0.0, 1.0))
+	return {"water": wf, "snow": sf, "ground": gf, "combined": clampf(wf * sf * gf, 0.35, 1.0)}
 
 
 func configure(
@@ -221,6 +252,9 @@ func evaluate(
 	pressure_kpa_gauge: float,
 	delta: float,
 	carcass_temperature_c: float,
+	water_mm: float = 0.0,
+	snow_mm: float = 0.0,
+	ground_temperature_c: float = 30.0,
 ) -> Dictionary:
 	var state: Dictionary = states[index]
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
@@ -354,11 +388,25 @@ func evaluate(
 		0.25,
 	)
 	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
+	# Respuesta de compuesto/agua/nieve/suelo combinada una sola vez con la
+	# curva base y el factor térmico (sin duplicar la reducción mojada).
+	var compound_mult := 1.0
+	var compound_detail := {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
+	if not active_compound.is_empty():
+		compound_detail = compound_water_snow_ground_factor(water_mm, snow_mm, ground_temperature_c)
+		compound_mult = float(compound_detail.get("combined", 1.0))
+	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
+	state["compound_snow_factor"] = float(compound_detail.get("snow", 1.0))
+	state["compound_ground_factor"] = float(compound_detail.get("ground", 1.0))
+	state["compound_mult"] = compound_mult
+	state["local_water_mm"] = water_mm
+	state["local_snow_mm"] = snow_mm
+	state["local_ground_c"] = ground_temperature_c
 	var mu := maxf(float(state.surface_friction), 0.0) * load_scale * clampf(
 		thermal_grip_factor,
 		0.05,
 		1.0,
-	)
+	) * compound_mult
 	var longitudinal_ratio := clampf(
 		float(target_surface.get("longitudinal_grip_ratio", 1.0)),
 		0.10,

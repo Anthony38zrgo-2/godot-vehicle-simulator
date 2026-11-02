@@ -140,8 +140,12 @@ func update_retro_hud() -> void:
 
 func update_thermal_readout() -> void:
 	var tire_config: Dictionary = {}
+	var surface_temp := {"ok": false, "text": "—"}
 	if vehicle != null and "simulation" in vehicle and vehicle.simulation != null and vehicle.simulation.thermal_model != null:
 		tire_config = vehicle.simulation.thermal_model.tire_config
+		if vehicle.simulation.has_method("surface_temperature_for_hud"):
+			surface_temp = vehicle.simulation.surface_temperature_for_hud()
+	published["surface_temp"] = surface_temp
 	if formula_panels != null:
 		formula_panels.call("present", published, tire_config)
 	var factor := minf(size.x / 1920.0, size.y / 1080.0)

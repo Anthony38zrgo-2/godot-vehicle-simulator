@@ -189,3 +189,18 @@ func draw_course(course: Dictionary) -> void:
 	draw_circle(line[-1], 4.0, palette.thermal_hot_color)
 	var position: Vector3 = course.get("position", Vector3.ZERO)
 	draw_circle(origin + (Vector2(position.x, position.z) - minimum) * factor, 5.0, palette.map_player_color)
+	_draw_surface_temperature(Vector2(28, 692))
+
+
+func _draw_surface_temperature(at: Vector2) -> void:
+	# Lectura explícita junto al minimapa, diferenciada de aire y neumáticos.
+	# Consulta el mismo proveedor local que alimenta contactos y grip.
+	var st: Dictionary = snapshot.get("surface_temp", {})
+	if st.is_empty():
+		text_at(at, "Superficie: —", 16, palette.label_color, true)
+		return
+	if not bool(st.get("ok", false)):
+		text_at(at, "Superficie: —", 16, palette.label_color, true)
+		return
+	var c := float(st.get("celsius", 0.0))
+	text_at(at, "Superficie: %d °C" % int(round(c)), 16, palette.digital_color, true)

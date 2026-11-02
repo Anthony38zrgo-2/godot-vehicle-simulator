@@ -9,6 +9,8 @@ const SAVE_PATH := "user://rally_event_v2.json"
 const LEGACY_SAVE_PATH := "user://rally_competition_v1.json"
 const StageLoaderScript := preload("res://scripts/rally/rally_stage_loader.gd")
 const PointsScript := preload("res://scripts/rally/rally_points_rules.gd")
+const SchedulerScript := preload("res://scripts/rally/rally_weather_scheduler.gd")
+const CompoundScript := preload("res://scripts/rally/rally_tire_compound.gd")
 
 var error: String = ""
 var event_doc: Dictionary = {}
@@ -27,6 +29,21 @@ var custom_starts: Dictionary = {}
 var itinerary: Array = []
 var sim = null
 var loader = StageLoaderScript.new()
+var weather_schedule: Array = []
+var climate_seed: int = 0
+var weather_generator_version: int = 1
+var weather_rules_hash: String = ""
+var route_hashes: Dictionary = {}
+var surface_continuity: Dictionary = {}
+var confirmed_compound_id: String = "gravel_normal"
+var draft_compound_id: String = "gravel_normal"
+var setup_values: Dictionary = {}
+var setup_confirmed: bool = false
+var windows_attended: Dictionary = {}
+var pending_window: Dictionary = {}
+var stage_surface_states: Dictionary = {}
+var rival_compounds: Dictionary = {}
+var compound_catalog: Dictionary = {}
 
 func _read_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
@@ -52,7 +69,11 @@ func load_event() -> bool:
 func begin_event(choices: Dictionary = {}) -> bool:
 	if not load_event():
 		return false
-	seed_value = int(choices.get("seed", 1974))
+	seed_value = int(choices.get("seed", 0))
+	if seed_value <= 0:
+		var random := RandomNumberGenerator.new()
+		random.randomize()
+		seed_value = random.randi_range(1, 2147483647)
 	difficulty = int(choices.get("difficulty", 1))
 	ambient_rate = float(choices.get("ambient_rate", 1.0))
 	single_day = bool(choices.get("single_day", false))
@@ -61,8 +82,31 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	points_ledger.clear()
 	closed_keys.clear()
 	definitive_withdrawals.clear()
+	weather_schedule.clear()
+	stage_surface_states.clear()
+	rival_compounds.clear()
+	windows_attended.clear()
+	pending_window = {}
+	setup_confirmed = false
+	setup_values = {}
+	# Compuesto inicial: borrador hasta Aceptar (no se consume ni se cronometra antes).
+	var requested_compound := str(choices.get("compound_id", choices.get("compound", "")))
+	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
+	var default_compound := str(tire_rules.get("default_compound_id", "gravel_normal"))
+	draft_compound_id = CompoundScript.validated_id(requested_compound) if requested_compound != "" else default_compound
+	confirmed_compound_id = default_compound
+	compound_catalog = CompoundScript.load_catalog()
 	status = "running"
 	_build_itinerary(choices)
+	# Generar el itinerario climático de todo el rally una sola vez tras Aceptar.
+	if not _generate_weather_schedule():
+		return false
+	# La selección es borrador hasta confirmación explícita del reglaje.
+	if bool(choices.get("setup_accepted", false)):
+		confirm_setup(draft_compound_id, choices.get("setup_values", {}))
+	else:
+		# Ventana inicial pendiente (antes de Stage 1, pestaña Neumáticos).
+		_update_pending_window()
 	var CompetitionScript := load("res://scripts/rally/rally_competition.gd")
 	sim = CompetitionScript.new()
 	sim.save_path = ""
@@ -72,7 +116,12 @@ func begin_event(choices: Dictionary = {}) -> bool:
 		return false
 	sim.leg = 1
 	_register_participants()
-	save()
+	_assign_rival_compounds()
+	if sim.has_method("set_weather_context"):
+		sim.set_weather_context(weather_entry_for(current_stage_id()), rival_compounds.get(current_stage_id(), {}))
+	# La vista previa del menú no debe llamar a un inicio que escriba el guardado oficial.
+	if not bool(choices.get("preview", false)):
+		save()
 	return true
 
 func current_stage_id() -> String:
@@ -88,6 +137,140 @@ func schedule_for(stage_id: String) -> Dictionary:
 		if str(entry.get("stage_id", "")) == stage_id:
 			return entry
 	return {}
+
+
+func weather_entry_for(stage_id: String) -> Dictionary:
+	for entry in weather_schedule:
+		if str((entry as Dictionary).get("stage_id", "")) == stage_id:
+			return (entry as Dictionary).duplicate(true)
+	return {}
+
+
+func forecast_for_half(from_stage_index: int, count: int = 5) -> Dictionary:
+	return SchedulerScript.forecast_for_half(weather_schedule, from_stage_index, count)
+
+
+func setup_windows() -> Array:
+	return (event_doc.get("setup_windows", []) as Array).duplicate(true)
+
+
+func _update_pending_window() -> void:
+	pending_window = {}
+	var current := current_stage_id()
+	var prev_id := "" if cursor <= 0 else str(stage_order[cursor - 1])
+	for w in setup_windows():
+		var wd: Dictionary = w
+		if wd.has("before_stage_id") and not wd.has("after_stage_id"):
+			if str(wd.get("before_stage_id", "")) == current and not windows_attended.has("initial"):
+				pending_window = wd.duplicate(true)
+				pending_window["window_key"] = "initial"
+				return
+		if wd.has("after_stage_id") and wd.has("before_stage_id"):
+			if str(wd.get("after_stage_id", "")) == prev_id and str(wd.get("before_stage_id", "")) == current:
+				var key := "service:%s>%s" % [prev_id, current]
+				if not windows_attended.has(key):
+					pending_window = wd.duplicate(true)
+					pending_window["window_key"] = key
+					return
+
+
+func get_pending_window() -> Dictionary:
+	return pending_window.duplicate(true)
+
+
+func is_compound_change_allowed() -> bool:
+	return not pending_window.is_empty()
+
+
+func confirm_setup(compound_id: String, values: Dictionary = {}) -> Dictionary:
+	# Idempotente: doble clic no duplica cambios ni servicio.
+	if setup_confirmed and str(compound_id) == confirmed_compound_id and (values.is_empty() or values == setup_values):
+		return {"ok": true, "already": true, "compound": confirmed_compound_id}
+	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
+	var allowed: Array = tire_rules.get("allowed_compound_ids", ["gravel_normal", "gravel_wet"])
+	if str(compound_id) not in allowed:
+		error = "Compuesto no permitido: " + str(compound_id)
+		return {"ok": false, "error": error}
+	# El cambio de compuesto solo está habilitado en ventanas JSON; fuera de
+	# ventana se bloquea (el reglaje general sigue sus propias restricciones).
+	if not pending_window.is_empty():
+		pass
+	elif str(compound_id) != confirmed_compound_id and not is_compound_change_allowed():
+		error = "Cambio de compuesto bloqueado fuera de ventana de servicio"
+		return {"ok": false, "error": error}
+	draft_compound_id = str(compound_id)
+	confirmed_compound_id = str(compound_id)
+	if not values.is_empty():
+		setup_values = (values as Dictionary).duplicate(true)
+	setup_confirmed = true
+	if pending_window.has("window_key"):
+		windows_attended[str(pending_window.get("window_key", ""))] = true
+		pending_window = {}
+	save()
+	return {"ok": true, "compound": confirmed_compound_id}
+
+
+func _generate_weather_schedule() -> bool:
+	var sched := SchedulerScript.new()
+	var route_paths := {}
+	for sid in stage_order:
+		route_paths[str(sid)] = "res://data/rally/%s_route.json" % str(sid)
+	var result := sched.generate_event_schedule(event_doc, stage_order, itinerary, seed_value, route_paths)
+	if not bool(result.get("ok", false)):
+		error = "Clima incompatible: " + str(result.get("error", "sin detalle"))
+		return false
+	var validation := SchedulerScript.validate_schedule(result.get("schedule", []), stage_order, event_doc.get("weather_rules", {}))
+	if not bool(validation.get("ok", false)):
+		error = "Cronograma climático inválido: " + str(validation.get("error", ""))
+		return false
+	weather_schedule = result.get("schedule", [])
+	climate_seed = int(result.get("climate_seed", 0))
+	weather_generator_version = int(result.get("generator_version", 1))
+	route_hashes = result.get("route_hashes", {})
+	surface_continuity = result.get("surface_continuity", {})
+	weather_rules_hash = str(result.get("rules_hash", ""))
+	return true
+
+
+func _assign_rival_compounds() -> void:
+	# Decisiones de compuesto coherentes por sector con otra corriente de
+	# semilla (independiente de la del jugador y de la IA deportiva).
+	rival_compounds.clear()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SchedulerScript.rival_seed(seed_value)
+	for entry in weather_schedule:
+		var sid := str((entry as Dictionary).get("stage_id", ""))
+		rival_compounds[sid] = {}
+		var wet_zones := 0
+		for z in ((entry as Dictionary).get("zones", []) as Array):
+			if float(((z as Dictionary).get("climate", {}) as Dictionary).get("precipitation_mm_h", 0.0)) >= 2.0:
+				wet_zones += 1
+		for row in sim.rows if sim != null else []:
+			var pid := str((row as Dictionary).get("id", ""))
+			# Sin multiplicar pérdidas ya incorporadas en tiempos CPU mojados:
+			# el compuesto rival solo matiza dentro del factor ya calibrado.
+			var pick_wet := wet_zones >= 2 or (wet_zones >= 1 and rng.randf() < 0.4)
+			if rival_compounds.get(sid, {}) is Dictionary:
+				(rival_compounds[sid] as Dictionary)[pid] = "gravel_wet" if pick_wet else "gravel_normal"
+			else:
+				rival_compounds[sid] = {pid: ("gravel_wet" if pick_wet else "gravel_normal")}
+		# El jugador usa el confirmado (no se sortea).
+		if rival_compounds.get(sid, {}) is Dictionary:
+			(rival_compounds[sid] as Dictionary)["player"] = confirmed_compound_id
+
+
+func rival_compound_for(pid: String, stage_id: String) -> String:
+	var m: Dictionary = rival_compounds.get(stage_id, {})
+	return str(m.get(pid, confirmed_compound_id))
+
+
+func save_stage_surface(stage_id: String, snapshot: Dictionary) -> void:
+	stage_surface_states[stage_id] = snapshot
+	save()
+
+
+func stage_surface_snapshot(stage_id: String) -> Dictionary:
+	return (stage_surface_states.get(stage_id, {}) as Dictionary).duplicate(true) if stage_surface_states.has(stage_id) else {}
 
 func close_current_stage(player: Dictionary) -> Dictionary:
 	# player: {measured_ms, penalty_ms, retired, definitive, elapsed_ms, provenance}
@@ -159,6 +342,11 @@ func advance() -> bool:
 		return false
 	sim.leg = cursor + 1
 	sim.save_path = ""
+	# El mismo calendario y reglas de compuesto para la CPU (otra semilla).
+	if sim.has_method("set_weather_context"):
+		sim.set_weather_context(weather_entry_for(next_id), rival_compounds.get(next_id, {}))
+	# El reenganche tras abandonar Stage 5 también pasa por el servicio.
+	_update_pending_window()
 	save()
 	return true
 
@@ -237,7 +425,7 @@ func final_points(power_stage_times: Dictionary) -> Dictionary:
 
 func save() -> bool:
 	var doc := {
-		"version": 2,
+		"version": 3,
 		"event_id": event_doc.get("event_id", "russia_rally"),
 		"rules_hash": _rules_hash(),
 		"cursor": cursor,
@@ -251,6 +439,19 @@ func save() -> bool:
 		"closed_keys": closed_keys.keys(),
 		"definitive_withdrawals": definitive_withdrawals.keys(),
 		"clock": {"rate": ambient_rate},
+		"weather_schedule": weather_schedule,
+		"climate_seed": climate_seed,
+		"generator_version": weather_generator_version,
+		"route_hashes": route_hashes,
+		"surface_continuity": surface_continuity,
+		"confirmed_compound": confirmed_compound_id,
+		"draft_compound": draft_compound_id,
+		"setup_values": setup_values,
+		"setup_confirmed": setup_confirmed,
+		"windows_attended": windows_attended,
+		"pending_window": pending_window,
+		"stage_surface_states": stage_surface_states,
+		"rival_compounds": rival_compounds,
 	}
 	var path: String = SAVE_PATH
 	var file := FileAccess.open(path + ".tmp", FileAccess.WRITE)
@@ -271,12 +472,16 @@ func restore() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return false
 	var doc := _read_json(SAVE_PATH)
-	if int(doc.get("version", -1)) != 2:
+	var ver := int(doc.get("version", -1))
+	if ver == 2:
+		error = "Guardado v2 sin clima/compuesto: requiere migración explícita o iniciar un evento nuevo (no se altera en silencio)"
+		return false
+	if ver != 3:
 		return false
 	if str(doc.get("event_id", "")) != str(event_doc.get("event_id", "russia_rally")):
 		return false
-	if str(doc.get("rules_hash", "")) != _rules_hash():
-		error = "Guardado incompatible: reglas o itinerario distintos"
+	if str(doc.get("rules_hash", "")) != _rules_hash_for_restore(doc):
+		error = "Guardado incompatible: reglas, rutas o generador distintos"
 		return false
 	cursor = int(doc.get("cursor", 0))
 	status = str(doc.get("status", "running"))
@@ -293,7 +498,35 @@ func restore() -> bool:
 	for pid in doc.get("definitive_withdrawals", []):
 		definitive_withdrawals[str(pid)] = true
 	ambient_rate = float((doc.get("clock", {}) as Dictionary).get("rate", 1.0))
+	# Clima/compuesto/ventanas: reanudar conserva todo; no se re-sortea.
+	weather_schedule = doc.get("weather_schedule", [])
+	climate_seed = int(doc.get("climate_seed", 0))
+	weather_generator_version = int(doc.get("generator_version", 1))
+	route_hashes = doc.get("route_hashes", {})
+	surface_continuity = doc.get("surface_continuity", {})
+	confirmed_compound_id = str(doc.get("confirmed_compound", "gravel_normal"))
+	draft_compound_id = str(doc.get("draft_compound", confirmed_compound_id))
+	setup_values = doc.get("setup_values", {})
+	setup_confirmed = bool(doc.get("setup_confirmed", false))
+	windows_attended = doc.get("windows_attended", {})
+	pending_window = doc.get("pending_window", {})
+	stage_surface_states = doc.get("stage_surface_states", {})
+	rival_compounds = doc.get("rival_compounds", {})
+	compound_catalog = CompoundScript.load_catalog()
+	# Si se cerró durante una ventana, restaurar la ventana pendiente.
+	if pending_window.is_empty():
+		_update_pending_window()
 	return true
+
+
+func migrate_legacy_v2() -> Dictionary:
+	# Migración explícita de v2: informa sin alterar la prueba oficial ya empezada.
+	if not FileAccess.file_exists(SAVE_PATH):
+		return {"ok": false, "error": "Sin guardado previo"}
+	var doc := _read_json(SAVE_PATH)
+	if int(doc.get("version", -1)) != 2:
+		return {"ok": false, "error": "Solo migra guardados v2"}
+	return {"ok": false, "error": "Guardado v2 sin cronograma climático: inicie un evento nuevo para usar clima por zonas y dos compuestos", "needs_new_event": true}
 
 func _register_participants() -> void:
 	official.clear()
@@ -413,7 +646,21 @@ func _absolute_minutes(date: String, hm: String) -> float:
 	return float(day_index * 1440 + int(hparts[0]) * 60 + int(hparts[1]))
 
 func _rules_hash() -> String:
-	return JSON.stringify({"event": event_doc.get("event_id", ""), "stages": stage_order, "points": event_doc.get("points_profile_id", ""), "policy": event_doc.get("retirement_policy", {})}).sha256_text()
+	if not route_hashes.is_empty():
+		return SchedulerScript.rules_hash_for(event_doc, route_hashes)
+	return JSON.stringify({"event": event_doc.get("event_id", ""), "stages": stage_order, "points": event_doc.get("points_profile_id", ""), "policy": event_doc.get("retirement_policy", {}), "weather_rules": event_doc.get("weather_rules", {}), "tire_rules": event_doc.get("tire_rules", {}), "setup_windows": event_doc.get("setup_windows", []), "generator_version": SchedulerScript.GENERATOR_VERSION}).sha256_text()
+
+
+func _rules_hash_for_restore(doc: Dictionary) -> String:
+	# El hash guardado ya incluía rutas y versión del generador.
+	var rh: Dictionary = doc.get("route_hashes", {})
+	if rh.is_empty():
+		return _rules_hash()
+	var current_hashes := {}
+	for sid in stage_order:
+		var path := "res://data/rally/%s_route.json" % sid
+		current_hashes[sid] = FileAccess.get_file_as_string(path).sha256_text()
+	return SchedulerScript.rules_hash_for(event_doc, current_hashes)
 
 func _shift_date(iso: String, delta_days: int) -> String:
 	var parts := iso.split("-")

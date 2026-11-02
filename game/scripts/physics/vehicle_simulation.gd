@@ -52,6 +52,10 @@ var stability_enabled: bool = false
 var abs_enabled: bool = false
 var assistance_available: Dictionary = { }
 var underfloor_document: Dictionary = { }
+var weather_controller = null
+var active_compound_id: String = "gravel_normal"
+var compound_catalog: Dictionary = {}
+var last_local_conditions: Array = [{}, {}, {}, {}]
 
 
 func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH) -> Dictionary:
@@ -131,11 +135,43 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	}
 	setup_design_values = RallySetupCatalog.defaults(domains)
 	_capture_setup_design()
+	set_compound(active_compound_id)
 	return {
 		"ok": true,
 		"profile_id": str(loaded.get("profile_id", "")),
 		"domain_hashes": domain_hashes.duplicate(true),
 	}
+
+
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
+	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
+	active_compound_id = cid
+	if not catalog.is_empty():
+		compound_catalog = (catalog as Dictionary).duplicate(true)
+	if compound_catalog.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
+		if parsed is Dictionary:
+			compound_catalog = parsed
+	thermal_model.set_compound(cid, compound_catalog)
+	tire_model.set_compound(cid, compound_catalog)
+
+
+func set_weather_controller(controller) -> void:
+	weather_controller = controller
+
+
+func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
+	if weather_controller != null and weather_controller.get("calendar_active"):
+		var st: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, wheel_contact_points[index])
+		last_local_conditions[index] = st.duplicate(true)
+		return st
+	return {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0, "water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name}
+
+
+func surface_temperature_for_hud() -> Dictionary:
+	if weather_controller != null and weather_controller.has_method("surface_temperature_at_vehicle"):
+		return weather_controller.call("surface_temperature_at_vehicle")
+	return {"ok": false, "text": "—"}
 
 
 func adjust_live_tire_pressure(delta_kpa: float) -> void:
@@ -241,6 +277,14 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	powertrain_model.final_drive_ratio = float(
 		powertrain.get("final_drive", powertrain_model.final_drive_ratio)
 	)
+	if powertrain.has("gear_ratios") and powertrain["gear_ratios"] is Array:
+		var gr: Array = powertrain["gear_ratios"]
+		powertrain_model.gear_ratios.clear()
+		for r in gr:
+			powertrain_model.gear_ratios.append(float(r))
+		powertrain_model.maximum_forward_gear = powertrain_model.gear_ratios.size()
+	if powertrain.has("reverse_ratio"):
+		powertrain_model.reverse_ratio = float(powertrain.get("reverse_ratio", powertrain_model.reverse_ratio))
 	powertrain_model.differential_preload_nm = float(
 		differential.get("preload_nm", powertrain_model.differential_preload_nm)
 	)
@@ -460,6 +504,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var thermal_surfaces: Array[String] = ["Gravel", "Gravel", "Gravel", "Gravel"]
 		var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var thermal_ground: Array[float] = [30.0, 30.0, 30.0, 30.0]
+		var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
 		var substep_force_sum := Vector3.ZERO
 
 		for i in 4:
@@ -492,6 +540,12 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				thermal_surfaces[i] = "Gravel"
 				thermal_vx[i] = 0.0
 				thermal_fy[i] = 0.0
+				if weather_controller != null and bool(weather_controller.get("calendar_active")):
+					var free_local: Dictionary = weather_controller.current_blend
+					thermal_water[i] = float(free_local.get("water_mm", 0.0))
+					thermal_snow[i] = float(free_local.get("snow_mm", 0.0))
+					thermal_ground[i] = float(free_local.get("ground_c", 30.0))
+					thermal_air[i] = float(free_local.get("air_c", 25.0))
 				continue
 
 			var point: Vector3 = contact["position"]
@@ -522,6 +576,16 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var normal_load := maxf(float(normal_loads[i]), 0.0)
 			wheel_loads[i] = normal_load
 			var thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
+			var local_water := 0.0
+			var local_snow := 0.0
+			var local_ground := 30.0
+			var local_air := thermal_model.ambient_temperature_c
+			if weather_controller != null and bool(weather_controller.get("calendar_active")):
+				var local: Dictionary = weather_controller.call("local_conditions_for_contact", str(contact["surface"]), point)
+				local_water = float(local.get("water_mm", 0.0))
+				local_snow = float(local.get("snow_mm", 0.0))
+				local_ground = float(local.get("ground_c", 30.0))
+				local_air = float(local.get("air_c", local_air))
 			tire_model.rotate_patch_frame(i, forward, right)
 			var tire_result := _solve_contact_wheel(
 				i,
@@ -533,6 +597,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				camber,
 				float(thermal_state.get("pressure_kpa_gauge", 180.0)),
 				float(thermal_state.get("carcass_c", 25.0)),
+				local_water,
+				local_snow,
+				local_ground,
 			)
 			var fx := float(tire_result.get("longitudinal_force_n", 0.0))
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
@@ -557,6 +624,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			thermal_surfaces[i] = str(contact["surface"])
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
+			thermal_water[i] = local_water
+			thermal_snow[i] = local_snow
+			thermal_ground[i] = local_ground
+			thermal_air[i] = local_air
 
 		var rotation := powertrain_model.solve_rotation(
 			h,
@@ -583,6 +654,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				wheel_spins[i],
 				thermal_vx[i],
 				wheel_radii[i] if i < wheel_radii.size() else 0.28,
+				thermal_water[i],
+				thermal_snow[i],
+				thermal_ground[i],
+				thermal_air[i],
 			)
 		substep_linear_vel += (substep_force_sum / effective_chassis_mass) * h
 		# The suspension and collision torques are solved by Jolt outside these
@@ -822,6 +897,9 @@ func _solve_contact_wheel(
 	camber: float,
 	pressure: float,
 	carcass_temperature_c: float,
+	water_mm: float = 0.0,
+	snow_mm: float = 0.0,
+	ground_c: float = 30.0,
 ) -> Dictionary:
 	return tire_model.evaluate(
 		index,
@@ -836,4 +914,7 @@ func _solve_contact_wheel(
 		pressure,
 		dt,
 		carcass_temperature_c,
+		water_mm,
+		snow_mm,
+		ground_c,
 	)

@@ -180,16 +180,38 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	return result
 
 
-func service_new_tires() -> void:
+func service_new_tires(compound_id: String = "") -> void:
+	var cid := str(compound_id) if str(compound_id) != "" else simulation.active_compound_id
+	if cid == "":
+		cid = "gravel_normal"
+	set_tire_compound(cid)
+	# Objetivos iniciales específicos del compuesto (no 50/60 fijos para ambos).
+	var tread_target := 50.0
+	var carcass_target := 60.0
+	if not simulation.thermal_model.active_compound.is_empty():
+		tread_target = float(simulation.thermal_model.active_compound.get("tread_optimum_c", tread_target))
+		carcass_target = float(simulation.thermal_model.active_compound.get("carcass_optimum_c", carcass_target))
+	else:
+		# Respaldo por eje (ya refleja el compuesto tras set_compound).
+		tread_target = float(simulation.thermal_model.tire_config.get("optimal_tread_temperature_c", tread_target))
+		carcass_target = float(simulation.thermal_model.tire_config.get("optimal_carcass_temperature_c", carcass_target))
 	for index in 4:
 		var state: Dictionary = simulation.thermal_model.tire_states[index]
-		state.surface_c = simulation.thermal_model.ambient_temperature_c
-		state.tread_c = simulation.thermal_model.ambient_temperature_c
-		state.tread_zones_c = [simulation.thermal_model.ambient_temperature_c, simulation.thermal_model.ambient_temperature_c, simulation.thermal_model.ambient_temperature_c]
-		state.carcass_c = simulation.thermal_model.ambient_temperature_c
-		state.gas_c = simulation.thermal_model.ambient_temperature_c
+		state.surface_c = tread_target
+		state.tread_c = tread_target
+		state.tread_zones_c = [tread_target, tread_target, tread_target]
+		state.carcass_c = carcass_target
+		state.gas_c = carcass_target
 		state.wear_fraction = 0.0
-		state.brake_disc_c = simulation.thermal_model.ambient_temperature_c
+		# Presión coherente con gas: conserva el reglaje frío y recalcula.
+		var cold: Dictionary = (simulation.domains.get("tires", {}).get("tires", {}).get("pressure", {}) as Dictionary).get("cold_kpa_gauge", {})
+		var key: String = ["FL", "FR", "RL", "RR"][index]
+		var cold_bar := float(cold.get(key, 180.0)) / 100.0
+		var ref_temp := float((simulation.domains.get("tires", {}).get("tires", {}).get("pressure", {}) as Dictionary).get("reference_temperature_c", 25.0))
+		var atm := float((simulation.domains.get("tires", {}).get("tires", {}).get("pressure", {}) as Dictionary).get("atmospheric_pressure_kpa", 101.325)) / 100.0
+		state.pressure_reference_bar_gauge = cold_bar
+		state.pressure_reference_temp_c = ref_temp
+		state.pressure_bar_gauge = maxf((cold_bar + atm) * (carcass_target + 273.15) / maxf(ref_temp + 273.15, 1.0) - atm, 0.0)
 		simulation.thermal_model.tire_states[index] = state
 		simulation.tire_model.states[index] = {
 			"effective_slip_angle": 0.0, "effective_slip_ratio": 0.0,
@@ -201,6 +223,14 @@ func service_new_tires() -> void:
 			"lateral_force": 0.0, "aligning_torque": 0.0,
 			"friction_power": 0.0, "surface": "Unknown",
 		}
+
+
+func set_tire_compound(compound_id: String) -> void:
+	simulation.set_compound(compound_id)
+
+
+func get_tire_compound() -> String:
+	return simulation.active_compound_id
 
 
 func bind_wheel_visuals() -> void:

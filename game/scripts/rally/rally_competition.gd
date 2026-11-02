@@ -28,6 +28,9 @@ var confidence: float = 0.0
 var save_path: String = "user://rally_competition_v1.json"
 var generation: int = -1
 var initial_rows: Array = []
+var weather_entry: Dictionary = {}
+var weather_compounds: Dictionary = {}
+var reference_condition: Dictionary = {}
 var initial_level: float = 1.0
 var initial_confidence: float = 0.0
 var configuration_hash: String = ""
@@ -218,16 +221,24 @@ func observe_progress(course: Dictionary) -> void:
 	if sector != 0:
 		return
 	var checkpoints: Array = course.get("checkpoint_times", [])
+	# Imported stages may only provide official sector reference times.
+	# Dense checkpoint references are optional input for early calibration.
+	var checkpoint_reference: Array = stage.get("checkpoint_reference_s", [])
 	while observation_cursor < checkpoints.size():
 		var point: Dictionary = checkpoints[observation_cursor]
 		var duration := float(int(point.time_ms) - observation_ms) / 1000.0
-		var expected := float(stage.checkpoint_reference_s[int(point.index) - 1])
+		observation_ms = int(point.time_ms)
+		observation_cursor += 1
+		var index := int(point.index) - 1
+		if index < 0 or index >= checkpoint_reference.size():
+			continue
+		var expected := float(checkpoint_reference[index])
+		if not is_finite(expected) or expected <= 0.0:
+			continue
 		var ratio := duration / maxf(0.001, expected)
 		if ratio >= 0.25 and ratio <= 5.0 and duration > 0.0 and duration <= 8.0:
 			observed_factors.append(ratio)
 			observed_seconds += duration
-		observation_ms = int(point.time_ms)
-		observation_cursor += 1
 	if observed_seconds >= 15.0 and observed_factors.size() >= 10:
 		var sorted := observed_factors.duplicate()
 		sorted.sort()
@@ -240,6 +251,34 @@ func add_event(row: Dictionary, kind: String, component: String, loss: int, seve
 	for i in sector:
 		offset_km += float(stage.sector_lengths_km[i])
 	row.events.append({"type": kind, "component": component, "sector": sector, "distance_km": offset_km + distance_km, "loss_ms": loss, "severity": severity})
+
+func set_weather_context(entry: Dictionary, compounds: Dictionary = {}) -> void:
+	weather_entry = (entry as Dictionary).duplicate(true) if entry is Dictionary else {}
+	weather_compounds = (compounds as Dictionary).duplicate(true) if compounds is Dictionary else {}
+	# Registrar si la referencia es seca o mojada y calibrar contra ella.
+	var w := float(stage.get("wetness", 0.35))
+	reference_condition = {"wetness": w, "is_wet": w >= 0.3, "provenance": "stage_config.wetness como referencia; el delta por zona no multiplica la pérdida ya incorporada"}
+
+
+func _zone_water_for_sector(sector_index: int) -> float:
+	if weather_entry.is_empty():
+		return 0.0
+	var zones: Array = weather_entry.get("zones", [])
+	if zones.is_empty():
+		return 0.0
+	# 10 sectores deportivos sobre 3 zonas climáticas: mapeo por fracción.
+	var frac := clampf(float(sector_index) / 10.0, 0.0, 0.999)
+	var zi := clampi(int(frac * 3.0), 0, 2)
+	return float((zones[zi] as Dictionary).get("initial_water_mm", 0.0))
+
+
+func _rival_compound_factor(pid: String) -> float:
+	# Mismo calendario y reglas de compuesto; sin multiplicar pérdidas mojadas.
+	var cid := str(weather_compounds.get(pid, "gravel_normal"))
+	if cid == "gravel_wet":
+		return 0.992
+	return 1.0
+
 
 func advance_sector() -> void:
 	var km := float(stage.sector_lengths_km[sector])
@@ -261,6 +300,14 @@ func advance_sector() -> void:
 		var form := stream(row.id, "form").randf_range(-0.012, 0.012)
 		var factor := float(vehicle.pace_factor) * exp((96.0 - float(ratings.pace)) * 0.003 + (94.0 - affinity) * 0.0015 + damage + float(row.fatigue) * 0.025 + form - comeback)
 		var weather_factor := 1.0 + float(stage.wetness) * (100.0 - affinity) * 0.0008 + (1.0 - float(stage.visibility)) * (100.0 - float(ratings.pace)) * 0.001
+		# Delta climático por zona sin duplicar lo ya incorporado: la referencia
+		# (seca/mojada) está calibrada; solo se aplica la desviación local.
+		if not weather_entry.is_empty():
+			var zone_water := _zone_water_for_sector(sector)
+			var ref_water := float(stage.get("wetness", 0.35)) * 4.0
+			var delta_water := zone_water - ref_water
+			var compound_relief := _rival_compound_factor(str(row.get("id", "")))
+			weather_factor *= clampf(1.0 + delta_water * 0.008 * (100.0 - affinity) / 40.0, 0.97, 1.06) * compound_relief
 		var seconds := float(reference[sector]) * level * factor * weather_factor * random.randf_range(0.992, 1.008)
 		for component: String in balance.components:
 			var vulnerability := 1.6 if component in vehicle.vulnerable else 1.0

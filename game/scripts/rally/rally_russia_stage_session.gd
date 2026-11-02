@@ -11,7 +11,7 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 # respaldo legado para la escena Stage 1 existente.
 @export var track_id: String = "russia_stage1"
 @export var practice_mode: bool = false
-@export var event_seed: int = 1974
+@export var event_seed: int = 0
 
 @export var vehicle_path: NodePath
 @export var input_controller_path: NodePath
@@ -20,6 +20,7 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var telemetry_recorder_path: NodePath
 @export var track_collision_path: NodePath
 @export var track_visual_path: NodePath
+@export var garage_panel_path: NodePath = NodePath("RallyGaragePanel")
 @export var weather_enabled: bool = true
 @export var weather_season_path: String = "res://data/weather/russia_winter_overcast.tres"
 @export var weather_start_weather: int = 0
@@ -91,6 +92,10 @@ var weather_controller_node: Node = null
 var weather_wind: Node = null
 var terrain_wetness: Node = null
 var weather_is_raining: bool = false
+var garage_panel: Control = null
+var event_weather = preload("res://scripts/rally/rally_weather_controller.gd").new()
+var awaiting_setup: bool = false
+var setup_open_count: int = 0
 
 
 func _ready() -> void:
@@ -137,6 +142,7 @@ func _ready() -> void:
 			return
 		competition.save_path = ""
 		event_manager.sim = competition
+		competition.set_weather_context(event_manager.weather_entry_for(session_track_id), event_manager.rival_compounds.get(session_track_id, {}))
 	course.sector_indices = competition.stage.sector_checkpoint_indices
 	if not course.configure_timing_gates(competition.stage.timing_gates):
 		push_error("Original rally split gates could not be configured")
@@ -148,9 +154,13 @@ func _ready() -> void:
 	event_clock.attach_adapters(weather_sky_node, weather_controller_node, sky3d_minutes_per_day)
 	if not practice_mode and event_manager != null:
 		start_clock_for_stage(event_manager.schedule_for(session_track_id))
+		_setup_event_weather()
 	else:
 		event_clock.configure(event_clock.event_date, sky3d_time_of_day * 3600.0, 1.0)
 		event_clock.set_paused(false)
+	# Compuesto confirmado antes de precalentar (objetivos térmicos por compuesto).
+	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
+		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
 	apply_start_pose_from_manifest()
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
@@ -164,6 +174,7 @@ func _ready() -> void:
 	place_vehicle_on_stage()
 	connect_runtime_signals()
 	configure_runtime_paths()
+	_connect_garage_panel()
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	session_ready = true
@@ -177,6 +188,9 @@ func _ready() -> void:
 	reset_start_sequence()
 	apply_competition_controls()
 	_update_panel_for_stage()
+	# Ventana inicial de reglaje (Neumáticos primero, Aceptar inicia la salida).
+	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
+		_open_setup_window()
 	print("RALLY_SESSION_READY scene=%s vehicle=ford_escort_rs2000_1971 spawn=" % session_track_id, start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
 
@@ -341,8 +355,9 @@ func _build_tca_wind(script_path: String) -> void:
 
 
 func _build_terrain_wetness() -> void:
-	# En modo Dreamcast evitamos que el script de humedad active reflejos PBR en el barro/asfalto
-	if dreamcast_visual_mode or track_visual == null:
+	# Wet albedo must remain visible in the retro pipeline too; the material
+	# adjuster already disables specular, so wetness does not add PBR reflections.
+	if track_visual == null:
 		return
 	const WETNESS_SCRIPT := "res://scripts/rally/rally_terrain_wetness.gd"
 	if not FileAccess.file_exists(WETNESS_SCRIPT):
@@ -374,6 +389,10 @@ func _process(_delta: float) -> void:
 
 
 func _on_tca_weather_changed(weather) -> void:
+	# Con calendario activo la selección aleatoria autónoma de TCA está
+	# desactivada: la fuente única es el cronograma (no una segunda secuencia).
+	if not practice_mode and event_weather.calendar_active:
+		return
 	var description := describe_tca_weather(weather)
 	var precipitation: Variant = weather.get("precipitation")
 	var is_precipitating := precipitation != null
@@ -600,12 +619,16 @@ func on_vehicle_reset_requested() -> void:
 			direction = segment
 	target += Vector3.UP * 0.2
 	var heading := atan2(-direction.x, -direction.z)
+	# El rescate con R conserva temperatura, compuesto y desgaste (no regala nuevos).
 	vehicle.reset_to_pose(target, heading)
 	course.generation = vehicle.simulation.session_generation
 	course.previous_position = target
 	competition.generation = course.generation
 	camera_rig.snap_to_target()
 	pacenotes.on_rescue(target)
+	# Suavizar el cielo tras el rescate; los contactos usan la zona correcta ya.
+	if not practice_mode and event_weather.calendar_active:
+		event_weather.on_rescue(target)
 	if course.running:
 		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
 		head_up_display.show_status("RESCATE +%.0f s" % (float(competition.balance.reset_penalty_ms) / 1000.0), Color(0.95, 0.72, 0.24), 2.2)
@@ -617,10 +640,23 @@ func _physics_process(delta: float) -> void:
 	if not session_ready or vehicle == null:
 		return
 	elapsed_seconds += delta
+	# Mientras se elige reglaje: cuenta atrás, reloj y coche detenidos.
+	if awaiting_setup:
+		event_weather.tick_visual(delta)
+		head_up_display.set_session_state(get_session_state())
+		return
 	# Reloj ambiental único: avanza en cuenta atrás y conducción, se detiene
 	# en pausa, carga y pantallas de resultados. Nunca toca Engine.time_scale.
 	var driving_window = not competition.complete or start_sequence.readout().get("phase", "") in ["ready", "go"]
-	event_clock.tick(delta, driving_window and not get_tree().paused)
+	var clock_advancing: bool = driving_window and not get_tree().paused
+	event_clock.tick(delta, clock_advancing)
+	# Controlador climático: proyección + evolución + adaptadores (fuente única).
+	if not practice_mode and event_weather.calendar_active:
+		event_weather.update_vehicle_position(vehicle.global_position)
+		if clock_advancing:
+			event_weather.advance_ambient(delta * maxf(event_clock.rate, 0.0), event_weather.solar_factor_for_hour(event_clock.hour_of_day()))
+		event_weather.tick_visual(delta)
+		event_weather.apply_to_adapters(weather_sky_dome, weather_controller_node, terrain_wetness, event_clock.hour_of_day())
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
 		for event: String in signal_state.events:
@@ -677,6 +713,13 @@ func reset_vehicle_to_start() -> void:
 
 
 func apply_competition_controls() -> void:
+	# Bloqueo durante la ventana de reglaje: no hay cuenta atrás ni controles.
+	if awaiting_setup:
+		input_controller.set_controls_enabled(false)
+		vehicle.freeze = true
+		event_clock.set_paused(true)
+		head_up_display.set_session_state(get_session_state())
+		return
 	input_controller.set_controls_enabled(not competition.complete)
 	vehicle.freeze = competition.complete
 	if competition.complete:
@@ -753,6 +796,9 @@ func withdraw_event_definitive(reason: String = "Retiro definitivo") -> void:
 
 
 func _exit_tree() -> void:
+	if session_ready and not practice_mode and event_manager != null and event_weather.calendar_active:
+		event_manager.save_stage_surface(session_track_id, event_weather.snapshot())
+		event_manager.save()
 	if session_ready and competition.started:
 		competition.save()
 
@@ -808,6 +854,9 @@ func _close_event_stage(definitive: bool, reason: String) -> void:
 	}
 	# Sincronizar la simulación del manager con la de la sesión.
 	event_manager.sim = competition
+	# Persistir estados físicos de zonas para continuidad (no se re-sortean).
+	if event_weather.calendar_active:
+		event_manager.save_stage_surface(session_track_id, event_weather.snapshot())
 	event_manager.close_current_stage(player)
 
 func _advance_event_stage() -> void:
@@ -832,6 +881,7 @@ func load_event_stage(next_id: String) -> void:
 	vehicle.freeze = true
 	input_controller.set_controls_enabled(false)
 	event_clock.set_paused(true)
+	awaiting_setup = false
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(false)
 	var resolved = stage_loader.resolve(next_id)
@@ -851,6 +901,9 @@ func load_event_stage(next_id: String) -> void:
 		return
 	course.sector_indices = competition.stage.sector_checkpoint_indices
 	course.configure_timing_gates(competition.stage.timing_gates)
+	# Reinicio entre especiales con objetivos térmicos del compuesto elegido.
+	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
+		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
 	apply_start_pose_from_manifest()
 	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
 	if not await _swap_stage_geometry(resolved):
@@ -863,11 +916,19 @@ func load_event_stage(next_id: String) -> void:
 	reset_start_sequence()
 	if event_manager != null:
 		start_clock_for_stage(event_manager.schedule_for(next_id))
+		_setup_event_weather()
+		# Los saltos de horario entre stages usan antecedentes ya resueltos
+		# (integración acotada en generación); no se simulan dos horas con un dt.
+		event_weather.reset_projection()
+		event_weather.update_vehicle_position(vehicle.global_position)
 	session_ready = true
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	apply_competition_controls()
 	_update_panel_for_stage()
+	# Servicio Stage 5→6: Resultados → Continuar al servicio → Neumáticos → Aceptar → Stage 6.
+	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
+		_open_setup_window()
 	print("RALLY_STAGE_TRANSITION_READY stage=", next_id)
 
 func _swap_stage_geometry(resolved: Dictionary) -> bool:
@@ -890,6 +951,8 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	adjuster.free()
 	if terrain_wetness != null:
 		terrain_wetness.bind_visual_root(track_visual)
+		if not practice_mode and event_weather.calendar_active and event_manager != null:
+			_assign_wetness_zones(event_manager.weather_entry_for(session_track_id))
 	track_collision.collision_scene_path = collision_path
 	return await track_collision.build_collision(track_visual)
 
@@ -916,6 +979,111 @@ func _update_panel_for_stage() -> void:
 		return
 	var panel: Control = head_up_display.competition_panel
 	panel.present(get_competition_panel_state(), get_viewport().get_visible_rect().size)
+
+
+func _setup_event_weather() -> void:
+	if practice_mode or event_manager == null:
+		return
+	var entry: Dictionary = event_manager.weather_entry_for(session_track_id)
+	if entry.is_empty():
+		push_warning("Sin cronograma climático para " + session_track_id)
+		return
+	var route_path: String = (resolved_stage.get("paths", {}) as Dictionary).get("route", "res://data/rally/%s_route.json" % session_track_id)
+	if not event_weather.configure(session_track_id, entry, route_path):
+		push_warning("Clima del evento: " + event_weather.error)
+		return
+	# Fuente única: el proveedor alimenta física, materiales y HUD.
+	vehicle.simulation.set_weather_controller(event_weather)
+	if terrain_wetness != null and terrain_wetness.has_method("bind_shared_provider"):
+		terrain_wetness.bind_shared_provider(event_weather)
+	# Restaurar estado físico persistido (reanudar no re-sortea).
+	var snap: Dictionary = event_manager.stage_surface_snapshot(session_track_id)
+	if not snap.is_empty() and snap.has("surface"):
+		event_weather.restore_snapshot(snap)
+	else:
+		event_weather.reset_projection()
+	# Máscara espacial por chunk para no oscurecer todo el mapa de golpe.
+	_assign_wetness_zones(entry)
+
+
+func _assign_wetness_zones(entry: Dictionary) -> void:
+	if terrain_wetness == null or not terrain_wetness.has_method("assign_material_zones"):
+		return
+	if event_weather.route_points.is_empty():
+		return
+	var zones: Array = entry.get("zones", [])
+	if zones.size() != 3:
+		return
+	var bounds := [int((zones[0] as Dictionary).get("start_node", 0)), int((zones[1] as Dictionary).get("start_node", 0)), int((zones[2] as Dictionary).get("start_node", 0)), int((zones[2] as Dictionary).get("end_node_exclusive", 0))]
+	terrain_wetness.assign_material_zones(event_weather.route_points, bounds)
+
+
+func _connect_garage_panel() -> void:
+	garage_panel = get_node_or_null(garage_panel_path) as Control
+	if garage_panel == null:
+		return
+	if not garage_panel.get("garage_closed").is_connected(_on_garage_closed):
+		garage_panel.connect("garage_closed", _on_garage_closed)
+
+
+func _open_setup_window() -> void:
+	if garage_panel == null or event_manager == null:
+		return
+	var window: Dictionary = event_manager.get_pending_window()
+	if window.is_empty():
+		return
+	# La cuenta atrás, el reloj ambiental y el coche permanecen detenidos mientras se elige.
+	awaiting_setup = true
+	setup_open_count += 1
+	vehicle.freeze = true
+	input_controller.set_controls_enabled(false)
+	event_clock.set_paused(true)
+	reset_start_sequence()
+	var forecast: Dictionary = event_manager.forecast_for_half(event_manager.cursor, 5)
+	var label := "SERVICIO"
+	if str(window.get("window_key", "initial")) == "initial":
+		label = "INICIO · STAGE 1"
+	elif window.has("before_stage_id"):
+		label = "SERVICIO · " + str(window.get("before_stage_id", "")).to_upper()
+	garage_panel.call("open_garage_for_event", {
+		"initial_tab": str(window.get("initial_tab", "tires")),
+		"compound_id": event_manager.draft_compound_id,
+		"compound_change_allowed": true,
+		"confirmation_required": bool(window.get("confirmation_required", true)),
+		"forecast_summary": str(forecast.get("summary", "")),
+		"forecast_advice": str(forecast.get("suggested_compound", "")),
+		"window_label": label,
+	})
+	if head_up_display != null:
+		head_up_display.show_status("REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR", Color(0.95, 0.72, 0.24), 4.0)
+
+
+func _on_garage_closed(applied: bool) -> void:
+	if not awaiting_setup:
+		return
+	if not applied:
+		return
+	# Guardar compuesto confirmado, valores y estado para no duplicar con doble clic.
+	var setup: Dictionary = garage_panel.call("get_confirmed_setup") if garage_panel != null and garage_panel.has_method("get_confirmed_setup") else {}
+	var cid := str(setup.get("compound_id", event_manager.draft_compound_id))
+	var result: Dictionary = event_manager.confirm_setup(cid, setup.get("values", {}))
+	if not bool(result.get("ok", false)):
+		push_warning("Reglaje: " + str(result.get("error", "")))
+		return
+	if vehicle.has_method("set_tire_compound"):
+		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
+	awaiting_setup = false
+	# Aceptar inicia la salida: aplicar condiciones iniciales y habilitar cuenta atrás.
+	if not practice_mode and event_manager != null:
+		start_clock_for_stage(event_manager.schedule_for(session_track_id))
+		_setup_event_weather()
+		event_weather.reset_projection()
+		event_weather.update_vehicle_position(vehicle.global_position)
+	reset_start_sequence()
+	apply_competition_controls()
+	_update_panel_for_stage()
+	if head_up_display != null:
+		head_up_display.show_status("COMPUESTO " + event_manager.confirmed_compound_id.to_upper() + " — SALIDA HABILITADA", Color(0.34, 0.82, 0.45), 3.0)
 
 func get_competition_panel_state() -> Dictionary:
 	if event_manager == null or practice_mode:
