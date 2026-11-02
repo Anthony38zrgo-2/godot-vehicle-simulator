@@ -49,13 +49,21 @@ func _load_textures() -> void:
 		return
 	textures.clear()
 	for f: String in ICON_FILES:
-		var path: String = SVG_DIR + f
+		var svg_path: String = SVG_DIR + f
+		var png_path: String = svg_path.replace(".svg", ".png")
 		var tex: Texture2D = null
-		if ResourceLoader.exists(path):
-			tex = load(path) as Texture2D
-		elif FileAccess.file_exists(path):
-			var abs_path := ProjectSettings.globalize_path(path)
-			var img := Image.load_from_file(abs_path)
+		if ResourceLoader.exists(svg_path):
+			tex = load(svg_path) as Texture2D
+		elif ResourceLoader.exists(png_path):
+			tex = load(png_path) as Texture2D
+		elif FileAccess.file_exists(svg_path):
+			var abs_svg := ProjectSettings.globalize_path(svg_path)
+			var img := Image.load_from_file(abs_svg)
+			if img != null and not img.is_empty():
+				tex = ImageTexture.create_from_image(img)
+		elif FileAccess.file_exists(png_path):
+			var abs_png := ProjectSettings.globalize_path(png_path)
+			var img := Image.load_from_file(abs_png)
 			if img != null and not img.is_empty():
 				tex = ImageTexture.create_from_image(img)
 		textures.append(tex)

@@ -28,7 +28,7 @@
         102,
         102
       ],
-      "sha256": "b1a0af334589604cfe02ac8313b9173ce1011d6734c03009b6d0eb244a638c5d",
+      "sha256": "08e3c0a8590b1913362343d244dc9483e30b7e1ee0785a343d7f2f0f8159bc37",
       "base_color": "#ff0028",
       "description": "arrow_0"
     },
@@ -40,7 +40,7 @@
         102,
         102
       ],
-      "sha256": "2af91cde889e9f584a6b681d9aa6ba159895acaeaf4ae03fe07c3e3876dfaea0",
+      "sha256": "6f13fc9cb417453fb7b7533c2a1e73a0eed19ea7f5947009e614c6f260c2ebfb",
       "base_color": "#ff0028",
       "description": "arrow_1"
     },
@@ -52,7 +52,7 @@
         102,
         102
       ],
-      "sha256": "fdafedfb583a7800630380efbcb3ae2cdb1b513047227313c4a6287d40cd5461",
+      "sha256": "73794ea61b85cb031f67b6f3acfefbc4b05495b482154edb7eb943324381d6ec",
       "base_color": "#ff4e08",
       "description": "arrow_2"
     },
@@ -64,7 +64,7 @@
         102,
         102
       ],
-      "sha256": "d299a4b4379a67b9badd492d63fb256b66c7c700cda2946a484a10ead65487cf",
+      "sha256": "c076486994f63baa957bc3ee7111c7156da3e1a3228f7c77746fa189cbcbd449",
       "base_color": "#ff8208",
       "description": "arrow_3"
     },
@@ -76,7 +76,7 @@
         102,
         102
       ],
-      "sha256": "b839873e2166f6b25ade5f11700ea4641be6c100a79f35d3f345699221fb7eb0",
+      "sha256": "642a5fe48fb6af937cf9cbfa092a47c08f5282f63c3fac8de69dd9fc8928c07b",
       "base_color": "#ffbd0d",
       "description": "arrow_4"
     },
@@ -88,7 +88,7 @@
         102,
         102
       ],
-      "sha256": "fc5003025dc6b47674913c97f99703a4ee0a74da3e722040dd500b28a5b55d92",
+      "sha256": "ba196ecf5365173d56a972c7d4398040eda2d7416530e561fa63d94e9662e112",
       "base_color": "#86a500",
       "description": "arrow_5"
     },
@@ -100,7 +100,7 @@
         102,
         102
       ],
-      "sha256": "93b438e3bc59e2b834668f6c62b6ac4583c79b85a1f36ea4dcd8cbcd58ffe756",
+      "sha256": "f1bda5f9a925cbdea75ee25046dfd55bb3ed5ef780e832c389f4cb1abe97bd4b",
       "base_color": "#a2b4c8",
       "description": "arrow_6"
     },
@@ -112,7 +112,7 @@
         107,
         92
       ],
-      "sha256": "599c71c8172a44efb0d8262976a33a06536360d712cf9e9c5f4cf78dfbdd4251",
+      "sha256": "f1d575fd1e76d87ba75c02774b8f299181139b5459e0ae90c715b04e49149292",
       "base_color": "#ffffff",
       "description": "warning"
     }

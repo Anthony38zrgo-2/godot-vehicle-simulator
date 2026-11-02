@@ -86,87 +86,59 @@ def contour_to_svg_path(contour):
 
 def generate_svg_for_arrow(crop_arr, fill_color, w, h):
     # crop_arr is RGBA
-    # 1. Badge contour (where alpha > 32)
-    alpha_mask = (crop_arr[:, :, 3] > 32).astype(np.uint8) * 255
-    badge_cnts, _ = cv2.findContours(alpha_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-    badge_path = contour_to_svg_path(badge_cnts[0]) if badge_cnts else ""
+    alpha = crop_arr[:, :, 3]
+    r, g, b = crop_arr[:, :, 0], crop_arr[:, :, 1], crop_arr[:, :, 2]
 
-    # 2. Black elements (where alpha > 128 and dark)
-    black_mask = ((crop_arr[:, :, 3] > 128) & 
-                  (crop_arr[:, :, 0] < 80) & 
-                  (crop_arr[:, :, 1] < 80) & 
-                  (crop_arr[:, :, 2] < 80)).astype(np.uint8) * 255
-    
-    # Outer border of badge is also black. To isolate glyph, we can find contours inside
-    # Find all contours in black_mask
-    cnts, hier = cv2.findContours(black_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
-    
-    # Separate outer badge border vs arrow glyph:
-    # Outer border has very large area (> 70% of w*h)
+    # Badge mask and erosion to isolate internal arrow glyph from outer border
+    badge_mask = (alpha > 64).astype(np.uint8) * 255
+    badge_eroded = cv2.erode(badge_mask, np.ones((7, 7), np.uint8))
+
+    # Glyph mask: pixels that are black and inside the eroded badge
+    glyph_mask = ((alpha > 128) & (r < 80) & (g < 80) & (b < 80) & (badge_eroded > 0)).astype(np.uint8) * 255
+
+    cnts, _ = cv2.findContours(glyph_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     glyph_paths = []
-    border_path = ""
-    for i, c in enumerate(cnts):
-        area = cv2.contourArea(c)
-        if area > w * h * 0.6:
-            border_path = contour_to_svg_path(c)
-        elif area > 10: # glyph contour
-            glyph_paths.append(contour_to_svg_path(c))
+    for c in cnts:
+        if cv2.contourArea(c) > 20:
+            app = cv2.approxPolyDP(c, 0.5, True)
+            glyph_paths.append(contour_to_svg_path(app))
 
     svg_lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">',
-        f'  <defs>',
-        f'    <style>',
-        f'      .badge {{ fill: {fill_color}; }}',
-        f'      .border {{ fill: #000000; }}',
-        f'      .glyph {{ fill: #000000; fill-rule: evenodd; }}',
-        f'    </style>',
-        f'  </defs>',
+        f'  <rect x="5.5" y="3.5" width="{w - 11}" height="{h - 7}" rx="8" ry="8" fill="{fill_color}" stroke="#000000" stroke-width="2" />',
     ]
-    if badge_path:
-        svg_lines.append(f'  <path class="badge" d="{badge_path}" />')
-    if border_path:
-        svg_lines.append(f'  <path class="border" d="{border_path}" />')
     for gp in glyph_paths:
-        svg_lines.append(f'  <path class="glyph" d="{gp}" />')
+        svg_lines.append(f'  <path fill="#000000" fill-rule="evenodd" d="{gp}" />')
     svg_lines.append('</svg>\n')
     return "\n".join(svg_lines)
 
 def generate_svg_for_warning(crop_arr, w, h):
     # Warning triangle: white background, black border, black exclamation mark
-    alpha_mask = (crop_arr[:, :, 3] > 32).astype(np.uint8) * 255
-    tri_cnts, _ = cv2.findContours(alpha_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-    tri_path = contour_to_svg_path(tri_cnts[0]) if tri_cnts else ""
+    alpha = crop_arr[:, :, 3]
+    r, g, b = crop_arr[:, :, 0], crop_arr[:, :, 1], crop_arr[:, :, 2]
 
-    black_mask = ((crop_arr[:, :, 3] > 128) & 
-                  (crop_arr[:, :, 0] < 80) & 
-                  (crop_arr[:, :, 1] < 80) & 
-                  (crop_arr[:, :, 2] < 80)).astype(np.uint8) * 255
-    cnts, _ = cv2.findContours(black_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
-    
-    border_path = ""
+    badge_mask = (alpha > 64).astype(np.uint8) * 255
+    tri_cnts, _ = cv2.findContours(badge_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    tri_c = max(tri_cnts, key=cv2.contourArea)
+    app_tri = cv2.approxPolyDP(tri_c, 0.8, True)
+    tri_path = contour_to_svg_path(app_tri)
+
+    badge_eroded = cv2.erode(badge_mask, np.ones((7, 7), np.uint8))
+    glyph_mask = ((alpha > 128) & (r < 80) & (g < 80) & (b < 80) & (badge_eroded > 0)).astype(np.uint8) * 255
+
+    cnts, _ = cv2.findContours(glyph_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     mark_paths = []
     for c in cnts:
-        area = cv2.contourArea(c)
-        if area > w * h * 0.4:
-            border_path = contour_to_svg_path(c)
-        elif area > 10:
-            mark_paths.append(contour_to_svg_path(c))
+        if cv2.contourArea(c) > 20:
+            app = cv2.approxPolyDP(c, 0.5, True)
+            mark_paths.append(contour_to_svg_path(app))
 
     svg_lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">',
-        f'  <defs>',
-        f'    <style>',
-        f'      .tri {{ fill: #ffffff; }}',
-        f'      .border {{ fill: #000000; }}',
-        f'      .mark {{ fill: #000000; fill-rule: evenodd; }}',
-        f'    </style>',
-        f'  </defs>',
-        f'  <path class="tri" d="{tri_path}" />',
+        f'  <path fill="#ffffff" stroke="#000000" stroke-width="2" d="{tri_path}" />',
     ]
-    if border_path:
-        svg_lines.append(f'  <path class="border" d="{border_path}" />')
     for mp in mark_paths:
-        svg_lines.append(f'  <path class="mark" d="{mp}" />')
+        svg_lines.append(f'  <path fill="#000000" fill-rule="evenodd" d="{mp}" />')
     svg_lines.append('</svg>\n')
     return "\n".join(svg_lines)
 
@@ -216,6 +188,11 @@ def main():
         out_path = os.path.join(OUTPUT_DIR, filename)
         with open(out_path, "wb") as f:
             f.write(svg_bytes)
+
+        # Also save pixel-perfect PNG asset
+        png_filename = filename.replace(".svg", ".png")
+        png_out_path = os.path.join(OUTPUT_DIR, png_filename)
+        Image.fromarray(crop).save(png_out_path)
 
         manifest["icons"][filename] = {
             "index": idx,
