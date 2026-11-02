@@ -31,6 +31,23 @@ var controls_enabled: bool = true
 var throttle_release_value: float = 0.0
 var brake_release_value: float = 0.0
 var steering_return_speed_pending: bool = false
+var start_handbrake_held: bool = false
+
+func arm_start_handbrake() -> void:
+	start_handbrake_held = true
+	throttle_release_value = 0.0
+	brake_release_value = 0.0
+	if vehicle != null:
+		vehicle.handbrake_input = 1.0
+		vehicle.handbrake_amount = 1.0
+		vehicle.simulation.brake_model.smoothed_handbrake_input = 1.0
+
+func resolve_start_handbrake(throttle: float, brake: float, handbrake: float) -> float:
+	if throttle > 0.0 or brake > 0.0 or handbrake > 0.0:
+		if start_handbrake_held and vehicle != null:
+			vehicle.simulation.brake_model.smoothed_handbrake_input = handbrake
+		start_handbrake_held = false
+	return 1.0 if start_handbrake_held else handbrake
 
 
 func _ready() -> void:
@@ -74,6 +91,7 @@ func _physics_process(delta: float) -> void:
 	brake_value = apply_pedal_release(brake_value, true, input_profile, delta)
 	var steering_value := shaped_steering_input(input_profile)
 	var handbrake_value := action_strength(action_handbrake)
+	handbrake_value = resolve_start_handbrake(action_strength(action_throttle), action_strength(action_brakes), handbrake_value)
 	var clutch_value := clampf(action_strength(action_clutch) + handbrake_value, 0.0, 1.0)
 	process_transmission_controls()
 	process_assistance_controls()
@@ -158,7 +176,6 @@ func process_assistance_controls() -> void:
 
 func process_reset_control() -> void:
 	if Input.is_action_just_pressed(action_reset_vehicle):
-		vehicle.reset_to_pose(spawn_position, spawn_yaw)
 		vehicle_reset_requested.emit()
 
 

@@ -365,6 +365,7 @@ func on_driving_assistance_changed(state: Dictionary) -> void:
 
 
 func on_vehicle_reset_requested() -> void:
+	vehicle.reset_to_pose(input_controller.spawn_position, input_controller.spawn_yaw)
 	head_up_display.show_status("VEHICLE RESET", Color(0.95, 0.72, 0.24), 2.0)
 
 

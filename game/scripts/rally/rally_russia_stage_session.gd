@@ -519,13 +519,16 @@ func place_vehicle_on_stage() -> void:
 	var forward_axis := surface_normal.cross(right_axis).normalized()
 	var start_basis := Basis(right_axis, surface_normal, -forward_axis)
 	start_position = surface_position + surface_normal * SPAWN_CLEARANCE_METRES
+	vehicle.reset_to_pose(start_position, start_heading)
 	vehicle.global_transform = Transform3D(start_basis, start_position)
+	vehicle.prepare_for_stage()
 	vehicle.simulation.unsprung_rig.reset()
 	vehicle.linear_velocity = Vector3.ZERO
 	vehicle.angular_velocity = Vector3.ZERO
 	vehicle.sleeping = false
 	vehicle.freeze = false
 	input_controller.set_spawn_pose(start_position, start_heading)
+	input_controller.arm_start_handbrake()
 	camera_rig.snap_to_target()
 	head_up_display.show_status("READY  ARROWS DRIVE  A/Z SHIFT  DELETE AUTO  T TCS  R RESET  C CAMERA", Color(0.34, 0.82, 0.45), 4.0)
 
@@ -577,24 +580,37 @@ func on_driving_assistance_changed(state: Dictionary) -> void:
 
 
 func on_vehicle_reset_requested() -> void:
-	if course.running and not competition.complete:
-		# Rescue at the last validated control, preserving official progress/time.
-		var index := maxi(0, course.next_checkpoint - 1)
-		var target: Vector3 = course.points[index] + Vector3.UP * 0.2
-		var direction: Vector3 = course.points[mini(index + 1, course.points.size() - 1)] - course.points[index]
-		var heading := atan2(-direction.x, -direction.z)
-		vehicle.reset_to_pose(target, heading)
-		course.generation = vehicle.simulation.session_generation
-		course.previous_position = target
-		competition.generation = course.generation
+	if competition.complete or course.points.size() < 2:
+		return
+	var closest := INF
+	var target := course.points[0]
+	var direction := course.points[1] - target
+	var position := vehicle.global_position
+	for index in range(course.points.size() - 1):
+		var a: Vector3 = course.points[index]
+		var segment: Vector3 = course.points[index + 1] - a
+		if segment.length_squared() < 0.0001:
+			continue
+		var t := clampf((position - a).dot(segment) / segment.length_squared(), 0.0, 1.0)
+		var candidate := a + segment * t
+		var distance := position.distance_squared_to(candidate)
+		if distance < closest:
+			closest = distance
+			target = candidate
+			direction = segment
+	target += Vector3.UP * 0.2
+	var heading := atan2(-direction.x, -direction.z)
+	vehicle.reset_to_pose(target, heading)
+	course.generation = vehicle.simulation.session_generation
+	course.previous_position = target
+	competition.generation = course.generation
+	camera_rig.snap_to_target()
+	pacenotes.on_rescue(target)
+	if course.running:
 		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
-		camera_rig.snap_to_target()
-		pacenotes.on_rescue(target)
-		head_up_display.show_status("RESCATE +30 s", Color(0.95, 0.72, 0.24), 2.2)
+		head_up_display.show_status("RESCATE +%.0f s" % (float(competition.balance.reset_penalty_ms) / 1000.0), Color(0.95, 0.72, 0.24), 2.2)
 	else:
-		course.generation = vehicle.simulation.session_generation
-		course.previous_position = vehicle.global_position
-		head_up_display.show_status("VEHICLE RESET TO START", Color(0.95, 0.72, 0.24), 2.2)
+		head_up_display.show_status("COCHE RESTABLECIDO", Color(0.95, 0.72, 0.24), 2.2)
 
 
 func _physics_process(delta: float) -> void:
@@ -684,6 +700,8 @@ func reset_competition_car() -> void:
 	course.reset_attempt()
 	pacenotes.on_retry()
 	vehicle.reset_to_pose(start_position, start_heading)
+	vehicle.prepare_for_stage()
+	input_controller.arm_start_handbrake()
 	course.generation = vehicle.simulation.session_generation
 	reset_start_sequence()
 	camera_rig.snap_to_target()

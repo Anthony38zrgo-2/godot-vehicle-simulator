@@ -101,6 +101,33 @@ func configure(domains: Dictionary) -> Dictionary:
 func engine_torque_factor() -> float:
 	return available_engine_torque_fraction
 
+func reset_for_stage(domains: Dictionary) -> void:
+	configure(domains)
+	fuel_burned_litres = 0.0
+	water_cooling_conductance_w_k = 0.0
+	oil_cooling_conductance_w_k = 0.0
+	cooling_drag_force_n = 0.0
+	var brake_target := (float(brake_thermal_config.get("optimal_min_temperature_c", 150.0)) + float(brake_thermal_config.get("optimal_max_temperature_c", 450.0))) * 0.5
+	for i in tire_states.size():
+		var cfg := _axle_tire_config(i)
+		var pressure := _axle_pressure_config(i)
+		var tread := float(cfg.get("optimal_tread_temperature_c", 50.0))
+		var carcass := float(cfg.get("optimal_carcass_temperature_c", 60.0))
+		var state: Dictionary = tire_states[i]
+		state.surface_c = tread
+		state.tread_c = tread
+		state.tread_zones_c = [tread, tread, tread]
+		state.carcass_c = carcass
+		state.gas_c = carcass
+		state.brake_disc_c = brake_target
+		var cold: Dictionary = pressure.get("cold_kpa_gauge", {})
+		var cold_bar := float(cold.get(["FL", "FR", "RL", "RR"][i], 180.0)) / 100.0
+		var reference := float(pressure.get("reference_temperature_c", 25.0))
+		var atmosphere := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
+		state.pressure_reference_bar_gauge = cold_bar
+		state.pressure_reference_temp_c = reference
+		state.pressure_bar_gauge = (cold_bar + atmosphere) * (carcass + 273.15) / (reference + 273.15) - atmosphere
+
 
 func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float) -> void:
 	var water_duct: Dictionary = engine_config.get("water_cooling_duct", {})

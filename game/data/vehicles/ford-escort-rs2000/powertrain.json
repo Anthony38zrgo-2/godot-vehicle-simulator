@@ -78,7 +78,7 @@
         "drag_coefficient": 0.4,
         "heat_exchanger_conductance_watts_per_kelvin": 2000.0,
         "maximum_inlet_area_square_meters": 0.06,
-        "opening": 0.25,
+        "opening": 0.10,
         "pressure_recovery": 0.7
       },
       "oil_critical_temperature_celsius": 135.0,
@@ -96,7 +96,7 @@
         "drag_coefficient": 0.5,
         "heat_exchanger_conductance_watts_per_kelvin": 4000.0,
         "maximum_inlet_area_square_meters": 0.2,
-        "opening": 0.25,
+        "opening": 0.10,
         "pressure_recovery": 0.75
       },
       "water_critical_temperature_celsius": 115.0,

@@ -20,9 +20,12 @@ func drag_force(speed_m_s: float) -> float:
 	return dynamic_pressure * frontal_area_m2 * drag_coefficient
 
 
-func wing_forces(speed_m_s: float, body_basis: Basis) -> Array[Dictionary]:
+func wing_forces(air_velocity_m_s: Vector3, body_basis: Basis) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	var dynamic_pressure := 0.5 * air_density_kg_m3 * speed_m_s * speed_m_s
+	# Vehicle velocity relative to the air, in world coordinates. Drag must
+	# oppose it, including reverse and sideways motion, regardless of body Z.
+	var dynamic_pressure := 0.5 * air_density_kg_m3 * air_velocity_m_s.length_squared()
+	var drag_direction := -air_velocity_m_s.normalized()
 	for wing_key in ["front_wing", "rear_wing"]:
 		var wing: Dictionary = aero_model.get(wing_key, {})
 		if wing.is_empty():
@@ -33,7 +36,7 @@ func wing_forces(speed_m_s: float, body_basis: Basis) -> Array[Dictionary]:
 		var angle := clampf(float(wing.get("incidence_deg", 0.0)), float(wing.get("min_angle_deg", 0.0)), float(wing.get("max_angle_deg", 20.0)))
 		var coefficients := _polar_at(wing.get("polar", []), angle)
 		var force := -body_basis.y.normalized() * (dynamic_pressure * area * coefficients.x)
-		var drag := -body_basis.z.normalized() * (dynamic_pressure * area * coefficients.y)
+		var drag := drag_direction * (dynamic_pressure * area * maxf(coefficients.y, 0.0))
 		var position: Vector3 = _vector3(wing.get("position_m", [0.0, 0.0, 0.0]))
 		result.append({"force": force + drag, "position": position})
 	return result

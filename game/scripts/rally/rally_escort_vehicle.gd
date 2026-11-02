@@ -415,11 +415,19 @@ func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 	clutch_input = 0.0
 	throttle_amount = 0.0
 	brake_amount = 0.0
+	handbrake_amount = 0.0
 	steering_amount = 0.0
 	true_steering_amount = 0.0
 	clutch_amount = 1.0
 	sleeping = false
 	_reset_pending = true
+	body_contact_audio.clear()
+	body_contact_vfx.clear()
+	_prev_body_contact_count = 0
+
+func prepare_for_stage() -> void:
+	simulation.thermal_model.reset_for_stage(simulation.domains)
+	_sync_mass_from_fuel()
 
 
 func record_impact(_other_body: Node) -> void:

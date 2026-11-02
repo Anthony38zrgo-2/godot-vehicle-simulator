@@ -594,7 +594,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var speed := velocity.length()
 		var drag := aero_model.drag_force(speed) + thermal_model.cooling_drag_force_n
 		state.apply_central_force(-velocity.normalized() * drag)
-		for wing_effect in aero_model.wing_forces(speed, state.transform.basis):
+		for wing_effect in aero_model.wing_forces(velocity, state.transform.basis):
 			var wing_position: Vector3 = state.transform.basis * (wing_effect.position as Vector3)
 			state.apply_force(wing_effect.force, wing_position)
 	var engine_omega := powertrain_model.engine_rpm * TAU / 60.0
@@ -775,6 +775,11 @@ func reset_dynamics() -> void:
 	wheel_slips.fill(Vector2.ZERO)
 	wheel_loads.fill(0.0)
 	wheel_rotation_angles.fill(0.0)
+	wheel_contact_points.fill(Vector3.ZERO)
+	wheel_contact_normals.fill(Vector3.UP)
+	wheel_surfaces.fill("Unknown")
+	brake_model.smoothed_service_input = 0.0
+	brake_model.smoothed_handbrake_input = 0.0
 	for i in 4:
 		tire_model.reset_patch(i)
 		suspension_model.compression[i] = 0.0

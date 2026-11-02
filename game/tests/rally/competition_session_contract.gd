@@ -71,7 +71,18 @@ func run() -> void:
 	scene.course.running = true
 	scene.course.next_checkpoint = 5
 	scene.course.elapsed_s = 12.0
-	scene.on_vehicle_reset_requested()
+	var nearby: Vector3 = scene.course.points[200]
+	scene.vehicle.global_position = nearby + Vector3(4.0, 1.0, 0.0)
+	var events := InputMap.action_get_events(scene.input_controller.action_reset_vehicle)
+	var has_r := false
+	for event in events:
+		if event is InputEventKey and event.physical_keycode == KEY_R:
+			has_r = true
+	check(has_r, "R is bound to rescue")
+	Input.action_press(scene.input_controller.action_reset_vehicle)
+	scene.input_controller.process_reset_control()
+	Input.action_release(scene.input_controller.action_reset_vehicle)
+	check(scene.vehicle.global_position.distance_to(nearby) < 10.0, "R returns to nearby road rather than start or old checkpoint")
 	check(scene.course.next_checkpoint == 5 and is_equal_approx(scene.course.elapsed_s, 12.0), "rescue preserves checkpoint and official clock")
 	check(scene.competition.player_penalty_ms == 40000 and not scene.competition.player_retired, "rescue applies one penalty without retirement")
 	print("COMPETITION_SESSION_CONTRACT ", "PASS" if failures.is_empty() else failures)
