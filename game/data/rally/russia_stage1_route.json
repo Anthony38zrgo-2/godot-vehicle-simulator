@@ -1,8 +1,10 @@
 {
-  "source": "D:\\open-formula\\staging_rally\\tracks\\russia-stage1\\reset1.bin",
+  "source": "russia/track1/data.bzf:reset1.bin",
   "sha256": "508c734822d52fbf756e3e357d23d2aebe8af0623f7ce42f8fc076bb1cb75d40",
   "coordinates": "Godot +Y up, -Z forward; source reset node height minus 0.2 m",
   "checkpoint_radius_m": 8.0,
+  "total_route_length_m": 5026.349652507833,
+  "point_count": 493,
   "points": [
     [
       -2.17500376701355,

@@ -46,7 +46,7 @@ func read_json(path: String) -> Dictionary:
 		return {}
 	return parsed
 
-func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_seed: int = 1974) -> bool:
+func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_seed: int = 1974, carried_rows: Array = []) -> bool:
 	error = ""
 	seed_value = race_seed
 	balance = read_json(DATA + "simulation_balance.json")
@@ -98,7 +98,7 @@ func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_see
 	if not error.is_empty():
 		return false
 	configuration_hash = (JSON.stringify(balance) + JSON.stringify(stage) + JSON.stringify(entries)).sha256_text()
-	begin_stage()
+	begin_stage(carried_rows)
 	return true
 
 func stream(id: String, purpose: String, index: int = -1) -> RandomNumberGenerator:
@@ -354,6 +354,40 @@ func next_stage() -> bool:
 	var carried := rows.duplicate(true)
 	begin_stage(carried)
 	save()
+	return true
+
+func stage_reference_total_ms() -> int:
+	var total := 0
+	for seconds in reference:
+		total += int(round(float(seconds) * 1000.0))
+	return total
+
+func apply_event_service() -> void:
+	for row: Dictionary in rows:
+		if bool(row.get("retired", false)):
+			continue
+		var service_budget := float(balance.get("service_seconds", 900)) * float(row.get("support", 0.65))
+		for component: String in balance.get("components", {}):
+			var health: Dictionary = row.get("health", {})
+			var missing := 1.0 - float(health.get(component, 1.0))
+			var repair := minf(missing, minf(float(balance.get("service_repair", 0.3)) * float(row.get("support", 0.65)), service_budget / 1800.0))
+			health[component] = float(health.get(component, 1.0)) + repair
+			service_budget -= repair * 1800.0
+
+func reconfigure_for_event_stage(stage_path: String, carried_health: Array = []) -> bool:
+	var keep_seed := seed_value
+	var keep_leg := leg
+	var keep_level := level
+	var keep_confidence := confidence
+	var keep_previous := previous_totals.duplicate(true)
+	var keep_player_previous := player_previous_ms
+	if not configure(stage_path, keep_seed, carried_health):
+		return false
+	leg = keep_leg
+	level = keep_level
+	confidence = keep_confidence
+	previous_totals = keep_previous
+	player_previous_ms = keep_player_previous
 	return true
 
 func readout() -> Dictionary:

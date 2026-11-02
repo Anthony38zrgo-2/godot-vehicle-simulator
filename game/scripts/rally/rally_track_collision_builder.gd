@@ -120,3 +120,13 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 
 func get_generated_triangle_count() -> int:
 	return generated_triangle_count
+
+
+func clear_collision() -> void:
+	for child in get_children():
+		# This builder owns all its children. Godot may rename duplicate body
+		# names to @StaticBody3D@..., so a name prefix misses old collisions.
+		child.queue_free()
+	generated_body_count = 0
+	generated_shape_count = 0
+	generated_triangle_count = 0

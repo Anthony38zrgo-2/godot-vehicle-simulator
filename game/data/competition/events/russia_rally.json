@@ -1,0 +1,123 @@
+{
+  "format_version": 1,
+  "event_id": "russia_rally",
+  "event_name": "Rally de Rusia",
+  "season": "2026",
+  "base_date": "2026-06-13",
+  "base_latitude_deg": 59.9,
+  "base_longitude_deg": 30.3,
+  "visual_season": "northern_summer",
+  "stages_explicit_order": [
+    "russia_stage1",
+    "russia_stage2",
+    "russia_stage3",
+    "russia_stage4",
+    "russia_stage5",
+    "russia_stage6",
+    "russia_stage7",
+    "russia_stage8",
+    "russia_stage9",
+    "russia_stage10"
+  ],
+  "itinerary_default": {
+    "mode": "two_day",
+    "days": [
+      {
+        "label": "Sábado",
+        "date": "2026-06-13",
+        "starts": [
+          "08:00",
+          "10:00",
+          "12:00",
+          "14:00",
+          "16:00"
+        ],
+        "stage_ids": [
+          "russia_stage1",
+          "russia_stage2",
+          "russia_stage3",
+          "russia_stage4",
+          "russia_stage5"
+        ]
+      },
+      {
+        "label": "Domingo",
+        "date": "2026-06-14",
+        "starts": [
+          "08:00",
+          "10:00",
+          "12:00",
+          "14:00",
+          "16:00"
+        ],
+        "stage_ids": [
+          "russia_stage6",
+          "russia_stage7",
+          "russia_stage8",
+          "russia_stage9",
+          "russia_stage10"
+        ]
+      }
+    ],
+    "single_day_alternative": {
+      "mode": "single_day",
+      "date": "2026-06-13",
+      "starts": [
+        "08:00",
+        "10:00",
+        "12:00",
+        "14:00",
+        "16:00",
+        "18:00",
+        "20:00",
+        "22:00",
+        "00:00",
+        "02:00"
+      ],
+      "note": "Stage 10 sale a las 02:00 del día siguiente; la UI debe mostrar el cambio de fecha."
+    }
+  },
+  "service": {
+    "overnight_between_stage_ids": ["russia_stage5", "russia_stage6"],
+    "note": "Servicio limitado por rally_competition/simulation_balance (service_seconds * support). El reenganche no implica reparación total gratuita."
+  },
+  "power_stage_id": "russia_stage10",
+  "sunday_stage_ids": [
+    "russia_stage6",
+    "russia_stage7",
+    "russia_stage8",
+    "russia_stage9",
+    "russia_stage10"
+  ],
+  "retirement_policy": {
+    "mode": "rejoin_next_by_default",
+    "adjudicated_time_rule": "max(elapsed_ms, stage_reference_total_ms) + rejoin_penalty_ms",
+    "rejoin_penalty_ms": 300000,
+    "single_application_of_other_penalties": true,
+    "reference_source": "cpu_validated_reference_of_stage_if_no_valid_finisher_document_provenance",
+    "definitive_withdrawal": "spectate_remaining_eligible_false_final_points_zero",
+    "no_finishers": "event_without_winner",
+    "power_stage_requires_valid_finish": true,
+    "official_retry_forbidden": true,
+    "practice_uses_state_copy_without_official_write": true
+  },
+  "points_profile_id": "wrc_2026_v1",
+  "points_profiles": {
+    "wrc_2026_v1": {
+      "general": [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
+      "sunday": [5, 4, 3, 2, 1],
+      "power_stage": [5, 4, 3, 2, 1],
+      "max_per_event": 35,
+      "tie_break": "official_time_stage1_then_stage2_etc_share_positions_skip_occupied",
+      "bonus_eligibility": "valid_finish_of_each_counted_stage_and_eligible_at_close_adjudicated_times_do_not_count",
+      "single_day_disables_sunday_bonus_unless_custom_grouping_marked_custom": true
+    }
+  },
+  "ambient": {
+    "initial_rate": 1.0,
+    "allowed_rates": [0.0, 1.0, 2.0, 5.0],
+    "sport_never_depends_on_sky_speed": true,
+    "do_not_modify_engine_time_scale": true,
+    "countdown_starts_seconds_before_scheduled": 5.0
+  }
+}

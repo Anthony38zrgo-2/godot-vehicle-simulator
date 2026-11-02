@@ -6,6 +6,12 @@ const FALLBACK_START_POSITION := Vector3(-2.18, -1.7963, -38.388)
 const FALLBACK_START_HEADING := -0.0008558533301677789
 const SPAWN_CLEARANCE_METRES := 0.08
 const MINIMUM_WORLD_HEIGHT_METRES := -50.0
+# Sesión genérica del evento de Rusia (Entrega 1): el track activo se
+# resuelve por ID con RallyStageLoader. STAGE_MANIFEST_PATH queda como
+# respaldo legado para la escena Stage 1 existente.
+@export var track_id: String = "russia_stage1"
+@export var practice_mode: bool = false
+@export var event_seed: int = 1974
 
 @export var vehicle_path: NodePath
 @export var input_controller_path: NodePath
@@ -61,6 +67,7 @@ var start_position: Vector3 = FALLBACK_START_POSITION
 var start_heading: float = FALLBACK_START_HEADING
 var elapsed_seconds: float = 0.0
 var session_ready: bool = false
+var stage_transition_running: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
 var start_sequence = preload("res://scripts/rally/rally_start_sequence.gd").new()
@@ -69,6 +76,14 @@ var start_horn: AudioStreamPlayer
 var course := RallyStageProgress.new()
 var competition = preload("res://scripts/rally/rally_competition.gd").new()
 var pacenotes = preload("res://scripts/rally/rally_pacenote_controller.gd").new()
+const StageLoaderScript := preload("res://scripts/rally/rally_stage_loader.gd")
+const EventManagerScript := preload("res://scripts/rally/rally_event_manager.gd")
+const EventClockScript := preload("res://scripts/rally/rally_event_clock.gd")
+var stage_loader = StageLoaderScript.new()
+var event_manager = null
+var event_clock = EventClockScript.new()
+var resolved_stage: Dictionary = {}
+var session_track_id: String = "russia_stage1"
 var pacenote_hud: Control = null
 var weather_sky_node: Node = null
 var weather_sky_dome: Node = null
@@ -95,24 +110,52 @@ func _ready() -> void:
 	vehicle.freeze = true
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(false)
-	if not course.configure("res://data/rally/russia_stage1_route.json"):
-		push_error("Russia course timing route is missing")
+	session_track_id = track_id if StageLoaderScript.is_valid_track_id(track_id) else "russia_stage1"
+	resolved_stage = stage_loader.resolve(session_track_id)
+	if resolved_stage.is_empty():
+		push_error("Rally stage: " + stage_loader.error + " (sin sustitución por Stage 1)")
 		return
-	if not competition.configure():
-		push_error("Rally competition: " + competition.error)
+	var route_path: String = (resolved_stage["paths"] as Dictionary)["route"]
+	if not course.configure(route_path):
+		push_error("Russia course timing route is missing: " + route_path)
 		return
+	var stage_config_path: String = (resolved_stage["paths"] as Dictionary)["stage_config"]
+	if practice_mode:
+		if not competition.configure(stage_config_path, event_seed):
+			push_error("Rally competition: " + competition.error)
+			return
+	else:
+		if event_manager == null:
+			event_manager = EventManagerScript.new()
+			if not event_manager.begin_event({"seed": event_seed}):
+				push_error("Rally event: " + event_manager.error)
+				return
+		# La simulación de la especial la lleva competition; los acumulados
+		# oficiales los lleva el manager. Aquí se configura la especial actual.
+		if not competition.configure(stage_config_path, event_manager.seed_value):
+			push_error("Rally competition: " + competition.error)
+			return
+		competition.save_path = ""
+		event_manager.sim = competition
 	course.sector_indices = competition.stage.sector_checkpoint_indices
 	if not course.configure_timing_gates(competition.stage.timing_gates):
 		push_error("Original rally split gates could not be configured")
 		return
-	if competition.restore() and not competition.complete and competition.started:
-		competition.retire_player("Abandono — sesión interrumpida")
+	if practice_mode:
+		if competition.restore() and not competition.complete and competition.started:
+			competition.retire_player("Abandono — sesión interrumpida")
 	build_environment()
+	event_clock.attach_adapters(weather_sky_node, weather_controller_node, sky3d_minutes_per_day)
+	if not practice_mode and event_manager != null:
+		start_clock_for_stage(event_manager.schedule_for(session_track_id))
+	else:
+		event_clock.configure(event_clock.event_date, sky3d_time_of_day * 3600.0, 1.0)
+		event_clock.set_paused(false)
 	apply_start_pose_from_manifest()
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
 		return
-	var collision_ready: bool = await track_collision.build_collision(track_visual)
+	var collision_ready: bool = await _swap_stage_geometry(resolved_stage)
 	if not collision_ready:
 		push_error("Rally session cannot build the stage collision")
 		return
@@ -133,7 +176,8 @@ func _ready() -> void:
 	setup_pacenotes()
 	reset_start_sequence()
 	apply_competition_controls()
-	print("RALLY_SESSION_READY scene=russia_stage1 vehicle=ford_escort_rs2000_1971 spawn=", start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
+	_update_panel_for_stage()
+	print("RALLY_SESSION_READY scene=%s vehicle=ford_escort_rs2000_1971 spawn=" % session_track_id, start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
 
 func build_environment() -> void:
@@ -428,7 +472,16 @@ func _build_legacy_environment() -> void:
 
 
 func apply_start_pose_from_manifest() -> void:
+	if not resolved_stage.is_empty():
+		var start_pose: Variant = (resolved_stage.get("manifest", {}) as Dictionary).get("start_pose", {})
+		if start_pose is Dictionary:
+			var ground: Variant = start_pose.get("ground_godot", [])
+			if ground is Array and ground.size() == 3:
+				start_position = Vector3(float(ground[0]), float(ground[1]), float(ground[2]))
+			start_heading = float(start_pose.get("heading_radians", FALLBACK_START_HEADING))
+			return
 	if not FileAccess.file_exists(STAGE_MANIFEST_PATH):
+		return
 		return
 	var file := FileAccess.open(STAGE_MANIFEST_PATH, FileAccess.READ)
 	if file == null:
@@ -500,10 +553,6 @@ func configure_runtime_paths() -> void:
 		"start_heading_radians": start_heading,
 	}
 	print("RALLY_SESSION_METADATA ", JSON.stringify(metadata))
-	if track_visual != null:
-		var adjuster := RallyStageVisualMaterialAdjuster.new()
-		adjuster.visual_root_path = track_visual.get_path()
-		add_child(adjuster)
 
 
 func on_camera_mode_toggle_requested() -> void:
@@ -552,6 +601,10 @@ func _physics_process(delta: float) -> void:
 	if not session_ready or vehicle == null:
 		return
 	elapsed_seconds += delta
+	# Reloj ambiental único: avanza en cuenta atrás y conducción, se detiene
+	# en pausa, carga y pantallas de resultados. Nunca toca Engine.time_scale.
+	var driving_window = not competition.complete or start_sequence.readout().get("phase", "") in ["ready", "go"]
+	event_clock.tick(delta, driving_window and not get_tree().paused)
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
 		for event: String in signal_state.events:
@@ -589,7 +642,7 @@ func get_session_state() -> Dictionary:
 	return {
 		"elapsed_seconds": elapsed_seconds,
 		"course": course.readout(),
-		"competition": competition.readout(),
+		"competition": get_competition_panel_state(),
 		"pacenotes": {"next_gate": pacenotes.tracker.next_gate, "active_call": pacenotes.call_queue.get_active_record()},
 		"start_sequence": start_sequence.readout() if not competition.complete else {},
 		"run_identifier": run_identifier,
@@ -613,7 +666,14 @@ func apply_competition_controls() -> void:
 	if competition.complete:
 		vehicle.linear_velocity = Vector3.ZERO
 		vehicle.angular_velocity = Vector3.ZERO
+		event_clock.set_paused(true)
+		if not practice_mode and event_manager != null and event_manager.is_last_stage() and event_manager.status == "running":
+			_close_event_stage(false, "")
+			event_manager.advance()
+	else:
+		event_clock.set_paused(false)
 	head_up_display.set_session_state(get_session_state())
+	_update_panel_for_stage()
 
 func retire_competition_player() -> void:
 	competition.retire_player()
@@ -630,15 +690,31 @@ func reset_competition_car() -> void:
 	apply_competition_controls()
 
 func retry_competition_attempt() -> void:
+	if not practice_mode:
+		if head_up_display != null:
+			head_up_display.show_status("MODO OFICIAL: reintentar no reemplaza tiempos", Color(1.0, 0.45, 0.2), 2.5)
+		return
 	competition.reset_attempt()
 	competition.save()
 	reset_competition_car()
 
 func continue_competition() -> void:
-	if competition.next_stage():
-		reset_competition_car()
+	if stage_transition_running or not competition.complete:
+		return
+	if event_manager != null and event_manager.status == "finished":
+		return
+	if practice_mode:
+		if competition.next_stage():
+			reset_competition_car()
+		return
+	_close_event_stage(false, "")
+	await _advance_event_stage()
 
 func start_new_competition() -> void:
+	if not practice_mode:
+		if head_up_display != null:
+			head_up_display.show_status("MODO EVENTO: usa el menú del rally", Color(1.0, 0.45, 0.2), 2.5)
+		return
 	competition.leg = 1
 	competition.history.clear()
 	competition.previous_totals.clear()
@@ -649,6 +725,13 @@ func start_new_competition() -> void:
 	competition.begin_stage()
 	competition.save()
 	reset_competition_car()
+
+func withdraw_event_definitive(reason: String = "Retiro definitivo") -> void:
+	if practice_mode or event_manager == null:
+		retire_competition_player()
+		return
+	_close_event_stage(true, reason)
+	_advance_event_stage()
 
 
 func _exit_tree() -> void:
@@ -663,7 +746,7 @@ func setup_pacenotes() -> void:
 		pacenote_hud = preload("res://scenes/rally/cmr2_pacenote_hud.tscn").instantiate()
 		head_up_display.add_child(pacenote_hud)
 		pacenotes.set_hud(pacenote_hud)
-	pacenotes.configure("res://data/rally/pacenotes/russia_stage1.json")
+	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
 
 
 func setup_start_audio() -> void:
@@ -685,3 +768,149 @@ func reset_start_sequence() -> void:
 	if start_click != null:
 		start_click.stop()
 		start_horn.stop()
+
+# --- Evento de Rusia: carga genérica, reloj y continuación ---
+
+func begin_event_session(manager: RefCounted, stage_id: String) -> void:
+	event_manager = manager
+	practice_mode = false
+	track_id = stage_id
+
+func _close_event_stage(definitive: bool, reason: String) -> void:
+	if event_manager == null or event_manager.sim == null:
+		return
+	var measured_ms := int(competition.player_ms + competition.player_penalty_ms)
+	var player := {
+		"measured_ms": competition.player_ms,
+		"penalty_ms": competition.player_penalty_ms,
+		"elapsed_ms": measured_ms,
+		"retired": competition.player_retired or not competition.complete,
+		"definitive": definitive,
+		"reason": reason if not reason.is_empty() else competition.player_status,
+	}
+	# Sincronizar la simulación del manager con la de la sesión.
+	event_manager.sim = competition
+	event_manager.close_current_stage(player)
+
+func _advance_event_stage() -> void:
+	if event_manager == null:
+		return
+	stage_transition_running = true
+	if not event_manager.advance():
+		stage_transition_running = false
+		push_warning("Rally event advance: " + event_manager.error)
+		_update_panel_for_stage()
+		return
+	if event_manager.status == "finished":
+		stage_transition_running = false
+		_update_panel_for_stage()
+		return
+	var next_id = event_manager.current_stage_id()
+	await load_event_stage(next_id)
+	stage_transition_running = false
+
+func load_event_stage(next_id: String) -> void:
+	session_ready = false
+	vehicle.freeze = true
+	input_controller.set_controls_enabled(false)
+	event_clock.set_paused(true)
+	if telemetry_recorder != null:
+		telemetry_recorder.set_physics_process(false)
+	var resolved = stage_loader.resolve(next_id)
+	if resolved.is_empty():
+		push_error("Rally stage: " + stage_loader.error)
+		return
+	session_track_id = next_id
+	track_id = next_id
+	resolved_stage = resolved
+	var route_path: String = (resolved["paths"] as Dictionary)["route"]
+	course.configure(route_path)
+	var stage_config_path: String = (resolved["paths"] as Dictionary)["stage_config"]
+	if event_manager != null:
+		competition = event_manager.sim
+	elif not competition.configure(stage_config_path, event_seed):
+		push_error(competition.error)
+		return
+	course.sector_indices = competition.stage.sector_checkpoint_indices
+	course.configure_timing_gates(competition.stage.timing_gates)
+	apply_start_pose_from_manifest()
+	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
+	if not await _swap_stage_geometry(resolved):
+		return
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	place_vehicle_on_stage()
+	course.generation = vehicle.simulation.session_generation
+	camera_rig.snap_to_target()
+	reset_start_sequence()
+	if event_manager != null:
+		start_clock_for_stage(event_manager.schedule_for(next_id))
+	session_ready = true
+	if telemetry_recorder != null:
+		telemetry_recorder.set_physics_process(true)
+	apply_competition_controls()
+	_update_panel_for_stage()
+	print("RALLY_STAGE_TRANSITION_READY stage=", next_id)
+
+func _swap_stage_geometry(resolved: Dictionary) -> bool:
+	var paths: Dictionary = resolved.get("paths", {})
+	var visual_path: String = str(paths.get("visual", ""))
+	var collision_path: String = str(paths.get("collision", ""))
+	if track_visual == null or track_collision == null or not ResourceLoader.exists(visual_path):
+		push_error("No se puede cargar la geometría de " + str(resolved.track_id))
+		return false
+	track_collision.clear_collision()
+	for child in track_visual.get_children():
+		child.queue_free()
+	await get_tree().process_frame
+	var packed := load(visual_path) as PackedScene
+	if packed == null:
+		return false
+	track_visual.add_child(packed.instantiate())
+	var adjuster := RallyStageVisualMaterialAdjuster.new()
+	adjuster.adjust_node(track_visual)
+	adjuster.free()
+	if terrain_wetness != null:
+		terrain_wetness.bind_visual_root(track_visual)
+	track_collision.collision_scene_path = collision_path
+	return await track_collision.build_collision(track_visual)
+
+func start_clock_for_stage(schedule: Dictionary) -> void:
+	# Salta a la hora de salida (empieza la cuenta atrás unos segundos antes).
+	var date := str(schedule.get("date", event_clock.event_date))
+	var start_str := str(schedule.get("start", "08:00"))
+	var parts := start_str.split(":")
+	var seconds := float(int(parts[0]) * 3600 + int(parts[1]) * 60)
+	var countdown_lead := 5.0
+	if event_manager != null and not event_manager.event_doc.is_empty():
+		countdown_lead = float(((event_manager.event_doc.get("ambient", {}) as Dictionary).get("countdown_starts_seconds_before_scheduled", 5.0)))
+	event_clock.set_rate(ambient_rate_for_stage())
+	event_clock.set_paused(false)
+	event_clock.jump_to(date, maxf(0.0, seconds - countdown_lead), "stage_start")
+
+func ambient_rate_for_stage() -> float:
+	if event_manager != null:
+		return float(event_manager.ambient_rate) if float(event_manager.ambient_rate) in EventClockScript.ALLOWED_RATES else 1.0
+	return 1.0
+
+func _update_panel_for_stage() -> void:
+	if head_up_display == null or head_up_display.competition_panel == null:
+		return
+	var panel: Control = head_up_display.competition_panel
+	panel.present(get_competition_panel_state(), get_viewport().get_visible_rect().size)
+
+func get_competition_panel_state() -> Dictionary:
+	if event_manager == null or practice_mode:
+		return competition.readout()
+	var state: Dictionary = competition.readout()
+	state["event_stage_id"] = session_track_id
+	state["event_cursor"] = event_manager.cursor
+	state["event_total"] = event_manager.stage_order.size()
+	state["event_schedule"] = event_manager.schedule_for(session_track_id)
+	state["event_player_retired"] = competition.player_retired
+	state["event_is_last"] = event_manager.is_last_stage()
+	state["event_status"] = event_manager.status
+	if event_manager.status == "finished":
+		state["event_points"] = event_manager.points_ledger
+		state["event_final_rows"] = event_manager.standings()
+	return state

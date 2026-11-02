@@ -8,6 +8,7 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var scene = load("res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn").instantiate()
+	scene.practice_mode = true
 	scene.competition.save_path = ""
 	root.add_child(scene)
 	current_scene = scene

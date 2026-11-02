@@ -24,9 +24,18 @@ var _applied_wetness: float = -1.0
 
 
 func _ready() -> void:
+	bind_visual_root(visual_root)
+	print("RALLY_TERRAIN_WETNESS materials=", _materials.size())
+
+func bind_visual_root(new_root: Node3D) -> void:
+	_materials.clear()
+	_original_roughness.clear()
+	_original_albedo.clear()
+	visual_root = new_root
 	if visual_root != null:
 		collect_materials(visual_root)
-	print("RALLY_TERRAIN_WETNESS materials=", _materials.size())
+	_applied_wetness = wetness
+	apply_wetness()
 
 
 func set_rain_intensity(value: float) -> void:

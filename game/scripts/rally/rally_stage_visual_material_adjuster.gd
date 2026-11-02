@@ -28,6 +28,7 @@ const CUTOUT_MATERIAL_NAMES := [
 @export var enforce_dreamcast_pipeline: bool = true
 
 var adjusted_surface_count: int = 0
+var prepared_textures: Dictionary = {}
 
 
 func _ready() -> void:
@@ -46,9 +47,7 @@ func adjust_node(node: Node) -> void:
 			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 		for surface_index in mesh_instance.mesh.get_surface_count():
-			var mat := mesh_instance.mesh.surface_get_material(surface_index)
-			if mat == null:
-				mat = mesh_instance.get_active_material(surface_index)
+			var mat := mesh_instance.get_active_material(surface_index)
 			if mat is BaseMaterial3D:
 				adjust_material(mat as BaseMaterial3D)
 	for child in node.get_children():
@@ -57,11 +56,11 @@ func adjust_node(node: Node) -> void:
 
 func adjust_material(material: BaseMaterial3D) -> void:
 	var material_name := material.resource_name.to_lower()
-	var is_cutout := CUTOUT_MATERIAL_NAMES.has(material_name)
+	var is_cutout := CUTOUT_MATERIAL_NAMES.has(material_name) or material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 
 	# Sponsor banners already contain opposing faces with their own UVs.
 	# Drawing both sides of each face makes the coplanar fronts/backs fight.
-	if material_name == "sponsors":
+	if material_name == "sponsors" or material_name == "fin_sponsors":
 		material.cull_mode = BaseMaterial3D.CULL_BACK
 
 	if enforce_dreamcast_pipeline:
@@ -73,6 +72,10 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.metallic = 0.0
 		# Filtrado bilineal con mipmaps (firma visual de DC frente a PS1)
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		# Dynamically loaded GLBs may never receive the editor's automatic
+		# 3D texture detection. A filter cannot supply missing mip levels.
+		if material.albedo_texture != null:
+			material.albedo_texture = prepare_texture(material.albedo_texture)
 		# Asegurar texture_repeat activo para que las texturas que se repiten (bosque, carretera) no se estiren
 		if is_cutout or not material_name.begins_with("sign_"):
 			material.set_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT, true)
@@ -90,3 +93,18 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.backlight = Color(0.65, 0.65, 0.65)
 
 	adjusted_surface_count += 1
+
+func prepare_texture(texture: Texture2D) -> Texture2D:
+	var key := texture.get_instance_id()
+	if prepared_textures.has(key):
+		return prepared_textures[key]
+	var pixels := texture.get_image()
+	if pixels == null or pixels.has_mipmaps():
+		return texture
+	if pixels.is_compressed() and pixels.decompress() != OK:
+		return texture
+	if pixels.generate_mipmaps() != OK:
+		return texture
+	var prepared := ImageTexture.create_from_image(pixels)
+	prepared_textures[key] = prepared
+	return prepared

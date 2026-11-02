@@ -35,6 +35,12 @@ func configure(path: String) -> bool:
 	points.clear()
 	for point in document.get("points", []):
 		points.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
+	# A new route is a new stage, even when the vehicle generation is unchanged.
+	# Never carry a previous finish or its official splits into the next green.
+	reset_attempt()
+	timing_gates.clear()
+	last_s = null
+	best_s = null
 	return points.size() > 1
 
 func reset_attempt() -> void:

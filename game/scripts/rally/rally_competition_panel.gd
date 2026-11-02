@@ -16,6 +16,7 @@ var table: Tree
 var next_button: Button
 var notice: Label
 var last_signature: String = ""
+var retry_button: Button
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -89,6 +90,7 @@ func _ready() -> void:
 	var buttons := HBoxContainer.new()
 	result_box.add_child(buttons)
 	var retry := Button.new()
+	retry_button = retry
 	retry.text = "Reintentar especial (práctica)"
 	retry.pressed.connect(func(): retry_requested.emit())
 	buttons.add_child(retry)
@@ -156,11 +158,16 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 		standings.scroll_to_item(player_item, true)
 	if not results.visible:
 		return
-	title.text = "RESULTADOS · Especial %d · Rusia Stage 1 · Clasificación general" % state.leg
-	next_button.disabled = bool(state.player_retired)
-	notice.text = "El rally termina para el jugador al abandonar. Reintentar conserva la preparación y semilla." if state.player_retired else "Continuar conserva acumulados y aplica asistencia limitada. La siguiente especial reutiliza Rusia Stage 1."
-	if not str(state.get("error", "")).is_empty():
-		notice.text += "  " + str(state.error)
+	var final_result := str(state.get("event_status", "")) == "finished"
+	next_button.visible = not final_result
+	retry_button.visible = not state.has("event_stage_id")
+	if final_result:
+		_present_final(state)
+		return
+	title.text = _event_title(state)
+	next_button.disabled = _next_disabled(state)
+	next_button.text = _next_label(state)
+	notice.text = _event_notice(state)
 	table.clear()
 	var root := table.create_item()
 	for row: Dictionary in state.rows:
@@ -171,3 +178,94 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 			item.set_tooltip_text(i, columns[i])
 			if row.player:
 				item.set_custom_color(i, Color(1.0, 0.85, 0.3))
+
+func _present_final(state: Dictionary) -> void:
+	var rows: Array = state.get("event_final_rows", [])
+	var points: Dictionary = state.get("event_points", {})
+	title.text = "RESULTADO FINAL · RALLY DE RUSIA"
+	var winner_id := str(points.get("winner", ""))
+	var winner_name := ""
+	for row: Dictionary in rows:
+		if str(row.id) == winner_id:
+			winner_name = str(row.name)
+	notice.text = "Ganador: %s · Diez especiales completadas · Puntos: general + domingo + Power Stage." % winner_name if not winner_name.is_empty() else "Rally finalizado sin participantes clasificados."
+	table.clear()
+	table.columns = 7
+	var headers := ["Posición", "Piloto", "Tiempo acumulado", "General", "Domingo", "Power Stage", "Puntos totales"]
+	for i in headers.size():
+		table.set_column_title(i, headers[i])
+		table.set_column_expand(i, true)
+		table.set_column_clip_content(i, true)
+		table.set_column_custom_minimum_width(i, [55, 145, 145, 70, 70, 90, 90][i])
+		table.set_column_expand_ratio(i, [1, 3, 3, 1, 1, 1, 1][i])
+	var root := table.create_item()
+	for row: Dictionary in rows:
+		var id := str(row.id)
+		var columns := [str(row.position), str(row.name), clock(row.grand_total_ms)]
+		for category in ["general", "sunday", "power", "total"]:
+			columns.append(str((points.get(category, {}) as Dictionary).get(id, 0)))
+		var item := table.create_item(root)
+		for i in columns.size():
+			item.set_text(i, columns[i])
+			item.set_tooltip_text(i, columns[i])
+			if id == "player":
+				item.set_custom_color(i, Color(1.0, 0.85, 0.3))
+
+func _stage_number(state: Dictionary) -> int:
+	if state.has("event_cursor"):
+		return int(state["event_cursor"]) + 1
+	return int(state.get("leg", 1))
+
+func _stage_id(state: Dictionary) -> String:
+	if state.has("event_stage_id"):
+		return str(state["event_stage_id"])
+	var leg := int(state.get("leg", 1))
+	return "russia_stage%d" % leg
+
+func _event_title(state: Dictionary) -> String:
+	var total := int(state.get("event_total", 10))
+	var num := _stage_number(state)
+	var sid := _stage_id(state)
+	var sched: Dictionary = state.get("event_schedule", {})
+	var when := ""
+	if not sched.is_empty():
+		when = " · %s %s" % [str(sched.get("day_label", "")), str(sched.get("start", ""))]
+	if bool(state.get("event_is_last", false)) or num >= total:
+		return "RESULTADOS · Especial %d/%d · %s%s · Clasificación general" % [num, total, sid, when]
+	return "RESULTADOS · Especial %d/%d · %s%s · Clasificación general" % [num, total, sid, when]
+
+func _next_label(state: Dictionary) -> String:
+	if not state.has("event_stage_id"):
+		return "Repetir especial (práctica)"
+	if bool(state.get("event_is_last", false)) or _stage_number(state) >= int(state.get("event_total", 10)):
+		return "Ver resultado final"
+	var nxt := _stage_number(state) + 1
+	return "Continuar a Stage %d" % nxt
+
+func _next_disabled(state: Dictionary) -> bool:
+	# En el evento la continuación tras completar o abandonar siempre está
+	# disponible (reenganche). En práctica/legado se conserva el bloqueo.
+	if state.has("event_stage_id"):
+		return false
+	return bool(state.get("player_retired", false))
+
+func _event_notice(state: Dictionary) -> String:
+	if state.has("event_stage_id"):
+		var sid := _stage_id(state)
+		var sched: Dictionary = state.get("event_schedule", {})
+		var next_info := ""
+		if not bool(state.get("event_is_last", false)):
+			next_info = " Próxima: Stage %d." % (_stage_number(state) + 1)
+		else:
+			next_info = " Última especial: usa «Ver resultado final»."
+		var base := "Cierre idempotente %s. Reenganche con +300 s si abandonaste; sin reintento oficial." % sid
+		if not sched.is_empty():
+			base += " Horario %s %s." % [str(sched.get("day_label", "")), str(sched.get("start", ""))]
+		if bool(state.get("event_player_retired", state.get("player_retired", false))):
+			base += " Abandono registrado: puedes continuar a la siguiente."
+		if not str(state.get("error", "")).is_empty():
+			base += "  " + str(state.get("error", ""))
+		return base + next_info
+	if bool(state.get("player_retired", false)):
+		return "El rally termina para el jugador al abandonar. Reintentar conserva la preparación y semilla."
+	return "Continuar conserva acumulados y aplica asistencia limitada."

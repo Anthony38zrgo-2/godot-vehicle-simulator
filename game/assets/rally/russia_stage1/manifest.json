@@ -3,10 +3,11 @@
   "track_id": "russia_stage1",
   "source": {
     "repository": "stage_exporter",
-    "blend": "russia_stage1.blend",
-    "blend_sha256": "3997f00919ce8b21471d39e9313e65f0fcbcd1e2413bfd797822a5feaaf736ce",
+    "blend": "D:\\games\\rally-throphy\\stage_exporter\\stages\\russia\\stage1\\russia_stage1.blend",
+    "blend_sha256": "f7df1db7668545260a90161d634996f1476e286aaf3454fa131a061ad78a5529",
     "blender_version": "5.2.0 LTS",
-    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf"
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
+    "import_source_manifest_sha256": "d7d3c09f3c9bfc15cc7cc2d7a68cfa4ba305b62daf60172232893d3c2b04655b"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -54,17 +55,16 @@
   },
   "collision": {
     "path": "russia_stage1_collision.glb",
-    "sha256": "5c4435f67cf46058505bcde424e945d0f1380bc4215b61359a4f9704d0382565",
-    "size_bytes": 3450076,
+    "sha256": "5f6da934807e002366711993fadbf487c88172ffff70d2247c7284b7fad82ada",
+    "size_bytes": 3460780,
     "collision_objects": {
       "Collision_Road": 42423,
-      "Collision_Terrain_Grass": 29413,
+      "Collision_Terrain_Grass": 27391,
       "Collision_Terrain_Dirt": 11695,
-      "Collision_Terrain_Sand": 356,
-      "Collision_Barriers": 19170,
-      "Collision_Buildings": 1528,
-      "Collision_Props": 10105,
-      "Collision_Tree_trunks": 8571
+      "Collision_Barriers": 23626,
+      "Collision_Buildings": 1884,
+      "Collision_Props": 9850,
+      "Collision_Tree_trunks": 8826
     },
     "exported_nodes": [
       "Collision_Barriers",
@@ -73,7 +73,6 @@
       "Collision_Road",
       "Collision_Terrain_Dirt",
       "Collision_Terrain_Grass",
-      "Collision_Terrain_Sand",
       "Collision_Tree_trunks"
     ],
     "surface_mapping": {
@@ -145,5 +144,5 @@
     "skybox_excluded": true,
     "timing_triggers_excluded_from_render": true
   },
-  "export_duration_seconds": 23.14
+  "export_duration_seconds": 38.55
 }

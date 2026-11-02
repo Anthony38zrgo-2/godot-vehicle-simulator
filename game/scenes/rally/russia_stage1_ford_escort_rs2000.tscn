@@ -1,8 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_russia_stage_session.gd" id="1_session"]
 [ext_resource type="PackedScene" path="res://scenes/rally/ford_escort_rs2000_1971.tscn" id="2_ford"]
-[ext_resource type="PackedScene" path="res://assets/rally/russia_stage1/russia_stage1_visual.glb" id="3_stage_visual"]
 [ext_resource type="Script" path="res://scripts/rally/rally_track_collision_builder.gd" id="4_track_collision"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_input_controller.gd" id="5_input"]
 [ext_resource type="Script" path="res://scripts/rally/rally_chase_camera_rig.gd" id="6_camera"]
@@ -22,7 +21,7 @@ track_visual_path = NodePath("TrackVisual")
 
 [node name="FordEscortRS2000" parent="." instance=ExtResource("2_ford")]
 
-[node name="TrackVisual" parent="." instance=ExtResource("3_stage_visual")]
+[node name="TrackVisual" type="Node3D" parent="."]
 
 [node name="TrackCollision" type="Node3D" parent="."]
 script = ExtResource("4_track_collision")
