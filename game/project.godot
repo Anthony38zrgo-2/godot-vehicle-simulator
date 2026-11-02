@@ -42,3 +42,7 @@ driver/output_latency=40
 
 renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="forward_plus"
+
+[filesystem]
+
+import/blender/enabled=false

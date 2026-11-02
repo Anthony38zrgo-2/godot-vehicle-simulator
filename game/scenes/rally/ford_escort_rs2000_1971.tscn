@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
 [ext_resource type="Script" path="res://scripts/rally/rally_cockpit_animation.gd" id="8_cockpit"]
 
+
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ford"]
 friction = 0.9
 bounce = 0.0

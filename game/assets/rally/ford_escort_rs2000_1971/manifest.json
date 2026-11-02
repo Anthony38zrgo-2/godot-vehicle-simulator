@@ -7,7 +7,7 @@
     "blend_sha256": "74e183e1f91111cb5041965f8069636cb116803faf53eda6904d7ded6048d43a",
     "blender_version": "5.2.0 LTS",
     "occupants_glb": "D:/games/rally-throphy/exports_flatout/ford-escort-rs2000/ford_escort_rs2000_occupants.glb",
-    "occupants_note": "Driver/co-driver/arms (19 steering morph targets per arm, frame09 neutral) merged from the validated occupants GLB built by exports_flatout/build_scenes.py; lights/ext_pipe hidden per the same filter. Rear tub, side glass, window and roof liner cut from interior_lo (y<=-0.44, hi cockpit covers the front) to close the rear cockpit; the original has no separate seat meshes, the lo tub carries the seat shapes. Two complete original seats subsequently recovered directly from car_12.bzf/model.BMF/interior_lo, preserving original UVs and texture; exported as seat_driver and seat_co_driver.",
+    "occupants_note": "Original driver/co-driver, seats and 19 arm poses preserved. One high-detail body/interior shell; redundant rear glass and low-detail tub removed. Authentic Ford cage bars restored at the same +0.1 m offset as the seats. Single body glass and fitted 8 mm roof liner.",
     "base_blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971.blend",
     "seats": {
       "archive": "D:/games/rally-throphy/Program Files/JoWooD/Rally Trophy/Data/Cars/car_12.bzf",
@@ -21,14 +21,26 @@
       "sprung_offset_metres": 0.1,
       "generator": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/integrate_original_seats.py"
     },
-    "runtime_blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971_with_seats.blend",
-    "runtime_blend_sha256": "d41dfdca35604eaff99d1919fefaaf7dc2bd779ce0cd0440db967c9e9a74fc57",
+    "runtime_blend": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\ford_escort_rs2000_1971_rear_clean.blend",
+    "runtime_blend_sha256": "d61b295be02fdd0436c29a3d4bc570ea705aa87f77fc3f84823930d19ee43360",
     "arm_animation": {
       "poses_per_arm": 19,
       "neutral_pose": 9,
       "morph_targets": "steer_00 through steer_18",
       "source": "driver1.bzf/arm_left_lo.BMF + arm_right_lo.BMF",
       "generator": "D:/games/rally-throphy/exports_flatout/export_cockpit_animation.py"
+    },
+    "rear_cleanup": {
+      "generator": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\clean_rear_interior.py",
+      "backup": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\rear_cleanup_before",
+      "source_rear": "car_12.bzf/model.BMF/interior_lo; only the seven 12-triangle cage components, with the same +0.1 m sprung offset as the two seats. Low-detail floor/walls and seats are excluded.",
+      "removed_duplicate_glass": [
+        "interior_rear_side_left",
+        "interior_rear_side_right",
+        "interior_rear_window"
+      ],
+      "roof": "one-sided liner derived from the actual high-detail body roof, inset 8 mm",
+      "glass": "existing body window material made double-sided; no additional inner rear glass shell"
     }
   },
   "coordinate_system": {
@@ -42,37 +54,34 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "5ab5d293a36c8e225c23ffa148cf80b4fe9f45640eaf436783ec6f8a25f5abe8",
-    "size_bytes": 1575024,
+    "sha256": "a9892591b44b9bf94b8d2ec48ad48fee93693dd35d65faba0f53651addf98db6",
+    "size_bytes": 1429256,
     "source_objects": [
       "body",
-      "hood",
-      "trunk",
-      "interior_hi",
-      "steering_wheel_hi",
-      "wipers",
-      "indicator_rpm",
-      "indicator_speed",
-      "Driver_driver_body",
-      "Driver_driver_head",
+      "co_Driver_co_driver_head",
       "co_Driver_Surface1",
       "co_Driver_Surface2",
-      "co_Driver_co_driver_head",
+      "Driver_driver_body",
+      "Driver_driver_head",
       "DriverArm_left_frame09",
       "DriverArm_right_frame09",
-      "interior_rear_tub",
-      "interior_rear_side_left",
-      "interior_rear_side_right",
-      "interior_rear_window",
+      "hood",
+      "indicator_rpm",
+      "indicator_speed",
+      "interior_hi",
+      "interior_rear_roll_cage",
       "interior_roof",
+      "seat_co_driver",
       "seat_driver",
-      "seat_co_driver"
+      "steering_wheel_hi",
+      "trunk",
+      "wipers"
     ],
     "exported_nodes": [
       "body",
+      "co_Driver_co_driver_head",
       "co_Driver_Surface1",
       "co_Driver_Surface2",
-      "co_Driver_co_driver_head",
       "Driver_driver_body",
       "Driver_driver_head",
       "DriverArm_left_frame09",
@@ -81,16 +90,13 @@
       "indicator_rpm",
       "indicator_speed",
       "interior_hi",
-      "interior_rear_side_left",
-      "interior_rear_side_right",
-      "interior_rear_tub",
-      "interior_rear_window",
+      "interior_rear_roll_cage",
       "interior_roof",
+      "seat_co_driver",
+      "seat_driver",
       "steering_wheel_hi",
       "trunk",
-      "wipers",
-      "seat_driver",
-      "seat_co_driver"
+      "wipers"
     ]
   },
   "wheels": {

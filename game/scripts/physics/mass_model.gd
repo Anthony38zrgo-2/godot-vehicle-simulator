@@ -6,13 +6,21 @@ var fuel_capacity_kg: float = 0.0
 var fuel_density_kg_per_litre: float = 0.0
 var fuel_tank_position_local: Vector3 = Vector3.ZERO
 var fuel_initial_kg: float = 0.0
-var wheel_spin_inertia: Array[float] = [0.8, 0.8, 0.8, 0.8]
+var wheel_spin_inertia: Array[float] = [0.85, 0.85, 0.85, 0.85]
 var inventory_mass_kg: float = 0.0
 var inventory_base_budget_kg: float = 0.0
 var non_wheel_inventory_mass_kg: float = 0.0
 var unsupported_attachment_components: PackedStringArray = PackedStringArray()
 var unsprung_mass_kg: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var wheel_centres_local: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var inertia_multipliers: Vector3 = Vector3.ONE
+
+# Dynamic fuel slosh state (2D spring-damper in local X-Z plane)
+var _fuel_slosh_offset: Vector3 = Vector3.ZERO
+var _fuel_slosh_velocity: Vector3 = Vector3.ZERO
+const SLOSH_MAX_DISPLACEMENT_M := Vector3(0.11, 0.03, 0.08)
+const SLOSH_STIFFNESS := 28.0
+const SLOSH_DAMPING := 6.5
 
 const WHEEL_NAMES := ["FrontLeft", "FrontRight", "RearLeft", "RearRight"]
 const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
@@ -23,7 +31,19 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	unsprung_mass_kg.fill(0.0)
 	wheel_spin_inertia.fill(0.0)
 	unsupported_attachment_components.clear()
+	_fuel_slosh_offset = Vector3.ZERO
+	_fuel_slosh_velocity = Vector3.ZERO
+
 	var chassis_doc: Dictionary = domains.get("chassis", { })
+	var chassis_header: Dictionary = chassis_doc.get("chassis", { })
+	inertia_multipliers = _vector_from_document(
+		chassis_header.get("inertia_multipliers", { }),
+		Vector3.ONE,
+	)
+	inertia_multipliers.x = maxf(inertia_multipliers.x, 0.1)
+	inertia_multipliers.y = maxf(inertia_multipliers.y, 0.1)
+	inertia_multipliers.z = maxf(inertia_multipliers.z, 0.1)
+
 	var inventory: Dictionary = chassis_doc.get("physical_mass_inventory", { })
 	var components: Variant = inventory.get("components", [])
 	if not components is Array:
@@ -121,7 +141,7 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	var r_radius := float(tires_doc.get("rear", { }).get("radius", tires_doc.get("radius", 0.28)))
 	for i in 4:
 		var r := f_radius if i < 2 else r_radius
-		var w_mass := maxf(rotating_wheel_masses[i], unsprung_mass_kg[i] * 0.55)
+		var w_mass := maxf(rotating_wheel_masses[i], unsprung_mass_kg[i] * 0.45)
 		var fallback_inertia := maxf(0.55 * w_mass * r * r, 0.35)
 		if wheel_spin_inertia[i] <= 0.05:
 			wheel_spin_inertia[i] = fallback_inertia
@@ -137,7 +157,7 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	fuel_initial_kg = clampf(fuel_initial_kg, 0.0, fuel_capacity_kg)
 	fuel_tank_position_local = _vector_from_document(
 		fuel.get("tank_position_local_m", { }),
-		Vector3.ZERO,
+		Vector3(0.0, 0.46, 1.05),
 	)
 	if chassis_components.is_empty() or inventory_mass_kg <= 0.0:
 		return { "ok": false, "error": "Mass inventory contains no positive-mass body components." }
@@ -154,10 +174,29 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	return { "ok": true }
 
 
+## Optional step before resolve(): updates dynamic fuel slosh offset based on local chassis acceleration
+func step_fuel_slosh(dt: float, local_linear_accel_mps2: Vector3, fuel_mass_kg: float) -> void:
+	if dt <= 0.0 or fuel_capacity_kg <= 0.0 or fuel_mass_kg <= 0.5:
+		_fuel_slosh_offset = _fuel_slosh_offset.lerp(Vector3.ZERO, clampf(dt * 5.0, 0.0, 1.0))
+		_fuel_slosh_velocity = Vector3.ZERO
+		return
+	var fill_ratio := clampf(fuel_mass_kg / fuel_capacity_kg, 0.0, 1.0)
+	var slosh_activity := 4.0 * fill_ratio * (1.0 - fill_ratio)
+	var inertial_force := -local_linear_accel_mps2 * (0.04 * slosh_activity)
+	var spring_force := -SLOSH_STIFFNESS * _fuel_slosh_offset - SLOSH_DAMPING * _fuel_slosh_velocity
+	_fuel_slosh_velocity += (inertial_force + spring_force) * dt
+	_fuel_slosh_offset += _fuel_slosh_velocity * dt
+	_fuel_slosh_offset = _fuel_slosh_offset.clamp(
+		-SLOSH_MAX_DISPLACEMENT_M,
+		SLOSH_MAX_DISPLACEMENT_M,
+	)
+
+
 func resolve(fuel_mass_kg: float) -> Dictionary:
 	var fuel_mass := clampf(fuel_mass_kg, 0.0, fuel_capacity_kg)
+	var effective_fuel_pos := fuel_tank_position_local + _fuel_slosh_offset
 	var total_mass := fuel_mass
-	var weighted_center := fuel_tank_position_local * fuel_mass
+	var weighted_center := effective_fuel_pos * fuel_mass
 	for component in chassis_components:
 		var component_mass := float(component["mass_kg"])
 		total_mass += component_mass
@@ -179,7 +218,9 @@ func resolve(fuel_mass_kg: float) -> Dictionary:
 			Vector3(0.0, 0.0, fuel_mass * (0.55 * 0.55 + 0.25 * 0.25) / 12.0),
 		)
 		tensor = _add_matrix(tensor, fuel_box_inertia)
-		tensor = _add_matrix(tensor, _parallel_axis(fuel_mass, fuel_tank_position_local - center))
+		tensor = _add_matrix(tensor, _parallel_axis(fuel_mass, effective_fuel_pos - center))
+
+	tensor = _scale_inertia_tensor(tensor, inertia_multipliers)
 
 	var ixx := maxf(tensor.x.x, 10.0)
 	var iyy := maxf(tensor.y.y, 10.0)
@@ -187,7 +228,13 @@ func resolve(fuel_mass_kg: float) -> Dictionary:
 	ixx = minf(ixx, iyy + izz - 1.0)
 	iyy = minf(iyy, ixx + izz - 1.0)
 	izz = minf(izz, ixx + iyy - 1.0)
+	tensor.x.x = ixx
+	tensor.y.y = iyy
+	tensor.z.z = izz
 	var diagonal := Vector3(ixx, iyy, izz)
+
+	var i_yz := tensor.y.z
+	var roll_axis_pitch_rad := 0.5 * atan2(2.0 * i_yz, iyy - izz)
 
 	var total_unsprung := unsprung_mass_kg[0] + unsprung_mass_kg[1] + unsprung_mass_kg[2] + unsprung_mass_kg[
 		3
@@ -206,7 +253,10 @@ func resolve(fuel_mass_kg: float) -> Dictionary:
 		"total_center_of_mass": total_center,
 		"inertia": diagonal,
 		"inertia_tensor": tensor,
+		"inertia_inverse_tensor": tensor.inverse(),
+		"roll_axis_pitch_rad": roll_axis_pitch_rad,
 		"fuel_mass_kg": fuel_mass,
+		"fuel_slosh_offset_m": _fuel_slosh_offset,
 		"inventory_mass_kg": inventory_mass_kg,
 	}
 
@@ -274,6 +324,17 @@ func _parallel_axis(mass: float, offset: Vector3) -> Basis:
 			-mass * offset.y * offset.z,
 			mass * (d2 - offset.z * offset.z),
 		),
+	)
+
+
+func _scale_inertia_tensor(t: Basis, m: Vector3) -> Basis:
+	var sx := sqrt(m.x)
+	var sy := sqrt(m.y)
+	var sz := sqrt(m.z)
+	return Basis(
+		Vector3(t.x.x * m.x, t.x.y * sx * sy, t.x.z * sx * sz),
+		Vector3(t.y.x * sy * sx, t.y.y * m.y, t.y.z * sy * sz),
+		Vector3(t.z.x * sz * sx, t.z.y * sz * sy, t.z.z * m.z),
 	)
 
 

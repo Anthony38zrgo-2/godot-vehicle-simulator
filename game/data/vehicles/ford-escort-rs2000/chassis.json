@@ -1,11 +1,11 @@
 {
   "chassis": {
-    "center_of_gravity_height_offset": -0.17670100000000005,
-    "front_weight_distribution": 0.483402489626556,
+    "center_of_gravity_height_offset": -0.176701,
+    "front_weight_distribution": 0.514,
     "inertia_multipliers": {
-      "x": 1.43,
-      "y": 1.569,
-      "z": 0.2955
+      "x": 1.15,
+      "y": 1.22,
+      "z": 1.05
     },
     "vehicle_mass": 990.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
@@ -28,45 +28,45 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.0,
-            "y": 0.55,
-            "z": -0.1
+            "y": 0.56,
+            "z": -0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                160.0,
-                0,
-                0
+                240.0,
+                0.0,
+                0.0
               ],
               [
-                0,
-                200.0,
-                0
+                0.0,
+                290.0,
+                0.0
               ],
               [
-                0,
-                0,
-                75.0
+                0.0,
+                0.0,
+                85.0
               ]
             ]
           },
-          "mass_kilograms": 420.0,
+          "mass_kilograms": 380.0,
           "name": "bodywork_and_cage",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Residual rigid-body budget after estimated component allocations; total from Rally Trophy Car.ini Mass",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Type 49 seam-welded works shell with rollcage",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 336.0,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 350.0,
           "rationale": "Works rally shell weight specification",
-          "upper_mass_kilograms": 504.0
+          "upper_mass_kilograms": 410.0
         }
       },
       {
@@ -77,96 +77,196 @@
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.48,
-            "z": -0.95
+            "x": 0.02,
+            "y": 0.46,
+            "z": -0.92
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                25.0,
-                0,
-                0
-              ],
-              [
-                0,
                 18.0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
-                0,
-                22.0
+                0.0,
+                14.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                12.0
               ]
             ]
           },
-          "mass_kilograms": 155.0,
+          "mass_kilograms": 150.0,
           "name": "engine_pinto_2000",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Pinto 2.0L tuned rally engine",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Ford Pinto 2.0L OHC cast-iron block with Twin Weber DCOE carbs and manifold",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 145.0,
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 142.0,
           "rationale": "Works rally engine assembly",
-          "upper_mass_kilograms": 165.0
+          "upper_mass_kilograms": 158.0
         }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "gearbox and differential",
+        "component_perimeter": "gearbox and propshaft",
         "properties": {
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.0,
-            "y": 0.3,
-            "z": 0.1
+            "y": 0.32,
+            "z": -0.35
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                10.0,
-                0,
-                0
+                3.5,
+                0.0,
+                0.0
               ],
               [
-                0,
-                8.0,
-                0
+                0.0,
+                3.5,
+                0.0
               ],
               [
-                0,
-                0,
-                12.0
+                0.0,
+                0.0,
+                1.8
               ]
             ]
           },
-          "mass_kilograms": 75.0,
-          "name": "gearbox_and_differential",
+          "mass_kilograms": 38.0,
+          "name": "gearbox_zf_s5_18",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "ZF 5-speed close ratio rally gearbox and prop shaft",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "ZF S5-18/3 5-speed alloy casing close-ratio gearbox and forward propshaft",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 70.0,
-          "rationale": "Drivetrain assembly",
-          "upper_mass_kilograms": 80.0
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 34.0,
+          "rationale": "Gearbox and bellhousing assembly",
+          "upper_mass_kilograms": 42.0
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front duralumin sumpguard",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.16,
+            "z": -1.18
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.8,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                2.2,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.8
+              ]
+            ]
+          },
+          "mass_kilograms": 14.0,
+          "name": "front_sumpguard_dural",
+          "provenance": {
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "mass_origin": "estimated",
+            "source": "Heavy-duty duralumin skidplate and chassis brackets mounted under crossmember",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "center_uncertainty_metres": 0.05,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 12.0,
+          "rationale": "Front underbody protection",
+          "upper_mass_kilograms": 16.0
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "cooling and radiators",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.48,
+            "z": -1.42
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                2.5,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                2.5,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.0
+              ]
+            ]
+          },
+          "mass_kilograms": 20.0,
+          "name": "radiator_and_oil_cooler",
+          "provenance": {
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "mass_origin": "estimated",
+            "source": "High-capacity water radiator, oil cooler and coolant",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 18.0,
+          "rationale": "Cooling package",
+          "upper_mass_kilograms": 22.0
         }
       },
       {
@@ -178,56 +278,56 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.0,
-            "y": 0.28,
+            "y": 0.26,
             "z": -1.205
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
                 5.0,
-                0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
-                3.0,
-                0
+                0.0,
+                6.0,
+                0.0
               ],
               [
-                0,
-                0,
+                0.0,
+                0.0,
                 6.0
               ]
             ]
           },
-          "mass_kilograms": 35.0,
+          "mass_kilograms": 36.0,
           "name": "front_suspension_and_steering",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "MacPherson struts, steering rack and anti-roll bar",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "World Cup crossmember, Bilstein MacPherson struts, quick-rack and compression struts",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 30.0,
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 32.0,
           "rationale": "Front suspension assembly",
           "upper_mass_kilograms": 40.0
         },
         "unsprung_mass_distribution_kg": [
-          8.75,
-          8.75,
+          10.5,
+          10.5,
           0.0,
           0.0
         ]
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "rear axle and springs",
+        "component_perimeter": "rear live axle, LSD differential and springs",
         "properties": {
           "attachment": {
             "kind": "body"
@@ -240,45 +340,45 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                8.0,
-                0,
-                0
+                9.0,
+                0.0,
+                0.0
               ],
               [
-                0,
-                5.0,
-                0
+                0.0,
+                16.0,
+                0.0
               ],
               [
-                0,
-                0,
-                10.0
+                0.0,
+                0.0,
+                16.0
               ]
             ]
           },
-          "mass_kilograms": 55.0,
-          "name": "rear_axle_and_leaf_springs",
+          "mass_kilograms": 85.0,
+          "name": "rear_live_axle_and_diff",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Live rear axle, leaf springs and radius arms",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Reinforced Atlas/English live rear axle, ZF LSD, half-shafts, multi-leaf springs and tramp bars",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 50.0,
-          "rationale": "Rear axle assembly",
-          "upper_mass_kilograms": 60.0
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 78.0,
+          "rationale": "Complete live rear axle and differential assembly",
+          "upper_mass_kilograms": 92.0
         },
         "unsprung_mass_distribution_kg": [
           0.0,
           0.0,
-          22.0,
-          22.0
+          34.0,
+          34.0
         ]
       },
       {
@@ -289,102 +389,202 @@
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.28,
-            "z": 0.0
+            "x": -0.15,
+            "y": 0.35,
+            "z": -0.45
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                4.0,
-                0,
-                0
-              ],
-              [
-                0,
                 3.0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
-                0,
-                5.0
+                0.0,
+                3.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                2.5
               ]
             ]
           },
-          "mass_kilograms": 25.0,
-          "name": "brakes_and_hydraulics",
+          "mass_kilograms": 26.0,
+          "name": "brakes_and_pedal_box",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Brake master cylinder, pedal box and hydraulic lines",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Bias pedal box, dual master cylinders, hydraulic handbrake and calipers/rotors",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 22.0,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 23.0,
           "rationale": "Braking equipment",
-          "upper_mass_kilograms": 28.0
+          "upper_mass_kilograms": 29.0
         },
         "unsprung_mass_distribution_kg": [
-          4.5,
-          4.5,
           5.0,
-          5.0
+          5.0,
+          4.0,
+          4.0
         ]
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "cooling and radiators",
+        "component_perimeter": "driver and bucket seat",
         "properties": {
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.5,
-            "z": -1.5
+            "x": -0.32,
+            "y": 0.58,
+            "z": 0.12
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                3.0,
-                0,
-                0
+                9.0,
+                0.0,
+                0.0
               ],
               [
-                0,
-                2.0,
-                0
+                0.0,
+                6.0,
+                0.0
               ],
               [
-                0,
-                0,
-                3.0
+                0.0,
+                0.0,
+                7.0
               ]
             ]
           },
-          "mass_kilograms": 20.0,
-          "name": "radiator_and_fluids",
+          "mass_kilograms": 78.0,
+          "name": "driver_and_seat",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Water radiator, oil cooler and fluids",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Driver with helmet/suit and fibreglass bucket seat (LHD configuration)",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 18.0,
-          "rationale": "Cooling package",
-          "upper_mass_kilograms": 22.0
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.1,
+          "lower_mass_kilograms": 72.0,
+          "rationale": "Driver mass",
+          "upper_mass_kilograms": 84.0
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "co-driver and bucket seat",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.32,
+            "y": 0.55,
+            "z": 0.22
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                9.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                6.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                7.0
+              ]
+            ]
+          },
+          "mass_kilograms": 77.0,
+          "name": "codriver_and_seat",
+          "provenance": {
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "mass_origin": "estimated",
+            "source": "Co-driver mounted lower and further back with Halda instruments",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.1,
+          "lower_mass_kilograms": 71.0,
+          "rationale": "Co-driver mass",
+          "upper_mass_kilograms": 83.0
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "spare wheels, jack and tool roll in boot",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.08,
+            "y": 0.44,
+            "z": 1.48
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                5.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                6.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                4.5
+              ]
+            ]
+          },
+          "mass_kilograms": 43.0,
+          "name": "spare_wheels_and_tools",
+          "provenance": {
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "mass_origin": "estimated",
+            "source": "Two Minilite gravel spare wheels, quick-lift jack and spares strapped in rear boot",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 38.0,
+          "rationale": "Boot rally spares load",
+          "upper_mass_kilograms": 48.0
         }
       },
       {
@@ -395,26 +595,26 @@
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": -0.2,
-            "y": 0.4,
-            "z": 0.95
+            "x": -0.38,
+            "y": 0.36,
+            "z": 1.35
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                2.0,
-                0,
-                0
+                1.2,
+                0.0,
+                0.0
               ],
               [
-                0,
-                2.0,
-                0
+                0.0,
+                1.2,
+                0.0
               ],
               [
-                0,
-                0,
-                2.0
+                0.0,
+                0.0,
+                1.2
               ]
             ]
           },
@@ -424,14 +624,14 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Rear-mounted racing battery and wiring harness",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Boot-mounted heavy-duty battery and rally loom",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.15,
           "lower_mass_kilograms": 13.0,
           "rationale": "Electrical system",
           "upper_mass_kilograms": 17.0
@@ -439,152 +639,52 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "fuel tank empty",
+        "component_perimeter": "fuel tank empty and fire extinguisher",
         "properties": {
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.0,
-            "y": 0.45,
-            "z": 1.45
+            "y": 0.46,
+            "z": 1.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                2.0,
-                0,
-                0
+                2.8,
+                0.0,
+                0.0
               ],
               [
-                0,
-                2.0,
-                0
+                0.0,
+                3.2,
+                0.0
               ],
               [
-                0,
-                0,
-                2.0
+                0.0,
+                0.0,
+                2.5
               ]
             ]
           },
-          "mass_kilograms": 10.0,
-          "name": "fuel_tank_empty",
+          "mass_kilograms": 20.0,
+          "name": "fuel_tank_and_fire_system",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Aluminium rally fuel cell",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
+            "source": "Aluminium foam-filled rally fuel cell over rear axle, twin Facet pumps and plumbed-in fire system",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 9.0,
-          "rationale": "Fuel tank weight",
-          "upper_mass_kilograms": 11.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "driver and co-driver",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.65,
-            "z": 0.2
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                18.0,
-                0,
-                0
-              ],
-              [
-                0,
-                16.0,
-                0
-              ],
-              [
-                0,
-                0,
-                10.0
-              ]
-            ]
-          },
-          "mass_kilograms": 150.0,
-          "name": "crew_driver_codriver",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Driver (75 kg) and Co-driver (75 kg) with bucket seats",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 140.0,
-          "rationale": "Crew members",
-          "upper_mass_kilograms": 160.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "rally equipment and sumpguard",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.25,
-            "z": 1.0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                5.0,
-                0,
-                0
-              ],
-              [
-                0,
-                4.0,
-                0
-              ],
-              [
-                0,
-                0,
-                5.0
-              ]
-            ]
-          },
-          "mass_kilograms": 22.0,
-          "name": "rally_sumpguard_and_tools",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Duralumin sump guard, fire system and tools",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate, see MASS_DISTRIBUTION.md"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.15,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 20.0,
-          "rationale": "Protection equipment",
-          "upper_mass_kilograms": 25.0
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.15,
+          "lower_mass_kilograms": 18.0,
+          "rationale": "Fuel cell and safety system",
+          "upper_mass_kilograms": 22.0
         }
       },
       {
@@ -604,17 +704,17 @@
             "entries_kilogram_square_metres": [
               [
                 0.03,
-                0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
+                0.0,
                 0.02,
-                0
+                0.0
               ],
               [
-                0,
-                0,
+                0.0,
+                0.0,
                 0.02
               ]
             ]
@@ -625,7 +725,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort front hub upright"
+            "source": "Ford Escort Grp4 strengthened front hub upright"
           }
         },
         "rotating_wheel": null,
@@ -654,17 +754,17 @@
             "entries_kilogram_square_metres": [
               [
                 0.03,
-                0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
+                0.0,
                 0.02,
-                0
+                0.0
               ],
               [
-                0,
-                0,
+                0.0,
+                0.0,
                 0.02
               ]
             ]
@@ -675,7 +775,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort front hub upright"
+            "source": "Ford Escort Grp4 strengthened front hub upright"
           }
         },
         "rotating_wheel": null,
@@ -704,17 +804,17 @@
             "entries_kilogram_square_metres": [
               [
                 0.03,
-                0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
+                0.0,
                 0.02,
-                0
+                0.0
               ],
               [
-                0,
-                0,
+                0.0,
+                0.0,
                 0.02
               ]
             ]
@@ -725,7 +825,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort rear hub upright"
+            "source": "Ford Escort full-floating rear hub assembly"
           }
         },
         "rotating_wheel": null,
@@ -754,17 +854,17 @@
             "entries_kilogram_square_metres": [
               [
                 0.03,
-                0,
-                0
+                0.0,
+                0.0
               ],
               [
-                0,
+                0.0,
                 0.02,
-                0
+                0.0
               ],
               [
-                0,
-                0,
+                0.0,
+                0.0,
                 0.02
               ]
             ]
@@ -775,7 +875,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort rear hub upright"
+            "source": "Ford Escort full-floating rear hub assembly"
           }
         },
         "rotating_wheel": null,
@@ -803,19 +903,19 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8,
-                0,
-                0
+                0.85,
+                0.0,
+                0.0
               ],
               [
-                0,
-                0.5,
-                0
+                0.0,
+                0.52,
+                0.0
               ],
               [
-                0,
-                0,
-                0.5
+                0.0,
+                0.0,
+                0.52
               ]
             ]
           },
@@ -825,7 +925,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Minilite rally wheel with 175/70 R13 gravel tyre"
+            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
           }
         },
         "rotating_wheel": "FrontLeft",
@@ -853,19 +953,19 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8,
-                0,
-                0
+                0.85,
+                0.0,
+                0.0
               ],
               [
-                0,
-                0.5,
-                0
+                0.0,
+                0.52,
+                0.0
               ],
               [
-                0,
-                0,
-                0.5
+                0.0,
+                0.0,
+                0.52
               ]
             ]
           },
@@ -875,7 +975,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Minilite rally wheel with 175/70 R13 gravel tyre"
+            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
           }
         },
         "rotating_wheel": "FrontRight",
@@ -903,19 +1003,19 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8,
-                0,
-                0
+                0.85,
+                0.0,
+                0.0
               ],
               [
-                0,
-                0.5,
-                0
+                0.0,
+                0.52,
+                0.0
               ],
               [
-                0,
-                0,
-                0.5
+                0.0,
+                0.0,
+                0.52
               ]
             ]
           },
@@ -925,7 +1025,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Minilite rally wheel with 175/70 R13 gravel tyre"
+            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
           }
         },
         "rotating_wheel": "RearLeft",
@@ -953,19 +1053,19 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8,
-                0,
-                0
+                0.85,
+                0.0,
+                0.0
               ],
               [
-                0,
-                0.5,
-                0
+                0.0,
+                0.52,
+                0.0
               ],
               [
-                0,
-                0,
-                0.5
+                0.0,
+                0.0,
+                0.52
               ]
             ]
           },
@@ -975,7 +1075,7 @@
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Minilite rally wheel with 175/70 R13 gravel tyre"
+            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
           }
         },
         "rotating_wheel": "RearRight",

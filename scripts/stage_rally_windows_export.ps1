@@ -41,7 +41,7 @@ function Copy-SourceDirectory([string]$Source, [string]$Destination) {
 
 Copy-SourceDirectory (Join-Path $gameRoot 'assets\rally') (Join-Path $stageRoot 'assets\rally')
 New-Item -ItemType Directory -Force -Path (Join-Path $stageRoot 'scenes\rally') | Out-Null
-foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'rally_proving_ground.tscn', 'rally_f1_head_up_display.tscn', 'russia_stage1_ford_escort_rs2000.tscn', 'rally_garage_panel.tscn')) {
+foreach ($sceneName in @('ford_escort_rs2000_1971.tscn', 'ford_escort_castrol.tscn', 'rally_proving_ground.tscn', 'rally_f1_head_up_display.tscn', 'russia_stage1_ford_escort_rs2000.tscn', 'rally_garage_panel.tscn')) {
     $sourceScene = Join-Path $gameRoot ('scenes\rally\' + $sceneName)
     if (-not (Test-Path -LiteralPath $sourceScene -PathType Leaf)) {
         throw "Escena Rally necesaria para el staging faltante: $sourceScene"
@@ -91,6 +91,9 @@ config/name="Formula 90s Rally - Ford Escort RS2000"
 run/main_scene="res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn"
 config/features=PackedStringArray("4.7")
 
+[filesystem]
+import/blender/enabled=false
+
 [autoload]
 
 InputBindings="*res://scripts/input/input_bindings.gd"
@@ -129,7 +132,7 @@ dedicated_server=false
 custom_features=""
 export_filter="all_resources"
 include_filter="*.json,*.md,*.txt,*.sql,*.pcm"
-exclude_filter=""
+exclude_filter="*.blend,*.blend1"
 export_path="FordEscortRS2000Rally.exe"
 encryption_include_filters=""
 encryption_exclude_filters=""

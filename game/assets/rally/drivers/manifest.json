@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "source_archive": "C:\\Users\\bill\\Downloads\\asw-lf-ford-escort-rs-mk2.zip",
+  "source_character": "lf_ford_escort_mk2/copiloto.kn5",
+  "character_sha256": "b3acc3d371f700470b8a3fbb5d27846179058b34380984b4df0527d1d7176998",
+  "artifacts": {
+    "co_driver.blend": {
+      "sha256": "1feeec5ae03070e9ffce2e238cbba0c220853d17bd39748735a5d06dc7e722db",
+      "size_bytes": 3083183
+    },
+    "co_driver.glb": {
+      "sha256": "e90c58f6a05dc058569ae1be94f24156b16170b7ee72b687e65477fb0048d42e",
+      "size_bytes": 5281052
+    },
+    "driver_animated.blend": {
+      "sha256": "adeafe6373acd66f5c5a76ae7d9e75edd8be0539c0ea05f980b11ee35cf2f756",
+      "size_bytes": 3439846
+    },
+    "driver_animated.glb": {
+      "sha256": "b83583ef733cd0d9c020198163ea6685725fe0337d21588605774fe134ca5383",
+      "size_bytes": 7061012
+    }
+  },
+  "animation": {
+    "basis": "19 existing Rally Trophy arm morph poses transferred by world-space four-nearest surface displacement to the new supplied character, with shoulder falloff and fitted neutral grip",
+    "poses": 19,
+    "neutral": 9,
+    "source_glb_sha256": "5ab5d293a36c8e225c23ffa148cf80b4fe9f45640eaf436783ec6f8a25f5abe8",
+    "driver_arm_vertices": {
+      "left": 1713,
+      "right": 1699
+    }
+  },
+  "assembly": "Character assets have no car geometry; their transforms are composed in the Godot vehicle scene.",
+  "converter": {
+    "name": "KN5 Blender Tools",
+    "source": "https://github.com/nazariyKul/kn5-blender-tools",
+    "commit": "502ab4861dd3f324a794db5874c0f8237dbeaa79"
+  },
+  "generator": "D:\\open-formula\\staging_rally\\cars\\escort_mk2_replacement\\build_replacement.py"
+}

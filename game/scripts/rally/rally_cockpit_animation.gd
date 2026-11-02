@@ -7,6 +7,7 @@ const POSE_COUNT := 19
 const NEUTRAL_POSE := 9
 
 @export var steering_wheel_lock_degrees: float = 90.0
+@export var steering_wheel_axis: Vector3 = Vector3.BACK
 
 var vehicle: RallyEscortVehicle
 var steering_wheel: Node3D
@@ -59,7 +60,7 @@ func update_steering_pose(command: float) -> void:
 		return
 	command = clampf(command, -1.0, 1.0)
 	# Rotate around the wheel's own shaft, preserving its original tilt and pivot.
-	steering_wheel.basis = _wheel_rest_basis * Basis(Vector3.BACK, deg_to_rad(command * steering_wheel_lock_degrees))
+	steering_wheel.basis = _wheel_rest_basis * Basis(steering_wheel_axis.normalized(), deg_to_rad(command * steering_wheel_lock_degrees))
 	var sample := float(NEUTRAL_POSE) * (1.0 - command)
 	var lower := int(floor(sample))
 	var upper := mini(lower + 1, POSE_COUNT - 1)

@@ -1,0 +1,65 @@
+{
+  "normalization_matrix_blender": [
+    [
+      0.8297873139381409,
+      0.0,
+      0.0,
+      -0.0002339419152121991
+    ],
+    [
+      0.0,
+      0.8812137842178345,
+      0.0,
+      -0.3654507100582123
+    ],
+    [
+      0.0,
+      0.0,
+      0.8608220815658569,
+      0.5934197306632996
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "steering_center_blender": [
+    0.25767695903778076,
+    0.2701301574707031,
+    0.7249639630317688
+  ],
+  "seat_objects": [
+    "seat_driver",
+    "seat_co_driver"
+  ],
+  "seat_duplicate_needed": false,
+  "mounts_godot": {
+    "driver": [
+      0.25767695903778076,
+      0,
+      0.11
+    ],
+    "co_driver": [
+      -0.25767695903778076,
+      0,
+      0.11
+    ]
+  },
+  "retarget": {
+    "basis": "19 existing Rally Trophy arm morph poses transferred by world-space four-nearest surface displacement to the new supplied character, with shoulder falloff and fitted neutral grip",
+    "poses": 19,
+    "neutral": 9,
+    "source_glb_sha256": "5ab5d293a36c8e225c23ffa148cf80b4fe9f45640eaf436783ec6f8a25f5abe8",
+    "driver_arm_vertices": {
+      "left": 1713,
+      "right": 1699
+    }
+  },
+  "driver_cockpit_eye_godot": [
+    0.25767695903778076,
+    1.08,
+    0.25
+  ]
+}

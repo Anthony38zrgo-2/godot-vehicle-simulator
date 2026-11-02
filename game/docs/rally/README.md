@@ -77,3 +77,7 @@ Cambios WRC9: wrc9_shifts contiene 32 PCM16 decodificados del EscortMKII1800.ban
 ## Competición virtual
 
 La sesión Rusia incorpora rivales simulados, parciales, fiabilidad, abandono del jugador, clasificación sobre el mapa y resultados persistentes. Uso, datos originales por especial, límites de calibración y pruebas: [ai_simulation/README.md](ai_simulation/README.md).
+
+## Nuevo modelo visual del Escort
+
+La variante `ford_escort_castrol.tscn` conserva el Escort Castrol del segundo ZIP y sus personajes independientes. Temporalmente vuelve a estar activo el RS2000 original, con el interior trasero revisado: [auditoría](RS2000_REAR_GEOMETRY_AUDIT.md). Fuentes `.blend`, GLB, retarget de 19 poses, asientos y procedencia: [ESCORT_VISUAL_REPLACEMENT.md](ESCORT_VISUAL_REPLACEMENT.md).

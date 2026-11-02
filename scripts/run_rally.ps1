@@ -152,6 +152,14 @@ foreach ($wheelProperty in $fordManifest.wheels.PSObject.Properties) {
 }
 Assert-ManifestArtifact $fordDirectory ([string]$fordManifest.collision.path) ([string]$fordManifest.collision.sha256) 'Colision del Ford'
 
+if ($fordManifest.assembly -and $fordManifest.assembly.driver) {
+    $driverDirectory = Join-Path $gameRoot 'assets\rally\drivers'
+    $driverManifest = Get-Content -LiteralPath (Join-Path $driverDirectory 'manifest.json') -Raw | ConvertFrom-Json
+    foreach ($artifact in $driverManifest.artifacts.PSObject.Properties) {
+        Assert-ManifestArtifact $driverDirectory $artifact.Name ([string]$artifact.Value.sha256) ("Ocupante " + $artifact.Name)
+    }
+}
+
 $stageManifest = Get-Content -LiteralPath $stageManifestPath -Raw | ConvertFrom-Json
 if ([int]$stageManifest.contract_version -ne 1 -or [string]$stageManifest.track_id -ne 'russia_stage1') {
     throw 'El manifest de Rusia Stage 1 no cumple el contrato rally.'
@@ -236,6 +244,8 @@ foreach ($artifact in @(
     (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_front_right.glb'),
     (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_rear_left.glb'),
     (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_rear_right.glb'),
+    (Join-Path $gameRoot 'assets\rally\drivers\driver_animated.glb'),
+    (Join-Path $gameRoot 'assets\rally\drivers\co_driver.glb'),
     (Join-Path $gameRoot 'assets\rally\russia_stage1\russia_stage1_visual.glb'),
     (Join-Path $gameRoot 'assets\rally\russia_stage1\russia_stage1_collision.glb')
 )) {

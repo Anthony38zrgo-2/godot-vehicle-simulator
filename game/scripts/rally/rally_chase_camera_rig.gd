@@ -33,6 +33,9 @@ func _ready() -> void:
 		push_error("Rally camera rig cannot resolve its vehicle")
 		set_process(false)
 		return
+	var eye := vehicle.get_node_or_null("Chassis/CockpitEye") as Node3D
+	if eye != null:
+		cockpit_eye_offset_metres = vehicle.to_local(eye.global_position)
 	snap_to_target()
 
 

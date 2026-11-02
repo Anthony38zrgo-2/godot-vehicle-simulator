@@ -1,0 +1,223 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "ford_escort_rs2000_1971",
+  "source": {
+    "archives": [
+      "C:\\Users\\bill\\Downloads\\234649-ford-escort-tun.zip",
+      "C:\\Users\\bill\\Downloads\\asw-lf-ford-escort-rs-mk2.zip"
+    ],
+    "body_source": "234649-ford-escort-tun.mmrc / RenderWare DFF+TXD, Castrol Escort",
+    "character_source": "lf_ford_escort_mk2/copiloto.kn5",
+    "excluded_source": "lf_ford_escort_mk2.kn5 has KN5ENC protection; direct import is visibly corrupted and is not used",
+    "generator": "D:\\open-formula\\staging_rally\\cars\\escort_mk2_replacement\\build_replacement.py",
+    "blend": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs1600\\ford_escort_rs1600.blend",
+    "blend_sha256": "b42b740fa8dd0c751f00ddb686543c476393a004ede3171e981450310f0d6e0d",
+    "visual_only": true,
+    "physics": "Existing RS2000 profile, wheel contact layout and collision retained; visual wheelbase/track normalized to match.",
+    "converter": {
+      "name": "DragonFF",
+      "url": "https://github.com/Parik27/DragonFF",
+      "commit": "54baca8ea2ed95fe5a86917f44399ce677379c59"
+    },
+    "archive_hashes": {
+      "234649-ford-escort-tun.zip": "c6ee7ec41a5890ba413d105a49e25ab6ca3bb6e1ce084183cf14dfc2dccc9606",
+      "asw-lf-ford-escort-rs-mk2.zip": "3d7962299b37110a279a7324cfd813860bbe0ed390ecb1f5cea2a7bc73068cf1"
+    },
+    "generator_sha256": "e3ce4a17ef08dd761a2aaae4bd489a20256acbaa76052366b395769b3cdc4a06",
+    "seat_audit": {
+      "seat_driver": {
+        "vertices": 574,
+        "faces": 886,
+        "bounds": {
+          "min_blender": [
+            0.11866127699613571,
+            -0.49508100748062134,
+            0.2503804564476013
+          ],
+          "max_blender": [
+            0.42621368169784546,
+            0.1659121811389923,
+            0.7737085819244385
+          ],
+          "min_godot": [
+            0.11866127699613571,
+            0.2503804564476013,
+            -0.1659121811389923
+          ],
+          "max_godot": [
+            0.42621368169784546,
+            0.7737085819244385,
+            0.49508100748062134
+          ]
+        }
+      },
+      "seat_co_driver": {
+        "vertices": 578,
+        "faces": 886,
+        "bounds": {
+          "min_blender": [
+            -0.452748566865921,
+            -0.49338823556900024,
+            0.2503804564476013
+          ],
+          "max_blender": [
+            -0.14519615471363068,
+            0.1676049530506134,
+            0.7737085819244385
+          ],
+          "min_godot": [
+            -0.452748566865921,
+            0.2503804564476013,
+            -0.1676049530506134
+          ],
+          "max_godot": [
+            -0.14519615471363068,
+            0.7737085819244385,
+            0.49338823556900024
+          ]
+        }
+      }
+    }
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation",
+    "visual_physics_offset_metres": 0.0,
+    "visual_physics_offset_reason": "The GEVP wheel ray origins are placed so the rigid-body origin rests on the wheel-contact plane; the Stage 1 Rapier chassis-frame offset does not apply to this rig."
+  },
+  "chassis": {
+    "path": "ford_escort_rs1600_chassis.glb",
+    "sha256": "697308cee7a12b08573387148af340161a2980a4b19d488d51752a619b9fad64",
+    "size_bytes": 8770444
+  },
+  "wheels": {
+    "front_left": {
+      "path": "ford_escort_rs1600_wheel_front_left.glb",
+      "sha256": "e8512c1841670890f44ca3e68670503a221813ba7343812054aef8381a1a3bd5",
+      "size_bytes": 895816
+    },
+    "front_right": {
+      "path": "ford_escort_rs1600_wheel_front_right.glb",
+      "sha256": "7850ea6da38a992cf60b1ebb563d37d01b32f6ae4d17247b2d877bee776dfa71",
+      "size_bytes": 895816
+    },
+    "rear_left": {
+      "path": "ford_escort_rs1600_wheel_rear_left.glb",
+      "sha256": "96df4fa234fc678939c81dff11e67af0d3976d455637730647de876270cc7f57",
+      "size_bytes": 895816
+    },
+    "rear_right": {
+      "path": "ford_escort_rs1600_wheel_rear_right.glb",
+      "sha256": "e64e6f634b05013cdac36bb3ee7e9e7fb1e9e7c4e9ccd021e3fe7c3f8bc655e5",
+      "size_bytes": 895816
+    }
+  },
+  "collision": {
+    "path": "ford_escort_rs1600_collision.json",
+    "sha256": "0478a4d6e0811149424ff44d43a36afdd219559ecad2aa3eac551b29298a9624"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "Wheel_front_left",
+      "center_metres": {
+        "x": -0.64,
+        "y": 0.28,
+        "z": -1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "front_right": {
+      "blender_object": "Wheel_front_right",
+      "center_metres": {
+        "x": 0.64,
+        "y": 0.28,
+        "z": -1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "rear_left": {
+      "blender_object": "Wheel_rear_left",
+      "center_metres": {
+        "x": -0.64,
+        "y": 0.28,
+        "z": 1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    },
+    "rear_right": {
+      "blender_object": "Wheel_rear_right",
+      "center_metres": {
+        "x": 0.64,
+        "y": 0.28,
+        "z": 1.205
+      },
+      "radius_metres": 0.28,
+      "width_metres": 0.2
+    }
+  },
+  "bounds_world_metres": {
+    "min_blender": [
+      -0.7950880527496338,
+      -2.1308350563049316,
+      -2.9802322387695312e-08
+    ],
+    "max_blender": [
+      0.7946202754974365,
+      1.8266597986221313,
+      1.2701895236968994
+    ],
+    "min_godot": [
+      -0.7950880527496338,
+      -2.9802322387695312e-08,
+      -1.8266597986221313
+    ],
+    "max_godot": [
+      0.7946202754974365,
+      1.2701895236968994,
+      2.1308350563049316
+    ]
+  },
+  "excluded_objects": [
+    "escort_tun.dff.savanna_col.ColMesh",
+    "escort_tun.dff.savanna_col.ShadowMesh",
+    "escort_tun.dff.savanna_col.ColSphere.*"
+  ],
+  "assembly": {
+    "scene": "res://scenes/rally/ford_escort_castrol.tscn",
+    "mounts_godot": {
+      "driver": [
+        0.25767695903778076,
+        0,
+        0.11
+      ],
+      "co_driver": [
+        -0.25767695903778076,
+        0,
+        0.11
+      ]
+    },
+    "driver": "res://assets/rally/drivers/driver_animated.glb",
+    "co_driver": "res://assets/rally/drivers/co_driver.glb",
+    "cockpit_eye_godot": [
+      0.25767695903778076,
+      1.08,
+      0.25
+    ]
+  },
+  "full_model": {
+    "ford_escort_rs1600.blend": {
+      "sha256": "b42b740fa8dd0c751f00ddb686543c476393a004ede3171e981450310f0d6e0d",
+      "size_bytes": 11284643
+    },
+    "ford_escort_rs1600.glb": {
+      "sha256": "ec1e753d1973e4a9f870f34d5674c047f41ac2fbc924451f7ea85908002da786",
+      "size_bytes": 10359796
+    }
+  }
+}
