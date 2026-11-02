@@ -68,6 +68,9 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.metallic = 0.0
 		# Filtrado bilineal con mipmaps (firma visual de DC frente a PS1)
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		# Asegurar texture_repeat activo para que las texturas que se repiten (bosque, carretera) no se estiren
+		if is_cutout or not material_name.begins_with("sign_"):
+			material.set_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT, true)
 
 	if is_cutout:
 		# Punch-through alpha de PowerVR2

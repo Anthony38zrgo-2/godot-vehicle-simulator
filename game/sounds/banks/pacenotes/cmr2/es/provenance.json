@@ -5,297 +5,435 @@
     {
       "slot": 0,
       "file": "one.wav",
-      "sha256": "3039ef4117e9b12b479063cf2e12c184eaff32d71766e6a1696a520460ab65bc"
+      "sha256": "979787922b67dd98f55edbd35c18aa3ad4ab7dea83401444df46adc2b45011d2",
+      "original_sha256": "3039ef4117e9b12b479063cf2e12c184eaff32d71766e6a1696a520460ab65bc",
+      "remaster_gain_db": 0.295
     },
     {
       "slot": 1,
       "file": "two.wav",
-      "sha256": "3fd2b13ca74848c4c1754966ba99d1952c0c5c453003e301687630dad5b659d2"
+      "sha256": "2353fd5d3e910a1493eb50d72ef92c8c422533c8eede691e3f2066dac791810b",
+      "original_sha256": "3fd2b13ca74848c4c1754966ba99d1952c0c5c453003e301687630dad5b659d2",
+      "remaster_gain_db": -0.263
     },
     {
       "slot": 2,
       "file": "three.wav",
-      "sha256": "f60477aa60d5a94e6a7d25e1f6bd1e2df2b5eea6116507f086c489f59b9deaa1"
+      "sha256": "c0577b43fd875c9316113e6409f8d28aebf4cf975b922cc0a81152ed3d711c88",
+      "original_sha256": "f60477aa60d5a94e6a7d25e1f6bd1e2df2b5eea6116507f086c489f59b9deaa1",
+      "remaster_gain_db": 1.725
     },
     {
       "slot": 3,
       "file": "four.wav",
-      "sha256": "38afcaf4a5fad2021b9205e26098592bc8f670d53a487bda4f2d7cd42f269258"
+      "sha256": "776360d4e456b3bff184cbabeda4b903dabc6a080b1f16d35607f594ebdba5ec",
+      "original_sha256": "38afcaf4a5fad2021b9205e26098592bc8f670d53a487bda4f2d7cd42f269258",
+      "remaster_gain_db": 0.513
     },
     {
       "slot": 4,
       "file": "five.wav",
-      "sha256": "359559465272037a4c11a94b48f58bf3ea3fd089e09be5411a33a34f3e08f512"
+      "sha256": "082fbff336b1b124327a75843955081017bf61a6aea82327a108adeda6c09914",
+      "original_sha256": "359559465272037a4c11a94b48f58bf3ea3fd089e09be5411a33a34f3e08f512",
+      "remaster_gain_db": 1.774
     },
     {
       "slot": 5,
       "file": "six.wav",
-      "sha256": "5d72c236359e95249c8301f58e66b06f5014230b6f06b8983169c64648c148dd"
+      "sha256": "815ca6ecb58e435beb88942363aa96055b5141e5ebdbe8df63dea121f9894186",
+      "original_sha256": "5d72c236359e95249c8301f58e66b06f5014230b6f06b8983169c64648c148dd",
+      "remaster_gain_db": 3.004
     },
     {
       "slot": 6,
       "file": "openhairpin.wav",
-      "sha256": "dc3617ec6909140acf54bcbc72ed7a89faf9ff6c6228efb84635c6728547574b"
+      "sha256": "952b3f025a0438703f7953f435918de6421924301585934d0b3a6156ff54d317",
+      "original_sha256": "dc3617ec6909140acf54bcbc72ed7a89faf9ff6c6228efb84635c6728547574b",
+      "remaster_gain_db": 2.56
     },
     {
       "slot": 7,
       "file": "hairpin.wav",
-      "sha256": "da55961c52f6f62c956c5e257295095e12f8a9e51757003ceaea3322065bb981"
+      "sha256": "42644b89e753c4bb1042b39e97cff1ca91c839a9c58426611316bb6dd3799912",
+      "original_sha256": "da55961c52f6f62c956c5e257295095e12f8a9e51757003ceaea3322065bb981",
+      "remaster_gain_db": -0.538
     },
     {
       "slot": 8,
       "file": "left.wav",
-      "sha256": "64bfb8d8dfe9f111ca8cf37d47ae71ce27e1f0391162095a95432cd1555ddf57"
+      "sha256": "bbec38bddb4ed08ab0691b1f0cb4d709b10921991bc660e7d1ba14930f7099ef",
+      "original_sha256": "64bfb8d8dfe9f111ca8cf37d47ae71ce27e1f0391162095a95432cd1555ddf57",
+      "remaster_gain_db": 2.52
     },
     {
       "slot": 9,
       "file": "right.wav",
-      "sha256": "f3a2b24a791a5ac098adc7e497fcbcfca0e093ce92937f8057c609f02e53df2e"
+      "sha256": "459f59d01079e231cef2e61f8b825f317a28f6cd64515461453b884d3c553dbc",
+      "original_sha256": "f3a2b24a791a5ac098adc7e497fcbcfca0e093ce92937f8057c609f02e53df2e",
+      "remaster_gain_db": 2.173
     },
     {
       "slot": 10,
       "file": "long.wav",
-      "sha256": "3ad29d04a5c66603c29cea9bc82bac6f17a28371344c95c5fd8494ee356f7616"
+      "sha256": "08f42159f6be04e89f213c9489012ff31151d4a21dac73f5b418106245a178e5",
+      "original_sha256": "3ad29d04a5c66603c29cea9bc82bac6f17a28371344c95c5fd8494ee356f7616",
+      "remaster_gain_db": -0.269
     },
     {
       "slot": 11,
       "file": "opens.wav",
-      "sha256": "45e8b8feb755f322ae3b5e66fbd9ae8caa31db86c3dadcb8982a5dd8f42ba7ca"
+      "sha256": "8ca343df5e30372a0eea04c660de8142c02f8bc5ab59d79c275d3ed5793cc21f",
+      "original_sha256": "45e8b8feb755f322ae3b5e66fbd9ae8caa31db86c3dadcb8982a5dd8f42ba7ca",
+      "remaster_gain_db": 2.318
     },
     {
       "slot": 12,
       "file": "tightens.wav",
-      "sha256": "8ac303c7f2db80cfe23ad226d987ad277b1d7656f9ab87fc34a07bc76a04b0be"
+      "sha256": "c2e6e30910f8b0f3aa606bec8362a1d52c5e06cff70f56e7f9672b3ddd0412b3",
+      "original_sha256": "8ac303c7f2db80cfe23ad226d987ad277b1d7656f9ab87fc34a07bc76a04b0be",
+      "remaster_gain_db": 2.694
     },
     {
       "slot": 13,
       "file": "go.wav",
-      "sha256": "f98870eb9a2f547f97ae0d78b26a9ed75bedb2341b1a9f41f760864600ee09b6"
+      "sha256": "a3c54cb24502deab86e21e72f18c2d81cdae3409fc86d3963eb9b9d202365b2a",
+      "original_sha256": "f98870eb9a2f547f97ae0d78b26a9ed75bedb2341b1a9f41f760864600ee09b6",
+      "remaster_gain_db": -0.858
     },
     {
       "slot": 14,
       "file": "and.wav",
-      "sha256": "3ffa4bf0954c26d84d879155df5ca785888e3b335f16bedd0454569b8b78a6a0"
+      "sha256": "bfd9bb59c000f94c1247c3d7b28d502aa02a521561f7eb96e7256efef42f2445",
+      "original_sha256": "3ffa4bf0954c26d84d879155df5ca785888e3b335f16bedd0454569b8b78a6a0",
+      "remaster_gain_db": -0.873
     },
     {
       "slot": 15,
       "file": "into.wav",
-      "sha256": "69afcadd9d708b33219bb9ebd8d293b143da3a7b41d51bc741128e716f241e1b"
+      "sha256": "7b177724b9a4b8011583f13716f0ff60a79821cdaf88f2fa6974709ac84f1434",
+      "original_sha256": "69afcadd9d708b33219bb9ebd8d293b143da3a7b41d51bc741128e716f241e1b",
+      "remaster_gain_db": 2.03
     },
     {
       "slot": 16,
       "file": "30.wav",
-      "sha256": "43c27886e7e736e09231425cad82568db2726910ca4e6e55c3dcb77e6baf644f"
+      "sha256": "f97bf200a1a54f2144c84238a80156dbf28fd3b96309131e4b854a11a8af392d",
+      "original_sha256": "43c27886e7e736e09231425cad82568db2726910ca4e6e55c3dcb77e6baf644f",
+      "remaster_gain_db": 0.188
     },
     {
       "slot": 17,
       "file": "50.wav",
-      "sha256": "dc8aade5b740343ff2fffc2d085828cc6c2fd3e1df10f5c61da586c25712de11"
+      "sha256": "35d4bb22f20f7df3290f81f1ed40d2d4c561a94983f925740d70117dc5bd65d2",
+      "original_sha256": "dc8aade5b740343ff2fffc2d085828cc6c2fd3e1df10f5c61da586c25712de11",
+      "remaster_gain_db": 2.345
     },
     {
       "slot": 18,
       "file": "70.wav",
-      "sha256": "eed23a4df5fef7abc6a9b4e5200646ebc31d0c9c4ca27bde13c813e22362bf20"
+      "sha256": "5e592aa50eb6d8b13e03bdfa46707a43d0b2fb60d75a4bf6de7f5517a9d870c7",
+      "original_sha256": "eed23a4df5fef7abc6a9b4e5200646ebc31d0c9c4ca27bde13c813e22362bf20",
+      "remaster_gain_db": 2.615
     },
     {
       "slot": 19,
       "file": "100.wav",
-      "sha256": "f83088eb79b0ff18c949f86f0e74fc750ecd7da78954de953f2413ad0837f326"
+      "sha256": "d0070c3d481fac074f1a0013b4156ce2bf34bc273490c7147f2201cfb6ccdcc2",
+      "original_sha256": "f83088eb79b0ff18c949f86f0e74fc750ecd7da78954de953f2413ad0837f326",
+      "remaster_gain_db": 2.371
     },
     {
       "slot": 20,
       "file": "120.wav",
-      "sha256": "60ebb7086f5c7d68c9e18d8a5eb5d3771c1536f221e6e6120fb337c8f6cd8261"
+      "sha256": "fbfa83d6650b2c2643fa47c054a807fa16ac73042d58c30e502e29fa5b547f79",
+      "original_sha256": "60ebb7086f5c7d68c9e18d8a5eb5d3771c1536f221e6e6120fb337c8f6cd8261",
+      "remaster_gain_db": 0.724
     },
     {
       "slot": 21,
       "file": "150.wav",
-      "sha256": "5ed168404a358c91eca65fc29caeb49593f728404e53b39acca6c9cebfb1b494"
+      "sha256": "296e9eada4509d24c440ec1f8614bcee66e3cb2d4be31fd2720fc39af5e75e19",
+      "original_sha256": "5ed168404a358c91eca65fc29caeb49593f728404e53b39acca6c9cebfb1b494",
+      "remaster_gain_db": 1.913
     },
     {
       "slot": 22,
       "file": "200.wav",
-      "sha256": "67facdaa22c87e57ab45380f3ecf00d58cb260e5d66d1069426b53f9b507375e"
+      "sha256": "8a8d4bbc17b14ef2aa3080075e5e0bd92368856792c8849ea55db76b86e22029",
+      "original_sha256": "67facdaa22c87e57ab45380f3ecf00d58cb260e5d66d1069426b53f9b507375e",
+      "remaster_gain_db": 1.485
     },
     {
       "slot": 23,
       "file": "over.wav",
-      "sha256": "103309cb1aa8e87f55fca4dbf09c6fe25407093204a512640c42509adbde093c"
+      "sha256": "3aad1799664af573cb7e09c1122ce99e52b0eacb7bac38cfefa4d06771f4cf81",
+      "original_sha256": "103309cb1aa8e87f55fca4dbf09c6fe25407093204a512640c42509adbde093c",
+      "remaster_gain_db": 1.353
     },
     {
       "slot": 24,
       "file": "crest.wav",
-      "sha256": "20387dce36278bb3b82bedf9a49daa04a090b1460476a6455a8fee7f9caf1cdd"
+      "sha256": "9324c39cd27c54a3d6e3a14f9127115717de7242c5469bfdf4342be4f6a7ffb9",
+      "original_sha256": "20387dce36278bb3b82bedf9a49daa04a090b1460476a6455a8fee7f9caf1cdd",
+      "remaster_gain_db": 2.455
     },
     {
       "slot": 25,
       "file": "jump.wav",
-      "sha256": "8e753bc6c9bd219fc1105ec505197fc67485667147821da95392a3f4901f283e"
+      "sha256": "6f60d0f24551008f966abcc0b0d6fe8cfdbb02676dd24696f1786ce7a9256cb2",
+      "original_sha256": "8e753bc6c9bd219fc1105ec505197fc67485667147821da95392a3f4901f283e",
+      "remaster_gain_db": 2.23
     },
     {
       "slot": 26,
       "file": "care.wav",
-      "sha256": "ed77284af366b920436576b5afce6b7b3ab85de7fc945de513459e9127aef752"
+      "sha256": "c8c262d0770b9eda511b9e14e0d26bea533066e76fe288f62b43e410b58f5598",
+      "original_sha256": "ed77284af366b920436576b5afce6b7b3ab85de7fc945de513459e9127aef752",
+      "remaster_gain_db": 1.369
     },
     {
       "slot": 27,
       "file": "caution.wav",
-      "sha256": "ab3efacc0103c71d98df07cc8eceb3541c9317275dd334a5dc69d7c6e3305100"
+      "sha256": "bf10333b58ed5d09d4b4db1956a3e81265c391bf3922a30e36223c1c1d59aa82",
+      "original_sha256": "ab3efacc0103c71d98df07cc8eceb3541c9317275dd334a5dc69d7c6e3305100",
+      "remaster_gain_db": 0.859
     },
     {
       "slot": 28,
       "file": "verylong.wav",
-      "sha256": "9530e5a03933157dc1f691d20704eacfcb1927e1404c0cbd4154e86651980ea8"
+      "sha256": "dee102c5a6946ac3569d4ca006727fd8df18f8c720a6eb3cc6222ecde7b15c56",
+      "original_sha256": "9530e5a03933157dc1f691d20704eacfcb1927e1404c0cbd4154e86651980ea8",
+      "remaster_gain_db": 0.13
     },
     {
       "slot": 29,
       "file": "turn.wav",
-      "sha256": "ab347c313ecc7db662c49a3e24e2c5b39ec99e15af95f5c4953b9d0093172533"
+      "sha256": "658eb39776d9269aef22722334cb4745e8d231028bee8432602164c3768c613a",
+      "original_sha256": "ab347c313ecc7db662c49a3e24e2c5b39ec99e15af95f5c4953b9d0093172533",
+      "remaster_gain_db": -0.386
     },
     {
       "slot": 30,
       "file": "narrows.wav",
-      "sha256": "65bb1a26792f7de3385cd5e12d1af0c0c3b5af959ce8a4dc7e91cc9a8825b31a"
+      "sha256": "899401203623ef2df8ef4389aefa5b2b61a2f5d9baad70ac58445c3b4c907a92",
+      "original_sha256": "65bb1a26792f7de3385cd5e12d1af0c0c3b5af959ce8a4dc7e91cc9a8825b31a",
+      "remaster_gain_db": 2.586
     },
     {
       "slot": 31,
       "file": "through.wav",
-      "sha256": "b4239227de7ad53a6c5423174c24d48bd8566c273b8762d3abe305c410dde4a8"
+      "sha256": "0dffcef1d8baa68782aaba30eb8d85a979f66ca31b53fb32b259450c4049b086",
+      "original_sha256": "b4239227de7ad53a6c5423174c24d48bd8566c273b8762d3abe305c410dde4a8",
+      "remaster_gain_db": 1.878
     },
     {
       "slot": 32,
       "file": "logs.wav",
-      "sha256": "f07991a617ab9b04a96bd87d5376d8cc5ff4fab201a51ee33dfad79460af1e1b"
+      "sha256": "4f6ce6e47b6c112944c98022c2297e36443c9937123218cfa1a45de9ab62f072",
+      "original_sha256": "f07991a617ab9b04a96bd87d5376d8cc5ff4fab201a51ee33dfad79460af1e1b",
+      "remaster_gain_db": 0.809
     },
     {
       "slot": 33,
       "file": "gate.wav",
-      "sha256": "b725df13413364cd5895bcab590593b679d0bdc69bcd4f7e376a8e08b803e007"
+      "sha256": "3f67081524147cd580b7b8b196ba7f46f00a3b3a9c17056878c74eb640180a2c",
+      "original_sha256": "b725df13413364cd5895bcab590593b679d0bdc69bcd4f7e376a8e08b803e007",
+      "remaster_gain_db": 2.846
     },
     {
       "slot": 34,
       "file": "bridge.wav",
-      "sha256": "ea0bf366f14417970a8efbf5ba0c0426a168a7e8e33e5514ed60e2109f0a170b"
+      "sha256": "db9a5163e0df81883b705c2f4720a94ae616207e47f065698ae1a57bab80099b",
+      "original_sha256": "ea0bf366f14417970a8efbf5ba0c0426a168a7e8e33e5514ed60e2109f0a170b",
+      "remaster_gain_db": 2.546
     },
     {
       "slot": 35,
       "file": "rocks.wav",
-      "sha256": "e6732854ae4886f10d832600feb0328dc04a40adf518f5aee5f9435b6a7169aa"
+      "sha256": "ded0de68d719fd2d111953b29242bf7243617d5be626c738c7ecae25045452c6",
+      "original_sha256": "e6732854ae4886f10d832600feb0328dc04a40adf518f5aee5f9435b6a7169aa",
+      "remaster_gain_db": 0.511
     },
     {
       "slot": 36,
       "file": "post.wav",
-      "sha256": "9c48500f90ae26922eff9ec8da327920e44bbb64e9b95c9ba3a8639bff3471d2"
+      "sha256": "4f3507df37a1d19551eb6608e87969c737dd89b9df989819b8483f9fd1ff8959",
+      "original_sha256": "9c48500f90ae26922eff9ec8da327920e44bbb64e9b95c9ba3a8639bff3471d2",
+      "remaster_gain_db": -0.323
     },
     {
       "slot": 37,
       "file": "ditch.wav",
-      "sha256": "c173b2b0bd623d959d89d45e47453ba739c176f4fe4de9d0cd015b42baab24c7"
+      "sha256": "abca650f1e7bc36bf248c5cb2b0d5ed69d753b89a0f19672bc312c7e0893e182",
+      "original_sha256": "c173b2b0bd623d959d89d45e47453ba739c176f4fe4de9d0cd015b42baab24c7",
+      "remaster_gain_db": 2.087
     },
     {
       "slot": 38,
       "file": "mud.wav",
-      "sha256": "f4e277582fc79a8c4a9788358a6885feb5de0ec523e11458208f3497e57b75c8"
+      "sha256": "2030e7ca15a2eae3c7a4dce07b2dfc6df3e25276c4bbd72067343e7d9e67f9d8",
+      "original_sha256": "f4e277582fc79a8c4a9788358a6885feb5de0ec523e11458208f3497e57b75c8",
+      "remaster_gain_db": 2.204
     },
     {
       "slot": 39,
       "file": "ruts.wav",
-      "sha256": "526d7a4c15fad5c1645d25e764c2a931d0ec7c9f68c5b5768ebc3584747f0f5d"
+      "sha256": "759dbe778e396303cdfd2e7f00e4c7eaed7cd12e868db33ef1d55dbb81edf322",
+      "original_sha256": "526d7a4c15fad5c1645d25e764c2a931d0ec7c9f68c5b5768ebc3584747f0f5d",
+      "remaster_gain_db": 2.265
     },
     {
       "slot": 40,
       "file": "ice.wav",
-      "sha256": "1c0e76d178b974cb4479a7bca8bde79cbe157346b5b82e4fc8d1bc4c1db26554"
+      "sha256": "69d9ef621bf45fdb46e5c4cf17bdcdcc1429091c2a26465e58a6ebbe6e0dbad7",
+      "original_sha256": "1c0e76d178b974cb4479a7bca8bde79cbe157346b5b82e4fc8d1bc4c1db26554",
+      "remaster_gain_db": 2.396
     },
     {
       "slot": 41,
       "file": "badcamber.wav",
-      "sha256": "6992b767f13f0631a3102788ff912c6c0d1327f15eb5b76b865f28545344ea95"
+      "sha256": "216957ba6892c485c61943a0701e929cddc54142df76909170afe01db2429fbf",
+      "original_sha256": "6992b767f13f0631a3102788ff912c6c0d1327f15eb5b76b865f28545344ea95",
+      "remaster_gain_db": 2.487
     },
     {
       "slot": 42,
       "file": "rough.wav",
-      "sha256": "5eaaf38e4255d9a2e6c6889647f679a82bf6ff4a62e9e832d2d286332f83a056"
+      "sha256": "fba51bacb0fdc1a8380858c93ba7acc008fe8d22d3ba902dbaed0f9f5e3ad62c",
+      "original_sha256": "5eaaf38e4255d9a2e6c6889647f679a82bf6ff4a62e9e832d2d286332f83a056",
+      "remaster_gain_db": 2.718
     },
     {
       "slot": 43,
       "file": "slippy.wav",
-      "sha256": "7299b133a030a5ee64448ec479551271982cbe02cf273c00408431d83bb0a7c9"
+      "sha256": "99ec6c7685c79f84c63f2ea17dd0205d86495d605d1dec4ae708d5a7360f74ad",
+      "original_sha256": "7299b133a030a5ee64448ec479551271982cbe02cf273c00408431d83bb0a7c9",
+      "remaster_gain_db": 1.753
     },
     {
       "slot": 44,
       "file": "inside.wav",
-      "sha256": "2b2542878822cae5158fcdef5d7391f28f3f9b90e03198e3fdf1d5576d847a42"
+      "sha256": "0216c6cd57ac05aa4e00688bba50d7a53c76e6080f323b4a92d4a61e4fe1deca",
+      "original_sha256": "2b2542878822cae5158fcdef5d7391f28f3f9b90e03198e3fdf1d5576d847a42",
+      "remaster_gain_db": 2.476
     },
     {
       "slot": 45,
       "file": "outside.wav",
-      "sha256": "3c768f8fba08e00ea3cc975c1de8f1a25b66f8a84a2113291020c86ab3314ed9"
+      "sha256": "faf1cac413c8f2d72ae052adad1b3363980cd799c4142a1ecce9cd674f2457c7",
+      "original_sha256": "3c768f8fba08e00ea3cc975c1de8f1a25b66f8a84a2113291020c86ab3314ed9",
+      "remaster_gain_db": 2.484
     },
     {
       "slot": 46,
       "file": "dontcut.wav",
-      "sha256": "2ba48786d6e96d2e2caf82b54293c03e9f60c1e4700c1e21f952ba523153e4eb"
+      "sha256": "1df3ada35b5c773914689a895e34c1f971c58d48dac23b4f1bf4cef8d450d84f",
+      "original_sha256": "2ba48786d6e96d2e2caf82b54293c03e9f60c1e4700c1e21f952ba523153e4eb",
+      "remaster_gain_db": 1.752
     },
     {
       "slot": 47,
       "file": "ok.wav",
-      "sha256": "f5dd0524f9decb7b379f6eefedbfd740a2a1b29d9cfc77f10e1e752ec42b2885"
+      "sha256": "aba2af0d5df1826453545a559d64abc32850ea0ca99328b46ef14aa77ba93c29",
+      "original_sha256": "f5dd0524f9decb7b379f6eefedbfd740a2a1b29d9cfc77f10e1e752ec42b2885",
+      "remaster_gain_db": 1.926
     },
     {
       "slot": 48,
       "file": "stop_ditch.wav",
-      "sha256": "5e2cade29f986c128455d5384d2256a26a697b5a9b78475f778d664b6d55c2a6"
+      "sha256": "c002f8642e3724295a4bafea2ebcf6cca99180c265ff972407cd5e57a056f06f",
+      "original_sha256": "5e2cade29f986c128455d5384d2256a26a697b5a9b78475f778d664b6d55c2a6",
+      "remaster_gain_db": 2.08
     },
     {
       "slot": 49,
       "file": "onto_tarmac.wav",
-      "sha256": "b9c030729108343e133f85eaa4f6c8c7e3ae3c826b25940bb86d93089601afa0"
+      "sha256": "014e49965b47b035ccdc2304bf7aec704a472d4aedb558d44eec6f96839a5958",
+      "original_sha256": "b9c030729108343e133f85eaa4f6c8c7e3ae3c826b25940bb86d93089601afa0",
+      "remaster_gain_db": 2.017
     },
     {
       "slot": 50,
       "file": "onto_snow.wav",
-      "sha256": "97e4d9bab3aaee363956b587ed5a82b61c2ca7e597721be1db47196e2f74a630"
+      "sha256": "c5d1e1db77b1d67102823cd9350e6b2c863e84512f5d70dcd27883a0dcd6155c",
+      "original_sha256": "97e4d9bab3aaee363956b587ed5a82b61c2ca7e597721be1db47196e2f74a630",
+      "remaster_gain_db": 2.486
     },
     {
       "slot": 51,
       "file": "onto_gravel.wav",
-      "sha256": "5600ac9b32a90251ebd07baef16f72055f9faf073b54469b25fd7411082b2959"
+      "sha256": "3b77b2d5396f885d05249ccc2ae684450e1ddd61921479614ee5bb686569bf1b",
+      "original_sha256": "5600ac9b32a90251ebd07baef16f72055f9faf073b54469b25fd7411082b2959",
+      "remaster_gain_db": 2.137
     },
     {
       "slot": 52,
       "file": "onto_mud.wav",
-      "sha256": "9c063cd64ed3be1c1bf4979b8d0568d59eacaa518072e738df8c95eb55b96a4a"
+      "sha256": "53c9c403552bdb36221e9a17d041eb562430c2a1b2c47a4998cde134f2c6fe6d",
+      "original_sha256": "9c063cd64ed3be1c1bf4979b8d0568d59eacaa518072e738df8c95eb55b96a4a",
+      "remaster_gain_db": 2.543
     },
     {
       "slot": 53,
       "file": "onto_ice.wav",
-      "sha256": "87e8e3f47bb20d7708193f991c13abd19103d48dde8fdc47bb5f35aaf6a7b5c9"
+      "sha256": "69d0be5aa67405487eee3ebe9c22650b8cd7cc884cd45054df2c684b91cd2f5c",
+      "original_sha256": "87e8e3f47bb20d7708193f991c13abd19103d48dde8fdc47bb5f35aaf6a7b5c9",
+      "remaster_gain_db": 1.241
     },
     {
       "slot": 54,
       "file": "jump_maybe.wav",
-      "sha256": "17aecf6e31ff06a9de4e132e8f32a7d83b4402eddbf90b6251498af1d6c06be9"
+      "sha256": "21584cb456e61b32b2aaebfc9ae8cfa801596441f883a7efad878f206f800972",
+      "original_sha256": "17aecf6e31ff06a9de4e132e8f32a7d83b4402eddbf90b6251498af1d6c06be9",
+      "remaster_gain_db": 2.499
     },
     {
       "slot": 55,
       "file": "straight.wav",
-      "sha256": "d1c84e50d8478548234005f22c1ff54e6757e4c9e79cec5dc8a89c0ebb88d02c"
+      "sha256": "25341d30b436b2a7c713e427ef6a6350975c66e249146dcf9bc017756c2fcfba",
+      "original_sha256": "d1c84e50d8478548234005f22c1ff54e6757e4c9e79cec5dc8a89c0ebb88d02c",
+      "remaster_gain_db": 2.866
     },
     {
       "slot": 56,
       "file": "countdown_3.wav",
-      "sha256": "bf14cbd2bdc3ef05ed16d5f92c5ac78d84403ee50d64f3ea12aeefe2ebb01d97"
+      "sha256": "2e4066b9678d3898327d36f913c5c7fb6eb24d55f1bfb97f2d453288bfb40bfb",
+      "original_sha256": "bf14cbd2bdc3ef05ed16d5f92c5ac78d84403ee50d64f3ea12aeefe2ebb01d97",
+      "remaster_gain_db": 0.737
     },
     {
       "slot": 57,
       "file": "countdown_2.wav",
-      "sha256": "158967f1ca5ebc671b1f7c12f4931a417cd8d1edd0d62836946c53594a2983e9"
+      "sha256": "d7437b6c33287c32760722e15a8d0931d92a463f94a8f73388c34c6140ccfc13",
+      "original_sha256": "158967f1ca5ebc671b1f7c12f4931a417cd8d1edd0d62836946c53594a2983e9",
+      "remaster_gain_db": -1.108
     },
     {
       "slot": 58,
       "file": "countdown_1.wav",
-      "sha256": "9381629f758b6d5955c2352f70fc6459f06a8cf91ca6c52f6aea44ad1d80c7de"
+      "sha256": "5ca5864f065ccb460a36e1d93a708e7ef5ab95a9188138ef46d39d6271a0135e",
+      "original_sha256": "9381629f758b6d5955c2352f70fc6459f06a8cf91ca6c52f6aea44ad1d80c7de",
+      "remaster_gain_db": -1.045
     }
-  ]
+  ],
+  "processing": {
+    "source": "original_sha256",
+    "eq": [
+      {
+        "hz": 1900,
+        "gain_db": -4.0,
+        "q": 0.8
+      },
+      {
+        "hz": 3200,
+        "gain_db": -1.5,
+        "q": 1.0
+      }
+    ],
+    "rms_target_dbfs": -16,
+    "peak_ceiling_dbfs": -1,
+    "max_gain_db": 12.0412,
+    "method": "causal biquad EQ, per-file RMS gain bounded by peak; no resampling or compression",
+    "tool": "tools/rally/remaster_cmr2_copilot.py"
+  }
 }

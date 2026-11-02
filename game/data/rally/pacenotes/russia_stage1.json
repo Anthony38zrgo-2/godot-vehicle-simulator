@@ -3,38 +3,38 @@
   "route_point_count": 493,
   "total_distance_m": 5026.35,
   "calls": [
-    273,
-    290,
-    273,
-    273,
-    291,
-    291,
-    275,
-    274,
-    290,
-    2097430,
-    291,
-    4194577,
-    289,
-    274,
-    292,
-    274,
-    274,
-    291,
-    274,
-    292,
-    290,
-    274,
-    276,
-    274,
-    292,
-    273,
-    273,
-    290,
-    274,
-    274,
-    289,
-    2097445
+    295057,
+    1313,
+    401,
+    537395345,
+    287843489,
+    162,
+    304466,
+    9426,
+    10486946,
+    537396754,
+    10485991,
+    2261139,
+    295458,
+    303714,
+    10494293,
+    4690,
+    295138,
+    287838482,
+    2961634,
+    2961554,
+    4322,
+    287842578,
+    466,
+    546,
+    537400658,
+    354,
+    537534802,
+    296162,
+    304594,
+    2265635,
+    287842915,
+    9234
   ],
   "gates": [
     {
@@ -1773,7 +1773,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 78,
       "route_distance_m": 796.5,
-      "call_index": 7
+      "call_index": null
     },
     {
       "id": "RU1_GATE_079",
@@ -1817,7 +1817,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 80,
       "route_distance_m": 817.07,
-      "call_index": null
+      "call_index": 7
     },
     {
       "id": "RU1_GATE_081",
@@ -2015,7 +2015,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 89,
       "route_distance_m": 908.88,
-      "call_index": 8
+      "call_index": null
     },
     {
       "id": "RU1_GATE_090",
@@ -2059,7 +2059,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 91,
       "route_distance_m": 929.65,
-      "call_index": null
+      "call_index": 8
     },
     {
       "id": "RU1_GATE_092",
@@ -2323,7 +2323,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 103,
       "route_distance_m": 1051.28,
-      "call_index": null
+      "call_index": 9
     },
     {
       "id": "RU1_GATE_104",
@@ -2851,7 +2851,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 127,
       "route_distance_m": 1296.33,
-      "call_index": 9
+      "call_index": null
     },
     {
       "id": "RU1_GATE_128",
@@ -2873,7 +2873,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 128,
       "route_distance_m": 1306.73,
-      "call_index": null
+      "call_index": 10
     },
     {
       "id": "RU1_GATE_129",
@@ -3005,7 +3005,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 134,
       "route_distance_m": 1367.5,
-      "call_index": null
+      "call_index": 11
     },
     {
       "id": "RU1_GATE_135",
@@ -3181,7 +3181,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 142,
       "route_distance_m": 1448.83,
-      "call_index": 10
+      "call_index": null
     },
     {
       "id": "RU1_GATE_143",
@@ -3203,7 +3203,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 143,
       "route_distance_m": 1458.9,
-      "call_index": null
+      "call_index": 12
     },
     {
       "id": "RU1_GATE_144",
@@ -3401,7 +3401,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 152,
       "route_distance_m": 1550.59,
-      "call_index": 11
+      "call_index": null
     },
     {
       "id": "RU1_GATE_153",
@@ -3577,7 +3577,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 160,
       "route_distance_m": 1632.23,
-      "call_index": 12
+      "call_index": null
     },
     {
       "id": "RU1_GATE_161",
@@ -3797,7 +3797,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 170,
       "route_distance_m": 1735.04,
-      "call_index": 14
+      "call_index": null
     },
     {
       "id": "RU1_GATE_171",
@@ -4171,7 +4171,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 187,
       "route_distance_m": 1908.64,
-      "call_index": 15
+      "call_index": null
     },
     {
       "id": "RU1_GATE_188",
@@ -4435,7 +4435,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 199,
       "route_distance_m": 2031.84,
-      "call_index": null
+      "call_index": 14
     },
     {
       "id": "RU1_GATE_200",
@@ -4677,7 +4677,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 210,
       "route_distance_m": 2144.84,
-      "call_index": null
+      "call_index": 15
     },
     {
       "id": "RU1_GATE_211",
@@ -4787,7 +4787,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 215,
       "route_distance_m": 2196.33,
-      "call_index": 16
+      "call_index": null
     },
     {
       "id": "RU1_GATE_216",
@@ -5007,7 +5007,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 225,
       "route_distance_m": 2298.38,
-      "call_index": 17
+      "call_index": null
     },
     {
       "id": "RU1_GATE_226",
@@ -5183,7 +5183,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 233,
       "route_distance_m": 2379.59,
-      "call_index": null
+      "call_index": 16
     },
     {
       "id": "RU1_GATE_234",
@@ -5403,7 +5403,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 243,
       "route_distance_m": 2481.21,
-      "call_index": null
+      "call_index": 17
     },
     {
       "id": "RU1_GATE_244",
@@ -5535,7 +5535,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 249,
       "route_distance_m": 2542.58,
-      "call_index": 18
+      "call_index": null
     },
     {
       "id": "RU1_GATE_250",
@@ -5601,7 +5601,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 252,
       "route_distance_m": 2573.64,
-      "call_index": null
+      "call_index": 18
     },
     {
       "id": "RU1_GATE_253",
@@ -5755,7 +5755,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 259,
       "route_distance_m": 2645.29,
-      "call_index": null
+      "call_index": 19
     },
     {
       "id": "RU1_GATE_260",
@@ -5865,7 +5865,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 264,
       "route_distance_m": 2696.29,
-      "call_index": null
+      "call_index": 20
     },
     {
       "id": "RU1_GATE_265",
@@ -5887,7 +5887,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 265,
       "route_distance_m": 2706.44,
-      "call_index": 19
+      "call_index": null
     },
     {
       "id": "RU1_GATE_266",
@@ -5997,7 +5997,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 270,
       "route_distance_m": 2757.13,
-      "call_index": null
+      "call_index": 21
     },
     {
       "id": "RU1_GATE_271",
@@ -6151,7 +6151,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 277,
       "route_distance_m": 2828.41,
-      "call_index": 20
+      "call_index": null
     },
     {
       "id": "RU1_GATE_278",
@@ -6217,7 +6217,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 280,
       "route_distance_m": 2858.74,
-      "call_index": null
+      "call_index": 22
     },
     {
       "id": "RU1_GATE_281",
@@ -6349,7 +6349,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 286,
       "route_distance_m": 2919.99,
-      "call_index": 21
+      "call_index": null
     },
     {
       "id": "RU1_GATE_287",
@@ -6591,7 +6591,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 297,
       "route_distance_m": 3032.19,
-      "call_index": null
+      "call_index": 23
     },
     {
       "id": "RU1_GATE_298",
@@ -6657,7 +6657,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 300,
       "route_distance_m": 3062.76,
-      "call_index": 22
+      "call_index": null
     },
     {
       "id": "RU1_GATE_301",
@@ -7053,7 +7053,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 318,
       "route_distance_m": 3246.13,
-      "call_index": null
+      "call_index": 24
     },
     {
       "id": "RU1_GATE_319",
@@ -7119,7 +7119,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 321,
       "route_distance_m": 3276.79,
-      "call_index": 23
+      "call_index": null
     },
     {
       "id": "RU1_GATE_322",
@@ -7383,7 +7383,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 333,
       "route_distance_m": 3399.51,
-      "call_index": 24
+      "call_index": null
     },
     {
       "id": "RU1_GATE_334",
@@ -7427,7 +7427,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 335,
       "route_distance_m": 3420.0,
-      "call_index": null
+      "call_index": 25
     },
     {
       "id": "RU1_GATE_336",
@@ -7691,7 +7691,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 347,
       "route_distance_m": 3542.76,
-      "call_index": null
+      "call_index": 26
     },
     {
       "id": "RU1_GATE_348",
@@ -7999,7 +7999,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 361,
       "route_distance_m": 3685.75,
-      "call_index": null
+      "call_index": 27
     },
     {
       "id": "RU1_GATE_362",
@@ -8021,7 +8021,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 362,
       "route_distance_m": 3696.02,
-      "call_index": 25
+      "call_index": null
     },
     {
       "id": "RU1_GATE_363",
@@ -8153,7 +8153,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 368,
       "route_distance_m": 3757.12,
-      "call_index": 26
+      "call_index": null
     },
     {
       "id": "RU1_GATE_369",
@@ -8263,7 +8263,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 373,
       "route_distance_m": 3808.59,
-      "call_index": null
+      "call_index": 28
     },
     {
       "id": "RU1_GATE_374",
@@ -8681,7 +8681,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 392,
       "route_distance_m": 4003.09,
-      "call_index": null
+      "call_index": 29
     },
     {
       "id": "RU1_GATE_393",
@@ -8813,7 +8813,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 398,
       "route_distance_m": 4063.93,
-      "call_index": 27
+      "call_index": null
     },
     {
       "id": "RU1_GATE_399",
@@ -9165,7 +9165,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 414,
       "route_distance_m": 4227.5,
-      "call_index": null
+      "call_index": 30
     },
     {
       "id": "RU1_GATE_415",
@@ -9407,7 +9407,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 425,
       "route_distance_m": 4340.85,
-      "call_index": 28
+      "call_index": null
     },
     {
       "id": "RU1_GATE_426",
@@ -9825,7 +9825,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 444,
       "route_distance_m": 4535.58,
-      "call_index": 29
+      "call_index": null
     },
     {
       "id": "RU1_GATE_445",
@@ -10001,7 +10001,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 452,
       "route_distance_m": 4617.75,
-      "call_index": null
+      "call_index": 31
     },
     {
       "id": "RU1_GATE_453",
@@ -10023,7 +10023,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 453,
       "route_distance_m": 4627.94,
-      "call_index": 30
+      "call_index": null
     },
     {
       "id": "RU1_GATE_454",
@@ -10199,7 +10199,7 @@
       "height_tolerance_m": 3.5,
       "route_segment": 461,
       "route_distance_m": 4710.0,
-      "call_index": 31
+      "call_index": null
     },
     {
       "id": "RU1_GATE_462",
@@ -10883,5 +10883,9 @@
       "route_distance_m": 5026.35,
       "call_index": null
     }
-  ]
+  ],
+  "source": {
+    "export": "D:\\games\\rally-throphy\\stage_exporter\\stages\\russia\\stage1",
+    "authoring_sha256": "868c3cbf5f822d954576577854ddf7038768ca14ac245d01e8d5771716db88b6"
+  }
 }

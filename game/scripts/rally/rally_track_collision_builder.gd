@@ -69,6 +69,8 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 	static_body.collision_mask = 0
 	var source_name := str(mesh_instance.name).to_lower()
 	var role := "terrain" if ("terrain" in source_name or "road" in source_name) else ("barrier" if "barrier" in source_name else "obstacle")
+	if role == "barrier" and shape is ConcavePolygonShape3D:
+		(shape as ConcavePolygonShape3D).backface_collision = true
 	static_body.set_meta("collision_role", role)
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
 	if role == "terrain" and surface_group.is_empty():
