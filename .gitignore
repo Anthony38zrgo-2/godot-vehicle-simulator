@@ -1,5 +1,6 @@
 .godot/
 *.import
+!game/assets/rally/russia_stage1/russia_stage1_visual.glb.import
 *.uid
 
 # Generated standalone runtime state and validation/export outputs.
