@@ -15,7 +15,7 @@ var final_drive_ratio: float = 1.0
 var engine_inertia_kg_m2: float = 0.1
 var clutch_max_torque_nm: float = 0.0
 var clutch_max_torque_ratio: float = 1.35
-var clutch_out_rpm_offset: float = 600.0
+var clutch_out_rpm_offset: float = 300.0
 var idle_disengagement_hysteresis_rpm: float = 150.0
 var torque_attack_rate_nm_s: float = 0.0
 var engine_attack_limited_torque_nm: float = 0.0
@@ -48,7 +48,7 @@ var pending_gear: int = 0
 var shift_phase: String = "idle"
 var shift_phase_seconds: float = 0.0
 var clutch_release_seconds: float = 0.04
-var clutch_reengage_seconds: float = 0.18
+var clutch_reengage_seconds: float = 0.12
 var synchronizer_capacity_nm: float = 25.0
 var synchronizer_tolerance_rad_s: float = 0.1
 var downshift_rev_matching_enabled: bool = false
@@ -86,14 +86,14 @@ func configure(domains: Dictionary) -> Dictionary:
 	constant_brake_ratio = maxf(float(powertrain.get("constant_brake_ratio", 0.0)), 0.0)
 	reverse_ratio = -absf(float(powertrain.get("reverse_ratio", 3.317)))
 	final_drive_ratio = float(powertrain.get("final_drive", 1.0))
-	engine_inertia_kg_m2 = float(powertrain.get("motor_moment", 0.1))
+	engine_inertia_kg_m2 = float(powertrain.get("motor_moment", 0.15))
 	gearbox_input_inertia_kg_m2 = maxf(
 		float(powertrain.get("gearbox_input_inertia_kg_m2", GEVP_GEAR_INERTIA)),
 		0.000001,
 	)
 	clutch_max_torque_ratio = maxf(float(powertrain.get("max_clutch_torque_ratio", 1.35)), 0.0)
 	clutch_max_torque_nm = peak_torque_nm * clutch_max_torque_ratio
-	clutch_out_rpm_offset = maxf(float(powertrain.get("clutch_out_rpm_offset", 600.0)), 0.0)
+	clutch_out_rpm_offset = maxf(float(powertrain.get("clutch_out_rpm_offset", 300.0)), 0.0)
 	idle_disengagement_hysteresis_rpm = maxf(
 		float(powertrain.get("idle_disengagement_hysteresis_rpm", 150.0)),
 		0.0,
@@ -114,7 +114,7 @@ func configure(domains: Dictionary) -> Dictionary:
 		float(
 			powertrain.get(
 				"clutch_reengage_seconds",
-				powertrain.get("downshift_clutch_reengagement_seconds", 0.18),
+				powertrain.get("downshift_clutch_reengagement_seconds", 0.12),
 			)
 		),
 		0.001,
@@ -258,6 +258,7 @@ func gear_ratio() -> float:
 
 func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float = 1.0) -> float:
 	var throttle_value := clampf(throttle, 0.0, 1.0)
+	var closed_throttle := 1.0 - throttle_value
 	var rpm_fraction := clampf(rpm / maxf(maximum_rpm, 1.0), 0.0, 1.25)
 	var rev_limit_band := maxf(maximum_rpm * 0.025, 100.0)
 	var rev_cut := clampf((maximum_rpm - rpm) / rev_limit_band, 0.0, 1.0)
@@ -267,8 +268,12 @@ func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float =
 		0.0,
 		1.0,
 	) * rev_cut
-	var variable_drag := rpm_fraction * peak_torque_nm * variable_drag_ratio
-	var constant_brake := peak_torque_nm * constant_brake_ratio * (1.0 - throttle_value)
+	var variable_drag := rpm_fraction * peak_torque_nm * variable_drag_ratio * lerpf(
+		0.15,
+		1.0,
+		closed_throttle,
+	)
+	var constant_brake := peak_torque_nm * constant_brake_ratio * closed_throttle
 	var idle_support := 0.0
 	if rpm < idle_rpm + 250.0:
 		var idle_error := clampf((idle_rpm + 100.0 - rpm) / 250.0, 0.0, 1.5)
@@ -465,8 +470,10 @@ func solve_rotation(
 		clutch_work += clutch_delta * (slip + engine_omega - input_shaft_omega_rad_s) * 0.5
 		clutch_impulse = next_clutch
 
-		var transmitted := -spring_impulse / h if driveline_compliance_enabled else (
-			-ratio * gear_impulse / h if connected else 0.0
+		var transmitted := (
+			-spring_impulse / h
+			if driveline_compliance_enabled
+			else (-ratio * gear_impulse / h if connected else 0.0)
 		)
 		var differential_input := transmitted * (1.0 - front_torque_split)
 		var rear_carrier := 0.5 * (spins[2] + spins[3])
@@ -539,14 +546,17 @@ func solve_rotation(
 		brake_work[i] = maxf(brake_work[i], 0.0)
 	return {
 		"brake_work_j": brake_work,
-		"shaft_torque_nm": driveline_torque_nm if driveline_compliance_enabled else (
-			-ratio * gear_impulse / h if connected else 0.0
+		"shaft_torque_nm": (
+			driveline_torque_nm
+			if driveline_compliance_enabled
+			else (-ratio * gear_impulse / h if connected else 0.0)
 		),
 	}
 
 
 func _advance_engine_torque(delta: float, throttle: float, thermal_derating: float) -> void:
 	var throttle_clamped := clampf(throttle, 0.0, 1.0)
+	var closed_throttle := 1.0 - throttle_clamped
 	var rpm_fraction := clampf(engine_rpm / maxf(maximum_rpm, 1.0), 0.0, 1.25)
 	var rev_limit_band := maxf(maximum_rpm * 0.025, 100.0)
 	var rev_cut := clampf((maximum_rpm - engine_rpm) / rev_limit_band, 0.0, 1.0)
@@ -556,15 +566,25 @@ func _advance_engine_torque(delta: float, throttle: float, thermal_derating: flo
 		0.0,
 		1.0,
 	) * rev_cut
-	if torque_attack_rate_nm_s > 0.0 and positive_target > engine_attack_limited_torque_nm:
-		engine_attack_limited_torque_nm = minf(
-			positive_target,
-			engine_attack_limited_torque_nm + torque_attack_rate_nm_s * delta,
-		)
+	if torque_attack_rate_nm_s > 0.0:
+		if positive_target > engine_attack_limited_torque_nm:
+			engine_attack_limited_torque_nm = minf(
+				positive_target,
+				engine_attack_limited_torque_nm + torque_attack_rate_nm_s * delta,
+			)
+		else:
+			engine_attack_limited_torque_nm = maxf(
+				positive_target,
+				engine_attack_limited_torque_nm - torque_attack_rate_nm_s * 3.5 * delta,
+			)
 	else:
 		engine_attack_limited_torque_nm = positive_target
-	var variable_drag := rpm_fraction * peak_torque_nm * variable_drag_ratio
-	var constant_brake := peak_torque_nm * constant_brake_ratio * (1.0 - throttle_clamped)
+	var variable_drag := rpm_fraction * peak_torque_nm * variable_drag_ratio * lerpf(
+		0.15,
+		1.0,
+		closed_throttle,
+	)
+	var constant_brake := peak_torque_nm * constant_brake_ratio * closed_throttle
 	var idle_support := 0.0
 	if engine_rpm < idle_rpm + 250.0:
 		var idle_error := clampf((idle_rpm + 100.0 - engine_rpm) / 250.0, 0.0, 1.5)

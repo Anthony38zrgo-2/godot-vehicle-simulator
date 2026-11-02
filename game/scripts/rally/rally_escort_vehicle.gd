@@ -159,7 +159,7 @@ func apply_vehicle_properties() -> void:
 	collision_layer = 2
 	collision_mask = 1
 	physics_material_override = PhysicsMaterial.new()
-	physics_material_override.friction = 0.9
+	physics_material_override.friction = 0.35
 	physics_material_override.bounce = 0.0
 	automatic_transmission = simulation.powertrain_model.automatic_transmission
 	maximum_forward_gear = simulation.powertrain_model.maximum_forward_gear
@@ -218,10 +218,13 @@ func bind_wheel_visuals() -> void:
 
 
 func build_collision_shapes(collision_document: Dictionary) -> void:
+	# Keep the simplified chassis collision above the nominal wheel contact
+	# plane; tire deflection otherwise makes the exported lower hull drag.
+	var minimum_collision_y := simulation.wheel_positions_local[0].y - simulation.wheel_radii[0] + 0.14
 	for hull_document in collision_document.get("hulls", []):
 		var points := PackedVector3Array()
 		for point_document in hull_document.get("points", []):
-			points.append(Vector3(float(point_document.get("x", 0.0)), float(point_document.get("y", 0.0)), float(point_document.get("z", 0.0))))
+			points.append(Vector3(float(point_document.get("x", 0.0)), maxf(float(point_document.get("y", 0.0)), minimum_collision_y), float(point_document.get("z", 0.0))))
 		if points.size() < 4:
 			continue
 		var shape := ConvexPolygonShape3D.new()
@@ -238,7 +241,7 @@ func build_collision_shapes(collision_document: Dictionary) -> void:
 		box_collision.name = "CollisionBox" + str(box_document.get("identifier", "body")).capitalize()
 		box_collision.shape = box_shape
 		var center: Dictionary = box_document.get("center", {})
-		box_collision.position = Vector3(float(center.get("x", 0.0)), float(center.get("y", 0.0)), float(center.get("z", 0.0)))
+		box_collision.position = Vector3(float(center.get("x", 0.0)), maxf(float(center.get("y", 0.0)), minimum_collision_y + float(half_extents.get("y", 0.5))), float(center.get("z", 0.0)))
 		add_child(box_collision)
 
 

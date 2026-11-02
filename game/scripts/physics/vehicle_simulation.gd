@@ -443,18 +443,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	)
 	var brake_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var body_right := state.transform.basis.x.normalized()
 	var count := maxi(1, ceili(dt / maximum_substep_seconds))
 	var h := dt / float(count)
 	var force_weight := 1.0 / float(count)
 
 	var substep_linear_vel := state.linear_velocity
 	var substep_angular_vel := state.angular_velocity
-	var effective_chassis_mass := maxf(
-		float(mass_state.get("vehicle_total_mass_kg", body.mass)),
-		100.0,
-	)
-	var inv_inertia_world := state.inverse_inertia_tensor
+	var effective_chassis_mass := maxf(body.mass, 100.0)
 
 	for _substep_index in count:
 		_prepare_powertrain(h, inputs)
@@ -466,7 +461,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var substep_force_sum := Vector3.ZERO
-		var substep_torque_sum := Vector3.ZERO
 
 		for i in 4:
 			var contact: Dictionary = contacts[i]
@@ -550,14 +544,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				state.apply_force(tire_force * force_weight, point - state.transform.origin)
 				state.apply_torque(sat_torque * force_weight)
 				substep_force_sum += tire_force
-				substep_torque_sum += r_com.cross(tire_force) + sat_torque
 
 			wheel_slips[i] = Vector2(
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0))
-			tire_reactions[i] = fx * wheel_radii[i]
+			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * wheel_radii[i]
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
 			thermal_slip_speeds[i] = wheel_spins[i] * wheel_radii[i] - longitudinal_speed
@@ -591,12 +584,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				thermal_vx[i],
 				wheel_radii[i] if i < wheel_radii.size() else 0.28,
 			)
-		var driveline_reaction_torque := -body_right * float(rotation.shaft_torque_nm)
-		state.apply_torque(driveline_reaction_torque * force_weight)
-		substep_torque_sum += driveline_reaction_torque
-
 		substep_linear_vel += (substep_force_sum / effective_chassis_mass) * h
-		substep_angular_vel += (inv_inertia_world * substep_torque_sum) * h
+		# The suspension and collision torques are solved by Jolt outside these
+		# substeps, so keep angular velocity fixed rather than integrating only
+		# the tire torques and creating an unbalanced prediction.
 
 	var velocity := state.linear_velocity
 	if velocity.length_squared() > 0.01:

@@ -393,7 +393,8 @@ func evaluate(
 	var renewal := exp(-renewal_rate * patch_dt)
 	var integrated_time := (1.0 - renewal) / renewal_rate if renewal_rate > 1.0e-6 else patch_dt
 	var patch_pos := patch_before * renewal + patch_velocity * integrated_time
-	var stiffness_x := fx_capacity * rise_gamma / (base_peak_lon * maxf(relaxation_length, 0.001))
+	# The cubic brush reaches its limit at three times the normalized demand.
+	var stiffness_x := fx_capacity * 3.0 / (base_peak_lon * maxf(relaxation_length, 0.001))
 	var stiffness_y := fy_capacity * rise_gamma / (base_peak_lat * maxf(relaxation_length, 0.001))
 	var trial := Vector2(stiffness_x * patch_pos.x, stiffness_y * patch_pos.y)
 
@@ -455,12 +456,7 @@ func evaluate(
 			patch_pos *= plastic_scale
 			trial *= plastic_scale
 
-	var brush_trial := trial
-	if is_rear_accelerating:
-		var max_coupled_fx := limit_x * (1.25 - 0.5 * clampf(lon_coupling_relief, 0.0, 0.8))
-		brush_trial.x = minf(trial.x, max_coupled_fx)
-
-	var brush := _brush_force_elliptical(brush_trial, limit_x, limit_y) * blend
+	var brush := _brush_force_elliptical(trial, limit_x, limit_y) * blend
 	var fx := brush.x
 	var fy := brush.y
 	var patch_energy := 0.5 * brush.dot(patch_pos)
@@ -480,6 +476,8 @@ func evaluate(
 	if budget_norm > 1.0:
 		fx /= budget_norm
 		fy /= budget_norm
+	# Include the rolling moment in the wheel reaction, separate from net Fx.
+	state.rolling_force = rolling_force * blend
 
 	var brush_theta := clampf(
 		Vector2(trial.x / maxf(limit_x, 1.0e-6), trial.y / maxf(limit_y, 1.0e-6)).length() / 3.0,
@@ -560,6 +558,7 @@ func _advance_unloaded(index: int, delta: float) -> void:
 	state.post_peak_decay_lat *= release
 	state.post_peak_decay_lon *= release
 	state.longitudinal_force = 0.0
+	state.rolling_force = 0.0
 	state.lateral_force = 0.0
 	state.aligning_torque = 0.0
 	state.friction_power = 0.0
@@ -638,6 +637,7 @@ func _combined_budget_scale(utilization: float, blend_width: float) -> float:
 func _output(state: Dictionary) -> Dictionary:
 	return {
 		"longitudinal_force_n": float(state.longitudinal_force),
+		"rolling_force_n": float(state.get("rolling_force", 0.0)),
 		"lateral_force_n": float(state.lateral_force),
 		"aligning_torque_nm": float(state.aligning_torque),
 		"friction_power_w": float(state.friction_power),

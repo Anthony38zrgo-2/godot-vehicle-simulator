@@ -2,34 +2,34 @@
   "powertrain": {
     "automatic_shift": {
       "downshift_coast_normalized_rpm": 0.28,
-      "downshift_normalized_rpm_full_throttle": 0.55,
-      "downshift_normalized_rpm_low_throttle": 0.38,
-      "downshift_target_rpm_margin_high": 0.85,
+      "downshift_normalized_rpm_full_throttle": 0.62,
+      "downshift_normalized_rpm_low_throttle": 0.42,
+      "downshift_target_rpm_margin_high": 0.88,
       "downshift_throttle_aggression_factor": 0.4,
       "kickdown_delay_factor": 0.7,
       "parked_resume_speed_ms": 1.0,
       "reverse_max_speed_ms": 10.0,
       "road_spin_weight": 0.4,
-      "upshift_coast_normalized_rpm": 0.38,
-      "upshift_normalized_rpm_full_throttle": 0.94,
+      "upshift_coast_normalized_rpm": 0.42,
+      "upshift_normalized_rpm_full_throttle": 0.92,
       "upshift_normalized_rpm_low_throttle": 0.65,
-      "upshift_target_rpm_margin_high": 0.95,
+      "upshift_target_rpm_margin_high": 0.94,
       "wheel_road_spin_blend_threshold_rads": 8.0,
       "wheel_spin_weight": 0.6
     },
     "automatic_transmission": false,
     "clutch_release_seconds": 0.04,
-    "clutch_reengage_seconds": 0.18,
-    "synchronizer_capacity_nm": 25.0,
-    "synchronizer_tolerance_rad_s": 0.1,
-    "clutch_out_rpm_offset": 600.0,
-    "constant_brake_ratio": 0.01,
+    "clutch_reengage_seconds": 0.12,
+    "synchronizer_capacity_nm": 32.0,
+    "synchronizer_tolerance_rad_s": 0.12,
+    "clutch_out_rpm_offset": 300.0,
+    "constant_brake_ratio": 0.012,
     "differential": {
       "clutch_friction_coefficient": 0.12,
       "clutches": 4.0,
       "coast_ramp_angle_deg": 60.0,
       "power_ramp_angle_deg": 45.0,
-      "preload_nm": 50.0,
+      "preload_nm": 55.0,
       "slip_transition_threshold_rad_s": 4.0
     },
     "downshift_blip_torque_fraction": 0.8,
@@ -37,27 +37,27 @@
     "downshift_blip_tolerance_rpm": 25.0,
     "downshift_clutch_reengagement_seconds": 0.12,
     "downshift_maximum_target_revolutions_per_minute_fraction": 0.92,
-    "downshift_minimum_interval_seconds": 0.25,
+    "downshift_minimum_interval_seconds": 0.22,
     "downshift_rev_matching_enabled": false,
     "driveline_compliance": {
       "enabled": true,
       "output_inertia_kg_m2": 0.2,
-      "stiffness_nm_per_rad": 8000.0,
-      "damping_nms_per_rad": 120.0
+      "stiffness_nm_per_rad": 8500.0,
+      "damping_nms_per_rad": 130.0
     },
-    "final_drive": 4.35,
+    "final_drive": 4.11,
     "front_torque_split": 0.0,
-    "gear_inertia": 0.025,
-    "gear_ratios": [3.45, 2.02, 1.36, 1.0],
+    "gear_inertia": 0.02,
+    "gear_ratios": [2.54, 1.66, 1.25, 1.0],
     "handbrake_torque_fraction": 1.0,
-    "idle_disengagement_hysteresis_rpm": 150.0,
-    "idle_rpm": 1050.0,
-    "max_clutch_torque_ratio": 1.35,
-    "max_rpm": 7500.0,
-    "max_torque": 206.0,
-    "motor_moment": 0.09,
+    "idle_disengagement_hysteresis_rpm": 120.0,
+    "idle_rpm": 1000.0,
+    "max_clutch_torque_ratio": 1.4,
+    "max_rpm": 7200.0,
+    "max_torque": 210.0,
+    "motor_moment": 0.15,
     "reverse_ratio": 3.317,
-    "shift_time": 0.1,
+    "shift_time": 0.08,
     "thermal": {
       "engine_block_heat_capacity_joules_per_kelvin": 65000.0,
       "engine_block_heat_fraction": 0.12,
@@ -78,7 +78,7 @@
         "drag_coefficient": 0.4,
         "heat_exchanger_conductance_watts_per_kelvin": 2000.0,
         "maximum_inlet_area_square_meters": 0.06,
-        "opening": 0.1,
+        "opening": 0.25,
         "pressure_recovery": 0.7
       },
       "oil_critical_temperature_celsius": 135.0,
@@ -96,7 +96,7 @@
         "drag_coefficient": 0.5,
         "heat_exchanger_conductance_watts_per_kelvin": 4000.0,
         "maximum_inlet_area_square_meters": 0.2,
-        "opening": 0.1,
+        "opening": 0.25,
         "pressure_recovery": 0.75
       },
       "water_critical_temperature_celsius": 115.0,
@@ -107,85 +107,81 @@
       "water_optimal_maximum_temperature_celsius": 95.0,
       "water_optimal_minimum_temperature_celsius": 75.0
     },
-    "torque_attack_rate_nm_s": 850.0,
+    "torque_attack_rate_nm_s": 2200.0,
     "torque_curve": [
       [
-        0.05263157894736842,
+        0.05,
         0.0
       ],
       [
-        0.10526315789473684,
-        0.469
+        0.10,
+        0.48
       ],
       [
-        0.15789473684210525,
-        0.667
+        0.15,
+        0.62
       ],
       [
-        0.21052631578947367,
-        0.771
+        0.21,
+        0.72
       ],
       [
-        0.2631578947368421,
-        0.833
+        0.28,
+        0.80
       ],
       [
-        0.3157894736842105,
-        0.875
+        0.35,
+        0.86
       ],
       [
-        0.3684210526315789,
-        0.908
+        0.42,
+        0.91
       ],
       [
-        0.42105263157894735,
-        0.931
+        0.49,
+        0.95
       ],
       [
-        0.47368421052631576,
-        0.958
+        0.56,
+        0.98
       ],
       [
-        0.5263157894736842,
-        0.969
+        0.62,
+        0.995
       ],
       [
-        0.5789473684210527,
-        0.979
-      ],
-      [
-        0.631578947368421,
-        0.988
-      ],
-      [
-        0.6842105263157895,
-        0.996
-      ],
-      [
-        0.7368421052631579,
+        0.66,
         1.0
       ],
       [
-        0.7894736842105263,
-        0.985
+        0.71,
+        0.995
       ],
       [
-        0.8421052631578947,
-        0.96
+        0.76,
+        0.98
       ],
       [
-        0.8947368421052632,
-        0.9
+        0.81,
+        0.955
       ],
       [
-        0.9473684210526315,
-        0.82
+        0.86,
+        0.925
+      ],
+      [
+        0.90,
+        0.89
+      ],
+      [
+        0.95,
+        0.83
       ],
       [
         1.0,
-        0.7
+        0.75
       ]
     ],
-    "variable_drag_ratio": 0.05
+    "variable_drag_ratio": 0.038
   }
 }
