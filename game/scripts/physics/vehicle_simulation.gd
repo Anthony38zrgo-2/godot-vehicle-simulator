@@ -589,6 +589,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				local_snow = float(local.get("snow_mm", 0.0))
 				local_ground = float(local.get("ground_c", 30.0))
 				local_air = float(local.get("air_c", local_air))
+			# Presentation consumers (wheel VFX) read the same per-wheel sample
+			# the tire model already used; no extra weather query is introduced.
+			last_local_conditions[i] = {
+				"water_mm": local_water,
+				"snow_mm": local_snow,
+				"ground_c": local_ground,
+				"air_c": local_air,
+				"surface_name": str(contact["surface"]),
+			}
 			tire_model.rotate_patch_frame(i, forward, right)
 			var tire_result := _solve_contact_wheel(
 				i,

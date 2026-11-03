@@ -25,7 +25,7 @@ Effects stop emitting when a wheel is unloaded, airborne or stationary. Wetness 
 
 ## Assets and packaging
 
-The complete Brackeys bundle is installed in `assets/vfx/brackeys`, retaining its license and credits. macOS metadata was omitted. Runtime uses `smoke_01_a.png`, `dirt_02_a.png` and `trace_01_a.png`; the other assets remain available for authoring. The supplied `spark_*` images resemble electricity, so tiny trace sprites are used for physical sparks instead. Explosions, magical effects and fire are not automatically triggered by normal vehicle impacts.
+The complete Brackeys bundle is installed in `assets/vfx/brackeys`, retaining its license and credits. macOS metadata was omitted. Rear-wheel emitters use the CMR4 `Dust_01` for the dust core, `Dust_02` for the plume, and `smoke_01` for both layers on asphalt, road and tarmac. The 128 × 128 RGBA PNGs and source hashes are in `assets/vfx/cmr4`. Debris, impact sparks and steam use Brackeys textures. The supplied `spark_*` images resemble electricity, so tiny trace sprites are used for physical sparks instead. Explosions, magical effects and fire are not automatically triggered by normal vehicle impacts.
 
 The Windows staging script includes both the VFX controller and assets. Original asset files are not modified.
 

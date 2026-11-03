@@ -3,7 +3,32 @@ extends Node3D
 
 ## Presentation only: reuses the four existing wheel casts and Jolt contacts.
 const TEXTURES := "res://assets/vfx/brackeys/particles/alpha/"
+const CMR4_TEXTURES := "res://assets/vfx/cmr4/"
+const DUST_CORE := preload("res://assets/vfx/cmr4/dust_01.png")
+const DUST_PLUME := preload("res://assets/vfx/cmr4/dust_02.png")
+const TIRE_SMOKE := preload("res://assets/vfx/cmr4/smoke_01.png")
+const SPLASH_LOOSE := preload(CMR4_TEXTURES + "cr_splsh.png")
+const SPLASH_PAVED := preload(CMR4_TEXTURES + "rd_splsh.png")
+const WATER_CORE := preload(CMR4_TEXTURES + "water_1.png")
+const WATER_MIST := preload(CMR4_TEXTURES + "water_2.png")
+const SNOW_ROLL := [
+	preload(CMR4_TEXTURES + "snw_rd0.png"),
+	preload(CMR4_TEXTURES + "snw_rd1.png"),
+	preload(CMR4_TEXTURES + "snw_rd2.png"),
+	preload(CMR4_TEXTURES + "snw_rd3.png"),
+]
+const SPARK_SMALL := preload(CMR4_TEXTURES + "sprk_sml.png")
+const SPARK_BIG := preload(CMR4_TEXTURES + "sprk_big.png")
+const MUD_CLOD := preload(CMR4_TEXTURES + "mud_rd1.png")
+const LEAVES := [
+	preload(CMR4_TEXTURES + "leaf_01.png"),
+	preload(CMR4_TEXTURES + "leaf_02.png"),
+	preload(CMR4_TEXTURES + "leaf_03.png"),
+]
+const DIRT_CHIPS := preload(TEXTURES + "dirt_02_a.png")
+const SNOW_MIN_MM := 0.25
 const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
+const ADDITIVE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
 const SURFACES := {
 	"gravel": { "color": Color(0.56, 0.46, 0.32), "dust": 0.60, "chips": 0.32 },
 	"dirt": { "color": Color(0.40, 0.29, 0.18), "dust": 0.70, "chips": 0.24 },
@@ -21,6 +46,10 @@ var vehicle: RallyEscortVehicle
 var wheel_cores: Array[GPUParticles3D] = [] # Núcleo denso y oscuro (Volumen)
 var wheel_plumes: Array[GPUParticles3D] = [] # Estela amplia y suave
 var wheel_chips: Array[GPUParticles3D] = []
+var wheel_splash: Array[GPUParticles3D] = [] # Salpicadura junto al contacto (mojado)
+var wheel_water: Array[GPUParticles3D] = [] # Estela de agua, núcleo
+var wheel_mist: Array[GPUParticles3D] = [] # Estela de agua, bruma
+var wheel_snow: Array[GPUParticles3D] = [] # Nieve levantada por la rueda
 var impact_pool: Array[GPUParticles3D] = []
 var impact_busy: Array[float] = []
 var impact_cooldown: float = 0.0
@@ -46,7 +75,7 @@ func _ready() -> void:
 		wheel_cores.append(
 			make_emitter(
 				"WheelCore%d" % i,
-				"smoke_03_a.png",
+				DUST_CORE,
 				40,
 				0.85,
 				Vector2(0.45, 0.90),
@@ -58,7 +87,7 @@ func _ready() -> void:
 		wheel_plumes.append(
 			make_emitter(
 				"WheelPlume%d" % i,
-				"smoke_01_a.png",
+				DUST_PLUME,
 				56,
 				1.60,
 				Vector2(0.85, 1.65),
@@ -70,7 +99,7 @@ func _ready() -> void:
 		wheel_chips.append(
 			make_emitter(
 				"WheelDebris%d" % i,
-				"dirt_02_a.png",
+				preload(TEXTURES + "dirt_02_a.png"),
 				24,
 				0.55,
 				Vector2(0.07, 0.16),
@@ -79,11 +108,64 @@ func _ready() -> void:
 				false,
 			)
 		)
+		wheel_splash.append(
+			make_emitter(
+				"WheelSplash%d" % i,
+				SPLASH_LOOSE,
+				16,
+				0.55,
+				Vector2(0.15, 0.35),
+				false,
+				true,
+				false,
+			)
+		)
+		wheel_water.append(
+			make_emitter(
+				"WheelWater%d" % i,
+				WATER_CORE,
+				22,
+				0.85,
+				Vector2(0.25, 0.70),
+				false,
+				false,
+				false,
+				-3.5,
+				1,
+			)
+		)
+		wheel_mist.append(
+			make_emitter(
+				"WheelMist%d" % i,
+				WATER_MIST,
+				26,
+				1.35,
+				Vector2(0.55, 1.15),
+				false,
+				false,
+				false,
+				0.2,
+				1,
+			)
+		)
+		wheel_snow.append(
+			make_emitter(
+				"WheelSnow%d" % i,
+				SNOW_ROLL[0],
+				30,
+				0.70,
+				Vector2(0.18, 0.45),
+				false,
+				true,
+				false,
+				-4.5,
+			)
+		)
 	for i in 6:
 		impact_pool.append(
 			make_emitter(
 				"Impact%d" % i,
-				"dirt_02_a.png",
+				DIRT_CHIPS,
 				36,
 				0.65,
 				Vector2(0.10, 0.24),
@@ -100,13 +182,15 @@ func _ready() -> void:
 
 func make_emitter(
 	label: String,
-	texture_name: String,
+	texture: Texture2D,
 	count: int,
 	seconds: float,
 	sizes: Vector2,
 	burst: bool,
 	debris: bool = false,
 	is_core: bool = false,
+	gravity_y: float = NAN,
+	unlit_override: int = -1,
 ) -> GPUParticles3D:
 	var emitter := GPUParticles3D.new()
 	emitter.name = label
@@ -126,7 +210,7 @@ func make_emitter(
 	process.spread = 35.0 if is_core else 55.0
 	process.initial_velocity_min = 0.5
 	process.initial_velocity_max = 1.8 if debris else (0.8 if is_core else 1.2)
-	process.gravity = Vector3(0, -5.5, 0) if debris else Vector3(0, 0.35, 0)
+	process.gravity = Vector3(0, gravity_y if not is_nan(gravity_y) else (-5.5 if debris else 0.35), 0)
 	process.scale_min = sizes.x
 	process.scale_max = sizes.y
 	process.angle_min = -180.0
@@ -164,8 +248,11 @@ func make_emitter(
 
 	var material := ShaderMaterial.new()
 	material.shader = PARTICLE_SHADER
-	material.set_shader_parameter("particle_texture", load(TEXTURES + texture_name))
-	material.set_shader_parameter("unlit", not (is_core or debris))
+	material.set_shader_parameter("particle_texture", texture)
+	material.set_shader_parameter("unlit", (unlit_override == 1) if unlit_override >= 0 else not (is_core or debris))
+	# Wheel effects stay outside the cabin; impacts happen on the contact
+	# surface and must not be clipped by the body box.
+	material.set_shader_parameter("body_exclusion_strength", 0.0 if burst else 1.0)
 	material.set_shader_parameter("world_to_vehicle", vehicle.global_transform.affine_inverse())
 	particle_materials.append(material)
 
@@ -216,45 +303,124 @@ func get_wetness() -> float:
 
 func update_wheel(index: int, wetness: float) -> void:
 	var sim := vehicle.simulation
-	var core := wheel_cores[index]
-	var plume := wheel_plumes[index]
-	var chips := wheel_chips[index]
 	var surface := sim.wheel_surfaces[index].to_lower()
 
 	if (
 		index < 2 or sim.wheel_loads[index] < 60.0 or not SURFACES.has(surface)
 		or sim.wheel_contact_casts.size() != 4 or not sim.wheel_contact_casts[index].is_colliding()
 	):
-		core.emitting = false
-		plume.emitting = false
-		chips.emitting = false
+		stop_wheel(index)
 		return
 
 	var profile: Dictionary = SURFACES[surface]
+	var wet := clampf(wetness, 0.0, 1.0)
 	var speed := vehicle.linear_velocity.length()
 	var slip := maxf(
 		smoothstep(0.08, 0.40, absf(sim.wheel_slips[index].x)),
 		smoothstep(0.06, 0.24, absf(sim.wheel_slips[index].y)),
 	)
 	var tread_speed := absf(sim.wheel_spins[index]) * sim.wheel_radii[index]
-	var motion := smoothstep(1.0, 12.0, maxf(speed, tread_speed if slip > 0.2 else speed))
-	var strength := clampf(intensity * motion * (0.65 + 0.35 * slip), 0.0, 1.0)
-	var asphalt := surface in ["road", "asphalt", "tarmac"]
-	var dust := (slip * 0.65 if asphalt else float(profile.dust)) * strength * (1.0 - 0.9 * wetness)
-	var debris := float(profile.chips) * strength * (0.25 + 0.75 * slip)
 	var normal := sim.wheel_contact_normals[index]
 	var point := sim.wheel_contact_points[index] + normal * 0.04
-	var direction := (normal * 0.7 - vehicle.linear_velocity.normalized() * 0.4).normalized()
+	var horizontal := Vector3(vehicle.linear_velocity.x, 0.0, vehicle.linear_velocity.z)
+	var motion := smoothstep(1.0, 12.0, maxf(speed, tread_speed if slip > 0.2 else speed))
+	var strength := clampf(intensity * motion * (0.65 + 0.35 * slip), 0.0, 1.0)
+	var eject_direction := (normal * 0.7 - vehicle.linear_velocity.normalized() * 0.4).normalized()
+	var trail_direction := normal * 0.55
+	if horizontal.length_squared() > 0.25:
+		trail_direction -= horizontal.normalized() * 0.55
+	trail_direction = trail_direction.normalized()
+
+	# Snow on the ground replaces every other wheel effect for this contact.
+	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
+	if snow_mm >= SNOW_MIN_MM:
+		stop_dust_and_spray(index)
+		var snow_strength := clampf(
+			intensity * clampf(snow_mm / 3.0, 0.0, 1.0)
+			* smoothstep(1.5, 12.0, maxf(speed, tread_speed))
+			* (0.7 + 0.3 * slip),
+			0.0,
+			1.0,
+		)
+		var snow := wheel_snow[index]
+		set_wheel_texture(snow, snow_texture_variant(index))
+		configure_continuous(snow, point, eject_direction, Color(0.92, 0.95, 0.99), snow_strength)
+		return
+
+	wheel_snow[index].emitting = false
+
+	var asphalt := surface in ["road", "asphalt", "tarmac"]
+	var dust := (slip * 0.65 if asphalt else float(profile.dust)) * strength * (1.0 - wet)
+	var debris := float(profile.chips) * strength * (0.25 + 0.75 * slip) * (1.0 - 0.5 * wet)
 
 	# Separate dark cores, pale haze and solid flecks from similarly colored ground.
 	var base_color: Color = profile.color
 	var core_color := base_color.darkened(0.32)
 	var plume_color := base_color.lightened(0.28)
+	var chip_texture := DIRT_CHIPS
 	var chip_color := base_color.darkened(0.25)
+	if surface == "grass":
+		chip_texture = LEAVES[index % LEAVES.size()] as Texture2D
+		chip_color = Color(0.36, 0.45, 0.18).lightened(0.05 * (index % LEAVES.size()))
+	elif (surface == "dirt" and wet >= 0.35) or surface == "mud":
+		chip_texture = MUD_CLOD
+		chip_color = Color(0.34, 0.25, 0.15)
 
-	configure_continuous(core, point, direction, core_color, dust * 1.4)
-	configure_continuous(plume, point, direction, plume_color, dust * 1.25)
-	configure_continuous(chips, point, direction, chip_color, debris * 1.7)
+	set_wheel_texture(wheel_cores[index], TIRE_SMOKE if asphalt else DUST_CORE)
+	set_wheel_texture(wheel_plumes[index], TIRE_SMOKE if asphalt else DUST_PLUME)
+	set_wheel_texture(wheel_chips[index], chip_texture)
+	configure_continuous(wheel_cores[index], point, eject_direction, core_color, dust * 1.4)
+	configure_continuous(wheel_plumes[index], point, eject_direction, plume_color, dust * 1.25)
+	configure_continuous(wheel_chips[index], point, eject_direction, chip_color, debris * 1.7)
+
+	# Water: a contact splash plus a two-layer trail behind the rear wheel.
+	var paved := surface in ["road", "asphalt", "tarmac", "curb"]
+	var load_factor := clampf(
+		sim.wheel_loads[index] / maxf(vehicle.mass * 9.81 * 0.8, 1.0), 0.25, 1.0
+	)
+	var wet_speed := smoothstep(1.5, 16.0, maxf(speed, tread_speed))
+	var spray := clampf(intensity * wet * wet_speed * load_factor * (0.60 + 0.40 * slip), 0.0, 1.0)
+	var trail_point := point
+	if horizontal.length_squared() > 0.25:
+		trail_point = point - horizontal.normalized() * 0.30
+	set_wheel_texture(wheel_splash[index], SPLASH_PAVED if paved else SPLASH_LOOSE)
+	configure_continuous(wheel_splash[index], point, eject_direction, Color(0.92, 0.96, 1.0), spray * 1.15)
+	configure_continuous(wheel_water[index], trail_point, trail_direction, Color(0.90, 0.95, 1.0), spray)
+	configure_continuous(wheel_mist[index], trail_point, trail_direction, Color(0.86, 0.92, 1.0), spray * 0.9)
+
+
+func wheel_conditions(index: int) -> Dictionary:
+	var conditions: Array = vehicle.simulation.last_local_conditions
+	if index >= 0 and index < conditions.size() and conditions[index] is Dictionary:
+		return conditions[index]
+	return {}
+
+
+func snow_texture_variant(index: int) -> Texture2D:
+	# Slow rotation across the four source variants keeps the clumps varied.
+	var step := int(Time.get_ticks_msec() / 500)
+	return SNOW_ROLL[(index + step) % SNOW_ROLL.size()] as Texture2D
+
+
+func stop_dust_and_spray(index: int) -> void:
+	wheel_cores[index].emitting = false
+	wheel_plumes[index].emitting = false
+	wheel_chips[index].emitting = false
+	wheel_splash[index].emitting = false
+	wheel_water[index].emitting = false
+	wheel_mist[index].emitting = false
+
+
+func stop_wheel(index: int) -> void:
+	stop_dust_and_spray(index)
+	wheel_snow[index].emitting = false
+
+
+func set_wheel_texture(emitter: GPUParticles3D, texture: Texture2D) -> void:
+	var quad := emitter.draw_pass_1 as QuadMesh
+	var material := quad.material as ShaderMaterial
+	if material.get_shader_parameter("particle_texture") != texture:
+		material.set_shader_parameter("particle_texture", texture)
 
 
 func configure_continuous(
@@ -293,12 +459,67 @@ func update_impacts(wetness: float) -> void:
 		return
 	var surface := str(selected.surface).to_lower()
 	var collider_name := str(selected.collider_name)
-	var profile: Dictionary = SURFACES.get(surface, { "color": Color(0.48, 0.43, 0.35) })
-	var hard := surface in ["road", "asphalt", "tarmac"] or "props" in collider_name
-	var spark := hard and float(selected.tangent_ms) > 4.0 and wetness < 0.6
+	var tangent := float(selected.tangent_ms)
+	var hard := (
+		surface in ["road", "asphalt", "tarmac", "curb"]
+		or "barrier" in collider_name
+		or "props" in collider_name
+		or "building" in collider_name
+	)
+	var spark := hard and tangent > 4.0 and wetness < 0.6
 	var severity := clampf(largest / maxf(vehicle.mass * 3.0, 1.0), 0.15, 1.0)
-	emit_impact(selected.position, selected.normal, profile.color, severity, spark)
-	impact_cooldown = 0.22 if spark else 0.35
+	var effect := classify_impact(surface, collider_name, severity, wetness, spark)
+	emit_impact_effect(selected.position, selected.normal, effect, severity)
+	impact_cooldown = 0.22 if str(effect.get("kind", "dirt")) == "spark" else 0.35
+
+
+## Chooses one sprite per contact. Sparks are additive; leaves and mud keep
+## the alpha shader. The material only ever receives a single texture per event.
+func classify_impact(
+	surface: String,
+	collider_name: String,
+	severity: float,
+	wetness: float,
+	spark: bool,
+) -> Dictionary:
+	if spark:
+		var big := severity >= 0.5
+		return {
+			"kind": "spark",
+			"texture": SPARK_BIG if big else SPARK_SMALL,
+			"additive": true,
+			"color": Color(1.0, 0.74, 0.28),
+			"quad_size": Vector2(0.35, 0.9) if big else Vector2(0.18, 0.55),
+			"unlit": true,
+		}
+	if "tree" in collider_name or surface == "grass":
+		var leaf := emitted_impacts % LEAVES.size()
+		return {
+			"kind": "leaf",
+			"texture": LEAVES[leaf] as Texture2D,
+			"additive": false,
+			"color": Color(0.34, 0.44, 0.17).lightened(0.06 * leaf),
+			"quad_size": Vector2(0.16, 0.24),
+			"unlit": false,
+		}
+	if surface == "mud" or (surface == "dirt" and wetness >= 0.35):
+		return {
+			"kind": "mud",
+			"texture": MUD_CLOD,
+			"additive": false,
+			"color": Color(0.34, 0.25, 0.15),
+			"quad_size": Vector2(0.12, 0.22),
+			"unlit": true,
+		}
+	var profile: Dictionary = SURFACES.get(surface, { "color": Color(0.48, 0.43, 0.35) })
+	return {
+		"kind": "dirt",
+		"texture": DIRT_CHIPS,
+		"additive": false,
+		"color": Color(profile.color).darkened(0.25),
+		"quad_size": Vector2.ONE,
+		"unlit": false,
+	}
 
 
 func emit_impact(
@@ -308,6 +529,35 @@ func emit_impact(
 	severity: float,
 	sparks: bool,
 ) -> void:
+	var effect: Dictionary
+	if sparks:
+		var big := severity >= 0.5
+		effect = {
+			"kind": "spark",
+			"texture": SPARK_BIG if big else SPARK_SMALL,
+			"additive": true,
+			"color": Color(1.0, 0.74, 0.28) if color == Color.WHITE else color,
+			"quad_size": Vector2(0.35, 0.9) if big else Vector2(0.18, 0.55),
+			"unlit": true,
+		}
+	else:
+		effect = {
+			"kind": "dirt",
+			"texture": DIRT_CHIPS,
+			"additive": false,
+			"color": color.darkened(0.25),
+			"quad_size": Vector2.ONE,
+			"unlit": false,
+		}
+	emit_impact_effect(point, normal, effect, severity)
+
+
+func emit_impact_effect(
+	point: Vector3,
+	normal: Vector3,
+	effect: Dictionary,
+	severity: float,
+) -> void:
 	for i in impact_pool.size():
 		if impact_busy[i] > 0.0:
 			continue
@@ -315,12 +565,18 @@ func emit_impact(
 		var process := emitter.process_material as ParticleProcessMaterial
 		var quad := emitter.draw_pass_1 as QuadMesh
 		var material := quad.material as ShaderMaterial
-		material.set_shader_parameter("particle_texture", load(TEXTURES + ("trace_01_a.png" if sparks else "dirt_02_a.png")))
-		material.set_shader_parameter("unlit", sparks)
-		quad.size = Vector2(0.25, 1.5) if sparks else Vector2.ONE
+		material.shader = ADDITIVE_SHADER if bool(effect.get("additive", false)) else PARTICLE_SHADER
+		var effect_texture: Texture2D = effect.get("texture")
+		var effect_color: Color = effect.get("color", Color.WHITE)
+		var quad_size: Vector2 = effect.get("quad_size", Vector2.ONE)
+		material.set_shader_parameter("particle_texture", effect_texture)
+		material.set_shader_parameter("unlit", bool(effect.get("unlit", false)))
+		material.set_shader_parameter("body_exclusion_strength", 0.0)
+		material.set_shader_parameter("world_to_vehicle", vehicle.global_transform.affine_inverse())
+		quad.size = quad_size
 		process.angle_min = -180.0
 		process.angle_max = 180.0
-		process.color = Color(1.0, 0.78, 0.32) if sparks else color.darkened(0.25)
+		process.color = effect_color
 		process.direction = (normal + Vector3.UP * 0.35).normalized()
 		process.initial_velocity_min = 0.8
 		process.initial_velocity_max = 2.5 + severity * 2.0
@@ -334,12 +590,12 @@ func emit_impact(
 
 
 func stop_wheels() -> void:
-	for emitter in wheel_cores + wheel_plumes + wheel_chips:
+	for emitter in wheel_cores + wheel_plumes + wheel_chips + wheel_splash + wheel_water + wheel_mist + wheel_snow:
 		emitter.emitting = false
 
 
 func reset_effects() -> void:
-	for emitter in wheel_cores + wheel_plumes + wheel_chips + impact_pool:
+	for emitter in wheel_cores + wheel_plumes + wheel_chips + wheel_splash + wheel_water + wheel_mist + wheel_snow + impact_pool:
 		emitter.restart()
 		emitter.emitting = false
 	if steam_emitter != null:
