@@ -638,10 +638,10 @@ func _draw_fuel(rect: Rect2) -> void:
 		C_TEXT,
 		true
 	)
-	_text(Box(body.position.x + 6, body.position.y + 64, body.size.x - 42, 11), "OIL", 8, C_DIM)
+	_text(Box(body.position.x + 6, body.position.y + 64, body.size.x - 42, 11), "OIL BAR", 8, C_DIM)
 	_field_box(
 		Rect2(body.position.x + 6, body.position.y + 76, body.size.x - 42, 24),
-		_temperature(state.oil_temperature_celsius),
+		_pressure(state.oil_temperature_celsius),
 		13,
 		state.oil_temperature_color if state.oil_temperature_color != Color.WHITE else C_TEXT,
 		true
@@ -654,6 +654,13 @@ func _draw_fuel(rect: Rect2) -> void:
 		state.water_temperature_color if state.water_temperature_color != Color.WHITE else C_TEXT,
 		true
 	)
+
+
+# oil_temperature_celsius transporta aqui la presion de aceite en bar (-1 = sin dato).
+func _pressure(value: float) -> String:
+	if value < 0.0:
+		return "--"
+	return "%.1f" % value
 
 
 func _temperature(value: float) -> String:
@@ -956,8 +963,8 @@ func _draw_numeric_revolutions_per_minute() -> void:
 
 
 func _draw_temperature_panel() -> void:
-	_draw_competition_text("OIL TEMP", Vector2(1257.0, 123.0), TEMPERATURE_LABEL_FONT_SIZE, config.dial_color)
-	_draw_temperature_value(state.oil_temperature_celsius, state.oil_temperature_color, Vector2(1268.0, 203.0))
+	_draw_competition_text("OIL BAR", Vector2(1257.0, 123.0), TEMPERATURE_LABEL_FONT_SIZE, config.dial_color)
+	_draw_pressure_value(state.oil_temperature_celsius, state.oil_temperature_color, Vector2(1268.0, 203.0))
 	_draw_competition_text("°C", Vector2(1370.0, 204.0), TEMPERATURE_LABEL_FONT_SIZE, config.dial_color)
 
 	_draw_horizontal_divider(Vector2(1164.0, 264.0), 224.0)
@@ -965,6 +972,13 @@ func _draw_temperature_panel() -> void:
 	_draw_competition_text("WATER TEMP", Vector2(1257.0, 304.0), TEMPERATURE_LABEL_FONT_SIZE, config.dial_color)
 	_draw_temperature_value(state.water_temperature_celsius, state.water_temperature_color, Vector2(1268.0, 385.0))
 	_draw_competition_text("°C", Vector2(1370.0, 386.0), TEMPERATURE_LABEL_FONT_SIZE, config.dial_color)
+
+
+func _draw_pressure_value(pressure_bar: float, pressure_color: Color, center: Vector2) -> void:
+	if pressure_bar < 0.0:
+		_draw_competition_text("--", center, TEMPERATURE_VALUE_FONT_SIZE, config.inactive_color)
+		return
+	_draw_competition_text("%.1f" % pressure_bar, center, TEMPERATURE_VALUE_FONT_SIZE, pressure_color)
 
 
 func _draw_temperature_value(temperature_celsius: float, temperature_color: Color, center: Vector2) -> void:

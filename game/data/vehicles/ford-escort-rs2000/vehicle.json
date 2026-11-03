@@ -9,6 +9,7 @@
     "brakes": "brakes.json",
     "chassis": "chassis.json",
     "coupled_world": "coupled_world.json",
+    "damage": "damage.json",
     "driving_assistance": "driving_assistance.json",
     "fuel": "fuel.json",
     "powertrain": "powertrain.json",

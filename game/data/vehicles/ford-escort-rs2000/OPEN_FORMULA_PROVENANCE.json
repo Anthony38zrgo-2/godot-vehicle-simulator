@@ -27,17 +27,18 @@
     "brakes.json": "75b4010f9827d5726ab8615f40f5a14f5f853c40ff75f53105ab1ccffb095c8e",
     "chassis.json": "86145723bd3013e15d8b20abc53c147c9c0774fcafd1303852461d1434079c9f",
     "coupled_world.json": "adf9eb6884e22ed56ffa39876f8305848ebc9b1388a8e3430f7fa75f524581a6",
+    "damage.json": "5c6a804ddfcb7d29d6d8953b63935067647375ba81e0837a02c53f941ef85ec9",
     "driving_assistance.json": "53f593912c93825cfa2aa8eeae54199809e5882df8d2f475f08096fbf4bfd80b",
     "fuel.json": "54c93a0f067635767879e0d331a792928675c259cb51a0095e6f528971cf8e8c",
     "port_validation.json": "fc92694a2582347f2ef09fd4e9cbc7f1dd64a1de0680f29f2ab34121d86b7969",
-    "powertrain.json": "1f10990c30c1aeecf91a4f94403197ea1e3efd87c95c21d87c5728673052733f",
+    "powertrain.json": "fdf4e7df5643bd92a94448700dff0389d9e2c368e41dedbaa505d4055b83ec1b",
     "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "suspension.json": "db8d6407a69c58f24288ec627d676d5f48d795361af77255484c59b7c60102a3",
     "tire_filters.json": "1f432938a77335f38e9c4924cf775d5f87f8ba3386bd0bc4a51dde6010093b04",
     "tires.json": "8030c1353dccabde5aff89b3c0a59e189828ddc89f4cd2067a2ca1c4b53d53fc",
     "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
-    "vehicle.json": "79a93362175256cc4e1ccf1d053eaee03bd1b0a7d7cf30d87ced02b93ce08d37"
+    "vehicle.json": "e34be5b14d32848109015b7a00cbba288dab425704ad762b844737853c8e39cb"
   },
   "reference_profile_json_sha256": {
     "tires.json": "c273ee0455aec828c3b407652c787d594c7f4ac749c4a14676054f0045355ffa",

@@ -35,9 +35,17 @@ var active_compound_id: String = "gravel_normal"
 var active_compound: Dictionary = {}
 var wheel_compounds: Array[Dictionary] = []
 var compound_catalog: Dictionary = {}
+var radiator_damage: float = 0.0
+var engine_damage: float = 0.0
+var overheat_exposure_s: float = 0.0
+var damage_config: Dictionary = {}
+var oil_pressure_bar: float = 0.0
+var oil_healthy_pressure_bar: float = 0.0
 
 
 func configure(domains: Dictionary) -> Dictionary:
+	var damage_doc: Dictionary = domains.get("damage", {})
+	damage_config = (damage_doc.get("damage", damage_doc) as Dictionary).duplicate(true)
 	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
 	engine_config = powertrain.get("thermal", {}).duplicate(true)
 	if engine_config.is_empty():
@@ -155,6 +163,11 @@ func reset_for_stage(domains: Dictionary) -> void:
 	var mounted_tires := tire_states.duplicate(true)
 	var remaining_fuel := fuel_remaining_litres
 	configure(domains)
+	radiator_damage = 0.0
+	engine_damage = 0.0
+	overheat_exposure_s = 0.0
+	oil_pressure_bar = 0.0
+	oil_healthy_pressure_bar = 0.0
 	fuel_remaining_litres = clampf(remaining_fuel, 0.0, fuel_capacity_litres)
 	_apply_compound_to_configs()
 	fuel_burned_litres = 0.0
@@ -186,14 +199,58 @@ func reset_for_stage(domains: Dictionary) -> void:
 		state.pressure_bar_gauge = (cold_bar + atmosphere) * (carcass + 273.15) / (reference + 273.15) - atmosphere
 
 
+func apply_damage(rad_delta: float, eng_delta: float) -> void:
+	radiator_damage = clampf(radiator_damage + maxf(rad_delta, 0.0), 0.0, 1.0)
+	engine_damage = clampf(engine_damage + maxf(eng_delta, 0.0), 0.0, 1.0)
+	_update_torque_derating()
+
+
+func oil_viscosity_factor(oil_c: float) -> float:
+	var cfg: Dictionary = engine_config.get("oil_pressure", {})
+	var reference := float(cfg.get("viscosity_reference_celsius", 90.0))
+	var hot := float(cfg.get("viscosity_hot_celsius", 130.0))
+	var hot_factor := float(cfg.get("hot_viscosity_factor", 0.6))
+	return lerpf(1.0, hot_factor, clampf((oil_c - reference) / maxf(hot - reference, 1.0), 0.0, 1.0))
+
+
+func _update_oil_pressure(rpm: float, dt: float) -> void:
+	# presion = min(valvula, k*rpm) * viscosidad(T_aceite) * (1 - perdida por dano)
+	var cfg: Dictionary = engine_config.get("oil_pressure", {})
+	if cfg.is_empty():
+		return
+	var pump := minf(float(cfg.get("relief_valve_bar", 4.0)), float(cfg.get("bar_per_rpm", 0.0012)) * maxf(rpm, 0.0))
+	var loss_at_full := float(damage_config.get("thermal", {}).get("oil_pressure_loss_at_full_engine_damage", 0.0))
+	var damage_factor := 1.0 - clampf(loss_at_full, 0.0, 1.0) * engine_damage
+	oil_healthy_pressure_bar = pump
+	var target := pump * oil_viscosity_factor(oil_temperature_c) * damage_factor
+	var response := maxf(float(cfg.get("pressure_response_seconds", 0.25)), 0.001)
+	oil_pressure_bar += (target - oil_pressure_bar) * (1.0 - exp(-dt / response))
+
+
+func oil_pressure_state() -> String:
+	var cfg: Dictionary = engine_config.get("oil_pressure", {})
+	if cfg.is_empty():
+		return "ok"
+	var healthy := maxf(oil_healthy_pressure_bar, 0.001)
+	var ratio := oil_pressure_bar / healthy
+	if oil_pressure_bar < float(cfg.get("warning_pressure_bar", 0.8)) or ratio < float(cfg.get("warning_ratio", 0.5)):
+		return "critical"
+	if ratio < float(cfg.get("low_ratio", 0.75)):
+		return "low"
+	return "ok"
+
+
 func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float) -> void:
+	# Un solo radiador de agua enfria todo el motor. El aceite solo cede calor
+	# al bloque, al agua (oil_to_water) y, muy poco, al aire por el carter.
 	var water_duct: Dictionary = engine_config.get("water_cooling_duct", {})
-	var oil_duct: Dictionary = engine_config.get("oil_cooling_duct", {})
 	var water_flow := _cooling_duct(water_duct, air_density_kg_m3, speed_m_s)
-	var oil_flow := _cooling_duct(oil_duct, air_density_kg_m3, speed_m_s)
-	water_cooling_conductance_w_k = float(water_duct.get("base_cooling_conductance_watts_per_kelvin", 0.0)) + float(water_flow.conductance)
-	oil_cooling_conductance_w_k = float(oil_duct.get("base_cooling_conductance_watts_per_kelvin", 0.0)) + float(oil_flow.conductance)
-	cooling_drag_force_n = float(water_flow.drag) + float(oil_flow.drag)
+	var thermal_damage_cfg: Dictionary = damage_config.get("thermal", {})
+	var min_cooling_factor := float(thermal_damage_cfg.get("minimum_cooling_factor", 0.45))
+	var radiator_cooling_factor := lerpf(1.0, min_cooling_factor, radiator_damage)
+	water_cooling_conductance_w_k = (float(water_duct.get("base_cooling_conductance_watts_per_kelvin", 0.0)) + float(water_flow.conductance)) * radiator_cooling_factor
+	oil_cooling_conductance_w_k = float(engine_config.get("oil_sump_cooling_conductance_watts_per_kelvin", 0.0))
+	cooling_drag_force_n = float(water_flow.drag)
 	var engine_omega := maxf(rpm, 0.0) * TAU / 60.0
 	var mechanical_power := maxf(torque_nm * engine_omega, 0.0)
 	var generated_heat := float(engine_config.get("idle_heat_generation_watts", 0.0)) + mechanical_power * float(engine_config.get("heat_generation_per_mechanical_power", 0.0))
@@ -203,14 +260,31 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	var oil_c := oil_temperature_c
 	var to_water := float(engine_config.get("engine_to_water_conductance_watts_per_kelvin", 0.0)) * (block_c - water_c)
 	var to_oil := float(engine_config.get("engine_to_oil_conductance_watts_per_kelvin", 0.0)) * (block_c - oil_c)
+	var oil_to_water := float(engine_config.get("oil_to_water_conductance_watts_per_kelvin", 0.0)) * (oil_c - water_c)
 	var generated_block := generated_heat * float(engine_config.get("engine_block_heat_fraction", 1.0))
 	var generated_water := generated_heat * float(engine_config.get("water_heat_fraction", 0.0))
 	var generated_oil := generated_heat * float(engine_config.get("oil_heat_fraction", 0.0))
 	var water_rejected := water_cooling_conductance_w_k * (water_c - ambient_temperature_c)
 	var oil_rejected := oil_cooling_conductance_w_k * (oil_c - ambient_temperature_c)
 	engine_block_temperature_c = block_c + (generated_block - to_water - to_oil) / maxf(float(engine_config.get("engine_block_heat_capacity_joules_per_kelvin", 1.0)), 1.0) * dt
-	water_temperature_c = water_c + (generated_water + to_water - water_rejected) / maxf(float(engine_config.get("water_heat_capacity_joules_per_kelvin", 1.0)), 1.0) * dt
-	oil_temperature_c = oil_c + (generated_oil + to_oil - oil_rejected) / maxf(float(engine_config.get("oil_heat_capacity_joules_per_kelvin", 1.0)), 1.0) * dt
+	water_temperature_c = water_c + (generated_water + to_water + oil_to_water - water_rejected) / maxf(float(engine_config.get("water_heat_capacity_joules_per_kelvin", 1.0)), 1.0) * dt
+	oil_temperature_c = oil_c + (generated_oil + to_oil - oil_to_water - oil_rejected) / maxf(float(engine_config.get("oil_heat_capacity_joules_per_kelvin", 1.0)), 1.0) * dt
+	_update_oil_pressure(rpm, dt)
+
+	var damage_start_c := float(thermal_damage_cfg.get("damage_start_c", 110.0))
+	var full_rate_temp_c := float(thermal_damage_cfg.get("full_rate_temperature_c", 120.0))
+	var grace_seconds := float(thermal_damage_cfg.get("grace_seconds", 6.0))
+	var max_damage_rate := float(thermal_damage_cfg.get("maximum_damage_per_second", 0.015))
+	var recovery_rate := float(thermal_damage_cfg.get("recovery_rate_per_second", 2.0))
+	if water_temperature_c > damage_start_c:
+		overheat_exposure_s += dt
+		if overheat_exposure_s > grace_seconds:
+			var excess_ratio := clampf((water_temperature_c - damage_start_c) / maxf(full_rate_temp_c - damage_start_c, 0.001), 0.0, 1.0)
+			var damage_rate := max_damage_rate * excess_ratio
+			engine_damage = clampf(engine_damage + damage_rate * dt, 0.0, 1.0)
+	else:
+		overheat_exposure_s = maxf(overheat_exposure_s - recovery_rate * dt, 0.0)
+
 	_update_torque_derating()
 
 
@@ -444,6 +518,9 @@ func get_engine_thermal_state_snapshot() -> Dictionary:
 		},
 		"oil": {
 			"temperature_c": oil_temperature_c,
+			"pressure_bar": oil_pressure_bar,
+			"healthy_pressure_bar": oil_healthy_pressure_bar,
+			"pressure_state": oil_pressure_state(),
 			"optimal_min_c": engine_config.get("oil_optimal_minimum_temperature_celsius"),
 			"optimal_max_c": engine_config.get("oil_optimal_maximum_temperature_celsius"),
 			"derating_c": engine_config.get("oil_hot_derating_temperature_celsius"),
@@ -451,6 +528,11 @@ func get_engine_thermal_state_snapshot() -> Dictionary:
 		},
 		"available_torque_fraction": available_engine_torque_fraction,
 		"cooling_drag_force_n": cooling_drag_force_n,
+		"radiator_damage": radiator_damage,
+		"engine_damage": engine_damage,
+		"radiator_damage_percent": radiator_damage * 100.0,
+		"engine_damage_percent": engine_damage * 100.0,
+		"overheat_exposure_s": overheat_exposure_s,
 	}
 
 
@@ -494,7 +576,12 @@ func _update_torque_derating() -> void:
 		float(engine_config.get("oil_critical_temperature_celsius", 145.0)),
 		float(engine_config.get("oil_minimum_cold_engine_torque_fraction", 0.88))
 	)
-	available_engine_torque_fraction = clampf(minf(water_fraction, oil_fraction), float(engine_config.get("minimum_hot_engine_torque_fraction", 0.70)), 1.0)
+	var thermal_torque_fraction := clampf(minf(water_fraction, oil_fraction), float(engine_config.get("minimum_hot_engine_torque_fraction", 0.70)), 1.0)
+	var thermal_damage_cfg: Dictionary = damage_config.get("thermal", {})
+	var permanent_min_factor := float(thermal_damage_cfg.get("permanent_minimum_torque_factor", 0.70))
+	var min_torque_floor := float(thermal_damage_cfg.get("minimum_torque_factor", 0.60))
+	var permanent_torque_fraction := lerpf(1.0, permanent_min_factor, engine_damage)
+	available_engine_torque_fraction = clampf(thermal_torque_fraction * permanent_torque_fraction, min_torque_floor, 1.0)
 
 
 func _temperature_torque_fraction(temperature: float, optimum_min: float, hot: float, critical: float, minimum_cold: float) -> float:

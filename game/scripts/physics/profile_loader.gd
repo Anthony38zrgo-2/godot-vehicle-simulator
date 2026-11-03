@@ -70,6 +70,11 @@ static func load_profile(manifest_path: String) -> Dictionary:
 	if not powertrain.get("gear_ratios", []) is Array or powertrain.get("gear_ratios", []).is_empty():
 		return _failure("powertrain.gear_ratios is required.")
 
+	if domains.has("damage"):
+		var damage_validation := _validate_damage_domain(domains["damage"])
+		if not bool(damage_validation.get("ok", false)):
+			return damage_validation
+
 	var resolved_filters := _resolve_tire_filters(domains["tires"], domains["tire_filters"])
 	return {
 		"ok": true,
@@ -215,6 +220,69 @@ static func _merge_surfaces(global_dict: Dictionary, axle_dict: Dictionary, filt
 			base[k] = flt[k]
 		out[surface_name] = base
 	return out
+
+
+static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
+	if int(doc.get("schema_version", 0)) < 1:
+		return _failure("damage.schema_version must be >= 1.")
+	for category in ["collision", "landing"]:
+		var section: Variant = doc.get(category, null)
+		if not section is Dictionary:
+			return _failure("damage." + category + " must be a dictionary.")
+		var min_speed := float(section.get("minimum_speed_m_s", -1.0))
+		var full_speed := float(section.get("full_severity_speed_m_s", -1.0))
+		if not is_finite(min_speed) or not is_finite(full_speed) or min_speed <= 0.0 or full_speed <= min_speed:
+			return _failure("damage." + category + ": 0.0 < minimum_speed_m_s < full_severity_speed_m_s required.")
+		var max_rad := float(section.get("maximum_radiator_damage", -1.0))
+		var max_eng := float(section.get("maximum_engine_damage", -1.0))
+		if not is_finite(max_rad) or max_rad < 0.0 or max_rad > 1.0:
+			return _failure("damage." + category + ".maximum_radiator_damage must be in [0.0, 1.0].")
+		if not is_finite(max_eng) or max_eng < 0.0 or max_eng > 1.0:
+			return _failure("damage." + category + ".maximum_engine_damage must be in [0.0, 1.0].")
+		var exponent := float(section.get("severity_exponent", 0.0))
+		if not is_finite(exponent) or exponent <= 0.0:
+			return _failure("damage." + category + ".severity_exponent must be positive.")
+		var weights: Variant = section.get("zone_weights", null)
+		if not weights is Dictionary:
+			return _failure("damage." + category + ".zone_weights must be a dictionary.")
+		for zone_name in weights:
+			var zw: Variant = weights[zone_name]
+			if not zw is Dictionary:
+				return _failure("damage." + category + ".zone_weights." + str(zone_name) + " must be a dictionary.")
+			var zw_rad := float(zw.get("radiator", -1.0))
+			var zw_eng := float(zw.get("engine", -1.0))
+			if not is_finite(zw_rad) or zw_rad < 0.0 or zw_rad > 1.0 or not is_finite(zw_eng) or zw_eng < 0.0 or zw_eng > 1.0:
+				return _failure("damage." + category + ".zone_weights." + str(zone_name) + " weights must be in [0.0, 1.0].")
+
+	var thermal: Variant = doc.get("thermal", null)
+	if not thermal is Dictionary:
+		return _failure("damage.thermal must be a dictionary.")
+	var min_cooling := float(thermal.get("minimum_cooling_factor", 0.0))
+	var min_torque := float(thermal.get("minimum_torque_factor", 0.0))
+	if not is_finite(min_cooling) or min_cooling <= 0.0 or min_cooling > 1.0:
+		return _failure("damage.thermal.minimum_cooling_factor must be in (0.0, 1.0].")
+	if not is_finite(min_torque) or min_torque <= 0.0 or min_torque > 1.0:
+		return _failure("damage.thermal.minimum_torque_factor must be in (0.0, 1.0].")
+	var start_c := float(thermal.get("damage_start_c", 0.0))
+	var full_c := float(thermal.get("full_rate_temperature_c", 0.0))
+	if not is_finite(start_c) or not is_finite(full_c) or start_c >= full_c:
+		return _failure("damage.thermal: damage_start_c < full_rate_temperature_c required.")
+	var grace := float(thermal.get("grace_seconds", -1.0))
+	var max_rate := float(thermal.get("maximum_damage_per_second", -1.0))
+	if not is_finite(grace) or grace < 0.0 or not is_finite(max_rate) or max_rate < 0.0:
+		return _failure("damage.thermal: grace_seconds and maximum_damage_per_second must be >= 0.0.")
+
+	var steam: Variant = doc.get("steam", null)
+	if not steam is Dictionary:
+		return _failure("damage.steam must be a dictionary.")
+	var s_start := float(steam.get("start_damage", -1.0))
+	var s_cont := float(steam.get("continuous_damage", -1.0))
+	var s_heavy := float(steam.get("heavy_damage", -1.0))
+	if not is_finite(s_start) or not is_finite(s_cont) or not is_finite(s_heavy):
+		return _failure("damage.steam damage thresholds must be finite.")
+	if not (0.0 <= s_start and s_start < s_cont and s_cont < s_heavy and s_heavy <= 1.0):
+		return _failure("damage.steam: 0.0 <= start_damage < continuous_damage < heavy_damage <= 1.0 required.")
+	return {"ok": true}
 
 
 static func _read_json(path: String) -> Dictionary:

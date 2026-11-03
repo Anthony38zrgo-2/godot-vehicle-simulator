@@ -761,6 +761,11 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"brake": float(inputs.get("brake", 0.0)),
 		"steering": float(inputs.get("steering", 0.0)),
 		"engine": thermal_model.get_engine_thermal_state_snapshot(),
+		"damage": {
+			"radiator": thermal_model.radiator_damage,
+			"engine": thermal_model.engine_damage,
+			"overheat_exposure_s": thermal_model.overheat_exposure_s,
+		},
 		"fuel": thermal_model.get_fuel_state_snapshot(),
 		"wheels": wheels,
 		"contact_queries": contact_query_count,

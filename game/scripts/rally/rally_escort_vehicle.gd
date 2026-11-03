@@ -345,18 +345,17 @@ func _apply_resolved_mass(mass_state: Dictionary) -> void:
 var body_contact_audio: Dictionary = {}
 var body_contact_vfx: Array[Dictionary] = []
 var _prev_body_contact_count: int = 0
+var _is_airborne: bool = false
+var _airborne_fall_speed: float = 0.0
+var _active_collision_zone: String = ""
+var _separation_frames: int = 10
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	body_contact_vfx.clear()
 	if not _physics_ready or freeze:
 		return
 	var contact_count := state.get_contact_count()
-	# Toma de tierra: primer frame con contactos tras venir volando y cayendo.
 	var landing_speed_ms := 0.0
-	if contact_count > 0 and _prev_body_contact_count == 0:
-		var fall_speed := -state.linear_velocity.y
-		if fall_speed >= 2.5:
-			landing_speed_ms = fall_speed
 	_prev_body_contact_count = contact_count
 	var impulse_peak := 0.0
 	var scrape_power := 0.0
@@ -369,12 +368,35 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var lateral_impulse_peak := 0.0
 	var lateral_speed_ms := 0.0
 	var lateral_position := Vector3.ZERO
-	for index in state.get_contact_count():
+
+	var damage_doc: Dictionary = simulation.domains.get("damage", {})
+	var collision_cfg: Dictionary = damage_doc.get("collision", {})
+	var min_col_speed := float(collision_cfg.get("minimum_speed_m_s", 4.0))
+	var full_col_speed := float(collision_cfg.get("full_severity_speed_m_s", 23.0))
+	var max_col_rad := float(collision_cfg.get("maximum_radiator_damage", 0.55))
+	var max_col_eng := float(collision_cfg.get("maximum_engine_damage", 0.26))
+	var col_exponent := float(collision_cfg.get("severity_exponent", 1.2))
+	var min_impulse_speed := float(collision_cfg.get("min_impulse_speed_m_s", 1.5))
+	var min_impulse := mass * min_impulse_speed
+
+	var peak_qualifying_closing_speed := 0.0
+	var peak_qualifying_local_pos := Vector3.ZERO
+	var peak_qualifying_normal := Vector3.ZERO
+	var body_contact_locals: Array[Vector3] = []
+
+	for index in contact_count:
 		var impulse := state.get_contact_impulse(index).length()
 		impulse_peak = maxf(impulse_peak, impulse)
 		var normal := (state.transform.basis * state.get_contact_local_normal(index)).normalized()
 		var velocity := state.get_contact_local_velocity_at_position(index) - state.get_contact_collider_velocity_at_position(index)
-		var closing_speed := absf(velocity.dot(normal))
+		var closing_speed := maxf(0.0, -velocity.dot(normal))
+		var contact_local_pos := state.transform.affine_inverse() * state.get_contact_collider_position(index)
+		body_contact_locals.append(contact_local_pos)
+
+		var collider := state.get_contact_collider_object(index)
+		var role := str(collider.get_meta("collision_role", "")) if (collider != null and collider.has_meta("collision_role")) else ""
+		var is_obstacle: bool = (role in ["barrier", "obstacle"]) or (absf(normal.y) < 0.5)
+
 		# Only side-facing contacts contribute to generic collision sounds.
 		# The horizontal normal component discounts vertical impulse on slopes.
 		if absf(normal.y) < 0.5:
@@ -387,6 +409,14 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		if closing_speed > impact_speed_ms:
 			impact_speed_ms = closing_speed
 			impact_position = state.get_contact_local_position(index)
+
+		# Collision damage qualification
+		if not collision_cfg.is_empty() and is_obstacle and impulse >= min_impulse and closing_speed >= min_col_speed:
+			if closing_speed > peak_qualifying_closing_speed:
+				peak_qualifying_closing_speed = closing_speed
+				peak_qualifying_local_pos = contact_local_pos
+				peak_qualifying_normal = state.transform.basis.transposed() * normal
+
 		var tangent_speed := (velocity - normal * velocity.dot(normal)).length()
 		var vfx_collider := state.get_contact_collider_object(index) as Node
 		var vfx_surface := ""
@@ -403,13 +433,28 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		})
 		var force := impulse / maxf(state.step, 0.0001)
 		if force > mass * 9.81 * 0.10 and tangent_speed > 0.5:
-			var collider := state.get_contact_collider_object(index)
-			var is_ground: bool = collider is Node and (str(collider.get_meta("collision_role", "")) == "terrain" or collider.is_in_group("Gravel"))
+			var is_ground: bool = collider is Node and (role == "terrain" or (collider as Node).is_in_group("Gravel"))
 			if is_ground:
 				ground_drag_power += force * tangent_speed
 			else:
 				scrape_power += force * tangent_speed
-	body_contact_audio = {"count": state.get_contact_count(), "impulse_ns": impulse_peak, "lateral_impulse_ns": lateral_impulse_peak, "lateral_speed_kph": lateral_speed_ms * 3.6, "lateral_position": lateral_position, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
+
+	# Resolve single debounced collision event this frame
+	if peak_qualifying_closing_speed > 0.0:
+		if _separation_frames >= 4 or _active_collision_zone.is_empty():
+			var hit_zone := _resolve_impact_zone(peak_qualifying_local_pos, peak_qualifying_normal)
+			var severity := pow(clampf((peak_qualifying_closing_speed - min_col_speed) / maxf(full_col_speed - min_col_speed, 0.001), 0.0, 1.0), col_exponent)
+			var zone_weights: Dictionary = collision_cfg.get("zone_weights", {}).get(hit_zone, {})
+			var rad_dmg := severity * max_col_rad * float(zone_weights.get("radiator", 0.5))
+			var eng_dmg := severity * max_col_eng * float(zone_weights.get("engine", 0.5))
+			simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
+			_active_collision_zone = hit_zone
+		_separation_frames = 0
+	else:
+		_separation_frames += 1
+		if _separation_frames >= 6:
+			_active_collision_zone = ""
+
 	simulation.step(self, state, {
 		"throttle": throttle_amount,
 		"brake": brake_amount,
@@ -419,6 +464,39 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		"auto_clutch": bool(simulation.domains.get("driving_assistance", {}).get("aids", {}).get("auto_clutch_default_enabled", false)),
 		"automatic_transmission": automatic_transmission,
 	})
+
+	# Airborne and landing detection combining wheels and chassis body contacts
+	var wheels_in_contact: bool = false
+	for i in 4:
+		if simulation.suspension_model.contact_active[i]:
+			wheels_in_contact = true
+			break
+	var is_touching_ground := wheels_in_contact or (contact_count > 0)
+	if not is_touching_ground:
+		_is_airborne = true
+		_airborne_fall_speed = maxf(_airborne_fall_speed, maxf(0.0, -state.linear_velocity.y))
+	elif _is_airborne:
+		var landing_fall_speed := _airborne_fall_speed
+		_is_airborne = false
+		_airborne_fall_speed = 0.0
+		if landing_fall_speed >= 2.5:
+			landing_speed_ms = landing_fall_speed
+			var landing_cfg: Dictionary = damage_doc.get("landing", {})
+			if not landing_cfg.is_empty():
+				var min_land_speed := float(landing_cfg.get("minimum_speed_m_s", 2.5))
+				var full_land_speed := float(landing_cfg.get("full_severity_speed_m_s", 9.0))
+				if landing_fall_speed >= min_land_speed and full_land_speed > min_land_speed:
+					var land_zone := _resolve_landing_zone(body_contact_locals, state)
+					var land_exponent := float(landing_cfg.get("severity_exponent", 1.0))
+					var severity := pow(clampf((landing_fall_speed - min_land_speed) / (full_land_speed - min_land_speed), 0.0, 1.0), land_exponent)
+					var max_rad := float(landing_cfg.get("maximum_radiator_damage", 0.10))
+					var max_eng := float(landing_cfg.get("maximum_engine_damage", 0.08))
+					var zone_weights: Dictionary = landing_cfg.get("zone_weights", {}).get(land_zone, {})
+					var rad_dmg := severity * max_rad * float(zone_weights.get("radiator", 0.2))
+					var eng_dmg := severity * max_eng * float(zone_weights.get("engine", 0.2))
+					simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
+
+	body_contact_audio = {"count": contact_count, "impulse_ns": impulse_peak, "lateral_impulse_ns": lateral_impulse_peak, "lateral_speed_kph": lateral_speed_ms * 3.6, "lateral_position": lateral_position, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
 
 
 func shift(delta_gears: int) -> void:
@@ -444,6 +522,42 @@ func toggle_driving_assistance(assistance_name: String) -> Dictionary:
 	return driving_assistance_state.duplicate(true)
 
 
+func _resolve_impact_zone(local_pos: Vector3, normal: Vector3) -> String:
+	if local_pos.z <= -1.25 and local_pos.y >= 0.22:
+		return "nose"
+	if local_pos.z < -0.35 and local_pos.y < 0.28:
+		return "front_underbody"
+	if local_pos.z > 1.35:
+		return "rear"
+	if absf(local_pos.x) > 0.55 or absf(normal.x) > 0.7:
+		return "side"
+	if local_pos.z <= -0.35:
+		return "nose" if local_pos.y >= 0.25 else "front_underbody"
+	return "side"
+
+
+func _resolve_landing_zone(body_contacts: Array[Vector3], state: PhysicsDirectBodyState3D) -> String:
+	for pos in body_contacts:
+		if pos.z <= -1.25 and pos.y >= 0.22:
+			return "nose"
+		if pos.z < -0.35 and pos.y < 0.28:
+			return "front_underbody"
+		if pos.z > 1.35:
+			return "rear"
+	var front_has_contact := simulation.suspension_model.contact_active[0] or simulation.suspension_model.contact_active[1]
+	var rear_has_contact := simulation.suspension_model.contact_active[2] or simulation.suspension_model.contact_active[3]
+	if front_has_contact and not rear_has_contact:
+		return "front_wheels"
+	if rear_has_contact and not front_has_contact:
+		return "rear_wheels"
+	var front_load := simulation.wheel_loads[0] + simulation.wheel_loads[1]
+	var rear_load := simulation.wheel_loads[2] + simulation.wheel_loads[3]
+	var nose_down: bool = (-state.transform.basis.z.y < -0.05)
+	if front_load > rear_load or nose_down:
+		return "front_wheels"
+	return "rear_wheels"
+
+
 func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 	freeze = true
 	global_transform = Transform3D(Basis(Vector3.UP, target_yaw), target_position)
@@ -466,12 +580,20 @@ func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 	body_contact_audio.clear()
 	body_contact_vfx.clear()
 	_prev_body_contact_count = 0
+	_is_airborne = false
+	_airborne_fall_speed = 0.0
+	_active_collision_zone = ""
+	_separation_frames = 10
 
 func prepare_for_stage() -> void:
 	simulation.thermal_model.reset_for_stage(simulation.domains)
 	_sync_mass_from_fuel()
 	if not tire_inventory.mounted.is_empty():
 		sync_tire_inventory()
+	_is_airborne = false
+	_airborne_fall_speed = 0.0
+	_active_collision_zone = ""
+	_separation_frames = 10
 
 func tire_state(index: int) -> Dictionary:
 	var state := {}

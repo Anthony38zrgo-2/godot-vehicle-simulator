@@ -148,7 +148,7 @@ func update_retro_hud() -> void:
 		speed_kilometres_per_hour,
 		revolutions_per_minute,
 		gear_label,
-		float(oil.get("temperature_c", -1.0)),
+		oil_pressure_bar_for_hud(oil),
 		float(water.get("temperature_c", -1.0)),
 		float(fuel.get("remaining_litres", -1.0)),
 		float(fuel.get("capacity_litres", -1.0)),
@@ -156,7 +156,7 @@ func update_retro_hud() -> void:
 		false,
 		0.0,
 		false,
-		engine_color(oil),
+		oil_pressure_color(oil),
 		engine_color(water),
 		steering,
 		throttle,
@@ -196,6 +196,23 @@ func update_thermal_readout() -> void:
 			retro_hud.position = Vector2(size.x - 541.35 * factor - 16.0 * factor, size.y - (370.0125 + 48.0) * factor)
 			if driving_controls != null and not driving_controls.visible:
 				driving_controls.visible = true
+
+
+# El HUD muestra la presion de aceite (bar) en el hueco historico de OIL:
+# el conductor real ve presion, no temperatura. -1 = sin dato (perfil sin oil_pressure).
+func oil_pressure_bar_for_hud(oil: Dictionary) -> float:
+	if float(oil.get("healthy_pressure_bar", 0.0)) <= 0.0 and float(oil.get("pressure_bar", 0.0)) <= 0.0:
+		return -1.0
+	return float(oil.get("pressure_bar", -1.0))
+
+
+func oil_pressure_color(oil: Dictionary) -> Color:
+	match str(oil.get("pressure_state", "ok")):
+		"critical":
+			return hud_palette.thermal_critical_color
+		"low":
+			return hud_palette.thermal_warm_color
+	return hud_palette.thermal_optimal_color
 
 
 func engine_color(node: Dictionary) -> Color:

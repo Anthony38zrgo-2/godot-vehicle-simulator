@@ -20,8 +20,12 @@ foreach ($property in $provenance.profile_json_sha256.PSObject.Properties) {
     $hashes[$name] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 foreach ($domain in $manifest.domains.PSObject.Properties) {
-    if (-not $hashes.ContainsKey([string]$domain.Value)) {
-        throw "El dominio $($domain.Name) no tiene entrada en profile_json_sha256: $($domain.Value)"
+    $name = [string]$domain.Value
+    if (-not $hashes.ContainsKey($name)) {
+        $path = Join-Path $profileDirectory $name
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Falta el archivo: $path" }
+        $null = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+        $hashes[$name] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
     }
 }
 if (-not $hashes.ContainsKey('vehicle.json')) { throw 'Falta vehicle.json en profile_json_sha256.' }
@@ -31,11 +35,32 @@ $blockPattern = '(?s)("profile_json_sha256"\s*:\s*\{)(.*?)(\})'
 $match = [regex]::Match($text, $blockPattern)
 if (-not $match.Success) { throw 'No se encontro el bloque profile_json_sha256.' }
 $block = $match.Groups[2].Value
-foreach ($name in $hashes.Keys) {
+$nl = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }
+foreach ($name in ($hashes.Keys | Sort-Object)) {
     $entryPattern = '("' + [regex]::Escape($name) + '"\s*:\s*")[0-9a-fA-F]{64}(")'
-    if ([regex]::Matches($block, $entryPattern).Count -ne 1) { throw "Entrada de hash invalida o duplicada: $name" }
-    $newHash = $hashes[$name]
-    $block = [regex]::Replace($block, $entryPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value + $newHash + $m.Groups[2].Value })
+    $matches = [regex]::Matches($block, $entryPattern)
+    if ($matches.Count -eq 1) {
+        $newHash = $hashes[$name]
+        $block = [regex]::Replace($block, $entryPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value + $newHash + $m.Groups[2].Value })
+    } elseif ($matches.Count -eq 0) {
+        # Si la entrada no existe en el bloque, insertarla en orden alfabetico
+        $inserted = $false
+        foreach ($otherName in ($hashes.Keys | Sort-Object)) {
+            if ($otherName -gt $name) {
+                $otherPattern = '(?m)^(\s*"' + [regex]::Escape($otherName) + '"\s*:)'
+                if ([regex]::IsMatch($block, $otherPattern)) {
+                    $block = [regex]::Replace($block, $otherPattern, "    `"$name`": `"$($hashes[$name])`",$nl`$1", 1)
+                    $inserted = $true
+                    break
+                }
+            }
+        }
+        if (-not $inserted) {
+            $block = $block.TrimEnd() + ",$nl    `"$name`": `"$($hashes[$name])`"$nl  "
+        }
+    } else {
+        throw "Entrada de hash invalida o duplicada: $name"
+    }
 }
 $updated = $text.Substring(0, $match.Groups[2].Index) + $block + $text.Substring($match.Groups[2].Index + $match.Groups[2].Length)
 if ($updated -ne $text) {

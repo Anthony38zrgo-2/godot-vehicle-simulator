@@ -29,6 +29,7 @@ const C_RIM := Color("#7fa8c9")
 
 const MAP_RECT := Rect2(24, 24, 264, 330)
 const TIMING_RECT := Rect2(1620, 24, 276, 132)
+const DAMAGE_RECT := Rect2(1620, 482, 276, 116)
 const TIRES_W := 300.0
 const TIRES_H := 160.0
 const BAND_MARGIN := 24.0
@@ -60,9 +61,60 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * factor)
 	var band_y := size.y / maxf(factor, 0.01) - TIRES_H - BAND_MARGIN
 	_draw_timing(TIMING_RECT)
+	_draw_damage(DAMAGE_RECT)
 	_draw_map(MAP_RECT)
 	_draw_tires(Rect2(24.0, band_y, TIRES_W, TIRES_H))
 	draw_set_transform(Vector2.ZERO)
+
+
+# =============================================================================
+# DAÑOS
+# =============================================================================
+
+
+func _draw_damage(rect: Rect2) -> void:
+	_glass(rect)
+	var body := Rect2(rect.position.x + 8, rect.position.y + 8, rect.size.x - 16, rect.size.y - 16)
+	draw_rect(body, C_FACE)
+	_bevel(body, false, 2)
+
+	_text(Rect2(body.position.x + 6, body.position.y + 2, 220, 14), "ESTADO DE DAÑOS", 9, C_BLUE, true)
+	draw_rect(Rect2(body.position.x + 2, body.position.y + 18, body.size.x - 4, 1), C_SHADOW)
+
+	var dmg: Dictionary = snapshot.get("damage", {})
+	var eng_snap: Dictionary = snapshot.get("engine", {})
+	var rad_ratio := clampf(float(dmg.get("radiator", eng_snap.get("radiator_damage", 0.0))), 0.0, 1.0)
+	var eng_ratio := clampf(float(dmg.get("engine", eng_snap.get("engine_damage", 0.0))), 0.0, 1.0)
+
+	var rows := [
+		{"label": "RADIADOR", "ratio": rad_ratio, "y": 24.0},
+		{"label": "MOTOR", "ratio": eng_ratio, "y": 58.0},
+	]
+
+	for row in rows:
+		var y: float = body.position.y + float(row.y)
+		var ratio: float = float(row.ratio)
+		var color := _damage_color(ratio)
+		_text(Rect2(body.position.x + 6, y, 90, 14), str(row.label), 9, C_DIM, true)
+		var pct_str := "%d%%" % roundi(ratio * 100.0)
+		_num(Rect2(body.position.x + body.size.x - 60, y, 54, 14), pct_str, 12, color, HORIZONTAL_ALIGNMENT_RIGHT)
+
+		var bar_rect := Rect2(body.position.x + 6, y + 16, body.size.x - 12, 12)
+		draw_rect(bar_rect, C_FIELD)
+		_sunken(bar_rect)
+		if ratio > 0.005:
+			var fill_w := maxf((bar_rect.size.x - 4) * ratio, 2.0)
+			draw_rect(Rect2(bar_rect.position.x + 2, bar_rect.position.y + 2, fill_w, bar_rect.size.y - 4), color)
+
+
+func _damage_color(ratio: float) -> Color:
+	if ratio < 0.25:
+		return C_GREEN
+	if ratio < 0.50:
+		return C_GOLD
+	if ratio < 0.75:
+		return Color("#f08c35")
+	return C_ROSE
 
 
 # =============================================================================
