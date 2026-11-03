@@ -1,0 +1,28 @@
+[remap]
+
+importer="cubemap_texture"
+type="CompressedCubemap"
+uid="uid://cra63vib3jjq3"
+path.bptc="res://.godot/imported/dusk_5.png-b31a857c9e2d4a5f822e22b4eece0d54.bptc.ccube"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://assets/weather/tropospheric/dusk_5.png"
+dest_files=["res://.godot/imported/dusk_5.png-b31a857c9e2d4a5f822e22b4eece0d54.bptc.ccube"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+slices/arrangement=3

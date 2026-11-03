@@ -1,0 +1,28 @@
+[remap]
+
+importer="cubemap_texture"
+type="CompressedCubemap"
+uid="uid://bhin64ifwhmbn"
+path.bptc="res://.godot/imported/verycloudy_2.png-69558a42f13143562c2b8732fd1bc48e.bptc.ccube"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://assets/weather/tropospheric/verycloudy_2.png"
+dest_files=["res://.godot/imported/verycloudy_2.png-69558a42f13143562c2b8732fd1bc48e.bptc.ccube"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+slices/arrangement=3

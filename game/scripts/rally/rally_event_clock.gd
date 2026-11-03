@@ -14,39 +14,28 @@ var paused: bool = true
 var itinerary_log: Array = []
 var sky_node: Node = null
 var tca_node: Node = null
-# Guardar velocidades autónomas originales para no acelerar lluvia/viento
-# más de lo que pida la tasa del evento.
-var _sky_minutes_per_day: float = 24.0
 var _tca_multiplier: float = 100.0
 
 func configure(start_date: String, start_seconds: float, initial_rate: float = 1.0) -> void:
 	event_date = start_date
 	event_seconds = start_seconds
 	set_rate(initial_rate)
+	_apply_to_adapters()
 	itinerary_log.append({"op": "configure", "date": event_date, "seconds": event_seconds})
 
 func set_rate(next_rate: float) -> void:
 	rate = next_rate if next_rate in ALLOWED_RATES else 1.0
 
-func attach_adapters(sky: Node, tca: Node, sky_minutes_per_day: float = 24.0) -> void:
+func attach_adapters(sky: Node, tca: Node) -> void:
 	sky_node = sky
 	tca_node = tca
-	_sky_minutes_per_day = maxf(sky_minutes_per_day, 0.1)
-	if sky_node != null:
-		var sky_mpd: Variant = sky_node.get("minutes_per_day")
-		if sky_mpd != null:
-			_sky_minutes_per_day = maxf(float(sky_mpd), 0.1)
-		sky_node.set("game_time_enabled", false)
-		_tca_multiplier = _tca_rate_to_multiplier(rate)
-		_apply_to_adapters()
+	_apply_to_adapters()
 	if tca_node != null and tca_node.get("time_speed_multiplier") != null:
 		_tca_multiplier = float(tca_node.get("time_speed_multiplier"))
 		# Congelamos el avance autónomo: el reloj manda por saltos y ticks.
 		tca_node.set("time_speed_multiplier", 0.0)
 
 func detach_adapters() -> void:
-	if sky_node != null and is_instance_valid(sky_node):
-		sky_node.set("game_time_enabled", true)
 	if tca_node != null and is_instance_valid(tca_node):
 		tca_node.set("time_speed_multiplier", _tca_multiplier)
 	sky_node = null
@@ -111,10 +100,6 @@ func _shift_date(iso: String, delta_days: int) -> String:
 			y -= 1
 		d += month_days[m - 1]
 	return "%04d-%02d-%02d" % [y, m, d]
-
-func _tca_rate_to_multiplier(next_rate: float) -> float:
-	# Un día de TCA dura los mismos minutos reales que un día de Sky3D.
-	return (86400.0 / (_sky_minutes_per_day * 60.0)) * maxf(next_rate, 0.01)
 
 func _apply_to_adapters() -> void:
 	if sky_node != null and is_instance_valid(sky_node):

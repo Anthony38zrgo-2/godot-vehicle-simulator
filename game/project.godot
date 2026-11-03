@@ -27,7 +27,7 @@ VehicleAudioBus="*res://scripts/audio/ensure_vehicle_bus.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/sky_3d/plugin.cfg", "res://addons/TCA_Weather_System/plugin.cfg")
+enabled=PackedStringArray("res://addons/TCA_Weather_System/plugin.cfg")
 
 [physics]
 

@@ -48,7 +48,7 @@ func run() -> void:
 			zone.water_mm = 4.0 if state in ["heavy_precipitation", "cloudy_wet"] else 0.0
 		ctl.update_vehicle_position(scene.vehicle.global_position)
 		ctl.tick_visual(3.0)
-		ctl.apply_to_adapters(scene.weather_sky_dome, scene.weather_controller_node, scene.terrain_wetness, 12.0)
+		ctl.apply_to_adapters(scene.weather_sky_node, scene.weather_controller_node, scene.terrain_wetness, 12.0)
 		for frame in 100:
 			await process_frame
 		await RenderingServer.frame_post_draw
@@ -56,7 +56,7 @@ func run() -> void:
 		print("WEATHER_VISUAL_CAPTURE ", folder.path_join(state + ".png"))
 		print("WETNESS ", scene.terrain_wetness.zone_wetness, " materials=", scene.terrain_wetness._materials.size())
 		assert(scene.terrain_wetness != null, "wet visuals must be present in retro mode")
-		assert(not scene.weather_sky_dome.fog_visible, "no second fog pass")
+		assert(not scene.weather_sky_node.environment.volumetric_fog_enabled, "no second fog pass")
 		if state == "cloudy_wet":
 			assert(scene.terrain_wetness._materials[0].albedo_color.r < 0.8, "wet surface darkens")
 	scene.queue_free()

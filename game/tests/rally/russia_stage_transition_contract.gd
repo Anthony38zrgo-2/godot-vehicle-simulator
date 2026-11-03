@@ -31,6 +31,7 @@ func run() -> void:
 	if not scene.session_ready:
 		quit(1)
 		return
+	var sky: Node = scene.weather_sky_node
 	for index in range(2, 11):
 		var old_visual: WeakRef = weakref(scene.track_visual.get_child(0))
 		var old_body: WeakRef = weakref(scene.track_collision.get_child(0))
@@ -53,6 +54,9 @@ func run() -> void:
 		check(old_visual.get_ref() == null and old_body.get_ref() == null, "old visual and collision freed")
 		check(scene.track_collision.collision_scene_path.ends_with(expected + "_collision.glb"), "own collision GLB")
 		check(scene.track_collision.generated_body_count == scene.track_collision.get_child_count(), "no stale collision bodies")
+		if index == 6:
+			check(scene.awaiting_setup and scene.event_clock.paused and scene.vehicle.freeze, "service pauses before stage 6")
+			scene.garage_panel.close_garage(true)
 		check(scene.input_controller.controls_enabled and not scene.vehicle.freeze, "controls resumed")
 		check(scene.start_position.distance_to(scene.vehicle.global_position) < 5.0, "vehicle at new spawn")
 		check(manager.official.player.stages.size() == index - 1, "results carried once")
@@ -60,6 +64,7 @@ func run() -> void:
 		var parts: PackedStringArray = str(schedule.start).split(":")
 		var scheduled_seconds := int(parts[0]) * 3600 + int(parts[1]) * 60
 		check(absf(scene.event_clock.event_seconds - scheduled_seconds + 5) < 1.0, "next scheduled time")
+		check(scene.weather_sky_node == sky and is_equal_approx(float(sky.current_time), scene.event_clock.hour_of_day()), "same sky follows new stage hour")
 		for frame in 720:
 			await physics_frame
 			if scene.competition.complete:

@@ -3,7 +3,7 @@ extends RefCounted
 ## Controlador climático del evento: lee el cronograma ya generado y el modelo
 ## de superficie por zona. La posición proyectada sobre la ruta identifica la
 ## zona (no el tiempo deportivo ni las puertas de pacenotes). Mezcla por
-## distancia con smoothstep. Sky3D y TCA son adaptadores; no generan una
+## distancia con smoothstep. El cielo y TCA son adaptadores; no generan una
 ## segunda secuencia. Un único proveedor físico alimenta materiales,
 ## precipitación, termodinámica y fricción.
 
@@ -270,62 +270,15 @@ func surface_temperature_at_vehicle() -> Dictionary:
 
 ## Aplica el clima a los adaptadores visuales/sonoros desde la fuente única.
 ## Con calendario activo se desactiva la selección aleatoria autónoma de TCA.
-func apply_to_adapters(sky_dome: Node, tca_controller: Node, wetness: Node, hour: float) -> void:
+func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: float) -> void:
 	if not calendar_active or current_blend.is_empty():
 		return
 	var climate: Dictionary = (visual_state.get("climate", current_blend.get("climate", {})) as Dictionary)
 	var solar := solar_factor_for_hour(hour)
 	var irr := float(climate.get("irradiance_w_m2", 200.0)) * solar
 	var visual: Dictionary = catalog.get("visual_response", {})
-	if sky_dome != null and sky_dome.has_method("apply_climate"):
-		sky_dome.call("apply_climate", climate, visual)
-	elif sky_dome != null and is_instance_valid(sky_dome):
-		sky_dome.set("cumulus_intensity", float(visual.get("cumulus_intensity", 0.68)))
-		sky_dome.set("cirrus_intensity", float(visual.get("cirrus_intensity", 0.55)))
-		sky_dome.set("cumulus_mie_intensity", float(visual.get("cumulus_mie_intensity", 0.22)))
-		var sunlight := clampf(irr / 800.0, 0.0, 1.0)
-		sky_dome.set("sun_light_energy", lerpf(float(visual.get("sun_energy_overcast", 0.22)), float(visual.get("sun_energy_clear", 1.05)), sunlight))
-		# Use a single depth-fog pass. The extra Sky3D screen-space scattering
-		# combined with fixed session fog washed out terrain and cloud detail.
-		sky_dome.set("fog_visible", false)
-		var fog_weight := clampf(float(climate.get("fog_density", 0.0)) / maxf(float(visual.get("fog_density_reference", 0.0045)), 0.00001), 0.0, 1.0)
-		var environment: Environment = sky_dome.get("environment")
-		if environment != null:
-			var end := lerpf(float(visual.get("fog_clear_end_m", 460.0)), float(visual.get("fog_storm_end_m", 175.0)), fog_weight)
-			environment.fog_enabled = true
-			environment.fog_mode = Environment.FOG_MODE_DEPTH
-			environment.fog_depth_begin = end * float(visual.get("fog_start_fraction", 0.22))
-			environment.fog_depth_end = end
-			# Table fog estilo Dreamcast: funde el horizonte con el domo del cielo
-			var sky_aff_clear := float(visual.get("fog_sky_affect_clear", 0.24))
-			var sky_aff_storm := float(visual.get("fog_sky_affect_storm", 0.42))
-			environment.fog_sky_affect = lerpf(sky_aff_clear, sky_aff_storm, fog_weight)
-			var clear_col: Array = visual.get("fog_color_clear", [0.64, 0.73, 0.82])
-			var storm_col: Array = visual.get("fog_color_overcast", [0.46, 0.50, 0.55])
-			var c_clear := Color(float(clear_col[0]), float(clear_col[1]), float(clear_col[2]))
-			var c_storm := Color(float(storm_col[0]), float(storm_col[1]), float(storm_col[2]))
-			var night_scale := clampf(solar * 0.85 + 0.15, 0.15, 1.0)
-			environment.fog_light_color = c_clear.lerp(c_storm, fog_weight) * night_scale
-			if environment.adjustment_enabled:
-				var sat_clear := float(visual.get("saturation_clear", 1.32))
-				var sat_storm := float(visual.get("saturation_storm", 1.12))
-				environment.adjustment_saturation = lerpf(sat_storm, sat_clear, sunlight)
-		# Iluminacion y sombras adaptadas al cielo: luz difusa y sombras atenuadas en tormenta
-		var sky_parent: Node = sky_dome.get_parent()
-		if sky_parent != null and is_instance_valid(sky_parent):
-			var sun := sky_parent.get("sun") as DirectionalLight3D
-			if sun != null and is_instance_valid(sun):
-				var shadow_op := lerpf(float(visual.get("shadow_opacity_overcast", 0.15)), float(visual.get("shadow_opacity_clear", 0.48)), sunlight)
-				sun.shadow_opacity = shadow_op
-			if sky_parent.get("ambient_energy") != null:
-				sky_parent.set("ambient_energy", lerpf(float(visual.get("ambient_energy_overcast", 0.58)), float(visual.get("ambient_energy_clear", 0.85)), sunlight))
-		# Despejado y Soleado comparten poca nubosidad pero son presets distintos.
-		sky_dome.set("cumulus_coverage", clampf(float(climate.get("cumulus_coverage", 0.5)), 0.0, 1.0))
-		sky_dome.set("cirrus_coverage", clampf(float(climate.get("cirrus_coverage", 0.5)), 0.0, 1.0))
-		sky_dome.set("fog_density", float(climate.get("fog_density", 0.0004)))
-		# La irradiancia tambien depende de la hora solar (noche sin sol).
-		if sky_dome.get("atm_sun_intensity") != null:
-			sky_dome.set("atm_sun_intensity", float(visual.get("atmosphere_sun_intensity", 6.5)))
+	if sky != null and sky.has_method("apply_climate"):
+		sky.call("apply_climate", climate, visual)
 	if tca_controller != null and is_instance_valid(tca_controller):
 		tca_controller.set_process(false)
 		# Fuente unica: congelar el avance autonomo y la ruleta de climas.

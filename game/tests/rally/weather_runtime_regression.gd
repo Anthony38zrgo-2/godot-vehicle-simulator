@@ -63,7 +63,7 @@ func run() -> void:
 	ctl.current_blend.climate.precipitation_mm_h = 8.0
 	ctl.current_blend.precipitation_kind = "rain"
 	ctl.visual_state = ctl.current_blend.duplicate(true)
-	ctl.apply_to_adapters(scene.weather_sky_dome, scene.weather_controller_node, scene.terrain_wetness, 12.0)
+	ctl.apply_to_adapters(scene.weather_sky_node, scene.weather_controller_node, scene.terrain_wetness, 12.0)
 	check(scene.weather_controller_node.particle_system != null and scene.weather_controller_node.particle_system.emitting, "calendar actually starts rain particles")
 	check(not scene.weather_controller_node.is_processing(), "TCA autonomous selection disabled")
 	for i in 20:

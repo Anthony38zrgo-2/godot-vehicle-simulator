@@ -1,0 +1,28 @@
+[remap]
+
+importer="cubemap_texture"
+type="CompressedCubemap"
+uid="uid://d0uqikuqmtaox"
+path.bptc="res://.godot/imported/cloudy_4.png-8cc2fa07c3b47eed5c96bb2613f8e78a.bptc.ccube"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://assets/weather/tropospheric/cloudy_4.png"
+dest_files=["res://.godot/imported/cloudy_4.png-8cc2fa07c3b47eed5c96bb2613f8e78a.bptc.ccube"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+slices/arrangement=3
