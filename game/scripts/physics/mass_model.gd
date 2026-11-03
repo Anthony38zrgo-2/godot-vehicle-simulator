@@ -2,6 +2,7 @@ class_name VehicleMassModel
 extends RefCounted
 
 var chassis_components: Array[Dictionary] = []
+var spare_component_baseline: Dictionary = {}
 var fuel_capacity_kg: float = 0.0
 var fuel_density_kg_per_litre: float = 0.0
 var fuel_tank_position_local: Vector3 = Vector3.ZERO
@@ -27,6 +28,7 @@ const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
 
 
 func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
+	spare_component_baseline.clear()
 	chassis_components.clear()
 	unsprung_mass_kg.fill(0.0)
 	wheel_spin_inertia.fill(0.0)
@@ -191,6 +193,18 @@ func step_fuel_slosh(dt: float, local_linear_accel_mps2: Vector3, fuel_mass_kg: 
 		SLOSH_MAX_DISPLACEMENT_M,
 	)
 
+
+func set_carried_spares(count: int, policy: Dictionary) -> void:
+	var name := str(policy.get("mass_component_name", "spare_wheels_and_tools"))
+	for component in chassis_components:
+		if str(component.get("name", "")) != name:
+			continue
+		if spare_component_baseline.is_empty():
+			spare_component_baseline = component.duplicate(true)
+		var mass := float(policy.get("tools_mass_kg", 7.0)) + count * float(policy.get("wheel_mass_kg", 18.0))
+		component.mass_kg = mass
+		component.inertia = (spare_component_baseline.inertia as Basis).scaled(Vector3.ONE * (mass / maxf(float(spare_component_baseline.mass_kg), 0.01)))
+		return
 
 func resolve(fuel_mass_kg: float) -> Dictionary:
 	var fuel_mass := clampf(fuel_mass_kg, 0.0, fuel_capacity_kg)

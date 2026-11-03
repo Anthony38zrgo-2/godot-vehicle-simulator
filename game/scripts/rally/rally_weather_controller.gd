@@ -148,24 +148,61 @@ func update_vehicle_position(world_pos: Vector3) -> Dictionary:
 	current_blend = surface.blended_state_at_distance(float(proj.get("progress_m", 0.0)))
 	current_blend["route_progress_m"] = float(proj.get("progress_m", 0.0))
 	current_blend["zone_index"] = current_zone
-	if visual_smoothing_s > 0.0:
-		# Los contactos consultan inmediatamente la zona correcta; el cielo se suaviza.
-		pass
-	else:
+	if visual_state.is_empty():
+		# Inicializar en el primer fix; después tick_visual aplica la inercia desacoplada.
 		visual_state = current_blend.duplicate(true)
 	return current_blend.duplicate(true)
 
 
 func tick_visual(delta_s: float) -> void:
+	if current_blend.is_empty():
+		return
+	if visual_state.is_empty() or delta_s >= 2.0:
+		visual_state = current_blend.duplicate(true)
+		visual_smoothing_s = 0.0
+		return
+
 	if visual_smoothing_s > 0.0:
 		visual_smoothing_s = maxf(visual_smoothing_s - delta_s, 0.0)
 		var t := 1.0 - clampf(visual_smoothing_s / 2.0, 0.0, 1.0)
 		t = t * t * (3.0 - 2.0 * t)
-		visual_state = SurfaceScript._lerp_states(visual_state, current_blend, clampf(t * 0.2 + 0.05, 0.0, 1.0))
+		visual_state = SurfaceScript._lerp_states(visual_state, current_blend, clampf(t * 0.3 + 0.1, 0.0, 1.0))
 		if visual_smoothing_s <= 0.0:
 			visual_state = current_blend.duplicate(true)
-	else:
-		visual_state = current_blend.duplicate(true)
+		return
+
+	# Inercia visual desacoplada por componente atmosférico:
+	# Cielo y nubes: adaptación lenta (~6.0s)
+	# Niebla: adaptación media (~4.0s)
+	# Precipitación y viento: adaptación rápida (~2.5s)
+	var tgt_climate: Dictionary = current_blend.get("climate", {})
+	var cur_climate: Dictionary = visual_state.get("climate", tgt_climate.duplicate(true))
+	var new_climate := cur_climate.duplicate(true)
+
+	var tau_sky := 6.0
+	var alpha_sky := 1.0 - exp(-delta_s / tau_sky)
+	for k in ["cumulus_coverage", "cirrus_coverage", "irradiance_w_m2", "air_temperature_c"]:
+		if tgt_climate.has(k):
+			new_climate[k] = lerpf(float(cur_climate.get(k, tgt_climate[k])), float(tgt_climate[k]), clampf(alpha_sky, 0.0, 1.0))
+
+	var tau_fog := 4.0
+	var alpha_fog := 1.0 - exp(-delta_s / tau_fog)
+	if tgt_climate.has("fog_density"):
+		new_climate["fog_density"] = lerpf(float(cur_climate.get("fog_density", tgt_climate["fog_density"])), float(tgt_climate["fog_density"]), clampf(alpha_fog, 0.0, 1.0))
+
+	var tau_precip := 2.5
+	var alpha_precip := 1.0 - exp(-delta_s / tau_precip)
+	for k in ["precipitation_mm_h", "wind_m_s"]:
+		if tgt_climate.has(k):
+			new_climate[k] = lerpf(float(cur_climate.get(k, tgt_climate[k])), float(tgt_climate[k]), clampf(alpha_precip, 0.0, 1.0))
+
+	if tgt_climate.has("wind_direction_deg"):
+		var diff := fposmod(float(tgt_climate["wind_direction_deg"]) - float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + 180.0, 360.0) - 180.0
+		new_climate["wind_direction_deg"] = fposmod(float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + diff * clampf(alpha_precip, 0.0, 1.0), 360.0)
+
+	visual_state["climate"] = new_climate
+	for k in ["air_c", "ground_c", "water_mm", "saturation", "snow_mm"]:
+		visual_state[k] = current_blend.get(k, visual_state.get(k, 0.0))
 
 
 ## Rescate/teletransporte: suavizar visualmente para no provocar un salto
@@ -240,39 +277,63 @@ func apply_to_adapters(sky_dome: Node, tca_controller: Node, wetness: Node, hour
 	var solar := solar_factor_for_hour(hour)
 	var irr := float(climate.get("irradiance_w_m2", 200.0)) * solar
 	var visual: Dictionary = catalog.get("visual_response", {})
-	if sky_dome != null and is_instance_valid(sky_dome):
-		sky_dome.set("cumulus_intensity", float(visual.get("cumulus_intensity", 0.42)))
-		sky_dome.set("cirrus_intensity", float(visual.get("cirrus_intensity", 0.35)))
-		sky_dome.set("cumulus_mie_intensity", float(visual.get("cumulus_mie_intensity", 0.15)))
+	if sky_dome != null and sky_dome.has_method("apply_climate"):
+		sky_dome.call("apply_climate", climate, visual)
+	elif sky_dome != null and is_instance_valid(sky_dome):
+		sky_dome.set("cumulus_intensity", float(visual.get("cumulus_intensity", 0.68)))
+		sky_dome.set("cirrus_intensity", float(visual.get("cirrus_intensity", 0.55)))
+		sky_dome.set("cumulus_mie_intensity", float(visual.get("cumulus_mie_intensity", 0.22)))
 		var sunlight := clampf(irr / 800.0, 0.0, 1.0)
-		sky_dome.set("sun_light_energy", lerpf(float(visual.get("sun_energy_overcast", 0.18)), float(visual.get("sun_energy_clear", 0.95)), sunlight))
+		sky_dome.set("sun_light_energy", lerpf(float(visual.get("sun_energy_overcast", 0.22)), float(visual.get("sun_energy_clear", 1.05)), sunlight))
 		# Use a single depth-fog pass. The extra Sky3D screen-space scattering
 		# combined with fixed session fog washed out terrain and cloud detail.
 		sky_dome.set("fog_visible", false)
+		var fog_weight := clampf(float(climate.get("fog_density", 0.0)) / maxf(float(visual.get("fog_density_reference", 0.0045)), 0.00001), 0.0, 1.0)
 		var environment: Environment = sky_dome.get("environment")
 		if environment != null:
-			var fog_weight := clampf(float(climate.get("fog_density", 0.0)) / maxf(float(visual.get("fog_density_reference", 0.004)), 0.00001), 0.0, 1.0)
-			var end := lerpf(float(visual.get("fog_clear_end_m", 800.0)), float(visual.get("fog_storm_end_m", 210.0)), fog_weight)
+			var end := lerpf(float(visual.get("fog_clear_end_m", 460.0)), float(visual.get("fog_storm_end_m", 175.0)), fog_weight)
 			environment.fog_enabled = true
 			environment.fog_mode = Environment.FOG_MODE_DEPTH
-			environment.fog_depth_begin = end * float(visual.get("fog_start_fraction", 0.2))
+			environment.fog_depth_begin = end * float(visual.get("fog_start_fraction", 0.22))
 			environment.fog_depth_end = end
-			environment.fog_sky_affect = 0.0
+			# Table fog estilo Dreamcast: funde el horizonte con el domo del cielo
+			var sky_aff_clear := float(visual.get("fog_sky_affect_clear", 0.24))
+			var sky_aff_storm := float(visual.get("fog_sky_affect_storm", 0.42))
+			environment.fog_sky_affect = lerpf(sky_aff_clear, sky_aff_storm, fog_weight)
+			var clear_col: Array = visual.get("fog_color_clear", [0.64, 0.73, 0.82])
+			var storm_col: Array = visual.get("fog_color_overcast", [0.46, 0.50, 0.55])
+			var c_clear := Color(float(clear_col[0]), float(clear_col[1]), float(clear_col[2]))
+			var c_storm := Color(float(storm_col[0]), float(storm_col[1]), float(storm_col[2]))
+			var night_scale := clampf(solar * 0.85 + 0.15, 0.15, 1.0)
+			environment.fog_light_color = c_clear.lerp(c_storm, fog_weight) * night_scale
+			if environment.adjustment_enabled:
+				var sat_clear := float(visual.get("saturation_clear", 1.32))
+				var sat_storm := float(visual.get("saturation_storm", 1.12))
+				environment.adjustment_saturation = lerpf(sat_storm, sat_clear, sunlight)
+		# Iluminacion y sombras adaptadas al cielo: luz difusa y sombras atenuadas en tormenta
+		var sky_parent: Node = sky_dome.get_parent()
+		if sky_parent != null and is_instance_valid(sky_parent):
+			var sun := sky_parent.get("sun") as DirectionalLight3D
+			if sun != null and is_instance_valid(sun):
+				var shadow_op := lerpf(float(visual.get("shadow_opacity_overcast", 0.15)), float(visual.get("shadow_opacity_clear", 0.48)), sunlight)
+				sun.shadow_opacity = shadow_op
+			if sky_parent.get("ambient_energy") != null:
+				sky_parent.set("ambient_energy", lerpf(float(visual.get("ambient_energy_overcast", 0.58)), float(visual.get("ambient_energy_clear", 0.85)), sunlight))
 		# Despejado y Soleado comparten poca nubosidad pero son presets distintos.
 		sky_dome.set("cumulus_coverage", clampf(float(climate.get("cumulus_coverage", 0.5)), 0.0, 1.0))
 		sky_dome.set("cirrus_coverage", clampf(float(climate.get("cirrus_coverage", 0.5)), 0.0, 1.0))
 		sky_dome.set("fog_density", float(climate.get("fog_density", 0.0004)))
-		# La irradiancia también depende de la hora solar (noche sin sol).
+		# La irradiancia tambien depende de la hora solar (noche sin sol).
 		if sky_dome.get("atm_sun_intensity") != null:
-			sky_dome.set("atm_sun_intensity", float(visual.get("atmosphere_sun_intensity", 6.0)))
+			sky_dome.set("atm_sun_intensity", float(visual.get("atmosphere_sun_intensity", 6.5)))
 	if tca_controller != null and is_instance_valid(tca_controller):
 		tca_controller.set_process(false)
-		# Fuente única: congelar el avance autónomo y la ruleta de climas.
+		# Fuente unica: congelar el avance autonomo y la ruleta de climas.
 		if tca_controller.get("time_speed_multiplier") != null and float(tca_controller.get("time_speed_multiplier")) != 0.0:
 			tca_controller.set("time_speed_multiplier", 0.0)
 		var precip := float(climate.get("precipitation_mm_h", 0.0))
 		var raining := precip >= 0.4
-		# Exponer intensidad a los adaptadores que la lean (sonido/partículas).
+		# Exponer intensidad a los adaptadores que la lean (sonido/particulas).
 		tca_controller.set_meta("calendar_precip_mm_h", precip)
 		tca_controller.set_meta("calendar_raining", raining)
 		var kind := str(current_blend.get("precipitation_kind", "rain"))
@@ -292,26 +353,64 @@ func apply_to_adapters(sky_dome: Node, tca_controller: Node, wetness: Node, hour
 				particles = packed.instantiate() as GPUParticles3D
 				if particles != null:
 					if kind == "rain":
-						particles.trail_lifetime = float(visual.get("rain_trail_seconds", 0.06))
+						particles.trail_lifetime = float(visual.get("rain_trail_seconds", 0.045))
 						var mesh := particles.draw_pass_1.duplicate() as Mesh
 						var material := ShaderMaterial.new()
 						material.shader = load("res://scripts/rally/rally_rain.gdshader")
-						material.set_shader_parameter("opacity", float(visual.get("rain_opacity", 0.4)))
+						material.set_shader_parameter("opacity", float(visual.get("rain_opacity", 0.65)))
 						# Fade drops close to the camera; a ribbon crossing the
 						# near plane otherwise expands into a screen-sized stripe.
-						material.set_shader_parameter("near_start_m", float(visual.get("rain_near_fade_start_m", 1.0)))
-						material.set_shader_parameter("near_end_m", float(visual.get("rain_near_fade_end_m", 4.0)))
+						material.set_shader_parameter("near_start_m", float(visual.get("rain_near_fade_start_m", 0.8)))
+						material.set_shader_parameter("near_end_m", float(visual.get("rain_near_fade_end_m", 3.2)))
+						material.set_shader_parameter("far_start_m", float(visual.get("rain_far_fade_start_m", 22.0)))
+						material.set_shader_parameter("far_end_m", float(visual.get("rain_far_fade_end_m", 38.0)))
+						material.set_shader_parameter("ambient_luma", clampf(irr / 400.0, 0.40, 1.0))
 						if mesh is RibbonTrailMesh:
-							mesh.size = float(visual.get("rain_width_m", 0.04))
+							var rmesh := mesh as RibbonTrailMesh
+							rmesh.size = float(visual.get("rain_width_m", 0.025))
+							# Anular la curva que reducia el grosor real de la cinta al 4.6%
+							rmesh.curve = null
 						mesh.surface_set_material(0, material)
 						particles.draw_pass_1 = mesh
+					elif kind == "snow":
+						var mesh := particles.draw_pass_1.duplicate() as Mesh
+						if mesh is QuadMesh:
+							var snow_s: float = float(visual.get("snow_size_m", 0.26))
+							(mesh as QuadMesh).size = Vector2(snow_s, snow_s)
+						var mat := mesh.surface_get_material(0)
+						if mat is StandardMaterial3D:
+							var smat := mat.duplicate() as StandardMaterial3D
+							smat.albedo_color = Color(1.0, 1.0, 1.0, float(visual.get("snow_opacity", 0.85)))
+							smat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+							smat.distance_fade_min_distance = float(visual.get("rain_near_fade_start_m", 0.8))
+							smat.distance_fade_max_distance = float(visual.get("rain_near_fade_end_m", 3.2))
+							mesh.surface_set_material(0, smat)
+							particles.draw_pass_1 = mesh
 					tca_controller.add_child(particles)
 			tca_controller.set("particle_system", particles)
 			tca_controller.set_meta("calendar_particle_kind", kind)
 		if particles != null:
-			particles.emitting = precip > 0.01 and kind != "none"
-			particles.amount_ratio = clampf(precip / maxf(float(adapter.get("full_intensity_mm_h", 20.0)), 0.01), 0.0, 1.0)
+			particles.emitting = precip > 0.005 and kind != "none"
+			var full_int := maxf(float(adapter.get("full_intensity_mm_h", 12.0)), 0.01)
+			var base_ratio := clampf(precip / full_int, 0.0, 1.0)
+			# Rampa suave continua sin salto brusco a 0.18:
+			var entry_ramp := smoothstep(0.005, 0.40, precip)
+			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if precip > 0.005 else 0.0
 			particles.global_position = last_vehicle_pos + Vector3.UP * 10.0
+			# Orientacion de lluvia/nieve segun el viento local
+			var pm := particles.process_material as ParticleProcessMaterial
+			if pm != null:
+				var wind_speed := float(climate.get("wind_m_s", 0.0))
+				var wind_deg := float(climate.get("wind_direction_deg", 0.0))
+				var wind_rad := deg_to_rad(wind_deg)
+				var wind_drift := clampf(wind_speed / 14.0, 0.0, 0.75)
+				pm.direction = Vector3(cos(wind_rad) * wind_drift, -1.0, sin(wind_rad) * wind_drift).normalized()
+			if kind == "rain" and particles.draw_pass_1 != null:
+				var pmesh := particles.draw_pass_1 as Mesh
+				if pmesh != null:
+					var pmat := pmesh.surface_get_material(0) as ShaderMaterial
+					if pmat != null:
+						pmat.set_shader_parameter("ambient_luma", clampf(irr / 400.0, 0.40, 1.0))
 	if wetness != null and is_instance_valid(wetness):
 		var w := clampf(float(current_blend.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 		if wetness.has_method("set_rain_intensity"):

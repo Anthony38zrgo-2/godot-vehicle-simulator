@@ -32,6 +32,8 @@ func run() -> void:
 	check(scene.session_ready and scene.awaiting_setup and paused, "initial mandatory garage pauses session")
 	check(scene.terrain_wetness != null, "retro mode keeps wet surface visuals enabled")
 	scene.garage_panel.draft_compound_id = "gravel_wet"
+	for key in scene.garage_panel.draft_wheel_compounds:
+		scene.garage_panel.draft_wheel_compounds[key] = "gravel_wet"
 	scene.garage_panel.close_garage(true)
 	check(not paused and not scene.awaiting_setup, "accept starts session")
 	check(scene.vehicle.get_tire_compound() == "gravel_wet", "selected compound applied")

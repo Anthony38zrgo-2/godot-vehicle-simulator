@@ -23,6 +23,8 @@ var tire_states: Array[Dictionary] = []
 var fuel_remaining_litres: float = 0.0
 var fuel_capacity_litres: float = 0.0
 var fuel_density_kg_litre: float = 0.74
+var fuel_specific_kg_kwh := 0.35
+var fuel_idle_kg_hour := 3.0
 var fuel_burned_litres: float = 0.0
 var ambient_temperature_c: float = 25.0
 var brake_thermal_config: Dictionary = {}
@@ -31,6 +33,7 @@ var brake_disc_area_m2: Array[float] = []
 var brake_disc_emissivity: Array[float] = []
 var active_compound_id: String = "gravel_normal"
 var active_compound: Dictionary = {}
+var wheel_compounds: Array[Dictionary] = []
 var compound_catalog: Dictionary = {}
 
 
@@ -56,6 +59,8 @@ func configure(domains: Dictionary) -> Dictionary:
 	pressure_mechanics_rear = _merged_config(pressure_mechanics, rear_tire.get("pressure_mechanics", {}))
 	ambient_temperature_c = float(tire_config.get("ambient_fallback_c", 25.0))
 	var fuel: Dictionary = domains.get("fuel", {}).get("fuel", {})
+	fuel_specific_kg_kwh = maxf(float(fuel.get("brake_specific_consumption_kg_per_kwh", 0.35)), 0.0)
+	fuel_idle_kg_hour = maxf(float(fuel.get("idle_consumption_kg_per_hour", 3.0)), 0.0)
 	fuel_density_kg_litre = float(fuel.get("density_kg_per_litre", 0.74))
 	fuel_capacity_litres = float(fuel.get("capacity_kg", 0.0)) / maxf(fuel_density_kg_litre, 0.000001)
 	fuel_remaining_litres = float(fuel.get("initial_kg", fuel.get("capacity_kg", 0.0))) / maxf(fuel_density_kg_litre, 0.000001)
@@ -93,6 +98,7 @@ func configure(domains: Dictionary) -> Dictionary:
 			"pressure_reference_bar_gauge": reference_pressure_bar,
 			"pressure_reference_temp_c": reference_temp,
 			"wear_fraction": 0.0,
+			"thermal_damage_fraction": 0.0,
 			"brake_disc_c": maxf(float(brake_thermal_config.get("initial_temperature_c", ambient_temperature_c)), ambient_temperature_c),
 			"brake_heating_w": 0.0,
 			"brake_cooling_w": 0.0,
@@ -115,6 +121,9 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
 		if parsed is Dictionary:
 			compound_catalog = parsed
 	active_compound = ((compound_catalog.get("compounds", {}) as Dictionary).get(cid, {}) as Dictionary).duplicate(true) if compound_catalog.has("compounds") else {}
+	wheel_compounds.clear()
+	for i in 4:
+		wheel_compounds.append(active_compound.duplicate(true))
 	_apply_compound_to_configs()
 
 
@@ -138,11 +147,15 @@ func _apply_compound_to_configs() -> void:
 		cfg["road_conductance_w_k"] = float(active_compound.get("road_conductance_w_k", cfg.get("road_conductance_w_k", 55.0)))
 		cfg["lateral_tread_conductance_w_k"] = float(active_compound.get("lateral_tread_conductance_w_k", cfg.get("lateral_tread_conductance_w_k", 25.0)))
 		cfg["slip_heat_efficiency"] = float(active_compound.get("slip_heat_efficiency", cfg.get("slip_heat_efficiency", 0.55)))
+		cfg["carcass_hysteresis_efficiency"] = float(active_compound.get("carcass_hysteresis_efficiency", cfg.get("carcass_hysteresis_efficiency", 0.55)))
 		set(key, cfg)
 
 
 func reset_for_stage(domains: Dictionary) -> void:
+	var mounted_tires := tire_states.duplicate(true)
+	var remaining_fuel := fuel_remaining_litres
 	configure(domains)
+	fuel_remaining_litres = clampf(remaining_fuel, 0.0, fuel_capacity_litres)
 	_apply_compound_to_configs()
 	fuel_burned_litres = 0.0
 	water_cooling_conductance_w_k = 0.0
@@ -155,6 +168,9 @@ func reset_for_stage(domains: Dictionary) -> void:
 		var tread := float(cfg.get("optimal_tread_temperature_c", 50.0))
 		var carcass := float(cfg.get("optimal_carcass_temperature_c", 60.0))
 		var state: Dictionary = tire_states[i]
+		if i < mounted_tires.size():
+			state.wear_fraction = float(mounted_tires[i].get("wear_fraction", 0.0))
+			state.thermal_damage_fraction = float(mounted_tires[i].get("thermal_damage_fraction", 0.0))
 		state.surface_c = tread
 		state.tread_c = tread
 		state.tread_zones_c = [tread, tread, tread]
@@ -201,6 +217,7 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
+	var compound := compound_for_wheel(index)
 	var axle_cfg := _axle_tire_config(index)
 	var axle_pressure_cfg := _axle_pressure_config(index)
 	var state: Dictionary = tire_states[index]
@@ -251,14 +268,14 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var water_gain := 1.0
 	var snow_gain := 1.0
 	var deform_gain := 1.0
-	if not active_compound.is_empty():
-		water_gain = float(active_compound.get("water_cooling_gain", 1.0))
-		snow_gain = float(active_compound.get("snow_cooling_gain", 1.0))
+	if not compound.is_empty():
+		water_gain = float(compound.get("water_cooling_gain", 1.0))
+		snow_gain = float(compound.get("snow_cooling_gain", 1.0))
 		# Lluvia acumula más calor en seco por deformación del dibujo.
 		if local_water < 0.4 and local_snow < 0.3:
-			deform_gain = float(active_compound.get("deformation_heating_dry", 1.0))
+			deform_gain = float(compound.get("deformation_heating_dry", 1.0))
 		else:
-			deform_gain = float(active_compound.get("deformation_heating_wet", 1.0))
+			deform_gain = float(compound.get("deformation_heating_wet", 1.0))
 	var water_cool_w_k := local_water * 9.0 * water_gain
 	var snow_cool_w_k := local_snow * 7.0 * snow_gain
 	for zone_index in 3:
@@ -297,10 +314,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
 	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
-	var wear_rate := 1.0e-9
-	if not active_compound.is_empty():
-		wear_rate = float(active_compound.get("wear_per_mj", 1.0e-9))
-	state.wear_fraction = clampf(float(state.wear_fraction) + maxf(friction_power_w, 0.0) * dt * wear_rate, 0.0, 1.0)
+	accumulate_tire_damage(state, friction_power_w, dt, compound)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
 	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s)
@@ -312,6 +326,21 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var next_disc_temperature := disc_temperature + (float(state.brake_heating_w) - cooling_w) / heat_capacity * dt
 	state.brake_disc_c = clampf(next_disc_temperature, ambient_temperature_c, 1200.0)
 	tire_states[index] = state
+
+func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: float, selected_compound: Dictionary = {}) -> void:
+	var compound := active_compound if selected_compound.is_empty() else selected_compound
+	dt = maxf(dt, 0.0) / maxf(float(compound_catalog.get("durability_life_scale", 1.0)), 0.01)
+	# Power * seconds is joules. The legacy key was misnamed but used /J.
+	var wear_rate := maxf(float(compound.get("wear_per_j", compound.get("wear_per_mj", 1.0e-9))), 0.0)
+	state.wear_fraction = clampf(float(state.get("wear_fraction", 0.0)) + maxf(friction_power_w, 0.0) * maxf(dt, 0.0) * wear_rate, 0.0, 1.0)
+	var hottest := float(state.tread_c)
+	for temperature in state.get("tread_zones_c", []):
+		hottest = maxf(hottest, float(temperature))
+	var start := float(compound.get("thermal_damage_start_c", compound.get("overheat_tread_c", 100.0)))
+	var reference := maxf(float(compound.get("thermal_damage_excess_reference_c", 20.0)), 0.001)
+	var severity := pow(maxf(hottest - start, 0.0) / reference, maxf(float(compound.get("thermal_damage_exponent", 2.0)), 0.1))
+	var rate := maxf(float(compound.get("thermal_damage_rate_per_s", 0.0)), 0.0)
+	state.thermal_damage_fraction = clampf(float(state.get("thermal_damage_fraction", 0.0)) + severity * rate * maxf(dt, 0.0), 0.0, 1.0)
 
 
 func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> Dictionary:
@@ -348,6 +377,7 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> D
 func tire_grip_factor(index: int) -> float:
 	if index < 0 or index >= tire_states.size():
 		return 1.0
+	var compound := compound_for_wheel(index)
 	var axle_cfg := _axle_tire_config(index)
 	var state: Dictionary = tire_states[index]
 	var optimum := float(axle_cfg.get("optimal_tread_temperature_c", 50.0))
@@ -357,12 +387,15 @@ func tire_grip_factor(index: int) -> float:
 	var tread := float(state.tread_c)
 	var overheat := float(axle_cfg.get("overheat_tread_temperature_c", 100.0))
 	var thermal_factor := 1.0
+	var cold_ramp := maxf(float(compound.get("cold_grip_ramp_c", 30.0)), 0.001)
+	var cold_floor := clampf(float(compound.get("cold_grip_floor", 0.80)), 0.0, 1.0)
 	if tread < lower:
-		thermal_factor = clampf(0.80 + 0.20 * clampf((tread - (lower - 30.0)) / 30.0, 0.0, 1.0), 0.70, 1.0)
+		thermal_factor = lerpf(cold_floor, 1.0, clampf((tread - (lower - cold_ramp)) / cold_ramp, 0.0, 1.0))
 	elif tread > upper:
-		thermal_factor = clampf(1.0 - 0.25 * clampf((tread - upper) / maxf(overheat - upper, 1.0), 0.0, 1.0), 0.70, 1.0)
-	var wear_factor := clampf(1.0 - 0.25 * float(state.wear_fraction), 0.70, 1.0)
-	return thermal_factor * wear_factor
+		thermal_factor = 1.0 - clampf(float(compound.get("overheat_grip_loss", 0.25)), 0.0, 1.0) * clampf((tread - upper) / maxf(overheat - upper, 1.0), 0.0, 1.0)
+	var wear_factor := 1.0 - clampf(float(compound.get("wear_grip_loss", 0.25)), 0.0, 1.0) * clampf(float(state.wear_fraction), 0.0, 1.0)
+	var damage_factor := 1.0 - clampf(float(compound.get("thermal_damage_grip_loss", 0.35)), 0.0, 1.0) * clampf(float(state.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
+	return thermal_factor * wear_factor * damage_factor
 
 
 func brake_fade_factor(index: int) -> float:
@@ -380,8 +413,9 @@ func brake_fade_factor(index: int) -> float:
 
 
 func advance_fuel(engine_power_w: float, delta: float) -> float:
-	# VehicleInternalState in vehicle-models uses 1.05e-7 litres per positive joule.
-	var burn := maxf(engine_power_w, 0.0) * maxf(delta, 0.0) * 1.05e-7
+	# Profile-specific consumption with an idle floor while fuel is available.
+	var kg_per_second := maxf(maxf(engine_power_w, 0.0) * fuel_specific_kg_kwh / 3600000.0, fuel_idle_kg_hour / 3600.0) if fuel_remaining_litres > 0.0 else 0.0
+	var burn := kg_per_second * maxf(delta, 0.0) / maxf(fuel_density_kg_litre, 0.000001)
 	var actual_burn := minf(fuel_remaining_litres, burn)
 	fuel_remaining_litres -= actual_burn
 	fuel_burned_litres += actual_burn
@@ -435,6 +469,7 @@ func get_tire_thermal_state_snapshot(index: int) -> Dictionary:
 		"pressure_bar_gauge": state.pressure_bar_gauge,
 		"pressure_kpa_gauge": float(state.pressure_bar_gauge) * 100.0,
 		"wear_fraction": state.wear_fraction,
+		"thermal_damage_fraction": state.get("thermal_damage_fraction", 0.0),
 		"brake_disc_c": state.brake_disc_c,
 		"brake_heating_w": state.get("brake_heating_w", 0.0),
 		"brake_cooling_w": state.get("brake_cooling_w", 0.0),
@@ -489,10 +524,26 @@ func _cooling_duct(duct: Dictionary, density: float, speed: float) -> Dictionary
 	return {"conductance": conductance, "drag": drag}
 
 
+func compound_for_wheel(index: int) -> Dictionary:
+	return wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
+
+func set_wheel_compound(index: int, compound_id: String) -> void:
+	while wheel_compounds.size() < 4:
+		wheel_compounds.append(active_compound.duplicate(true))
+	wheel_compounds[index] = (compound_catalog.get("compounds", {}).get(compound_id, {}) as Dictionary).duplicate(true)
+
 func _axle_tire_config(index: int) -> Dictionary:
-	if index < 2:
-		return tire_config_front if not tire_config_front.is_empty() else tire_config
-	return tire_config_rear if not tire_config_rear.is_empty() else tire_config
+	var base := tire_config_front if index < 2 else tire_config_rear
+	var cfg: Dictionary = (base if not base.is_empty() else tire_config).duplicate()
+	var compound := compound_for_wheel(index)
+	var aliases := {"optimal_tread_temperature_c": "tread_optimum_c", "optimal_tread_window_c": "tread_window_c", "overheat_tread_temperature_c": "overheat_tread_c", "optimal_carcass_temperature_c": "carcass_optimum_c"}
+	for key in aliases:
+		if compound.has(aliases[key]):
+			cfg[key] = compound[aliases[key]]
+	for key in compound:
+		if cfg.has(key):
+			cfg[key] = compound[key]
+	return cfg
 
 
 func _axle_pressure_config(index: int) -> Dictionary:

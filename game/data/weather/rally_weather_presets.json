@@ -1,20 +1,42 @@
 {
   "visual_response": {
-    "cumulus_intensity": 0.6,
-    "cirrus_intensity": 0.6,
-    "cumulus_mie_intensity": 0.15,
-    "sun_energy_clear": 0.95,
-    "sun_energy_overcast": 0.18,
-    "fog_clear_end_m": 800.0,
-    "fog_storm_end_m": 210.0,
-    "fog_density_reference": 0.004,
-    "fog_start_fraction": 0.2,
-    "rain_opacity": 0.4,
-    "rain_trail_seconds": 0.06,
-    "atmosphere_sun_intensity": 6.0,
-    "rain_width_m": 0.1,
-    "rain_near_fade_start_m": 1.0,
-    "rain_near_fade_end_m": 4.0
+    "cumulus_intensity": 0.68,
+    "cirrus_intensity": 0.55,
+    "cumulus_mie_intensity": 0.22,
+    "sun_energy_clear": 1.1,
+    "sun_energy_overcast": 0.24,
+    "ambient_energy_clear": 0.92,
+    "ambient_energy_overcast": 0.64,
+    "shadow_opacity_clear": 0.48,
+    "shadow_opacity_overcast": 0.15,
+    "fog_clear_end_m": 460.0,
+    "fog_storm_end_m": 175.0,
+    "fog_density_reference": 0.0045,
+    "fog_start_fraction": 0.22,
+    "fog_sky_affect_clear": 0.24,
+    "fog_sky_affect_storm": 0.42,
+    "fog_color_clear": [
+      0.64,
+      0.73,
+      0.82
+    ],
+    "fog_color_overcast": [
+      0.46,
+      0.5,
+      0.55
+    ],
+    "saturation_clear": 1.32,
+    "saturation_storm": 1.12,
+    "rain_opacity": 0.45,
+    "rain_trail_seconds": 0.045,
+    "atmosphere_sun_intensity": 6.5,
+    "rain_width_m": 0.025,
+    "rain_near_fade_start_m": 0.9,
+    "rain_near_fade_end_m": 3.6,
+    "rain_far_fade_start_m": 22.0,
+    "rain_far_fade_end_m": 38.0,
+    "snow_size_m": 0.22,
+    "snow_opacity": 0.65
   },
   "precipitation_adapter": {
     "rain_scene": "res://addons/TCA_Weather_System/particles/rain_particles.tscn",
@@ -36,35 +58,43 @@
     "pressure": "kPa"
   },
   "ordered_states": [
-    "clear",
     "sunny",
+    "clear",
+    "partly_cloudy",
     "cloudy",
+    "overcast",
+    "mist_fog",
+    "drizzle",
     "light_precipitation",
     "medium_precipitation",
     "heavy_precipitation"
   ],
   "state_labels": {
-    "clear": "Despejado; cielo abierto, baja nubosidad y menor irradiancia que Soleado",
-    "sunny": "Soleado; mayor irradiancia efectiva",
-    "cloudy": "Nublado",
-    "light_precipitation": "Precipitación ligera",
-    "medium_precipitation": "Precipitación media",
-    "heavy_precipitation": "Precipitación intensa"
+    "sunny": "Soleado; cielo brillante, máxima irradiancia efectiva y calentamiento",
+    "clear": "Despejado; cielo abierto fresco, baja nubosidad e irradiancia moderada",
+    "partly_cloudy": "Parcialmente nublado; claros y nubes dispersas",
+    "cloudy": "Nublado; cubierta nubosa uniforme y luz difusa",
+    "overcast": "Cubierto; cielo plomizo amenazante previo a precipitación",
+    "mist_fog": "Bruma / Niebla densa; visibilidad reducida y rocío sobre la superficie",
+    "drizzle": "Llovizna; precipitación muy fina que humedece progresivamente",
+    "light_precipitation": "Precipitación ligera; lluvia constante que moja el tramo",
+    "medium_precipitation": "Precipitación media; lluvia moderada con acumulación de agua",
+    "heavy_precipitation": "Precipitación intensa; aguacero tormentoso con baja visibilidad"
   },
   "presets": {
     "clear": {
       "label": "Despejado",
       "cumulus_coverage": [
-        0.04,
-        0.16
-      ],
-      "cirrus_coverage": [
-        0.05,
+        0.06,
         0.2
       ],
+      "cirrus_coverage": [
+        0.14,
+        0.32
+      ],
       "irradiance_w_m2": [
-        420.0,
-        620.0
+        480.0,
+        680.0
       ],
       "air_temperature_c": [
         14.0,
@@ -75,8 +105,8 @@
         0.0
       ],
       "fog_density": [
-        0.0,
-        0.0004
+        0.0001,
+        0.0005
       ],
       "wind_m_s": [
         1.0,
@@ -90,16 +120,16 @@
     "sunny": {
       "label": "Soleado",
       "cumulus_coverage": [
-        0.04,
-        0.18
+        0.02,
+        0.15
       ],
       "cirrus_coverage": [
-        0.05,
-        0.22
+        0.02,
+        0.12
       ],
       "irradiance_w_m2": [
-        640.0,
-        920.0
+        720.0,
+        960.0
       ],
       "air_temperature_c": [
         18.0,
@@ -111,11 +141,11 @@
       ],
       "fog_density": [
         0.0,
-        0.0003
+        0.0002
       ],
       "wind_m_s": [
         0.8,
-        4.0
+        3.8
       ],
       "wind_direction_deg": [
         0.0,
@@ -125,32 +155,32 @@
     "cloudy": {
       "label": "Nublado",
       "cumulus_coverage": [
-        0.55,
-        0.75
+        0.48,
+        0.68
       ],
       "cirrus_coverage": [
-        0.15,
-        0.35
+        0.32,
+        0.54
       ],
       "irradiance_w_m2": [
-        120.0,
-        280.0
+        210.0,
+        360.0
       ],
       "air_temperature_c": [
         12.0,
-        19.0
+        18.0
       ],
       "precipitation_mm_h": [
         0.0,
-        0.2
+        0.0
       ],
       "fog_density": [
-        0.0,
-        0.0012
+        0.0006,
+        0.0014
       ],
       "wind_m_s": [
         2.0,
-        6.5
+        6.0
       ],
       "wind_direction_deg": [
         0.0,
@@ -160,28 +190,28 @@
     "light_precipitation": {
       "label": "Precipitación ligera",
       "cumulus_coverage": [
-        0.75,
-        0.95
+        0.78,
+        0.9
       ],
       "cirrus_coverage": [
-        0.5,
-        0.8
+        0.6,
+        0.82
       ],
       "irradiance_w_m2": [
-        60.0,
-        160.0
+        50.0,
+        110.0
       ],
       "air_temperature_c": [
-        10.0,
-        17.0
+        9.0,
+        15.0
       ],
       "precipitation_mm_h": [
-        0.6,
-        2.5
+        1.5,
+        3.5
       ],
       "fog_density": [
-        0.0002,
-        0.002
+        0.0018,
+        0.003
       ],
       "wind_m_s": [
         2.5,
@@ -195,28 +225,28 @@
     "medium_precipitation": {
       "label": "Precipitación media",
       "cumulus_coverage": [
-        0.85,
-        1.0
+        0.86,
+        0.95
       ],
       "cirrus_coverage": [
-        0.6,
+        0.7,
         0.9
       ],
       "irradiance_w_m2": [
         30.0,
-        110.0
+        75.0
       ],
       "air_temperature_c": [
-        8.0,
-        15.0
+        7.0,
+        14.0
       ],
       "precipitation_mm_h": [
-        2.5,
+        3.5,
         8.0
       ],
       "fog_density": [
-        0.0005,
-        0.0035
+        0.0024,
+        0.0038
       ],
       "wind_m_s": [
         3.0,
@@ -230,32 +260,172 @@
     "heavy_precipitation": {
       "label": "Precipitación intensa",
       "cumulus_coverage": [
-        0.92,
+        0.94,
         1.0
       ],
       "cirrus_coverage": [
-        0.7,
+        0.85,
         1.0
       ],
       "irradiance_w_m2": [
         15.0,
-        70.0
+        45.0
       ],
       "air_temperature_c": [
-        6.0,
-        13.0
+        5.0,
+        12.0
       ],
       "precipitation_mm_h": [
         8.0,
         22.0
       ],
       "fog_density": [
-        0.001,
-        0.006
+        0.0038,
+        0.0055
       ],
       "wind_m_s": [
         4.0,
         11.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "partly_cloudy": {
+      "label": "Parcialmente nublado",
+      "cumulus_coverage": [
+        0.26,
+        0.46
+      ],
+      "cirrus_coverage": [
+        0.2,
+        0.42
+      ],
+      "irradiance_w_m2": [
+        340.0,
+        520.0
+      ],
+      "air_temperature_c": [
+        13.0,
+        20.0
+      ],
+      "precipitation_mm_h": [
+        0.0,
+        0.0
+      ],
+      "fog_density": [
+        0.0003,
+        0.0008
+      ],
+      "wind_m_s": [
+        1.5,
+        5.5
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "overcast": {
+      "label": "Cubierto",
+      "cumulus_coverage": [
+        0.68,
+        0.84
+      ],
+      "cirrus_coverage": [
+        0.5,
+        0.72
+      ],
+      "irradiance_w_m2": [
+        120.0,
+        220.0
+      ],
+      "air_temperature_c": [
+        11.0,
+        17.0
+      ],
+      "precipitation_mm_h": [
+        0.0,
+        0.25
+      ],
+      "fog_density": [
+        0.001,
+        0.002
+      ],
+      "wind_m_s": [
+        2.5,
+        7.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "mist_fog": {
+      "label": "Bruma / Niebla",
+      "cumulus_coverage": [
+        0.65,
+        0.88
+      ],
+      "cirrus_coverage": [
+        0.5,
+        0.75
+      ],
+      "irradiance_w_m2": [
+        80.0,
+        170.0
+      ],
+      "air_temperature_c": [
+        8.0,
+        14.0
+      ],
+      "precipitation_mm_h": [
+        0.05,
+        0.4
+      ],
+      "fog_density": [
+        0.0035,
+        0.0062
+      ],
+      "wind_m_s": [
+        0.5,
+        3.0
+      ],
+      "wind_direction_deg": [
+        0.0,
+        360.0
+      ]
+    },
+    "drizzle": {
+      "label": "Llovizna",
+      "cumulus_coverage": [
+        0.74,
+        0.88
+      ],
+      "cirrus_coverage": [
+        0.56,
+        0.78
+      ],
+      "irradiance_w_m2": [
+        70.0,
+        140.0
+      ],
+      "air_temperature_c": [
+        10.0,
+        16.0
+      ],
+      "precipitation_mm_h": [
+        0.4,
+        1.5
+      ],
+      "fog_density": [
+        0.0015,
+        0.0025
+      ],
+      "wind_m_s": [
+        2.0,
+        6.5
       ],
       "wind_direction_deg": [
         0.0,
@@ -267,15 +437,19 @@
     "russia_summer": {
       "label": "Rusia veraniega (junio, grava/tierra)",
       "initial_state_weights": {
+        "sunny": 2.8,
         "clear": 3.0,
-        "sunny": 3.0,
-        "cloudy": 4.0,
-        "light_precipitation": 2.0,
-        "medium_precipitation": 1.0,
-        "heavy_precipitation": 0.4
+        "partly_cloudy": 3.2,
+        "cloudy": 3.0,
+        "overcast": 2.2,
+        "mist_fog": 1.4,
+        "drizzle": 1.6,
+        "light_precipitation": 1.2,
+        "medium_precipitation": 0.6,
+        "heavy_precipitation": 0.2
       },
-      "within_stage_advance_weight": 0.55,
-      "within_stage_retreat_weight": 0.45,
+      "within_stage_advance_weight": 0.33,
+      "within_stage_retreat_weight": 0.32,
       "solar_elevation_uses_time_of_day": true,
       "night_irradiance_w_m2": 0.0,
       "precipitation_type": {
@@ -362,7 +536,9 @@
         "max_step_s": 5.0,
         "stable_gap_integration": "bounded_substeps_or_steady_state",
         "note": "No simular dos horas con un único dt."
-      }
+      },
+      "within_stage_stay_weight": 0.35,
+      "between_stages_stay_weight": 0.3
     }
   },
   "hud": {

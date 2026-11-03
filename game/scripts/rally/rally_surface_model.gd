@@ -58,23 +58,26 @@ func state_for_zone(zi: int) -> Dictionary:
 	return (zones[zi] as Dictionary).duplicate(true)
 
 
-## Interpolación espacial en límites de zona (smoothstep sobre la franja de
-## mezcla). Las franjas son interpolación, no otra zona.
+## Interpolación espacial continua en límites de zona (smoothstep sobre la franja de
+## mezcla). Las franjas son interpolación progresiva, no otra zona.
 func blended_state_at_distance(dist_m: float) -> Dictionary:
 	if zones.is_empty():
 		return {}
 	var zi := zone_index_at_distance(dist_m)
-	var z: Dictionary = zones[zi]
-	# Buscar si estamos dentro de la franja anterior al límite.
+	# Buscar si estamos dentro de la franja de mezcla entre zonas contiguas.
 	for boundary_index in range(1, zones.size()):
-		z = zones[boundary_index - 1]
-		var next: Dictionary = zones[boundary_index]
-		var boundary: float = float(next.get("start_distance_m", 0.0))
-		var blend: float = minf(float(z.get("blend_length_m", 50.0)), float(next.get("blend_length_m", 50.0)))
+		var prev_z: Dictionary = zones[boundary_index - 1]
+		var next_z: Dictionary = zones[boundary_index]
+		var boundary: float = float(next_z.get("start_distance_m", 0.0))
+		var blend: float = minf(float(prev_z.get("blend_length_m", 50.0)), float(next_z.get("blend_length_m", 50.0)))
+		var c_prev: float = float(prev_z.get("start_distance_m", 0.0)) + float(prev_z.get("length_m", 0.0)) * 0.5
+		var c_next: float = float(next_z.get("start_distance_m", 0.0)) + float(next_z.get("length_m", 0.0)) * 0.5
+		var span: float = maxf(c_next - c_prev, 10.0)
+		blend = clampf(maxf(blend, span * 0.75), 50.0, span)
 		var half := blend * 0.5
 		if absf(dist_m - boundary) <= half and half > 0.01:
 			var t := smoothstep(0.0, 1.0, clampf((dist_m - (boundary - half)) / (half * 2.0), 0.0, 1.0))
-			return _lerp_states(z, next, t)
+			return _lerp_states(prev_z, next_z, t)
 	return (zones[zi] as Dictionary).duplicate(true)
 
 
@@ -100,13 +103,18 @@ static func _lerp_states(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 	var mixed := {}
 	for ck in ca:
 		if cb.has(ck):
-			mixed[ck] = lerpf(float(ca[ck]), float(cb[ck]), t)
+			if ck == "wind_direction_deg":
+				var diff := fposmod(float(cb[ck]) - float(ca[ck]) + 180.0, 360.0) - 180.0
+				mixed[ck] = fposmod(float(ca[ck]) + diff * t, 360.0)
+			else:
+				mixed[ck] = lerpf(float(ca[ck]), float(cb[ck]), t)
 		else:
 			mixed[ck] = ca[ck]
 	out["climate"] = mixed
 	out["blend_t"] = t
 	out["blend_from"] = a.get("zone_index", 0)
 	out["blend_to"] = b.get("zone_index", 0)
+	out["zone_index"] = a.get("zone_index", 0) if t < 0.5 else b.get("zone_index", 0)
 	return out
 
 

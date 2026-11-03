@@ -37,15 +37,15 @@
       "name": "Handbrake",
       "deadzone": 0.5,
       "events": [
-        { "type": "physical_key", "physical_keycode": 32 }
+        { "type": "physical_key", "physical_keycode": 32 },
+        { "type": "gamepad_button", "button_index": 9 }
       ]
     },
     {
       "name": "Clutch",
       "deadzone": 0.5,
       "events": [
-        { "type": "physical_key", "physical_keycode": 88 },
-        { "type": "gamepad_button", "button_index": 9 }
+        { "type": "physical_key", "physical_keycode": 88 }
       ]
     },
     {
@@ -160,8 +160,7 @@
       "name": "Toggle Garage",
       "deadzone": 0.2,
       "events": [
-        { "type": "physical_key", "physical_keycode": 71 },
-        { "type": "gamepad_button", "button_index": 6 }
+        { "type": "physical_key", "physical_keycode": 71 }
       ]
     },
     {

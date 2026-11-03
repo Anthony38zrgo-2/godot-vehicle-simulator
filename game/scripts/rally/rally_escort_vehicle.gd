@@ -17,6 +17,8 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 var _blob_shadow_decal: Decal = null
 
 var simulation := FordRallyVehicleSimulation.new()
+var tire_inventory = preload("res://scripts/rally/rally_tire_inventory.gd").new()
+const TIRE_STATE_KEYS := ["surface_c", "tread_c", "tread_zones_c", "carcass_c", "gas_c", "pressure_bar_gauge", "pressure_reference_bar_gauge", "pressure_reference_temp_c", "wear_fraction", "thermal_damage_fraction"]
 var rally_profile: Dictionary = {}
 var rally_asset_manifest: Dictionary = {}
 var driving_assistance_state: Dictionary = {
@@ -167,9 +169,18 @@ func apply_vehicle_properties() -> void:
 
 
 func apply_setup_values(values: Dictionary) -> Dictionary:
-	var result := simulation.apply_setup_values(values)
+	var effective := values.duplicate(true)
+	var session := get_parent()
+	var retained_fuel := simulation.thermal_model.fuel_remaining_litres
+	var preserve_fuel := session != null and session.has_method("may_refuel") and not bool(session.call("may_refuel"))
+	if preserve_fuel:
+		effective["fuel.initial_kg"] = simulation.thermal_model.fuel_remaining_litres * simulation.mass_model.fuel_density_kg_per_litre
+	var result := simulation.apply_setup_values(effective)
 	if not bool(result.get("ok", false)):
 		return result
+	if preserve_fuel:
+		simulation.thermal_model.fuel_remaining_litres = retained_fuel
+		result.values["fuel.initial_kg"] = retained_fuel * simulation.mass_model.fuel_density_kg_per_litre
 	maximum_steering_angle = simulation.maximum_steering_angle_rad
 	var steering: Dictionary = simulation.domains.get("steering", {}).get("steering", {})
 	steering_speed = float(steering.get("steering_speed", steering_speed))
@@ -203,6 +214,7 @@ func service_new_tires(compound_id: String = "") -> void:
 		state.carcass_c = carcass_target
 		state.gas_c = carcass_target
 		state.wear_fraction = 0.0
+		state.thermal_damage_fraction = 0.0
 		# Presión coherente con gas: conserva el reglaje frío y recalcula.
 		var cold: Dictionary = (simulation.domains.get("tires", {}).get("tires", {}).get("pressure", {}) as Dictionary).get("cold_kpa_gauge", {})
 		var key: String = ["FL", "FR", "RL", "RR"][index]
@@ -458,6 +470,127 @@ func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 func prepare_for_stage() -> void:
 	simulation.thermal_model.reset_for_stage(simulation.domains)
 	_sync_mass_from_fuel()
+	if not tire_inventory.mounted.is_empty():
+		sync_tire_inventory()
+
+func tire_state(index: int) -> Dictionary:
+	var state := {}
+	for key in TIRE_STATE_KEYS:
+		state[key] = simulation.thermal_model.tire_states[index].get(key, 0.0)
+	return state.duplicate(true)
+
+func is_controls_enabled() -> bool:
+	var controller := get_parent().get_node_or_null("RallyInputController")
+	return bool(controller.controls_enabled) if controller != null else true
+
+func set_controls_enabled(enabled: bool) -> void:
+	var controller := get_parent().get_node_or_null("RallyInputController")
+	if controller != null:
+		controller.set_controls_enabled(enabled)
+
+func get_setup_snapshot() -> Dictionary:
+	ensure_tire_inventory()
+	var values := RallySetupCatalog.defaults(simulation.domains)
+	values["fuel.initial_kg"] = simulation.thermal_model.fuel_remaining_litres * simulation.mass_model.fuel_density_kg_per_litre
+	values["strategy.spare_wheels"] = tire_inventory.spares.size()
+	for i in 4:
+		values["strategy.wheel_compound." + ["FL", "FR", "RL", "RR"][i]] = tire_inventory.mounted[i].compound_id
+	return values
+
+func apply_setup_snapshot(values: Dictionary) -> Dictionary:
+	ensure_tire_inventory()
+	var physical := {}
+	var compounds := {}
+	var changed := false
+	for key in values:
+		if not str(key).begins_with("strategy."):
+			physical[key] = values[key]
+	for i in 4:
+		var wheel: String = ["FL", "FR", "RL", "RR"][i]
+		var compound := str(values.get("strategy.wheel_compound." + wheel, tire_inventory.mounted[i].compound_id))
+		if not RallyTireCompound.is_valid(compound):
+			return {"ok": false, "error": "Compuesto no disponible: " + compound}
+		compounds[wheel] = compound
+		changed = changed or compound != str(tire_inventory.mounted[i].compound_id)
+	var count := int(values.get("strategy.spare_wheels", tire_inventory.spares.size()))
+	changed = changed or count != tire_inventory.spares.size()
+	if changed and get_parent().has_method("may_service_tires") and not bool(get_parent().call("may_service_tires")):
+		return {"ok": false, "error": "En tramo solo se intercambian las ruedas del inventario de pausa."}
+	var result := apply_setup_values(physical)
+	if bool(result.get("ok", false)):
+		service_tire_inventory(compounds, count)
+	return result
+
+func fresh_tire_state(compound: String, index: int = 0) -> Dictionary:
+	var state := tire_state(index)
+	var catalog := RallyTireCompound.load_catalog()
+	var data: Dictionary = catalog.compounds[compound]
+	var tread := float(data.tread_optimum_c)
+	var carcass := float(data.carcass_optimum_c)
+	state.merge({"wear_fraction": 0.0, "thermal_damage_fraction": 0.0, "tread_c": tread, "surface_c": tread, "tread_zones_c": [tread, tread, tread], "carcass_c": carcass, "gas_c": carcass}, true)
+	var atmosphere := 1.01325
+	state.pressure_bar_gauge = (float(state.pressure_reference_bar_gauge) + atmosphere) * (carcass + 273.15) / (float(state.pressure_reference_temp_c) + 273.15) - atmosphere
+	return state
+
+func ensure_tire_inventory() -> void:
+	if not tire_inventory.mounted.is_empty():
+		return
+	var catalog := RallyTireCompound.load_catalog()
+	var policy: Dictionary = catalog.get("inventory", {})
+	tire_inventory.capacity = int(policy.get("capacity", 2))
+	for i in 4:
+		tire_inventory.mounted.append(tire_inventory.item(simulation.active_compound_id, tire_state(i)))
+	for i in int(policy.get("default_spare_count", 2)):
+		tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
+	apply_tire_inventory()
+
+func sync_tire_inventory() -> void:
+	for i in tire_inventory.mounted.size():
+		tire_inventory.mounted[i].state = tire_state(i)
+
+func apply_tire_inventory() -> void:
+	for i in tire_inventory.mounted.size():
+		var tire: Dictionary = tire_inventory.mounted[i]
+		simulation.thermal_model.set_wheel_compound(i, tire.compound_id)
+		simulation.tire_model.set_wheel_compound(i, tire.compound_id)
+		for key in TIRE_STATE_KEYS:
+			if tire.state.has(key):
+				simulation.thermal_model.tire_states[i][key] = tire.state[key]
+	var policy: Dictionary = RallyTireCompound.load_catalog().get("inventory", {})
+	simulation.mass_model.set_carried_spares(tire_inventory.spares.size(), policy)
+	_applied_fuel_mass_kg = -1.0
+	_sync_mass_from_fuel()
+
+func exchange_tire(wheel: int, spare_id: int, keep_removed: bool) -> bool:
+	ensure_tire_inventory()
+	sync_tire_inventory()
+	if not tire_inventory.swap(wheel, spare_id, keep_removed):
+		return false
+	apply_tire_inventory()
+	simulation.tire_model.reset_patch(wheel)
+	return true
+
+func discard_spare(spare_id: int) -> bool:
+	ensure_tire_inventory()
+	sync_tire_inventory()
+	if not tire_inventory.discard(spare_id):
+		return false
+	apply_tire_inventory()
+	return true
+
+func service_tire_inventory(wheel_compounds: Dictionary, spare_count: int, replace_all: bool = false) -> void:
+	ensure_tire_inventory()
+	sync_tire_inventory()
+	for i in 4:
+		var compound := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
+		if replace_all or compound != str(tire_inventory.mounted[i].compound_id):
+			tire_inventory.mounted[i] = tire_inventory.item(compound, fresh_tire_state(compound, i))
+	var count := clampi(spare_count, 0, tire_inventory.capacity)
+	while tire_inventory.spares.size() > count:
+		tire_inventory.spares.pop_back()
+	while tire_inventory.spares.size() < count:
+		tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
+	apply_tire_inventory()
 
 
 func record_impact(_other_body: Node) -> void:

@@ -12,6 +12,8 @@ var vehicle: RallyEscortVehicle
 var retro_hud: RetroHudDisplay
 var driving_controls: Control
 var aid_message: Label
+var partial_message: Label
+var partial_remaining_seconds := 0.0
 var telemetry_path: String = ""
 var session_state: Dictionary = {}
 var status_remaining_seconds: float = 0.0
@@ -48,6 +50,12 @@ func _ready() -> void:
 		aid_message.add_theme_color_override("font_outline_color", hud_palette.background_color)
 		aid_message.add_theme_color_override("font_shadow_color", hud_palette.background_color)
 		aid_message.visible = false
+		partial_message = aid_message.duplicate() as Label
+		partial_message.name = "PartialMessage"
+		add_child(partial_message)
+		partial_message.add_theme_color_override("font_color", Color.WHITE)
+		partial_message.anchor_top = 0.25
+		partial_message.anchor_bottom = 0.25
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if retro_hud != null and vehicle != null:
 		retro_hud.set_powertrain_configuration({
@@ -85,7 +93,25 @@ func show_status(message: String, color: Color = Color.WHITE, duration_seconds: 
 	status_remaining_seconds = duration_seconds
 
 
+func show_partial(index: int, delta_ms: Variant) -> void:
+	if partial_message == null:
+		return
+	if delta_ms == null:
+		partial_message.text = "Parcial %d,  —" % index
+		partial_message.modulate = hud_palette.digital_color
+	else:
+		var difference := int(delta_ms)
+		partial_message.text = "Parcial %d,  %+.3f" % [index, float(difference) / 1000.0]
+		partial_message.modulate = hud_palette.thermal_optimal_color if difference < 0 else (hud_palette.thermal_hot_color if difference > 0 else hud_palette.digital_color)
+	partial_message.visible = true
+	partial_remaining_seconds = 3.0
+
+
 func _process(delta: float) -> void:
+	if partial_remaining_seconds > 0.0:
+		partial_remaining_seconds = maxf(0.0, partial_remaining_seconds - delta)
+		if partial_remaining_seconds <= 0.0 and partial_message != null:
+			partial_message.visible = false
 	if status_remaining_seconds > 0.0:
 		status_remaining_seconds = maxf(0.0, status_remaining_seconds - delta)
 		if status_remaining_seconds <= 0.0 and aid_message != null:
@@ -124,8 +150,8 @@ func update_retro_hud() -> void:
 		gear_label,
 		float(oil.get("temperature_c", -1.0)),
 		float(water.get("temperature_c", -1.0)),
-		float(fuel.get("remaining_kg", -1.0)),
-		float(fuel.get("capacity_kg", -1.0)),
+		float(fuel.get("remaining_litres", -1.0)),
+		float(fuel.get("capacity_litres", -1.0)),
 		0.0,
 		false,
 		0.0,
@@ -146,6 +172,14 @@ func update_thermal_readout() -> void:
 		if vehicle.simulation.has_method("surface_temperature_for_hud"):
 			surface_temp = vehicle.simulation.surface_temperature_for_hud()
 	published["surface_temp"] = surface_temp
+	var air_c: Variant = null
+	if vehicle != null and vehicle.simulation != null:
+		var weather = vehicle.simulation.weather_controller
+		if weather != null and bool(weather.get("calendar_active")):
+			air_c = weather.current_blend.get("air_c")
+		elif vehicle.simulation.thermal_model != null:
+			air_c = vehicle.simulation.thermal_model.ambient_temperature_c
+	published["air_temp_c"] = air_c
 	if formula_panels != null:
 		formula_panels.call("present", published, tire_config)
 	var factor := minf(size.x / 1920.0, size.y / 1080.0)

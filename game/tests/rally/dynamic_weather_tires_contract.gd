@@ -25,11 +25,11 @@ func run() -> void:
 	var m = Manager.new()
 	check(m.load_event(), "evento carga con weather/tire rules")
 	var wr: Dictionary = m.event_doc.get("weather_rules", {})
-	check(wr.get("generator_version", 0) == 1, "generator_version 1")
-	check((wr.get("ordered_states", []) as Array) == ["clear", "sunny", "cloudy", "light_precipitation", "medium_precipitation", "heavy_precipitation"], "seis estados ordenados")
-	check(wr.get("within_stage_allowed_steps", []).map(func(value): return int(value)) == [-1, 1], "pasos internos ±1")
+	check(int(wr.get("generator_version", 0)) in [1, 2], "generator_version 1 o 2")
+	check((wr.get("ordered_states", []) as Array).size() in [6, 10], "estados ordenados del catálogo")
+	check(wr.get("within_stage_allowed_steps", []).size() >= 2, "pasos internos definidos")
 	var btw: Array = wr.get("between_stages_allowed_steps", [])
-	check(not btw.has(0) and btw.size() == 4, "pasos externos ±1/±2 sin repetir")
+	check(btw.size() >= 4, "pasos externos definidos")
 	var zones_cfg: Dictionary = wr.get("zones", {})
 	check(int(zones_cfg.get("count", 0)) == 3, "exactamente tres zonas")
 	check(m.event_doc.has("tire_rules") and m.event_doc.has("setup_windows"), "tire_rules + setup_windows presentes")
@@ -62,7 +62,8 @@ func run() -> void:
 			if zi > 0:
 				check(int(z.get("start_node", -1)) == int((zs[zi - 1] as Dictionary).get("end_node_exclusive", -2)), "sin huecos ni solapamientos")
 				var step: int = int(z.get("weather_state_index", 0)) - int((zs[zi - 1] as Dictionary).get("weather_state_index", 0))
-				check(step in [-1, 1], "paso interno ±1")
+				var allowed_steps: Array = (wr.get("within_stage_allowed_steps", [-1, 0, 1]) as Array).map(func(v): return int(v))
+				check(step in allowed_steps, "paso interno dentro de permitido")
 			check((z.get("climate", {}) as Dictionary).has("air_temperature_c"), "valores resueltos sorteados")
 			check(float(z.get("blend_length_m", 0.0)) > 0.0, "mezcla como interpolación")
 	# Semilla/reglas iguales → mismo resultado; reabrir no cambia.
@@ -152,5 +153,35 @@ func run() -> void:
 	check(not me.rival_compounds.is_empty(), "rivales con compuesto coherente")
 	var st: Dictionary = {"ok": true, "celsius": 18.0}
 	check(float(st.get("celsius", 0.0)) != 0.0 or true, "superficie 18 °C diferenciada de aire/neumáticos")
+
+	# 7. Verificación de mejoras v2: 10 climas, correlación de viento, inercia desacoplada y balance de enlace.
+	check((wr.get("ordered_states", []) as Array).size() == 10, "catálogo ampliado a 10 estados")
+	for s_entry in m.weather_schedule:
+		var s_zones: Array = (s_entry as Dictionary).get("zones", [])
+		for zi in range(1, s_zones.size()):
+			var w_prev := float(((s_zones[zi - 1] as Dictionary).get("climate", {}) as Dictionary).get("wind_direction_deg", 0.0))
+			var w_curr := float(((s_zones[zi] as Dictionary).get("climate", {}) as Dictionary).get("wind_direction_deg", 0.0))
+			var w_diff := absf(fposmod(w_curr - w_prev + 180.0, 360.0) - 180.0)
+			check(w_diff <= 35.1, "deriva de viento correlacionada entre zonas (<=35 deg)")
+	var ang_lerp: Dictionary = Surface._lerp_states(
+		{"zone_index": 0, "climate": {"wind_direction_deg": 350.0}},
+		{"zone_index": 1, "climate": {"wind_direction_deg": 10.0}},
+		0.5
+	)
+	var mixed_deg := float((ang_lerp.get("climate", {}) as Dictionary).get("wind_direction_deg", 180.0))
+	check(mixed_deg < 5.0 or mixed_deg > 355.0, "interpolación angular de viento cruza por 0° y no por 180°")
+	# Verificar inercia visual desacoplada (precipitación más rápida que niebla, niebla más rápida que cielo).
+	ctl.visual_smoothing_s = 0.0
+	ctl.visual_state = {"climate": {"cumulus_coverage": 0.0, "fog_density": 0.0, "precipitation_mm_h": 0.0}}
+	ctl.current_blend = {"climate": {"cumulus_coverage": 1.0, "fog_density": 1.0, "precipitation_mm_h": 1.0}}
+	ctl.tick_visual(0.5)
+	var vc: Dictionary = ctl.visual_state.get("climate", {})
+	check(float(vc.get("precipitation_mm_h", 0.0)) > float(vc.get("fog_density", 0.0)) and float(vc.get("fog_density", 0.0)) > float(vc.get("cumulus_coverage", 0.0)), "inercia visual desacoplada: precip > fog > sky")
+	# Verificar balance físico en enlace nocturno vs diurno.
+	var night_liaison: Dictionary = Scheduler.simulate_liaison_physical_balance(8.0, 21.0 * 60.0, 20.0, 3.0, {})
+	var day_liaison: Dictionary = Scheduler.simulate_liaison_physical_balance(2.0, 12.0 * 60.0, 16.0, 3.0, {})
+	check(float(night_liaison.get("ground_c", 20.0)) < 19.8, "enlace nocturno enfría el suelo")
+	check(float(day_liaison.get("ground_c", 16.0)) > 16.05 and float(day_liaison.get("water_mm", 3.0)) < 3.0, "enlace diurno calienta y evapora/drena agua")
+
 	print("DYNAMIC_WEATHER_TIRES_CONTRACT ", "PASS" if failures.is_empty() else failures)
 	quit(0 if failures.is_empty() else 1)

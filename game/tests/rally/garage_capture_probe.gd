@@ -8,6 +8,7 @@ var vehicle: RallyEscortVehicle
 var garage: Control
 var frame_count := 0
 var out_dir := "user://garage_recalibrated_v2/"
+var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/eb4dd1c3-160a-4704-9234-decca75916c2/"
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))
@@ -33,29 +34,41 @@ func _process(delta: float) -> bool:
 		garage.call("open_garage_for_event", {
 			"forecast_summary": "Cielo nublado · Humedad 60%",
 			"forecast_advice": "Compuesto sugerido: Normal",
-			"window_label": "Asistencia Previa al Rally"
+			"window_label": "Asistencia de Competición"
 		})
+		garage.set("page", 1)
+		garage.set("active_subsystem_idx", 2)
+		garage.set("active_subparam_idx", 0)
+		garage.queue_redraw()
 		print("Garage opened: visible=", garage.visible, " page=", garage.get("page"))
 	elif frame_count == 6:
-		_save_capture("page_0.png")
-		garage.call("_set_page", 1)
+		_save_capture("cmr_page_0.png")
+		garage.set("page", 1)
+		garage.set("active_subsystem_idx", 0)
+		garage.set("active_subparam_idx", 0)
+		garage.queue_redraw()
 	elif frame_count == 9:
-		_save_capture("page_1.png")
-		garage.call("_set_page", 2)
+		_save_capture("cmr_page_1.png")
+		garage.set("page", 1)
+		garage.set("active_subsystem_idx", 1)
+		garage.set("active_subparam_idx", 0)
+		garage.queue_redraw()
 	elif frame_count == 12:
-		_save_capture("page_2.png")
-		garage.call("_set_page", 3)
+		_save_capture("cmr_page_2.png")
+		garage.set("page", 2)
+		garage.queue_redraw()
 	elif frame_count == 15:
-		_save_capture("page_3.png")
-		garage.call("_set_page", 4)
+		_save_capture("cmr_page_3.png")
+		garage.set("page", 3)
+		garage.queue_redraw()
 	elif frame_count == 18:
-		_save_capture("page_4.png")
+		_save_capture("cmr_page_4.png")
 		garage.set("modal_mode", "name")
 		garage.set("modal_text", "Rally Asfalto Mixto")
 		garage.queue_redraw()
 	elif frame_count == 21:
-		_save_capture("modal_name.png")
-		print("All captures completed successfully!")
+		_save_capture("cmr_modal_name.png")
+		print("All Colin McRae minimal Y2K captures completed successfully!")
 		quit(0)
 	return false
 
@@ -64,4 +77,6 @@ func _save_capture(filename: String) -> void:
 	if img != null:
 		var p := out_dir + filename
 		img.save_png(p)
-		print("Captured: ", filename)
+		var p_brain := brain_dir + filename
+		img.save_png(p_brain)
+		print("Captured: ", filename, " to ", p_brain)

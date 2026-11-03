@@ -25,6 +25,7 @@ var _original_roughness: Array[float] = []
 var _original_albedo: Array[Color] = []
 var _applied_wetness: float = -1.0
 var _material_zones: Array[int] = []
+var _material_distances_m: Array[float] = []
 var _material_nodes: Array[MeshInstance3D] = []
 var _applied_zone_wetness: Array[float] = [-1.0, -1.0, -1.0]
 
@@ -35,9 +36,11 @@ func _ready() -> void:
 
 func bind_visual_root(new_root: Node3D) -> void:
 	_materials.clear()
+	_last_material_wetness.clear()
 	_original_roughness.clear()
 	_original_albedo.clear()
 	_material_zones.clear()
+	_material_distances_m.clear()
 	_material_nodes.clear()
 	visual_root = new_root
 	if visual_root != null:
@@ -67,13 +70,26 @@ func set_zone_states(water_by_zone: Array) -> void:
 
 
 func assign_material_zones(route_points: Array, zone_bounds: Array) -> void:
-	# Máscara espacial por instancia de chunk: cada material duplicado ya es
-	# por instancia (no se modifican compartidos entre zonas).
+	# Máscara espacial continua por distancia de chunk proyectada sobre la ruta.
 	_material_zones.clear()
+	_material_distances_m.clear()
+
+	var route_dists: Array[float] = []
+	if shared_provider != null and "route_distances" in shared_provider and not (shared_provider.route_distances as Array).is_empty():
+		for rd in shared_provider.route_distances:
+			route_dists.append(float(rd))
+	else:
+		var accum := 0.0
+		route_dists.append(0.0)
+		for i in range(1, route_points.size()):
+			accum += (route_points[i] as Vector3).distance_to(route_points[i - 1] as Vector3)
+			route_dists.append(accum)
+
 	for n in _material_nodes.size():
 		var node := _material_nodes[n]
 		if node == null or not is_instance_valid(node):
 			_material_zones.append(0)
+			_material_distances_m.append(0.0)
 			continue
 		var p: Vector3 = node.to_global(node.get_aabb().get_center())
 		var best := 0
@@ -92,6 +108,11 @@ func assign_material_zones(route_points: Array, zone_bounds: Array) -> void:
 			elif best >= int(zone_bounds[1]):
 				zi = 1
 		_material_zones.append(zi)
+		var chunk_dist: float = route_dists[best] if best < route_dists.size() else 0.0
+		_material_distances_m.append(chunk_dist)
+	# Aplicar la distribución espacial continua de inmediato tras asignar distancias.
+	if shared_provider != null and shared_provider.get("surface") != null:
+		apply_zoned_wetness()
 	# Contar para diagnóstico sin oscurecer de golpe todo el mapa.
 	print("RALLY_TERRAIN_WETNESS zones assigned materials=", _materials.size())
 
@@ -134,9 +155,19 @@ func register_material(mesh_instance: MeshInstance3D, surface_index: int, materi
 	_original_albedo.append(duplicate.albedo_color)
 	_material_nodes.append(mesh_instance)
 	_material_zones.append(0)
+	_material_distances_m.append(0.0)
+
+
+var _visual_elapsed := 0.0
+var _last_material_wetness: Dictionary = {}
 
 
 func _process(delta: float) -> void:
+	_visual_elapsed += delta
+	if _visual_elapsed < 0.2:
+		return
+	delta = _visual_elapsed
+	_visual_elapsed = 0.0
 	if shared_provider != null and shared_provider.get("calendar_active"):
 		# Consumidor del proveedor único: no acumula por su cuenta.
 		_sync_from_provider()
@@ -175,26 +206,56 @@ func _sync_from_provider() -> void:
 
 
 func apply_zoned_wetness() -> void:
-	# Humedad por zona sin oscurecer de golpe todo el mapa.
+	# Humedad continua por distancia de chunk o por zona según disponibilidad.
+	var distance_cache: Dictionary = {}
+	var has_surface: bool = shared_provider != null and shared_provider.get("surface") != null
 	for index in _materials.size():
 		var material := _materials[index]
 		if not is_instance_valid(material):
 			continue
-		var zi := int(_material_zones[index]) if index < _material_zones.size() else current_zone
-		zi = clampi(zi, 0, zone_wetness.size() - 1)
-		_apply_to_material(index, material, zone_wetness[zi])
+		var w: float
+		if has_surface and index < _material_distances_m.size():
+			var dist_m: float = _material_distances_m[index]
+			var bucket := floori(dist_m / 25.0)
+			if not distance_cache.has(bucket):
+				distance_cache[bucket] = shared_provider.surface.blended_state_at_distance(float(bucket) * 25.0 + 12.5)
+			var blended: Dictionary = distance_cache[bucket]
+			w = clampf(float(blended.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
+		else:
+			var zi := int(_material_zones[index]) if index < _material_zones.size() else current_zone
+			zi = clampi(zi, 0, zone_wetness.size() - 1)
+			w = zone_wetness[zi]
+		_apply_to_material(index, material, w)
 
 
 func _apply_to_material(index: int, material: BaseMaterial3D, w: float) -> void:
+	if _last_material_wetness.has(index) and absf(float(_last_material_wetness[index]) - w) < 0.01:
+		return
+	_last_material_wetness[index] = w
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
 	var original_roughness: float = _original_roughness[index]
 	var target_roughness: float = maxf(original_roughness - maximum_roughness_drop, minimum_roughness)
 	material.roughness = lerpf(original_roughness, target_roughness, w)
+
+	# Brillo especular por vertice estilo Dreamcast (Gouraud Specular):
+	# En seco (SPECULAR_DISABLED), la pista no tiene reflejo plano moderno.
+	# Con humedad, Schlick-GGX por vertice genera destello satinado sobre la rasante.
+	if w > 0.02:
+		material.specular_mode = BaseMaterial3D.SPECULAR_SCHLICK_GGX
+		material.metallic_specular = lerpf(0.0, 0.42, w)
+	else:
+		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		material.metallic_specular = 0.0
+
 	var original_albedo: Color = _original_albedo[index]
-	var darkening := lerpf(1.0, 1.0 - maximum_albedo_darkening, w)
+	# Viraje cromatico en mojado: absorbe calidos y refleja el tono azulado frio
+	var r_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 1.08, w)
+	var g_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 0.96, w)
+	var b_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 0.72, w)
 	material.albedo_color = Color(
-		original_albedo.r * darkening,
-		original_albedo.g * darkening,
-		original_albedo.b * darkening,
+		original_albedo.r * r_dark,
+		original_albedo.g * g_dark,
+		original_albedo.b * b_dark,
 		original_albedo.a
 	)
 
@@ -204,14 +265,4 @@ func apply_wetness() -> void:
 		var material := _materials[index]
 		if not is_instance_valid(material):
 			continue
-		var original_roughness: float = _original_roughness[index]
-		var target_roughness: float = maxf(original_roughness - maximum_roughness_drop, minimum_roughness)
-		material.roughness = lerpf(original_roughness, target_roughness, wetness)
-		var original_albedo: Color = _original_albedo[index]
-		var darkening := lerpf(1.0, 1.0 - maximum_albedo_darkening, wetness)
-		material.albedo_color = Color(
-			original_albedo.r * darkening,
-			original_albedo.g * darkening,
-			original_albedo.b * darkening,
-			original_albedo.a
-		)
+		_apply_to_material(index, material, wetness)

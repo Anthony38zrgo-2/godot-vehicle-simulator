@@ -1,0 +1,22 @@
+{
+  "created": "2026-11-03",
+  "generator": "built-in image_gen tool",
+  "processing": "Original PNGs copied unchanged. Shader uses mirrored sampling to close edges; Godot imports use VRAM compression and mipmaps. Night and twilight are shader color treatments, not separately authored panoramas.",
+  "assets": [
+    {
+      "file": "clear_panorama.png",
+      "sha256": "d0b03d6989031ca61d72752209df4591314754741b8fd7ce64b1fd894b4e83d1",
+      "prompt": "Use case: stylized-concept. Asset type: production game sky texture, seamless equirectangular 360 degree panorama, 2:1 aspect ratio 2048x1024. Create a restrained late-1990s Dreamcast rally sky: blue muted zenith blending to pale blue gray horizon at image midheight, broad soft distant cloud banks only near horizon, mostly open sky above for a separate animated cloud layer. Lower hemisphere plain muted blue gray, no terrain. Painterly clean large shapes, no fine grain, no photographic HDR, no dramatic lighting. No sun, moon, stars, mountains, ground, buildings, text or watermark. Left and right edges must join perfectly; zenith top edge uniform color for spherical mapping. Horizon horizontal at exactly middle. Full image is the texture, no frames or presentation."
+    },
+    {
+      "file": "overcast_panorama.png",
+      "sha256": "5fc64f76b1f322e25e5917657863180e5f0bdc0cf2e9b5616c10724ba006dd5e",
+      "prompt": "Use case stylized-concept. Create a production equirectangular 360 sky panorama texture for a Dreamcast rally game, wide 2:1 2048x1024. Overcast sky with broad soft distant gray blue cloud banks near horizon at image middle, upper hemisphere smooth restrained blue gray with subtle cloud variation, lower hemisphere uniform gray blue. Clean painted late 1990s game art, large shapes, no fine noise, no dramatic storm fantasy, no HDR. No sun, no moon, no terrain, no water, no objects, no text. Left right edges seamless, top and bottom edges uniform to avoid spherical pinching. Image fills entire canvas."
+    },
+    {
+      "file": "cloud_density.png",
+      "sha256": "f066c4c42ed40c37b6b59daae4781d26f0e4284a43c4918abb941760d486d4f5",
+      "prompt": "Use case stylized-concept. Production game texture: a single seamless tileable 1024x1024 grayscale cloud density map, orthographic top view, for a simple late 1990s game sky cloud layer. Large soft coherent rounded cloud masses and open dark gaps. White dense clouds, midgray feathered margins, black clear sky. Soft painted broad shapes with modest internal variation, no fine grain or tiny noise. Uniform nondirectional illumination, no horizon, no perspective, no sun, no text, no objects, no borders. Edges must tile seamlessly horizontally and vertically. Opaque grayscale texture."
+    }
+  ]
+}

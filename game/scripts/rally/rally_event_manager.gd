@@ -38,6 +38,8 @@ var surface_continuity: Dictionary = {}
 var confirmed_compound_id: String = "gravel_normal"
 var draft_compound_id: String = "gravel_normal"
 var setup_values: Dictionary = {}
+var mounted_tire_condition: Array = []
+var tire_inventory_state: Dictionary = {}
 var setup_confirmed: bool = false
 var windows_attended: Dictionary = {}
 var pending_window: Dictionary = {}
@@ -89,6 +91,8 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	pending_window = {}
 	setup_confirmed = false
 	setup_values = {}
+	mounted_tire_condition.clear()
+	tire_inventory_state.clear()
 	# Compuesto inicial: borrador hasta Aceptar (no se consume ni se cronometra antes).
 	var requested_compound := str(choices.get("compound_id", choices.get("compound", "")))
 	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
@@ -447,6 +451,8 @@ func save() -> bool:
 		"confirmed_compound": confirmed_compound_id,
 		"draft_compound": draft_compound_id,
 		"setup_values": setup_values,
+		"mounted_tire_condition": mounted_tire_condition,
+		"tire_inventory_state": tire_inventory_state,
 		"setup_confirmed": setup_confirmed,
 		"windows_attended": windows_attended,
 		"pending_window": pending_window,
@@ -507,6 +513,8 @@ func restore() -> bool:
 	confirmed_compound_id = str(doc.get("confirmed_compound", "gravel_normal"))
 	draft_compound_id = str(doc.get("draft_compound", confirmed_compound_id))
 	setup_values = doc.get("setup_values", {})
+	mounted_tire_condition = doc.get("mounted_tire_condition", [])
+	tire_inventory_state = doc.get("tire_inventory_state", {})
 	setup_confirmed = bool(doc.get("setup_confirmed", false))
 	windows_attended = doc.get("windows_attended", {})
 	pending_window = doc.get("pending_window", {})

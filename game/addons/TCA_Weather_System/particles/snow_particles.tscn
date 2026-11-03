@@ -16,7 +16,7 @@ colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 gradient = SubResource("Gradient_mnwin")
 width = 32
 height = 32
-use_hdr = true
+use_hdr = false
 fill = 1
 fill_from = Vector2(0.508547, 0.517094)
 
@@ -24,11 +24,12 @@ fill_from = Vector2(0.508547, 0.517094)
 transparency = 1
 cull_mode = 2
 shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.95)
 albedo_texture = SubResource("GradientTexture2D_vnlua")
 
 [sub_resource type="QuadMesh" id="QuadMesh_is8c4"]
 material = SubResource("StandardMaterial3D_1vdnf")
-size = Vector2(0.1, 0.1)
+size = Vector2(0.24, 0.24)
 
 [node name="SnowParticles" type="GPUParticles3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)

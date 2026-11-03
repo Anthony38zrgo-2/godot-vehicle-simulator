@@ -437,6 +437,21 @@ func reconfigure_for_event_stage(stage_path: String, carried_health: Array = [])
 	player_previous_ms = keep_player_previous
 	return true
 
+func partial_delta_ms() -> Variant:
+	if player_splits.is_empty():
+		return null
+	var split_index := player_splits.size() - 1
+	var best_rival: Variant = null
+	for row: Dictionary in rows:
+		var splits: Array = row.get("splits", [])
+		if splits.size() <= split_index:
+			continue
+		var rival_time := int(splits[split_index])
+		if best_rival == null or rival_time < int(best_rival):
+			best_rival = rival_time
+	return null if best_rival == null else int(player_splits[split_index]) - int(best_rival)
+
+
 func readout() -> Dictionary:
 	var ordered: Array = []
 	for row: Dictionary in rows:

@@ -78,7 +78,10 @@
     }
   },
   "service": {
-    "overnight_between_stage_ids": ["russia_stage5", "russia_stage6"],
+    "overnight_between_stage_ids": [
+      "russia_stage5",
+      "russia_stage6"
+    ],
     "note": "Servicio limitado por rally_competition/simulation_balance (service_seconds * support). El reenganche no implica reparación total gratuita."
   },
   "power_stage_id": "russia_stage10",
@@ -104,9 +107,32 @@
   "points_profile_id": "wrc_2026_v1",
   "points_profiles": {
     "wrc_2026_v1": {
-      "general": [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
-      "sunday": [5, 4, 3, 2, 1],
-      "power_stage": [5, 4, 3, 2, 1],
+      "general": [
+        25,
+        17,
+        15,
+        12,
+        10,
+        8,
+        6,
+        4,
+        2,
+        1
+      ],
+      "sunday": [
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "power_stage": [
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
       "max_per_event": 35,
       "tie_break": "official_time_stage1_then_stage2_etc_share_positions_skip_occupied",
       "bonus_eligibility": "valid_finish_of_each_counted_stage_and_eligible_at_close_adjudicated_times_do_not_count",
@@ -115,37 +141,80 @@
   },
   "ambient": {
     "initial_rate": 1.0,
-    "allowed_rates": [0.0, 1.0, 2.0, 5.0],
+    "allowed_rates": [
+      0.0,
+      1.0,
+      2.0,
+      5.0
+    ],
     "sport_never_depends_on_sky_speed": true,
     "do_not_modify_engine_time_scale": true,
     "countdown_starts_seconds_before_scheduled": 5.0
   },
   "weather_rules": {
-    "generator_version": 1,
+    "generator_version": 2,
     "seed_policy": "new_event_random_persisted",
-    "ordered_states": ["clear", "sunny", "cloudy", "light_precipitation", "medium_precipitation", "heavy_precipitation"],
-    "within_stage_allowed_steps": [-1, 1],
-    "between_stages_allowed_steps": [-2, -1, 1, 2],
+    "ordered_states": [
+      "sunny",
+      "clear",
+      "partly_cloudy",
+      "cloudy",
+      "overcast",
+      "mist_fog",
+      "drizzle",
+      "light_precipitation",
+      "medium_precipitation",
+      "heavy_precipitation"
+    ],
+    "within_stage_allowed_steps": [
+      -1,
+      0,
+      1
+    ],
+    "between_stages_allowed_steps": [
+      -2,
+      -1,
+      0,
+      1,
+      2
+    ],
     "zones": {
       "count": 3,
       "placement": "equal_route_distance_thirds",
-      "boundary_distance_fractions": [0.0, 0.3333333333333333, 0.6666666666666666, 1.0],
+      "boundary_distance_fractions": [
+        0.0,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0
+      ],
       "minimum_length_m": 250.0,
-      "blend_fraction_of_zone": 0.25,
-      "maximum_blend_distance_m": 150.0
+      "blend_fraction_of_zone": 0.75,
+      "maximum_blend_distance_m": 900.0
     },
     "preset_catalog_path": "res://data/weather/rally_weather_presets.json",
     "regional_profile_id": "russia_summer"
   },
   "tire_rules": {
     "compound_catalog_path": "res://data/tires/rally_compounds.json",
-    "allowed_compound_ids": ["gravel_normal", "gravel_wet"],
+    "allowed_compound_ids": [
+      "gravel_normal",
+      "gravel_wet"
+    ],
     "default_compound_id": "gravel_normal",
     "fitment": "same_compound_all_wheels",
     "start_temperature_policy": "selected_compound_optimum"
   },
   "setup_windows": [
-    {"before_stage_id": "russia_stage1", "initial_tab": "tires", "confirmation_required": true},
-    {"after_stage_id": "russia_stage5", "before_stage_id": "russia_stage6", "initial_tab": "tires", "confirmation_required": true}
+    {
+      "before_stage_id": "russia_stage1",
+      "initial_tab": "tires",
+      "confirmation_required": true
+    },
+    {
+      "after_stage_id": "russia_stage5",
+      "before_stage_id": "russia_stage6",
+      "initial_tab": "tires",
+      "confirmation_required": true
+    }
   ]
 }

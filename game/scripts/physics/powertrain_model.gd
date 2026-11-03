@@ -281,7 +281,7 @@ func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float =
 			idle_error - 0.4,
 			0.0,
 		)
-	return positive_torque + idle_support - variable_drag - constant_brake
+	return positive_torque + idle_support * thermal_derating - variable_drag - constant_brake
 
 
 func advance(
@@ -300,10 +300,10 @@ func advance(
 	var engine_inertia := maxf(engine_inertia_kg_m2, 0.000001)
 	engine_rpm = clampf(
 		engine_rpm + engine_torque_nm / engine_inertia * dt * 60.0 / TAU,
-		idle_rpm * 0.65,
+		idle_rpm * 0.65 if thermal_derating > 0.0 else 0.0,
 		maximum_rpm * 1.25,
 	)
-	if engine_rpm < idle_rpm and clutch_engagement < 0.05:
+	if thermal_derating > 0.0 and engine_rpm < idle_rpm and clutch_engagement < 0.05:
 		engine_rpm = move_toward(engine_rpm, idle_rpm, 1500.0 * dt)
 
 	var manual_clutch_pedal := 1.0 - clampf(clutch_engagement_input, 0.0, 1.0)
@@ -592,7 +592,7 @@ func _advance_engine_torque(delta: float, throttle: float, thermal_derating: flo
 			idle_error - 0.4,
 			0.0,
 		)
-	engine_torque_nm = engine_attack_limited_torque_nm + idle_support - variable_drag - constant_brake
+	engine_torque_nm = engine_attack_limited_torque_nm * (1.0 if thermal_derating > 0.0 else 0.0) + idle_support * thermal_derating - variable_drag - constant_brake
 
 
 func _evaluate_torque_curve(normalized_rpm: float) -> float:

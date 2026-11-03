@@ -57,9 +57,7 @@ func is_ribbon_style() -> bool:
 
 
 func get_ribbon_size() -> Vector2:
-	if config == null:
-		return Vector2(932.0, 142.0)
-	return Vector2(704.0 + 16.0 + 212.0, config.card_height)
+	return Vector2(CLUSTER_W + BAND_MARGIN + FUEL_W, CLUSTER_H)
 
 
 func set_readout(
@@ -323,100 +321,454 @@ func _draw() -> void:
 
 
 # ==============================================================================
-# MODULAR CARDS RIBBON IMPLEMENTATION
+# CLÚSTER Y COMBUSTIBLE · AERO GLASS 2006 + WINDOWS 98
 # ==============================================================================
 
+const DIN: Font = preload("res://fonts/D-DIN.ttf")
+const DIN_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+
+const C_FACE := Color("#2b3d4d")
+const C_FACE_HI := Color("#374c5e")
+const C_FACE_LO := Color("#22323f")
+const C_FIELD := Color("#0c151d")
+const C_HI := Color("#93afc8")
+const C_LIGHT := Color("#5d7890")
+const C_SHADOW := Color("#101b25")
+const C_DARK := Color("#000000")
+const C_TEXT := Color("#e2edf6")
+const C_DIM := Color("#9eb3c5")
+const C_GOLD := Color("#e3b23c")
+const C_GOLD_HI := Color("#f6d68a")
+const C_ROSE := Color("#ff6b61")
+const C_GREEN := Color("#8fd36b")
+const C_BLUE := Color("#6db2e8")
+const C_BLUE_DEEP := Color("#2c6da3")
+const C_GLASS := Color("#16232f")
+const C_RIM := Color("#7fa8c9")
+const C_SEL := Color("#3b3324")
+
+const CLUSTER_W := 1000.0
+const CLUSTER_H := 160.0
+const FUEL_W := 140.0
+const BAND_MARGIN := 24.0
+
+
 func _draw_cards_ribbon() -> void:
-	var center_w := 704.0
-	var fuel_w := 212.0
-	var card_h := config.card_height
-
-	if size.x >= 960.0:
-		var card_y := size.y - card_h - 24.0
-		# 1. Center Driving Card: perfectly centered horizontally
-		var center_x := roundf((size.x - center_w) * 0.5)
-		var center_rect := Rect2(center_x, card_y, center_w, card_h)
-		_draw_center_driving_card(center_rect)
-
-		# 2. Fuel Card: sent more to the right with 32px right margin
-		var fuel_x := roundf(size.x - fuel_w - 32.0)
-		var fuel_rect := Rect2(fuel_x, card_y, fuel_w, card_h)
-		_draw_fuel_and_temps_card(fuel_rect)
-	else:
-		# Standalone / compact preview fallback:
-		var total_w := center_w + 16.0 + fuel_w
-		var scale_factor := minf(size.x / total_w, size.y / card_h)
-		var origin := (size - Vector2(total_w, card_h) * scale_factor) * 0.5
-		draw_set_transform(origin, 0.0, Vector2.ONE * scale_factor)
-
-		var center_rect := Rect2(0.0, 0.0, center_w, card_h)
-		_draw_center_driving_card(center_rect)
-
-		var fuel_rect := Rect2(center_w + 16.0, 0.0, fuel_w, card_h)
-		_draw_fuel_and_temps_card(fuel_rect)
-
+	var band_top := size.y - CLUSTER_H - BAND_MARGIN
+	if size.x < 1180.0:
+		var total := CLUSTER_W + BAND_MARGIN + FUEL_W
+		var factor := minf(size.x / (total + BAND_MARGIN), size.y / (CLUSTER_H + BAND_MARGIN))
+		var origin := (size - Vector2(total, CLUSTER_H) * factor) * 0.5
+		draw_set_transform(origin, 0.0, Vector2.ONE * factor)
+		_draw_cluster(Rect2(0, 0, CLUSTER_W, CLUSTER_H))
+		_draw_fuel(Rect2(CLUSTER_W + BAND_MARGIN, 0, FUEL_W, CLUSTER_H))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
+	_draw_cluster(Rect2(roundf((size.x - CLUSTER_W) * 0.5), band_top, CLUSTER_W, CLUSTER_H))
+	_draw_fuel(Rect2(size.x - BAND_MARGIN - FUEL_W, band_top, FUEL_W, CLUSTER_H))
 
 
-func _draw_card_background(rect: Rect2) -> void:
-	draw_style_box(_card_style_box, rect)
+# -----------------------------------------------------------------------------
+# Clúster
+# -----------------------------------------------------------------------------
 
 
-func _draw_center_driving_card(rect: Rect2) -> void:
-	# Single outer card frame encompassing all 5 driving telemetry sections
-	_draw_card_background(rect)
+func _draw_cluster(rect: Rect2) -> void:
+	_glass_frame(rect)
+	var body := Rect2(rect.position.x + 8, rect.position.y + 8, rect.size.x - 16, rect.size.y - 16)
+	draw_rect(body, C_FACE)
+	_bevel(body, false, 2)
 
-	# Section 0: Steering (width 92px)
-	var s0_rect := Rect2(rect.position.x, rect.position.y, 92.0, rect.size.y)
-	_draw_card_steering(s0_rect)
+	var cursor := body.position.x + 8.0
+	var top := body.position.y + 8.0
+	var height := body.size.y - 16.0
 
-	# Vertical divider line 1
-	draw_line(
-		Vector2(rect.position.x + 92.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 92.0, rect.position.y + rect.size.y - 12.0),
-		config.divider_color.darkened(0.35),
-		1.0
+	_draw_steering_section(Rect2(cursor, top, 106.0, height))
+	cursor += 106.0
+	_divider(cursor, top, height)
+	cursor += 2.0
+	_draw_pedals_section(Rect2(cursor, top, 114.0, height))
+	cursor += 114.0
+	_divider(cursor, top, height)
+	cursor += 2.0
+	_draw_gear_section(Rect2(cursor, top, 106.0, height))
+	cursor += 106.0
+	_divider(cursor, top, height)
+	cursor += 2.0
+	_draw_tach_section(Rect2(cursor, top, 490.0, height))
+	cursor += 490.0
+	_divider(cursor, top, height)
+	cursor += 2.0
+	_draw_readouts_section(Rect2(cursor, top, 136.0, height))
+
+
+func _divider(x: float, y: float, height: float) -> void:
+	draw_rect(Rect2(x, y + 4, 1, height - 8), C_SHADOW)
+	draw_rect(Rect2(x + 1, y + 4, 1, height - 8), C_LIGHT)
+
+
+func _draw_steering_section(rect: Rect2) -> void:
+	var center := Vector2(rect.get_center().x, rect.position.y + 44)
+	draw_circle(center, 30.0, C_FIELD)
+	draw_arc(center, 30.0, 0.0, TAU, 44, C_FACE_HI, 4.0, true)
+	var rotation := -clampf(state.steering, -1.0, 1.0) * PI * 0.75
+	for angle in [-PI * 0.5, PI * 0.22, PI * 0.78]:
+		var direction := Vector2(cos(angle + rotation), sin(angle + rotation))
+		draw_line(center + direction * 6.0, center + direction * 26.0, C_TEXT, 3.0, true)
+	draw_circle(center, 5.5, C_HI)
+	_num(
+		Box(rect.position.x, rect.position.y + 84, rect.size.x, 22),
+		"%d°" % roundi(absf(state.steering) * 32.0),
+		16,
+		C_TEXT,
+		HORIZONTAL_ALIGNMENT_CENTER,
+		rect.size.x
 	)
 
-	# Section 1: Pedals (width 88px)
-	var s1_rect := Rect2(rect.position.x + 92.0, rect.position.y, 88.0, rect.size.y)
-	_draw_card_pedals(s1_rect)
 
-	# Vertical divider line 2
-	draw_line(
-		Vector2(rect.position.x + 180.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 180.0, rect.position.y + rect.size.y - 12.0),
-		config.divider_color.darkened(0.35),
-		1.0
+func _draw_pedals_section(rect: Rect2) -> void:
+	var bar_w := 36.0
+	var bar_h := rect.size.y - 26.0
+	var left := Rect2(rect.position.x + 12, rect.position.y + 2, bar_w, bar_h)
+	var right := Rect2(rect.position.x + rect.size.x - 12 - bar_w, rect.position.y + 2, bar_w, bar_h)
+	for entry in [
+		{"r": left, "v": clampf(state.throttle, 0.0, 1.0), "c": C_GREEN},
+		{"r": right, "v": clampf(state.brake, 0.0, 1.0), "c": C_ROSE},
+	]:
+		var bar: Rect2 = entry.r
+		var value := float(entry.v)
+		draw_rect(bar, C_FIELD)
+		_sunken(bar)
+		var fill_h := floorf((bar.size.y - 4) * value)
+		if fill_h > 0:
+			draw_rect(
+				Rect2(bar.position.x + 2, bar.end.y - 2 - fill_h, bar.size.x - 4, fill_h), entry.c
+			)
+			draw_rect(
+				Rect2(bar.position.x + 2, bar.end.y - 2 - fill_h, bar.size.x - 4, 3),
+				Color(entry.c, 0.5)
+			)
+		_num(
+			Box(bar.position.x - 6, bar.end.y + 4, bar.size.x + 12, 16),
+			"%d%%" % roundi(value * 100.0),
+			11,
+			C_TEXT if value > 0.02 else C_DIM,
+			HORIZONTAL_ALIGNMENT_CENTER,
+			bar.size.x + 12
+		)
+
+
+func _draw_gear_section(rect: Rect2) -> void:
+	var rpm := maxf(state.engine_revolutions_per_minute, 0.0)
+	var in_window := rpm >= config.ideal_shift_revolutions_per_minute
+	var urgent := rpm >= config.urgent_shift_revolutions_per_minute
+	var gear_color := C_ROSE if urgent else (C_GOLD if in_window else C_TEXT)
+
+	var cell := Rect2(rect.position.x + 14, rect.position.y + 2, rect.size.x - 28, 96)
+	draw_rect(cell, C_FIELD)
+	_sunken(cell)
+	_num(
+		Box(cell.position.x, cell.position.y, cell.size.x, cell.size.y),
+		state.gear_label,
+		60,
+		gear_color,
+		HORIZONTAL_ALIGNMENT_CENTER,
+		cell.size.x
 	)
 
-	# Section 2: Shift lights & Gear (width 96px)
-	var s2_rect := Rect2(rect.position.x + 180.0, rect.position.y, 96.0, rect.size.y)
-	_draw_card_gear(s2_rect)
+	var light_y := rect.position.y + 112
+	_led(Vector2(rect.position.x + 32, light_y), in_window, C_GOLD)
+	_led(Vector2(rect.position.x + rect.size.x - 32, light_y), urgent, C_ROSE)
 
-	# Vertical divider line 3
-	draw_line(
-		Vector2(rect.position.x + 276.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 276.0, rect.position.y + rect.size.y - 12.0),
-		config.divider_color.darkened(0.35),
-		1.0
+
+func _draw_tach_section(rect: Rect2) -> void:
+	var vehicle_max := get_vehicle_max_rpm()
+	var vehicle_idle := get_vehicle_idle_rpm()
+	var current_rpm := maxf(state.engine_revolutions_per_minute, 0.0)
+	var rpm_min := maxf(1000.0, floorf(vehicle_idle / 1000.0) * 1000.0)
+	var rpm_max := maxf(rpm_min + 3000.0, ceilf(vehicle_max / 1000.0) * 1000.0)
+	var span := rpm_max - rpm_min
+	var redline := vehicle_max
+	var ideal := minf(config.ideal_shift_revolutions_per_minute, redline * 0.88)
+	var urgent := minf(config.urgent_shift_revolutions_per_minute, redline * 0.97)
+
+	var count := 20
+	var bar_w := 18.0
+	var bar_gap := 4.0
+	var total_w := float(count) * bar_w + float(count - 1) * bar_gap
+	var start_x := rect.position.x + (rect.size.x - total_w) * 0.5
+	var bar_top := rect.position.y + 22.0
+	var bar_bottom := rect.position.y + 94.0
+	var meseta := 32.0
+	var per_bar := span / float(count)
+
+	var first_center := start_x + bar_w * 0.5
+	var last_center := start_x + float(count - 1) * (bar_w + bar_gap) + bar_w * 0.5
+	var milestones := _get_tachometer_scale_milestones(rpm_min, rpm_max)
+	for milestone: float in milestones:
+		var fraction := clampf((milestone - rpm_min) / span, 0.0, 1.0)
+		var x := lerpf(first_center, last_center, fraction)
+		var active := current_rpm >= milestone
+		var color := C_TEXT
+		if milestone >= urgent:
+			color = C_ROSE
+		elif milestone >= ideal:
+			color = C_GOLD
+		elif not active:
+			color = C_DIM
+		_num(
+			Box(x - 15, rect.position.y, 30, 18),
+			str(roundi(milestone / 1000.0)),
+			13,
+			color,
+			HORIZONTAL_ALIGNMENT_CENTER,
+			30
+		)
+
+	for i in count:
+		var points := _get_tachometer_bar_polygon(
+			i, start_x, bar_w, bar_gap, bar_top, bar_bottom, meseta
+		)
+		var outline := PackedVector2Array([points[0], points[1], points[2], points[3], points[0]])
+		var bar_start := rpm_min + float(i) * per_bar
+		var bar_target := bar_start + per_bar
+		draw_colored_polygon(points, C_FIELD)
+		draw_polyline(outline, C_SHADOW, 1.0, true)
+		if current_rpm >= bar_start:
+			var color := C_TEXT
+			if current_rpm >= urgent:
+				color = C_ROSE
+			elif bar_target >= urgent:
+				color = C_ROSE
+			elif bar_target >= ideal:
+				color = C_GOLD
+			draw_colored_polygon(points, color)
+			draw_line(points[0], points[1], Color(1, 1, 1, 0.35), 1.0, true)
+			draw_line(points[3], points[2], Color(0, 0, 0, 0.45), 1.0, true)
+
+	var shift_start := lerpf(first_center, last_center, clampf((ideal - rpm_min) / span, 0.0, 1.0))
+	var urgent_start := lerpf(first_center, last_center, clampf((urgent - rpm_min) / span, 0.0, 1.0))
+	draw_rect(Rect2(shift_start, bar_bottom + 6, urgent_start - shift_start, 5), C_GOLD)
+	draw_rect(Rect2(urgent_start, bar_bottom + 6, last_center + 8.0 - urgent_start, 5), C_ROSE)
+
+
+func _draw_readouts_section(rect: Rect2) -> void:
+	var rpm := maxf(state.engine_revolutions_per_minute, 0.0)
+	var urgent := rpm >= config.urgent_shift_revolutions_per_minute
+	var in_window := rpm >= config.ideal_shift_revolutions_per_minute
+	var box_w := 116.0
+	var box_h := 44.0
+	var gap := 10.0
+	var left := rect.position.x + (rect.size.x - box_w) * 0.5
+	var top := rect.position.y + (rect.size.y - (box_h * 2.0 + gap)) * 0.5
+	_field_box(
+		Rect2(left, top, box_w, box_h),
+		"%d rpm" % roundi(rpm),
+		17,
+		C_ROSE if urgent else (C_GOLD if in_window else C_TEXT)
+	)
+	_field_box(
+		Rect2(left, top + box_h + gap, box_w, box_h),
+		"%d km/h" % roundi(maxf(state.speed_kilometers_per_hour, 0.0)),
+		17,
+		C_TEXT
 	)
 
-	# Section 3: Tachometer (width 320px) - 20 vertical bars (double horizontal size) and 5 numbers
-	var s3_rect := Rect2(rect.position.x + 276.0, rect.position.y, 320.0, rect.size.y)
-	_draw_card_tachometer(s3_rect)
 
-	# Vertical divider line 4
-	draw_line(
-		Vector2(rect.position.x + 596.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 596.0, rect.position.y + rect.size.y - 12.0),
-		config.divider_color.darkened(0.35),
-		1.0
+# -----------------------------------------------------------------------------
+# Combustible vertical
+# -----------------------------------------------------------------------------
+
+
+func _draw_fuel(rect: Rect2) -> void:
+	_glass_frame(rect)
+	var body := Rect2(rect.position.x + 8, rect.position.y + 8, rect.size.x - 16, rect.size.y - 16)
+	draw_rect(body, C_FACE)
+	_bevel(body, false, 2)
+
+	var bar := Rect2(body.position.x + 92, body.position.y + 2, 24, body.size.y - 4)
+	draw_rect(bar, C_FIELD)
+	_sunken(bar)
+	var fraction := 0.0
+	if state.fuel_capacity_kg > 0.0 and state.fuel_remaining_kg >= 0.0:
+		fraction = clampf(state.fuel_remaining_kg / state.fuel_capacity_kg, 0.0, 1.0)
+	var filled := floorf((bar.size.y - 4) * fraction)
+	var low := fraction <= config.fuel_alert_fraction
+	if filled > 0.5:
+		draw_rect(
+			Rect2(bar.position.x + 2, bar.end.y - 2 - filled, bar.size.x - 4, filled),
+			Color(C_ROSE if low else C_BLUE_DEEP, 0.95)
+		)
+		draw_rect(
+			Rect2(bar.position.x + 2, bar.end.y - 2 - filled, bar.size.x - 4, 3),
+			Color(C_ROSE if low else C_BLUE, 0.9)
+		)
+	for l in 4:
+		_text(
+			Box(bar.position.x, bar.position.y + 18 + float(l) * 28, bar.size.x, 16),
+			["F", "U", "E", "L"][l],
+			9,
+			C_TEXT,
+			true,
+			HORIZONTAL_ALIGNMENT_CENTER
+		)
+
+	var litres := "-- L"
+	if state.fuel_remaining_kg >= 0.0:
+		litres = "%d L" % roundi(state.fuel_remaining_kg)
+	_text(
+		Box(body.position.x + 6, body.position.y, body.size.x - 42, 24),
+		litres,
+		18,
+		C_ROSE if low else C_TEXT,
+		true,
+		HORIZONTAL_ALIGNMENT_RIGHT,
+		body.size.x - 42
 	)
 
-	# Section 4: RPM & Speed (width 108px)
-	var s4_rect := Rect2(rect.position.x + 596.0, rect.position.y, 108.0, rect.size.y)
-	_draw_card_speed_rpm(s4_rect)
+	var delta := "+0.0"
+	if state.has_fuel_delta:
+		delta = ("+%.1f" % state.fuel_delta_laps) if state.fuel_delta_laps >= 0.0 \
+			else ("-%.1f" % absf(state.fuel_delta_laps))
+	_text(Box(body.position.x + 6, body.position.y + 26, body.size.x - 42, 11), "DELTA", 8, C_DIM)
+	_field_box(
+		Rect2(body.position.x + 6, body.position.y + 38, body.size.x - 42, 24),
+		delta,
+		13,
+		C_TEXT,
+		true
+	)
+	_text(Box(body.position.x + 6, body.position.y + 64, body.size.x - 42, 11), "OIL", 8, C_DIM)
+	_field_box(
+		Rect2(body.position.x + 6, body.position.y + 76, body.size.x - 42, 24),
+		_temperature(state.oil_temperature_celsius),
+		13,
+		state.oil_temperature_color if state.oil_temperature_color != Color.WHITE else C_TEXT,
+		true
+	)
+	_text(Box(body.position.x + 6, body.position.y + 102, body.size.x - 42, 11), "WATER", 8, C_DIM)
+	_field_box(
+		Rect2(body.position.x + 6, body.position.y + 114, body.size.x - 42, 24),
+		_temperature(state.water_temperature_celsius),
+		13,
+		state.water_temperature_color if state.water_temperature_color != Color.WHITE else C_TEXT,
+		true
+	)
+
+
+func _temperature(value: float) -> String:
+	if value < 0.0:
+		return "-- °C"
+	return "%d °C" % roundi(value)
+
+
+# -----------------------------------------------------------------------------
+# Primitivas
+# -----------------------------------------------------------------------------
+
+
+func _glass_frame(rect: Rect2) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(C_GLASS, 0.90)
+	sb.border_color = Color(C_RIM, 0.40)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(10)
+	draw_style_box(sb, rect)
+	var gloss := StyleBoxFlat.new()
+	gloss.bg_color = Color(1, 1, 1, 0.06)
+	gloss.corner_radius_top_left = 10
+	gloss.corner_radius_top_right = 10
+	draw_style_box(gloss, Rect2(rect.position + Vector2(1, 1), Vector2(rect.size.x - 2, 10)))
+
+
+func _bevel(rect: Rect2, raised: bool, thick: int = 2) -> void:
+	for i in thick:
+		var top_color: Color
+		var bottom_color: Color
+		if i == 0:
+			top_color = C_HI if raised else C_SHADOW
+			bottom_color = C_DARK if raised else C_HI
+		else:
+			top_color = C_LIGHT if raised else C_DARK
+			bottom_color = C_SHADOW if raised else C_LIGHT
+		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, rect.size.x - i * 2, 1), top_color)
+		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, 1, rect.size.y - i * 2), top_color)
+		draw_rect(Rect2(rect.position.x + i, rect.end.y - 1 - i, rect.size.x - i * 2, 1), bottom_color)
+		draw_rect(Rect2(rect.end.x - 1 - i, rect.position.y + i, 1, rect.size.y - i * 2), bottom_color)
+
+
+func _sunken(rect: Rect2) -> void:
+	draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 1), C_SHADOW)
+	draw_rect(Rect2(rect.position.x, rect.position.y, 1, rect.size.y), C_SHADOW)
+	draw_rect(Rect2(rect.position.x, rect.end.y - 1, rect.size.x, 1), C_HI)
+	draw_rect(Rect2(rect.end.x - 1, rect.position.y, 1, rect.size.y), C_HI)
+
+
+func _field_box(rect: Rect2, value: String, size: int, color: Color, serif: bool = false) -> void:
+	draw_rect(rect, C_FIELD)
+	_sunken(rect)
+	var inner := Box(rect.position.x + 6, rect.position.y, rect.size.x - 12, rect.size.y)
+	if serif:
+		_text(inner, value, size, color, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	else:
+		_num(inner, value, size, color, HORIZONTAL_ALIGNMENT_RIGHT)
+
+
+func _led(center: Vector2, on: bool, color: Color) -> void:
+	draw_circle(center, 8.0, C_FIELD)
+	draw_arc(center, 8.0, 0.0, TAU, 24, C_SHADOW, 1.5, true)
+	draw_arc(center + Vector2(1, 1), 7.0, PI * 1.05, PI * 1.6, 10, C_LIGHT, 1.0, true)
+	if on:
+		draw_circle(center, 5.0, color)
+		draw_circle(center, 7.0, Color(color, 0.22))
+	else:
+		draw_circle(center, 5.0, C_FACE_LO)
+
+
+func Box(x: float, y: float, width: float, height: float) -> Rect2:
+	return Rect2(x, y, width, height)
+
+
+func _num(
+	rect: Rect2,
+	value: String,
+	size: int,
+	color: Color,
+	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+	width_override: float = -1.0
+) -> void:
+	if value.is_empty():
+		return
+	var width: float = rect.size.x if width_override < 0.0 else width_override
+	var line_height := DIN_BOLD.get_height(size)
+	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - DIN_BOLD.get_descent(size)
+	draw_string(
+		DIN_BOLD,
+		Vector2(round(rect.position.x), round(baseline)),
+		value,
+		align,
+		width,
+		size,
+		color
+	)
+
+
+func _text(
+	rect: Rect2,
+	value: String,
+	size: int,
+	color: Color,
+	bold: bool = false,
+	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+	width_override: float = -1.0
+) -> void:
+	if value.is_empty():
+		return
+	var font: Font = LIBRON_BOLD_FONT if bold else LIBRON_REGULAR_FONT
+	var width: float = rect.size.x if width_override < 0.0 else width_override
+	var line_height := font.get_height(size)
+	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - font.get_descent(size)
+	draw_string(font, Vector2(round(rect.position.x), round(baseline)), value, align, width, size, color)
 
 
 func _get_tachometer_scale_milestones(rpm_min: float, rpm_max: float) -> Array[float]:
@@ -424,8 +776,6 @@ func _get_tachometer_scale_milestones(rpm_min: float, rpm_max: float) -> Array[f
 	if is_equal_approx(rpm_min, 1000.0) and is_equal_approx(rpm_max, 8000.0):
 		var default_milestones: Array[float] = [1000.0, 2000.0, 4000.0, 6000.0, 8000.0]
 		return default_milestones
-
-	# General fallback to 5 nicely rounded milestones
 	var milestones: Array[float] = [rpm_min]
 	var steps: Array[float] = [0.20, 0.45, 0.72]
 	for step: float in steps:
@@ -438,6 +788,7 @@ func _get_tachometer_scale_milestones(rpm_min: float, rpm_max: float) -> Array[f
 	return milestones
 
 
+# Forma original del tacómetro: rampa, transición y meseta suspendida.
 func _get_tachometer_bar_polygon(
 		bar_index: int,
 		start_x: float,
@@ -454,17 +805,15 @@ func _get_tachometer_bar_polygon(
 	var y_br: float
 
 	if bar_index <= 3:
-		# Tramo 1 (Barras 0..3, bajo '1' y '2'): Base inferior plana, techo en rampa continua biselada
 		var ramp_x_start := start_x
 		var ramp_x_end := start_x + 3.0 * (bar_w + bar_gap) + bar_w
 		var frac_l := clampf((bx - ramp_x_start) / (ramp_x_end - ramp_x_start), 0.0, 1.0)
 		var frac_r := clampf((bx_r - ramp_x_start) / (ramp_x_end - ramp_x_start), 0.0, 1.0)
 		y_bl = bar_bottom_y
 		y_br = bar_bottom_y
-		y_tl = bar_bottom_y - lerpf(16.0, bar_bottom_y - bar_top_y, frac_l)
-		y_tr = bar_bottom_y - lerpf(16.0, bar_bottom_y - bar_top_y, frac_r)
+		y_tl = bar_bottom_y - lerpf(18.0, bar_bottom_y - bar_top_y, frac_l)
+		y_tr = bar_bottom_y - lerpf(18.0, bar_bottom_y - bar_top_y, frac_r)
 	elif bar_index <= 6:
-		# Tramo 2 (Barras 4..6): Techo horizontal en bar_top_y, base inferior en rampa continua biselada
 		var trans_x_start := start_x + 4.0 * (bar_w + bar_gap)
 		var trans_x_end := start_x + 6.0 * (bar_w + bar_gap) + bar_w
 		var frac_l := clampf((bx - trans_x_start) / (trans_x_end - trans_x_start), 0.0, 1.0)
@@ -474,7 +823,6 @@ func _get_tachometer_bar_polygon(
 		y_bl = lerpf(bar_bottom_y, bar_top_y + meseta_h, frac_l)
 		y_br = lerpf(bar_bottom_y, bar_top_y + meseta_h, frac_r)
 	else:
-		# Tramo 3 (Barras 7..19, bajo '4', '6' y '8'): Meseta horizontal superior suspendida
 		y_tl = bar_top_y
 		y_tr = bar_top_y
 		y_bl = bar_top_y + meseta_h
@@ -488,306 +836,6 @@ func _get_tachometer_bar_polygon(
 	])
 
 
-func _draw_card_tachometer(rect: Rect2) -> void:
-	var vehicle_max := get_vehicle_max_rpm()
-	var vehicle_idle := get_vehicle_idle_rpm()
-	var current_rpm := maxf(state.engine_revolutions_per_minute, 0.0)
-
-	# Competition Scale (Option 3):
-	# Starts at idle rounded down to the nearest thousand (min 1000.0)
-	# Ends at vehicle max rounded up to the nearest thousand (e.g. 7500 -> 8000.0)
-	var rpm_min := maxf(1000.0, floorf(vehicle_idle / 1000.0) * 1000.0)
-	var rpm_max := maxf(rpm_min + 3000.0, ceilf(vehicle_max / 1000.0) * 1000.0)
-	var rpm_range := rpm_max - rpm_min
-	var total_bar_count := 20
-	var rpm_per_bar := rpm_range / float(total_bar_count)
-
-	var redline_rpm := vehicle_max
-	var ideal_shift_rpm := minf(config.ideal_shift_revolutions_per_minute, redline_rpm * 0.88)
-	var urgent_shift_rpm := minf(config.urgent_shift_revolutions_per_minute, redline_rpm * 0.97)
-	var urgent_shift := current_rpm >= urgent_shift_rpm
-
-	# Top label: "RPM"
-	_draw_card_text("RPM", Vector2(rect.position.x, rect.position.y + 20.0), rect.size.x, 12, config.label_color, LIBRON_BOLD_FONT)
-
-	# Bar and Number dimensions (20 bars, 12px width, 3px gap -> 297px total)
-	var bar_w := 12.0
-	var bar_gap := 3.0
-	var total_bars_w := float(total_bar_count) * bar_w + float(total_bar_count - 1) * bar_gap  # 297.0px
-	var start_x := rect.position.x + (rect.size.x - total_bars_w) * 0.5
-
-	var max_bar_h := 50.0
-	var bar_top_y := rect.position.y + 54.0
-	var bar_bottom_y := bar_top_y + max_bar_h
-	var meseta_h := 26.0
-	var num_baseline_y := rect.position.y + 44.0
-
-	var bar_0_center_x := start_x + bar_w * 0.5
-	var bar_last_center_x := start_x + float(total_bar_count - 1) * (bar_w + bar_gap) + bar_w * 0.5
-
-	# 1. Draw 5 numbers: the first digits of the RPM (e.g. 4 -> 4000)
-	# Milestones for 1000-8000: [1, 2, 4, 6, 8]
-	var milestones := _get_tachometer_scale_milestones(rpm_min, rpm_max)
-	for m_rpm: float in milestones:
-		var num_val := roundi(m_rpm / 1000.0)
-		var num_text := str(num_val)
-
-		var fraction := clampf((m_rpm - rpm_min) / rpm_range, 0.0, 1.0)
-		var num_center_x: float = lerpf(bar_0_center_x, bar_last_center_x, fraction)
-
-		var is_milestone_active := current_rpm >= m_rpm
-		var num_color := config.inactive_color.darkened(0.1)
-		if is_milestone_active:
-			if urgent_shift or m_rpm >= urgent_shift_rpm:
-				num_color = config.alert_color
-			elif m_rpm >= ideal_shift_rpm:
-				num_color = config.thermal_warm_color
-			else:
-				num_color = config.digital_color
-
-		draw_string(LIBRON_BOLD_FONT, Vector2(num_center_x - 16.0, num_baseline_y), num_text, HORIZONTAL_ALIGNMENT_CENTER, 32.0, 14, num_color)
-
-	# 2. Draw 20 vertical bars with Option 4 (Continuous Slanted Chamfer & Anti-Aliased Edges):
-	# White below optimal shift, Yellow for optimal shift, Red for limiter
-	for i in total_bar_count:
-		var bar_pts := _get_tachometer_bar_polygon(i, start_x, bar_w, bar_gap, bar_top_y, bar_bottom_y, meseta_h)
-		var bar_outline := PackedVector2Array([bar_pts[0], bar_pts[1], bar_pts[2], bar_pts[3], bar_pts[0]])
-		var bar_start_rpm := rpm_min + float(i) * rpm_per_bar
-		var bar_target_rpm := bar_start_rpm + rpm_per_bar
-
-		# Dark background track for each bar
-		draw_colored_polygon(bar_pts, config.bar_background_color)
-		draw_polyline(bar_outline, config.divider_color.darkened(0.55), 1.0, true)
-
-		# Bar activation threshold: active if engine rpm reaches this bar's range
-		var is_bar_active := current_rpm >= bar_start_rpm
-
-		if is_bar_active:
-			var bar_color: Color
-			if urgent_shift:
-				bar_color = config.alert_color
-			elif bar_target_rpm >= urgent_shift_rpm:
-				bar_color = config.alert_color
-			elif bar_target_rpm >= ideal_shift_rpm:
-				bar_color = config.thermal_warm_color
-			else:
-				bar_color = config.digital_color
-
-			draw_colored_polygon(bar_pts, bar_color)
-			draw_polyline(bar_outline, bar_color.lightened(0.2), 1.0, true)
-
-	# Bottom label: "x1000"
-	_draw_card_text("x1000", Vector2(rect.position.x, rect.position.y + 124.0), rect.size.x, 11, config.label_color, LIBRON_BOLD_FONT)
-
-
-func _draw_card_steering(rect: Rect2) -> void:
-	var center := Vector2(rect.position.x + rect.size.x * 0.5, rect.position.y + rect.size.y * 0.40)
-	var rim_radius := rect.size.x * 0.28
-	var steering_fraction := clampf(state.steering, -1.0, 1.0)
-	var wheel_rotation := -steering_fraction * PI * 0.75
-
-	# Outer rim
-	draw_arc(center, rim_radius, 0.0, TAU, 48, config.wheel_ring_color, 2.5, true)
-
-	# 3 Spokes: top (at -PI*0.5) and two lower spokes at 35° and 145° from bottom
-	var spoke_angles: Array[float] = [-PI * 0.5, PI * 0.22, PI * 0.78]
-	for i in spoke_angles.size():
-		var angle: float = spoke_angles[i] + wheel_rotation
-		var direction := Vector2(cos(angle), sin(angle))
-		var is_top_spoke := (i == 0)
-		var spoke_color := (config.steering_color if absf(steering_fraction) > 0.02 else config.wheel_spoke_color) if is_top_spoke else config.wheel_spoke_color
-		draw_line(center + direction * 5.0, center + direction * (rim_radius - 1.5), spoke_color, 2.5, true)
-
-	# Center hub
-	draw_circle(center, 5.5, config.wheel_hub_color, true, -1.0, true)
-
-	# Angle text below
-	var angle_deg := roundi(absf(steering_fraction) * 32.0)
-	var angle_text := str(angle_deg) + "°"
-	var text_color := config.steering_color if absf(steering_fraction) > 0.02 else config.digital_color
-	_draw_card_text(angle_text, Vector2(rect.position.x, rect.position.y + rect.size.y * 0.85), rect.size.x, 24, text_color, LIBRON_BOLD_FONT)
-
-
-func _draw_card_pedals(rect: Rect2) -> void:
-	var bar_width := 22.0
-	var bar_height := rect.size.y * 0.58
-	var bar_y := rect.position.y + 14.0
-	var left_x := rect.position.x + rect.size.x * 0.32 - bar_width * 0.5
-	var right_x := rect.position.x + rect.size.x * 0.68 - bar_width * 0.5
-
-	# Throttle pedal
-	var throttle_val := clampf(state.throttle, 0.0, 1.0)
-	var throttle_track := Rect2(left_x, bar_y, bar_width, bar_height)
-	draw_rect(throttle_track, config.bar_background_color)
-	if throttle_val > 0.001:
-		var fill_h := bar_height * throttle_val
-		draw_rect(Rect2(left_x, bar_y + bar_height - fill_h, bar_width, fill_h), config.throttle_color)
-
-	# Brake pedal
-	var brake_val := clampf(state.brake, 0.0, 1.0)
-	var brake_track := Rect2(right_x, bar_y, bar_width, bar_height)
-	draw_rect(brake_track, config.bar_background_color)
-	if brake_val > 0.001:
-		var fill_h := bar_height * brake_val
-		draw_rect(Rect2(right_x, bar_y + bar_height - fill_h, bar_width, fill_h), config.brake_color)
-
-	# Labels T & B
-	var label_y := rect.position.y + rect.size.y * 0.88
-	_draw_card_text("T", Vector2(left_x - 6.0, label_y), bar_width + 12.0, 20, config.pedal_label_color, LIBRON_BOLD_FONT)
-	_draw_card_text("B", Vector2(right_x - 6.0, label_y), bar_width + 12.0, 20, config.pedal_label_color, LIBRON_BOLD_FONT)
-
-
-func _draw_card_gear(rect: Rect2) -> void:
-	var light_radius := 6.5
-	var light_y := rect.position.y + 22.0
-	var left_center := Vector2(rect.position.x + rect.size.x * 0.38, light_y)
-	var right_center := Vector2(rect.position.x + rect.size.x * 0.62, light_y)
-
-	var ideal_shift := state.engine_revolutions_per_minute >= config.ideal_shift_revolutions_per_minute
-	var urgent_shift := state.engine_revolutions_per_minute >= config.urgent_shift_revolutions_per_minute
-
-	var left_color := config.dial_color if ideal_shift else config.inactive_color.darkened(0.25)
-	var right_color := config.alert_color if urgent_shift else config.inactive_redline_color.darkened(0.25)
-
-	draw_circle(left_center, light_radius, left_color)
-	draw_circle(right_center, light_radius, right_color)
-
-	# Large Gear Indicator
-	var gear_color := config.alert_color if urgent_shift else config.digital_color
-	var gear_y := rect.position.y + rect.size.y * 0.84
-	_draw_card_text(state.gear_label, Vector2(rect.position.x, gear_y), rect.size.x, 66, gear_color, LIBRON_BOLD_FONT)
-
-
-func _draw_card_speed_rpm(rect: Rect2) -> void:
-	var urgent_shift := state.engine_revolutions_per_minute >= config.urgent_shift_revolutions_per_minute
-	var rpm_color := config.alert_color if urgent_shift else config.digital_color
-	var rpm_val := roundi(maxf(state.engine_revolutions_per_minute, 0.0))
-	var rpm_text := str(rpm_val) + " rpm"
-
-	# Top: RPM
-	_draw_card_text(rpm_text, Vector2(rect.position.x, rect.position.y + rect.size.y * 0.36), rect.size.x, 17, rpm_color, LIBRON_BOLD_FONT)
-
-	# Middle divider line
-	var divider_y := rect.position.y + rect.size.y * 0.50
-	draw_line(
-		Vector2(rect.position.x + 16.0, divider_y),
-		Vector2(rect.position.x + rect.size.x - 16.0, divider_y),
-		config.divider_color,
-		1.5
-	)
-
-	# Bottom: Speed
-	var speed_val := roundi(maxf(state.speed_kilometers_per_hour, 0.0))
-	var speed_text := str(speed_val) + " km/h"
-	_draw_card_text(speed_text, Vector2(rect.position.x, rect.position.y + rect.size.y * 0.82), rect.size.x, 17, config.digital_color, LIBRON_BOLD_FONT)
-
-
-func _draw_fuel_and_temps_card(rect: Rect2) -> void:
-	# Single outer card frame for the Fuel & Temps module
-	_draw_card_background(rect)
-
-	# =========================================================================
-	# COLUMN 1: VERTICAL FUEL GAUGE BAR WITH F-U-E-L
-	# =========================================================================
-	var bar_rect := Rect2(rect.position.x + 12.0, rect.position.y + 14.0, 32.0, 114.0)
-	var fuel_frac := 0.0
-	if state.fuel_capacity_kg > 0.0 and state.fuel_remaining_kg >= 0.0:
-		fuel_frac = clampf(state.fuel_remaining_kg / state.fuel_capacity_kg, 0.0, 1.0)
-
-	var spent_h := roundf(bar_rect.size.y * (1.0 - fuel_frac))
-	var rem_h := bar_rect.size.y - spent_h
-
-	# 1a. Upper portion (consumed/spent): dark blue background
-	if spent_h > 0.5:
-		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x, spent_h), config.bar_background_color.darkened(0.2))
-
-	# 1b. Lower portion (remaining fuel): light steel, warning yellow, or alert red
-	if rem_h > 0.5:
-		var fuel_color := config.alert_color if fuel_frac <= config.fuel_alert_fraction else (
-			config.thermal_warm_color if fuel_frac <= 0.15 else config.divider_color)
-		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y + spent_h, bar_rect.size.x, rem_h), fuel_color)
-
-	# Border around the vertical bar
-	draw_rect(bar_rect, config.divider_color.darkened(0.25), false, 1.5)
-
-	# Vertical letters F - U - E - L in crisp white
-	var letters := ["F", "U", "E", "L"]
-	for l in 4:
-		var ly := bar_rect.position.y + 24.0 + l * 26.0
-		draw_string(LIBRON_BOLD_FONT, Vector2(bar_rect.position.x, ly), letters[l], HORIZONTAL_ALIGNMENT_CENTER, bar_rect.size.x, 16, config.dial_color)
-
-	# Vertical divider line between Column 1 and Column 2
-	draw_line(
-		Vector2(rect.position.x + 55.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 55.0, rect.position.y + 130.0),
-		config.divider_color.darkened(0.3),
-		1.0
-	)
-
-	# =========================================================================
-	# COLUMN 2: FUEL LITRES & DELTA
-	# =========================================================================
-	var col2_x := rect.position.x + 57.0
-	var col2_w := 74.0
-
-	# Top row: Remaining Fuel (e.g. 20 L)
-	var fuel_text := str(roundi(state.fuel_remaining_kg)) + " L" if state.fuel_remaining_kg >= 0.0 else "-- L"
-	var fuel_text_col := config.alert_color if fuel_frac <= config.fuel_alert_fraction else (
-		config.thermal_warm_color if fuel_frac <= 0.15 else config.digital_color)
-	draw_string(LIBRON_BOLD_FONT, Vector2(col2_x, rect.position.y + 44.0), fuel_text, HORIZONTAL_ALIGNMENT_CENTER, col2_w, 18, fuel_text_col)
-
-	# Horizontal divider in Column 2
-	draw_line(
-		Vector2(col2_x + 6.0, rect.position.y + 71.0),
-		Vector2(col2_x + col2_w - 6.0, rect.position.y + 71.0),
-		config.divider_color,
-		1.0
-	)
-
-	# Bottom row: DELTA & Value
-	draw_string(LIBRON_BOLD_FONT, Vector2(col2_x, rect.position.y + 92.0), "DELTA", HORIZONTAL_ALIGNMENT_CENTER, col2_w, 12, config.label_color)
-	var delta_text := ("+%.1f" % state.fuel_delta_laps) if state.fuel_delta_laps >= 0.0 else ("-%.1f" % absf(state.fuel_delta_laps))
-	var delta_col := config.thermal_optimal_color if state.fuel_delta_laps >= 0.0 else config.alert_color
-	if not state.has_fuel_delta:
-		delta_text = "+0.0"
-		delta_col = config.digital_color
-	draw_string(LIBRON_BOLD_FONT, Vector2(col2_x, rect.position.y + 116.0), delta_text, HORIZONTAL_ALIGNMENT_CENTER, col2_w, 16, delta_col)
-
-	# Vertical divider line between Column 2 and Column 3
-	draw_line(
-		Vector2(rect.position.x + 133.0, rect.position.y + 12.0),
-		Vector2(rect.position.x + 133.0, rect.position.y + 130.0),
-		config.divider_color.darkened(0.3),
-		1.0
-	)
-
-	# =========================================================================
-	# COLUMN 3: ENGINE TEMPERATURES (OIL & WATER)
-	# =========================================================================
-	var col3_x := rect.position.x + 135.0
-	var col3_w := 73.0
-
-	# Top row: OIL & Temperature
-	draw_string(LIBRON_BOLD_FONT, Vector2(col3_x, rect.position.y + 32.0), "OIL", HORIZONTAL_ALIGNMENT_CENTER, col3_w, 13, config.label_color)
-	var oil_val := str(roundi(state.oil_temperature_celsius)) + "°C" if state.oil_temperature_celsius >= 0.0 else "--°C"
-	var oil_col := state.oil_temperature_color if state.oil_temperature_color != Color.WHITE else config.digital_color
-	draw_string(LIBRON_BOLD_FONT, Vector2(col3_x, rect.position.y + 54.0), oil_val, HORIZONTAL_ALIGNMENT_CENTER, col3_w, 16, oil_col)
-
-	# Horizontal divider in Column 3
-	draw_line(
-		Vector2(col3_x + 6.0, rect.position.y + 71.0),
-		Vector2(col3_x + col3_w - 6.0, rect.position.y + 71.0),
-		config.divider_color,
-		1.0
-	)
-
-	# Bottom row: WATER & Temperature
-	draw_string(LIBRON_BOLD_FONT, Vector2(col3_x, rect.position.y + 92.0), "WATER", HORIZONTAL_ALIGNMENT_CENTER, col3_w, 13, config.label_color)
-	var water_val := str(roundi(state.water_temperature_celsius)) + "°C" if state.water_temperature_celsius >= 0.0 else "--°C"
-	var water_col := state.water_temperature_color if state.water_temperature_color != Color.WHITE else config.digital_color
-	draw_string(LIBRON_BOLD_FONT, Vector2(col3_x, rect.position.y + 116.0), water_val, HORIZONTAL_ALIGNMENT_CENTER, col3_w, 16, water_col)
-
-
 func _draw_card_text(
 		value: String,
 		pos: Vector2,
@@ -798,6 +846,7 @@ func _draw_card_text(
 	draw_string(font, pos, value, HORIZONTAL_ALIGNMENT_CENTER, width, font_size, color)
 
 
+# ==============================================================================
 # ==============================================================================
 # LEGACY COMPETITION CIRCULAR DISPLAY IMPLEMENTATION
 # ==============================================================================
@@ -996,12 +1045,12 @@ func _draw_fuel_summary() -> void:
 			if fuel_fraction <= config.fuel_alert_fraction:
 				fuel_color = config.alert_color
 		_draw_competition_text(
-			"%.1f" % state.fuel_remaining_kg,
+			"%.1f L" % state.fuel_remaining_kg,
 			Vector2(292.0, 960.0),
 			FUEL_VALUE_FONT_SIZE,
 			fuel_color,
 			LIBRON_BOLD_FONT)
-	_draw_competition_text("KG", Vector2(408.0, 968.0), FUEL_LABEL_FONT_SIZE, config.dial_color)
+	_draw_competition_text("L", Vector2(408.0, 968.0), FUEL_LABEL_FONT_SIZE, config.dial_color)
 
 	if state.has_average_consumption:
 		_draw_competition_text(
@@ -1012,7 +1061,7 @@ func _draw_fuel_summary() -> void:
 			LIBRON_BOLD_FONT)
 	else:
 		_draw_competition_text("--.--", Vector2(724.0, 963.0), FUEL_VALUE_FONT_SIZE, config.inactive_color, LIBRON_BOLD_FONT)
-	_draw_competition_text("KG/LAP", Vector2(866.0, 968.0), FUEL_LABEL_FONT_SIZE, config.dial_color)
+	_draw_competition_text("L/LAP", Vector2(866.0, 968.0), FUEL_LABEL_FONT_SIZE, config.dial_color)
 
 	if state.has_fuel_delta:
 		var fuel_delta_color := (

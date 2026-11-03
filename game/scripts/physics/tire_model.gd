@@ -37,6 +37,8 @@ var radial_tires: Dictionary = { }
 var states: Array[Dictionary] = []
 var active_compound_id: String = "gravel_normal"
 var active_compound: Dictionary = {}
+var wheel_compounds: Array[Dictionary] = []
+var compound_catalog: Dictionary = {}
 
 
 func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
@@ -52,14 +54,26 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
 	else:
 		active_compound = {}
 
+	compound_catalog = cat
+	wheel_compounds.clear()
+	for i in 4:
+		wheel_compounds.append(active_compound.duplicate(true))
 
-func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float) -> Dictionary:
-	if active_compound.is_empty():
+func set_wheel_compound(index: int, compound_id: String) -> void:
+	while wheel_compounds.size() < 4:
+		wheel_compounds.append(active_compound.duplicate(true))
+	wheel_compounds[index] = (compound_catalog.get("compounds", {}).get(compound_id, {}) as Dictionary).duplicate(true)
+	if index < axle_optimal_carcass_c.size():
+		axle_optimal_carcass_c[index] = float(wheel_compounds[index].get("carcass_optimum_c", 60.0))
+
+func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float, index: int = -1) -> Dictionary:
+	var compound := wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
+	if compound.is_empty():
 		return {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
 	var w := clampf(water_mm, 0.0, 12.0)
 	var s := clampf(snow_mm, 0.0, 8.0)
-	var wf := maxf(1.0 - w * float(active_compound.get("water_grip_loss_per_mm", 0.12)), float(active_compound.get("water_grip_floor", 0.6)))
-	var sf := maxf(1.0 - s * float(active_compound.get("snow_grip_loss_per_mm", 0.09)), float(active_compound.get("snow_grip_floor", 0.6)))
+	var wf := maxf(1.0 - w * float(compound.get("water_grip_loss_per_mm", 0.12)), float(compound.get("water_grip_floor", 0.6)))
+	var sf := maxf(1.0 - s * float(compound.get("snow_grip_loss_per_mm", 0.09)), float(compound.get("snow_grip_floor", 0.6)))
 	var gf := 1.0
 	if ground_c < 5.0:
 		gf = lerpf(0.92, 1.0, clampf((ground_c + 5.0) / 10.0, 0.0, 1.0))
@@ -393,7 +407,7 @@ func evaluate(
 	var compound_mult := 1.0
 	var compound_detail := {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
 	if not active_compound.is_empty():
-		compound_detail = compound_water_snow_ground_factor(water_mm, snow_mm, ground_temperature_c)
+		compound_detail = compound_water_snow_ground_factor(water_mm, snow_mm, ground_temperature_c, index)
 		compound_mult = float(compound_detail.get("combined", 1.0))
 	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
 	state["compound_snow_factor"] = float(compound_detail.get("snow", 1.0))

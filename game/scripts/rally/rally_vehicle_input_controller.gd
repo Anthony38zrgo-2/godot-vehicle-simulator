@@ -98,10 +98,6 @@ func _physics_process(delta: float) -> void:
 	process_reset_control()
 	process_camera_control()
 	var next_gear := resolve_manual_gear_request()
-	if vehicle.current_gear == -1:
-		var requested_throttle := brake_value
-		brake_value = throttle_value
-		throttle_value = requested_throttle
 	vehicle.throttle_input = throttle_value
 	vehicle.brake_input = brake_value
 	vehicle.steering_input = steering_value

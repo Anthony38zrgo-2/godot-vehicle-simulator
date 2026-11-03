@@ -156,6 +156,9 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
 	tire_model.set_compound(cid, compound_catalog)
 
 
+func get_compound_catalog() -> Dictionary:
+	return RallyTireCompound.load_catalog()
+
 func set_weather_controller(controller) -> void:
 	weather_controller = controller
 
@@ -284,7 +287,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 			powertrain_model.gear_ratios.append(float(r))
 		powertrain_model.maximum_forward_gear = powertrain_model.gear_ratios.size()
 	if powertrain.has("reverse_ratio"):
-		powertrain_model.reverse_ratio = float(powertrain.get("reverse_ratio", powertrain_model.reverse_ratio))
+		powertrain_model.reverse_ratio = -absf(float(powertrain.get("reverse_ratio", powertrain_model.reverse_ratio)))
 	powertrain_model.differential_preload_nm = float(
 		differential.get("preload_nm", powertrain_model.differential_preload_nm)
 	)
@@ -782,7 +785,7 @@ func _prepare_powertrain(delta: float, inputs: Dictionary) -> void:
 		delta,
 		float(inputs.get("throttle", 0.0)),
 		clutch,
-		thermal_model.engine_torque_factor(),
+		thermal_model.engine_torque_factor() if thermal_model.fuel_remaining_litres > 0.0 else 0.0,
 		carrier,
 	)
 

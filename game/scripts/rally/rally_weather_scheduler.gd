@@ -6,7 +6,7 @@ extends RefCounted
 ## propósito independiente de la IA. No se re-sortea al reabrir ni al aceptar
 ## dos veces: el cronograma resuelto se persiste.
 
-const GENERATOR_VERSION := 1
+const GENERATOR_VERSION := 2
 const CLIMATE_PURPOSE := "rally_weather_v1"
 const RIVAL_PURPOSE := "rally_weather_rival_v1"
 const PRESET_CATALOG_PATH := "res://data/weather/rally_weather_presets.json"
@@ -153,16 +153,80 @@ func _sample_range(rng: RandomNumberGenerator, lo: float, hi: float) -> float:
 	return rng.randf_range(lo, hi)
 
 
-func _resolve_climate_values(rng: RandomNumberGenerator, preset: Dictionary) -> Dictionary:
+func _resolve_climate_values(rng: RandomNumberGenerator, preset: Dictionary, prev_climate: Dictionary = {}) -> Dictionary:
+	var cumulus_range: Array = preset.get("cumulus_coverage", [0.5, 0.5])
+	var cirrus_range: Array = preset.get("cirrus_coverage", [0.5, 0.5])
+	var irr_range: Array = preset.get("irradiance_w_m2", [100.0, 100.0])
+	var air_range: Array = preset.get("air_temperature_c", [15.0, 15.0])
+	var precip_range: Array = preset.get("precipitation_mm_h", [0.0, 0.0])
+	var fog_range: Array = preset.get("fog_density", [0.0, 0.0])
+	var wind_range: Array = preset.get("wind_m_s", [3.0, 3.0])
+
+	var wind_dir: float
+	if prev_climate.has("wind_direction_deg"):
+		var prev_dir: float = float(prev_climate.get("wind_direction_deg", 180.0))
+		wind_dir = fposmod(prev_dir + rng.randf_range(-35.0, 35.0), 360.0)
+	else:
+		wind_dir = rng.randf_range(0.0, 360.0)
+
+	var u: float = rng.randf()
+	if prev_climate.has("climate_u"):
+		u = clampf(float(prev_climate["climate_u"]) + rng.randf_range(-0.25, 0.25), 0.0, 1.0)
+
+	var cumulus := lerpf(float(cumulus_range[0]), float(cumulus_range[1]), u)
+	var cirrus := lerpf(float(cirrus_range[0]), float(cirrus_range[1]), clampf(u + rng.randf_range(-0.15, 0.15), 0.0, 1.0))
+	var irr := lerpf(float(irr_range[0]), float(irr_range[1]), clampf(1.0 - u * 0.75 + rng.randf_range(-0.1, 0.1), 0.0, 1.0))
+	var air := lerpf(float(air_range[0]), float(air_range[1]), clampf(1.0 - u * 0.5 + rng.randf_range(-0.15, 0.15), 0.0, 1.0))
+	var precip := lerpf(float(precip_range[0]), float(precip_range[1]), u)
+	var fog := lerpf(float(fog_range[0]), float(fog_range[1]), clampf(u + rng.randf_range(-0.1, 0.1), 0.0, 1.0))
+	var wind_spd := lerpf(float(wind_range[0]), float(wind_range[1]), clampf(u * 0.6 + rng.randf_range(0.0, 0.4), 0.0, 1.0))
+
 	return {
-		"cumulus_coverage": _sample_range(rng, float((preset.get("cumulus_coverage", [0.5, 0.5]) as Array)[0]), float((preset.get("cumulus_coverage", [0.5, 0.5]) as Array)[1])),
-		"cirrus_coverage": _sample_range(rng, float((preset.get("cirrus_coverage", [0.5, 0.5]) as Array)[0]), float((preset.get("cirrus_coverage", [0.5, 0.5]) as Array)[1])),
-		"irradiance_w_m2": _sample_range(rng, float((preset.get("irradiance_w_m2", [100.0, 100.0]) as Array)[0]), float((preset.get("irradiance_w_m2", [100.0, 100.0]) as Array)[1])),
-		"air_temperature_c": _sample_range(rng, float((preset.get("air_temperature_c", [15.0, 15.0]) as Array)[0]), float((preset.get("air_temperature_c", [15.0, 15.0]) as Array)[1])),
-		"precipitation_mm_h": _sample_range(rng, float((preset.get("precipitation_mm_h", [0.0, 0.0]) as Array)[0]), float((preset.get("precipitation_mm_h", [0.0, 0.0]) as Array)[1])),
-		"fog_density": _sample_range(rng, float((preset.get("fog_density", [0.0, 0.0]) as Array)[0]), float((preset.get("fog_density", [0.0, 0.0]) as Array)[1])),
-		"wind_m_s": _sample_range(rng, float((preset.get("wind_m_s", [3.0, 3.0]) as Array)[0]), float((preset.get("wind_m_s", [3.0, 3.0]) as Array)[1])),
-		"wind_direction_deg": _sample_range(rng, 0.0, 360.0),
+		"cumulus_coverage": cumulus,
+		"cirrus_coverage": cirrus,
+		"irradiance_w_m2": irr,
+		"air_temperature_c": air,
+		"precipitation_mm_h": precip,
+		"fog_density": fog,
+		"wind_m_s": wind_spd,
+		"wind_direction_deg": wind_dir,
+		"climate_u": u,
+	}
+
+
+## Simulación física del enlace (liaison) entre especiales para continuidad térmica e hidrológica.
+static func simulate_liaison_physical_balance(gap_hours: float, start_abs_minutes: float, init_ground_c: float, init_water_mm: float, regional: Dictionary) -> Dictionary:
+	var ground_c := init_ground_c
+	var water_mm := init_water_mm
+	var step_h := 0.25
+	var steps := maxi(int(ceil(gap_hours / step_h)), 1)
+	var dt_s := (gap_hours * 3600.0) / float(steps)
+	var dt_h := gap_hours / float(steps)
+
+	for i in steps:
+		var cur_min := start_abs_minutes + float(i) * dt_h * 60.0
+		var hour := fmod(cur_min / 60.0, 24.0)
+		var solar := 0.0
+		if hour >= 5.0 and hour <= 21.0:
+			var t := (hour - 6.0) / 14.0
+			solar = clampf(sin(t * PI), 0.0, 1.0)
+
+		var ambient_air_c := lerpf(8.0, 22.0, solar)
+		var solar_irradiance := 650.0 * solar
+		var solar_gain := solar_irradiance * 0.65
+
+		var air_exchange := 9.0 * (ground_c - ambient_air_c)
+		var cap := 900.0 * 1000.0
+		var d_ground := ((solar_gain - air_exchange) / cap) * dt_s
+		ground_c = clampf(ground_c + d_ground, -5.0, 45.0)
+
+		var evap := 0.35 * (solar_gain / 100.0) * dt_h
+		var drainage := 6.0 * clampf(water_mm / 3.0, 0.08, 1.0) * dt_h
+		water_mm = maxf(water_mm - (evap + drainage), 0.0)
+
+	return {
+		"ground_c": ground_c,
+		"water_mm": water_mm,
 	}
 
 
@@ -187,17 +251,16 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 	if rules.is_empty():
 		return {"ok": false, "error": "El evento no define weather_rules"}
 	var ordered: Array = rules.get("ordered_states", [])
-	if ordered != ["clear", "sunny", "cloudy", "light_precipitation", "medium_precipitation", "heavy_precipitation"]:
-		return {"ok": false, "error": "ordered_states debe ser la lista configurable de seis estados del plan"}
-	var within_allowed: Array = rules.get("within_stage_allowed_steps", [-1, 1]).map(func(value): return int(value))
-	var between_allowed: Array = rules.get("between_stages_allowed_steps", [-2, -1, 1, 2]).map(func(value): return int(value))
-	if within_allowed.size() != 2 or float(within_allowed[0]) != -1.0 or float(within_allowed[1]) != 1.0:
-		return {"ok": false, "error": "within_stage_allowed_steps debe ser [-1, 1]"}
+	if ordered.is_empty():
+		return {"ok": false, "error": "ordered_states no puede estar vacío"}
+	var within_allowed: Array = rules.get("within_stage_allowed_steps", [-1, 0, 1]).map(func(value): return int(value))
+	var between_allowed: Array = rules.get("between_stages_allowed_steps", [-2, -1, 0, 1, 2]).map(func(value): return int(value))
+	for s in within_allowed:
+		if abs(int(s)) > 1:
+			return {"ok": false, "error": "within_stage_allowed_steps admite -1, 0 o 1"}
 	for s in between_allowed:
-		if int(s) == 0 or abs(int(s)) > 2:
-			return {"ok": false, "error": "between_stages_allowed_steps admite ±1 o ±2, sin permanecer igual"}
-	if 0 in between_allowed:
-		return {"ok": false, "error": "Entre stages no se permite permanecer igual"}
+		if abs(int(s)) > 2:
+			return {"ok": false, "error": "between_stages_allowed_steps admite pasos entre -2 y 2"}
 	var catalog := _read_json(str(rules.get("preset_catalog_path", PRESET_CATALOG_PATH)))
 	if catalog.is_empty():
 		return {"ok": false, "error": "Catálogo de presets ilegible: " + error}
@@ -233,77 +296,93 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 		if not bool(zone_info.get("ok", false)):
 			return {"ok": false, "error": str(zone_info.get("error", "ruta incompatible"))}
 		route_hashes[stage_id] = str(zone_info.get("route_hash", ""))
-		# Transición entre stages (no en el primero): ±1/±2 sin repetir.
-		if si > 0:
-			var candidates: Array = []
-			for step in between_allowed:
-				var nxt: int = current + int(step)
-				if nxt >= 0 and nxt < ordered.size():
-					candidates.append(nxt)
-			if candidates.is_empty():
-				return {"ok": false, "error": "Sin transición válida entre stages hacia %s; se rechaza sin sustituir" % stage_id}
-			current = candidates[rng.randi() % candidates.size()]
 		var sched_entry: Dictionary = (itinerary[si] as Dictionary).duplicate(true) if si < itinerary.size() else {"stage_id": stage_id}
 		var zones_out: Array = []
 		var gap_h := 2.0
 		if si > 0 and si < itinerary.size():
-			var prev_abs := float((itinerary[si - 1] as Dictionary).get("absolute_minutes", si * 120.0))
+			var prev_abs := float((itinerary[si - 1] as Dictionary).get("absolute_minutes", (si - 1) * 120.0))
 			var cur_abs := float((itinerary[si] as Dictionary).get("absolute_minutes", si * 120.0))
 			gap_h = maxf((cur_abs - prev_abs) / 60.0, 0.25)
+		# Transición sinóptica entre stages (no en el primero):
+		if si > 0:
+			var candidates: Array = []
+			var cand_weights: Array = []
+			var cur_abs_min := float(sched_entry.get("absolute_minutes", si * 120.0))
+			var t_h := cur_abs_min / 60.0
+			var front_trend := sin(t_h * 0.3 + float(seed % 100) * 0.05) * 0.5 + cos(t_h * 0.15 + float(seed % 50) * 0.08) * 0.5
+			var b_stay_w := float(regional.get("between_stages_stay_weight", 0.30))
+			for step in between_allowed:
+				var nxt: int = current + int(step)
+				if nxt >= 0 and nxt < ordered.size():
+					candidates.append(nxt)
+					var w := 1.0
+					if int(step) == 0:
+						w = b_stay_w * maxf(1.0 - (gap_h - 1.0) * 0.04, 0.15)
+					elif int(step) > 0:
+						w = maxf(1.0 + front_trend * 0.8, 0.2)
+					else:
+						w = maxf(1.0 - front_trend * 0.8, 0.2)
+					cand_weights.append(w)
+			if candidates.is_empty():
+				return {"ok": false, "error": "Sin transición válida entre stages hacia %s; se rechaza sin sustituir" % stage_id}
+			current = _pick_weighted(rng, candidates, cand_weights)
 		var antecedent: Dictionary = (regional.get("antecedent_policy", {}) as Dictionary).duplicate(true)
+		var prev_zone_climate: Dictionary = {}
 		for zi in 3:
-			# Transición dentro del stage: ±1, nunca 0.
+			# Transición dentro del stage (permite conservar estado o avanzar/retroceder suave):
 			if zi > 0:
 				var opts: Array = []
-				if current - 1 >= 0:
-					opts.append(current - 1)
-				if current + 1 < ordered.size():
-					opts.append(current + 1)
+				var opts_w: Array = []
+				var stay_w := float(regional.get("within_stage_stay_weight", 0.35))
+				for s in within_allowed:
+					var cand: int = current + int(s)
+					if cand >= 0 and cand < ordered.size():
+						opts.append(cand)
+						if int(s) == 0:
+							opts_w.append(stay_w)
+						elif int(s) > 0:
+							opts_w.append(adv_w)
+						else:
+							opts_w.append(ret_w)
 				if opts.is_empty():
 					return {"ok": false, "error": "Sin transición válida dentro de %s; se rechaza sin sustituir" % stage_id}
-				if opts.size() == 1:
-					current = int(opts[0])
-				else:
-					var adv := current + 1
-					var ret := current - 1
-					var pick_adv := rng.randf() < adv_w / maxf(adv_w + ret_w, 0.001)
-					current = adv if pick_adv else ret
-					if current not in opts:
-						current = int(opts[rng.randi() % opts.size()])
+				current = _pick_weighted(rng, opts, opts_w)
 			var state_id := str(ordered[current])
 			var preset: Dictionary = presets[state_id]
-			var climate := _resolve_climate_values(rng, preset)
-			# Antecedentes regionales para la zona: evolucionan la condición
-			# inicial sin copiar literalmente la última zona anterior.
+			var climate := _resolve_climate_values(rng, preset, prev_zone_climate)
+			prev_zone_climate = climate
+			# Antecedentes físicos regionales y continuidad térmica/hidrológica:
 			var init_water_lo := float(((antecedent.get("initial_water_mm", [0.0, 1.2]) as Array)[0]))
 			var init_water_hi := float(((antecedent.get("initial_water_mm", [0.0, 1.2]) as Array)[1]))
 			var base_water := _sample_range(rng, init_water_lo, init_water_hi)
-			if si > 0 or zi > 0:
-				var decay := exp(-gap_h * 0.12) if si > 0 and zi == 0 else 0.82
-				var carry := (prev_avg_water if zi == 0 else float((zones_out[zi - 1] as Dictionary).get("initial_water_mm", base_water)))
-				var precip_add := float(climate.get("precipitation_mm_h", 0.0)) * (0.25 + rng.randf() * 0.2)
-				base_water = clampf(carry * decay + precip_add * 0.35 + base_water * 0.25, 0.0, 12.0)
-			else:
-				if float(climate.get("precipitation_mm_h", 0.0)) > 0.5:
-					base_water = maxf(base_water, 0.8 + rng.randf() * 1.2)
-			var init_sat_lo := 0.05
-			var init_sat_hi := 0.35
-			if antecedent.has("initial_saturation"):
-				init_sat_lo = float((antecedent["initial_saturation"] as Array)[0])
-				init_sat_hi = float((antecedent["initial_saturation"] as Array)[1])
-			var saturation := clampf(_sample_range(rng, init_sat_lo, init_sat_hi) + base_water * 0.06, 0.0, 1.0)
 			var ground_lo := 13.0
 			var ground_hi := 21.0
 			if antecedent.has("initial_ground_c"):
 				ground_lo = float((antecedent["initial_ground_c"] as Array)[0])
 				ground_hi = float((antecedent["initial_ground_c"] as Array)[1])
 			var ground_c := _sample_range(rng, ground_lo, ground_hi)
-			# La siguiente especial conserva/mejora/empeora por balance, no al azar puro:
-			# se acerca al aire de su propio clima pero parte del contexto regional.
 			if si > 0 and zi == 0:
-				ground_c = lerpf(prev_avg_ground, float(climate.get("air_temperature_c", ground_c)), 0.45) + rng.randf_range(-0.7, 0.7)
+				var prev_abs_m := float((itinerary[si - 1] as Dictionary).get("absolute_minutes", (si - 1) * 120.0)) if si > 0 and si - 1 < itinerary.size() else float((si - 1) * 120.0)
+				var sim_res := simulate_liaison_physical_balance(gap_h, prev_abs_m, prev_avg_ground, prev_avg_water, regional)
+				var precip_add := float(climate.get("precipitation_mm_h", 0.0)) * (0.30 + rng.randf() * 0.20)
+				base_water = clampf(float(sim_res.water_mm) + precip_add, 0.0, 12.0)
+				ground_c = lerpf(float(sim_res.ground_c), float(climate.get("air_temperature_c", ground_c)), 0.35) + rng.randf_range(-0.5, 0.5)
+			elif zi > 0:
+				var carry_water: float = float((zones_out[zi - 1] as Dictionary).get("initial_water_mm", base_water))
+				var carry_ground: float = float((zones_out[zi - 1] as Dictionary).get("initial_ground_c", ground_c))
+				var precip_add := float(climate.get("precipitation_mm_h", 0.0)) * (0.22 + rng.randf() * 0.18)
+				base_water = clampf(carry_water * 0.85 + precip_add * 0.38 + base_water * 0.15, 0.0, 12.0)
+				ground_c = lerpf(carry_ground, float(climate.get("air_temperature_c", ground_c)), 0.28) + rng.randf_range(-0.4, 0.4)
 			else:
+				if float(climate.get("precipitation_mm_h", 0.0)) > 0.5:
+					base_water = maxf(base_water, 0.8 + rng.randf() * 1.2)
 				ground_c = lerpf(ground_c, float(climate.get("air_temperature_c", ground_c)), 0.3)
+			var init_sat_lo := 0.05
+			var init_sat_hi := 0.35
+			if antecedent.has("initial_saturation"):
+				init_sat_lo = float((antecedent["initial_saturation"] as Array)[0])
+				init_sat_hi = float((antecedent["initial_saturation"] as Array)[1])
+			var saturation := clampf(_sample_range(rng, init_sat_lo, init_sat_hi) + base_water * 0.06, 0.0, 1.0)
 			var snow_mm := 0.0
 			if _precipitation_kind(float(climate.get("precipitation_mm_h", 0.0)), ground_c, regional) in ["snow", "mixed"]:
 				snow_mm = _sample_range(rng, 0.2, 2.5)
@@ -432,12 +511,10 @@ static func validate_schedule(schedule: Array, stage_order: Array, rules: Dictio
 			if zi > 0:
 				var step: int = int(z.get("weather_state_index", 0)) - int((zones[zi - 1] as Dictionary).get("weather_state_index", 0))
 				if not (step in within_allowed):
-					return {"ok": false, "error": "Paso interno inválido en %s zona %d" % [str(entry.get("stage_id", "")), zi]}
-				if step == 0:
-					return {"ok": false, "error": "Ningún vecino repetido dentro de stage"}
+					return {"ok": false, "error": "Paso interno inválido en %s zona %d: %d" % [str(entry.get("stage_id", "")), zi, step]}
 			if zi == 0 and si > 0:
 				var bstep: int = int(z.get("weather_state_index", 0)) - prev_last_idx
 				if not (bstep in between_allowed):
-					return {"ok": false, "error": "Paso externo inválido hacia %s" % str(entry.get("stage_id", ""))}
+					return {"ok": false, "error": "Paso externo inválido hacia %s: %d" % [str(entry.get("stage_id", "")), bstep]}
 		prev_last_idx = int((zones[2] as Dictionary).get("weather_state_index", 0))
 	return {"ok": true}

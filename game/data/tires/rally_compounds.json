@@ -7,7 +7,9 @@
     "pressure": "kPa_gauge",
     "water": "mm",
     "snow": "mm_water_equivalent",
-    "wear": "fraction_0_1"
+    "wear": "fraction_0_1",
+    "wear_per_j": "fraction_per_joule",
+    "thermal_damage_rate_per_s": "fraction_per_second_at_reference_excess"
   },
   "fitment": "same_compound_all_wheels",
   "compounds": {
@@ -44,8 +46,15 @@
       "snow_grip_floor": 0.6,
       "cold_grip_ramp_c": 30.0,
       "overheat_grip_loss": 0.28,
-      "wear_per_mj": 1.0e-9,
-      "pressure_response_note": "Cálculo de presión usa temperatura de gas coherente; reglajes de presión se conservan."
+      "pressure_response_note": "Cálculo de presión usa temperatura de gas coherente; reglajes de presión se conservan.",
+      "wear_per_j": 1e-09,
+      "cold_grip_floor": 0.8,
+      "wear_grip_loss": 0.25,
+      "thermal_damage_start_c": 95.0,
+      "thermal_damage_excess_reference_c": 20.0,
+      "thermal_damage_exponent": 2.0,
+      "thermal_damage_rate_per_s": 0.0004,
+      "thermal_damage_grip_loss": 0.35
     },
     "gravel_wet": {
       "label": "Grava lluvia",
@@ -80,8 +89,24 @@
       "snow_grip_floor": 0.62,
       "cold_grip_ramp_c": 30.0,
       "overheat_grip_loss": 0.34,
-      "wear_per_mj": 1.15e-9,
-      "pressure_response_note": "Cálculo de presión usa temperatura de gas coherente; reglajes de presión se conservan."
+      "pressure_response_note": "Cálculo de presión usa temperatura de gas coherente; reglajes de presión se conservan.",
+      "wear_per_j": 1.15e-09,
+      "cold_grip_floor": 0.8,
+      "wear_grip_loss": 0.25,
+      "thermal_damage_start_c": 85.0,
+      "thermal_damage_excess_reference_c": 20.0,
+      "thermal_damage_exponent": 2.0,
+      "thermal_damage_rate_per_s": 0.00065,
+      "thermal_damage_grip_loss": 0.45
     }
-  }
+  },
+  "inventory": {
+    "capacity": 2,
+    "default_spare_count": 2,
+    "wheel_mass_kg": 18.0,
+    "mass_component_name": "spare_wheels_and_tools",
+    "baseline_spare_count": 2,
+    "tools_mass_kg": 7.0
+  },
+  "durability_life_scale": 0.425
 }

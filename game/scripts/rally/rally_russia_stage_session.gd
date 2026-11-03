@@ -161,7 +161,17 @@ func _ready() -> void:
 	# Compuesto confirmado antes de precalentar (objetivos térmicos por compuesto).
 	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
+		for i in mini(4, event_manager.mounted_tire_condition.size()):
+			var condition: Dictionary = event_manager.mounted_tire_condition[i]
+			vehicle.simulation.thermal_model.tire_states[i].wear_fraction = clampf(float(condition.get("wear_fraction", 0.0)), 0.0, 1.0)
+			vehicle.simulation.thermal_model.tire_states[i].thermal_damage_fraction = clampf(float(condition.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
 	apply_start_pose_from_manifest()
+	vehicle.ensure_tire_inventory()
+	if not practice_mode and event_manager != null and not event_manager.tire_inventory_state.is_empty():
+		if not vehicle.tire_inventory.restore(event_manager.tire_inventory_state):
+			push_error("Inventario de neumáticos guardado inválido")
+			return
+	vehicle.apply_tire_inventory()
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
 		return
@@ -175,6 +185,9 @@ func _ready() -> void:
 	connect_runtime_signals()
 	configure_runtime_paths()
 	_connect_garage_panel()
+	var pause_inventory = preload("res://scripts/rally/rally_pause_inventory.gd").new()
+	pause_inventory.session = self
+	add_child(pause_inventory)
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	session_ready = true
@@ -231,11 +244,19 @@ func _build_weather_system() -> bool:
 	var season_weathers: Variant = season_res.get("weathers")
 	if season_weathers is Array:
 		weather_count = (season_weathers as Array).size()
-	print("RALLY_WEATHER_READY scene=russia_stage1 sky=Sky3D precipitation=TCA wind=TCA season=", weather_season_path, " weathers=", weather_count)
+	print("RALLY_WEATHER_READY scene=russia_stage1 sky=hybrid_if_retro precipitation=TCA wind=TCA season=", weather_season_path, " weathers=", weather_count)
 	return true
 
 
 func _build_sky3d(script_path: String) -> bool:
+	if dreamcast_visual_mode:
+		var hybrid = preload("res://scripts/rally/rally_hybrid_sky.gd").new()
+		hybrid.name = "RallyHybridSky"
+		hybrid.current_time = sky3d_time_of_day
+		add_child(hybrid)
+		weather_sky_node = hybrid
+		weather_sky_dome = hybrid
+		return true
 	var sky_script := load(script_path) as Script
 	if sky_script == null:
 		push_warning("Sky3D script failed to load, using legacy environment")
@@ -636,6 +657,9 @@ func on_vehicle_reset_requested() -> void:
 		head_up_display.show_status("COCHE RESTABLECIDO", Color(0.95, 0.72, 0.24), 2.2)
 
 
+var _weather_visual_elapsed := 0.1
+
+
 func _physics_process(delta: float) -> void:
 	if not session_ready or vehicle == null:
 		return
@@ -656,7 +680,10 @@ func _physics_process(delta: float) -> void:
 		if clock_advancing:
 			event_weather.advance_ambient(delta * maxf(event_clock.rate, 0.0), event_weather.solar_factor_for_hour(event_clock.hour_of_day()))
 		event_weather.tick_visual(delta)
-		event_weather.apply_to_adapters(weather_sky_dome, weather_controller_node, terrain_wetness, event_clock.hour_of_day())
+		_weather_visual_elapsed += delta
+		if _weather_visual_elapsed >= 0.1:
+			_weather_visual_elapsed = fmod(_weather_visual_elapsed, 0.1)
+			event_weather.apply_to_adapters(weather_sky_dome, weather_controller_node, terrain_wetness, event_clock.hour_of_day())
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
 		for event: String in signal_state.events:
@@ -677,8 +704,7 @@ func _physics_process(delta: float) -> void:
 		if course.clock_started:
 			competition.update(course.readout())
 			if competition.sector > previous_sector and not competition.complete:
-				var summary: Dictionary = competition.readout()
-				head_up_display.show_status("PARCIAL %d/9   %.3f s   DELTA %+.3f s" % [competition.sector, float(competition.player_ms + competition.player_penalty_ms) / 1000.0, float(summary.delta_ms) / 1000.0], Color(0.45, 0.9, 0.6), 3.0)
+				head_up_display.show_partial(competition.sector, competition.partial_delta_ms())
 		if competition.complete:
 			pacenotes.on_retire()
 			apply_competition_controls()
@@ -691,9 +717,11 @@ func _physics_process(delta: float) -> void:
 
 
 func get_session_state() -> Dictionary:
+	var course_state: Dictionary = course.readout()
+	course_state["label"] = stage_label()
 	return {
 		"elapsed_seconds": elapsed_seconds,
-		"course": course.readout(),
+		"course": course_state,
 		"competition": get_competition_panel_state(),
 		"pacenotes": {"next_gate": pacenotes.tracker.next_gate, "active_call": pacenotes.call_queue.get_active_record()},
 		"start_sequence": start_sequence.readout() if not competition.complete else {},
@@ -704,6 +732,22 @@ func get_session_state() -> Dictionary:
 		"start_heading": start_heading,
 		"telemetry_file_path": telemetry_file_path,
 	}
+
+
+func stage_label() -> String:
+	var number := 1
+	if event_manager != null and not practice_mode:
+		number = int(event_manager.cursor) + 1
+	else:
+		number = int(competition.readout().get("leg", 1))
+	var place := str(session_track_id)
+	var cut := place.rfind("_stage")
+	if cut > 0:
+		place = place.substr(0, cut)
+	place = place.replace("_", " ").strip_edges().to_upper()
+	if place.is_empty():
+		return "STAGE %d" % number
+	return "STAGE %d · %s" % [number, place]
 
 
 func reset_vehicle_to_start() -> void:
@@ -796,6 +840,7 @@ func withdraw_event_definitive(reason: String = "Retiro definitivo") -> void:
 
 
 func _exit_tree() -> void:
+	_save_mounted_tire_condition()
 	if session_ready and not practice_mode and event_manager != null and event_weather.calendar_active:
 		event_manager.save_stage_surface(session_track_id, event_weather.snapshot())
 		event_manager.save()
@@ -843,6 +888,7 @@ func begin_event_session(manager: RefCounted, stage_id: String) -> void:
 func _close_event_stage(definitive: bool, reason: String) -> void:
 	if event_manager == null or event_manager.sim == null:
 		return
+	_save_mounted_tire_condition()
 	var measured_ms := int(competition.player_ms + competition.player_penalty_ms)
 	var player := {
 		"measured_ms": competition.player_ms,
@@ -904,6 +950,7 @@ func load_event_stage(next_id: String) -> void:
 	# Reinicio entre especiales con objetivos térmicos del compuesto elegido.
 	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
+		vehicle.apply_tire_inventory()
 	apply_start_pose_from_manifest()
 	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
 	if not await _swap_stage_geometry(resolved):
@@ -1046,6 +1093,8 @@ func _open_setup_window() -> void:
 	elif window.has("before_stage_id"):
 		label = "SERVICIO · " + str(window.get("before_stage_id", "")).to_upper()
 	garage_panel.call("open_garage_for_event", {
+		"spare_wheels": vehicle.tire_inventory.spares.size(),
+		"wheel_compounds": mounted_wheel_compounds(),
 		"initial_tab": str(window.get("initial_tab", "tires")),
 		"compound_id": event_manager.draft_compound_id,
 		"compound_change_allowed": true,
@@ -1062,9 +1111,24 @@ func _on_garage_closed(applied: bool) -> void:
 	if not awaiting_setup:
 		return
 	if not applied:
+		call_deferred("_open_setup_window")
 		return
 	# Guardar compuesto confirmado, valores y estado para no duplicar con doble clic.
 	var setup: Dictionary = garage_panel.call("get_confirmed_setup") if garage_panel != null and garage_panel.has_method("get_confirmed_setup") else {}
+	if setup.is_empty() and garage_panel != null:
+		var values: Dictionary = garage_panel.draft_values.duplicate(true)
+		for wheel in garage_panel.draft_wheel_compounds:
+			values["strategy.wheel_compound." + str(wheel)] = garage_panel.draft_wheel_compounds[wheel]
+		values["strategy.spare_wheels"] = garage_panel.draft_spare_wheels
+		var committed: Dictionary = vehicle.apply_setup_snapshot(values)
+		if not bool(committed.get("ok", false)):
+			call_deferred("_open_setup_window")
+			return
+		var wet_count := 0
+		for tire in vehicle.tire_inventory.mounted:
+			if tire.compound_id == "gravel_wet":
+				wet_count += 1
+		setup = {"compound_id": "gravel_wet" if wet_count >= 2 else "gravel_normal", "values": garage_panel.draft_values}
 	var cid := str(setup.get("compound_id", event_manager.draft_compound_id))
 	var result: Dictionary = event_manager.confirm_setup(cid, setup.get("values", {}))
 	if not bool(result.get("ok", false)):
@@ -1072,7 +1136,11 @@ func _on_garage_closed(applied: bool) -> void:
 		return
 	if vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
+		vehicle.apply_tire_inventory()
+	_save_mounted_tire_condition()
+	event_manager.save()
 	awaiting_setup = false
+	input_controller.arm_start_handbrake()
 	# Aceptar inicia la salida: aplicar condiciones iniciales y habilitar cuenta atrás.
 	if not practice_mode and event_manager != null:
 		start_clock_for_stage(event_manager.schedule_for(session_track_id))
@@ -1084,6 +1152,31 @@ func _on_garage_closed(applied: bool) -> void:
 	_update_panel_for_stage()
 	if head_up_display != null:
 		head_up_display.show_status("COMPUESTO " + event_manager.confirmed_compound_id.to_upper() + " — SALIDA HABILITADA", Color(0.34, 0.82, 0.45), 3.0)
+
+func _save_mounted_tire_condition() -> void:
+	if practice_mode or event_manager == null or vehicle == null:
+		return
+	vehicle.sync_tire_inventory()
+	event_manager.tire_inventory_state = vehicle.tire_inventory.snapshot()
+	event_manager.mounted_tire_condition.clear()
+	for tire: Dictionary in vehicle.simulation.thermal_model.tire_states:
+		event_manager.mounted_tire_condition.append({"wear_fraction": tire.get("wear_fraction", 0.0), "thermal_damage_fraction": tire.get("thermal_damage_fraction", 0.0)})
+
+func mounted_wheel_compounds() -> Dictionary:
+	var result := {}
+	for i in vehicle.tire_inventory.mounted.size():
+		result[["FL", "FR", "RL", "RR"][i]] = vehicle.tire_inventory.mounted[i].compound_id
+	return result
+
+func may_service_tires() -> bool:
+	if not session_ready or competition.complete or course.clock_started:
+		return false
+	if practice_mode or event_manager == null:
+		return not course.running
+	for window in event_manager.setup_windows():
+		if str(window.get("before_stage_id", "")) == session_track_id:
+			return true
+	return false
 
 func get_competition_panel_state() -> Dictionary:
 	if event_manager == null or practice_mode:
@@ -1100,3 +1193,11 @@ func get_competition_panel_state() -> Dictionary:
 		state["event_points"] = event_manager.points_ledger
 		state["event_final_rows"] = event_manager.standings()
 	return state
+
+
+func may_refuel() -> bool:
+	if not session_ready or course.clock_started or competition.complete:
+		return false
+	if practice_mode or event_manager == null:
+		return not course.running
+	return awaiting_setup and not event_manager.get_pending_window().is_empty()
