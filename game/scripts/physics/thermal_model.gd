@@ -205,6 +205,20 @@ func apply_damage(rad_delta: float, eng_delta: float) -> void:
 	_update_torque_derating()
 
 
+func quick_repair_radiator(custom_target: float = -1.0) -> bool:
+	if radiator_damage < 0.05:
+		return false
+	var target_damage: float = custom_target if custom_target >= 0.0 else (0.50 if radiator_damage >= 0.70 else 0.0)
+	radiator_damage = target_damage
+	overheat_exposure_s = 0.0
+	if water_temperature_c > 92.0:
+		water_temperature_c = 90.0
+	if oil_temperature_c > 105.0:
+		oil_temperature_c = 100.0
+	_update_torque_derating()
+	return true
+
+
 func oil_viscosity_factor(oil_c: float) -> float:
 	var cfg: Dictionary = engine_config.get("oil_pressure", {})
 	var reference := float(cfg.get("viscosity_reference_celsius", 90.0))

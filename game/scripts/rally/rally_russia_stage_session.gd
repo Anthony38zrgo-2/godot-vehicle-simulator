@@ -619,9 +619,9 @@ func on_driving_assistance_changed(state: Dictionary) -> void:
 	print("RALLY_ASSISTANCE ", JSON.stringify(state))
 
 
-func on_vehicle_reset_requested() -> void:
-	if competition.complete or course.points.size() < 2:
-		return
+func _reposition_vehicle_on_course() -> bool:
+	if vehicle == null or course.points.size() < 2:
+		return false
 	var closest := INF
 	var target := course.points[0]
 	var direction := course.points[1] - target
@@ -640,21 +640,41 @@ func on_vehicle_reset_requested() -> void:
 			direction = segment
 	target += Vector3.UP * 0.2
 	var heading := atan2(-direction.x, -direction.z)
-	# El rescate con R conserva temperatura, compuesto y desgaste (no regala nuevos).
 	vehicle.reset_to_pose(target, heading)
 	course.generation = vehicle.simulation.session_generation
 	course.previous_position = target
 	competition.generation = course.generation
 	camera_rig.snap_to_target()
 	pacenotes.on_rescue(target)
-	# Suavizar el cielo tras el rescate; los contactos usan la zona correcta ya.
 	if not practice_mode and event_weather.calendar_active:
 		event_weather.on_rescue(target)
+	return true
+
+
+func on_vehicle_reset_requested() -> void:
+	if competition.complete or not _reposition_vehicle_on_course():
+		return
 	if course.running:
 		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
 		head_up_display.show_status("RESCATE +%.0f s" % (float(competition.balance.reset_penalty_ms) / 1000.0), Color(0.95, 0.72, 0.24), 2.2)
 	else:
 		head_up_display.show_status("COCHE RESTABLECIDO", Color(0.95, 0.72, 0.24), 2.2)
+
+
+func on_quick_repair_radiator_requested() -> bool:
+	if competition.complete or vehicle == null or vehicle.simulation == null or vehicle.simulation.thermal_model == null:
+		return false
+	var tm: VehicleThermalModel = vehicle.simulation.thermal_model
+	if tm.radiator_damage < 0.05:
+		return false
+	if not tm.quick_repair_radiator():
+		return false
+	_reposition_vehicle_on_course()
+	competition.add_penalty("player", 60000, "Reparación de radiador")
+	if head_up_display != null:
+		var target_pct := roundi(tm.radiator_damage * 100.0)
+		head_up_display.show_status("REPARACIÓN DE RADIADOR (%d%%) +60 s" % target_pct, Color(0.95, 0.72, 0.24), 3.0)
+	return true
 
 
 var _weather_visual_elapsed := 0.1

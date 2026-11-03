@@ -91,13 +91,45 @@ func button(text: String, callback: Callable, parent: Node = null) -> void:
 	node.pressed.connect(callback)
 	(parent if parent != null else content).add_child(node)
 
+func get_radiator_damage() -> float:
+	if session != null:
+		var v: Variant = session.get("vehicle")
+		if v != null and v.get("simulation") != null and v.simulation.get("thermal_model") != null:
+			return float(v.simulation.thermal_model.radiator_damage)
+	return 0.0
+
+func has_quick_repairs() -> bool:
+	return get_radiator_damage() >= 0.05
+
 func show_menu() -> void:
 	clear()
 	label("PAUSA · RALLY")
 	button("Neumáticos · Inventario y cambios", show_inventory)
+	button("Reparaciones rápidas", show_quick_repairs)
 	button("Pedir rescate", request_rescue)
 	button("Abandonar etapa", abandon_stage)
 	button("Reanudar", toggle)
+
+func show_quick_repairs() -> void:
+	clear()
+	label("REPARACIONES RÁPIDAS")
+	var rad_damage := get_radiator_damage()
+	var pct := roundi(rad_damage * 100.0)
+	label("Estado del radiador: Daño al %d%% (Salud: %d%%)" % [pct, 100 - pct])
+	if rad_damage >= 0.70:
+		button("Reparación de radiador (Daño %d%% → 50%% · +1:00 min y restablecer coche)" % pct, repair_radiator)
+	elif rad_damage >= 0.05:
+		button("Reparación de radiador (Daño %d%% → 0%% · +1:00 min y restablecer coche)" % pct, repair_radiator)
+	else:
+		label("El radiador no presenta daños significativos. No requiere reparación.")
+	button("Volver a pausa", show_menu)
+	button("Reanudar", toggle)
+
+func repair_radiator() -> void:
+	if not modal.visible or not allowed():
+		return
+	toggle()
+	session.on_quick_repair_radiator_requested()
 
 func request_rescue() -> void:
 	if not modal.visible or not allowed():

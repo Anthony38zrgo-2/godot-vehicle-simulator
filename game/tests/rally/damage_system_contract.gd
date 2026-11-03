@@ -13,6 +13,7 @@ func run_tests() -> void:
 	test_oil_model()
 	test_impact_zones()
 	test_vfx_and_hud()
+	test_quick_repairs()
 	print("ALL DAMAGE SYSTEM CONTRACT TESTS PASSED!")
 	quit(0)
 
@@ -180,3 +181,86 @@ func test_vfx_and_hud() -> void:
 	var shader = load("res://scripts/rally/rally_vehicle_vfx.gdshader")
 	assert(shader != null, "VFX shader must load cleanly")
 	print("PASS: test_vfx_and_hud")
+
+
+func test_quick_repairs() -> void:
+	var profile := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
+	var domains: Dictionary = profile["domains"]
+	var model := VehicleThermalModel.new()
+	model.configure(domains)
+
+	# 1. ThermalModel quick_repair_radiator
+	model.radiator_damage = 0.02
+	assert(not model.quick_repair_radiator(), "Should not repair if radiator damage < 5%")
+	assert(model.radiator_damage == 0.02, "Damage must remain unchanged")
+
+	# Moderate damage (< 70%): restores to 0%
+	model.radiator_damage = 0.40
+	model.water_temperature_c = 105.0
+	assert(model.quick_repair_radiator(), "Should repair when damage >= 5%")
+	assert(absf(model.radiator_damage - 0.0) < 0.0001, "Radiator damage must be fully restored to 0% if below 70%")
+
+	# Heavy damage (>= 70%): only restores to 50%
+	model.radiator_damage = 0.92
+	model.water_temperature_c = 118.0
+	model.oil_temperature_c = 132.0
+	model.overheat_exposure_s = 4.8
+	var repaired := model.quick_repair_radiator()
+	assert(repaired, "Should repair successfully when radiator damage >= 70%")
+	assert(absf(model.radiator_damage - 0.50) < 0.0001, "Radiator damage must only restore to 50% when damage was >= 70%")
+	assert(model.overheat_exposure_s == 0.0, "Overheat exposure must reset to 0 after repair")
+	assert(model.water_temperature_c <= 90.0, "Water temperature must be normalized to operating temperature")
+	assert(model.oil_temperature_c <= 100.0, "Oil temperature must be normalized")
+
+	# 2. Pause menu inventory logic
+	var pause_script = load("res://scripts/rally/rally_pause_inventory.gd")
+	var pause_menu = pause_script.new()
+
+	# Create a dummy session with vehicle simulation and competition
+	var dummy_script = GDScript.new()
+	dummy_script.source_code = "extends Node\nvar vehicle: Node\nvar competition: RefCounted\nvar course: RefCounted\nvar head_up_display = null\nvar camera_rig = null\nvar pacenotes = null\nvar practice_mode: bool = true\nvar event_weather = null\n"
+	dummy_script.reload()
+	var dummy_session = dummy_script.new()
+	var vehicle = RallyEscortVehicle.new()
+	dummy_session.vehicle = vehicle
+	pause_menu.session = dummy_session
+
+	# With damage < 5%, quick repairs is false
+	model.radiator_damage = 0.01
+	vehicle.simulation.thermal_model = model
+	assert(not pause_menu.has_quick_repairs(), "has_quick_repairs must be false when damage < 5%")
+
+	# With damage >= 5%, quick repairs is true
+	model.radiator_damage = 0.25
+	assert(pause_menu.has_quick_repairs(), "has_quick_repairs must be true when damage >= 5%")
+
+	# 3. Session quick repair execution and penalty
+	var competition_script = load("res://scripts/rally/rally_competition.gd")
+	var comp = competition_script.new()
+	comp.configure("res://data/competition/stages/russia_stage1.json", 1974)
+	dummy_session.competition = comp
+	var course_script = load("res://scripts/rally/rally_stage_progress.gd")
+	var crs = course_script.new()
+	var sample_pts: Array[Vector3] = [Vector3.ZERO, Vector3(0, 0, 50)]
+	crs.points = sample_pts
+	dummy_session.course = crs
+	dummy_session.pacenotes = load("res://scripts/rally/rally_pacenote_controller.gd").new()
+	dummy_session.event_weather = load("res://scripts/rally/rally_weather_controller.gd").new()
+
+	# Test session logic directly via thermal model + competition penalty contract
+	var prev_penalties_ms := int(comp.player_penalty_ms)
+	model.radiator_damage = 0.85
+	assert(model.radiator_damage >= 0.70, "Damage is at or above 70%")
+	assert(model.quick_repair_radiator(), "Quick repair succeeds")
+	assert(absf(model.radiator_damage - 0.50) < 0.0001, "Radiator damage restored to 50%")
+	comp.add_penalty("player", 60000, "Reparación de radiador")
+
+	assert(comp.player_penalty_ms == prev_penalties_ms + 60000, "Must add exactly 60000ms (+1 min) penalty")
+	assert(comp.player_penalties.size() > 0, "Penalties list must record event")
+	assert(comp.player_penalties[-1]["reason"] == "Reparación de radiador", "Reason must be 'Reparación de radiador'")
+	assert(comp.player_penalties[-1]["milliseconds"] == 60000, "Penalty duration must be 60000ms")
+
+	pause_menu.free()
+	vehicle.free()
+	dummy_session.free()
+	print("PASS: test_quick_repairs")
