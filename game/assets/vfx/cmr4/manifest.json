@@ -15,7 +15,7 @@
   "generator": {
     "tool": "tools/rally/extract_cmr4_vfx.py",
     "version": 1,
-    "decoder": "Pillow 12.3.0",
+    "decoder": "Pillow 12.2.0",
     "png_mode": "RGBA",
     "mip_level": 0,
     "deterministic": true
@@ -440,6 +440,132 @@
       },
       "png_size_bytes": 1351,
       "png_sha256": "bd28f43ccc540269060264e7fde4d56d00196a00bcfca88a89e038f7e061d089"
+    },
+    "skid_tr2.png": {
+      "entry": "Skid_tr2.dds",
+      "entry_index": 21,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "3cc3a28658e526246c00bacf4ed3f4501a2c6b3499128c0c8d2aa41eb79c0a18",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 0,
+        "max": 196,
+        "coverage": 0.998,
+        "opaque": false
+      },
+      "png_size_bytes": 2566,
+      "png_sha256": "b1505474d4ede6e61261aa5c915f2705b27db5ab732c49b42cbbd7912ddd0ebd"
+    },
+    "skid_tr1.png": {
+      "entry": "Skid_tr1.dds",
+      "entry_index": 22,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "bfc2a716c1fa93159e8726e6843351a0f316ad31073df2e0ae59555a0f0cbc3d",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 0,
+        "max": 255,
+        "coverage": 0.819,
+        "opaque": false
+      },
+      "png_size_bytes": 5471,
+      "png_sha256": "4f58762476789595be7f78ddd26424365816cb90f5258563e9edc166d195fc1f"
+    },
+    "skid_sw1.png": {
+      "entry": "Skid_sw1.dds",
+      "entry_index": 23,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "0028ac38068863ed224c0139b8b3bfb7de93749ef92da7e1b23a413fe3cda934",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 0,
+        "max": 255,
+        "coverage": 0.999,
+        "opaque": false
+      },
+      "png_size_bytes": 10931,
+      "png_sha256": "788e786121e49872a27a52de566da56db56be35b92ee5da6d470fcac28bb527b"
+    },
+    "skid_sw2.png": {
+      "entry": "Skid_sw2.dds",
+      "entry_index": 24,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "3b17dc5124c4453bde4a862b29f380f923ec498203e1b47bef442ccd9ce2f2a2",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 9,
+        "max": 255,
+        "coverage": 1.0,
+        "opaque": false
+      },
+      "png_size_bytes": 11226,
+      "png_sha256": "1f645f452fb684f3c9f2d64186faf3ab3759d99949172348924360df8836e24c"
+    },
+    "skid_ic1.png": {
+      "entry": "Skid_ic1.dds",
+      "entry_index": 25,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "082ded22ffece0abc490b75a8128983f6d7c6750907f4a3e0c66b88f720109d1",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 0,
+        "max": 206,
+        "coverage": 0.959,
+        "opaque": false
+      },
+      "png_size_bytes": 5310,
+      "png_sha256": "8ad1b0eaffa8f679bdb32f51a7cc878cec74c26a591570c92d904ccb3c5f3fde"
+    },
+    "skid_gr1.png": {
+      "entry": "Skid_gr1.dds",
+      "entry_index": 26,
+      "dds_size_bytes": 5568,
+      "dds_sha256": "5121750bebd97c831236ac6d723a62f3062dc7c5306c447537252321b4fd2979",
+      "dds_format": "DXT5",
+      "dds_alpha_flag": true,
+      "width": 32,
+      "height": 128,
+      "mip_levels": 4,
+      "blend": "alpha",
+      "alpha": {
+        "present": true,
+        "min": 0,
+        "max": 255,
+        "coverage": 0.999,
+        "opaque": false
+      },
+      "png_size_bytes": 8381,
+      "png_sha256": "b02e736f92c5e3cb3464a26c060276f627cfc92cbccbc611868b057e0d24e9ae"
     }
   },
   "sprite_roles": {
@@ -506,10 +632,28 @@
     ],
     "r_fall.png": [
       "precipitation_rain_far"
+    ],
+    "skid_tr2.png": [
+      "tire_track_tarmac"
+    ],
+    "skid_tr1.png": [
+      "tire_track_tarmac"
+    ],
+    "skid_sw1.png": [
+      "tire_track_snow"
+    ],
+    "skid_sw2.png": [
+      "tire_track_snow"
+    ],
+    "skid_ic1.png": [
+      "tire_track_ice"
+    ],
+    "skid_gr1.png": [
+      "tire_track_loose"
     ]
   },
   "notes": [
-    "El archivo contiene 62 entradas; el manifiesto registra las 20 que usa el VFX.",
+    "El archivo contiene 62 entradas; el manifiesto registra las 26 que usa el VFX.",
     "Solo se guarda el nivel 0 de mip como PNG RGBA; la cadena de mips se valida en el DDS de origen.",
     "Dust_01.dds y Dust_02.dds son idénticos byte a byte en el archivo; se conservan todos los nombres.",
     "Los sprites con alfa 255 en todo el mapa se dibujan con mezcla aditiva en el runtime: Sprk_sml.dds, Sprk_big.dds.",

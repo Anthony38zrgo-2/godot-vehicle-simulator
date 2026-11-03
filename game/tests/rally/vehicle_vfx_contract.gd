@@ -10,7 +10,7 @@ func check_manifest() -> void:
 	assert(parsed is Dictionary, "CMR4 manifest must parse")
 	var manifest: Dictionary = parsed
 	var assets: Dictionary = manifest.get("assets", {})
-	assert(assets.size() == 20, "CMR4 manifest must list the 20 sprites")
+	assert(assets.size() == 26, "CMR4 manifest must list the 26 textures")
 	assert(str(manifest.get("archive_sha256", "")).length() == 64)
 	for name in assets.keys():
 		var path := "res://assets/vfx/cmr4/" + str(name)
@@ -96,6 +96,21 @@ func verify() -> void:
 		assert(not vfx.wheel_mist[front].emitting)
 		assert(not vfx.wheel_snow[front].emitting)
 	vehicle.linear_velocity = Vector3(0, 0, -15)
+	# Both axles can leave marks independently of the rear-only particle emitters.
+	var contact_point: Vector3 = sim.wheel_contact_points[index]
+	vfx.tire_tracks.clear_tracks()
+	sim.wheel_surfaces[index] = "asphalt"
+	sim.last_local_conditions[index] = { "snow_mm": 0.0 }
+	sim.wheel_slips[index] = Vector2(0.4, 0.0)
+	vfx.update_tire_track(index)
+	sim.wheel_contact_points[index] = contact_point + Vector3(0.0, 0.0, 0.5)
+	vfx.update_tire_track(index)
+	assert(vfx.tire_tracks.counts[index % 2] == 1, "Loaded slipping wheel should leave a mark")
+	sim.wheel_slips[index] = Vector2.ZERO
+	vfx.update_tire_track(index)
+	assert(vfx.tire_tracks.active[index], "Rolling contact must retain track continuity")
+	sim.wheel_contact_points[index] = contact_point
+	vfx.tire_tracks.clear_tracks()
 	sim.wheel_slips[index] = Vector2(0.3, 0.15)
 	for surface in ["Gravel", "Dirt", "Sand", "Grass"]:
 		sim.wheel_surfaces[index] = surface

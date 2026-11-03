@@ -16,7 +16,7 @@ func inspect_meshes(node: Node, stage: int) -> void:
 			if material is BaseMaterial3D:
 				check(material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_VERTEX, "vertex lighting")
 				check(material.specular_mode == BaseMaterial3D.SPECULAR_DISABLED, "specular disabled")
-				check(material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, "same filtering")
+				check(material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC, "anisotropic filtering")
 				if material.albedo_texture != null:
 					check(material.albedo_texture.get_image().has_mipmaps(), "stage %d texture has mipmaps: %s" % [stage, material.resource_name])
 	for child in node.get_children():

@@ -29,6 +29,7 @@ const DIRT_CHIPS := preload(TEXTURES + "dirt_02_a.png")
 const SNOW_MIN_MM := 0.25
 const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
 const ADDITIVE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
+const TIRE_TRACKS = preload("res://scripts/rally/rally_tire_tracks.gd")
 const SURFACES := {
 	"gravel": { "color": Color(0.56, 0.46, 0.32), "dust": 0.60, "chips": 0.32 },
 	"dirt": { "color": Color(0.40, 0.29, 0.18), "dust": 0.70, "chips": 0.24 },
@@ -63,6 +64,7 @@ var steam_emitter: GPUParticles3D
 var steam_time: float = 0.0
 var current_steam_strength: float = 0.0
 var camera_rig: Node = null
+var tire_tracks: Node3D
 
 
 func _ready() -> void:
@@ -70,6 +72,9 @@ func _ready() -> void:
 	if vehicle == null:
 		set_physics_process(false)
 		return
+	tire_tracks = TIRE_TRACKS.new()
+	tire_tracks.name = "TireTracks"
+	add_child(tire_tracks)
 	for i in 4:
 		# Doble capa por rueda para dar volumen real estilo CMR 2004
 		wheel_cores.append(
@@ -276,14 +281,39 @@ func _physics_process(delta: float) -> void:
 	last_position = vehicle.global_position
 	if not enabled or intensity <= 0.0 or vehicle.freeze or not vehicle._physics_ready:
 		stop_wheels()
+		for i in 4:
+			tire_tracks.break_track(i)
 		if steam_emitter != null:
 			steam_emitter.emitting = false
 		return
 	var wetness := get_wetness()
 	for i in 4:
 		update_wheel(i, wetness)
+		update_tire_track(i)
 	update_impacts(wetness)
 	update_radiator_steam(delta)
+
+
+func update_tire_track(index: int) -> void:
+	var sim := vehicle.simulation
+	if sim.wheel_contact_casts.size() != 4 or not sim.wheel_contact_casts[index].is_colliding() or sim.wheel_loads[index] < 60.0:
+		tire_tracks.break_track(index)
+		return
+	var surface := sim.wheel_surfaces[index].to_lower()
+	var variant: int = tire_tracks.variant_for(surface, float(wheel_conditions(index).get("snow_mm", 0.0)), index)
+	var offset := sim.wheel_contact_points[index] - vehicle.global_position
+	var velocity := vehicle.linear_velocity + vehicle.angular_velocity.cross(offset)
+	var forward_speed := velocity.dot(-vehicle.global_basis.z)
+	if variant < 0 or velocity.length_squared() < 1.0:
+		tire_tracks.break_track(index)
+		return
+	var slip := sim.wheel_slips[index]
+	var lock := smoothstep(0.10, 0.85, -slip.x * signf(forward_speed))
+	var lateral := smoothstep(0.07, 0.35, absf(slip.y)) * 0.55
+	var load := clampf(sim.wheel_loads[index] / (vehicle.mass * 9.81 * 0.25), 0.0, 1.0)
+	var rolling := 0.12 if variant < 2 else 0.22
+	var strength := intensity * load * lerpf(rolling, 0.68, maxf(lock, lateral))
+	tire_tracks.add_contact(index, sim.wheel_contact_points[index], sim.wheel_contact_normals[index], sim.wheel_widths[index], variant, strength, surface)
 
 
 func _process(_delta: float) -> void:
@@ -595,6 +625,8 @@ func stop_wheels() -> void:
 
 
 func reset_effects() -> void:
+	if tire_tracks != null:
+		tire_tracks.clear_tracks()
 	for emitter in wheel_cores + wheel_plumes + wheel_chips + wheel_splash + wheel_water + wheel_mist + wheel_snow + impact_pool:
 		emitter.restart()
 		emitter.emitting = false

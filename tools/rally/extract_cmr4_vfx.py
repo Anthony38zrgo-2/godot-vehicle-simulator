@@ -100,6 +100,12 @@ TARGETS: tuple[Target, ...] = (
     Target("SnwFlk_1.dds", "alpha", ("precipitation_snow",)),
     Target("raindrop.dds", "alpha", ("precipitation_rain_near",)),
     Target("R_Fall.dds", "alpha", ("precipitation_rain_far",)),
+    Target("Skid_tr2.dds", "alpha", ("tire_track_tarmac",)),
+    Target("Skid_tr1.dds", "alpha", ("tire_track_tarmac",)),
+    Target("Skid_sw1.dds", "alpha", ("tire_track_snow",)),
+    Target("Skid_sw2.dds", "alpha", ("tire_track_snow",)),
+    Target("Skid_ic1.dds", "alpha", ("tire_track_ice",)),
+    Target("Skid_gr1.dds", "alpha", ("tire_track_loose",)),
 )
 
 
@@ -405,7 +411,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--source-root",
         type=Path,
         default=None,
-        help="CMR4 installation root (default: %%CMR4_ROOT%% or %s)" % DEFAULT_CMR4_ROOT,
+        help="CMR4 installation root (default: %%%%CMR4_ROOT%%%% or %s)" % DEFAULT_CMR4_ROOT,
     )
     parser.add_argument(
         "--verify-only",

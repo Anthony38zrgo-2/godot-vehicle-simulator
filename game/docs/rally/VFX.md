@@ -32,3 +32,9 @@ The Windows staging script includes both the VFX controller and assets. Original
 ## Verification
 
 Run `Godot --headless --path game --script res://tests/rally/vehicle_vfx_contract.gd --quit-after 1000` to check real proving-ground wheel contact, surface routing, wetness suppression, asphalt slip, unloaded wheels, impact cooldown and pool/reset behavior. Render validation must use Forward+ with a GPU; headless particle checks alone do not verify appearance.
+
+### Tire tracks (CMR4)
+
+The six `Skid_*.dds` entries in `SFXNew.big` are extracted as RGBA PNGs and recorded with source and output hashes in the CMR4 manifest. Four wheel contacts feed world-space track segments: asphalt requires slip, while loose ground, ice and snow leave rolling tracks. Texture selection follows the current contact surface and snow depth; width and orientation come from the wheel and contact normal. Contact loss, stopping, disabling VFX, teleporting and session resets break continuity. Six bounded MultiMesh batches retain up to 256 segments per texture, replacing the oldest segments; session reset clears them. These flat segments approximate the ground between consecutive contact samples and do not deform the terrain.
+
+Validate with `godot --path game --script res://tests/rally/tire_tracks_contract.gd --quit-after 200` (GPU renderer is required for MultiMesh transform readback) and the existing `vehicle_vfx_contract.gd`. In-game driving and visual tuning remain necessary for terrain slopes, visibility and performance.

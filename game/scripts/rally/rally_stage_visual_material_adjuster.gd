@@ -70,10 +70,8 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 		material.roughness = 1.0
 		material.metallic = 0.0
-		# Filtrado bilineal con mipmaps (firma visual de DC frente a PS1)
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-		# Dynamically loaded GLBs may never receive the editor's automatic
-		# 3D texture detection. A filter cannot supply missing mip levels.
+		# Suavizado con filtrado anisotrópico para superficies vistas en ángulo.
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		if material.albedo_texture != null:
 			material.albedo_texture = prepare_texture(material.albedo_texture)
 		# Asegurar texture_repeat activo para que las texturas que se repiten (bosque, carretera) no se estiren
@@ -93,6 +91,7 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.backlight = Color(0.65, 0.65, 0.65)
 
 	adjusted_surface_count += 1
+
 
 func prepare_texture(texture: Texture2D) -> Texture2D:
 	var key := texture.get_instance_id()
