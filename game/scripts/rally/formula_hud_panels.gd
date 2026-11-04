@@ -271,6 +271,10 @@ func _draw_tires(rect: Rect2) -> void:
 			80
 		)
 
+		if float(wheel.get("alignment_collision_damage", 0.0)) > 0.005:
+			_text(Rect2(x + 24, y + 4, 34, 14), "ALIN.", 8, C_ROSE, true)
+		if float(wheel.get("rim_deformation", 0.0)) > 0.005:
+			_text(Rect2(x + 117, y + 28, 20, 14), "ARO", 8, C_ROSE, true)
 		var center := Vector2(x + 30, y + 42)
 		var brake_value: Variant = wheel.get("brake_disc_c")
 		var disc_color := brake_temp_color(brake_value)
@@ -280,7 +284,16 @@ func _draw_tires(rect: Rect2) -> void:
 		draw_arc(center, 7.5, 0.0, TAU, 20, Color(disc_color, 0.4), 2.0, true)
 		_num(Rect2(x + 8, y + 56, 44, 14), number(brake_value) + "°", 12, disc_color, HORIZONTAL_ALIGNMENT_CENTER, 44)
 
+		if float(wheel.get("brake_collision_loss", 0.0)) > 0.005:
+			_text(Rect2(x + 7, y + 16, 48, 11), "FRENO", 9, C_ROSE, true)
 		var tire := Rect2(x + 62, y + 18, 54, 36)
+		if float(wheel.get("leak_per_second", 0.0)) > 0.0:
+			var warning := "PINCHADO" if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA"
+			if float(wheel.get("carcass_failure", 0.0)) >= 1.0:
+				warning = "DESTAL."
+			_text(Rect2(x + 62, y + 16, 68, 11), warning, 9, C_ROSE, true)
+			tire.position.y += 9.0
+			tire.size.y -= 9.0
 		draw_rect(Rect2(tire.position + Vector2(2, 3), tire.size), Color(0, 0, 0, 0.35))
 		draw_rect(tire, C_FIELD)
 		_sunken(tire)

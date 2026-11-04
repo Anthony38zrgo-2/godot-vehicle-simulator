@@ -403,6 +403,72 @@
       "loop": false,
       "sha256": "f878e0e70b8be140d7755a3419dde1dc5f3dff59fb8326681e6af1161ed321a5",
       "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\tyre_contact.wav"
+    },
+    {
+      "dc_offset": 1e-08,
+      "duration_s": 8.814717,
+      "file": "flat_tyre_mono.wav",
+      "loop": true,
+      "loop_end_s": 8.814716553287981,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -19.0,
+      "peak": 0.637695,
+      "provenance": "D:/ASETS/Ferrari F2002 Sound Mods/Ferrari F2002 Sound Mods/Ver-D/content/cars/ferrari_f2002/sfx/flat_tyre_mono.wav",
+      "role": "wheel_damage_flat_tire",
+      "sha256": "dcdfe1798df0094862e9f15ea7d88d8636d1c1ed588906f36a51e8a8e7e1c72e",
+      "synthesis": {
+        "source_sha256": "80efe270167bdc4d6ae264c8f262c08ab66baa0d9e5f086b77813580f68e46c9",
+        "source_region_s": null,
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -19,
+        "peak_ceiling_dbfs": -3.0
+      }
+    },
+    {
+      "dc_offset": -3e-08,
+      "duration_s": 2.471111,
+      "file": "damaged_rin.wav",
+      "loop": true,
+      "loop_end_s": 2.471111111111111,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -20.0,
+      "peak": 0.617493,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/damaged_rin.wav",
+      "role": "wheel_damage_rim",
+      "sha256": "5757d331d017cb040194737581b2f8333d7c0c710d2f31bd1183eb96d82e9a6b",
+      "synthesis": {
+        "source_sha256": "f80ffc2d19f8b6414bdb79e878ddf186d30ffcfeb0845f47583b4992b985d02a",
+        "source_region_s": null,
+        "loop_crossfade_ms": 80,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -20,
+        "peak_ceiling_dbfs": -3.0
+      }
+    },
+    {
+      "dc_offset": -2e-08,
+      "duration_s": 1.08,
+      "file": "bad_brakes.wav",
+      "loop": true,
+      "loop_end_s": 1.08,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -21.0,
+      "peak": 0.340515,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/bad_brakes.wav",
+      "role": "wheel_damage_brakes",
+      "sha256": "6b920b3d1eabf79409fe93d09e0cb0363826be31bbef588d0beb43e325d78795",
+      "synthesis": {
+        "source_sha256": "fbac15f84e0bfe87c66c96afda6ed935a6d32c9602079a02714cd1d9a83a282a",
+        "source_region_s": [
+          0.6,
+          1.8
+        ],
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -21,
+        "peak_ceiling_dbfs": -3.0
+      }
     }
   ],
   "generator": "commons bank with Rush Rally 3 car-contact collisions (speed-tiered), gear clunks, neutral contact, limiter and underfloor scrape; rolling surfaces moved to sounds/banks/surfaces",

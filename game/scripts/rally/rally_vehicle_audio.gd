@@ -146,6 +146,8 @@ const LAND_MID_MS := 4.0
 const LAND_HIGH_MS := 7.0
 const LAND_POSITION := Vector3(0.0, -0.2, 0.0)
 const SURFACE_BANK := "res://sounds/banks/surfaces/"
+const WHEEL_DAMAGE_SAMPLES: Array[String] = ["flat_tyre_mono", "bad_brakes"]
+const WHEEL_DAMAGE_GAIN_BUDGET := 0.46
 const SurfaceMixer = preload("res://scripts/audio/surface_mix.gd")
 
 const ENGINE_VOLUME_BASE := 0.269
@@ -198,6 +200,7 @@ var routing := VehicleSoundRouting.new()
 var acoustic: Dictionary = { }
 var accepted_sequence: int = -1
 var accepted_generation: int = -1
+var wheel_damage_players: Array[Array] = []
 var surface_players: Dictionary = { }
 var scrape_player: AudioStreamPlayer3D
 var limiter_player: AudioStreamPlayer3D
@@ -248,6 +251,7 @@ func _ready() -> void:
 		true,
 	)
 	build_tyre_contact_players()
+	build_wheel_damage_players()
 	build_neutral_player()
 	build_surface_players()
 	build_impact_players()
@@ -477,6 +481,7 @@ func _physics_process(delta: float) -> void:
 
 	update_tyre_contacts(delta)
 	update_surface_audio(packet, delta)
+	update_wheel_damage_audio(packet.get("wheels", []), delta)
 
 	if scrape_player != null:
 		var gain := 0.62 * clampf(
@@ -716,6 +721,75 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 		player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
 		player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, float(state.roll_pitch if role == "roll" else state.slip_pitch), delta, 0.12)
 		player.stream_paused = player.volume_linear < 0.00001
+
+
+func build_wheel_damage_players() -> void:
+	for sample in WHEEL_DAMAGE_SAMPLES:
+		var path := "res://sounds/banks/commons/" + sample + ".wav"
+		# These loops already have a baked crossfade, like the rolling surface bank.
+		var stream := SeamlessVehicleLoop.load_pcm(path, false)
+		var players: Array[AudioStreamPlayer3D] = []
+		wheel_damage_players.append(players)
+		if stream == null:
+			push_warning("Missing wheel damage sample: " + path)
+			continue
+		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		stream.loop_begin = 0
+		stream.loop_end = stream.data.size() / 2
+		for i in 4:
+			var player := AudioStreamPlayer3D.new()
+			player.stream = stream
+			player.unit_size = 8.0
+			player.max_distance = 45.0
+			player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+			player.volume_linear = 0.0
+			routing.route(player, sample)
+			player.panning_strength = 2.0
+			add_child(player)
+			players.append(player)
+
+
+func update_wheel_damage_audio(wheels: Array, delta: float) -> void:
+	var hubs := vehicle.simulation.unsprung_rig.hubs
+	var targets: Array[Vector2] = []
+	var pitches: Array[float] = []
+	var total_gain := 0.0
+	for i in mini(4, hubs.size()):
+		var wheel: Dictionary = wheels[i] if i < wheels.size() else {}
+		var spin := absf(float(wheel.get("spin_rad_s", 0.0)))
+		var hub_velocity: Vector3 = hubs[i].linear_velocity
+		var travel_speed := Vector2(hub_velocity.x, hub_velocity.z).length()
+		var rolling := smoothstep(0.4, 5.0, maxf(travel_speed, spin * vehicle.simulation.wheel_radii[i]))
+		var braking_rotation := smoothstep(1.0, 18.0, spin)
+		var loaded := smoothstep(5.0, 160.0, float(wheel.get("load_n", 0.0)))
+		var pressure_loss := clampf(float(wheel.get("pressure_loss_fraction", 0.0)), 0.0, 1.0)
+		var brake := clampf(float(wheel.get("brake_collision_loss", 0.0)), 0.0, 1.0)
+		var pedal := vehicle.brake_amount
+		if i >= 2 or not vehicle.simulation.brake_model.handbrake_rear_only:
+			pedal = maxf(pedal, vehicle.handbrake_amount)
+		var demand := minf(float(wheel.get("brake_demand", 0.0)), pedal)
+		var gain := Vector2(
+			0.34 * pow(pressure_loss, 0.8) * loaded * rolling,
+			0.105 * brake * brake * demand * braking_rotation
+		) * rolling
+		targets.append(gain)
+		pitches.append(lerpf(0.85, 1.12, smoothstep(2.0, 95.0, spin)))
+		total_gain += gain.x + gain.y
+
+	var mix_gain := WHEEL_DAMAGE_GAIN_BUDGET / maxf(total_gain, WHEEL_DAMAGE_GAIN_BUDGET)
+	mix_gain *= lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+	for effect in wheel_damage_players.size():
+		for i in mini(targets.size(), wheel_damage_players[effect].size()):
+			var player: AudioStreamPlayer3D = wheel_damage_players[effect][i]
+			player.global_position = hubs[i].global_position
+			var target := targets[i][effect] * mix_gain
+			player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
+			player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, pitches[i], delta, 0.12)
+			if player.volume_linear >= 0.0001:
+				if not player.playing:
+					player.play()
+			elif player.playing:
+				player.stop()
 
 
 func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> void:

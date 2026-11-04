@@ -18,7 +18,7 @@ var _blob_shadow_decal: Decal = null
 
 var simulation := FordRallyVehicleSimulation.new()
 var tire_inventory = preload("res://scripts/rally/rally_tire_inventory.gd").new()
-const TIRE_STATE_KEYS := ["surface_c", "tread_c", "tread_zones_c", "carcass_c", "gas_c", "pressure_bar_gauge", "pressure_reference_bar_gauge", "pressure_reference_temp_c", "wear_fraction", "thermal_damage_fraction"]
+const TIRE_STATE_KEYS := ["surface_c", "tread_c", "tread_zones_c", "carcass_c", "gas_c", "pressure_bar_gauge", "pressure_reference_bar_gauge", "pressure_reference_temp_c", "wear_fraction", "thermal_damage_fraction", "pressure_loss_fraction", "leak_per_second", "rim_deformation", "carcass_failure"]
 var rally_profile: Dictionary = {}
 var rally_asset_manifest: Dictionary = {}
 var driving_assistance_state: Dictionary = {
@@ -62,6 +62,7 @@ var rear_abs_spin_difference_threshold: float = INF
 var last_impact_speed_metres_per_second: float = 0.0
 var _physics_ready: bool = false
 var _reset_pending: bool = false
+var _rescue_pose: Variant = null
 var _input_smoothing: Dictionary = {}
 var _applied_fuel_mass_kg: float = -1.0
 
@@ -294,7 +295,7 @@ func _physics_process(delta: float) -> void:
 	if not _physics_ready:
 		return
 	simulation.unsprung_rig.sync_freeze()
-	simulation.update_wheel_visuals(steering_amount, delta)
+	simulation.update_wheel_visuals(steering_amount)
 	_sync_mass_from_fuel()
 	var smoothing_enabled := bool(_input_smoothing.get("enabled", false))
 	throttle_amount = _shape_input(throttle_amount, throttle_input, float(_input_smoothing.get("throttle", 0.0)), delta, smoothing_enabled)
@@ -349,10 +350,19 @@ var _is_airborne: bool = false
 var _airborne_fall_speed: float = 0.0
 var _active_collision_zone: String = ""
 var _separation_frames: int = 10
+var _wheel_impact_peak: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _wheel_quiet_frames: Array[int] = [0, 0, 0, 0]
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	body_contact_vfx.clear()
 	if not _physics_ready or freeze:
+		return
+	if _rescue_pose is Transform3D:
+		state.transform = _rescue_pose
+		state.linear_velocity = Vector3.ZERO
+		state.angular_velocity = Vector3.ZERO
+		_rescue_pose = null
+		simulation.unsprung_rig.reset()
 		return
 	var contact_count := state.get_contact_count()
 	var landing_speed_ms := 0.0
@@ -370,6 +380,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var lateral_position := Vector3.ZERO
 
 	var damage_doc: Dictionary = simulation.domains.get("damage", {})
+	var wheel_cfg: Dictionary = damage_doc.get("wheel_collision", {})
+	var wheel_contacts: Array[bool] = [false, false, false, false]
+	var wheel_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var bumper_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var wheel_lateral: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var collision_cfg: Dictionary = damage_doc.get("collision", {})
 	var min_col_speed := float(collision_cfg.get("minimum_speed_m_s", 4.0))
 	var full_col_speed := float(collision_cfg.get("full_severity_speed_m_s", 23.0))
@@ -396,6 +411,25 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var collider := state.get_contact_collider_object(index)
 		var role := str(collider.get_meta("collision_role", "")) if (collider != null and collider.has_meta("collision_role")) else ""
 		var is_obstacle: bool = (role in ["barrier", "obstacle"]) or (absf(normal.y) < 0.5)
+
+		if is_obstacle and not wheel_cfg.is_empty():
+			var wheel := _impact_wheel(contact_local_pos, wheel_cfg)
+			var local_normal := state.transform.basis.transposed() * normal
+			if wheel < 0 and local_normal.z > 0.65 and contact_local_pos.z < simulation.wheel_positions_local[0].z:
+				# The bumper sits ahead of the wheel contact zones. Transfer
+				# the frontal load to the nearer front corner, or both at center.
+				for front in 2:
+					var x := contact_local_pos.x
+					if absf(x) > 0.15 and signf(x) != signf(simulation.wheel_positions_local[front].x):
+						continue
+					wheel_contacts[front] = true
+					if impulse >= float(wheel_cfg.minimum_impulse_ns) and closing_speed > bumper_speeds[front]:
+						bumper_speeds[front] = closing_speed
+			if wheel >= 0:
+				wheel_contacts[wheel] = true
+				if impulse >= float(wheel_cfg.minimum_impulse_ns) and closing_speed > wheel_speeds[wheel]:
+					wheel_speeds[wheel] = closing_speed
+					wheel_lateral[wheel] = absf(normal.dot(state.transform.basis.x))
 
 		# Only side-facing contacts contribute to generic collision sounds.
 		# The horizontal normal component discounts vertical impulse on slopes.
@@ -464,6 +498,10 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		"auto_clutch": bool(simulation.domains.get("driving_assistance", {}).get("aids", {}).get("auto_clutch_default_enabled", false)),
 		"automatic_transmission": automatic_transmission,
 	})
+
+	if not wheel_cfg.is_empty():
+		_collect_wheel_cast_impacts(state, wheel_contacts, wheel_speeds, wheel_cfg, wheel_lateral)
+		_apply_wheel_impacts(wheel_contacts, wheel_speeds, wheel_cfg, wheel_lateral, bumper_speeds)
 
 	# Airborne and landing detection combining wheels and chassis body contacts
 	var wheels_in_contact: bool = false
@@ -558,8 +596,15 @@ func _resolve_landing_zone(body_contacts: Array[Vector3], state: PhysicsDirectBo
 	return "rear_wheels"
 
 
+func rescue_to_pose(target_position: Vector3, target_yaw: float) -> void:
+	reset_to_pose(target_position, target_yaw)
+	_rescue_pose = Transform3D(Basis(Vector3.UP, target_yaw), target_position)
+
+
 func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
+	_rescue_pose = null
 	freeze = true
+	simulation.unsprung_rig.sync_freeze()
 	global_transform = Transform3D(Basis(Vector3.UP, target_yaw), target_position)
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
@@ -584,6 +629,8 @@ func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 	_airborne_fall_speed = 0.0
 	_active_collision_zone = ""
 	_separation_frames = 10
+	_wheel_impact_peak.fill(0.0)
+	_wheel_quiet_frames.fill(0)
 
 func prepare_for_stage() -> void:
 	simulation.thermal_model.reset_for_stage(simulation.domains)
@@ -594,6 +641,90 @@ func prepare_for_stage() -> void:
 	_airborne_fall_speed = 0.0
 	_active_collision_zone = ""
 	_separation_frames = 10
+	_wheel_impact_peak.fill(0.0)
+	_wheel_quiet_frames.fill(0)
+
+func _collect_wheel_cast_impacts(state: PhysicsDirectBodyState3D, contacts: Array[bool], speeds: Array[float], cfg: Dictionary, lateral: Array[float]) -> void:
+	# The hubs use suspension casts for contact instead of solid collision shapes.
+	var inverse := state.transform.affine_inverse()
+	var com_world := state.transform * center_of_mass
+	for i in simulation.wheel_contact_casts.size():
+		var cast: ShapeCast3D = simulation.wheel_contact_casts[i]
+		for hit in cast.get_collision_count():
+			var collider := cast.get_collider(hit) as StaticBody3D
+			if collider == null:
+				continue
+			var role := str(collider.get_meta("collision_role", ""))
+			var normal := cast.get_collision_normal(hit)
+			if role not in ["barrier", "obstacle"] and absf(normal.y) >= 0.5:
+				continue
+			var point := cast.get_collision_point(hit)
+			if _impact_wheel(inverse * point, cfg) != i:
+				continue
+			contacts[i] = true
+			var velocity := state.linear_velocity + state.angular_velocity.cross(point - com_world)
+			var closing_speed := maxf(0.0, -(velocity - collider.constant_linear_velocity).dot(normal))
+			# Casts have no solved impulse. Use the effective corner mass as a proxy.
+			if closing_speed * mass * 0.25 >= float(cfg.minimum_impulse_ns) and closing_speed > speeds[i]:
+				speeds[i] = closing_speed
+				lateral[i] = absf(normal.dot(state.transform.basis.x))
+
+
+func _impact_wheel(position_local: Vector3, cfg: Dictionary) -> int:
+	var closest := -1
+	var closest_distance := INF
+	for i in 4:
+		var center: Vector3 = simulation.wheel_positions_local[i] + Vector3.UP * simulation.suspension_model.compression[i]
+		var offset := position_local - center
+		if absf(offset.x) > float(cfg.lateral_reach_m):
+			continue
+		if Vector2(offset.y, offset.z).length() > simulation.wheel_radii[i] + float(cfg.radial_reach_margin_m):
+			continue
+		if offset.length_squared() < closest_distance:
+			closest = i
+			closest_distance = offset.length_squared()
+	return closest
+
+
+func _apply_wheel_impacts(contacts: Array[bool], speeds: Array[float], cfg: Dictionary, lateral: Array[float] = [], bumper: Array[float] = []) -> void:
+	for i in 4:
+		if not contacts[i]:
+			_wheel_quiet_frames[i] += 1
+			if _wheel_quiet_frames[i] >= 6:
+				_wheel_impact_peak[i] = 0.0
+			continue
+		_wheel_quiet_frames[i] = 0
+		var direct_speed := speeds[i]
+		var speed := maxf(direct_speed, bumper[i] if i < bumper.size() else 0.0)
+		var previous := _wheel_impact_peak[i]
+		if speed <= previous:
+			continue
+		_wheel_impact_peak[i] = speed
+		var tire: Dictionary = simulation.thermal_model.tire_states[i]
+		var lateral_fraction := lateral[i] if i < lateral.size() else 1.0
+		if speed > direct_speed:
+			lateral_fraction = 0.0
+		var alignment_increase := _impact_severity_increase(speed, previous, float(cfg.alignment_start_speed_m_s), float(cfg.alignment_full_speed_m_s))
+		simulation.alignment_collision_damage[i] = clampf(simulation.alignment_collision_damage[i] + alignment_increase * lerpf(0.5, 1.0, lateral_fraction), 0.0, 1.0)
+		var component_weight := lerpf(0.25, 1.0, lateral_fraction)
+		var rim_increase := _impact_severity_increase(speed, previous, float(cfg.rim_start_speed_m_s), float(cfg.rim_full_speed_m_s))
+		tire.rim_deformation = clampf(float(tire.get("rim_deformation", 0.0)) + rim_increase * component_weight, 0.0, 1.0)
+		var puncture_speed := speed / lerpf(1.0, 1.2, lateral_fraction)
+		if speed <= direct_speed and puncture_speed >= float(cfg.puncture_speed_m_s):
+			var leak := float(cfg.fast_leak_per_second) if puncture_speed >= float(cfg.cut_speed_m_s) else float(cfg.slow_leak_per_second)
+			tire.leak_per_second = maxf(float(tire.get("leak_per_second", 0.0)), leak)
+		var start := float(cfg.brake_damage_speed_m_s)
+		var increase := _impact_severity_increase(speed, previous, start, float(cfg.full_brake_damage_speed_m_s))
+		simulation.brake_collision_loss[i] = minf(
+			simulation.brake_collision_loss[i] + increase * component_weight * float(cfg.maximum_brake_loss_per_impact),
+			1.0 - float(cfg.minimum_brake_factor)
+		)
+
+
+func _impact_severity_increase(speed: float, previous: float, start: float, full: float) -> float:
+	var span := full - start
+	return clampf((speed - start) / span, 0.0, 1.0) - clampf((previous - start) / span, 0.0, 1.0)
+
 
 func tire_state(index: int) -> Dictionary:
 	var state := {}
@@ -649,7 +780,7 @@ func fresh_tire_state(compound: String, index: int = 0) -> Dictionary:
 	var data: Dictionary = catalog.compounds[compound]
 	var tread := float(data.tread_optimum_c)
 	var carcass := float(data.carcass_optimum_c)
-	state.merge({"wear_fraction": 0.0, "thermal_damage_fraction": 0.0, "tread_c": tread, "surface_c": tread, "tread_zones_c": [tread, tread, tread], "carcass_c": carcass, "gas_c": carcass}, true)
+	state.merge({"carcass_failure": 0.0, "rim_deformation": 0.0, "pressure_loss_fraction": 0.0, "leak_per_second": 0.0, "wear_fraction": 0.0, "thermal_damage_fraction": 0.0, "tread_c": tread, "surface_c": tread, "tread_zones_c": [tread, tread, tread], "carcass_c": carcass, "gas_c": carcass}, true)
 	var atmosphere := 1.01325
 	state.pressure_bar_gauge = (float(state.pressure_reference_bar_gauge) + atmosphere) * (carcass + 273.15) / (float(state.pressure_reference_temp_c) + 273.15) - atmosphere
 	return state
@@ -678,6 +809,8 @@ func apply_tire_inventory() -> void:
 		for key in TIRE_STATE_KEYS:
 			if tire.state.has(key):
 				simulation.thermal_model.tire_states[i][key] = tire.state[key]
+		for key in ["pressure_loss_fraction", "leak_per_second", "rim_deformation", "carcass_failure"]:
+			simulation.thermal_model.tire_states[i][key] = tire.state.get(key, 0.0)
 	var policy: Dictionary = RallyTireCompound.load_catalog().get("inventory", {})
 	simulation.mass_model.set_carried_spares(tire_inventory.spares.size(), policy)
 	_applied_fuel_mass_kg = -1.0

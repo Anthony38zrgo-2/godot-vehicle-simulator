@@ -254,6 +254,21 @@ static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
 			if not is_finite(zw_rad) or zw_rad < 0.0 or zw_rad > 1.0 or not is_finite(zw_eng) or zw_eng < 0.0 or zw_eng > 1.0:
 				return _failure("damage." + category + ".zone_weights." + str(zone_name) + " weights must be in [0.0, 1.0].")
 
+	if doc.has("wheel_collision"):
+		var wheel: Variant = doc.wheel_collision
+		if not wheel is Dictionary:
+			return _failure("damage.wheel_collision must be a dictionary.")
+		for key in ["lateral_reach_m", "radial_reach_margin_m", "minimum_impulse_ns", "puncture_speed_m_s", "cut_speed_m_s", "brake_damage_speed_m_s", "full_brake_damage_speed_m_s", "slow_leak_per_second", "fast_leak_per_second", "maximum_brake_loss_per_impact", "minimum_brake_factor", "rim_start_speed_m_s", "rim_full_speed_m_s", "alignment_start_speed_m_s", "alignment_full_speed_m_s", "maximum_toe_offset_deg"]:
+			var value: Variant = wheel.get(key)
+			if not (value is float or value is int) or not is_finite(float(value)) or float(value) <= 0.0:
+				return _failure("damage.wheel_collision." + key + " must be positive and finite.")
+		if wheel.cut_speed_m_s <= wheel.puncture_speed_m_s or wheel.full_brake_damage_speed_m_s <= wheel.brake_damage_speed_m_s or wheel.fast_leak_per_second <= wheel.slow_leak_per_second:
+			return _failure("damage.wheel_collision requires increasing impact thresholds and leak rates.")
+		if wheel.rim_full_speed_m_s <= wheel.rim_start_speed_m_s or wheel.alignment_full_speed_m_s <= wheel.alignment_start_speed_m_s:
+			return _failure("damage.wheel_collision requires increasing rim and alignment impact thresholds.")
+		if wheel.maximum_brake_loss_per_impact > 1.0 or wheel.minimum_brake_factor >= 1.0:
+			return _failure("damage.wheel_collision brake factors are out of range.")
+
 	var thermal: Variant = doc.get("thermal", null)
 	if not thermal is Dictionary:
 		return _failure("damage.thermal must be a dictionary.")

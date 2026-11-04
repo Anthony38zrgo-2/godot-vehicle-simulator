@@ -33,7 +33,7 @@ func run() -> void:
 	check(inventory.mounted.size() == 4 and inventory.spares.size() == 2, "four mounted plus two real spares")
 	scene.garage_panel.open_garage()
 	check(scene.garage_panel.draft_spare_wheels == 2, "garage reads real spare count")
-	scene.garage_panel.apply_changes()
+	scene.garage_panel.close_garage(true)
 	check(inventory.spares.size() == 2, "applying unchanged setup preserves inventory")
 	scene.garage_panel.close_garage(false)
 	var panel: Node
@@ -57,6 +57,12 @@ func run() -> void:
 	vehicle.simulation.thermal_model.tire_states[0].wear_fraction = 0.4
 	vehicle.simulation.thermal_model.tire_states[0].thermal_damage_fraction = 0.2
 	vehicle.simulation.thermal_model.tire_states[0].tread_c = 72.0
+	vehicle.simulation.thermal_model.tire_states[0].leak_per_second = 0.045
+	vehicle.simulation.thermal_model.tire_states[0].pressure_loss_fraction = 0.55
+	vehicle.simulation.brake_collision_loss[0] = 0.3
+	vehicle.simulation.thermal_model.tire_states[0].rim_deformation = 0.4
+	vehicle.simulation.alignment_collision_damage[0] = 0.5
+	check(vehicle.simulation._effective_toe(0) < vehicle.simulation.suspension_model.dynamic_toe(0), "impact adds inward toe on the left")
 	var removed_id := int(inventory.mounted[0].id)
 	inventory.spares[0].compound_id = "gravel_wet"
 	inventory.spares[0].state = vehicle.fresh_tire_state("gravel_wet")
@@ -66,6 +72,12 @@ func run() -> void:
 	panel.exchange()
 	check(inventory.spares.size() == 2 and int(inventory.mounted[0].id) == replacement_id, "swap uses existing spare without duplication")
 	var removed: Dictionary = inventory.spares[1]
+	check(is_zero_approx(vehicle.simulation.thermal_model.tire_states[0].leak_per_second), "fresh spare stops the leak")
+	check(is_equal_approx(vehicle.simulation.brake_collision_loss[0], 0.3), "fresh spare leaves brake damage on the corner")
+	check(is_zero_approx(vehicle.simulation.thermal_model.tire_states[0].rim_deformation), "fresh spare removes rim deformation")
+	check(is_equal_approx(removed.state.rim_deformation, 0.4), "removed rim keeps deformation")
+	check(is_equal_approx(vehicle.simulation.alignment_collision_damage[0], 0.5), "spare leaves alignment damage on the corner")
+	check(is_equal_approx(removed.state.pressure_loss_fraction, 0.55), "removed wheel keeps its pressure loss")
 	check(int(removed.id) == removed_id and removed.state.wear_fraction == 0.4 and removed.state.thermal_damage_fraction == 0.2 and removed.state.tread_c == 72.0, "removed tire retains wear damage and temperature")
 	check(vehicle.simulation.thermal_model.compound_for_wheel(0).label == "Grava lluvia", "thermal model uses per-wheel compound")
 	var wet_grip: Dictionary = vehicle.simulation.tire_model.compound_water_snow_ground_factor(3.0, 0.0, 18.0, 0)
@@ -84,6 +96,10 @@ func run() -> void:
 	panel.persist()
 	var restored = preload("res://scripts/rally/rally_tire_inventory.gd").new()
 	check(restored.restore(JSON.parse_string(JSON.stringify(manager.tire_inventory_state))), "inventory roundtrip persists IDs and condition")
+	check(is_equal_approx(restored.mounted[1].state.leak_per_second, 0.045), "save keeps puncture on the remounted wheel")
+	check(is_equal_approx(manager.tire_inventory_state.brake_collision_loss[0], 0.3), "save keeps brake damage on the original corner")
+	check(is_equal_approx(restored.mounted[1].state.rim_deformation, 0.4), "save keeps deformation on the remounted wheel")
+	check(is_equal_approx(manager.tire_inventory_state.alignment_collision_damage[0], 0.5), "save keeps alignment on the original corner")
 	check(restored.mounted[1].state.wear_fraction == 0.4 and restored.spares.is_empty(), "save keeps reused condition and discards")
 	panel.toggle()
 	check(not paused, "resume unpauses")
@@ -91,12 +107,16 @@ func run() -> void:
 	await scene.continue_competition()
 	check(inventory.spares.is_empty() and vehicle.simulation.thermal_model.tire_states[1].wear_fraction == 0.4, "next stage preserves inventory and wear")
 	check(vehicle.simulation.thermal_model.compound_for_wheel(0).label == "Grava lluvia", "mixed compound survives next stage")
+	check(is_equal_approx(vehicle.simulation.thermal_model.tire_states[1].leak_per_second, 0.045), "stage reset preserves puncture")
+	check(is_equal_approx(vehicle.simulation.brake_collision_loss[0], 0.3), "stage reset preserves brake damage")
+	check(is_equal_approx(vehicle.simulation.thermal_model.tire_states[1].rim_deformation, 0.4), "stage reset preserves rim deformation")
+	check(is_equal_approx(vehicle.simulation.alignment_collision_damage[0], 0.5), "stage reset preserves alignment damage")
 	var thermal := VehicleThermalModel.new()
 	thermal.configure(vehicle.simulation.domains)
 	thermal.set_compound("gravel_normal")
 	var state: Dictionary = thermal.tire_states[0]
 	thermal.accumulate_tire_damage(state, 1000.0, 10.0)
-	check(is_equal_approx(state.wear_fraction, 10000.0 * float(thermal.active_compound.wear_per_j) / 0.85), "fifteen percent shorter life uses inverse lifetime scaling")
+	check(is_equal_approx(state.wear_fraction, 10000.0 * float(thermal.active_compound.wear_per_j) / float(thermal.compound_catalog.durability_life_scale)), "wear uses the configured inverse lifetime scaling")
 	scene.queue_free()
 	await process_frame
 	print("TIRE_INVENTORY_CONTRACT ", "PASS" if failures.is_empty() else failures)

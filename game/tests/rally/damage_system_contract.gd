@@ -12,6 +12,7 @@ func run_tests() -> void:
 	test_thermal_damage_mechanics()
 	test_oil_model()
 	test_impact_zones()
+	test_wheel_damage()
 	test_vfx_and_hud()
 	test_quick_repairs()
 	print("ALL DAMAGE SYSTEM CONTRACT TESTS PASSED!")
@@ -164,6 +165,42 @@ func test_impact_zones() -> void:
 	assert(vehicle._resolve_impact_zone(Vector3(0.0, 0.4, 1.6), Vector3(0, 0, -1)) == "rear", "Must resolve rear")
 	vehicle.free()
 	print("PASS: test_impact_zones")
+
+
+func test_wheel_damage() -> void:
+	var vehicle := RallyEscortVehicle.new()
+	var profile := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
+	var cfg: Dictionary = profile.domains.damage.wheel_collision
+	var thermal := vehicle.simulation.thermal_model
+	thermal.configure(profile.domains)
+	var contact: Array[bool] = [false, true, false, false]
+	var speed: Array[float] = [0.0, 3.0, 0.0, 0.0]
+	vehicle._apply_wheel_impacts(contact, speed, cfg)
+	assert(is_zero_approx(float(thermal.tire_states[1].get("leak_per_second", 0.0))))
+	speed[1] = 7.0
+	vehicle._apply_wheel_impacts(contact, speed, cfg)
+	var pressure_before := float(thermal.tire_states[1].pressure_bar_gauge)
+	thermal.advance_tire(1, 0.0, 0.0, 0.0, 1.0)
+	assert(float(thermal.tire_states[1].pressure_bar_gauge) < pressure_before)
+	assert(is_equal_approx(float(thermal.tire_states[1].pressure_loss_fraction), float(cfg.slow_leak_per_second)))
+	assert(is_zero_approx(vehicle.simulation.brake_collision_loss[1]))
+	speed[1] = 18.0
+	vehicle._apply_wheel_impacts(contact, speed, cfg)
+	var brake_loss := vehicle.simulation.brake_collision_loss[1]
+	var rim := float(thermal.tire_states[1].rim_deformation)
+	var alignment := vehicle.simulation.alignment_collision_damage[1]
+	assert(rim > 0.0 and is_zero_approx(float(thermal.tire_states[0].get("rim_deformation", 0.0))))
+	assert(alignment > 0.0 and is_zero_approx(vehicle.simulation.alignment_collision_damage[0]))
+	assert(brake_loss > 0.0 and is_zero_approx(vehicle.simulation.brake_collision_loss[0]))
+	vehicle._apply_wheel_impacts(contact, speed, cfg)
+	assert(is_equal_approx(vehicle.simulation.brake_collision_loss[1], brake_loss))
+	assert(is_equal_approx(float(thermal.tire_states[1].rim_deformation), rim))
+	assert(is_equal_approx(vehicle.simulation.alignment_collision_damage[1], alignment))
+	thermal.advance_tire(1, 0.0, 0.0, 0.0, 0.5)
+	assert(is_zero_approx(float(thermal.tire_states[1].pressure_bar_gauge)))
+	assert(is_zero_approx(float(thermal.tire_states[0].get("leak_per_second", 0.0))))
+	vehicle.free()
+	print("PASS: test_wheel_damage")
 
 
 func test_vfx_and_hud() -> void:

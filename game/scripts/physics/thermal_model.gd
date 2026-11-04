@@ -184,6 +184,10 @@ func reset_for_stage(domains: Dictionary) -> void:
 		if i < mounted_tires.size():
 			state.wear_fraction = float(mounted_tires[i].get("wear_fraction", 0.0))
 			state.thermal_damage_fraction = float(mounted_tires[i].get("thermal_damage_fraction", 0.0))
+			state.leak_per_second = float(mounted_tires[i].get("leak_per_second", 0.0))
+			state.rim_deformation = float(mounted_tires[i].get("rim_deformation", 0.0))
+			state.carcass_failure = float(mounted_tires[i].get("carcass_failure", 0.0))
+			state.pressure_loss_fraction = float(mounted_tires[i].get("pressure_loss_fraction", 0.0))
 		state.surface_c = tread
 		state.tread_c = tread
 		state.tread_zones_c = [tread, tread, tread]
@@ -196,7 +200,8 @@ func reset_for_stage(domains: Dictionary) -> void:
 		var atmosphere := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
 		state.pressure_reference_bar_gauge = cold_bar
 		state.pressure_reference_temp_c = reference
-		state.pressure_bar_gauge = (cold_bar + atmosphere) * (carcass + 273.15) / (reference + 273.15) - atmosphere
+		var healthy_pressure := (cold_bar + atmosphere) * (carcass + 273.15) / (reference + 273.15) - atmosphere
+		state.pressure_bar_gauge = healthy_pressure * (1.0 - float(state.get("pressure_loss_fraction", 0.0)))
 
 
 func apply_damage(rad_delta: float, eng_delta: float) -> void:
@@ -401,7 +406,18 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
 	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
 	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-	state.pressure_bar_gauge = clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
+	var pressure_loss := clampf(float(state.get("pressure_loss_fraction", 0.0)) + float(state.get("leak_per_second", 0.0)) * dt, 0.0, 1.0)
+	state.pressure_loss_fraction = pressure_loss
+	state.pressure_bar_gauge = (1.0 - pressure_loss) * clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
+	var carcass_failure := float(state.get("carcass_failure", 0.0))
+	if pressure_loss >= 0.85 and normal_load_n > 0.0:
+		var speed_factor := smoothstep(4.0, 22.0, speed_m_s)
+		var load_factor := clampf(normal_load_n / 2500.0, 0.0, 2.0)
+		var sliding := clampf(maxf(absf(longitudinal_slip_speed_m_s) / 5.0, friction_power_w / 3500.0), 0.0, 1.0)
+		carcass_failure = minf(1.0, carcass_failure + dt * speed_factor * load_factor * lerpf(0.012, 0.16, sliding))
+		state.carcass_failure = carcass_failure
+		if carcass_failure >= 1.0:
+			state.rim_deformation = minf(1.0, float(state.get("rim_deformation", 0.0)) + dt * speed_factor * maxf(load_factor - 1.25, 0.0) * 0.2)
 	accumulate_tire_damage(state, friction_power_w, dt, compound)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
@@ -483,7 +499,11 @@ func tire_grip_factor(index: int) -> float:
 		thermal_factor = 1.0 - clampf(float(compound.get("overheat_grip_loss", 0.25)), 0.0, 1.0) * clampf((tread - upper) / maxf(overheat - upper, 1.0), 0.0, 1.0)
 	var wear_factor := 1.0 - clampf(float(compound.get("wear_grip_loss", 0.25)), 0.0, 1.0) * clampf(float(state.wear_fraction), 0.0, 1.0)
 	var damage_factor := 1.0 - clampf(float(compound.get("thermal_damage_grip_loss", 0.35)), 0.0, 1.0) * clampf(float(state.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
-	return thermal_factor * wear_factor * damage_factor
+	var puncture_factor := lerpf(1.0, 0.35, clampf(float(state.get("pressure_loss_fraction", 0.0)), 0.0, 1.0))
+	var carcass_factor := lerpf(1.0, 0.55, clampf(float(state.get("carcass_failure", 0.0)), 0.0, 1.0))
+	if float(state.get("carcass_failure", 0.0)) >= 1.0:
+		carcass_factor = 0.30
+	return thermal_factor * wear_factor * damage_factor * puncture_factor * carcass_factor
 
 
 func brake_fade_factor(index: int) -> float:
@@ -564,6 +584,10 @@ func get_tire_thermal_state_snapshot(index: int) -> Dictionary:
 		"gas_c": state.gas_c,
 		"pressure_bar_gauge": state.pressure_bar_gauge,
 		"pressure_kpa_gauge": float(state.pressure_bar_gauge) * 100.0,
+		"leak_per_second": state.get("leak_per_second", 0.0),
+		"rim_deformation": state.get("rim_deformation", 0.0),
+		"carcass_failure": state.get("carcass_failure", 0.0),
+		"pressure_loss_fraction": state.get("pressure_loss_fraction", 0.0),
 		"wear_fraction": state.wear_fraction,
 		"thermal_damage_fraction": state.get("thermal_damage_fraction", 0.0),
 		"brake_disc_c": state.brake_disc_c,

@@ -146,6 +146,14 @@ func _ready() -> void:
 		if not vehicle.tire_inventory.restore(event_manager.tire_inventory_state):
 			push_error("Inventario de neumáticos guardado inválido")
 			return
+		var saved_brakes: Variant = event_manager.tire_inventory_state.get("brake_collision_loss", [])
+		if saved_brakes is Array:
+			for i in mini(saved_brakes.size(), 4):
+				vehicle.simulation.brake_collision_loss[i] = clampf(float(saved_brakes[i]), 0.0, 1.0)
+		var saved_alignment: Variant = event_manager.tire_inventory_state.get("alignment_collision_damage", [])
+		if saved_alignment is Array:
+			for i in mini(saved_alignment.size(), 4):
+				vehicle.simulation.alignment_collision_damage[i] = clampf(float(saved_alignment[i]), 0.0, 1.0)
 	vehicle.apply_tire_inventory()
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
@@ -428,9 +436,27 @@ func _reposition_vehicle_on_course() -> bool:
 			closest = distance
 			target = candidate
 			direction = segment
-	target += Vector3.UP * 0.2
 	var heading := atan2(-direction.x, -direction.z)
-	vehicle.reset_to_pose(target, heading)
+	var basis := Basis(Vector3.UP, heading)
+	var support_height := -INF
+	for i in vehicle.simulation.wheel_positions_local.size():
+		var offset: Vector3 = basis * vehicle.simulation.wheel_positions_local[i]
+		var wheel_center := target + offset
+		var query := PhysicsRayQueryParameters3D.create(
+			wheel_center + Vector3.UP * 3.0,
+			wheel_center - Vector3.UP * 6.0,
+			1,
+			[vehicle.get_rid()]
+		)
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty() and (hit.normal as Vector3).y > 0.35:
+			support_height = maxf(support_height, (hit.position as Vector3).y + vehicle.simulation.wheel_radii[i] - offset.y)
+	if is_finite(support_height):
+		target.y = support_height + 0.08
+	else:
+		target = start_position
+		heading = start_heading
+	vehicle.rescue_to_pose(target, heading)
 	course.generation = vehicle.simulation.session_generation
 	course.previous_position = target
 	competition.generation = course.generation
@@ -975,6 +1001,8 @@ func _save_mounted_tire_condition() -> void:
 		return
 	vehicle.sync_tire_inventory()
 	event_manager.tire_inventory_state = vehicle.tire_inventory.snapshot()
+	event_manager.tire_inventory_state["brake_collision_loss"] = vehicle.simulation.brake_collision_loss.duplicate()
+	event_manager.tire_inventory_state["alignment_collision_damage"] = vehicle.simulation.alignment_collision_damage.duplicate()
 	event_manager.mounted_tire_condition.clear()
 	for tire: Dictionary in vehicle.simulation.thermal_model.tire_states:
 		event_manager.mounted_tire_condition.append({"wear_fraction": tire.get("wear_fraction", 0.0), "thermal_damage_fraction": tire.get("thermal_damage_fraction", 0.0)})

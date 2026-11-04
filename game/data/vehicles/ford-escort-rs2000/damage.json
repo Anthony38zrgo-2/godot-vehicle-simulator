@@ -26,6 +26,24 @@
       }
     }
   },
+  "wheel_collision": {
+    "lateral_reach_m": 0.38,
+    "radial_reach_margin_m": 0.14,
+    "minimum_impulse_ns": 240.0,
+    "puncture_speed_m_s": 5.25,
+    "cut_speed_m_s": 13.0,
+    "brake_damage_speed_m_s": 10.0,
+    "full_brake_damage_speed_m_s": 22.0,
+    "slow_leak_per_second": 0.045,
+    "fast_leak_per_second": 2.0,
+    "maximum_brake_loss_per_impact": 0.55,
+    "minimum_brake_factor": 0.25,
+    "rim_start_speed_m_s": 7.0,
+    "rim_full_speed_m_s": 21.0,
+    "alignment_start_speed_m_s": 10.0,
+    "alignment_full_speed_m_s": 24.0,
+    "maximum_toe_offset_deg": 6.0
+  },
   "landing": {
     "minimum_speed_m_s": 2.5,
     "full_severity_speed_m_s": 9.0,

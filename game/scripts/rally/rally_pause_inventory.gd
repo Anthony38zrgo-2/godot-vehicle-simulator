@@ -146,7 +146,12 @@ func abandon_stage() -> void:
 func description(tire: Dictionary) -> String:
 	var state: Dictionary = tire.state
 	var compound := "Lluvia" if tire.compound_id == "gravel_wet" else "Normal"
-	return "#%d %s · desgaste %.1f%% · daño térmico %.1f%% · %.0f °C" % [int(tire.id), compound, float(state.get("wear_fraction", 0.0)) * 100.0, float(state.get("thermal_damage_fraction", 0.0)) * 100.0, float(state.get("tread_c", 0.0))]
+	var puncture := ""
+	if float(state.get("leak_per_second", 0.0)) > 0.0:
+		puncture = " / pinchado" if float(state.get("pressure_loss_fraction", 0.0)) > 0.85 else " / fuga"
+	if float(state.get("rim_deformation", 0.0)) > 0.005:
+		puncture += " / aro deformado"
+	return "#%d %s · desgaste %.1f%% · daño térmico %.1f%% · %.0f °C" % [int(tire.id), compound, float(state.get("wear_fraction", 0.0)) * 100.0, float(state.get("thermal_damage_fraction", 0.0)) * 100.0, float(state.get("tread_c", 0.0))] + puncture
 
 func show_inventory() -> void:
 	clear()

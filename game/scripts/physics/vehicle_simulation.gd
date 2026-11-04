@@ -16,6 +16,8 @@ var powertrain_model := VehiclePowertrainModel.new()
 var brake_model := VehicleBrakeModel.new()
 var aero_model := VehicleAerodynamicModel.new()
 var thermal_model := VehicleThermalModel.new()
+var alignment_collision_damage: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var brake_collision_loss: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var wheel_positions_local: Array[Vector3] = []
 var wheel_radii: Array[float] = []
 var wheel_widths: Array[float] = []
@@ -194,7 +196,7 @@ func adjust_live_tire_pressure(delta_kpa: float) -> void:
 		var tire: Dictionary = thermal_model.tire_states[i]
 		tire.pressure_reference_bar_gauge = next_kpa / 100.0
 		tire.pressure_reference_temp_c = reference_temp
-		tire.pressure_bar_gauge = maxf(
+		tire.pressure_bar_gauge = (1.0 - float(tire.get("pressure_loss_fraction", 0.0))) * maxf(
 			(next_kpa / 100.0 + atmosphere) * (float(tire.gas_c) + 273.15)
 			/ maxf(reference_temp + 273.15, 1.0)
 			- atmosphere,
@@ -424,9 +426,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var cast := wheel_contact_casts[i]
 		var bump := float(suspension_model.axle_parameters[i].get("bump_m", 0.22)) + 0.02
 		var travel := bump + float(suspension_model.axle_parameters[i].get("droop_m", 0.18))
-		var steer := _wheel_steer_angle(i, float(inputs.get("steering", 0.0))) + suspension_model.dynamic_toe(
-			i
-		)
+		var steer := _wheel_steer_angle(i, float(inputs.get("steering", 0.0))) + _effective_toe(i)
 		var orientation := Basis(Vector3.UP, steer) * Basis(
 			Vector3.FORWARD,
 			suspension_model.dynamic_wheel_camber(i),
@@ -488,6 +488,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		float(inputs.get("handbrake", 0.0)),
 		fade_factors,
 	)
+	var brake_demand := brake_torques.duplicate()
+	for i in 4:
+		brake_torques[i] *= 1.0 - brake_collision_loss[i]
 	var brake_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var count := maxi(1, ceili(dt / maximum_substep_seconds))
@@ -564,7 +567,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var r_com := point - com_world
 			var point_velocity := substep_linear_vel + substep_angular_vel.cross(r_com) - road_velocity
 			var steer_angle := _wheel_steer_angle(i, float(inputs.get("steering", 0.0)))
-			var toe := suspension_model.dynamic_toe(i)
+			var toe := _effective_toe(i)
 			var camber := suspension_model.dynamic_camber(i)
 			var wheel_camber := suspension_model.dynamic_wheel_camber(i)
 
@@ -616,11 +619,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var fx := float(tire_result.get("longitudinal_force_n", 0.0))
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
 			var mz := float(tire_result.get("aligning_torque_nm", 0.0))
-			var tire_force := forward * fx + right * fy
+			var flat_drag := -clampf(longitudinal_speed, -1.0, 1.0) * normal_load * 0.045 * float(thermal_state.pressure_loss_fraction)
+			var tire_force := forward * (fx + flat_drag) + right * fy
 			var sat_torque := normal * mz
 
 			if normal_load > 0.0:
-				state.apply_force(tire_force * force_weight, point - state.transform.origin)
+				var spin := wheel_spins[i]
+				var phase := wheel_rotation_angles[i] + spin * h * 0.5
+				var vibration := float(thermal_state.rim_deformation) * minf(spin * spin * 0.025, normal_load * 0.12) * sin(phase)
+				state.apply_force((tire_force + normal * vibration) * force_weight, point - state.transform.origin)
 				state.apply_torque(sat_torque * force_weight)
 				substep_force_sum += tire_force
 
@@ -650,6 +657,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		)
 		var brake_work: Array = rotation.brake_work_j
 		for i in 4:
+			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * h, TAU)
 			brake_powers[i] = float(brake_work[i]) / h
 			thermal_model.advance_tire(
 				i,
@@ -719,6 +727,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var wheel := thermal_model.get_tire_thermal_state_snapshot(index)
 		wheel.merge(
 			{
+				"brake_collision_loss": brake_collision_loss[index],
+				"brake_demand": clampf(brake_demand[index] / maxf(brake_model.maximum_brake_torque_nm * 0.25, 1.0), 0.0, 1.0),
+				"alignment_collision_damage": alignment_collision_damage[index],
 				"surface": wheel_surfaces[index],
 				"load_n": wheel_loads[index],
 				"spin_rad_s": wheel_spins[index],
@@ -804,20 +815,23 @@ func _prepare_powertrain(delta: float, inputs: Dictionary) -> void:
 	)
 
 
-func update_wheel_visuals(steering_input: float, delta: float) -> void:
+func update_wheel_visuals(steering_input: float) -> void:
 	for i in mini(4, wheel_visual_pivots.size()):
 		var steer_angle := _wheel_steer_angle(i, steering_input)
-		var toe := suspension_model.dynamic_toe(i)
+		var toe := _effective_toe(i)
 		var wheel_camber := suspension_model.dynamic_wheel_camber(i)
 		var pivot := wheel_visual_pivots[i]
 		pivot.position = wheel_positions_local[i] + Vector3.UP * suspension_model.compression[i]
 		pivot.rotation.y = steer_angle + toe
 		if i < wheel_visuals.size():
-			wheel_rotation_angles[i] = fposmod(
-				wheel_rotation_angles[i] + wheel_spins[i] * delta,
-				TAU,
-			)
 			wheel_visuals[i].rotation = Vector3(wheel_rotation_angles[i], 0.0, wheel_camber)
+
+
+func _effective_toe(index: int) -> float:
+	var config: Dictionary = domains.get("damage", {}).get("wheel_collision", {})
+	var inward := -1.0 if index in [0, 2] else 1.0
+	var damage_offset := deg_to_rad(float(config.get("maximum_toe_offset_deg", 0.0))) * alignment_collision_damage[index]
+	return suspension_model.dynamic_toe(index) + inward * damage_offset
 
 
 func _wheel_steer_angle(index: int, input_value: float) -> float:

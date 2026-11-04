@@ -32,6 +32,8 @@
     }
   },
   "sounds": {
+    "flat_tyre_mono": { "filter": { "lpf_hz": 1800.0 } },
+    "bad_brakes": { "filter": { "hpf_hz": 400.0 } },
     "neutral_first_gear_transition": {
       "volume": 0.4125,
       "filter": {
