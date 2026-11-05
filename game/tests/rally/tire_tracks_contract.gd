@@ -16,7 +16,7 @@ func verify() -> void:
 	tracks.add_contact(0, Vector3(0, 0, 0.5), Vector3.UP, 0.2, 0, 0.8)
 	assert(tracks.counts[0] == 1)
 	var color: Color = tracks.batches[0].get_instance_color(0)
-	assert(color.r < 0.1 and color.g < 0.1 and color.b < 0.1 and color.a > 0.75, "Asphalt masks must be tinted dark with their opacity preserved")
+	assert(color.r < 1.0 and is_equal_approx(color.r, color.g) and is_equal_approx(color.g, color.b) and color.a > 0.75, "Tracks must darken the surface without adding a hue")
 	assert(tracks.color_for("dirt", 5) != tracks.color_for("sand", 5))
 	var transform: Transform3D = tracks.batches[0].get_instance_transform(0)
 	assert(transform.origin.distance_to(Vector3(0, 0.025, 0.25)) < 0.001)

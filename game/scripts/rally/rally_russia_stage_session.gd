@@ -131,6 +131,7 @@ func _ready() -> void:
 		start_clock_for_stage(event_manager.schedule_for(session_track_id))
 		_setup_event_weather()
 	else:
+		vehicle.set_stage_headlights(sky_start_hour)
 		event_clock.configure(event_clock.event_date, sky_start_hour * 3600.0, 1.0)
 		event_clock.set_paused(false)
 	# Compuesto confirmado antes de precalentar (objetivos térmicos por compuesto).
@@ -421,9 +422,10 @@ func _reposition_vehicle_on_course() -> bool:
 	if vehicle == null or course.points.size() < 2:
 		return false
 	var closest := INF
-	var target := course.points[0]
-	var direction := course.points[1] - target
+	var pose: Variant = null
 	var position := vehicle.global_position
+	var space := get_world_3d().direct_space_state
+	var excluded: Array[RID] = [vehicle.get_rid()]
 	for index in range(course.points.size() - 1):
 		var a: Vector3 = course.points[index]
 		var segment: Vector3 = course.points[index + 1] - a
@@ -432,31 +434,18 @@ func _reposition_vehicle_on_course() -> bool:
 		var t := clampf((position - a).dot(segment) / segment.length_squared(), 0.0, 1.0)
 		var candidate := a + segment * t
 		var distance := position.distance_squared_to(candidate)
-		if distance < closest:
+		if distance >= closest:
+			continue
+		var candidate_pose: Variant = _rescue_pose_on_road(space, excluded, candidate, segment)
+		if candidate_pose is Transform3D:
 			closest = distance
-			target = candidate
-			direction = segment
-	var heading := atan2(-direction.x, -direction.z)
-	var basis := Basis(Vector3.UP, heading)
-	var support_height := -INF
-	for i in vehicle.simulation.wheel_positions_local.size():
-		var offset: Vector3 = basis * vehicle.simulation.wheel_positions_local[i]
-		var wheel_center := target + offset
-		var query := PhysicsRayQueryParameters3D.create(
-			wheel_center + Vector3.UP * 3.0,
-			wheel_center - Vector3.UP * 6.0,
-			1,
-			[vehicle.get_rid()]
-		)
-		var hit := get_world_3d().direct_space_state.intersect_ray(query)
-		if not hit.is_empty() and (hit.normal as Vector3).y > 0.35:
-			support_height = maxf(support_height, (hit.position as Vector3).y + vehicle.simulation.wheel_radii[i] - offset.y)
-	if is_finite(support_height):
-		target.y = support_height + 0.08
-	else:
-		target = start_position
-		heading = start_heading
-	vehicle.rescue_to_pose(target, heading)
+			pose = candidate_pose
+	if pose == null:
+		pose = _rescue_pose_on_road(space, excluded, start_position, Basis(Vector3.UP, start_heading) * Vector3.FORWARD)
+	if pose == null:
+		return false
+	var target: Vector3 = pose.origin
+	vehicle.rescue_to_pose(pose)
 	course.generation = vehicle.simulation.session_generation
 	course.previous_position = target
 	competition.generation = course.generation
@@ -465,6 +454,52 @@ func _reposition_vehicle_on_course() -> bool:
 	if not practice_mode and event_weather.calendar_active:
 		event_weather.on_rescue(target)
 	return true
+
+
+func _rescue_pose_on_road(
+	space: PhysicsDirectSpaceState3D, excluded: Array[RID], candidate: Vector3, direction: Vector3,
+) -> Variant:
+	var ray := PhysicsRayQueryParameters3D.create(candidate + Vector3.UP * 3.0, candidate - Vector3.UP * 6.0, 1, excluded)
+	var center := space.intersect_ray(ray)
+	if center.is_empty() or not center.collider.get_meta("is_stage_road", false):
+		return null
+	var up: Vector3 = center.normal
+	if up.y < 0.65:
+		return null
+	var right := direction.cross(up).normalized()
+	if right.is_zero_approx():
+		return null
+	var basis := Basis(right, up, right.cross(up))
+	var surface: Vector3 = center.position
+	var highest := -INF
+	var lowest := INF
+	for i in 4:
+		var offset: Vector3 = basis * vehicle.simulation.wheel_positions_local[i]
+		var wheel: Vector3 = surface + offset
+		ray.from = wheel + up * 0.7
+		ray.to = wheel - up * 0.9
+		var hit := space.intersect_ray(ray)
+		if hit.is_empty() or hit.collider.get_meta("collision_role", "") != "terrain":
+			return null
+		if (hit.normal as Vector3).dot(up) < 0.8:
+			return null
+		var height := ((hit.position as Vector3) - wheel).dot(up) + vehicle.simulation.wheel_radii[i]
+		highest = maxf(highest, height)
+		lowest = minf(lowest, height)
+	if highest - lowest > 0.14:
+		return null
+	var pose := Transform3D(basis, surface + up * (highest + 0.04))
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.collision_mask = vehicle.collision_mask
+	query.exclude = excluded
+	query.margin = 0.02
+	for child in vehicle.get_children():
+		if child is CollisionShape3D and not child.disabled:
+			query.shape = child.shape
+			query.transform = pose * child.transform
+			if not space.intersect_shape(query, 1).is_empty():
+				return null
+	return pose
 
 
 func on_vehicle_reset_requested() -> void:
@@ -844,6 +879,7 @@ func start_clock_for_stage(schedule: Dictionary) -> void:
 	var start_str := str(schedule.get("start", "08:00"))
 	var parts := start_str.split(":")
 	var seconds := float(int(parts[0]) * 3600 + int(parts[1]) * 60)
+	vehicle.set_stage_headlights(seconds / 3600.0)
 	var countdown_lead := 5.0
 	if event_manager != null and not event_manager.event_doc.is_empty():
 		countdown_lead = float(((event_manager.event_doc.get("ambient", {}) as Dictionary).get("countdown_starts_seconds_before_scheduled", 5.0)))

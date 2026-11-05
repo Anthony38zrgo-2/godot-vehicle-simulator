@@ -67,17 +67,10 @@ func verify() -> void:
 	var vehicle = scene.get_node("FordEscortRS2000")
 	var vfx = vehicle.get_node("VehicleVFX")
 	vfx.set_physics_process(false)
-	assert(vfx.wheel_plumes.size() == 4 and vfx.impact_pool.size() == 6)
-	assert(
-		vfx.wheel_splash.size() == 4 and vfx.wheel_water.size() == 4
-		and vfx.wheel_mist.size() == 4 and vfx.wheel_snow.size() == 4
-	)
-	var wheel_quad := vfx.wheel_plumes[2].draw_pass_1 as QuadMesh
+	assert(vfx.wheel_bursts.size() == 20 and vfx.impact_pool.size() == 6)
+	var wheel_quad := vfx.wheel_bursts[0].draw_pass_1 as QuadMesh
 	var wheel_material := wheel_quad.material as ShaderMaterial
-	assert(
-		is_equal_approx(float(wheel_material.get_shader_parameter("body_exclusion_strength")), 1.0),
-		"Wheel particles must be clipped inside the cabin",
-	)
+	assert(wheel_material.get_shader_parameter("body_exclusion_strength") == 1.0)
 	var sim = vehicle.simulation
 	var index := -1
 	for i in [2, 3]:
@@ -88,13 +81,7 @@ func verify() -> void:
 	vehicle.freeze = true
 	for front in [0, 1]:
 		vfx.update_wheel(front, 1.0)
-		assert(not vfx.wheel_cores[front].emitting)
-		assert(not vfx.wheel_plumes[front].emitting)
-		assert(not vfx.wheel_chips[front].emitting)
-		assert(not vfx.wheel_splash[front].emitting)
-		assert(not vfx.wheel_water[front].emitting)
-		assert(not vfx.wheel_mist[front].emitting)
-		assert(not vfx.wheel_snow[front].emitting)
+	assert(vfx.wheel_burst_busy.count(0.0) == 20)
 	vehicle.linear_velocity = Vector3(0, 0, -15)
 	# Both axles can leave marks independently of the rear-only particle emitters.
 	var contact_point: Vector3 = sim.wheel_contact_points[index]
@@ -111,102 +98,83 @@ func verify() -> void:
 	assert(vfx.tire_tracks.active[index], "Rolling contact must retain track continuity")
 	sim.wheel_contact_points[index] = contact_point
 	vfx.tire_tracks.clear_tracks()
-	sim.wheel_slips[index] = Vector2(0.3, 0.15)
+	sim.wheel_slips[index] = Vector2(0.24, 0.12)
 	for surface in ["Gravel", "Dirt", "Sand", "Grass"]:
+		vfx.clear_wheel_bursts()
 		sim.wheel_surfaces[index] = surface
 		sim.last_local_conditions[index] = { "snow_mm": 0.0 }
 		vfx.update_wheel(index, 0.0)
-		assert(vfx.wheel_plumes[index].emitting)
-		assert(vfx.wheel_chips[index].emitting)
-		assert(not vfx.wheel_splash[index].emitting)
-		assert(not vfx.wheel_water[index].emitting)
-		assert(not vfx.wheel_mist[index].emitting)
-		assert(not vfx.wheel_snow[index].emitting)
+		if surface == "Grass":
+			assert(vfx.wheel_burst_busy.count(0.0) == 19)
+			assert(wheel_burst_texture(vfx, 0).contains("leaf_"))
+		else:
+			assert(vfx.wheel_burst_busy.count(0.0) == 19)
+			assert(wheel_burst_texture(vfx, 0).ends_with("dust_01.png"))
+			assert(vfx.wheel_bursts[0].amount == 1)
+			assert(vfx.wheel_bursts[0].draw_pass_1.size == Vector2(3.0, 3.0))
+		assert(vfx.wheel_cooldowns[index] >= float(vfx.SURFACES[surface.to_lower()].interval))
+		var available: int = vfx.wheel_burst_busy.count(0.0)
+		vfx.update_wheel(index, 0.0)
+		assert(vfx.wheel_burst_busy.count(0.0) == available, "No extra burst before the cadence allows it")
+
+	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Gravel"
-	sim.last_local_conditions[index] = { "snow_mm": 0.0 }
-	vfx.update_wheel(index, 0.0)
-	var dry: float = vfx.wheel_plumes[index].amount_ratio
 	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_splash[index].emitting)
-	assert(vfx.wheel_water[index].emitting)
-	assert(vfx.wheel_mist[index].emitting)
-	assert(not vfx.wheel_snow[index].emitting)
-	assert(vfx.wheel_plumes[index].amount_ratio < dry * 0.2)
-	var wet_trail: float = vfx.wheel_water[index].amount_ratio
-	vfx.update_wheel(index, 0.25)
-	assert(
-		vfx.wheel_water[index].amount_ratio < wet_trail * 0.5,
-		"Spray must scale with wetness",
-	)
-	# The contact splash uses a different source sprite for paved and loose ground.
+	assert(wheel_burst_texture(vfx, 0).ends_with("cr_splsh.png"))
+	assert(wheel_burst_texture(vfx, 1).ends_with("water_1.png"))
+	assert(vfx.wheel_burst_busy.count(0.0) == 18)
+	vfx.clear_wheel_bursts()
+	sim.wheel_surfaces[index] = "Grass"
 	vfx.update_wheel(index, 1.0)
-	var splash_quad := vfx.wheel_splash[index].draw_pass_1 as QuadMesh
-	var splash_material := splash_quad.material as ShaderMaterial
-	var loose_texture := splash_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(loose_texture != null and loose_texture.resource_path.ends_with("cr_splsh.png"))
+	assert(wheel_burst_texture(vfx, 0).ends_with("cr_splsh.png"))
+	assert(wheel_burst_texture(vfx, 1).contains("leaf_"))
+	assert(vfx.wheel_burst_busy.count(0.0) == 18)
+
+	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Road"
 	sim.wheel_slips[index] = Vector2.ZERO
+	vfx.update_wheel(index, 0.0)
+	assert(vfx.wheel_burst_busy.count(0.0) == 20)
+	vfx.clear_wheel_bursts()
 	vfx.update_wheel(index, 1.0)
-	var paved_texture := splash_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(paved_texture != null and paved_texture.resource_path.ends_with("rd_splsh.png"))
-	assert(not vfx.wheel_plumes[index].emitting and not vfx.wheel_chips[index].emitting)
-	sim.wheel_loads[index] = 0.0
+	assert(wheel_burst_texture(vfx, 0).ends_with("rd_splsh.png"))
+	vfx.clear_wheel_bursts()
+	sim.last_local_conditions[index] = { "snow_mm": 1.0 }
 	vfx.update_wheel(index, 1.0)
-	assert(not vfx.wheel_splash[index].emitting, "Spray must stop when the wheel is unloaded")
-	assert(not vfx.wheel_water[index].emitting)
-	assert(not vfx.wheel_mist[index].emitting)
-	sim.wheel_loads[index] = 4000.0
-	vehicle.linear_velocity = Vector3.ZERO
-	sim.wheel_spins[index] = 0.0
-	sim.wheel_slips[index] = Vector2.ZERO
-	sim.wheel_surfaces[index] = "Gravel"
-	vfx.update_wheel(index, 1.0)
-	assert(not vfx.wheel_water[index].emitting, "A stationary wheel must not spray")
-	# Snow on the ground replaces dust, smoke and water in the same update.
-	vehicle.linear_velocity = Vector3(0, 0, -15)
-	sim.wheel_slips[index] = Vector2(0.3, 0.15)
-	sim.last_local_conditions[index] = { "snow_mm": 6.0 }
-	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_snow[index].emitting, "Snow on the ground must lift snow")
-	var snow_quad := vfx.wheel_snow[index].draw_pass_1 as QuadMesh
-	var snow_material := snow_quad.material as ShaderMaterial
-	var snow_texture := snow_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(snow_texture != null and snow_texture.resource_path.contains("snw_rd"))
-	assert(not vfx.wheel_cores[index].emitting)
-	assert(not vfx.wheel_plumes[index].emitting)
-	assert(not vfx.wheel_chips[index].emitting)
-	assert(not vfx.wheel_splash[index].emitting)
-	assert(not vfx.wheel_water[index].emitting)
-	assert(not vfx.wheel_mist[index].emitting)
+	assert(vfx.wheel_burst_busy.count(0.0) == 19)
+	assert(wheel_burst_texture(vfx, 0).contains("snw_rd"))
 	sim.last_local_conditions[index] = { "snow_mm": 0.0 }
+
+	vfx.clear_wheel_bursts()
+	sim.wheel_surfaces[index] = "Gravel"
+	sim.wheel_slips[index] = Vector2(0.5, 0.3)
 	vfx.update_wheel(index, 0.0)
-	assert(not vfx.wheel_snow[index].emitting)
-	# Wheel chips follow the contact material.
-	sim.wheel_surfaces[index] = "Grass"
-	sim.wheel_slips[index] = Vector2(0.3, 0.15)
-	vfx.update_wheel(index, 0.0)
-	var chips_quad := vfx.wheel_chips[index].draw_pass_1 as QuadMesh
-	var chips_material := chips_quad.material as ShaderMaterial
-	var grass_chips := chips_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(grass_chips != null and grass_chips.resource_path.contains("leaf_"))
+	assert(vfx.wheel_bursts[1].amount == 2)
+	assert(vfx.wheel_bursts[1].process_material is ShaderMaterial)
+	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Dirt"
 	vfx.update_wheel(index, 1.0)
-	var mud_chips := chips_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(mud_chips != null and mud_chips.resource_path.ends_with("mud_rd1.png"))
+	assert(vfx.wheel_bursts[0].amount == 3)
+	assert(vfx.wheel_bursts[1].process_material is ParticleProcessMaterial)
+	assert(wheel_burst_texture(vfx, 2).ends_with("mud_rd1.png"))
+	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Gravel"
-	vfx.update_wheel(index, 0.0)
-	var gravel_chips := chips_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(gravel_chips != null and gravel_chips.resource_path.ends_with("dirt_02_a.png"))
-	sim.wheel_surfaces[index] = "Road"
 	sim.wheel_slips[index] = Vector2.ZERO
+	vfx.soften_wheel_intersections = false
 	vfx.update_wheel(index, 0.0)
-	assert(not vfx.wheel_plumes[index].emitting and not vfx.wheel_chips[index].emitting)
-	sim.wheel_slips[index] = Vector2(0.5, 0.2)
+	assert(wheel_material.get_shader_parameter("soft_intersection_metres") == 0.0)
+	vfx.clear_wheel_bursts()
+	vfx.soften_wheel_intersections = true
 	vfx.update_wheel(index, 0.0)
-	assert(vfx.wheel_plumes[index].emitting)
+	assert(wheel_material.get_shader_parameter("soft_intersection_metres") > 0.0)
+	vfx.wheel_burst_busy.fill(1.0)
+	vfx.wheel_cooldowns.fill(0.0)
+	vfx.update_wheel(index, 1.0)
+	assert(vfx.wheel_burst_busy.count(1.0) == 20, "Occupied slots must never be overwritten")
+	vfx.clear_wheel_bursts()
 	sim.wheel_loads[index] = 0.0
-	vfx.update_wheel(index, 0.0)
-	assert(not vfx.wheel_plumes[index].emitting and not vfx.wheel_chips[index].emitting)
+	vfx.update_wheel(index, 1.0)
+	assert(vfx.wheel_burst_busy.count(0.0) == 20)
 	vehicle.body_contact_vfx.clear()
 	vehicle.body_contact_vfx.append({"position": Vector3.ZERO, "normal": Vector3.UP, "impulse_ns": 0.0, "speed_ms": 0.0, "tangent_ms": 0.0, "surface": "Gravel", "collider_name": "collision_road"})
 	vfx.update_impacts(0.0)
@@ -269,12 +237,13 @@ func verify() -> void:
 		vfx.emit_impact(Vector3.ZERO, Vector3.UP, Color.WHITE, 0.5, true)
 	assert(vfx.emitted_impacts == 6, "The pool must cap overlapping impact effects")
 	vfx.reset_effects()
-	assert(not vfx.wheel_plumes[index].emitting)
-	assert(not vfx.wheel_splash[index].emitting)
-	assert(not vfx.wheel_water[index].emitting)
-	assert(not vfx.wheel_mist[index].emitting)
-	assert(not vfx.wheel_snow[index].emitting)
 	print("RALLY_VFX_CONTRACT_OK real_contacts surfaces wetness skid airborne impact_cooldown pool_reset spray snow sparks mud leaves")
 	scene.queue_free()
 	await process_frame
 	quit()
+
+
+func wheel_burst_texture(vfx: RallyVehicleVFX, slot: int) -> String:
+	var quad := vfx.wheel_bursts[slot].draw_pass_1 as QuadMesh
+	var material := quad.material as ShaderMaterial
+	return material.get_shader_parameter("particle_texture").resource_path

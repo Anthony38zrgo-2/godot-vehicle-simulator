@@ -5,6 +5,7 @@
     "full_severity_speed_m_s": 23.0,
     "maximum_radiator_damage": 0.55,
     "maximum_engine_damage": 0.26,
+    "maximum_transmission_damage": 0.30,
     "severity_exponent": 1.2,
     "min_impulse_speed_m_s": 1.5,
     "zone_weights": {
@@ -25,6 +26,14 @@
         "engine": 0.12
       }
     }
+  },
+  "visual": {
+    "headlight": 0.20,
+    "windshield": 0.34,
+    "windshield_frontal": 0.55,
+    "hood": 0.42,
+    "trunk": 0.42,
+    "body": 0.80
   },
   "wheel_collision": {
     "lateral_reach_m": 0.38,

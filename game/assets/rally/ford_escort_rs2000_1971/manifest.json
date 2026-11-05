@@ -224,5 +224,31 @@
     "light_reverse01",
     "interior_lo",
     "steering_wheel_lo"
-  ]
+  ],
+  "visual_damage": {
+    "archive": "Rally Trophy/Data/Cars/car_12.bzf",
+    "files": {
+      "windows_damaged.png": {
+        "source": "windows_damaged.tga",
+        "source_sha256": "08a677e895a99fbfe80d4a9f4f1e282dbaa4b99a8595552f3899316e2b58f9e0",
+        "sha256": "59e02f6380ba37434642e6b59973210b53ab5570cd05b011df8a14dc90827318"
+      },
+      "interior_windows_damaged.png": {
+        "source": "interior_windows_damaged.tga",
+        "source_sha256": "8f177df55f8cb3f971c2361ed4c78cf20942d787ff37fcea3afd17b325b67785",
+        "sha256": "cd4d5cc89eacbd9183a73c150c0cde1cdf24e4f8cf53254d5905fa7f9723db9a"
+      },
+      "lights_damaged.png": {
+        "source": "lights_damaged.tga",
+        "source_sha256": "ef910ed9de420dae3cd094f9931f6599ad66e3e2ddc1761cc8006f1aa8a9df8c",
+        "sha256": "ac36ebdaae16891c7b17fe5fb7e0cdcf8307eb3a449f9f67f54d758c5c42beb0"
+      },
+      "escort_damage.glb": {
+        "source": "model.BMF and runtime chassis interior_hi",
+        "source_sha256": "a7f3ddedf03e4c05085ca525e9178d9e4296f04a418d3d8b64448194c83888cf",
+        "runtime_chassis_sha256": "a9892591b44b9bf94b8d2ec48ad48fee93693dd35d65faba0f53651addf98db6",
+        "sha256": "2ea575252dc21e03e02b333cf8488e2bcde0096db681a06ecf06e98bd9835b53"
+      }
+    }
+  }
 }

@@ -35,19 +35,19 @@ func build_collision(visual_root: Node = null) -> bool:
 		push_error("Rally collision scene cannot be loaded: " + collision_scene_path)
 		return false
 	var collision_source := packed.instantiate()
-	add_child(collision_source)
-	await get_tree().process_frame
+	# No añadir collision_source al SceneTree: evita subir 114k triángulos al RenderingServer
 	var mesh_instances: Array[MeshInstance3D] = []
 	collect_mesh_instances(collision_source, mesh_instances)
 	if mesh_instances.is_empty():
 		push_error("Rally collision scene contains no meshes: " + collision_scene_path)
+		collision_source.free()
 		return false
 	for mesh_instance in mesh_instances:
-		build_static_body(mesh_instance)
+		var rel_transform := _get_relative_transform(mesh_instance, collision_source)
+		build_static_body(mesh_instance, rel_transform)
 	if visual_root != null:
 		build_erosion_bank_collision(visual_root)
-	collision_source.queue_free()
-	await get_tree().process_frame
+	collision_source.free()
 	print("RALLY_COLLISION_READY bodies=", generated_body_count, " shapes=", generated_shape_count, " triangles=", generated_triangle_count)
 	return generated_shape_count > 0
 
@@ -69,9 +69,7 @@ func build_erosion_bank_collision(visual_root: Node) -> void:
 			var bank := MeshInstance3D.new()
 			bank.name = "Collision_Terrain_Dirt"
 			bank.mesh = bank_mesh
-			add_child(bank)
-			bank.global_transform = source.global_transform
-			build_static_body(bank)
+			build_static_body(bank, source.global_transform)
 			bank.free()
 
 
@@ -82,7 +80,20 @@ func collect_mesh_instances(node: Node, output: Array[MeshInstance3D]) -> void:
 		collect_mesh_instances(child, output)
 
 
-func build_static_body(mesh_instance: MeshInstance3D) -> void:
+func _get_relative_transform(node: Node3D, root_node: Node) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var current: Node = node
+	var chain: Array[Node3D] = []
+	while current != null and current != root_node:
+		if current is Node3D:
+			chain.append(current as Node3D)
+		current = current.get_parent()
+	for i in range(chain.size() - 1, -1, -1):
+		t = t * chain[i].transform
+	return t
+
+
+func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transform3D = Transform3D()) -> void:
 	if mesh_instance.mesh == null:
 		return
 	var shape := mesh_instance.mesh.create_trimesh_shape()
@@ -98,6 +109,7 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 	if role in ["terrain", "barrier"] and shape is ConcavePolygonShape3D:
 		(shape as ConcavePolygonShape3D).backface_collision = true
 	static_body.set_meta("collision_role", role)
+	static_body.set_meta("is_stage_road", source_name.begins_with("collision_road"))
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
 	if role == "terrain" and surface_group.is_empty():
 		surface_group = terrain_surface_group
@@ -110,12 +122,15 @@ func build_static_body(mesh_instance: MeshInstance3D) -> void:
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.name = "TrackCollisionShape"
 	collision_shape.shape = shape
-	collision_shape.transform = mesh_instance.global_transform
+	collision_shape.transform = override_transform if override_transform != Transform3D() else mesh_instance.transform
 	static_body.add_child(collision_shape)
 	add_child(static_body)
 	generated_body_count += 1
 	generated_shape_count += 1
-	generated_triangle_count += int(mesh_instance.mesh.get_faces().size() / 3)
+	if shape is ConcavePolygonShape3D:
+		generated_triangle_count += int((shape as ConcavePolygonShape3D).get_faces().size() / 3)
+	else:
+		generated_triangle_count += int(mesh_instance.mesh.get_faces().size() / 3)
 
 
 func get_generated_triangle_count() -> int:

@@ -51,7 +51,7 @@ func _ready() -> void:
 	add_child(world)
 	add_child(sun)
 	add_child(moon)
-	sun.directional_shadow_max_distance = 80.0 if dreamcast_visual_mode else 280.0
+	sun.directional_shadow_max_distance = 60.0 if dreamcast_visual_mode else 80.0
 	moon.shadow_enabled = false
 	update_visuals(0.0)
 

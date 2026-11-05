@@ -29,7 +29,7 @@ const C_RIM := Color("#7fa8c9")
 
 const MAP_RECT := Rect2(24, 24, 264, 330)
 const TIMING_RECT := Rect2(1620, 24, 276, 132)
-const DAMAGE_RECT := Rect2(1620, 482, 276, 116)
+const DAMAGE_RECT := Rect2(1620, 482, 276, 150)
 const TIRES_W := 300.0
 const TIRES_H := 160.0
 const BAND_MARGIN := 24.0
@@ -37,6 +37,16 @@ const BAND_MARGIN := 24.0
 var snapshot: Dictionary = {}
 var thermal_config: Dictionary = {}
 var palette: RetroHudConfig = RetroHudConfig.new()
+var _cached_map_points_hash: int = 0
+var _cached_map_body: Rect2 = Rect2()
+var _cached_map_rotation: float = 0.0
+var _cached_map_minimum: Vector2 = Vector2.ZERO
+var _cached_map_fit: float = 1.0
+var _cached_map_origin: Vector2 = Vector2.ZERO
+var _cached_map_line: PackedVector2Array = PackedVector2Array()
+var _cached_split_points: PackedVector2Array = PackedVector2Array()
+var _cached_start_screen_pos: Vector2 = Vector2.ZERO
+var _cached_finish_screen_pos: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -86,9 +96,12 @@ func _draw_damage(rect: Rect2) -> void:
 	var rad_ratio := clampf(float(dmg.get("radiator", eng_snap.get("radiator_damage", 0.0))), 0.0, 1.0)
 	var eng_ratio := clampf(float(dmg.get("engine", eng_snap.get("engine_damage", 0.0))), 0.0, 1.0)
 
+	var transmission_ratio := clampf(float(dmg.get("transmission", 0.0)), 0.0, 1.0)
+
 	var rows := [
 		{"label": "RADIADOR", "ratio": rad_ratio, "y": 24.0},
 		{"label": "MOTOR", "ratio": eng_ratio, "y": 58.0},
+		{"label": "TRANSMISIÓN", "ratio": transmission_ratio, "y": 92.0},
 	]
 
 	for row in rows:
@@ -158,40 +171,57 @@ func _draw_map(rect: Rect2) -> void:
 	var course: Dictionary = snapshot.get("course", {})
 	var points: Array = course.get("points", [])
 	if points.size() >= 2:
-		var rotation := map_rotation(points)
-		var minimum := Vector2(INF, INF)
-		var maximum := Vector2(-INF, -INF)
-		for point: Vector3 in points:
-			var flat := Vector2(point.x, point.z).rotated(rotation)
-			minimum = minimum.min(flat)
-			maximum = maximum.max(flat)
-		var extent := maximum - minimum
-		var fit := minf(
-			(body.size.x - 32.0) / maxf(extent.x, 1.0), (body.size.y - 104.0) / maxf(extent.y, 1.0)
-		)
-		var origin := (
-			body.position
-			+ Vector2(16, 14)
-			+ (Vector2(body.size.x - 32.0, body.size.y - 104.0) - extent * fit) * 0.5
-		)
-		var line := PackedVector2Array()
-		for point: Vector3 in points:
-			line.append(origin + (Vector2(point.x, point.z).rotated(rotation) - minimum) * fit)
-		draw_polyline(line, Color(C_RIM, 0.35), 8.0, true)
-		draw_polyline(line, C_TEXT, 2.5, true)
-		var splits: Array = course.get("split_positions", [])
-		for i in splits.size():
-			var marker: Vector3 = splits[i]
-			var passed := i < int(course.get("next_partial", 1)) - 1
+		var start_p: Vector3 = points[0]
+		var end_p: Vector3 = points[-1]
+		var points_hash := points.size() ^ (int(start_p.x * 100.0) << 3) ^ int(end_p.z * 100.0)
+		if points_hash != _cached_map_points_hash or body != _cached_map_body:
+			_cached_map_points_hash = points_hash
+			_cached_map_body = body
+			_cached_map_rotation = map_rotation(points)
+			var minimum := Vector2(INF, INF)
+			var maximum := Vector2(-INF, -INF)
+			for point: Vector3 in points:
+				var flat := Vector2(point.x, point.z).rotated(_cached_map_rotation)
+				minimum = minimum.min(flat)
+				maximum = maximum.max(flat)
+			var extent := maximum - minimum
+			_cached_map_minimum = minimum
+			_cached_map_fit = minf(
+				(body.size.x - 32.0) / maxf(extent.x, 1.0), (body.size.y - 104.0) / maxf(extent.y, 1.0)
+			)
+			_cached_map_origin = (
+				body.position
+				+ Vector2(16, 14)
+				+ (Vector2(body.size.x - 32.0, body.size.y - 104.0) - extent * _cached_map_fit) * 0.5
+			)
+			_cached_map_line.clear()
+			for point: Vector3 in points:
+				_cached_map_line.append(_cached_map_origin + (Vector2(point.x, point.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit)
+
+			_cached_start_screen_pos = _cached_map_origin + (Vector2(start_p.x, start_p.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit
+			_cached_finish_screen_pos = _cached_map_origin + (Vector2(end_p.x, end_p.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit
+
+			var splits: Array = course.get("split_positions", [])
+			_cached_split_points.clear()
+			for i in splits.size():
+				var marker: Vector3 = splits[i]
+				_cached_split_points.append(_cached_map_origin + (Vector2(marker.x, marker.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit)
+
+		draw_polyline(_cached_map_line, Color(C_RIM, 0.35), 8.0, true)
+		draw_polyline(_cached_map_line, C_TEXT, 2.5, true)
+		var next_partial := int(course.get("next_partial", 1))
+		for i in _cached_split_points.size():
+			var passed := i < next_partial - 1
 			draw_circle(
-				origin + (Vector2(marker.x, marker.z).rotated(rotation) - minimum) * fit,
+				_cached_split_points[i],
 				3.5,
 				palette.map_start_color if passed else C_TEXT
 			)
-		draw_circle(origin + (Vector2(points[0].x, points[0].z).rotated(rotation) - minimum) * fit, 4.5, palette.map_start_color)
-		draw_circle(origin + (Vector2(points[-1].x, points[-1].z).rotated(rotation) - minimum) * fit, 4.5, C_ROSE)
+		draw_circle(_cached_start_screen_pos, 4.5, palette.map_start_color)
+		draw_circle(_cached_finish_screen_pos, 4.5, C_ROSE)
 		var position: Vector3 = course.get("position", Vector3.ZERO)
-		draw_circle(origin + (Vector2(position.x, position.z).rotated(rotation) - minimum) * fit, 6.0, palette.map_player_color)
+		var player_pos := _cached_map_origin + (Vector2(position.x, position.z).rotated(_cached_map_rotation) - _cached_map_minimum) * _cached_map_fit
+		draw_circle(player_pos, 6.0, palette.map_player_color)
 
 	var label := str(course.get("label", ""))
 	var strip := Rect2(body.position.x + 8, body.end.y - 68, body.size.x - 16, 60)

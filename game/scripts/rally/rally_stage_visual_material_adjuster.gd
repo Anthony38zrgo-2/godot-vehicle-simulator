@@ -28,6 +28,7 @@ const CUTOUT_MATERIAL_NAMES := [
 @export var enforce_dreamcast_pipeline: bool = true
 
 var adjusted_surface_count: int = 0
+var adjusted_materials: Dictionary = {}
 var prepared_textures: Dictionary = {}
 
 
@@ -55,6 +56,12 @@ func adjust_node(node: Node) -> void:
 
 
 func adjust_material(material: BaseMaterial3D) -> void:
+	var key := material.get_instance_id()
+	if adjusted_materials.has(key):
+		adjusted_surface_count += 1
+		return
+	adjusted_materials[key] = true
+
 	var material_name := material.resource_name.to_lower()
 	var is_cutout := CUTOUT_MATERIAL_NAMES.has(material_name) or material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 
@@ -99,10 +106,13 @@ func prepare_texture(texture: Texture2D) -> Texture2D:
 		return prepared_textures[key]
 	var pixels := texture.get_image()
 	if pixels == null or pixels.has_mipmaps():
+		prepared_textures[key] = texture
 		return texture
 	if pixels.is_compressed() and pixels.decompress() != OK:
+		prepared_textures[key] = texture
 		return texture
 	if pixels.generate_mipmaps() != OK:
+		prepared_textures[key] = texture
 		return texture
 	var prepared := ImageTexture.create_from_image(pixels)
 	prepared_textures[key] = prepared

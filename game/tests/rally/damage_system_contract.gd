@@ -13,6 +13,8 @@ func run_tests() -> void:
 	test_oil_model()
 	test_impact_zones()
 	test_wheel_damage()
+	test_transmission_damage()
+	test_visual_damage()
 	test_vfx_and_hud()
 	test_quick_repairs()
 	print("ALL DAMAGE SYSTEM CONTRACT TESTS PASSED!")
@@ -203,11 +205,97 @@ func test_wheel_damage() -> void:
 	print("PASS: test_wheel_damage")
 
 
+func test_transmission_damage() -> void:
+	var profile := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
+	var powertrain := VehiclePowertrainModel.new()
+	var healthy_shift_seconds := 0.0
+	for damage in [0.0, 0.5, 1.0]:
+		powertrain.configure(profile["domains"])
+		powertrain.transmission_damage = damage
+		powertrain.current_gear = 1
+		powertrain.set_gear(2)
+		var elapsed := 0.0
+		while powertrain.shift_phase != "idle" and elapsed < 2.0:
+			powertrain.advance(0.005, 0.0, 1.0, 1.0)
+			powertrain.solve_rotation(0.005, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0])
+			elapsed += 0.005
+		assert(powertrain.current_gear == 2 and powertrain.shift_phase == "idle")
+		if damage == 0.0:
+			healthy_shift_seconds = elapsed
+		assert(absf(elapsed - healthy_shift_seconds - float(damage)) <= 0.01)
+	print("PASS: test_transmission_damage")
+
+
+func test_visual_damage() -> void:
+	var vehicle := load("res://scenes/rally/ford_escort_rs2000_1971.tscn").instantiate() as RigidBody3D
+	root.add_child(vehicle)
+	var controller := vehicle.get_node("VisualDamage")
+	var config: Dictionary = vehicle.simulation.domains.damage.visual
+	var left: Dictionary = controller._surfaces.headlight_left[0]
+	var right: Dictionary = controller._surfaces.headlight_right[0]
+	var left_light := controller.get_node("HeadlightLeft") as SpotLight3D
+	var right_light := controller.get_node("HeadlightRight") as SpotLight3D
+	vehicle.set_stage_headlights(18.0)
+	controller._process(0.0)
+	assert(left_light.visible and right_light.visible)
+	vehicle.set_stage_headlights(6.0)
+	controller._process(0.0)
+	assert(not left_light.visible and not right_light.visible)
+	vehicle.set_stage_headlights(2.5)
+	controller._process(0.0)
+	assert(left_light.visible and right_light.visible)
+	controller.register_impact(Vector3(-0.55, 0.5, -1.75), Vector3.BACK, 0.32, config)
+	controller._process(0.0)
+	assert(left.mesh.get_surface_override_material(left.surface) == left.material)
+	assert(not left_light.visible and right_light.visible)
+	assert(right.mesh.get_surface_override_material(right.surface) == right.lit)
+	vehicle.toggle_headlights()
+	controller._process(0.0)
+	assert(not left_light.visible and not right_light.visible)
+	vehicle.toggle_headlights()
+	controller._process(0.0)
+	assert(not left_light.visible and right_light.visible)
+	assert(controller._healthy.hood.visible and controller._healthy.interior.visible)
+
+	controller.register_impact(Vector3(0.0, 0.55, -1.8), Vector3.BACK, 0.50, config)
+	controller._process(0.0)
+	assert(controller._damaged.hood.visible and not controller._healthy.hood.visible)
+	assert(controller._healthy.interior.visible)
+
+	controller.register_impact(Vector3(0.0, 0.55, -1.8), Vector3.BACK, 0.65, config)
+	controller._process(0.0)
+	assert(not controller._healthy.interior.visible and controller._damaged.interior.visible)
+	for binding in controller._surfaces.windshield:
+		assert(binding.mesh.get_surface_override_material(binding.surface) == binding.material)
+
+	for binding in controller._exterior_windows:
+		if binding.has("cracked"):
+			assert(binding.mesh.get_surface_override_material(binding.surface) == binding.tinted_cracked)
+	vehicle.set_glass_cockpit_view(true)
+	for binding in controller._exterior_windows:
+		if binding.has("cracked"):
+			assert(binding.mesh.get_surface_override_material(binding.surface) == binding.cracked)
+	var steam := vehicle.get_node("VehicleVFX/RadiatorSteam") as GPUParticles3D
+	var steam_material := (steam.draw_pass_1 as QuadMesh).material as ShaderMaterial
+	assert(steam_material.get_shader_parameter("unlit") == false)
+
+	controller.register_impact(Vector3(0.0, 0.58, 1.9), Vector3.FORWARD, 0.9, config)
+	controller._process(0.0)
+	assert(controller._damaged.trunk.visible and controller._damaged.body.visible)
+	assert(not controller._healthy.body.visible and not controller._healthy.trunk.visible)
+	var damaged_left: Dictionary = controller._surfaces.headlight_left[1]
+	assert(damaged_left.mesh.get_surface_override_material(damaged_left.surface) == damaged_left.material)
+	vehicle.reset_to_pose(Vector3.UP, 0.0)
+	assert(controller._damaged.body.visible and controller._damaged.interior.visible)
+	vehicle.free()
+	print("PASS: test_visual_damage")
+
+
 func test_vfx_and_hud() -> void:
 	# HUD verification
 	var hud_class = load("res://scripts/rally/formula_hud_panels.gd")
 	var hud = hud_class.new()
-	assert(hud.DAMAGE_RECT == Rect2(1620, 482, 276, 116), "DAMAGE_RECT coordinates must match specification")
+	assert(hud.DAMAGE_RECT == Rect2(1620, 482, 276, 150), "DAMAGE_RECT coordinates must match specification")
 	assert(hud._damage_color(0.10) == hud.C_GREEN, "0-25% should be nominal green")
 	assert(hud._damage_color(0.35) == hud.C_GOLD, "25-50% should be gold/amber")
 	assert(hud._damage_color(0.60) == Color("#f08c35"), "50-75% should be warm orange")

@@ -7,6 +7,7 @@ extends Node
 @export var measurement_start_delay_seconds: float = 0.5
 
 var vehicle: RallyEscortVehicle
+var telemetry_enabled: bool = false
 var telemetry_file: FileAccess
 var telemetry_file_path: String = ""
 var summary_file_path: String = ""
@@ -25,11 +26,19 @@ var started_at_utc: String = ""
 
 func _ready() -> void:
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
+	if vehicle == null and get_parent() != null:
+		vehicle = get_parent().find_child("FordEscortRS2000", true, false) as RallyEscortVehicle
 	if vehicle == null:
 		push_error("Rally telemetry cannot resolve its vehicle: " + str(vehicle_path))
 		set_physics_process(false)
 		return
 	configure_from_command_line()
+	if not telemetry_file_path.is_empty():
+		telemetry_enabled = true
+	if not telemetry_enabled:
+		set_physics_process(false)
+		return
+
 	if telemetry_file_path.is_empty():
 		telemetry_file_path = "user://rally_logs/rally_telemetry_" + Time.get_datetime_string_from_system().replace(":", "-") + ".csv"
 	summary_file_path = telemetry_file_path.get_basename() + "_summary.json"
@@ -45,14 +54,21 @@ func _ready() -> void:
 
 
 func configure_from_command_line() -> void:
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--rally-telemetry="):
-			telemetry_file_path = argument.trim_prefix("--rally-telemetry=")
+	var all_args: Array = OS.get_cmdline_user_args() + OS.get_cmdline_args()
+	for argument in all_args:
+		if argument == "--rally-telemetry" or argument.begins_with("--rally-telemetry="):
+			telemetry_enabled = true
+			if argument.begins_with("--rally-telemetry="):
+				telemetry_file_path = argument.trim_prefix("--rally-telemetry=")
+		elif argument == "--rally-B0-audit" or argument.begins_with("--rally-B0-audit="):
+			telemetry_enabled = true
 		elif argument.begins_with("--rally-run-id="):
 			run_identifier = argument.trim_prefix("--rally-run-id=")
 
 
 func write_header() -> void:
+	if telemetry_file == null:
+		return
 	telemetry_file.store_line(",".join([
 		"run_id",
 		"utc_time",
@@ -122,88 +138,105 @@ func write_metadata() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if telemetry_file == null or vehicle == null:
+	if not telemetry_enabled or vehicle == null:
 		return
 	elapsed_seconds += delta
 	physics_tick_index += 1
 	if elapsed_seconds < measurement_start_delay_seconds:
 		return
-	update_extremes()
-	if physics_tick_index % sample_every_physics_ticks != 0:
-		return
-	write_sample()
-	flush_accumulator += delta * sample_every_physics_ticks
-	if flush_accumulator >= flush_every_seconds:
-		flush_accumulator = 0.0
-		telemetry_file.flush()
 
-
-func update_extremes() -> void:
 	var state := vehicle.get_rally_state()
-	maximum_speed_kilometres_per_hour = maxf(maximum_speed_kilometres_per_hour, float(state["speed_kilometres_per_hour"]))
-	maximum_engine_revolutions_per_minute = maxf(maximum_engine_revolutions_per_minute, float(state["engine_revolutions_per_minute"]))
-	for compression in state["wheel_compressions_millimetres"]:
+	update_extremes(state)
+
+	if telemetry_file != null and physics_tick_index % sample_every_physics_ticks == 0:
+		write_sample(state)
+		flush_accumulator += delta * sample_every_physics_ticks
+		if flush_accumulator >= flush_every_seconds:
+			flush_accumulator = 0.0
+			telemetry_file.flush()
+
+
+func update_extremes(state: Dictionary = {}) -> void:
+	if state.is_empty() and vehicle != null:
+		state = vehicle.get_rally_state()
+	if state.is_empty():
+		return
+
+	maximum_speed_kilometres_per_hour = maxf(maximum_speed_kilometres_per_hour, float(state.get("speed_kilometres_per_hour", 0.0)))
+	maximum_engine_revolutions_per_minute = maxf(maximum_engine_revolutions_per_minute, float(state.get("engine_revolutions_per_minute", 0.0)))
+	var compressions: Array = state.get("wheel_compressions_millimetres", [])
+	for compression in compressions:
 		maximum_wheel_compression_millimetres = maxf(maximum_wheel_compression_millimetres, float(compression))
-	minimum_contact_count = mini(minimum_contact_count, int(state["number_of_contacting_wheels"]))
-	var overturned := bool(state["overturned"])
+	minimum_contact_count = mini(minimum_contact_count, int(state.get("number_of_contacting_wheels", 4)))
+	var overturned := bool(state.get("overturned", false))
 	if overturned and not was_overturned:
 		overturn_events += 1
 	was_overturned = overturned
 
 
-func write_sample() -> void:
-	var state := vehicle.get_rally_state()
-	var compressions: Array = state["wheel_compressions_millimetres"]
-	var surfaces: Array = state["wheel_surface_types"]
-	var slips: Array = state["wheel_slip_vectors"]
+func write_sample(state: Dictionary = {}) -> void:
+	if telemetry_file == null:
+		return
+	if state.is_empty() and vehicle != null:
+		state = vehicle.get_rally_state()
+	if state.is_empty():
+		return
+
+	var compressions: Array = state.get("wheel_compressions_millimetres", [0.0, 0.0, 0.0, 0.0])
+	var surfaces: Array = state.get("wheel_surface_types", ["", "", "", ""])
+	var slips: Array = state.get("wheel_slip_vectors", [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+	var pos: Vector3 = state.get("position", Vector3.ZERO)
+	var lin_vel: Vector3 = state.get("linear_velocity", Vector3.ZERO)
+	var ang_vel: Vector3 = state.get("angular_velocity", Vector3.ZERO)
+
 	var values := [
 		run_identifier,
 		Time.get_datetime_string_from_system(true),
 		"%.4f" % elapsed_seconds,
 		str(physics_tick_index),
-		"%.4f" % float(state["position"].x),
-		"%.4f" % float(state["position"].y),
-		"%.4f" % float(state["position"].z),
-		"%.4f" % float(state["linear_velocity"].x),
-		"%.4f" % float(state["linear_velocity"].y),
-		"%.4f" % float(state["linear_velocity"].z),
-		"%.4f" % float(state["angular_velocity"].x),
-		"%.4f" % float(state["angular_velocity"].y),
-		"%.4f" % float(state["angular_velocity"].z),
-		"%.3f" % float(state["speed_kilometres_per_hour"]),
-		"%.1f" % float(state["engine_revolutions_per_minute"]),
-		str(int(state["current_gear"])),
-		"%.3f" % float(state["throttle"]),
-		"%.3f" % float(state["brake"]),
-		"%.3f" % float(state["clutch"]),
-		"%.3f" % float(state["steering_amount"]),
-		"%.3f" % float(state["true_steering_amount"]),
-		str(int(state["number_of_contacting_wheels"])),
-		str(bool(state["airborne"])),
-		str(bool(state["overturned"])),
-		str(bool(state["sleeping"])),
-		"%.2f" % float(compressions[0]),
-		"%.2f" % float(compressions[1]),
-		"%.2f" % float(compressions[2]),
-		"%.2f" % float(compressions[3]),
-		str(surfaces[0]),
-		str(surfaces[1]),
-		str(surfaces[2]),
-		str(surfaces[3]),
-		"%.4f" % float(slips[0].x),
-		"%.4f" % float(slips[0].y),
-		"%.4f" % float(slips[1].x),
-		"%.4f" % float(slips[1].y),
-		"%.4f" % float(slips[2].x),
-		"%.4f" % float(slips[2].y),
-		"%.4f" % float(slips[3].x),
-		"%.4f" % float(slips[3].y),
-		"%.3f" % float(state["traction_control_max_slip"]),
-		str(bool(state["stability_enabled"])),
-		"%.3f" % float(state["countersteer_assist"]),
-		"%.3f" % float(state["steering_slip_assist"]),
-		"%.1f" % float(state["anti_lock_brake_spin_difference_threshold"]),
-		str(bool(state["automatic_transmission"])),
+		"%.4f" % pos.x,
+		"%.4f" % pos.y,
+		"%.4f" % pos.z,
+		"%.4f" % lin_vel.x,
+		"%.4f" % lin_vel.y,
+		"%.4f" % lin_vel.z,
+		"%.4f" % ang_vel.x,
+		"%.4f" % ang_vel.y,
+		"%.4f" % ang_vel.z,
+		"%.3f" % float(state.get("speed_kilometres_per_hour", 0.0)),
+		"%.1f" % float(state.get("engine_revolutions_per_minute", 0.0)),
+		str(int(state.get("current_gear", 0))),
+		"%.3f" % float(state.get("throttle", 0.0)),
+		"%.3f" % float(state.get("brake", 0.0)),
+		"%.3f" % float(state.get("clutch", 0.0)),
+		"%.3f" % float(state.get("steering_amount", 0.0)),
+		"%.3f" % float(state.get("true_steering_amount", 0.0)),
+		str(int(state.get("number_of_contacting_wheels", 0))),
+		str(bool(state.get("airborne", false))),
+		str(bool(state.get("overturned", false))),
+		str(bool(state.get("sleeping", false))),
+		"%.2f" % float(compressions[0] if compressions.size() > 0 else 0.0),
+		"%.2f" % float(compressions[1] if compressions.size() > 1 else 0.0),
+		"%.2f" % float(compressions[2] if compressions.size() > 2 else 0.0),
+		"%.2f" % float(compressions[3] if compressions.size() > 3 else 0.0),
+		str(surfaces[0] if surfaces.size() > 0 else ""),
+		str(surfaces[1] if surfaces.size() > 1 else ""),
+		str(surfaces[2] if surfaces.size() > 2 else ""),
+		str(surfaces[3] if surfaces.size() > 3 else ""),
+		"%.4f" % float(slips[0].x if slips.size() > 0 else 0.0),
+		"%.4f" % float(slips[0].y if slips.size() > 0 else 0.0),
+		"%.4f" % float(slips[1].x if slips.size() > 1 else 0.0),
+		"%.4f" % float(slips[1].y if slips.size() > 1 else 0.0),
+		"%.4f" % float(slips[2].x if slips.size() > 2 else 0.0),
+		"%.4f" % float(slips[2].y if slips.size() > 2 else 0.0),
+		"%.4f" % float(slips[3].x if slips.size() > 3 else 0.0),
+		"%.4f" % float(slips[3].y if slips.size() > 3 else 0.0),
+		"%.3f" % float(state.get("traction_control_max_slip", 0.0)),
+		str(bool(state.get("stability_enabled", false))),
+		"%.3f" % float(state.get("countersteer_assist", 0.0)),
+		"%.3f" % float(state.get("steering_slip_assist", 0.0)),
+		"%.1f" % float(state.get("anti_lock_brake_spin_difference_threshold", 0.0)),
+		str(bool(state.get("automatic_transmission", false))),
 	]
 	telemetry_file.store_line(",".join(values))
 
@@ -213,6 +246,8 @@ func _exit_tree() -> void:
 		telemetry_file.flush()
 		telemetry_file.close()
 		telemetry_file = null
+	if not telemetry_enabled:
+		return
 	var summary := {
 		"run_identifier": run_identifier,
 		"started_at_utc": started_at_utc,

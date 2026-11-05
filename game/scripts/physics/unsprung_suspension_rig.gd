@@ -65,8 +65,12 @@ func create(
 
 
 func reset() -> void:
+	reset_at(chassis.global_transform)
+
+
+func reset_at(pose: Transform3D) -> void:
 	for i in hubs.size():
-		var target_transform := chassis.global_transform * Transform3D(
+		var target_transform := pose * Transform3D(
 			Basis.IDENTITY,
 			neutral_positions[i],
 		)

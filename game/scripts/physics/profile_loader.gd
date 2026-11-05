@@ -239,6 +239,10 @@ static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
 			return _failure("damage." + category + ".maximum_radiator_damage must be in [0.0, 1.0].")
 		if not is_finite(max_eng) or max_eng < 0.0 or max_eng > 1.0:
 			return _failure("damage." + category + ".maximum_engine_damage must be in [0.0, 1.0].")
+		if category == "collision":
+			var max_transmission := float(section.get("maximum_transmission_damage", 0.0))
+			if not is_finite(max_transmission) or max_transmission < 0.0 or max_transmission > 1.0:
+				return _failure("damage.collision.maximum_transmission_damage must be in [0.0, 1.0].")
 		var exponent := float(section.get("severity_exponent", 0.0))
 		if not is_finite(exponent) or exponent <= 0.0:
 			return _failure("damage." + category + ".severity_exponent must be positive.")
@@ -253,6 +257,15 @@ static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
 			var zw_eng := float(zw.get("engine", -1.0))
 			if not is_finite(zw_rad) or zw_rad < 0.0 or zw_rad > 1.0 or not is_finite(zw_eng) or zw_eng < 0.0 or zw_eng > 1.0:
 				return _failure("damage." + category + ".zone_weights." + str(zone_name) + " weights must be in [0.0, 1.0].")
+
+	if doc.has("visual"):
+		var visual: Variant = doc.visual
+		if not visual is Dictionary:
+			return _failure("damage.visual must be a dictionary.")
+		for part in ["headlight", "windshield", "windshield_frontal", "hood", "trunk", "body"]:
+			var threshold: Variant = visual.get(part, 0.55 if part == "windshield_frontal" else null)
+			if not (threshold is float or threshold is int) or not is_finite(float(threshold)) or threshold <= 0.0 or threshold > 1.0:
+				return _failure("damage.visual." + part + " must be in (0.0, 1.0].")
 
 	if doc.has("wheel_collision"):
 		var wheel: Variant = doc.wheel_collision

@@ -40,6 +40,10 @@ var current_gear: int = 0
 var engine_rpm: float = 0.0
 var engine_torque_nm: float = 0.0
 var maximum_forward_gear: int = 0
+const MAX_TRANSMISSION_SHIFT_DELAY_SECONDS := 1.0
+
+var transmission_damage: float = 0.0
+var _shift_damage_delay_seconds: float = 0.0
 var shift_time_seconds: float = 0.0
 var gear_inertia_shift_seconds: float = 0.0
 var shift_remaining_seconds: float = 0.0
@@ -72,6 +76,7 @@ var driveline_dissipation_w: float = 0.0
 
 
 func configure(domains: Dictionary) -> Dictionary:
+	transmission_damage = 0.0
 	var powertrain: Dictionary = domains.get("powertrain", { }).get("powertrain", { })
 	idle_rpm = float(powertrain.get("idle_rpm", 900.0))
 	maximum_rpm = float(powertrain.get("max_rpm", 7200.0))
@@ -230,7 +235,8 @@ func set_gear(target_gear: int) -> void:
 	revmatch_downshift = current_gear > 0 and pending_gear > 0 and pending_gear < current_gear
 	shift_phase = "opening"
 	shift_phase_seconds = 0.0
-	shift_remaining_seconds = clutch_release_seconds + shift_time_seconds + gear_inertia_shift_seconds + clutch_reengage_seconds
+	_shift_damage_delay_seconds = transmission_damage * MAX_TRANSMISSION_SHIFT_DELAY_SECONDS
+	shift_remaining_seconds = clutch_release_seconds + shift_time_seconds + gear_inertia_shift_seconds + clutch_reengage_seconds + _shift_damage_delay_seconds
 
 
 func reset_shift() -> void:
@@ -326,7 +332,8 @@ func advance(
 		clutch_engagement = 0.0
 		current_gear = 0
 		shift_phase = "synchronizing"
-		shift_phase_seconds = 0.0
+		# Wait in neutral before the normal synchronization starts.
+		shift_phase_seconds = -_shift_damage_delay_seconds
 	elif shift_phase == "closing" and shift_phase_seconds >= clutch_reengage_seconds:
 		reset_shift()
 
@@ -386,7 +393,7 @@ func solve_rotation(
 	var ie := maxf(engine_inertia_kg_m2, 0.000001)
 	var shaft_inertia := gearbox_input_inertia_kg_m2
 	var engine_omega := engine_rpm * TAU / 60.0
-	var synchronizing := shift_phase == "synchronizing" and pending_gear != 0
+	var synchronizing := shift_phase == "synchronizing" and shift_phase_seconds >= 0.0 and pending_gear != 0
 	var ratio := (_ratio_for_gear(pending_gear) if synchronizing else gear_ratio()) * final_drive_ratio
 	var geared := current_gear != 0 and absf(ratio) > 0.000001
 	var connected := geared or synchronizing

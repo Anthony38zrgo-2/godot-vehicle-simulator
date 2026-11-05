@@ -105,7 +105,7 @@ func run() -> void:
 			var snow_texture := snow_material.get_shader_parameter("particle_texture") as Texture2D
 			check(snow_texture != null and snow_texture.resource_path.ends_with("snwflk_1.png"), "snow uses SnwFlk_1")
 		var snow_quad := snow.draw_pass_1 as QuadMesh
-		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.24), "snow size comes from the presets")
+		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.72), "CMR4 snow uses triple the preset size")
 	await process_frame
 	await process_frame
 	check(not is_instance_valid(rain), "old rain system freed after the switch")

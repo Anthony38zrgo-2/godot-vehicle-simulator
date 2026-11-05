@@ -299,7 +299,7 @@ func _make_precipitation_pass(
 	material.set_shader_parameter("ambient_luma", clampf(maxf(irradiance / 400.0, luma_floor), 0.35, 1.0))
 	material.set_meta("luma_floor", luma_floor)
 	var quad := QuadMesh.new()
-	quad.size = size
+	quad.size = size * 3.0
 	quad.material = material
 	return quad
 

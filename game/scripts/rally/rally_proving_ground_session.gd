@@ -177,7 +177,7 @@ func build_environment() -> void:
 	})
 	add_child(sky)
 	sky.set_process(false)
-	sky.sun.directional_shadow_max_distance = 120.0
+	sky.sun.directional_shadow_max_distance = 60.0
 	sky.environment.adjustment_enabled = true
 	sky.environment.adjustment_contrast = 1.12
 	sky.environment.adjustment_saturation = 1.25

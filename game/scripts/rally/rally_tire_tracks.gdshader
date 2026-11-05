@@ -5,6 +5,8 @@ uniform sampler2D track_texture : filter_linear;
 
 void fragment() {
 	vec4 pattern = texture(track_texture, UV);
-	ALBEDO = mix(vec3(1.0), pattern.rgb * COLOR.rgb, pattern.a * COLOR.a);
+	// Preserve the hue of the terrain already in the framebuffer.
+	float shade = mix(1.0, COLOR.r, pattern.a * COLOR.a);
+	ALBEDO = vec3(shade);
 	ALPHA = 1.0;
 }

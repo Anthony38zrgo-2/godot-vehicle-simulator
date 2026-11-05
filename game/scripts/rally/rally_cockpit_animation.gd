@@ -16,6 +16,9 @@ var arms: Array[MeshInstance3D] = []
 var _wheel_rest_basis: Basis
 var _pose_indices: Array[PackedInt32Array] = []
 var _head_was_visible: bool = true
+var _last_command: float = -9999.0
+var _last_lower: int = -1
+var _last_upper: int = -1
 
 
 func _ready() -> void:
@@ -59,20 +62,38 @@ func update_steering_pose(command: float) -> void:
 	if steering_wheel == null or arms.size() != 2:
 		return
 	command = clampf(command, -1.0, 1.0)
+	if absf(command - _last_command) < 0.0005:
+		return
+	_last_command = command
+
 	# Rotate around the wheel's own shaft, preserving its original tilt and pivot.
 	steering_wheel.basis = _wheel_rest_basis * Basis(steering_wheel_axis.normalized(), deg_to_rad(command * steering_wheel_lock_degrees))
 	var sample := float(NEUTRAL_POSE) * (1.0 - command)
 	var lower := int(floor(sample))
 	var upper := mini(lower + 1, POSE_COUNT - 1)
 	var fraction := sample - float(lower)
+
+	if _last_lower < 0:
+		for side in arms.size():
+			for pose in POSE_COUNT:
+				if pose != lower and pose != upper:
+					arms[side].set_blend_shape_value(_pose_indices[side][pose], 0.0)
+	else:
+		for side in arms.size():
+			if _last_lower != lower and _last_lower != upper:
+				arms[side].set_blend_shape_value(_pose_indices[side][_last_lower], 0.0)
+			if _last_upper != lower and _last_upper != upper:
+				arms[side].set_blend_shape_value(_pose_indices[side][_last_upper], 0.0)
+
 	for side in arms.size():
-		for pose in POSE_COUNT:
-			var weight := 0.0
-			if pose == lower:
-				weight += 1.0 - fraction
-			if pose == upper:
-				weight += fraction
-			arms[side].set_blend_shape_value(_pose_indices[side][pose], weight)
+		if lower == upper:
+			arms[side].set_blend_shape_value(_pose_indices[side][lower], 1.0)
+		else:
+			arms[side].set_blend_shape_value(_pose_indices[side][lower], 1.0 - fraction)
+			arms[side].set_blend_shape_value(_pose_indices[side][upper], fraction)
+
+	_last_lower = lower
+	_last_upper = upper
 
 
 func set_cockpit_view(enabled: bool) -> void:

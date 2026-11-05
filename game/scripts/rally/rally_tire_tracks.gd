@@ -50,19 +50,17 @@ func variant_for(surface: String, snow_mm: float, wheel: int) -> int:
 
 
 func color_for(surface: String, variant: int) -> Color:
-	# CMR4's asphalt sprites have white RGB and carry the mark in alpha.
-	# Tint every surface so light texels represent a darker disturbed track.
+	# Neutral multipliers retain the local surface color and lighting.
 	if variant < 2:
-		return Color(0.025, 0.023, 0.020)
-	if variant == 2 or variant == 3:
-		return Color(0.25, 0.28, 0.30)
-	if variant == 4:
-		return Color(0.23, 0.26, 0.28)
+		return Color(0.42, 0.42, 0.42)
+	if variant < 5:
+		return Color(0.64, 0.64, 0.64)
 	match surface:
-		"sand": return Color(0.22, 0.16, 0.10)
-		"grass": return Color(0.10, 0.12, 0.05)
-		"dirt", "mud": return Color(0.12, 0.08, 0.05)
-		_: return Color(0.16, 0.14, 0.12)
+		"sand": return Color(0.78, 0.78, 0.78)
+		"grass": return Color(0.70, 0.70, 0.70)
+		"dirt", "mud": return Color(0.65, 0.65, 0.65)
+		_: return Color(0.74, 0.74, 0.74)
+
 
 func break_track(wheel: int) -> void:
 	active[wheel] = false

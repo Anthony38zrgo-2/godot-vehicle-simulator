@@ -65,6 +65,14 @@
       ]
     },
     {
+      "name": "Toggle Headlights",
+      "deadzone": 0.5,
+      "events": [
+        { "type": "physical_key", "physical_keycode": 76 },
+        { "type": "gamepad_button", "button_index": 10 }
+      ]
+    },
+    {
       "name": "Toggle Transmission",
       "deadzone": 0.5,
       "events": [
@@ -147,6 +155,20 @@
       "deadzone": 0.5,
       "events": [
         { "type": "physical_key", "physical_keycode": 82 }
+      ]
+    },
+    {
+      "name": "Look Left",
+      "deadzone": 0.15,
+      "events": [
+        { "type": "gamepad_axis", "axis": 2, "axis_value": -1.0 }
+      ]
+    },
+    {
+      "name": "Look Right",
+      "deadzone": 0.15,
+      "events": [
+        { "type": "gamepad_axis", "axis": 2, "axis_value": 1.0 }
       ]
     },
     {

@@ -63,6 +63,7 @@ var last_impact_speed_metres_per_second: float = 0.0
 var _physics_ready: bool = false
 var _reset_pending: bool = false
 var _rescue_pose: Variant = null
+@onready var _visual_damage := get_node_or_null("VisualDamage")
 var _input_smoothing: Dictionary = {}
 var _applied_fuel_mass_kg: float = -1.0
 
@@ -362,7 +363,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		_rescue_pose = null
-		simulation.unsprung_rig.reset()
+		simulation.unsprung_rig.reset_at(state.transform)
 		return
 	var contact_count := state.get_contact_count()
 	var landing_speed_ms := 0.0
@@ -381,6 +382,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 	var damage_doc: Dictionary = simulation.domains.get("damage", {})
 	var wheel_cfg: Dictionary = damage_doc.get("wheel_collision", {})
+	var visual_cfg: Dictionary = damage_doc.get("visual", {})
 	var wheel_contacts: Array[bool] = [false, false, false, false]
 	var wheel_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var bumper_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -444,6 +446,12 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			impact_speed_ms = closing_speed
 			impact_position = state.get_contact_local_position(index)
 
+		if _visual_damage != null and impulse >= min_impulse and closing_speed >= min_col_speed:
+			var local_normal := state.transform.basis.transposed() * normal
+			if is_obstacle or (contact_local_pos.y > 0.92 and local_normal.y < -0.35):
+				var visual_severity := pow(clampf((closing_speed - min_col_speed) / maxf(full_col_speed - min_col_speed, 0.001), 0.0, 1.0), col_exponent)
+				_visual_damage.register_impact(contact_local_pos, local_normal, visual_severity, visual_cfg)
+
 		# Collision damage qualification
 		if not collision_cfg.is_empty() and is_obstacle and impulse >= min_impulse and closing_speed >= min_col_speed:
 			if closing_speed > peak_qualifying_closing_speed:
@@ -482,6 +490,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			var rad_dmg := severity * max_col_rad * float(zone_weights.get("radiator", 0.5))
 			var eng_dmg := severity * max_col_eng * float(zone_weights.get("engine", 0.5))
 			simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
+			var transmission_delta := severity * float(collision_cfg.get("maximum_transmission_damage", 0.0))
+			var powertrain := simulation.powertrain_model
+			powertrain.transmission_damage = clampf(powertrain.transmission_damage + transmission_delta, 0.0, 1.0)
 			_active_collision_zone = hit_zone
 		_separation_frames = 0
 	else:
@@ -535,6 +546,21 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 					simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
 
 	body_contact_audio = {"count": contact_count, "impulse_ns": impulse_peak, "lateral_impulse_ns": lateral_impulse_peak, "lateral_speed_kph": lateral_speed_ms * 3.6, "lateral_position": lateral_position, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
+
+
+func set_glass_cockpit_view(enabled: bool) -> void:
+	if _visual_damage != null:
+		_visual_damage.set_cockpit_view(enabled)
+
+
+func set_stage_headlights(hour: float) -> void:
+	if _visual_damage != null:
+		_visual_damage.set_headlights_requested(hour >= 18.0 or hour < 6.0)
+
+
+func toggle_headlights() -> void:
+	if _visual_damage != null:
+		_visual_damage.set_headlights_requested(not _visual_damage.headlights_requested)
 
 
 func shift(delta_gears: int) -> void:
@@ -596,16 +622,20 @@ func _resolve_landing_zone(body_contacts: Array[Vector3], state: PhysicsDirectBo
 	return "rear_wheels"
 
 
-func rescue_to_pose(target_position: Vector3, target_yaw: float) -> void:
-	reset_to_pose(target_position, target_yaw)
-	_rescue_pose = Transform3D(Basis(Vector3.UP, target_yaw), target_position)
+func rescue_to_pose(pose: Transform3D) -> void:
+	_reset_to_transform(pose)
+	_rescue_pose = pose
 
 
 func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
+	_reset_to_transform(Transform3D(Basis(Vector3.UP, target_yaw), target_position))
+
+
+func _reset_to_transform(pose: Transform3D) -> void:
 	_rescue_pose = null
 	freeze = true
 	simulation.unsprung_rig.sync_freeze()
-	global_transform = Transform3D(Basis(Vector3.UP, target_yaw), target_position)
+	global_transform = pose
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	simulation.reset_dynamics()

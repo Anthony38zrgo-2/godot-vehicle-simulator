@@ -28,6 +28,7 @@ var _material_zones: Array[int] = []
 var _material_distances_m: Array[float] = []
 var _material_nodes: Array[MeshInstance3D] = []
 var _applied_zone_wetness: Array[float] = [-1.0, -1.0, -1.0]
+var _mesh_material_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func _ready() -> void:
 func bind_visual_root(new_root: Node3D) -> void:
 	_materials.clear()
 	_last_material_wetness.clear()
+	_mesh_material_cache.clear()
 	_original_roughness.clear()
 	_original_albedo.clear()
 	_material_zones.clear()
@@ -146,9 +148,16 @@ func matches_name(material: BaseMaterial3D) -> bool:
 
 
 func register_material(mesh_instance: MeshInstance3D, surface_index: int, material: BaseMaterial3D) -> void:
+	var mesh_key := "%d_%d" % [mesh_instance.get_instance_id(), material.get_instance_id()]
+	if _mesh_material_cache.has(mesh_key):
+		var existing: BaseMaterial3D = _mesh_material_cache[mesh_key]
+		mesh_instance.set_surface_override_material(surface_index, existing)
+		return
+
 	var duplicate := material.duplicate() as BaseMaterial3D
 	if duplicate == null:
 		return
+	_mesh_material_cache[mesh_key] = duplicate
 	mesh_instance.set_surface_override_material(surface_index, duplicate)
 	_materials.append(duplicate)
 	_original_roughness.append(duplicate.roughness)
@@ -237,25 +246,19 @@ func _apply_to_material(index: int, material: BaseMaterial3D, w: float) -> void:
 	var target_roughness: float = maxf(original_roughness - maximum_roughness_drop, minimum_roughness)
 	material.roughness = lerpf(original_roughness, target_roughness, w)
 
-	# Brillo especular por vertice estilo Dreamcast (Gouraud Specular):
-	# En seco (SPECULAR_DISABLED), la pista no tiene reflejo plano moderno.
-	# Con humedad, Schlick-GGX por vertice genera destello satinado sobre la rasante.
-	if w > 0.02:
-		material.specular_mode = BaseMaterial3D.SPECULAR_SCHLICK_GGX
-		material.metallic_specular = lerpf(0.0, 0.42, w)
+	# Brillo especular controlado mediante metallic_specular sin alterar specular_mode en runtime
+	# (evita recompilación y cambio de variante de pipeline de shader en GPU):
+	if material.specular_mode != BaseMaterial3D.SPECULAR_DISABLED:
+		material.metallic_specular = lerpf(0.0, 0.42, w) if w > 0.02 else 0.0
 	else:
-		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 		material.metallic_specular = 0.0
 
 	var original_albedo: Color = _original_albedo[index]
-	# Viraje cromatico en mojado: absorbe calidos y refleja el tono azulado frio
-	var r_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 1.08, w)
-	var g_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 0.96, w)
-	var b_dark := lerpf(1.0, 1.0 - maximum_albedo_darkening * 0.72, w)
+	var dark := lerpf(1.0, 1.0 - maximum_albedo_darkening, w)
 	material.albedo_color = Color(
-		original_albedo.r * r_dark,
-		original_albedo.g * g_dark,
-		original_albedo.b * b_dark,
+		original_albedo.r * dark,
+		original_albedo.g * dark,
+		original_albedo.b * dark,
 		original_albedo.a
 	)
 

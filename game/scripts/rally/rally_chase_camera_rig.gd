@@ -16,9 +16,13 @@ extends Node3D
 
 enum Mode { CHASE, BONNET, COCKPIT }
 
+const LOOK_LIMIT := deg_to_rad(110.0)
+const LOOK_SPEED := deg_to_rad(540.0)
+
 var vehicle: RallyEscortVehicle
 var camera: Camera3D
 var camera_mode: int = 0
+var _look_yaw := 0.0
 
 
 func _ready() -> void:
@@ -58,27 +62,31 @@ func snap_to_target() -> void:
 	if vehicle == null or camera == null:
 		return
 	_update_camera_transform()
+	vehicle.set_glass_cockpit_view(camera_mode == Mode.COCKPIT)
 	var cockpit_animation := vehicle.get_node_or_null("CockpitAnimation") as RallyCockpitAnimation
 	if cockpit_animation != null:
 		cockpit_animation.set_cockpit_view(camera_mode == Mode.COCKPIT)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if vehicle == null or camera == null:
 		return
+	var look := Input.get_axis(InputBindings.LOOK_RIGHT, InputBindings.LOOK_LEFT)
+	_look_yaw = move_toward(_look_yaw, look * LOOK_LIMIT, delta * LOOK_SPEED)
 	_update_camera_transform()
 
 
 func _update_camera_transform() -> void:
 	if camera_mode == Mode.COCKPIT:
-		global_transform = vehicle.global_transform * Transform3D(Basis(Vector3.RIGHT, deg_to_rad(cockpit_pitch_degrees)), cockpit_eye_offset_metres)
+		var view_basis := Basis(Vector3.UP, _look_yaw) * Basis(Vector3.RIGHT, deg_to_rad(cockpit_pitch_degrees))
+		global_transform = vehicle.global_transform * Transform3D(view_basis, cockpit_eye_offset_metres)
 		camera.fov = cockpit_field_of_view_degrees
 		camera.near = 0.035
 		return
 	global_position = calculate_desired_position()
 	look_at(calculate_look_target(), Vector3.UP)
 	camera.fov = base_field_of_view_degrees
-	camera.near = 0.05
+	camera.near = 0.25
 
 
 func calculate_desired_position() -> Vector3:
@@ -86,7 +94,7 @@ func calculate_desired_position() -> Vector3:
 		return vehicle.global_transform * cockpit_eye_offset_metres
 	if camera_mode == Mode.BONNET:
 		return vehicle.global_transform * bonnet_offset_metres
-	var yaw_basis := Basis(Vector3.UP, vehicle.global_rotation.y)
+	var yaw_basis := Basis(Vector3.UP, vehicle.global_rotation.y + _look_yaw)
 	return vehicle.global_position + yaw_basis * Vector3(0.0, chase_height_metres, chase_distance_metres)
 
 
@@ -94,6 +102,7 @@ func calculate_look_target() -> Vector3:
 	if camera_mode == Mode.COCKPIT:
 		return calculate_desired_position() - global_basis.z * 12.0
 	if camera_mode == Mode.BONNET:
-		return vehicle.global_transform * Vector3(0.0, 0.95, -bonnet_look_ahead_metres)
-	var yaw_basis := Basis(Vector3.UP, vehicle.global_rotation.y)
+		var direction := Vector3(0.0, 0.95, -bonnet_look_ahead_metres) - bonnet_offset_metres
+		return vehicle.global_transform * (bonnet_offset_metres + direction.rotated(Vector3.UP, _look_yaw))
+	var yaw_basis := Basis(Vector3.UP, vehicle.global_rotation.y + _look_yaw)
 	return vehicle.global_position + yaw_basis * Vector3(0.0, chase_look_height_metres, -chase_look_ahead_metres)

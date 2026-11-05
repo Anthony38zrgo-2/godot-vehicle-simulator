@@ -40,8 +40,8 @@ camera_path = NodePath("Camera3D")
 [node name="Camera3D" type="Camera3D" parent="RallyCameraRig"]
 current = true
 fov = 68.0
-near = 0.1
-far = 6000.0
+near = 0.25
+far = 700.0
 
 [node name="RallyF1HeadUpDisplay" parent="." instance=ExtResource("7_head_up_display")]
 

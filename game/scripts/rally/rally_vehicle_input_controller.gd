@@ -15,6 +15,7 @@ signal garage_menu_requested
 @export var action_clutch: String = InputBindings.CLUTCH
 @export var action_shift_up: String = InputBindings.SHIFT_UP
 @export var action_shift_down: String = InputBindings.SHIFT_DOWN
+@export var action_toggle_headlights: String = InputBindings.TOGGLE_HEADLIGHTS
 @export var action_toggle_transmission: String = InputBindings.TOGGLE_TRANSMISSION
 @export var action_toggle_traction_control: String = InputBindings.TOGGLE_TRACTION_CONTROL
 @export var action_reset_vehicle: String = InputBindings.RESET_VEHICLE
@@ -73,6 +74,12 @@ func set_controls_enabled(enabled: bool) -> void:
 		vehicle.steering_input = 0.0
 		vehicle.handbrake_input = 0.0
 		vehicle.clutch_input = 0.0
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if controls_enabled and vehicle != null and event.is_action_pressed(action_toggle_headlights):
+		vehicle.toggle_headlights()
+		get_viewport().set_input_as_handled()
 
 
 func _physics_process(delta: float) -> void:

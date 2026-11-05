@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://scripts/rally/rally_chase_camera_rig.gd" id="4_camera"]
 [ext_resource type="PackedScene" path="res://scenes/rally/rally_f1_head_up_display.tscn" id="5_head_up_display"]
 [ext_resource type="Script" path="res://scripts/rally/rally_telemetry_recorder.gd" id="6_telemetry"]
-[ext_resource type="PackedScene" path="res://scenes/rally/rally_garage_panel.tscn" id="7_garage"]
+[ext_resource type="PackedScene" path="res://scenes/rally/rally_garage_panel.tscn" id="9_garage"]
 
 [node name="RallyProvingGround" type="Node3D"]
 script = ExtResource("1_session")
@@ -30,8 +30,8 @@ camera_path = NodePath("Camera3D")
 [node name="Camera3D" type="Camera3D" parent="RallyCameraRig"]
 current = true
 fov = 68.0
-near = 0.1
-far = 3000.0
+near = 0.25
+far = 700.0
 
 [node name="RallyF1HeadUpDisplay" parent="." instance=ExtResource("5_head_up_display")]
 
@@ -39,7 +39,7 @@ far = 3000.0
 script = ExtResource("6_telemetry")
 vehicle_path = NodePath("../FordEscortRS2000")
 
-[node name="RallyGaragePanel" parent="." instance=ExtResource("7_garage")]
+[node name="RallyGaragePanel" parent="." instance=ExtResource("9_garage")]
 circuit_id = "rally-proving-ground"
 circuit_name = "Campo de pruebas"
 circuit_country = "N/A"

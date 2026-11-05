@@ -784,6 +784,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"damage": {
 			"radiator": thermal_model.radiator_damage,
 			"engine": thermal_model.engine_damage,
+			"transmission": powertrain_model.transmission_damage,
 			"overheat_exposure_s": thermal_model.overheat_exposure_s,
 		},
 		"fuel": thermal_model.get_fuel_state_snapshot(),

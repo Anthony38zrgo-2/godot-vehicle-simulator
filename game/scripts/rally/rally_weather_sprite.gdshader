@@ -29,6 +29,11 @@ void vertex() {
 
 void fragment() {
 	vec4 sample_color = texture(particle_texture, UV) * COLOR;
+	vec2 border = smoothstep(vec2(0.01), vec2(0.12), min(UV, 1.0 - UV));
+	float alpha = sample_color.a * opacity * distance_fade * border.x * border.y;
+	if (alpha < 0.005) {
+		discard;
+	}
 	ALBEDO = tint_color * clamp(ambient_luma, 0.35, 1.0);
-	ALPHA = sample_color.a * opacity * distance_fade;
+	ALPHA = alpha;
 }

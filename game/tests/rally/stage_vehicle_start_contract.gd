@@ -47,6 +47,25 @@ func run() -> void:
 		scene.garage_panel.close_garage(true)
 	check_start(scene)
 	var controller = scene.input_controller
+	var lights = scene.vehicle.get_node("VisualDamage")
+	check(manager.schedule_for("russia_stage1").start == "08:00", "the rally starts in the morning")
+	check(manager.schedule_for("russia_stage4").start == "19:00", "stage four is scheduled at night")
+	check(manager.schedule_for("russia_stage5").start == "22:00", "stage five is scheduled at night")
+	check(not lights.headlights_requested, "morning stage starts with headlights off")
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_L
+	var bumper := InputEventJoypadButton.new()
+	bumper.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	check(InputMap.action_has_event(controller.action_toggle_headlights, key), "L is mapped to headlights")
+	check(InputMap.action_has_event(controller.action_toggle_headlights, bumper), "R1 is mapped to headlights")
+	key.pressed = true
+	controller._unhandled_input(key)
+	check(lights.headlights_requested, "L switches headlights on")
+	bumper.pressed = true
+	controller._unhandled_input(bumper)
+	check(not lights.headlights_requested, "R1 switches headlights back off")
+	controller._unhandled_input(key)
+	check(lights.headlights_requested, "manual setting remains on before next stage")
 	for action in [controller.action_throttle, controller.action_brakes, controller.action_handbrake]:
 		controller.arm_start_handbrake()
 		controller._physics_process(0.01)
@@ -84,12 +103,31 @@ func run() -> void:
 	for tire: Dictionary in sim.thermal_model.tire_states:
 		check(tire.wear_fraction == 0.0 and tire.thermal_damage_fraction == 0.0, "new tire service clears wear and heat damage")
 	check(scene.session_track_id == "russia_stage2", "stage two loaded")
+	check(not lights.headlights_requested, "next morning stage reapplies the automatic setting")
 	var origin: Vector3 = scene.vehicle.global_position
 	for i in 480:
 		await physics_frame
 	check(controller.start_handbrake_held, "countdown does not release hold")
 	check(Vector2(scene.vehicle.global_position.x - origin.x, scene.vehicle.global_position.z - origin.z).length() < 0.75, "no rolling or false start on slope")
 	check(not scene.start_sequence.false_start, "no false start while held")
+	var vehicle: RigidBody3D = scene.vehicle
+	var overturned := vehicle.global_transform
+	overturned.basis = overturned.basis.rotated(overturned.basis.z, PI)
+	vehicle.global_transform = overturned
+	sim.unsprung_rig.reset()
+	await physics_frame
+	check(scene._reposition_vehicle_on_course(), "rescue finds a safe road pose after rollover")
+	var rescued: Transform3D = vehicle.global_transform
+	check(rescued.basis.y.y > 0.65, "rescued chassis is upright")
+	var ray := PhysicsRayQueryParameters3D.create(rescued.origin + Vector3.UP, rescued.origin - Vector3.UP, 1, [vehicle.get_rid()])
+	var road := vehicle.get_world_3d().direct_space_state.intersect_ray(ray)
+	check(not road.is_empty() and road.collider.get_meta("is_stage_road", false), "rescued chassis is over the road")
+	if not road.is_empty():
+		check(absf(rescued.origin.y - road.position.y) < 0.3, "rescue leaves a small gap above the road")
+	for i in 60:
+		await physics_frame
+		check(vehicle.global_position.y < rescued.origin.y + 0.25, "rescued car does not launch upward")
+		check(vehicle.linear_velocity.length() < 3.0, "rescue does not impart a large impulse")
 	scene.queue_free()
 	await process_frame
 	print("STAGE_VEHICLE_START_CONTRACT ", "PASS" if failures.is_empty() else failures)
