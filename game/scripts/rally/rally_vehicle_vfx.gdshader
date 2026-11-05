@@ -5,14 +5,25 @@ uniform sampler2D particle_texture : source_color, filter_linear_mipmap;
 uniform sampler2D scene_depth : hint_depth_texture, repeat_disable, filter_nearest;
 uniform float soft_intersection_metres = 0.0;
 uniform mat4 world_to_vehicle;
-uniform bool unlit = false;
 uniform float body_exclusion_strength : hint_range(0.0, 1.0) = 1.0;
 varying vec3 particle_world_position;
 varying float near_fade;
+varying float particle_age;
+uniform float sprite_frames = 1.0;
+uniform bool manual_particle_state = false;
+uniform bool opaque_sprite_mask = false;
 
 void vertex() {
+	particle_age = INSTANCE_CUSTOM.y;
 	// Face the camera while preserving each particle's size.
 	mat4 billboard = mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
+	if (manual_particle_state) {
+		vec3 right = billboard[0].xyz;
+		vec3 up = billboard[1].xyz;
+		float angle = INSTANCE_CUSTOM.x;
+		billboard[0].xyz = right * cos(angle) + up * sin(angle);
+		billboard[1].xyz = up * cos(angle) - right * sin(angle);
+	}
 	billboard[0].xyz *= length(MODEL_MATRIX[0].xyz);
 	billboard[1].xyz *= length(MODEL_MATRIX[1].xyz);
 	billboard[2].xyz *= length(MODEL_MATRIX[2].xyz);
@@ -26,7 +37,20 @@ void vertex() {
 }
 
 void fragment() {
-	vec4 sample_color = texture(particle_texture, UV) * COLOR;
+	vec2 sprite_uv = UV;
+	if (sprite_frames > 1.0) {
+		float frame = manual_particle_state ? particle_age : min(floor(particle_age * sprite_frames), sprite_frames - 1.0);
+		float half_texel = 0.5 * sprite_frames / float(textureSize(particle_texture, 0).x);
+		sprite_uv.x = (frame + mix(half_texel, 1.0 - half_texel, UV.x)) / sprite_frames;
+	}
+	vec4 sprite = texture(particle_texture, sprite_uv);
+	vec4 sample_color = sprite * COLOR;
+	if (opaque_sprite_mask) {
+		if (sprite.a < 0.25) {
+			discard;
+		}
+		sample_color.a = 1.0;
+	}
 	if (sample_color.a * near_fade < 0.005) {
 		discard;
 	}
@@ -66,8 +90,7 @@ void fragment() {
 		discard;
 	}
 
-	ALBEDO = unlit ? vec3(0.0) : sample_color.rgb;
-	EMISSION = unlit ? sample_color.rgb : vec3(0.0);
+	ALBEDO = sample_color.rgb;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
 	ALPHA = final_alpha;

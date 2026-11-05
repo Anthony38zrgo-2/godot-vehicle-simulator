@@ -10,9 +10,8 @@ extends RefCounted
 const SchedulerScript := preload("res://scripts/rally/rally_weather_scheduler.gd")
 const SurfaceScript := preload("res://scripts/rally/rally_surface_model.gd")
 const PRECIPITATION_SPRITE_SHADER := preload("res://scripts/rally/rally_weather_sprite.gdshader")
-const CMR4_RAIN_FALL := preload("res://assets/vfx/cmr4/r_fall.png")
-const CMR4_RAIN_DROP := preload("res://assets/vfx/cmr4/raindrop.png")
-const CMR4_SNOW_FLAKE := preload("res://assets/vfx/cmr4/snwflk_1.png")
+const RAIN_SPRITE := preload("res://assets/vfx/cmr2/rain.png")
+const SNOW_SPRITE := preload("res://assets/vfx/cmr4/snwflk_1.png")
 
 var error: String = ""
 var stage_id: String = ""
@@ -274,7 +273,7 @@ func surface_temperature_at_vehicle() -> Dictionary:
 
 ## Aplica el clima a los adaptadores visuales/sonoros desde la fuente única.
 ## Con calendario activo se desactiva la selección aleatoria autónoma de TCA.
-## Builds one camera-facing precipitation quad with the CMR4 sprite texture.
+## Builds one camera-facing precipitation quad with the active sprite texture.
 func _make_precipitation_pass(
 	texture: Texture2D,
 	size: Vector2,
@@ -283,69 +282,28 @@ func _make_precipitation_pass(
 	near_end_m: float,
 	far_start_m: float,
 	far_end_m: float,
-	irradiance: float,
 	tint: Color,
-	luma_floor: float = 0.40,
 ) -> QuadMesh:
 	var material := ShaderMaterial.new()
 	material.shader = PRECIPITATION_SPRITE_SHADER
 	material.set_shader_parameter("particle_texture", texture)
+	material.set_shader_parameter("snow_sway", texture == SNOW_SPRITE)
 	material.set_shader_parameter("opacity", opacity)
 	material.set_shader_parameter("tint_color", tint)
 	material.set_shader_parameter("near_start_m", near_start_m)
 	material.set_shader_parameter("near_end_m", near_end_m)
 	material.set_shader_parameter("far_start_m", far_start_m)
 	material.set_shader_parameter("far_end_m", far_end_m)
-	material.set_shader_parameter("ambient_luma", clampf(maxf(irradiance / 400.0, luma_floor), 0.35, 1.0))
-	material.set_meta("luma_floor", luma_floor)
 	var quad := QuadMesh.new()
-	quad.size = size * 3.0
+	quad.size = size
 	quad.material = material
 	return quad
 
 
-## R_Fall is not a single drop: it is a bitmap containing a whole sheet of
-## streaks. Using it on every particle produced visible groups of drops, so it
-## is only used by a sparse, distant sheet while each particle carries one
-## raindrop sprite.
-func _make_rain_sheet(irradiance: float, visual: Dictionary) -> GPUParticles3D:
-	var sheet := GPUParticles3D.new()
-	sheet.name = "RainFallSheet"
-	sheet.amount = int(visual.get("rain_sheet_amount", 140))
-	sheet.lifetime = 3.0
-	sheet.local_coords = false
-	sheet.emitting = true
-	sheet.visibility_aabb = AABB(Vector3(-70, -90, -70), Vector3(140, 180, 140))
-	sheet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var process := ParticleProcessMaterial.new()
-	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(30.0, 8.0, 30.0)
-	process.direction = Vector3.DOWN
-	process.spread = 2.0
-	process.initial_velocity_min = 16.0
-	process.initial_velocity_max = 22.0
-	sheet.process_material = process
-	var sheet_size := float(visual.get("rain_sheet_size_m", 5.0))
-	sheet.draw_pass_1 = _make_precipitation_pass(
-		CMR4_RAIN_FALL,
-		Vector2(sheet_size, sheet_size),
-		float(visual.get("rain_sheet_opacity", 0.10)),
-		float(visual.get("rain_sheet_near_fade_start_m", 6.0)),
-		float(visual.get("rain_sheet_near_fade_end_m", 12.0)),
-		float(visual.get("rain_sheet_far_fade_start_m", 35.0)),
-		float(visual.get("rain_sheet_far_fade_end_m", 70.0)),
-		irradiance,
-		Color(0.86, 0.90, 1.0),
-	)
-	return sheet
-
-
-func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: float) -> void:
+func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: float, vehicle_velocity: Vector3 = Vector3.ZERO) -> void:
 	if not calendar_active or current_blend.is_empty():
 		return
 	var climate: Dictionary = (visual_state.get("climate", current_blend.get("climate", {})) as Dictionary)
-	var solar := solar_factor_for_hour(hour)
-	var irr := float(climate.get("irradiance_w_m2", 200.0)) * solar
 	var visual: Dictionary = catalog.get("visual_response", {})
 	if sky != null and sky.has_method("apply_climate"):
 		sky.call("apply_climate", climate, visual)
@@ -380,16 +338,11 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: flo
 				if particles != null:
 					if kind == "rain":
 						particles.trail_enabled = false
-						# One raindrop sprite per particle: individual drops, like
-						# the snowflakes, instead of a whole R_Fall sheet per drop.
+						particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 						particles.draw_passes = 1
 						particles.lifetime = float(visual.get("rain_lifetime_s", 0.9))
-						particles.amount = maxi(
-							1,
-							int(round(float(particles.amount) * float(visual.get("rain_amount_scale", 1.8)))),
-						)
 						particles.draw_pass_1 = _make_precipitation_pass(
-							CMR4_RAIN_DROP,
+							RAIN_SPRITE,
 							Vector2(
 								float(visual.get("raindrop_width_m", 0.05)),
 								float(visual.get("raindrop_height_m", 0.55)),
@@ -399,26 +352,24 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: flo
 							float(visual.get("raindrop_near_fade_end_m", 0.4)),
 							float(visual.get("raindrop_far_fade_start_m", 24.0)),
 							float(visual.get("raindrop_far_fade_end_m", 42.0)),
-							irr,
 							Color(0.90, 0.94, 1.0),
 						)
-						particles.add_child(_make_rain_sheet(irr, visual))
 					elif kind == "snow":
 						particles.trail_enabled = false
+						particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 						particles.draw_passes = 1
 						var snow_size := float(visual.get("snow_size_m", 0.16))
 						particles.draw_pass_1 = _make_precipitation_pass(
-							CMR4_SNOW_FLAKE,
+							SNOW_SPRITE,
 							Vector2(snow_size, snow_size),
 							float(visual.get("snow_opacity", 0.65)),
 							float(visual.get("rain_near_fade_start_m", 0.9)),
 							float(visual.get("rain_near_fade_end_m", 3.6)),
 							float(visual.get("snow_far_fade_start_m", 24.0)),
 							float(visual.get("snow_far_fade_end_m", 45.0)),
-							irr,
 							Color(1.0, 1.0, 1.0),
-							0.72,
 						)
+					particles.amount = 400
 					tca_controller.add_child(particles)
 			tca_controller.set("particle_system", particles)
 			tca_controller.set_meta("calendar_particle_kind", kind)
@@ -430,13 +381,8 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: flo
 			var entry_ramp := smoothstep(0.005, 0.40, precip)
 			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if precip > 0.005 else 0.0
 			particles.global_position = last_vehicle_pos + Vector3.UP * 10.0
-			var sheet := particles.get_node_or_null("RainFallSheet") as GPUParticles3D
-			if sheet != null:
-				sheet.emitting = particles.emitting
-				sheet.amount_ratio = clampf(
-					particles.amount_ratio * float(visual.get("rain_sheet_ratio", 0.7)), 0.0, 1.0
-				)
 			# Orientacion de lluvia/nieve segun el viento local
+			var relative_fall := Vector3.DOWN
 			var pm := particles.process_material as ParticleProcessMaterial
 			if pm != null:
 				var wind_speed := float(climate.get("wind_m_s", 0.0))
@@ -444,15 +390,15 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, hour: flo
 				var wind_rad := deg_to_rad(wind_deg)
 				var wind_drift := clampf(wind_speed / 14.0, 0.0, 0.75)
 				pm.direction = Vector3(cos(wind_rad) * wind_drift, -1.0, sin(wind_rad) * wind_drift).normalized()
-			var luma := clampf(irr / 400.0, 0.40, 1.0)
+				relative_fall = (pm.direction * 21.0 - vehicle_velocity).normalized()
+
 			for pass_index in particles.draw_passes:
 				var pass_mesh := particles.get_draw_pass_mesh(pass_index)
 				if pass_mesh == null:
 					continue
 				var pass_material := pass_mesh.surface_get_material(0) as ShaderMaterial
 				if pass_material != null:
-					var luma_floor := float(pass_material.get_meta("luma_floor", 0.40))
-					pass_material.set_shader_parameter("ambient_luma", clampf(maxf(luma, luma_floor), 0.35, 1.0))
+					pass_material.set_shader_parameter("rain_direction", relative_fall if kind == "rain" else Vector3.ZERO)
 	if wetness != null and is_instance_valid(wetness):
 		var w := clampf(float(current_blend.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 		if wetness.has_method("set_rain_intensity"):

@@ -6,42 +6,18 @@ func _initialize() -> void:
 
 
 func check_manifest() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://assets/vfx/cmr4/manifest.json"))
-	assert(parsed is Dictionary, "CMR4 manifest must parse")
-	var manifest: Dictionary = parsed
-	var assets: Dictionary = manifest.get("assets", {})
-	assert(assets.size() == 26, "CMR4 manifest must list the 26 textures")
-	assert(str(manifest.get("archive_sha256", "")).length() == 64)
-	for name in assets.keys():
-		var path := "res://assets/vfx/cmr4/" + str(name)
-		assert(FileAccess.file_exists(path), "Missing " + path)
+	var base := "res://assets/vfx/cmr2/"
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(base + "manifest.json"))
+	assert(str(manifest.archive_sha256).length() == 64)
+	var assets: Dictionary = manifest.files
+	assert(assets.has_all(["rain.png", "splat.png", "backfire_atlas.png"]) and assets.size() == 3)
+	for name in assets:
+		var path := base + str(name)
 		var entry: Dictionary = assets[name]
-		assert(
-			FileAccess.get_sha256(path) == str(entry.get("png_sha256", "")),
-			"PNG hash mismatch " + str(name),
-		)
+		assert(FileAccess.get_sha256(path) == entry.png_sha256)
 		var texture := load(path) as Texture2D
-		assert(texture != null, "Cannot load " + str(name))
-		var image := texture.get_image()
-		assert(image.get_width() == int(entry.get("width", -1)), "Width mismatch " + str(name))
-		assert(image.get_height() == int(entry.get("height", -1)), "Height mismatch " + str(name))
-		var has_alpha := image.detect_alpha() != Image.ALPHA_NONE
-		assert(
-			has_alpha == bool(entry.get("alpha", {}).get("present", false)),
-			"Alpha mismatch " + str(name),
-		)
-		if str(entry.get("blend", "alpha")) == "additive":
-			assert(not has_alpha, "Additive sprite must be opaque " + str(name))
-	assert(
-		assets["dust_01.png"]["dds_sha256"] == assets["dust_02.png"]["dds_sha256"],
-		"Dust duplicates must share the source hash",
-	)
-	assert(assets["sprk_sml.png"]["blend"] == "additive")
-	assert(assets["sprk_big.png"]["blend"] == "additive")
-	var notes := ""
-	for note in manifest.get("notes", []):
-		notes += str(note)
-	assert("idénticos" in notes, "The Dust duplicate must be documented")
+		assert(texture != null)
+		assert(texture.get_size() == Vector2(entry.size[0], entry.size[1]))
 
 
 func trigger_impact(vfx, contact: Dictionary, wetness: float) -> ShaderMaterial:
@@ -67,10 +43,15 @@ func verify() -> void:
 	var vehicle = scene.get_node("FordEscortRS2000")
 	var vfx = vehicle.get_node("VehicleVFX")
 	vfx.set_physics_process(false)
-	assert(vfx.wheel_bursts.size() == 20 and vfx.impact_pool.size() == 6)
-	var wheel_quad := vfx.wheel_bursts[0].draw_pass_1 as QuadMesh
-	var wheel_material := wheel_quad.material as ShaderMaterial
-	assert(wheel_material.get_shader_parameter("body_exclusion_strength") == 1.0)
+	assert(vfx.wheel_particles.particles.size() == 400 and vfx.impact_pool.size() == 6)
+	vfx.clear_wheel_bursts()
+	vehicle.backfire_triggered.emit()
+	var flash := active_wheel_particles(vfx)
+	assert(flash.size() == 1 and flash[0].texture == vfx.BACKFIRE)
+	var flash_batch: MultiMesh = vfx.wheel_particles.batches[vfx.BACKFIRE]
+	var flash_material := flash_batch.mesh.surface_get_material(0) as ShaderMaterial
+	assert(flash_material.get_shader_parameter("sprite_frames") == 4.0)
+	vfx.clear_wheel_bursts()
 	var sim = vehicle.simulation
 	var index := -1
 	for i in [2, 3]:
@@ -80,8 +61,8 @@ func verify() -> void:
 	assert(index >= 0, "Real Jolt wheel casts must reach the proving ground")
 	vehicle.freeze = true
 	for front in [0, 1]:
-		vfx.update_wheel(front, 1.0)
-	assert(vfx.wheel_burst_busy.count(0.0) == 20)
+		vfx.update_wheel(front, 0.0)
+	assert(active_wheel_particles(vfx).is_empty(), "Front wheels skip rolling dust")
 	vehicle.linear_velocity = Vector3(0, 0, -15)
 	# Both axles can leave marks independently of the rear-only particle emitters.
 	var contact_point: Vector3 = sim.wheel_contact_points[index]
@@ -104,77 +85,81 @@ func verify() -> void:
 		sim.wheel_surfaces[index] = surface
 		sim.last_local_conditions[index] = { "snow_mm": 0.0 }
 		vfx.update_wheel(index, 0.0)
+		var particles := active_wheel_particles(vfx)
 		if surface == "Grass":
-			assert(vfx.wheel_burst_busy.count(0.0) == 19)
-			assert(wheel_burst_texture(vfx, 0).contains("leaf_"))
+			assert(particles.size() == 2)
+			assert(particles[0].texture in vfx.LEAVES)
+			var foliage_pool = vfx.wheel_particles
+			var profile: Dictionary = foliage_pool.TYPES[foliage_pool.Kind.LEAF]
+			assert(profile.cmr2_ids == [0x10, 0x11])
+			assert(profile.size.is_equal_approx(Vector2.ONE * foliage_pool.LEAF_SIZE))
+			assert(profile.color.g > profile.color.b and profile.color != Color.WHITE and profile.alpha == 1.0)
+			var foliage_batch: MultiMesh = foliage_pool.batches[particles[0].texture]
+			var foliage_material := foliage_batch.mesh.surface_get_material(0) as ShaderMaterial
+			assert(foliage_material.get_shader_parameter("opaque_sprite_mask") == true)
+			assert(foliage_material.get_shader_parameter("sprite_frames") == 1.0)
+			for tick in 11:
+				vfx.advance_wheel_particles(0.0)
+			var grass := active_wheel_particles(vfx).filter(func(p): return p.kind in [foliage_pool.Kind.GRASS, foliage_pool.Kind.GRASS_SHORT])
+			assert(not grass.is_empty(), "Sustained grass contact emits the grass types")
 		else:
-			assert(vfx.wheel_burst_busy.count(0.0) == 19)
-			assert(wheel_burst_texture(vfx, 0).ends_with("dust_01.png"))
-			assert(vfx.wheel_bursts[0].amount == 1)
-			assert(vfx.wheel_bursts[0].draw_pass_1.size == Vector2(3.0, 3.0))
-		assert(vfx.wheel_cooldowns[index] >= float(vfx.SURFACES[surface.to_lower()].interval))
-		var available: int = vfx.wheel_burst_busy.count(0.0)
+			assert(particles.size() == 1)
+			var dust = particles[0]
+			assert(dust.texture == vfx.DUST_CORE)
+			var dust_pool = vfx.wheel_particles
+			var expected_kind: int = vfx.SURFACES[surface.to_lower()].dust_kind
+			assert(dust.kind == expected_kind)
+			assert(dust_pool.TYPES[dust.kind].color != Color.WHITE)
+			var frame: int = vfx.wheel_particles.dust_frame(dust)
+			vfx.wheel_particles.step(Vector3.ZERO)
+			assert(vfx.wheel_particles.dust_frame(dust) == frame)
+			vfx.wheel_particles.step(Vector3.ZERO)
+			assert(vfx.wheel_particles.dust_frame(dust) == (frame + 1) % 8)
+		var emitted := active_wheel_particles(vfx).size()
 		vfx.update_wheel(index, 0.0)
-		assert(vfx.wheel_burst_busy.count(0.0) == available, "No extra burst before the cadence allows it")
+		assert(active_wheel_particles(vfx).size() == emitted, "Wheel emission respects its tick countdown")
 
 	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Gravel"
 	vfx.update_wheel(index, 1.0)
-	assert(wheel_burst_texture(vfx, 0).ends_with("cr_splsh.png"))
-	assert(wheel_burst_texture(vfx, 1).ends_with("water_1.png"))
-	assert(vfx.wheel_burst_busy.count(0.0) == 18)
-	vfx.clear_wheel_bursts()
-	sim.wheel_surfaces[index] = "Grass"
-	vfx.update_wheel(index, 1.0)
-	assert(wheel_burst_texture(vfx, 0).ends_with("cr_splsh.png"))
-	assert(wheel_burst_texture(vfx, 1).contains("leaf_"))
-	assert(vfx.wheel_burst_busy.count(0.0) == 18)
-
+	var wet := active_wheel_particles(vfx)
+	assert(wet.size() == 5)
+	for i in 4:
+		assert(wet[i].texture == vfx.SPLASH_LOOSE)
+	assert(wet[4].texture == vfx.WATER_CORE)
+	assert(wet[0].ticks != wet[4].ticks, "Splashes and water have separate lifetimes")
 	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Road"
 	sim.wheel_slips[index] = Vector2.ZERO
 	vfx.update_wheel(index, 0.0)
-	assert(vfx.wheel_burst_busy.count(0.0) == 20)
-	vfx.clear_wheel_bursts()
-	vfx.update_wheel(index, 1.0)
-	assert(wheel_burst_texture(vfx, 0).ends_with("rd_splsh.png"))
+	assert(active_wheel_particles(vfx).is_empty())
 	vfx.clear_wheel_bursts()
 	sim.last_local_conditions[index] = { "snow_mm": 1.0 }
 	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_burst_busy.count(0.0) == 19)
-	assert(wheel_burst_texture(vfx, 0).contains("snw_rd"))
+	assert(active_wheel_particles(vfx).size() == 1)
 	sim.last_local_conditions[index] = { "snow_mm": 0.0 }
 
 	vfx.clear_wheel_bursts()
 	sim.wheel_surfaces[index] = "Gravel"
 	sim.wheel_slips[index] = Vector2(0.5, 0.3)
 	vfx.update_wheel(index, 0.0)
-	assert(vfx.wheel_bursts[1].amount == 2)
-	assert(vfx.wheel_bursts[1].process_material is ShaderMaterial)
-	vfx.clear_wheel_bursts()
-	sim.wheel_surfaces[index] = "Dirt"
-	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_bursts[0].amount == 3)
-	assert(vfx.wheel_bursts[1].process_material is ParticleProcessMaterial)
-	assert(wheel_burst_texture(vfx, 2).ends_with("mud_rd1.png"))
-	vfx.clear_wheel_bursts()
-	sim.wheel_surfaces[index] = "Gravel"
-	sim.wheel_slips[index] = Vector2.ZERO
-	vfx.soften_wheel_intersections = false
-	vfx.update_wheel(index, 0.0)
-	assert(wheel_material.get_shader_parameter("soft_intersection_metres") == 0.0)
-	vfx.clear_wheel_bursts()
-	vfx.soften_wheel_intersections = true
-	vfx.update_wheel(index, 0.0)
-	assert(wheel_material.get_shader_parameter("soft_intersection_metres") > 0.0)
-	vfx.wheel_burst_busy.fill(1.0)
-	vfx.wheel_cooldowns.fill(0.0)
-	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_burst_busy.count(1.0) == 20, "Occupied slots must never be overwritten")
+	var rocks := active_wheel_particles(vfx)
+	assert(rocks.size() == 2 and rocks[1].texture in vfx.GRAVEL)
+	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[1].texture]
+	var rock_material := rock_batch.mesh.surface_get_material(0) as ShaderMaterial
+	assert(rock_material.get_shader_parameter("opaque_sprite_mask") == true)
+	var rock = rocks[1]
+	for i in 14:
+		vfx.wheel_particles.step(Vector3.ZERO)
+	assert(rock.bounced, "Gravel must rebound on the contact plane")
+	var pool = vfx.wheel_particles
+	for i in 405:
+		pool.emit_particle(pool.Kind.ROCK, rock.texture, contact_point, Vector3.ZERO, contact_point, Vector3.UP)
+	assert(active_wheel_particles(vfx).size() == 400, "Capacity is shared and bounded")
 	vfx.clear_wheel_bursts()
 	sim.wheel_loads[index] = 0.0
 	vfx.update_wheel(index, 1.0)
-	assert(vfx.wheel_burst_busy.count(0.0) == 20)
+	assert(active_wheel_particles(vfx).is_empty())
 	vehicle.body_contact_vfx.clear()
 	vehicle.body_contact_vfx.append({"position": Vector3.ZERO, "normal": Vector3.UP, "impulse_ns": 0.0, "speed_ms": 0.0, "tangent_ms": 0.0, "surface": "Gravel", "collider_name": "collision_road"})
 	vfx.update_impacts(0.0)
@@ -195,7 +180,7 @@ func verify() -> void:
 	assert(spark_material != null)
 	assert(spark_material.shader.resource_path.ends_with("rally_vehicle_vfx_add.gdshader"))
 	var spark_texture := spark_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(spark_texture != null and spark_texture.resource_path.ends_with("sprk_big.png"))
+	assert(spark_texture == vfx.SPARK)
 	assert(
 		is_equal_approx(float(spark_material.get_shader_parameter("body_exclusion_strength")), 0.0),
 		"Impact sprites must not be clipped by the body box",
@@ -204,7 +189,7 @@ func verify() -> void:
 	spark_contact.speed_ms = 2.5
 	var small_spark_material := trigger_impact(vfx, spark_contact, 0.0)
 	var small_spark_texture := small_spark_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(small_spark_texture != null and small_spark_texture.resource_path.ends_with("sprk_sml.png"))
+	assert(small_spark_texture == vfx.SMALL_SPARK)
 	# Mud on wet dirt and leaves on vegetation keep the alpha shader.
 	var mud_contact := {
 		"position": Vector3.ZERO, "normal": Vector3.UP,
@@ -213,7 +198,7 @@ func verify() -> void:
 	}
 	var mud_material := trigger_impact(vfx, mud_contact, 0.8)
 	var mud_texture := mud_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(mud_texture != null and mud_texture.resource_path.ends_with("mud_rd1.png"))
+	assert(mud_texture == vfx.MUD_CLOD)
 	assert(mud_material.shader.resource_path.ends_with("rally_vehicle_vfx.gdshader"))
 	var leaf_contact := {
 		"position": Vector3.ZERO, "normal": Vector3.UP,
@@ -243,7 +228,5 @@ func verify() -> void:
 	quit()
 
 
-func wheel_burst_texture(vfx: RallyVehicleVFX, slot: int) -> String:
-	var quad := vfx.wheel_bursts[slot].draw_pass_1 as QuadMesh
-	var material := quad.material as ShaderMaterial
-	return material.get_shader_parameter("particle_texture").resource_path
+func active_wheel_particles(vfx: RallyVehicleVFX) -> Array:
+	return vfx.wheel_particles.particles.filter(func(p): return p.ticks > 0)

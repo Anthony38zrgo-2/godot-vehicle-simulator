@@ -2,6 +2,10 @@ class_name FordRallyVehicleSimulation
 extends RefCounted
 
 const PROFILE_PATH := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
+const TIRE_THERMAL_PERIOD := 1.0 / 30.0
+const ENGINE_THERMAL_PERIOD := 1.0 / 20.0
+const FUEL_PERIOD := 1.0 / 10.0
+
 const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
 
 var profile: Dictionary = { }
@@ -36,6 +40,13 @@ var contact_frequency_samples: int = 0
 var contact_frequency_elapsed_s: float = 0.0
 var mass_state: Dictionary = { }
 var maximum_substep_seconds: float = 0.002
+var _tire_thermal_elapsed := 0.0
+# Friction, brake and radial damping work, in joules per wheel.
+var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var _engine_thermal_elapsed := 0.0
+var _engine_thermal_inputs := Vector4.ZERO
+var _fuel_elapsed := 0.0
+var _fuel_work_j := 0.0
 var last_step_seconds: float = 0.0
 var published_state: Dictionary = { }
 var publication_sequence: int = 0
@@ -491,7 +502,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var brake_demand := brake_torques.duplicate()
 	for i in 4:
 		brake_torques[i] *= 1.0 - brake_collision_loss[i]
-	var brake_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var count := maxi(1, ceili(dt / maximum_substep_seconds))
 	var h := dt / float(count)
@@ -501,19 +511,45 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var substep_angular_vel := state.angular_velocity
 	var effective_chassis_mass := maxf(body.mass, 100.0)
 
+	var calendar_weather := weather_controller != null and bool(weather_controller.get("calendar_active"))
+	var tire_thermal_states: Array[Dictionary] = []
+	var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_cambers: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_slip_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_surfaces: Array[String] = ["Gravel", "Gravel", "Gravel", "Gravel"]
+	var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_ground: Array[float] = [30.0, 30.0, 30.0, 30.0]
+	var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
+
+	for i in 4:
+		var contact: Dictionary = contacts[i]
+		var local: Dictionary = {}
+		var loaded_contact := bool(contact.get("hit", false)) and normal_loads[i] > 0.0
+		if calendar_weather:
+			if loaded_contact:
+				local = weather_controller.call("local_conditions_for_contact", str(contact["surface"]), contact["position"])
+			else:
+				local = weather_controller.current_blend
+		thermal_water[i] = float(local.get("water_mm", 0.0))
+		thermal_snow[i] = float(local.get("snow_mm", 0.0))
+		thermal_ground[i] = float(local.get("ground_c", 30.0))
+		thermal_air[i] = float(local.get("air_c", thermal_model.ambient_temperature_c))
+		if loaded_contact:
+			last_local_conditions[i] = {
+				"water_mm": thermal_water[i], "snow_mm": thermal_snow[i],
+				"ground_c": thermal_ground[i], "air_c": thermal_air[i],
+				"surface_name": str(contact["surface"]),
+			}
+		thermal_model.advance_tire_pressure(i, dt)
+		tire_thermal_states.append(thermal_model.get_tire_thermal_state_snapshot(i))
+
+	_tire_thermal_elapsed += dt
 	for _substep_index in count:
 		_prepare_powertrain(h, inputs)
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_cambers: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_slip_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_surfaces: Array[String] = ["Gravel", "Gravel", "Gravel", "Gravel"]
-		var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var thermal_ground: Array[float] = [30.0, 30.0, 30.0, 30.0]
-		var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
 		var substep_force_sum := Vector3.ZERO
 
 		for i in 4:
@@ -521,7 +557,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			tire_model.states[i].radial_deflection_m = unsprung_rig.radial_deflection_m[i]
 			wheel_loads[i] = normal_loads[i]
 			if not bool(contact.get("hit", false)) or normal_loads[i] <= 0.0:
-				var free_thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
+				var free_thermal_state := tire_thermal_states[i]
 				var free_result := tire_model.evaluate(
 					i,
 					0.0,
@@ -546,12 +582,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				thermal_surfaces[i] = "Gravel"
 				thermal_vx[i] = 0.0
 				thermal_fy[i] = 0.0
-				if weather_controller != null and bool(weather_controller.get("calendar_active")):
-					var free_local: Dictionary = weather_controller.current_blend
-					thermal_water[i] = float(free_local.get("water_mm", 0.0))
-					thermal_snow[i] = float(free_local.get("snow_mm", 0.0))
-					thermal_ground[i] = float(free_local.get("ground_c", 30.0))
-					thermal_air[i] = float(free_local.get("air_c", 25.0))
 				continue
 
 			var point: Vector3 = contact["position"]
@@ -581,26 +611,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var lateral_speed := point_velocity.dot(right)
 			var normal_load := maxf(float(normal_loads[i]), 0.0)
 			wheel_loads[i] = normal_load
-			var thermal_state := thermal_model.get_tire_thermal_state_snapshot(i)
-			var local_water := 0.0
-			var local_snow := 0.0
-			var local_ground := 30.0
-			var local_air := thermal_model.ambient_temperature_c
-			if weather_controller != null and bool(weather_controller.get("calendar_active")):
-				var local: Dictionary = weather_controller.call("local_conditions_for_contact", str(contact["surface"]), point)
-				local_water = float(local.get("water_mm", 0.0))
-				local_snow = float(local.get("snow_mm", 0.0))
-				local_ground = float(local.get("ground_c", 30.0))
-				local_air = float(local.get("air_c", local_air))
-			# Presentation consumers (wheel VFX) read the same per-wheel sample
-			# the tire model already used; no extra weather query is introduced.
-			last_local_conditions[i] = {
-				"water_mm": local_water,
-				"snow_mm": local_snow,
-				"ground_c": local_ground,
-				"air_c": local_air,
-				"surface_name": str(contact["surface"]),
-			}
+			var thermal_state := tire_thermal_states[i]
+			var local_water := thermal_water[i]
+			var local_snow := thermal_snow[i]
+			var local_ground := thermal_ground[i]
 			tire_model.rotate_patch_frame(i, forward, right)
 			var tire_result := _solve_contact_wheel(
 				i,
@@ -643,10 +657,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			thermal_surfaces[i] = str(contact["surface"])
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
-			thermal_water[i] = local_water
-			thermal_snow[i] = local_snow
-			thermal_ground[i] = local_ground
-			thermal_air[i] = local_air
 
 		var rotation := powertrain_model.solve_rotation(
 			h,
@@ -658,31 +668,24 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var brake_work: Array = rotation.brake_work_j
 		for i in 4:
 			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * h, TAU)
-			brake_powers[i] = float(brake_work[i]) / h
-			thermal_model.advance_tire(
-				i,
-				tire_powers[i],
-				brake_powers[i],
-				thermal_speeds[i],
-				h,
-				thermal_cambers[i],
-				unsprung_rig.radial_dissipation_w[i] if normal_loads[i] > 0.0 else 0.0,
-				thermal_slip_speeds[i],
-				thermal_surfaces[i],
-				maxf(float(normal_loads[i]), 0.0),
-				thermal_fy[i],
-				wheel_spins[i],
-				thermal_vx[i],
-				wheel_radii[i] if i < wheel_radii.size() else 0.28,
-				thermal_water[i],
-				thermal_snow[i],
-				thermal_ground[i],
-				thermal_air[i],
-			)
+			var radial_power := unsprung_rig.radial_dissipation_w[i] if normal_loads[i] > 0.0 else 0.0
+			_wheel_thermal_work[i] += Vector3(tire_powers[i] * h, float(brake_work[i]), radial_power * h)
 		substep_linear_vel += (substep_force_sum / effective_chassis_mass) * h
 		# The suspension and collision torques are solved by Jolt outside these
 		# substeps, so keep angular velocity fixed rather than integrating only
 		# the tire torques and creating an unbalanced prediction.
+
+	if _tire_thermal_elapsed + 1.0e-6 >= TIRE_THERMAL_PERIOD:
+		for i in 4:
+			var average_power := _wheel_thermal_work[i] / _tire_thermal_elapsed
+			thermal_model.advance_tire(
+				i, average_power.x, average_power.y, thermal_speeds[i], _tire_thermal_elapsed,
+				thermal_cambers[i], average_power.z, thermal_slip_speeds[i], thermal_surfaces[i],
+				maxf(float(normal_loads[i]), 0.0), thermal_fy[i], wheel_spins[i], thermal_vx[i],
+				wheel_radii[i], thermal_water[i], thermal_snow[i], thermal_ground[i], thermal_air[i], false,
+			)
+		_wheel_thermal_work.fill(Vector3.ZERO)
+		_tire_thermal_elapsed = 0.0
 
 	var velocity := state.linear_velocity
 	if velocity.length_squared() > 0.01:
@@ -692,15 +695,20 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		for wing_effect in aero_model.wing_forces(velocity, state.transform.basis):
 			var wing_position: Vector3 = state.transform.basis * (wing_effect.position as Vector3)
 			state.apply_force(wing_effect.force, wing_position)
-	var engine_omega := powertrain_model.engine_rpm * TAU / 60.0
-	thermal_model.advance_engine(
-		dt,
-		powertrain_model.engine_rpm,
-		powertrain_model.engine_torque_nm,
-		velocity.length(),
-		aero_model.air_density_kg_m3,
-	)
-	thermal_model.advance_fuel(maxf(powertrain_model.engine_torque_nm * engine_omega, 0.0), dt)
+	var rpm := powertrain_model.engine_rpm
+	var torque := powertrain_model.engine_torque_nm
+	_engine_thermal_elapsed += dt
+	_engine_thermal_inputs += Vector4(rpm, torque, velocity.length(), aero_model.air_density_kg_m3) * dt
+	if _engine_thermal_elapsed + 1.0e-6 >= ENGINE_THERMAL_PERIOD:
+		var average := _engine_thermal_inputs / _engine_thermal_elapsed
+		thermal_model.advance_engine(_engine_thermal_elapsed, average.x, average.y, average.z, average.w)
+		_engine_thermal_elapsed = 0.0
+		_engine_thermal_inputs = Vector4.ZERO
+
+	_fuel_elapsed += dt
+	_fuel_work_j += maxf(torque * rpm * TAU / 60.0, 0.0) * dt
+	if _fuel_elapsed + 1.0e-6 >= FUEL_PERIOD:
+		_flush_fuel_work()
 	if bool(inputs.get("automatic_transmission", false)):
 		_update_automatic_shift(float(inputs.get("throttle", 0.0)))
 	publication_sequence += 1
@@ -873,7 +881,19 @@ func _surface_for_collider(collider: Variant) -> String:
 	return "Gravel" if tire_model.surfaces.has("Gravel") else str(tire_model.surfaces.keys()[0])
 
 
+func _flush_fuel_work() -> void:
+	if _fuel_elapsed > 0.0:
+		thermal_model.advance_fuel(_fuel_work_j / _fuel_elapsed, _fuel_elapsed)
+	_fuel_elapsed = 0.0
+	_fuel_work_j = 0.0
+
+
 func reset_dynamics() -> void:
+	_flush_fuel_work()
+	_tire_thermal_elapsed = 0.0
+	_wheel_thermal_work.fill(Vector3.ZERO)
+	_engine_thermal_elapsed = 0.0
+	_engine_thermal_inputs = Vector4.ZERO
 	unsprung_rig.reset()
 	session_generation += 1
 	simulation_time_s = 0.0

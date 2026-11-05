@@ -38,6 +38,7 @@ var snapshot: Dictionary = {}
 var thermal_config: Dictionary = {}
 var palette: RetroHudConfig = RetroHudConfig.new()
 var _cached_map_points_hash: int = 0
+var _cached_map_splits_hash: int = 0
 var _cached_map_body: Rect2 = Rect2()
 var _cached_map_rotation: float = 0.0
 var _cached_map_minimum: Vector2 = Vector2.ZERO
@@ -174,7 +175,10 @@ func _draw_map(rect: Rect2) -> void:
 		var start_p: Vector3 = points[0]
 		var end_p: Vector3 = points[-1]
 		var points_hash := points.size() ^ (int(start_p.x * 100.0) << 3) ^ int(end_p.z * 100.0)
-		if points_hash != _cached_map_points_hash or body != _cached_map_body:
+		var splits: Array = course.get("split_positions", [])
+		var splits_hash := hash(splits)
+		var map_changed := points_hash != _cached_map_points_hash or body != _cached_map_body
+		if map_changed:
 			_cached_map_points_hash = points_hash
 			_cached_map_body = body
 			_cached_map_rotation = map_rotation(points)
@@ -201,11 +205,12 @@ func _draw_map(rect: Rect2) -> void:
 			_cached_start_screen_pos = _cached_map_origin + (Vector2(start_p.x, start_p.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit
 			_cached_finish_screen_pos = _cached_map_origin + (Vector2(end_p.x, end_p.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit
 
-			var splits: Array = course.get("split_positions", [])
+		if map_changed or splits_hash != _cached_map_splits_hash:
+			_cached_map_splits_hash = splits_hash
 			_cached_split_points.clear()
 			for i in splits.size():
 				var marker: Vector3 = splits[i]
-				_cached_split_points.append(_cached_map_origin + (Vector2(marker.x, marker.z).rotated(_cached_map_rotation) - minimum) * _cached_map_fit)
+				_cached_split_points.append(_cached_map_origin + (Vector2(marker.x, marker.z).rotated(_cached_map_rotation) - _cached_map_minimum) * _cached_map_fit)
 
 		draw_polyline(_cached_map_line, Color(C_RIM, 0.35), 8.0, true)
 		draw_polyline(_cached_map_line, C_TEXT, 2.5, true)

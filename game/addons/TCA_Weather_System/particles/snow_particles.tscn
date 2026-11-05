@@ -1,5 +1,8 @@
 [gd_scene load_steps=6 format=3]
 
+[ext_resource type="Shader" path="res://scripts/rally/rally_weather_sprite.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/vfx/cmr4/snwflk_1.png" id="2_sprite"]
+
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_g66cx"]
 emission_shape = 3
 emission_box_extents = Vector3(20, 0.5, 20)
@@ -9,36 +12,23 @@ initial_velocity_min = 1.0
 initial_velocity_max = 10.0
 collision_mode = 2
 
-[sub_resource type="Gradient" id="Gradient_mnwin"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_precipitation"]
+shader = ExtResource("1_shader")
+shader_parameter/particle_texture = ExtResource("2_sprite")
+shader_parameter/snow_sway = true
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_vnlua"]
-gradient = SubResource("Gradient_mnwin")
-width = 32
-height = 32
-use_hdr = false
-fill = 1
-fill_from = Vector2(0.508547, 0.517094)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vdnf"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_color = Color(1, 1, 1, 0.95)
-albedo_texture = SubResource("GradientTexture2D_vnlua")
-
-[sub_resource type="QuadMesh" id="QuadMesh_is8c4"]
-material = SubResource("StandardMaterial3D_1vdnf")
+[sub_resource type="QuadMesh" id="QuadMesh_precipitation"]
+material = SubResource("ShaderMaterial_precipitation")
 size = Vector2(0.24, 0.24)
 
 [node name="SnowParticles" type="GPUParticles3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
 cast_shadow = 0
-amount = 5000
+amount = 400
 amount_ratio = 0.1
 lifetime = 2.0
 speed_scale = 0.3
 randomness = 0.8
 visibility_aabb = AABB(-20, -30, -20, 40, 30, 40)
 process_material = SubResource("ParticleProcessMaterial_g66cx")
-draw_pass_1 = SubResource("QuadMesh_is8c4")
+draw_pass_1 = SubResource("QuadMesh_precipitation")

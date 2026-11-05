@@ -32,7 +32,8 @@ func configure(path: String) -> bool:
 	if not document is Dictionary:
 		return false
 	radius_m = float(document.get("checkpoint_radius_m", 8.0))
-	points.clear()
+	# The HUD can still hold the previous route while the next scene loads.
+	points = []
 	for point in document.get("points", []):
 		points.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
 	# A new route is a new stage, even when the vehicle generation is unchanged.

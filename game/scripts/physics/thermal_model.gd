@@ -307,12 +307,11 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0, advance_pressure_leak: bool = true) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var compound := compound_for_wheel(index)
 	var axle_cfg := _axle_tire_config(index)
-	var axle_pressure_cfg := _axle_pressure_config(index)
 	var state: Dictionary = tire_states[index]
 	var dt := maxf(delta, 0.0)
 	# Condiciones locales por contacto (mismas que alimentan el grip).
@@ -402,13 +401,8 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	state.surface_c = state.tread_c
 	state.carcass_c = clampf(next_carcass, ambient_temperature_c, 180.0)
 	state.gas_c = clampf(next_gas, ambient_temperature_c, 180.0)
-	var atmosphere_bar := float(axle_pressure_cfg.get("atmospheric_pressure_kpa", 101.325)) / 100.0
-	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
-	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
-	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-	var pressure_loss := clampf(float(state.get("pressure_loss_fraction", 0.0)) + float(state.get("leak_per_second", 0.0)) * dt, 0.0, 1.0)
-	state.pressure_loss_fraction = pressure_loss
-	state.pressure_bar_gauge = (1.0 - pressure_loss) * clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
+	advance_tire_pressure(index, dt if advance_pressure_leak else 0.0)
+	var pressure_loss := float(state.pressure_loss_fraction)
 	var carcass_failure := float(state.get("carcass_failure", 0.0))
 	if pressure_loss >= 0.85 and normal_load_n > 0.0:
 		var speed_factor := smoothstep(4.0, 22.0, speed_m_s)
@@ -430,6 +424,17 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var next_disc_temperature := disc_temperature + (float(state.brake_heating_w) - cooling_w) / heat_capacity * dt
 	state.brake_disc_c = clampf(next_disc_temperature, ambient_temperature_c, 1200.0)
 	tire_states[index] = state
+
+func advance_tire_pressure(index: int, dt: float) -> void:
+	var state: Dictionary = tire_states[index]
+	var atmosphere_bar := float(_axle_pressure_config(index).get("atmospheric_pressure_kpa", 101.325)) / 100.0
+	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
+	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
+	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
+	var pressure_loss := clampf(float(state.get("pressure_loss_fraction", 0.0)) + float(state.get("leak_per_second", 0.0)) * dt, 0.0, 1.0)
+	state.pressure_loss_fraction = pressure_loss
+	state.pressure_bar_gauge = (1.0 - pressure_loss) * clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
+
 
 func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: float, selected_compound: Dictionary = {}) -> void:
 	var compound := active_compound if selected_compound.is_empty() else selected_compound

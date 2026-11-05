@@ -1,5 +1,7 @@
 extends Node3D
 
+signal windshield_broken(local_normal: Vector3)
+
 const EXTERIOR_GLASS := preload("res://scripts/rally/rally_escort_exterior_glass.gdshader")
 const DAMAGE_MESHES := preload("res://assets/rally/ford_escort_rs2000_1971/damage/escort_damage.glb")
 const BROKEN_LIGHT := preload("res://assets/rally/ford_escort_rs2000_1971/damage/lights_damaged.png")
@@ -48,6 +50,11 @@ func _bind_part(part: String, clean: MeshInstance3D, crash: MeshInstance3D) -> v
 		var source_name := "windows" if name == "windshield_interior" else name
 		var material: Material = materials.get(source_name)
 		assert(material != null, "Missing original Escort material: " + source_name)
+		if part == "hood" and name == "#E1 body":
+			# The grey underside can protrude through the paint after deformation.
+			var underside := material.duplicate() as StandardMaterial3D
+			underside.cull_mode = BaseMaterial3D.CULL_BACK
+			material = underside
 		crash.set_surface_override_material(i, material)
 		if name == "windshield_interior":
 			_bind_surface("windshield", crash, i, material, BROKEN_GLASS_INSIDE)
@@ -135,7 +142,10 @@ func register_impact(point: Vector3, normal: Vector3, severity: float, config: D
 		_mark_broken("hood", severity, config)
 	var hard_front := front and severity >= float(config.get("windshield_frontal", 0.55))
 	if hard_front or roof or (point.y > 0.78 and point.z < -0.20 and normal.z > 0.35):
+		var already_broken := _broken.has("windshield")
 		_mark_broken("windshield", severity, config)
+		if not already_broken and _broken.has("windshield"):
+			windshield_broken.emit(normal)
 	if point.z > 1.25 and normal.z < -0.35:
 		_mark_broken("trunk", severity, config)
 	_mark_broken("body", severity, config)

@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_add, depth_draw_never, cull_disabled, unshaded;
+render_mode blend_add, depth_draw_never, cull_disabled, diffuse_lambert;
 
 // Additive variant used by spark sprites whose black background must not be
 // drawn. Vertex billboarding and the vehicle body exclusion match the alpha
@@ -7,13 +7,18 @@ render_mode blend_add, depth_draw_never, cull_disabled, unshaded;
 
 uniform sampler2D particle_texture : source_color, filter_linear_mipmap;
 uniform mat4 world_to_vehicle;
-uniform bool unlit = true;
 uniform float body_exclusion_strength : hint_range(0.0, 1.0) = 1.0;
 varying vec3 particle_world_position;
 varying float near_fade;
 
 void vertex() {
 	mat4 billboard = mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
+	vec3 along = normalize(MODEL_MATRIX[1].xyz);
+	vec3 across = cross(along, normalize(INV_VIEW_MATRIX[2].xyz));
+	if (length(across) > 0.01) {
+		billboard[0].xyz = normalize(across);
+		billboard[1].xyz = along;
+	}
 	billboard[0].xyz *= length(MODEL_MATRIX[0].xyz);
 	billboard[1].xyz *= length(MODEL_MATRIX[1].xyz);
 	billboard[2].xyz *= length(MODEL_MATRIX[2].xyz);
@@ -46,7 +51,8 @@ void fragment() {
 	}
 
 	vec2 border = smoothstep(vec2(0.01), vec2(0.10), min(UV, 1.0 - UV));
-	float final_alpha = sample_color.a * visibility * near_fade * border.x * border.y;
+	float taper = 1.0 - smoothstep(UV.y * 0.5, UV.y * 0.5 + 0.06, abs(UV.x - 0.5));
+	float final_alpha = sample_color.a * visibility * near_fade * border.x * border.y * taper;
 	if (final_alpha < 0.005) {
 		discard;
 	}

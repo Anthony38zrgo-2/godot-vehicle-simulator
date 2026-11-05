@@ -1,8 +1,8 @@
 extends SceneTree
 
-const SPARK := preload("res://assets/vfx/cmr4/sprk_big.png")
-const MUD := preload("res://assets/vfx/cmr4/mud_rd1.png")
-const LEAF := preload("res://assets/vfx/cmr4/leaf_01.png")
+const SPARK := RallyVehicleVFX.SPARK
+const MUD := RallyVehicleVFX.MUD_CLOD
+const LEAF := RallyVehicleVFX.LEAVES[0]
 
 var folder := ""
 var scene: Node3D
@@ -54,9 +54,8 @@ func apply_state(surface: String, snow_mm: float) -> void:
 
 
 func run_wheel(seconds: float, wetness: float) -> void:
-	for frame in int(seconds * 60.0):
-		for i in [2, 3]:
-			vfx.update_wheel(i, wetness)
+	for frame in int(seconds / vfx.WHEEL_PARTICLES.STEP):
+		vfx.advance_wheel_particles(wetness)
 		await process_frame
 
 

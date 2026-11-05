@@ -52,46 +52,6 @@ const COAST_EXHAUST_DEFINITIONS := [
 const NEUTRAL_SAMPLE_PATH := "res://sounds/banks/commons/neutral_first_gear_transition.wav"
 const NEUTRAL_FADE_WIDTH := 0.15
 
-const GEAR_UP_PATHS := [
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force02.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force01.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force03.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gearbox_force04.wav",
-]
-const GEAR_DOWN_PATHS := [
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down02.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down01.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/gear_down03.wav",
-]
-const ONBOARD_UP_PATHS := [
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift11.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift08.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift07.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_03.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift04.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift14.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_06.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift02.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_05.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_04.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift06.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_01.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_shift_02.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift05.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift10.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift01.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift03.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift13.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift12.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/P206_onboard_shift09.wav",
-]
-const ONBOARD_DOWN_PATHS := [
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_01.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_04.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_02.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_05.wav",
-	"res://sounds/banks/EscortRS1600/wrc9_shifts/M3E30R_cockpit_gear_downshift_03.wav",
-]
 const GEAR_WHINE_PATH := "res://sounds/banks/EscortRS1600/whinelo.wav"
 const GEAR_WHINE_HIGH_PATH := "res://sounds/banks/EscortRS1600/whinehi.wav"
 # CMR4 lift-off events; not claimed to be isolated combustion detonations.
@@ -632,44 +592,6 @@ func play_extra_shift(players: Array[AudioStreamPlayer3D], sequence: int, ascend
 	player.play()
 
 
-func _trigger_gear_clunk(
-	players: Array[AudioStreamPlayer3D],
-	target_gear: int,
-	rr_index: int,
-	is_upshift: bool,
-) -> int:
-	if players.is_empty() or clunk_scale < 0.05:
-		return rr_index
-	if is_upshift and upshift_cooldown > 0.0:
-		return rr_index
-	if not is_upshift and downshift_cooldown > 0.0:
-		return rr_index
-
-	# Variante fijada por la marcha destino (1 -> primera, 2 -> segunda, 3+ -> tercera):
-	# el up siempre suena a up y el down a down, sin rotar entre tomas.
-	var player := players[rr_index % players.size()]
-
-	# Tensión mecánica por marcha + micro-jitter determinista para evitar repetición robótica
-	var gear_pitch_offset := float(clampi(target_gear, 1, 6) - 3) * 0.022
-	var jitter := float((rr_index % 3) - 1) * 0.015
-	player.pitch_scale = clampf(1.0 + gear_pitch_offset + jitter, 0.88, 1.15)
-
-	# Escala dinámica según RPM actuales y carga del tren motriz
-	var rpm_norm := clampf(float(acoustic.get("rpm", 1000.0)) / 7000.0, 0.2, 1.0)
-	var load_stress := absf(float(acoustic.get("load", 0.5)))
-	var dynamic_force := lerpf(0.65, 1.18, rpm_norm * 0.65 + load_stress * 0.35)
-
-	player.volume_db = -20.0 + linear_to_db(0.75 * maxf(clunk_scale * dynamic_force, 0.001))
-	player.play()
-
-	if is_upshift:
-		upshift_cooldown = UPSHIFT_RETRIGGER_SECONDS
-	else:
-		downshift_cooldown = DOWNSHIFT_RETRIGGER_SECONDS
-
-	return rr_index + 1
-
-
 # Detonaciones Cosworth con ciclo de semilla + probabilidad por marcha destino
 # (CMR2: mas probable en marchas cortas), manteniendo voice_limit 1.
 func play_backfire_event(target_gear: int) -> void:
@@ -684,6 +606,7 @@ func play_backfire_event(target_gear: int) -> void:
 	player.volume_db = BACKFIRE_VOLUME_DB
 	player.play()
 	backfire_event_cooldown = BACKFIRE_RETRIGGER_SECONDS
+	vehicle.backfire_triggered.emit()
 	exhaust_crackle_s = 0.12
 
 

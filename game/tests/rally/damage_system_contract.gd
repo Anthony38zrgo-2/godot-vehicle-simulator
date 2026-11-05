@@ -265,6 +265,9 @@ func test_visual_damage() -> void:
 	controller.register_impact(Vector3(0.0, 0.55, -1.8), Vector3.BACK, 0.65, config)
 	controller._process(0.0)
 	assert(not controller._healthy.interior.visible and controller._damaged.interior.visible)
+	var effects := vehicle.get_node("VehicleVFX") as RallyVehicleVFX
+	var shards := effects.wheel_particles.particles.filter(func(p): return p.ticks > 0 and p.kind == effects.WHEEL_PARTICLES.Kind.GLASS)
+	assert(shards.is_empty(), "Windshield damage uses the broken glass material without shards")
 	for binding in controller._surfaces.windshield:
 		assert(binding.mesh.get_surface_override_material(binding.surface) == binding.material)
 
@@ -277,7 +280,7 @@ func test_visual_damage() -> void:
 			assert(binding.mesh.get_surface_override_material(binding.surface) == binding.cracked)
 	var steam := vehicle.get_node("VehicleVFX/RadiatorSteam") as GPUParticles3D
 	var steam_material := (steam.draw_pass_1 as QuadMesh).material as ShaderMaterial
-	assert(steam_material.get_shader_parameter("unlit") == false)
+	assert(steam_material.get_shader_parameter("unlit") == null)
 
 	controller.register_impact(Vector3(0.0, 0.58, 1.9), Vector3.FORWARD, 0.9, config)
 	controller._process(0.0)

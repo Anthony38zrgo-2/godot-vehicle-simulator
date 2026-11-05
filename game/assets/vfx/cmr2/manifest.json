@@ -1,0 +1,36 @@
+{
+  "source": "Colin McRae Rally 2.0 (PC), Game/Bigfiles/common.bfl",
+  "archive_sha256": "eb2806bff0e38ddeec9bd9093922fbc8cf2dde0df4c6ad9d53cdbd0453d8ef3d",
+  "files": {
+    "rain.png": {
+      "entry": "rain.dds",
+      "dds_sha256": "eb3375a61175afbc1e671809d180d3468495570f1ef7553fc8c3b090dbf606ad",
+      "png_sha256": "d16a2e87e0409d155e3c7ca1377bb97507d9cd2cb482e9bf474cc5b48a96ac57",
+      "size": [
+        32,
+        32
+      ]
+    },
+    "splat.png": {
+      "entries": [
+        {
+          "entry": "splat.dds",
+          "dds_sha256": "4d4d3c200c6c34bacc5cbe4463a7cd74ed00bc2a7afd2f500f5f21fbeea6a953"
+        }
+      ],
+      "png_sha256": "f8cf8035eeeef34f6832601c455359d57982769fb2ec03f32ecea4200d98fe72",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "backfire_atlas.png": {
+      "recovery": "Re-exported from the cached Godot import of the original CMR2 atlas",
+      "png_sha256": "7e7a175be7e94e1c25ba3764a5adc7ccba97ada56ce6c51b4e69a2f2c68a787e",
+      "size": [
+        256,
+        64
+      ]
+    }
+  }
+}

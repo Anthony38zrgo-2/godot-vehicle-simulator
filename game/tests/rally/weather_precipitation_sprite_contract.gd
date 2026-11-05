@@ -78,19 +78,9 @@ func run() -> void:
 		if rain_material != null:
 			check(rain_material.shader.resource_path.ends_with("rally_weather_sprite.gdshader"), "rain shader")
 			var rain_texture := rain_material.get_shader_parameter("particle_texture") as Texture2D
-			check(rain_texture != null and rain_texture.resource_path.ends_with("raindrop.png"), "rain uses raindrop")
-		check(rain.amount_ratio > 0.0, "rain intensity ratio")
-		var sheet := rain.get_node_or_null("RainFallSheet") as GPUParticles3D
-		check(sheet != null, "R_Fall sheet present")
-		if sheet != null:
-			check(sheet.amount < rain.amount, "R_Fall sheet is sparse")
-			var sheet_material := precipitation_material(sheet, 1)
-			check(sheet_material != null, "sheet material present")
-			if sheet_material != null:
-				check(sheet_material.shader.resource_path.ends_with("rally_weather_sprite.gdshader"), "sheet shader")
-				var sheet_texture := sheet_material.get_shader_parameter("particle_texture") as Texture2D
-				check(sheet_texture != null and sheet_texture.resource_path.ends_with("r_fall.png"), "sheet uses R_Fall")
-			check(sheet.amount_ratio > 0.0, "sheet intensity follows rain")
+			check(rain_texture == ctl.RAIN_SPRITE, "rain uses the active sprite")
+		check(rain.amount_ratio > 0.0 and rain.amount == 400, "rain intensity and CMR2 capacity")
+		check(rain.get_node_or_null("RainFallSheet") == null, "CMR2 rain uses individual drops")
 
 	force_weather(ctl, "snow", 8.0)
 	ctl.apply_to_adapters(scene.weather_sky_node, tca, scene.terrain_wetness, 12.0)
@@ -103,9 +93,9 @@ func run() -> void:
 		if snow_material != null:
 			check(snow_material.shader.resource_path.ends_with("rally_weather_sprite.gdshader"), "snow shader")
 			var snow_texture := snow_material.get_shader_parameter("particle_texture") as Texture2D
-			check(snow_texture != null and snow_texture.resource_path.ends_with("snwflk_1.png"), "snow uses SnwFlk_1")
+			check(snow_texture == ctl.SNOW_SPRITE, "snow uses the active sprite")
 		var snow_quad := snow.draw_pass_1 as QuadMesh
-		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.72), "CMR4 snow uses triple the preset size")
+		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.24), "snow uses the configured size")
 	await process_frame
 	await process_frame
 	check(not is_instance_valid(rain), "old rain system freed after the switch")

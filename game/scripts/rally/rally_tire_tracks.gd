@@ -1,14 +1,17 @@
 extends Node3D
-## World-space, bounded tire tracks; each batch uses one original CMR4 texture.
+## World-space, bounded tire tracks using CMR4 skid textures.
+const CMR4_TEXTURES := "res://assets/vfx/cmr4/"
 const TEXTURES = [
-	preload("res://assets/vfx/cmr4/skid_tr1.png"), preload("res://assets/vfx/cmr4/skid_tr2.png"),
-	preload("res://assets/vfx/cmr4/skid_sw1.png"), preload("res://assets/vfx/cmr4/skid_sw2.png"),
-	preload("res://assets/vfx/cmr4/skid_ic1.png"), preload("res://assets/vfx/cmr4/skid_gr1.png"),
+	preload(CMR4_TEXTURES + "skid_tr1.png"), preload(CMR4_TEXTURES + "skid_tr2.png"),
+	preload(CMR4_TEXTURES + "skid_sw1.png"), preload(CMR4_TEXTURES + "skid_sw2.png"),
+	preload(CMR4_TEXTURES + "skid_ic1.png"), preload(CMR4_TEXTURES + "skid_gr1.png"),
 ]
 const CAPACITY := 256
 const MIN_DISTANCE := 0.12
 const MAX_DISTANCE := 2.5
 var batches: Array[MultiMesh] = []
+var elapsed := 0.0
+var previous_strength := [0.0, 0.0, 0.0, 0.0]
 var counts := [0, 0, 0, 0, 0, 0]
 var previous := [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var previous_normal := [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
@@ -28,6 +31,7 @@ func _ready() -> void:
 		var batch := MultiMesh.new()
 		batch.transform_format = MultiMesh.TRANSFORM_3D
 		batch.use_colors = true
+		batch.use_custom_data = true
 		batch.mesh = quad
 		batch.instance_count = CAPACITY
 		batch.visible_instance_count = 0
@@ -36,6 +40,13 @@ func _ready() -> void:
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(instance)
 		batches.append(batch)
+
+func _process(delta: float) -> void:
+	elapsed += delta
+	for batch in batches:
+		var material := batch.mesh.surface_get_material(0) as ShaderMaterial
+		material.set_shader_parameter("track_time", elapsed)
+
 
 func variant_for(surface: String, snow_mm: float, wheel: int) -> int:
 	if snow_mm >= 0.25 or surface == "snow":
@@ -79,6 +90,7 @@ func add_contact(wheel: int, point: Vector3, normal: Vector3, width: float, vari
 	if not active[wheel] or previous_variant[wheel] != variant:
 		previous[wheel] = point
 		previous_normal[wheel] = n
+		previous_strength[wheel] = strength
 		previous_variant[wheel] = variant
 		active[wheel] = true
 		return
@@ -102,7 +114,10 @@ func add_contact(wheel: int, point: Vector3, normal: Vector3, width: float, vari
 	var color := color_for(surface, variant)
 	color.a = clampf(strength, 0.0, 1.0)
 	batch.set_instance_color(slot, color)
+	var life := 7.0 if variant >= 2 else 12.0
+	batch.set_instance_custom_data(slot, Color(clampf(previous_strength[wheel], 0.0, 1.0), color.a, elapsed, life))
 	counts[variant] += 1
 	batch.visible_instance_count = mini(counts[variant], CAPACITY)
 	previous[wheel] = point
 	previous_normal[wheel] = n
+	previous_strength[wheel] = strength

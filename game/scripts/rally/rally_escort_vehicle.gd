@@ -1,6 +1,8 @@
 class_name RallyEscortVehicle
 extends RigidBody3D
 
+signal backfire_triggered
+
 const PROFILE_PATH := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
 const ASSET_MANIFEST_PATH := "res://assets/rally/ford_escort_rs2000_1971/manifest.json"
 const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_rs2000_1971_collision.json"

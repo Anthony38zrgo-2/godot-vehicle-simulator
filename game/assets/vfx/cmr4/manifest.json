@@ -63,27 +63,6 @@
       "png_size_bytes": 19817,
       "png_sha256": "a406ed91a138b25ab1f7b1fa34d0506f420a7eafdcc62ca466ba9ffc1f53ee5f"
     },
-    "dust_02.png": {
-      "entry": "Dust_02.dds",
-      "entry_index": 19,
-      "dds_size_bytes": 22000,
-      "dds_sha256": "d0e466c450d498d031f1971e5e3a9baf5733d0478a3c8b8d06acf3097021c732",
-      "dds_format": "DXT5",
-      "dds_alpha_flag": false,
-      "width": 128,
-      "height": 128,
-      "mip_levels": 8,
-      "blend": "alpha",
-      "alpha": {
-        "present": true,
-        "min": 0,
-        "max": 252,
-        "coverage": 0.77,
-        "opaque": false
-      },
-      "png_size_bytes": 19817,
-      "png_sha256": "a406ed91a138b25ab1f7b1fa34d0506f420a7eafdcc62ca466ba9ffc1f53ee5f"
-    },
     "water_1.png": {
       "entry": "Water_1.dds",
       "entry_index": 20,
@@ -104,27 +83,6 @@
       },
       "png_size_bytes": 11672,
       "png_sha256": "64c844cb97754e54445ae7010a6b97553adc20de4f51289fa67f62561f073646"
-    },
-    "water_2.png": {
-      "entry": "Water_2.dds",
-      "entry_index": 60,
-      "dds_size_bytes": 22000,
-      "dds_sha256": "be73312dc1b26e16b5959c7ad6efce81b23b022e63f214ebbbcdd258377772a2",
-      "dds_format": "DXT5",
-      "dds_alpha_flag": false,
-      "width": 128,
-      "height": 128,
-      "mip_levels": 8,
-      "blend": "alpha",
-      "alpha": {
-        "present": true,
-        "min": 0,
-        "max": 198,
-        "coverage": 0.733,
-        "opaque": false
-      },
-      "png_size_bytes": 9640,
-      "png_sha256": "1153a9ca713b3c898a87f1f3828ad6e40c8c3a75e3cf9cfb00558a07470d2fbd"
     },
     "cr_splsh.png": {
       "entry": "Cr_splsh.dds",
@@ -398,48 +356,6 @@
       },
       "png_size_bytes": 446,
       "png_sha256": "48b171e7bc8c96f6e3cfc11a0f771ed4b6c90b84a60fe9e65a04f738d69888a7"
-    },
-    "raindrop.png": {
-      "entry": "raindrop.dds",
-      "entry_index": 31,
-      "dds_size_bytes": 1488,
-      "dds_sha256": "819756ed83c25f7e073404ec0282c17eb995f5aa0d201f3377c815ef301cad0f",
-      "dds_format": "DXT5",
-      "dds_alpha_flag": true,
-      "width": 32,
-      "height": 32,
-      "mip_levels": 4,
-      "blend": "alpha",
-      "alpha": {
-        "present": true,
-        "min": 0,
-        "max": 249,
-        "coverage": 0.283,
-        "opaque": false
-      },
-      "png_size_bytes": 466,
-      "png_sha256": "0f3434b63ba2d4c26697d8dec3b8beb66db324a764f9cf969db78e1f842675ff"
-    },
-    "r_fall.png": {
-      "entry": "R_Fall.dds",
-      "entry_index": 55,
-      "dds_size_bytes": 5616,
-      "dds_sha256": "0e7d2d40dcbb6e70e1816a40f3b79c8c871f26812aa574042a4afd1e32959e4e",
-      "dds_format": "DXT5",
-      "dds_alpha_flag": false,
-      "width": 64,
-      "height": 64,
-      "mip_levels": 7,
-      "blend": "alpha",
-      "alpha": {
-        "present": true,
-        "min": 0,
-        "max": 255,
-        "coverage": 0.155,
-        "opaque": false
-      },
-      "png_size_bytes": 1351,
-      "png_sha256": "bd28f43ccc540269060264e7fde4d56d00196a00bcfca88a89e038f7e061d089"
     },
     "skid_tr2.png": {
       "entry": "Skid_tr2.dds",

@@ -554,7 +554,7 @@ func _physics_process(delta: float) -> void:
 		_weather_visual_elapsed += delta
 		if _weather_visual_elapsed >= 0.1:
 			_weather_visual_elapsed = fmod(_weather_visual_elapsed, 0.1)
-			event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day())
+			event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
 		for event: String in signal_state.events:
@@ -929,7 +929,7 @@ func _refresh_stage_weather() -> void:
 		return
 	event_weather.update_vehicle_position(vehicle.global_position)
 	event_weather.tick_visual(2.0)
-	event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day())
+	event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
 	weather_sky_node.update_visuals(0.0)
 
 
