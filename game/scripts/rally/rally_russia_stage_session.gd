@@ -156,6 +156,8 @@ func _ready() -> void:
 			for i in mini(saved_alignment.size(), 4):
 				vehicle.simulation.alignment_collision_damage[i] = clampf(float(saved_alignment[i]), 0.0, 1.0)
 	vehicle.apply_tire_inventory()
+	if not practice_mode and event_manager != null:
+		vehicle.restore_damage(event_manager.vehicle_damage_state)
 	if track_collision == null:
 		push_error("Rally session cannot resolve the stage collision builder")
 		return
@@ -165,6 +167,7 @@ func _ready() -> void:
 		return
 	await get_tree().physics_frame
 	await get_tree().physics_frame
+	_build_puddles()
 	place_vehicle_on_stage()
 	_refresh_stage_weather()
 	connect_runtime_signals()
@@ -189,7 +192,7 @@ func _ready() -> void:
 	# Ventana inicial de reglaje (Neumáticos primero, Aceptar inicia la salida).
 	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
 		_open_setup_window()
-	print("RALLY_SESSION_READY scene=%s vehicle=ford_escort_rs2000_1971 spawn=" % session_track_id, start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
+	print("RALLY_SESSION_READY scene=%s vehicle=%s spawn=" % [session_track_id, vehicle.rally_profile.get("profile_id", "unknown")], start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
 
 func build_environment() -> void:
@@ -256,6 +259,19 @@ func _build_terrain_wetness() -> void:
 	wetness_node.set("visual_root", track_visual)
 	add_child(wetness_node)
 	terrain_wetness = wetness_node
+
+
+func _build_puddles() -> void:
+	var previous := get_node_or_null("RallyPuddles")
+	if previous != null:
+		remove_child(previous)
+		previous.queue_free()
+	var puddles := preload("res://scripts/rally/rally_puddles.gd").new()
+	puddles.name = "RallyPuddles"
+	puddles.sky_node = weather_sky_node
+	puddles.configure(course.points, hash(session_track_id), event_weather, terrain_wetness)
+	add_child(puddles)
+	vehicle.simulation.puddle_system = puddles
 
 
 func _on_tca_weather_changed(weather) -> void:
@@ -388,7 +404,7 @@ func configure_runtime_paths() -> void:
 	head_up_display.set_telemetry_path(telemetry_file_path)
 	var metadata := {
 		"run_identifier": run_identifier,
-		"scene": "russia_stage1_ford_escort_rs2000",
+		"scene": scene_file_path.get_file().get_basename(),
 		"physics_engine": str(ProjectSettings.get_setting("physics/3d/physics_engine")),
 		"physics_ticks_per_second": Engine.physics_ticks_per_second,
 		"start_position": [start_position.x, start_position.y, start_position.z],
@@ -828,6 +844,7 @@ func load_event_stage(next_id: String) -> void:
 		return
 	await get_tree().physics_frame
 	await get_tree().physics_frame
+	_build_puddles()
 	place_vehicle_on_stage()
 	course.generation = vehicle.simulation.session_generation
 	camera_rig.snap_to_target()
@@ -959,6 +976,16 @@ func _open_setup_window() -> void:
 	var window: Dictionary = event_manager.get_pending_window()
 	if window.is_empty():
 		return
+	if str(window.get("window_key", "initial")) != "initial" and not event_manager.windows_attended.has("repairs:" + str(window.get("window_key", ""))):
+		awaiting_setup = true
+		vehicle.freeze = true
+		input_controller.set_controls_enabled(false)
+		event_clock.set_paused(true)
+		var service := preload("res://scripts/rally/rally_service_panel.gd").new()
+		add_child(service)
+		service.confirmed.connect(_open_setup_window, CONNECT_DEFERRED)
+		service.open(vehicle, event_manager, window)
+		return
 	# La cuenta atrás, el reloj ambiental y el coche permanecen detenidos mientras se elige.
 	awaiting_setup = true
 	setup_open_count += 1
@@ -1036,6 +1063,7 @@ func _save_mounted_tire_condition() -> void:
 	if practice_mode or event_manager == null or vehicle == null:
 		return
 	vehicle.sync_tire_inventory()
+	event_manager.vehicle_damage_state = vehicle.damage_snapshot()
 	event_manager.tire_inventory_state = vehicle.tire_inventory.snapshot()
 	event_manager.tire_inventory_state["brake_collision_loss"] = vehicle.simulation.brake_collision_loss.duplicate()
 	event_manager.tire_inventory_state["alignment_collision_damage"] = vehicle.simulation.alignment_collision_damage.duplicate()

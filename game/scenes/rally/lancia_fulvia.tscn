@@ -1,0 +1,102 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_chassis.glb" id="2_chassis"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_wheel_front_left.glb" id="3_wheel_front_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_wheel_front_right.glb" id="4_wheel_front_right"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_wheel_rear_left.glb" id="5_wheel_rear_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_wheel_rear_right.glb" id="6_wheel_rear_right"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="9_vfx"]
+
+
+[ext_resource type="Script" path="res://scripts/rally/rally_escort_visual_damage.gd" id="10_damage"]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_cockpit_animation.gd" id="11_cockpit"]
+[ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/damage/fulvia_damage.glb" id="12_crash"]
+[ext_resource type="Texture2D" path="res://assets/rally/lancia_fulvia/damage/lights_damaged.png" id="13_lights"]
+[ext_resource type="Texture2D" path="res://assets/rally/lancia_fulvia/damage/windows_damaged.png" id="14_windows"]
+[ext_resource type="Texture2D" path="res://assets/rally/lancia_fulvia/damage/interior_windows_damaged.png" id="15_interior_windows"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ford"]
+friction = 0.9
+bounce = 0.0
+
+[node name="LanciaFulvia" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 1
+physics_material_override = SubResource("PhysicsMaterial_ford")
+can_sleep = false
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 8
+script = ExtResource("1_vehicle")
+rally_profile_path = "res://data/vehicles/lancia-fulvia/vehicle.json"
+asset_manifest_path = "res://assets/rally/lancia_fulvia/manifest.json"
+rally_collision_path = "res://assets/rally/lancia_fulvia/lancia_fulvia_collision.json"
+cockpit_camera_enabled = true
+dc_blob_shadow_size = Vector2(1.8, 4.1)
+
+[node name="Chassis" parent="." instance=ExtResource("2_chassis")]
+
+[node name="VisualDamage" type="Node3D" parent="."]
+script = ExtResource("10_damage")
+damage_meshes = ExtResource("12_crash")
+broken_light = ExtResource("13_lights")
+broken_glass = ExtResource("14_windows")
+broken_glass_inside = ExtResource("15_interior_windows")
+
+[node name="HeadlightLeft" type="SpotLight3D" parent="VisualDamage"]
+position = Vector3(-0.60, 0.45, -1.96)
+rotation = Vector3(-0.05236, 0, 0)
+visible = false
+light_color = Color(1, 0.90, 0.73, 1)
+light_energy = 6.0
+shadow_enabled = false
+spot_range = 95.0
+spot_angle = 27.0
+
+[node name="HeadlightRight" type="SpotLight3D" parent="VisualDamage"]
+position = Vector3(0.60, 0.45, -1.96)
+rotation = Vector3(-0.05236, 0, 0)
+visible = false
+light_color = Color(1, 0.90, 0.73, 1)
+light_energy = 6.0
+shadow_enabled = false
+spot_range = 95.0
+spot_angle = 27.0
+
+[node name="CockpitAnimation" type="Node" parent="."]
+script = ExtResource("11_cockpit")
+
+[node name="VehicleVFX" type="Node3D" parent="."]
+script = ExtResource("9_vfx")
+
+[node name="WheelFrontLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontLeft"]
+
+[node name="WheelMesh" parent="WheelFrontLeft/WheelVisual" instance=ExtResource("3_wheel_front_left")]
+
+[node name="WheelFrontRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontRight"]
+
+[node name="WheelMesh" parent="WheelFrontRight/WheelVisual" instance=ExtResource("4_wheel_front_right")]
+
+[node name="WheelRearLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearLeft"]
+
+[node name="WheelMesh" parent="WheelRearLeft/WheelVisual" instance=ExtResource("5_wheel_rear_left")]
+
+[node name="WheelRearRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearRight"]
+
+[node name="WheelMesh" parent="WheelRearRight/WheelVisual" instance=ExtResource("6_wheel_rear_right")]
+
+[node name="VehicleAudio" type="Node3D" parent="."]
+script = ExtResource("7_audio")
+engine_bank_manifest_path = "res://sounds/banks/FulviaHF/manifest.json"
+vehicle_path = NodePath("..")

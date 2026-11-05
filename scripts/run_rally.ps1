@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$GodotPath,
+    [string]$Vehicle = "",
     [switch]$Smoke,
     [switch]$ValidateRuntimeOnly,
     [switch]$ExportWindows,
@@ -13,17 +14,29 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = Join-Path $repositoryRoot 'game'
 $hostAppData = $env:APPDATA
 $hostLocalAppData = $env:LOCALAPPDATA
-$rallyScene = if ($ProvingGround) {
-    'res://scenes/rally/rally_proving_ground.tscn'
-} else {
-    'res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn'
-}
-$fordManifestPath = Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\manifest.json'
+$vehicleRegistry = Get-Content -LiteralPath (Join-Path $gameRoot 'data/vehicles/registry.json') -Raw | ConvertFrom-Json
+if (-not $Vehicle) { $Vehicle = [string]$vehicleRegistry.default }
+$vehicleProperty = $vehicleRegistry.vehicles.PSObject.Properties[$Vehicle]
+if (-not $vehicleProperty) { throw "Coche desconocido: $Vehicle. Disponibles: $($vehicleRegistry.vehicles.PSObject.Properties.Name -join ', ')" }
+$vehicleConfiguration = $vehicleProperty.Value
+$provingScene = 'res://scenes/rally/' + $vehicleConfiguration.Proving + '.tscn'
+$rallyScene = if ($ProvingGround) { $provingScene } else { 'res://scenes/rally/' + $vehicleConfiguration.Stage + '.tscn' }
+$assetManifestPath = Join-Path $gameRoot ('assets/rally/' + $vehicleConfiguration.Assets + '/manifest.json')
 $stageManifestPath = Join-Path $gameRoot 'assets\rally\russia_stage1\manifest.json'
-$vehicleProfilePath = Join-Path $gameRoot 'data\vehicles\ford-escort-rs2000\vehicle.json'
-$profileDirectory = Join-Path $gameRoot 'data\vehicles\ford-escort-rs2000'
-$provenancePath = Join-Path $profileDirectory 'OPEN_FORMULA_PROVENANCE.json'
+$vehicleProfilePath = Join-Path $gameRoot ('data/vehicles/' + $vehicleConfiguration.Profile + '/vehicle.json')
+$profileDirectory = Join-Path $gameRoot ('data/vehicles/' + $vehicleConfiguration.Profile)
+$provenancePath = Join-Path $profileDirectory $vehicleConfiguration.Provenance
 $projectPath = Join-Path $gameRoot 'project.godot'
+$soundBankPath = Join-Path $gameRoot ('sounds/banks/' + $vehicleConfiguration.SoundBank)
+if ($vehicleConfiguration.ValidateSoundHashes) {
+    $soundManifest = Get-Content -LiteralPath (Join-Path $soundBankPath 'manifest.json') -Raw | ConvertFrom-Json
+    foreach ($sample in $soundManifest.samples) {
+        $samplePath = Join-Path $soundBankPath $sample.file
+        if (-not (Test-Path -LiteralPath $samplePath) -or (Get-FileHash -LiteralPath $samplePath -Algorithm SHA256).Hash -ne $sample.sha256) {
+            throw "Muestra del banco faltante o modificada: $($sample.file)"
+        }
+    }
+}
 
 function Resolve-Godot([string]$ExplicitPath) {
     if ($ExplicitPath -and (Test-Path -LiteralPath $ExplicitPath -PathType Leaf)) {
@@ -99,14 +112,14 @@ if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
 if ((Get-ProjectSetting $projectPath '3d/physics_engine') -ne 'Jolt Physics') {
     throw 'La sesion rally exige 3d/physics_engine="Jolt Physics" en game/project.godot.'
 }
-Assert-File $vehicleProfilePath 'Manifiesto de dominios del Ford'
-Assert-File $provenancePath 'Hashes de procedencia Open Formula'
-Assert-File $fordManifestPath 'Manifest del Ford'
+Assert-File $vehicleProfilePath 'Manifiesto de dominios del vehiculo'
+Assert-File $provenancePath 'Hashes de procedencia del perfil'
+Assert-File $assetManifestPath 'Manifest del vehiculo'
 Assert-File $stageManifestPath 'Manifest de Rusia Stage 1'
 foreach ($physicsModule in @('profile_loader.gd', 'mass_model.gd', 'suspension_model.gd', 'unsprung_suspension_rig.gd', 'tire_radial_model.gd', 'tire_model.gd', 'powertrain_model.gd', 'brake_model.gd', 'aerodynamic_model.gd', 'thermal_model.gd', 'vehicle_simulation.gd')) {
     Assert-File (Join-Path $gameRoot ('scripts\physics\' + $physicsModule)) ('Modulo de fisicas ' + $physicsModule)
 }
-Assert-File (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') 'Controlador GDScript del Ford'
+Assert-File (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') 'Controlador GDScript del vehiculo'
 Assert-File (Join-Path $gameRoot 'docs\rally\README.md') 'Documentacion del modelo Rally'
 Assert-File (Join-Path $gameRoot 'data\input\input_profile.json') 'Perfil de entrada'
 Assert-File (Join-Path $gameRoot 'fonts\D-DINCondensed-Bold.ttf') 'Fuente del HUD'
@@ -116,8 +129,8 @@ Assert-File (Join-Path $gameRoot 'features\retro_hud\scripts\retro_hud_display.g
 Assert-File (Join-Path $gameRoot 'scripts\hud\driving_controls_panel.gd') 'Panel de controles F1'
 
 $vehicleManifest = Get-Content -LiteralPath $vehicleProfilePath -Raw | ConvertFrom-Json
-if ([int]$vehicleManifest.schema_version -lt 1 -or [string]$vehicleManifest.units -ne 'SI' -or [string]$vehicleManifest.vehicle_identifier -ne 'ford_escort_rs2000_1971') {
-    throw 'El manifiesto de dominios del Ford no cumple el contrato de unidades e identificador.'
+if ([int]$vehicleManifest.schema_version -lt 1 -or [string]$vehicleManifest.units -ne 'SI' -or [string]$vehicleManifest.vehicle_identifier -ne $vehicleConfiguration.Id) {
+    throw 'El manifiesto de dominios del vehiculo no cumple el contrato de unidades e identificador.'
 }
 $provenance = Get-Content -LiteralPath $provenancePath -Raw | ConvertFrom-Json
 $manifestHashProperty = $provenance.profile_json_sha256.PSObject.Properties['vehicle.json']
@@ -141,18 +154,18 @@ foreach ($domainProperty in $vehicleManifest.domains.PSObject.Properties) {
     }
 }
 
-$fordManifest = Get-Content -LiteralPath $fordManifestPath -Raw | ConvertFrom-Json
-if ([int]$fordManifest.contract_version -ne 1 -or [string]$fordManifest.vehicle_id -ne 'ford_escort_rs2000_1971') {
-    throw 'El manifest del Ford no cumple el contrato rally.'
+$assetManifest = Get-Content -LiteralPath $assetManifestPath -Raw | ConvertFrom-Json
+if ([int]$assetManifest.contract_version -ne 1 -or [string]$assetManifest.vehicle_id -ne $vehicleConfiguration.Id) {
+    throw 'El manifest del vehiculo no cumple el contrato rally.'
 }
-$fordDirectory = Split-Path -Parent $fordManifestPath
-Assert-ManifestArtifact $fordDirectory ([string]$fordManifest.chassis.path) ([string]$fordManifest.chassis.sha256) 'Chassis del Ford'
-foreach ($wheelProperty in $fordManifest.wheels.PSObject.Properties) {
-    Assert-ManifestArtifact $fordDirectory ([string]$wheelProperty.Value.path) ([string]$wheelProperty.Value.sha256) ("Rueda " + $wheelProperty.Name)
+$assetDirectory = Split-Path -Parent $assetManifestPath
+Assert-ManifestArtifact $assetDirectory ([string]$assetManifest.chassis.path) ([string]$assetManifest.chassis.sha256) 'Chassis del vehiculo'
+foreach ($wheelProperty in $assetManifest.wheels.PSObject.Properties) {
+    Assert-ManifestArtifact $assetDirectory ([string]$wheelProperty.Value.path) ([string]$wheelProperty.Value.sha256) ("Rueda " + $wheelProperty.Name)
 }
-Assert-ManifestArtifact $fordDirectory ([string]$fordManifest.collision.path) ([string]$fordManifest.collision.sha256) 'Colision del Ford'
+Assert-ManifestArtifact $assetDirectory ([string]$assetManifest.collision.path) ([string]$assetManifest.collision.sha256) 'Colision del vehiculo'
 
-if ($fordManifest.assembly -and $fordManifest.assembly.driver) {
+if ($assetManifest.assembly -and $assetManifest.assembly.driver) {
     $driverDirectory = Join-Path $gameRoot 'assets\rally\drivers'
     $driverManifest = Get-Content -LiteralPath (Join-Path $driverDirectory 'manifest.json') -Raw | ConvertFrom-Json
     foreach ($artifact in $driverManifest.artifacts.PSObject.Properties) {
@@ -168,10 +181,10 @@ $stageDirectory = Split-Path -Parent $stageManifestPath
 Assert-ManifestArtifact $stageDirectory ([string]$stageManifest.visual.path) ([string]$stageManifest.visual.sha256) 'Visual de Rusia Stage 1'
 Assert-ManifestArtifact $stageDirectory ([string]$stageManifest.collision.path) ([string]$stageManifest.collision.sha256) 'Colision de Rusia Stage 1'
 
-$vehicleSceneText = Get-Content -LiteralPath (Join-Path $gameRoot 'scenes\rally\ford_escort_rs2000_1971.tscn') -Raw
+$vehicleSceneText = Get-Content -LiteralPath (Join-Path $gameRoot ('scenes/rally/' + $vehicleConfiguration.Scene + '.tscn')) -Raw
 $vehicleScriptText = Get-Content -LiteralPath (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') -Raw
 if ($vehicleSceneText -match 'RayCast3D' -or $vehicleSceneText -match 'rally_escort_wheel.gd' -or $vehicleScriptText -notmatch 'extends RigidBody3D') {
-    throw 'La escena activa del Ford no cumple el contrato de un cuerpo Jolt y rayos administrados por GDScript.'
+    throw 'La escena activa del vehiculo no cumple el contrato de un cuerpo Jolt y rayos administrados por GDScript.'
 }
 if (-not $vehicleManifest.domains.suspension) {
     throw 'vehicle.json no resuelve el dominio de suspensión.'
@@ -208,9 +221,9 @@ $metadata = [ordered]@{
     scene = $rallyScene
     physics_engine = (Get-ProjectSetting $projectPath '3d/physics_engine')
     physics_ticks_per_second = (Get-ProjectSetting $projectPath 'common/physics_ticks_per_second')
-    vehicle_id = 'ford_escort_rs2000_1971'
+    vehicle_id = $vehicleConfiguration.Id
     track_id = 'russia_stage1'
-    ford_manifest_sha256 = (Get-FileHash -LiteralPath $fordManifestPath -Algorithm SHA256).Hash
+    asset_manifest_sha256 = (Get-FileHash -LiteralPath $assetManifestPath -Algorithm SHA256).Hash
     stage_manifest_sha256 = (Get-FileHash -LiteralPath $stageManifestPath -Algorithm SHA256).Hash
     vehicle_manifest_sha256 = (Get-FileHash -LiteralPath $vehicleProfilePath -Algorithm SHA256).Hash
     vehicle_profile_domains = $vehicleManifest.domains.PSObject.Properties.Count
@@ -222,7 +235,7 @@ $launcherLines = @(
     '========================',
     $metadataJson,
     '',
-    'Rally launcher validated the Ford domain profile, Russia Stage 1, GDScript physics modules, Jolt and input resources.',
+    'Rally launcher validated the selected vehicle domain profile, Russia Stage 1, GDScript physics modules, Jolt and input resources.',
     'The active vehicle uses no Rust vehicle-physics bridge and no Open Formula source was modified.'
 )
 Write-LauncherLog $launcherLogPath $launcherLines
@@ -239,11 +252,11 @@ $env:LOCALAPPDATA = (Resolve-Path -LiteralPath $runtimeLocalAppData).Path
 $importMarker = Join-Path $gameRoot '.godot\imported'
 $needsImport = -not (Test-Path -LiteralPath $importMarker -PathType Container)
 foreach ($artifact in @(
-    (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_chassis.glb'),
-    (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_front_left.glb'),
-    (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_front_right.glb'),
-    (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_rear_left.glb'),
-    (Join-Path $gameRoot 'assets\rally\ford_escort_rs2000_1971\ford_escort_rs2000_1971_wheel_rear_right.glb'),
+    (Join-Path $assetDirectory ([string]$assetManifest.chassis.path)),
+    (Join-Path $assetDirectory ([string]$assetManifest.wheels.front_left.path)),
+    (Join-Path $assetDirectory ([string]$assetManifest.wheels.front_right.path)),
+    (Join-Path $assetDirectory ([string]$assetManifest.wheels.rear_left.path)),
+    (Join-Path $assetDirectory ([string]$assetManifest.wheels.rear_right.path)),
     (Join-Path $gameRoot 'assets\rally\drivers\driver_animated.glb'),
     (Join-Path $gameRoot 'assets\rally\drivers\co_driver.glb'),
     (Join-Path $gameRoot 'assets\rally\russia_stage1\russia_stage1_visual.glb'),
@@ -253,7 +266,7 @@ foreach ($artifact in @(
         $needsImport = $true
     }
 }
-foreach ($audioFile in Get-ChildItem -LiteralPath (Join-Path $gameRoot 'sounds\banks\EscortRS1600') -Filter '*.wav' -File) {
+foreach ($audioFile in Get-ChildItem -LiteralPath (Join-Path $gameRoot ('sounds/banks/' + $vehicleConfiguration.SoundBank)) -Filter '*.wav' -File) {
     if (-not (Test-Path -LiteralPath ($audioFile.FullName + '.import') -PathType Leaf)) {
         $needsImport = $true
     }
@@ -268,19 +281,19 @@ if ($needsImport) {
 
 if ($Smoke) {
 	$acceptanceLog = Join-Path $logDirectory ("rally_gdscript_smoke_" + $runIdentifier + ".log")
-	Write-Host 'Comprobando controles, contactos y evolución térmica del Ford en el campo de pruebas...' -ForegroundColor Cyan
+	Write-Host 'Comprobando controles, contactos y evolución térmica del vehiculo en el campo de pruebas...' -ForegroundColor Cyan
     $previousErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-	$smokeOutput = & $godot --headless --path $gameRoot --log-file $acceptanceLog --quit-after 900 'res://scenes/rally/rally_proving_ground.tscn' -- --rally-smoke 2>&1
+	$smokeOutput = & $godot --headless --path $gameRoot --log-file $acceptanceLog --quit-after 900 $provingScene -- --rally-smoke 2>&1
     $acceptanceExitCode = $LASTEXITCODE
     $ErrorActionPreference = $previousErrorAction
 	$smokeOutput | Write-Host
 	$smokeLogText = if (Test-Path -LiteralPath $acceptanceLog) { Get-Content -LiteralPath $acceptanceLog -Raw } else { '' }
 	if ($acceptanceExitCode -ne 0 -or -not (($smokeOutput -join "`n") + $smokeLogText).Contains('RALLY_GDSCRIPT_SMOKE')) {
-		throw "La comprobación GDScript del Ford falló o no emitió evidencia. Log: $acceptanceLog"
+		throw "La comprobación GDScript del vehiculo falló o no emitió evidencia. Log: $acceptanceLog"
 	}
     $evidenceMatch = [regex]::Match(($smokeOutput -join "`n") + $smokeLogText, 'RALLY_GDSCRIPT_SMOKE (\{[^\r\n]+\})')
-    if (-not $evidenceMatch.Success -or -not ($evidenceMatch.Groups[1].Value | ConvertFrom-Json).passed -or (($smokeOutput -join "`n") -match 'SCRIPT ERROR|Parse Error')) {
+    if (-not $evidenceMatch.Success -or -not ($evidenceMatch.Groups[1].Value | ConvertFrom-Json).passed -or (($smokeOutput -join "`n") -match 'SCRIPT ERROR|Parse Error|(?m)^ERROR:')) {
         throw "Smoke contains errors or failed evidence: $acceptanceLog"
     }
 
@@ -309,14 +322,14 @@ if ($ExportWindows) {
 	$exportScript = Join-Path $PSScriptRoot 'stage_rally_windows_export.ps1'
     Assert-File $exportScript 'Script de staging del ejecutable rally'
     Write-Host 'Preparando proyecto de exportacion rally aislado (sin extension nativa F1)...' -ForegroundColor Cyan
-    & $exportScript -RepositoryRoot $repositoryRoot -GodotPath $godot
+    & $exportScript -RepositoryRoot $repositoryRoot -GodotPath $godot -Vehicle $Vehicle -MainScene $rallyScene
     if ($LASTEXITCODE -ne 0) {
         throw "La exportacion Windows rally fallo ($LASTEXITCODE)."
     }
     exit 0
 }
 
-Write-Host "Iniciando $rallyScene con Ford Escort RS2000 1971" -ForegroundColor Green
+Write-Host "Iniciando $rallyScene con $($vehicleConfiguration.Id)" -ForegroundColor Green
 $previousErrorAction = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 $runArguments = @('--path', $gameRoot, '--log-file', $godotLogPath)

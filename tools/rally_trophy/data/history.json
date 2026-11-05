@@ -1,0 +1,911 @@
+{
+  "schema": 1,
+  "policy": "FIA reference variants; missing facts are unknown. Historical facts never silently override measured model geometry or game-derived physics.",
+  "cars": {
+    "mini-cooper-s": {
+      "name": "Mini Cooper S",
+      "archive_numbers": [
+        1,
+        2
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/austin-morris-cooper-s-1275",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601034601/homologation_form_number_1300_group_t.pdf",
+          "homologation": "1300",
+          "group": "T",
+          "pdf_sha256": "e0467217fb789babafd0d41b37f7dbf97bc28a410db3689567a7b10070cccb06"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1275,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "FWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.035,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "track_front_options_m": {
+          "value": [
+            1.207,
+            1.242
+          ],
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "track_rear_options_m": {
+          "value": [
+            1.176,
+            1.203
+          ],
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "fuel_options_l": {
+          "value": [
+            25,
+            50
+          ],
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 620,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "suspension_front": {
+          "value": "independent rubber cones",
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "suspension_rear": {
+          "value": "independent rubber cones",
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "engine_layout": {
+          "value": "front transverse",
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "catalogue_power_bhp": {
+          "value": 78,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "catalogue_power_rpm": {
+          "value": 5800,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "Fiche 1964; catalogue output 78 bhp at 5800 rpm, not rally tune.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "lotus-cortina": {
+      "name": "Ford Lotus Cortina Mk1",
+      "archive_numbers": [
+        3,
+        4
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/ford-consul-cortina-lotus",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1679331601/homologation_form_number_1224_group_t.pdf",
+          "homologation": "1224",
+          "group": "T",
+          "pdf_sha256": "5fb1f90c0dd976d3303289ffa73b6a6aeb9d376b6a52ca799d70e786785b7962"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1558,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.499,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.31,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.275,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 36.35,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 751,
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "suspension_front": {
+          "value": "independent coil",
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        },
+        "suspension_rear": {
+          "value": "live axle with A-frame and coils",
+          "source": "fia",
+          "locator": "PDF page 6, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "Game lists 1598 cc; fiche specifies 1558 cc.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "volvo-amazon": {
+      "name": "Volvo 122 Amazon",
+      "archive_numbers": [
+        5,
+        6
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/volvo-122-s-2-portes",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601073001/homologation_form_number_5012_group_1.pdf",
+          "homologation": "5012",
+          "group": "1",
+          "pdf_sha256": "509e63f483f76cac9bf87b91f0810597386db083aebdc337136dbd7912dba77d"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1778,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.6,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.315,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.315,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 45,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 1013,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "suspension_front": {
+          "value": "independent coil",
+          "source": "fia",
+          "locator": "PDF page 7, base form",
+          "status": "documented"
+        },
+        "suspension_rear": {
+          "value": "rigid axle with coils",
+          "source": "fia",
+          "locator": "PDF page 7, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "1966 two-door 122 S reference; game labels 1962.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "saab-96-v4": {
+      "name": "Saab 96 V4",
+      "archive_numbers": [
+        7,
+        8
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/saab-saab-sedan-v4",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601068501/homologation_form_number_5125_group_1.pdf",
+          "homologation": "5125",
+          "group": "1",
+          "pdf_sha256": "e7cec7f1bced6d2c345de438e2c2b71e3ec4822d5dc163de7d875066feeb3c1e"
+        },
+        "fia_later_group2": {
+          "page": "https://historicdb.fia.com/car/saab-96-v4",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601082001/homologation_form_number_1608_group_2.pdf",
+          "homologation": "1608",
+          "group": "2",
+          "pdf_sha256": "47288b7de761cc5d122c87b3b97bde507004a7e53791437a3ab65a48f48a6479"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1498,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "FWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.498,
+          "source": "fia",
+          "locator": "PDF page 5, 1498 cc base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.22,
+          "source": "fia",
+          "locator": "PDF page 5, 1498 cc base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.22,
+          "source": "fia",
+          "locator": "PDF page 5, 1498 cc base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 40,
+          "source": "fia",
+          "locator": "PDF page 5, 1498 cc base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 812,
+          "source": "fia",
+          "locator": "PDF page 5, 1498 cc base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "Group 1 1498 cc homologation dated 1966, matching game displacement and 1967 model period. The separate 1971 Group 2 1698 cc fiche does not establish the game's tune.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "fiat-abarth-1000": {
+      "name": "Fiat 600 Abarth",
+      "archive_numbers": [
+        9,
+        10
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/abarth-fiat-abarth-1000-berlina-0",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601084701/homologation_form_number_1182_group_t.pdf",
+          "homologation": "1182",
+          "group": "T",
+          "pdf_sha256": "f035ae4e6b5e13788cf0be795098efc6c03335b039e5059d7971b0f9f7903ceb"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 982,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.0,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.15,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.16,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 27,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "engine_layout": {
+          "value": "rear",
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "FIA Fiat-Abarth 1000 Berlina reference, not generic Fiat 600 specs.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "escort-rs2000": {
+      "name": "Ford Escort RS2000",
+      "archive_numbers": [
+        11,
+        12
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/ford-escort-rs-2000",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601033401/homologation_form_number_5566_group_1.pdf",
+          "homologation": "5566",
+          "group": "1",
+          "pdf_sha256": "42dead57fd8e8fe87430a7b9a0f2de6d60495aff0ea75090783fadf54e5e2575"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1993,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.4,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.293,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.313,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 40.9,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 865,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "suspension_front": {
+          "value": "MacPherson strut and coil",
+          "source": "fia",
+          "locator": "PDF page 7, base form",
+          "status": "documented"
+        },
+        "suspension_rear": {
+          "value": "live axle with longitudinal leaf springs",
+          "source": "fia",
+          "locator": "PDF page 7, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "RS2000 Mk1 FIA fiche dated 1974; game labels 1971. Not an RS1600 engine reference.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "lancia-fulvia": {
+      "name": "Lancia Fulvia Coupé HF",
+      "archive_numbers": [
+        13,
+        14
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/lancia-fulvia-coup%C3%A9-rallye-16-hf",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1649336401/homologation_form_number_3006_group_3.pdf",
+          "homologation": "3006",
+          "group": "3",
+          "pdf_sha256": "5c2351cdba49cd57ae72736898178481ce1725684413e32174dc79ddfba807c3"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1584,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "FWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.33,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.39,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.35,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 38,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 780,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "suspension_front": {
+          "value": "independent wishbone and transverse leaf",
+          "source": "fia",
+          "locator": "PDF page 4, base form",
+          "status": "documented"
+        },
+        "suspension_rear": {
+          "value": "dead axle and longitudinal leaf springs",
+          "source": "fia",
+          "locator": "PDF page 4, base form",
+          "status": "documented"
+        },
+        "brake_front_disc_mm": {
+          "value": 257,
+          "source": "fia",
+          "locator": "PDF page 4, base form",
+          "status": "documented"
+        },
+        "brake_rear_disc_mm": {
+          "value": 257,
+          "source": "fia",
+          "locator": "PDF page 4, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "FIA 1.6 HF; game lists 1598 cc. Homologated mass excludes fuel and tools.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "opel-kadett": {
+      "name": "Opel Kadett Rallye",
+      "archive_numbers": [
+        15,
+        16
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/opel-kadett-b-1900",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601056201/homologation_form_number_5362_group_1.pdf",
+          "homologation": "5362",
+          "group": "1",
+          "pdf_sha256": "d80cf8f3fdb76826bb4fb0285173b54d1c27421b8ebffb11dd2f5a3994b1f8f2"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1897,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.416,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.252,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.282,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 40,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 810,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        },
+        "din_curb_mass_kg": {
+          "value": 850,
+          "source": "fia",
+          "locator": "PDF page 5, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "1970 Kadett B 1900 fiche; game labels 1969 and Car.ini header says 1100 SR. Identity requires review.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ],
+      "reference_scope": "identity_uncertain"
+    },
+    "alfa-giulia-gta": {
+      "name": "Alfa Romeo Giulia Sprint GTA",
+      "archive_numbers": [
+        17,
+        18
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/alfa-romeo-giulia-sprint-gta-0",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1606233601/homologation_form_number_1395_group_t.pdf",
+          "homologation": "1395",
+          "group": "T",
+          "pdf_sha256": "ca931a57f6a440126711038b0c3826fdc5f2cf47b2c4fd7c573236444621eab2"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1570,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.35,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.31,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 46,
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        },
+        "engine_layout": {
+          "value": "front",
+          "source": "fia",
+          "locator": "PDF page 3, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "FIA Group T GTA, not the alternative GT fiche or GTA Junior.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "alpine-a110": {
+      "name": "Alpine Renault A110 1600",
+      "archive_numbers": [
+        19,
+        20
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/alpine-renault-110-1600",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1759327201/homologation_form_number_3035_group_3.pdf",
+          "homologation": "3035",
+          "group": "3",
+          "pdf_sha256": "6579b371adb588010baf74c25b3e18efdfbaa543378fc50b9bb384d3d552c351"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 1565,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 4,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.1,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.353,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.337,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 30,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "mass_kg": {
+          "value": 685,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "1970 base FIA fiche; game lists 1596 cc. Later extensions change displacement. Mass excludes fuel and tools.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    },
+    "lancia-stratos": {
+      "name": "Lancia Stratos HF",
+      "archive_numbers": [
+        21,
+        22
+      ],
+      "sources": {
+        "fia": {
+          "page": "https://historicdb.fia.com/car/lancia-stratos-hf",
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1662976801/homologation_form_number_640_group_4.pdf",
+          "homologation": "640",
+          "group": "4",
+          "pdf_sha256": "283974e589d03b57e9a59fc5c16102e902076441b1673d14c7dbce3691749544"
+        }
+      },
+      "facts": {
+        "displacement_cc": {
+          "value": 2418,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "drive": {
+          "value": "RWD",
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "cylinders": {
+          "value": 6,
+          "source": "fia",
+          "locator": "FIA record",
+          "status": "documented"
+        },
+        "wheelbase_m": {
+          "value": 2.18,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_front_m": {
+          "value": 1.43,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "track_rear_m": {
+          "value": 1.46,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        },
+        "fuel_l": {
+          "value": 80,
+          "source": "fia",
+          "locator": "PDF page 2, base form",
+          "status": "documented"
+        }
+      },
+      "variant_note": "1974 Group 4 homologation; game labels 1972. Confirm period-specific tune before calibration.",
+      "review": [
+        "period rally mass and weight distribution",
+        "competition torque curve and gearing",
+        "spring and damper rates",
+        "differential setup"
+      ]
+    }
+  },
+  "mass_definition": "Base homologation figures, normally with operating fluids and spare, without fuel; confirm tools and equipment definitions in the cited form. DIN curb mass is separate."
+}

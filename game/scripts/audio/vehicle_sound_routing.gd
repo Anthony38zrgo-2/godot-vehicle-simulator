@@ -8,6 +8,7 @@ var config: Dictionary = {}
 # from the bank manifest, which is the sample source of truth for the bank.
 var space: Dictionary = {}
 var loops: Dictionary = {}
+var bus_prefix: String = "Rally:"
 
 func _init() -> void:
 	var file := FileAccess.open("res://data/rally/audio_mixer.json", FileAccess.READ)
@@ -16,6 +17,13 @@ func _init() -> void:
 		if loaded is Dictionary:
 			config = loaded
 	_load_bank_manifest(FORD_MANIFEST_PATH)
+
+
+func configure_bank(path: String, prefix: String) -> void:
+	space.clear()
+	loops.clear()
+	bus_prefix = prefix
+	_load_bank_manifest(path)
 
 func _load_bank_manifest(path: String) -> void:
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -51,7 +59,7 @@ func loop_for(key: String) -> Dictionary:
 
 func route(player: AudioStreamPlayer3D, key: String) -> void:
 	var sound := settings(key)
-	var bus := "Rally:" + key
+	var bus := bus_prefix + key
 	var index := AudioServer.get_bus_index(bus)
 	if index < 0:
 		index = AudioServer.bus_count

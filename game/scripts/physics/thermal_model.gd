@@ -28,6 +28,9 @@ var fuel_idle_kg_hour := 3.0
 var fuel_burned_litres: float = 0.0
 var ambient_temperature_c: float = 25.0
 var brake_thermal_config: Dictionary = {}
+# Chassis-mounted consumables: independent of the replaceable tire inventory.
+var brake_wear_fraction: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var brake_wear_config: Dictionary = {}
 var brake_disc_heat_capacity_j_k: Array[float] = []
 var brake_disc_area_m2: Array[float] = []
 var brake_disc_emissivity: Array[float] = []
@@ -74,6 +77,10 @@ func configure(domains: Dictionary) -> Dictionary:
 	fuel_remaining_litres = float(fuel.get("initial_kg", fuel.get("capacity_kg", 0.0))) / maxf(fuel_density_kg_litre, 0.000001)
 	var brakes: Dictionary = domains.get("brakes", {}).get("brakes", {})
 	brake_thermal_config = brakes.get("thermal", {}).duplicate(true)
+	if FileAccess.file_exists("res://data/brakes/rally_wear.json"):
+		var wear_doc: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/brakes/rally_wear.json"))
+		if wear_doc is Dictionary:
+			brake_wear_config = wear_doc
 	brake_disc_heat_capacity_j_k.clear()
 	brake_disc_area_m2.clear()
 	brake_disc_emissivity.clear()
@@ -162,9 +169,13 @@ func _apply_compound_to_configs() -> void:
 func reset_for_stage(domains: Dictionary) -> void:
 	var mounted_tires := tire_states.duplicate(true)
 	var remaining_fuel := fuel_remaining_litres
+	var previous_radiator_damage := radiator_damage
+	var previous_engine_damage := engine_damage
 	configure(domains)
-	radiator_damage = 0.0
-	engine_damage = 0.0
+	# Stage preparation resets temperatures, never repairs permanent damage.
+	radiator_damage = previous_radiator_damage
+	engine_damage = previous_engine_damage
+	_update_torque_derating()
 	overheat_exposure_s = 0.0
 	oil_pressure_bar = 0.0
 	oil_healthy_pressure_bar = 0.0
@@ -412,7 +423,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 		state.carcass_failure = carcass_failure
 		if carcass_failure >= 1.0:
 			state.rim_deformation = minf(1.0, float(state.get("rim_deformation", 0.0)) + dt * speed_factor * maxf(load_factor - 1.25, 0.0) * 0.2)
-	accumulate_tire_damage(state, friction_power_w, dt, compound)
+	accumulate_tire_damage(state, friction_power_w, dt, compound, local_water)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
 	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s)
@@ -423,6 +434,13 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	state.brake_convection_w_k = losses.convection_w_k
 	var next_disc_temperature := disc_temperature + (float(state.brake_heating_w) - cooling_w) / heat_capacity * dt
 	state.brake_disc_c = clampf(next_disc_temperature, ambient_temperature_c, 1200.0)
+	# Actual solver work, not pedal position: holding a stopped wheel causes no wear.
+	var hot_start := float(brake_wear_config.get("overheat_start_c", 550.0))
+	var hot_full := maxf(float(brake_wear_config.get("overheat_full_c", 800.0)), hot_start + 1.0)
+	var heat_severity := clampf((0.5 * (disc_temperature + float(state.brake_disc_c)) - hot_start) / (hot_full - hot_start), 0.0, 1.0)
+	var heat_multiplier := lerpf(1.0, maxf(float(brake_wear_config.get("maximum_heat_multiplier", 3.0)), 1.0), heat_severity)
+	var wear_energy := maxf(braking_power_w, 0.0) * dt
+	brake_wear_fraction[index] = clampf(brake_wear_fraction[index] + wear_energy * maxf(float(brake_wear_config.get("wear_per_j", 2.0e-8)), 0.0) * heat_multiplier, 0.0, 1.0)
 	tire_states[index] = state
 
 func advance_tire_pressure(index: int, dt: float) -> void:
@@ -436,12 +454,13 @@ func advance_tire_pressure(index: int, dt: float) -> void:
 	state.pressure_bar_gauge = (1.0 - pressure_loss) * clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
 
 
-func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: float, selected_compound: Dictionary = {}) -> void:
+func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: float, selected_compound: Dictionary = {}, water_mm: float = 0.0) -> void:
 	var compound := active_compound if selected_compound.is_empty() else selected_compound
 	dt = maxf(dt, 0.0) / maxf(float(compound_catalog.get("durability_life_scale", 1.0)), 0.01)
 	# Power * seconds is joules. The legacy key was misnamed but used /J.
 	var wear_rate := maxf(float(compound.get("wear_per_j", compound.get("wear_per_mj", 1.0e-9))), 0.0)
-	state.wear_fraction = clampf(float(state.get("wear_fraction", 0.0)) + maxf(friction_power_w, 0.0) * maxf(dt, 0.0) * wear_rate, 0.0, 1.0)
+	var abrasion_multiplier := lerpf(maxf(float(compound.get("dry_wear_multiplier", 1.0)), 0.0), maxf(float(compound.get("wet_wear_multiplier", 1.0)), 0.0), smoothstep(0.1, 1.0, water_mm))
+	state.wear_fraction = clampf(float(state.get("wear_fraction", 0.0)) + maxf(friction_power_w, 0.0) * maxf(dt, 0.0) * wear_rate * abrasion_multiplier, 0.0, 1.0)
 	var hottest := float(state.tread_c)
 	for temperature in state.get("tread_zones_c", []):
 		hottest = maxf(hottest, float(temperature))
@@ -509,6 +528,12 @@ func tire_grip_factor(index: int) -> float:
 	if float(state.get("carcass_failure", 0.0)) >= 1.0:
 		carcass_factor = 0.30
 	return thermal_factor * wear_factor * damage_factor * puncture_factor * carcass_factor
+
+
+func brake_wear_factor(index: int) -> float:
+	var loss := clampf(float(brake_wear_config.get("maximum_torque_loss", 0.65)), 0.0, 1.0)
+	var exponent := maxf(float(brake_wear_config.get("response_exponent", 1.5)), 0.1)
+	return 1.0 - loss * pow(brake_wear_fraction[index], exponent)
 
 
 func brake_fade_factor(index: int) -> float:
@@ -596,6 +621,8 @@ func get_tire_thermal_state_snapshot(index: int) -> Dictionary:
 		"wear_fraction": state.wear_fraction,
 		"thermal_damage_fraction": state.get("thermal_damage_fraction", 0.0),
 		"brake_disc_c": state.brake_disc_c,
+		"brake_wear_fraction": brake_wear_fraction[index],
+		"brake_wear_factor": brake_wear_factor(index),
 		"brake_heating_w": state.get("brake_heating_w", 0.0),
 		"brake_cooling_w": state.get("brake_cooling_w", 0.0),
 		"brake_convection_w_k": state.get("brake_convection_w_k", 0.0),

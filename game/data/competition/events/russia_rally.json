@@ -27,10 +27,10 @@
         "date": "2026-06-13",
         "starts": [
           "08:00",
-          "10:00",
-          "12:00",
-          "19:00",
-          "22:00"
+          "09:00",
+          "13:00",
+          "14:00",
+          "18:00"
         ],
         "stage_ids": [
           "russia_stage1",
@@ -45,10 +45,10 @@
         "date": "2026-06-14",
         "starts": [
           "08:00",
-          "10:00",
           "12:00",
-          "14:00",
-          "16:00"
+          "13:00",
+          "17:00",
+          "18:00"
         ],
         "stage_ids": [
           "russia_stage6",
@@ -63,18 +63,18 @@
       "mode": "single_day",
       "date": "2026-06-13",
       "starts": [
-        "08:00",
+        "06:00",
+        "07:00",
         "10:00",
-        "12:00",
+        "11:00",
         "14:00",
-        "16:00",
+        "15:00",
         "18:00",
-        "20:00",
+        "19:00",
         "22:00",
-        "00:00",
-        "02:00"
+        "23:00"
       ],
-      "note": "Stage 10 sale a las 02:00 del día siguiente; la UI debe mostrar el cambio de fecha."
+      "note": "Enlaces de 1 hora; ventanas de servicio cada dos especiales con 3 horas entre salidas."
     }
   },
   "service": {
@@ -82,7 +82,13 @@
       "russia_stage5",
       "russia_stage6"
     ],
-    "note": "Servicio limitado por rally_competition/simulation_balance (service_seconds * support). El reenganche no implica reparación total gratuita."
+    "note": "Servicio tras Stage 2, 4, 6 y 8. El descanso nocturno Stage 5 a 6 no incluye reparación. 30 minutos de trabajo sin penalización por ventana.",
+    "after_stage_ids": [
+      "russia_stage2",
+      "russia_stage4",
+      "russia_stage6",
+      "russia_stage8"
+    ]
   },
   "power_stage_id": "russia_stage10",
   "sunday_stage_ids": [
@@ -211,10 +217,36 @@
       "confirmation_required": true
     },
     {
-      "after_stage_id": "russia_stage5",
-      "before_stage_id": "russia_stage6",
+      "after_stage_id": "russia_stage2",
+      "before_stage_id": "russia_stage3",
       "initial_tab": "tires",
-      "confirmation_required": true
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
+    },
+    {
+      "after_stage_id": "russia_stage4",
+      "before_stage_id": "russia_stage5",
+      "initial_tab": "tires",
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
+    },
+    {
+      "after_stage_id": "russia_stage6",
+      "before_stage_id": "russia_stage7",
+      "initial_tab": "tires",
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
+    },
+    {
+      "after_stage_id": "russia_stage8",
+      "before_stage_id": "russia_stage9",
+      "initial_tab": "tires",
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "id": "rt-lotus-cortina-upgrade",
+  "archive": "car_4.bzf",
+  "historical_id": "lotus-cortina",
+  "display_name": "Ford Lotus Cortina Mk1 (RT upgrade)",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

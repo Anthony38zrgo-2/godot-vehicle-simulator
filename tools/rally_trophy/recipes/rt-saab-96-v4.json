@@ -1,0 +1,10 @@
+{
+  "id": "rt-saab-96-v4",
+  "archive": "car_7.bzf",
+  "historical_id": "saab-96-v4",
+  "display_name": "Saab 96 V4",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived",
+  "collision_source": "exterior"
+}

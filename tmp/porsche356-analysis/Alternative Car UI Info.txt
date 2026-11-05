@@ -1,0 +1,7 @@
+
+
+This alternative UI version has been made to add a suffix to the name of the car I made [ ie: "McLaren F1 (M)" ].
+
+So if you are planning to keep both versions of the car or if you are going to compare them side by side, you can distinguish them in the ingame car selection menu (and in the content manager).
+
+Just open the folder "ALTERNATIVE CAR UI" and drop the content in the relative car folder, overwriting the existing UI

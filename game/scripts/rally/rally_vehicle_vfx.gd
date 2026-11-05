@@ -340,8 +340,10 @@ func update_wheel(index: int, wetness: float) -> void:
 	wheel_previous_point[index] = point
 	wheel_has_previous_point[index] = true
 	var entered_grass := surface == "grass" and wheel_previous_surface[index] != "grass"
-	var wet := clampf(wetness, 0.0, 1.0)
-	var entered_water := wet >= 0.55 and not wheel_was_wet[index]
+	var wet := maxf(clampf(wetness, 0.0, 1.0), clampf(float(wheel_conditions(index).get("water_mm", 0.0)) / 4.0, 0.0, 1.0))
+	var conditions := wheel_conditions(index)
+	var in_water := float(conditions.get("puddle_depth_mm", 0.0)) >= 1.0 if conditions.has("puddle_depth_mm") else wet >= 0.55
+	var entered_water := in_water and not wheel_was_wet[index]
 	if wheel_cooldowns[index] > 0.0 and not entered_grass and not entered_water:
 		return
 
@@ -358,7 +360,7 @@ func update_wheel(index: int, wetness: float) -> void:
 		return
 
 	wheel_previous_surface[index] = surface
-	wheel_was_wet[index] = wet >= 0.55
+	wheel_was_wet[index] = in_water
 	var normal := sim.wheel_contact_normals[index].normalized()
 	var rearward := -corner_speed.slide(normal).normalized()
 	if rearward.is_zero_approx():

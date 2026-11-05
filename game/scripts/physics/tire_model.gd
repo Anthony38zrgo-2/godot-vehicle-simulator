@@ -58,11 +58,13 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
 	wheel_compounds.clear()
 	for i in 4:
 		wheel_compounds.append(active_compound.duplicate(true))
+		wheel_compounds[-1]["id"] = cid
 
 func set_wheel_compound(index: int, compound_id: String) -> void:
 	while wheel_compounds.size() < 4:
 		wheel_compounds.append(active_compound.duplicate(true))
 	wheel_compounds[index] = (compound_catalog.get("compounds", {}).get(compound_id, {}) as Dictionary).duplicate(true)
+	wheel_compounds[index]["id"] = compound_id
 	if index < axle_optimal_carcass_c.size():
 		axle_optimal_carcass_c[index] = float(wheel_compounds[index].get("carcass_optimum_c", 60.0))
 

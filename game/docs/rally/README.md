@@ -1,4 +1,11 @@
-# Ford Escort Rally: modelo GDScript
+# Rally: modelo GDScript
+
+El coche predeterminado de `scripts/run_rally.ps1` es el Lancia Fulvia 1.6 HF.
+Sus assets y dominios físicos están separados del Escort. Usa tracción delantera,
+cinco marchas y cámaras de persecución, capó e interior. El modelo actual procede de Rally Trophy `car_13.bzf`, con interior, daños
+visuales, ocupantes animados y banco propio `FulviaHF`.
+El Escort sigue disponible con `-Vehicle escort`, incluida su cámara interior.
+Ver [FULVIA_IMPORT.md](FULVIA_IMPORT.md) para procedencia, aproximaciones y validación.
 
 ## Ejecución
 
@@ -7,6 +14,7 @@ Desde la raíz del repositorio:
 ```powershell
 .\scripts\run_rally.ps1 -ProvingGround
 .\scripts\run_rally.ps1
+.\scripts\run_rally.ps1 -Vehicle escort
 ```
 
 El lanzador busca Godot junto al proyecto y en la carpeta `.tools/godot` de `Formula90s` vecina, además de `GODOT_BIN` y `PATH`. Para otra instalación se puede indicar `-GodotPath "C:\ruta\a\Godot.exe"`.

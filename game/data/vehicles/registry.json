@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "default": "fulvia",
+  "vehicles": {
+    "fulvia": {
+      "Id": "lancia_fulvia_1600_hf",
+      "Assets": "lancia_fulvia",
+      "Profile": "lancia-fulvia",
+      "Scene": "lancia_fulvia",
+      "Stage": "russia_stage1_lancia_fulvia",
+      "Proving": "rally_proving_ground_fulvia",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "FulviaHF",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Lancia Fulvia HF"
+    },
+    "escort": {
+      "Id": "ford_escort_rs2000_1971",
+      "Assets": "ford_escort_rs2000_1971",
+      "Profile": "ford-escort-rs2000",
+      "Scene": "ford_escort_rs2000_1971",
+      "Stage": "russia_stage1_ford_escort_rs2000",
+      "Proving": "rally_proving_ground",
+      "Provenance": "OPEN_FORMULA_PROVENANCE.json",
+      "SoundBank": "EscortRS1600",
+      "ValidateSoundHashes": false,
+      "DisplayName": "Ford Escort RS2000"
+    }
+  }
+}

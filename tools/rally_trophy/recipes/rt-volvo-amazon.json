@@ -1,0 +1,9 @@
+{
+  "id": "rt-volvo-amazon",
+  "archive": "car_5.bzf",
+  "historical_id": "volvo-amazon",
+  "display_name": "Volvo 122 Amazon",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

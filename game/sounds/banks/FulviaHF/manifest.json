@@ -1,0 +1,450 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "lancia_fulvia_1600_hf",
+  "source_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_13.bzf",
+  "source_archive_sha256": "51749065bfb14337db4893ecf9749e06dc8833edd5cdb2f085aabfeb6fc3eb38",
+  "generator": "tools\\audio\\rally_trophy_fulvia.py",
+  "source_settings_sha256": "daf69b28b3aadecf03e1a5077214067ff91510f73331273911b0516cbc16b55d",
+  "rpm_mapping": "Drive centres 2000/3000/5000 taken from Sounds.ini normalized RPM; idle 1100 and overlap ranges adapted to simulator profile. Not a measured recording-RPM analysis.",
+  "notes": [
+    "8 original engine/exhaust PCM files retained byte-for-byte",
+    "6 filtered coast loops and 3 enveloped lift events derived from native recordings",
+    "2 generic synthesized gearbox loops",
+    "No Escort engine or exhaust samples used"
+  ],
+  "samples": [
+    {
+      "file": "EE_2k5.wav",
+      "sha256": "e93b84df497bcda6b28c4fbbe405046f25d1d1c794ddd86a0d0218a53bf1b4aa",
+      "origin": "native_byte_identical",
+      "source_file": "EE_2k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.066575963718821,
+      "rms": 0.2297618359164135,
+      "gain": 0.5222799492412463,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_4k5.wav",
+      "sha256": "57b2e898f21aac8fc84a5786ca20c5925291acb2c86820b107468d1d868d71ee",
+      "origin": "native_byte_identical",
+      "source_file": "EE_4k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7763265306122449,
+      "rms": 0.3599483765155919,
+      "gain": 0.3333811397112995,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_7k5.wav",
+      "sha256": "cecb5b8bf98fe742fe203205c0f62075b3e756a93f0731fe1ed715cf73054bc7",
+      "origin": "native_byte_identical",
+      "source_file": "EE_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.906938775510204,
+      "rms": 0.5885934788243342,
+      "gain": 0.20387585713604892,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_Idle5.wav",
+      "sha256": "47b1bcd7e149ebac4ca19efd936f7dc86ea1e0e690baf8b4a0d88f0d613cde8c",
+      "origin": "native_byte_identical",
+      "source_file": "EE_Idle5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7705215419501135,
+      "rms": 0.22425895174512184,
+      "gain": 0.5350956965873283,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_2k5.wav",
+      "sha256": "877ccd5acdea6546f9d63779e3721e1fc1b7d197e5581c712b690c6db8f70e75",
+      "origin": "native_byte_identical",
+      "source_file": "EX_2k5.wav",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.626485260770975,
+      "rms": 0.2186983261853925,
+      "gain": 0.5487010444619267,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_4k5.wav",
+      "sha256": "59e54676bb3e1bd02c6b8a446f309210ff5986af15a56b137c8c980a01020472",
+      "origin": "native_byte_identical",
+      "source_file": "EX_4k5.wav",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.9317233560090703,
+      "rms": 0.34304459302994245,
+      "gain": 0.3498087491777661,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_7k5.wav",
+      "sha256": "d2845c1f3b78a517940836c0a9a628d10ed34e53cf16d7c42b866b6e01a45947",
+      "origin": "native_byte_identical",
+      "source_file": "EX_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6829931972789116,
+      "rms": 0.4033254118127932,
+      "gain": 0.2975265046173163,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_Idle1.wav",
+      "sha256": "f6692ee784f2822f6032924b5d56d4ca37042916ab98af826111b98958794469",
+      "origin": "native_byte_identical",
+      "source_file": "EX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9515192743764171,
+      "rms": 0.3815620718570728,
+      "gain": 0.31449666738613924,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_coast_2k5.wav",
+      "sha256": "18d215b88e37a5509c8716d5c7e7549844d19814f772848b9692545b49c5670f",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EE_2k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.066575963718821,
+      "rms": 0.20740816702831696,
+      "gain": 0.5785693095856571,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_coast_4k5.wav",
+      "sha256": "6ef9ba363af35b49cb474623885022d79dc5d7e8bfa762121330fe8337b0f2c1",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EE_4k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7763265306122449,
+      "rms": 0.28688131957034496,
+      "gain": 0.41829143905124605,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EE_coast_7k5.wav",
+      "sha256": "cdadee92724af29ca596f778e8348738c4c9d56c2e88b74ec6c2de742e3608d1",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EE_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.906938775510204,
+      "rms": 0.3468839938119002,
+      "gain": 0.34593697645522,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_coast_2k5.wav",
+      "sha256": "f192acc654dde78b198636128ea10c9ae95aaf4330197f6cadb90eea232248d0",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EX_2k5.wav",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.626485260770975,
+      "rms": 0.21719709940698187,
+      "gain": 0.5524935661094863,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_coast_4k5.wav",
+      "sha256": "7847162f2917bc91539c48344753a0740493f2b09a40d88d6417e8d7f59dbbc8",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EX_4k5.wav",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.9317233560090703,
+      "rms": 0.32884233963787834,
+      "gain": 0.3649165132815445,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "EX_coast_7k5.wav",
+      "sha256": "4d4c770a51f49255d85c3a80a556d9223f10af373f82aa67e85280b48e1314b5",
+      "origin": "derived_lowpass_coast_approximation",
+      "source_file": "EX_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6829931972789116,
+      "rms": 0.3605046536803906,
+      "gain": 0.3328667155192602,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "fulvia_whine_low.wav",
+      "sha256": "fe8fb71f0e8d583f79b59c7ba2c404eb5a4642bedc997dfbcea184e18b3b07b8",
+      "origin": "synthesized_generic_gearbox_approximation",
+      "source_file": "fulvia_whine_low.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "fulvia_whine_high.wav",
+      "sha256": "821ad27a9ad7980ad99e2b233ca9594763cd33f43d2cca20620be7be02ce42c3",
+      "origin": "synthesized_generic_gearbox_approximation",
+      "source_file": "fulvia_whine_high.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "fulvia_lift_1.wav",
+      "sha256": "c629c67150354ee408642f3db0b76e2cd1097f5330a5d01d7311bb21a7106df1",
+      "origin": "derived_exhaust_lift_approximation",
+      "source_file": "EX_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.17889155529380923,
+      "gain": 0.6707974549324786,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "fulvia_lift_2.wav",
+      "sha256": "d7a562a61a12c6c068fdaf79500515f7d8bdfddb08c0d6e7d33b3f94e92a08da",
+      "origin": "derived_exhaust_lift_approximation",
+      "source_file": "EX_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.1839273929323962,
+      "gain": 0.6524313648272437,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "fulvia_lift_3.wav",
+      "sha256": "090172ef7d1b85dcef4020e65be1d8503107a491bb242c2bf100bf5334d118f6",
+      "origin": "derived_exhaust_lift_approximation",
+      "source_file": "EX_7k5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.17603224404363518,
+      "gain": 0.681693292339409,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_Idle5.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.5350956965873283
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_2k5.wav",
+      "reference": 2000,
+      "lower": 700,
+      "upper": 4000,
+      "mode": "drive",
+      "gain": 0.5222799492412463
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_4k5.wav",
+      "reference": 3000,
+      "lower": 1800,
+      "upper": 6000,
+      "mode": "drive",
+      "gain": 0.3333811397112995
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_7k5.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 0.20387585713604892
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_Idle1.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.31449666738613924
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_2k5.wav",
+      "reference": 2000,
+      "lower": 700,
+      "upper": 4000,
+      "mode": "drive",
+      "gain": 0.5487010444619267
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_4k5.wav",
+      "reference": 3000,
+      "lower": 1800,
+      "upper": 6000,
+      "mode": "drive",
+      "gain": 0.3498087491777661
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_7k5.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 0.2975265046173163
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_coast_2k5.wav",
+      "reference": 2000,
+      "lower": 500,
+      "upper": 4000,
+      "mode": "coast",
+      "gain": 0.5785693095856571
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_coast_4k5.wav",
+      "reference": 3000,
+      "lower": 1800,
+      "upper": 6000,
+      "mode": "coast",
+      "gain": 0.41829143905124605
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_coast_7k5.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.34593697645522
+    }
+  ],
+  "coast_exhaust": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_coast_2k5.wav",
+      "reference": 2000,
+      "lower": 500,
+      "upper": 4000,
+      "mode": "coast",
+      "gain": 0.5524935661094863
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_coast_4k5.wav",
+      "reference": 3000,
+      "lower": 1800,
+      "upper": 6000,
+      "mode": "coast",
+      "gain": 0.3649165132815445
+    },
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_coast_7k5.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.3328667155192602
+    }
+  ],
+  "whine": [
+    "res://sounds/banks/FulviaHF/fulvia_whine_low.wav",
+    "res://sounds/banks/FulviaHF/fulvia_whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/FulviaHF/fulvia_lift_1.wav",
+    "res://sounds/banks/FulviaHF/fulvia_lift_2.wav",
+    "res://sounds/banks/FulviaHF/fulvia_lift_3.wav"
+  ]
+}

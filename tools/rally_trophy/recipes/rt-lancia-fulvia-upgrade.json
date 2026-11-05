@@ -1,0 +1,9 @@
+{
+  "id": "rt-lancia-fulvia-upgrade",
+  "archive": "car_14.bzf",
+  "historical_id": "lancia-fulvia",
+  "display_name": "Lancia Fulvia Coup\u00e9 HF (RT upgrade)",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

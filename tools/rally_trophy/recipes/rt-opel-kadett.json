@@ -1,0 +1,9 @@
+{
+  "id": "rt-opel-kadett",
+  "archive": "car_15.bzf",
+  "historical_id": "opel-kadett",
+  "display_name": "Opel Kadett Rallye",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

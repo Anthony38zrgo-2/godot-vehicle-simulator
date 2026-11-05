@@ -1,0 +1,15 @@
+{
+  "id": "rt-lancia-stratos-upgrade",
+  "archive": "car_22.bzf",
+  "historical_id": "lancia-stratos",
+  "display_name": "Lancia Stratos HF (RT upgrade)",
+  "engine_layout": "mid",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived",
+  "body_panels": [
+    "body"
+  ],
+  "interior": {
+    "require_seats": false
+  }
+}

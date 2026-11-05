@@ -321,6 +321,9 @@ func _draw_tires(rect: Rect2) -> void:
 
 		if float(wheel.get("brake_collision_loss", 0.0)) > 0.005:
 			_text(Rect2(x + 7, y + 16, 48, 11), "FRENO", 9, C_ROSE, true)
+		else:
+			var brake_remaining := 1.0 - clampf(float(wheel.get("brake_wear_fraction", 0.0)), 0.0, 1.0)
+			_text(Rect2(x + 7, y + 16, 48, 11), "F %d%%" % roundi(brake_remaining * 100.0), 9, C_ROSE if brake_remaining < 0.3 else C_DIM, true)
 		var tire := Rect2(x + 62, y + 18, 54, 36)
 		if float(wheel.get("leak_per_second", 0.0)) > 0.0:
 			var warning := "PINCHADO" if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA"

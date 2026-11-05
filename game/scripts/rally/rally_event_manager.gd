@@ -40,6 +40,8 @@ var draft_compound_id: String = "gravel_normal"
 var setup_values: Dictionary = {}
 var mounted_tire_condition: Array = []
 var tire_inventory_state: Dictionary = {}
+var vehicle_damage_state: Dictionary = {}
+var service_penalties_ms: Dictionary = {}
 var setup_confirmed: bool = false
 var windows_attended: Dictionary = {}
 var pending_window: Dictionary = {}
@@ -93,6 +95,8 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	setup_values = {}
 	mounted_tire_condition.clear()
 	tire_inventory_state.clear()
+	vehicle_damage_state.clear()
+	service_penalties_ms.clear()
 	# Compuesto inicial: borrador hasta Aceptar (no se consume ni se cronometra antes).
 	var requested_compound := str(choices.get("compound_id", choices.get("compound", "")))
 	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
@@ -287,6 +291,8 @@ func close_current_stage(player: Dictionary) -> Dictionary:
 	if closed_keys.has("closed:" + stage_id):
 		return {"already_closed": true, "stage_id": stage_id}
 	var reference_total = sim.stage_reference_total_ms()
+	player = player.duplicate(true)
+	player["penalty_ms"] = int(player.get("penalty_ms", 0)) + int(service_penalties_ms.get(stage_id, 0))
 	var rejoin_penalty: int = int(((event_doc.get("retirement_policy", {}) as Dictionary).get("rejoin_penalty_ms", 300000)))
 	var readout: Dictionary = sim.readout()
 	# Oficiales CPU bajo la misma política que el jugador.
@@ -335,7 +341,9 @@ func advance() -> bool:
 		_award_points_if_closed()
 		save()
 		return true
-	sim.apply_event_service()
+	# CPU repairs follow the same two-stage service cadence as the player.
+	if current_stage_id() in event_doc.get("service", {}).get("after_stage_ids", []):
+		sim.apply_event_service()
 	var carried = sim.rows.duplicate(true)
 	cursor += 1
 	var next_id := current_stage_id()
@@ -349,7 +357,7 @@ func advance() -> bool:
 	# El mismo calendario y reglas de compuesto para la CPU (otra semilla).
 	if sim.has_method("set_weather_context"):
 		sim.set_weather_context(weather_entry_for(next_id), rival_compounds.get(next_id, {}))
-	# El reenganche tras abandonar Stage 5 también pasa por el servicio.
+	# El servicio corresponde a las ventanas del itinerario, también tras un abandono.
 	_update_pending_window()
 	save()
 	return true
@@ -453,6 +461,8 @@ func save() -> bool:
 		"setup_values": setup_values,
 		"mounted_tire_condition": mounted_tire_condition,
 		"tire_inventory_state": tire_inventory_state,
+		"vehicle_damage_state": vehicle_damage_state,
+		"service_penalties_ms": service_penalties_ms,
 		"setup_confirmed": setup_confirmed,
 		"windows_attended": windows_attended,
 		"pending_window": pending_window,
@@ -515,6 +525,8 @@ func restore() -> bool:
 	setup_values = doc.get("setup_values", {})
 	mounted_tire_condition = doc.get("mounted_tire_condition", [])
 	tire_inventory_state = doc.get("tire_inventory_state", {})
+	vehicle_damage_state = doc.get("vehicle_damage_state", {})
+	service_penalties_ms = doc.get("service_penalties_ms", {})
 	setup_confirmed = bool(doc.get("setup_confirmed", false))
 	windows_attended = doc.get("windows_attended", {})
 	pending_window = doc.get("pending_window", {})
@@ -603,9 +615,16 @@ func _build_itinerary(choices: Dictionary) -> void:
 		var alt: Dictionary = doc_itin.get("single_day_alternative", {})
 		var starts: Array = alt.get("starts", [])
 		var date: String = str(alt.get("date", event_doc.get("base_date", "2026-06-13")))
+		var day_offset := 0
+		var previous_start := -1
 		for i in stage_order.size():
 			var start_str := str(starts[i]) if i < starts.size() else "08:00"
-			var day := date if i < 8 else _shift_date(date, 1)
+			var parts := start_str.split(":")
+			var start_minutes := int(parts[0]) * 60 + int(parts[1])
+			if previous_start >= 0 and start_minutes <= previous_start:
+				day_offset += 1
+			previous_start = start_minutes
+			var day := _shift_date(date, day_offset)
 			itinerary.append({"stage_id": stage_order[i], "date": day, "start": start_str, "day_label": "Único"})
 	else:
 		for day in (doc_itin.get("days", []) as Array):

@@ -1,0 +1,144 @@
+﻿{
+  "name": "Porsche 356 A 1600 Coupe",
+  "brand": "Porsche",
+  "description": "In 1948 the mid-engine, tubular chassis 356 prototype called &quot;No. 1&quot; was completed. This led to some debate as to the &quot;first&quot; Porsche automobile, but the 356 is considered by Porsche to be its first production model.&#39;<br><br>The 356 was created by Ferdinand &quot;Ferry&quot; Porsche (son of Ferdinand Porsche, founder of the German company), who founded the Austrian company with his sister, Louise. Like its cousin, the Volkswagen Beetle (which Ferdinand Porsche Sr. had designed), the 356 is a four-cylinder, air-cooled, rear-engine, rear-wheel drive car with unitized pan and body construction. The chassis was a completely new design as was the 356&#39;s body which was designed by Porsche employee Erwin Komenda, while certain mechanical components including the engine case and some suspension components were based on and initially sourced from Volkswagen.<br><br>Ferry Porsche described the thinking behind the development of the 356 in an interview with the editor of Panorama, the PCA magazine, in September 1972. &quot;….I had always driven very speedy cars. I had an Alfa Romeo, also a BMW and others. ….By the end of the war I had a Volkswagen Cabriolet with a supercharged engine and that was the basic idea. I saw that if you had enough power in a small car it is nicer to drive than if you have a big car which is also overpowered. And it is more fun. On this basic idea we started the first Porsche prototype. To make the car lighter, to have an engine with more horsepower…that was the first two seater that we built in Carinthia (Gm&#252;nd)&quot;.<br><br>The first 356 was road certified in Austria on June 8, 1948, and was entered in a race in Innsbruck where it won its class.[4] Porsche re-engineered and refined the car with a focus on performance. Fewer and fewer parts were shared between Volkswagen and Porsche as the 1950s progressed. <br><br>The 356 was built in four distinct series, the original (&quot;pre-A&quot;), followed by the 356 A, 356 B, and finally the 356 C. To distinguish among the major revisions of the model, 356s are generally classified into a few major groups. The 356 coup&#233;s and &quot;cabriolets&quot; (soft-tops) built through 1955 are readily identifiable by their split (1948 to 1952) or bent (centre-creased, 1953 to 1955) windscreens. In late 1955 the 356 A appeared, with a curved windshield. The A was the first road going Porsche to offer the Carrera four-cam engine as an option. In late 1959 the T5 356 B appeared; followed by the redesigned T6 series 356 B in 1962. The final version was the 356 C, little changed from the late T6 B cars but disc brakes replaced the drums.<br><br>In late 1955, with numerous small but significant changes, the 356 A was introduced. Its internal factory designation, &quot;Type 1&quot;, gave rise to its nickname &quot;T1&quot; among enthusiasts. In the US 1,200 early 356s had been badged as the &quot;Continental&quot; and then a further 156 from autumn 1955 to January 1956 as an even rarer T1 “European” variant after which it reverted to its numerical 356 designation. In early 1957 a second revision of the 356 A was produced, known as Type 2 (or T2). Production of the Speedster peaked at 1,171 cars in 1957 and then started to decline. The four-cam &quot;Carrera&quot; engine, initially available only in the spyder race cars, became an available option starting with the 356 A.<br><br>Within the last 25 years replicas of the 356 A have become very popular with companies like San Diego Replicas offering 356 Speedster and 550 spyder replicas.<br><br>As from its market launch, this type was available with five four-cylinder engines:<br>- 356 A 1300 with 44 hp <br>- 356 A 1300 Super with 60 hp <br>- 356 1600 with 60 hp <br>- 356 A 1600 Super with 75 hp <br>- 356 A 1500 GS Carrera with 100 hp",
+  "tags": ["Germany","Street","50's","rwd","Manual","Naturally Aspirated","Vintage Smallsport","Vintage","Lightweight"],
+  "class": "Smallsport",
+  "specs": {
+    "bhp": "60bhp",
+    "torque": "110Nm",
+    "weight": "850kg",
+    "topspeed": "177km/h",
+    "acceleration": "--s 0-100",
+    "pwratio": "14.17 kg/hp"
+  },
+  "torqueCurve": [
+    [
+      0.0,
+      67.3469387755102
+    ],
+    [
+      500.0,
+      80.8163265306122
+    ],
+    [
+      1000.0,
+      93.1632653061224
+    ],
+    [
+      1500.0,
+      98.7755102040816
+    ],
+    [
+      2000.0,
+      102.142857142857
+    ],
+    [
+      2500.0,
+      104.387755102041
+    ],
+    [
+      3000.0,
+      110.0
+    ],
+    [
+      3500.0,
+      105.510204081633
+    ],
+    [
+      4000.0,
+      104.387755102041
+    ],
+    [
+      4500.0,
+      102.142857142857
+    ],
+    [
+      5000.0,
+      97.6530612244898
+    ],
+    [
+      5500.0,
+      92.0408163265306
+    ],
+    [
+      5650.0,
+      88.0
+    ]
+  ],
+  "powerCurve": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      169.5,
+      1.44472629711752
+    ],
+    [
+      339.0,
+      3.07291849223947
+    ],
+    [
+      565.0,
+      5.51946119733925
+    ],
+    [
+      847.5,
+      8.97992960088692
+    ],
+    [
+      1000.0,
+      11.0421286031042
+    ],
+    [
+      2500.0,
+      30.9312638580931
+    ],
+    [
+      3000.0,
+      39.1130820399113
+    ],
+    [
+      3500.0,
+      43.7694013303769
+    ],
+    [
+      4000.0,
+      49.490022172949
+    ],
+    [
+      4500.0,
+      54.4789356984479
+    ],
+    [
+      4915.5,
+      57.3354383148559
+    ],
+    [
+      5000.0,
+      57.8713968957871
+    ],
+    [
+      5198.0,
+      58.7938749445676
+    ],
+    [
+      5367.5,
+      59.5007012195122
+    ],
+    [
+      5500.0,
+      60.0
+    ],
+    [
+      5650.0,
+      58.930376940133
+    ]
+  ],
+  "country": "Germany",
+  "author": "assettodrive.net",
+  "version": "1.13",
+  "url": "http://www.assettodrive.net",
+  "year": 1955
+}

@@ -1,0 +1,9 @@
+{
+  "id": "rt-lotus-cortina",
+  "archive": "car_3.bzf",
+  "historical_id": "lotus-cortina",
+  "display_name": "Ford Lotus Cortina Mk1",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

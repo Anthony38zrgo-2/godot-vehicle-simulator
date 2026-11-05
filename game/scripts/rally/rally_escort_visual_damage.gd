@@ -3,12 +3,14 @@ extends Node3D
 signal windshield_broken(local_normal: Vector3)
 
 const EXTERIOR_GLASS := preload("res://scripts/rally/rally_escort_exterior_glass.gdshader")
-const DAMAGE_MESHES := preload("res://assets/rally/ford_escort_rs2000_1971/damage/escort_damage.glb")
-const BROKEN_LIGHT := preload("res://assets/rally/ford_escort_rs2000_1971/damage/lights_damaged.png")
-const BROKEN_GLASS := preload("res://assets/rally/ford_escort_rs2000_1971/damage/windows_damaged.png")
-const BROKEN_GLASS_INSIDE := preload("res://assets/rally/ford_escort_rs2000_1971/damage/interior_windows_damaged.png")
+@export var damage_meshes: PackedScene = preload("res://assets/rally/ford_escort_rs2000_1971/damage/escort_damage.glb")
+@export var broken_light: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/lights_damaged.png")
+@export var broken_glass: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/windows_damaged.png")
+@export var broken_glass_inside: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/interior_windows_damaged.png")
 
 const MESH_DAMAGE := {"body": "body", "hood": "hood", "trunk": "trunk", "interior": "windshield"}
+
+@export var damage_parts: PackedStringArray = ["body", "hood", "trunk", "interior"]
 
 var headlights_requested := false
 
@@ -25,12 +27,15 @@ var _exterior_windows: Array[Dictionary] = []
 
 func _ready() -> void:
 	var chassis := get_node("../Chassis")
-	var variants := DAMAGE_MESHES.instantiate() as Node3D
+	var variants := damage_meshes.instantiate() as Node3D
 	add_child(variants)
-	for part in MESH_DAMAGE:
+	for part in damage_parts:
 		var source_name: String = "interior_hi" if part == "interior" else part
 		var clean := chassis.find_child(source_name, true, false) as MeshInstance3D
 		var crash := variants.find_child(part + "_crash_mesh", true, false) as MeshInstance3D
+		if clean == null or crash == null:
+			push_error("Missing damage mesh: " + part)
+			continue
 		crash.hide()
 		_healthy[part] = clean
 		_damaged[part] = crash
@@ -57,7 +62,7 @@ func _bind_part(part: String, clean: MeshInstance3D, crash: MeshInstance3D) -> v
 			material = underside
 		crash.set_surface_override_material(i, material)
 		if name == "windshield_interior":
-			_bind_surface("windshield", crash, i, material, BROKEN_GLASS_INSIDE)
+			_bind_surface("windshield", crash, i, material, broken_glass_inside)
 		elif part == "body":
 			_bind_exterior_surface(crash, i, material)
 
@@ -65,9 +70,9 @@ func _bind_part(part: String, clean: MeshInstance3D, crash: MeshInstance3D) -> v
 func _bind_exterior_surface(mesh: MeshInstance3D, surface: int, material: Material) -> void:
 	match material.resource_name:
 		"#E1 headlight_left":
-			_bind_surface("headlight_left", mesh, surface, material, BROKEN_LIGHT)
+			_bind_surface("headlight_left", mesh, surface, material, broken_light)
 		"#E1 headlight_right":
-			_bind_surface("headlight_right", mesh, surface, material, BROKEN_LIGHT)
+			_bind_surface("headlight_right", mesh, surface, material, broken_light)
 		"#E1 window front", "#E1 window leftside", "#E1 window rightside", "#E1 window back":
 			var glass := material as StandardMaterial3D
 			var binding := {
@@ -78,9 +83,9 @@ func _bind_exterior_surface(mesh: MeshInstance3D, surface: int, material: Materi
 			}
 			if material.resource_name == "#E1 window front":
 				var cracked := glass.duplicate() as StandardMaterial3D
-				cracked.albedo_texture = BROKEN_GLASS
+				cracked.albedo_texture = broken_glass
 				binding["cracked"] = cracked
-				binding["tinted_cracked"] = _make_tinted_glass(BROKEN_GLASS, true)
+				binding["tinted_cracked"] = _make_tinted_glass(broken_glass, true)
 			_exterior_windows.append(binding)
 
 
@@ -110,7 +115,7 @@ func _update_exterior_glass() -> void:
 func _bind_surface(part: String, mesh: MeshInstance3D, surface: int, original: StandardMaterial3D, texture: Texture2D) -> void:
 	var broken := original.duplicate() as StandardMaterial3D
 	broken.albedo_texture = texture
-	var binding := {"mesh": mesh, "surface": surface, "material": broken}
+	var binding := {"mesh": mesh, "surface": surface, "material": broken, "healthy_override": mesh.get_surface_override_material(surface)}
 	if _headlights.has(part):
 		broken.emission_enabled = false
 		var lit := original.duplicate() as StandardMaterial3D
@@ -163,7 +168,7 @@ func _process(_delta: float) -> void:
 		return
 	_dirty = false
 	_update_exterior_glass()
-	for part in MESH_DAMAGE:
+	for part in damage_parts:
 		var damaged := _broken.has(MESH_DAMAGE[part])
 		_healthy[part].visible = not damaged
 		_damaged[part].visible = damaged
@@ -178,3 +183,23 @@ func _process(_delta: float) -> void:
 		for binding in _surfaces.get(part, []):
 			var material: Material = binding.material if broken else (binding.lit if lit else binding.off)
 			binding.mesh.set_surface_override_material(binding.surface, material)
+
+
+func damage_snapshot() -> Dictionary:
+	return _broken.duplicate(true)
+
+
+func restore_damage(snapshot: Dictionary) -> void:
+	# Restore permanent breakage without replaying impact sounds or glass bursts.
+	for part in ["body", "hood", "trunk", "windshield", "headlight_left", "headlight_right"]:
+		if bool(snapshot.get(part, false)):
+			_broken[part] = true
+	_dirty = true
+
+
+func repair_parts(parts: Array[String]) -> void:
+	for part in parts:
+		_broken.erase(part)
+		for binding in _surfaces.get(part, []):
+			binding.mesh.set_surface_override_material(binding.surface, binding.get("healthy_override"))
+	_dirty = true

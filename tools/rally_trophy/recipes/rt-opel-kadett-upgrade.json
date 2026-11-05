@@ -1,0 +1,9 @@
+{
+  "id": "rt-opel-kadett-upgrade",
+  "archive": "car_16.bzf",
+  "historical_id": "opel-kadett",
+  "display_name": "Opel Kadett Rallye (RT upgrade)",
+  "engine_layout": "front",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

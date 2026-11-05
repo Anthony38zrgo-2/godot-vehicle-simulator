@@ -1,0 +1,9 @@
+{
+  "id": "rt-fiat-abarth-1000-upgrade",
+  "archive": "car_10.bzf",
+  "historical_id": "fiat-abarth-1000",
+  "display_name": "Fiat 600 Abarth (RT upgrade)",
+  "engine_layout": "rear",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

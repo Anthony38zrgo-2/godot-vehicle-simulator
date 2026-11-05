@@ -2,12 +2,21 @@
 param(
     [Parameter(Mandatory = $true)][string]$RepositoryRoot,
     [Parameter(Mandatory = $true)][string]$GodotPath,
+    [string]$Vehicle = "fulvia",
+    [string]$MainScene,
     [switch]$StageOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path -LiteralPath $RepositoryRoot).Path
 $gameRoot = Join-Path $repositoryRoot 'game'
+if (-not $MainScene) {
+    $registry = Get-Content -LiteralPath (Join-Path $gameRoot 'data/vehicles/registry.json') -Raw | ConvertFrom-Json
+    $selection = $registry.vehicles.PSObject.Properties[$Vehicle]
+    if (-not $selection) { throw "Coche desconocido: $Vehicle" }
+    $MainScene = 'res://scenes/rally/' + [string]$selection.Value.Stage + '.tscn'
+}
+
 $buildRoot = Join-Path $repositoryRoot 'build'
 $distributionRoot = Join-Path $repositoryRoot 'dist'
 $scratchRoot = Join-Path $repositoryRoot 'scratch'
@@ -50,11 +59,11 @@ Copy-SourceDirectory (Join-Path $gameRoot 'data\tires') (Join-Path $stageRoot 'd
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\pacenotes') (Join-Path $stageRoot 'sounds\banks\pacenotes')
 Copy-SourceDirectory (Join-Path $gameRoot 'scripts\physics') (Join-Path $stageRoot 'scripts\physics')
 Copy-SourceDirectory (Join-Path $gameRoot 'addons\godot-sqlite') (Join-Path $stageRoot 'addons\godot-sqlite')
-Copy-SourceDirectory (Join-Path $gameRoot 'data\vehicles\ford-escort-rs2000') (Join-Path $stageRoot 'data\vehicles\ford-escort-rs2000')
+Copy-SourceDirectory (Join-Path $gameRoot 'data\vehicles') (Join-Path $stageRoot 'data\vehicles')
 Copy-SourceDirectory (Join-Path $gameRoot 'data\rally') (Join-Path $stageRoot 'data\rally')
 Copy-SourceDirectory (Join-Path $gameRoot 'data\competition') (Join-Path $stageRoot 'data\competition')
 Copy-SourceDirectory (Join-Path $gameRoot 'data\input') (Join-Path $stageRoot 'data\input')
-Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\EscortRS1600') (Join-Path $stageRoot 'sounds\banks\EscortRS1600')
+Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks') (Join-Path $stageRoot 'sounds\banks')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\rally_start') (Join-Path $stageRoot 'sounds\rally_start')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\commons') (Join-Path $stageRoot 'sounds\banks\commons')
 Copy-SourceDirectory (Join-Path $gameRoot 'sounds\banks\surfaces') (Join-Path $stageRoot 'sounds\banks\surfaces')
@@ -83,8 +92,8 @@ Copy-Item -LiteralPath (Join-Path $gameRoot 'docs\rally\README.md') -Destination
 $projectConfiguration = @'
 [application]
 
-config/name="Formula 90s Rally - Ford Escort RS2000"
-run/main_scene="res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn"
+config/name="Formula 90s Rally"
+run/main_scene="__RALLY_MAIN_SCENE__"
 config/features=PackedStringArray("4.7")
 
 [filesystem]
@@ -116,7 +125,7 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/default_filters/anisotropic_filtering_level=4
 '@
-$projectConfiguration | Set-Content -LiteralPath (Join-Path $stageRoot 'project.godot') -Encoding ascii
+$projectConfiguration.Replace('__RALLY_MAIN_SCENE__', $MainScene) | Set-Content -LiteralPath (Join-Path $stageRoot 'project.godot') -Encoding ascii
 
 $exportPreset = @'
 [preset.0]
@@ -238,7 +247,8 @@ $manifest = [ordered]@{
     repository_root = $repositoryRoot
     branch = $branch
     head = $head
-    scene = 'res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn'
+    scene = $MainScene
+    vehicle = $Vehicle
     physics_engine = 'Jolt Physics'
     export_mode = 'debug'
     executable = $executablePath

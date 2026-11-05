@@ -37,20 +37,27 @@ func _ready() -> void:
 		push_error("Rally camera rig cannot resolve its vehicle")
 		set_process(false)
 		return
-	var eye := vehicle.get_node_or_null("Chassis/CockpitEye") as Node3D
-	if eye != null:
-		cockpit_eye_offset_metres = vehicle.to_local(eye.global_position)
+	_resolve_vehicle_eye()
 	snap_to_target()
 
 
 func set_vehicle(target_vehicle: RallyEscortVehicle) -> void:
 	vehicle = target_vehicle
 	vehicle_path = vehicle.get_path()
+	_resolve_vehicle_eye()
 	snap_to_target()
+
+
+func _resolve_vehicle_eye() -> void:
+	var eye := vehicle.get_node_or_null("Chassis/CockpitEye") as Node3D
+	if eye != null:
+		cockpit_eye_offset_metres = vehicle.to_local(eye.global_position)
 
 
 func toggle_camera_mode() -> void:
 	camera_mode = (camera_mode + 1) % Mode.size()
+	if vehicle != null and not vehicle.cockpit_camera_enabled and camera_mode == Mode.COCKPIT:
+		camera_mode = Mode.CHASE
 	snap_to_target()
 
 
@@ -77,6 +84,8 @@ func _process(delta: float) -> void:
 
 
 func _update_camera_transform() -> void:
+	if not vehicle.cockpit_camera_enabled and camera_mode == Mode.COCKPIT:
+		camera_mode = Mode.CHASE
 	if camera_mode == Mode.COCKPIT:
 		var view_basis := Basis(Vector3.UP, _look_yaw) * Basis(Vector3.RIGHT, deg_to_rad(cockpit_pitch_degrees))
 		global_transform = vehicle.global_transform * Transform3D(view_basis, cockpit_eye_offset_metres)

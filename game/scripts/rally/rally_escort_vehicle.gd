@@ -10,6 +10,7 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 @export var rally_profile_path: String = PROFILE_PATH
 @export var asset_manifest_path: String = ASSET_MANIFEST_PATH
 @export var rally_collision_path: String = COLLISION_PATH
+@export var cockpit_camera_enabled: bool = true
 @export_group("Dreamcast Vehicle Aesthetics")
 @export var dreamcast_car_visuals: bool = true
 @export var dc_enable_blob_shadow: bool = true
@@ -118,6 +119,9 @@ func _ready() -> void:
 		"domain_hashes": result.get("domain_hashes", {}),
 	}
 	apply_vehicle_properties()
+	# Lighter unsprung assemblies can require a faster world step than the Ford.
+	var world_tune: Dictionary = simulation.domains.get("coupled_world", {}).get("coupled_world", {})
+	Engine.physics_ticks_per_second = maxi(Engine.physics_ticks_per_second, int(world_tune.get("minimum_physics_ticks_per_second", 60)))
 	build_collision_shapes(collision_document)
 	bind_wheel_visuals()
 	if dreamcast_car_visuals:
@@ -844,6 +848,8 @@ func apply_tire_inventory() -> void:
 		for key in ["pressure_loss_fraction", "leak_per_second", "rim_deformation", "carcass_failure"]:
 			simulation.thermal_model.tire_states[i][key] = tire.state.get(key, 0.0)
 	var policy: Dictionary = RallyTireCompound.load_catalog().get("inventory", {})
+	policy = policy.duplicate(true)
+	policy.merge(simulation.domains.get("chassis", {}).get("physical_mass_inventory", {}).get("spare_policy", {}), true)
 	simulation.mass_model.set_carried_spares(tire_inventory.spares.size(), policy)
 	_applied_fuel_mass_kg = -1.0
 	_sync_mass_from_fuel()
@@ -1026,3 +1032,56 @@ func _create_blob_shadow() -> void:
 	_blob_shadow_decal.lower_fade = 0.35
 	_blob_shadow_decal.cull_mask = 1
 	add_child(_blob_shadow_decal)
+
+
+func damage_snapshot() -> Dictionary:
+	return {
+		"brake_wear_fraction": simulation.thermal_model.brake_wear_fraction.duplicate(),
+		"radiator": simulation.thermal_model.radiator_damage,
+		"engine": simulation.thermal_model.engine_damage,
+		"transmission": simulation.powertrain_model.transmission_damage,
+		"brake_collision_loss": simulation.brake_collision_loss.duplicate(),
+		"alignment_collision_damage": simulation.alignment_collision_damage.duplicate(),
+		"visual": _visual_damage.damage_snapshot() if _visual_damage != null else {},
+	}
+
+
+func restore_damage(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	var thermal = simulation.thermal_model
+	var saved_wear: Array = snapshot.get("brake_wear_fraction", [])
+	for i in mini(4, saved_wear.size()):
+		thermal.brake_wear_fraction[i] = clampf(float(saved_wear[i]), 0.0, 1.0)
+	thermal.radiator_damage = clampf(float(snapshot.get("radiator", thermal.radiator_damage)), 0.0, 1.0)
+	thermal.engine_damage = clampf(float(snapshot.get("engine", thermal.engine_damage)), 0.0, 1.0)
+	thermal.apply_damage(0.0, 0.0)
+	simulation.powertrain_model.transmission_damage = clampf(float(snapshot.get("transmission", simulation.powertrain_model.transmission_damage)), 0.0, 1.0)
+	for key in ["brake_collision_loss", "alignment_collision_damage"]:
+		var saved: Array = snapshot.get(key, [])
+		var target: Array = simulation.get(key)
+		for i in mini(4, saved.size()):
+			target[i] = clampf(float(saved[i]), 0.0, 1.0)
+	if _visual_damage != null:
+		_visual_damage.restore_damage(snapshot.get("visual", {}))
+
+
+func repair_service_components(parts: Array[String]) -> void:
+	var visual: Array[String] = []
+	for part in parts:
+		match part:
+			"engine": simulation.thermal_model.engine_damage = 0.0
+			"radiator": simulation.thermal_model.radiator_damage = 0.0
+			"transmission": simulation.powertrain_model.transmission_damage = 0.0
+			_:
+				if part.begins_with("brake_"):
+					var i := int(part.trim_prefix("brake_"))
+					simulation.brake_collision_loss[i] = 0.0
+					simulation.thermal_model.brake_wear_fraction[i] = 0.0
+				elif part.begins_with("alignment_"):
+					simulation.alignment_collision_damage[int(part.trim_prefix("alignment_"))] = 0.0
+				else:
+					visual.append(part)
+	simulation.thermal_model.apply_damage(0.0, 0.0)
+	if _visual_damage != null:
+		_visual_damage.repair_parts(visual)

@@ -66,6 +66,8 @@ var abs_enabled: bool = false
 var assistance_available: Dictionary = { }
 var underfloor_document: Dictionary = { }
 var weather_controller = null
+var puddle_system = null
+const PuddleModel = preload("res://scripts/rally/rally_puddles.gd")
 var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
@@ -177,11 +179,26 @@ func set_weather_controller(controller) -> void:
 
 
 func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
+	if index < 0 or index >= wheel_contact_points.size():
+		return {}
+	# Read-only query: step() owns the last completed wheel publication.
+	return _local_conditions_at_contact(surface_name, wheel_contact_points[index], wheel_loads[index] > 0.0)
+
+
+func _local_conditions_at_contact(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
+	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
+		"water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name,
+		"puddle_depth_mm": 0.0, "puddle_drag": 0.0}
 	if weather_controller != null and weather_controller.get("calendar_active"):
-		var st: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, wheel_contact_points[index])
-		last_local_conditions[index] = st.duplicate(true)
-		return st
-	return {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0, "water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name}
+		var weather: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, position) if loaded else weather_controller.current_blend
+		local.merge(weather, true)
+	if loaded and is_instance_valid(puddle_system):
+		var puddle: Dictionary = puddle_system.sample_contact(position)
+		local["puddle_depth_mm"] = float(puddle.depth_mm)
+		local["puddle_drag"] = float(puddle.drag)
+		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), float(puddle.depth_mm))
+	local["surface_name"] = surface_name
+	return local
 
 
 func surface_temperature_for_hud() -> Dictionary:
@@ -501,7 +518,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	)
 	var brake_demand := brake_torques.duplicate()
 	for i in 4:
-		brake_torques[i] *= 1.0 - brake_collision_loss[i]
+		brake_torques[i] *= (1.0 - brake_collision_loss[i]) * thermal_model.brake_wear_factor(i)
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var count := maxi(1, ceili(dt / maximum_substep_seconds))
 	var h := dt / float(count)
@@ -511,7 +528,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var substep_angular_vel := state.angular_velocity
 	var effective_chassis_mass := maxf(body.mass, 100.0)
 
-	var calendar_weather := weather_controller != null and bool(weather_controller.get("calendar_active"))
 	var tire_thermal_states: Array[Dictionary] = []
 	var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_cambers: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -526,23 +542,16 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 
 	for i in 4:
 		var contact: Dictionary = contacts[i]
-		var local: Dictionary = {}
 		var loaded_contact := bool(contact.get("hit", false)) and normal_loads[i] > 0.0
-		if calendar_weather:
-			if loaded_contact:
-				local = weather_controller.call("local_conditions_for_contact", str(contact["surface"]), contact["position"])
-			else:
-				local = weather_controller.current_blend
+		var local := _local_conditions_at_contact(str(contact.get("surface", "Unknown")), contact.get("position", wheel_contact_points[i]), loaded_contact)
 		thermal_water[i] = float(local.get("water_mm", 0.0))
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
 		thermal_ground[i] = float(local.get("ground_c", 30.0))
 		thermal_air[i] = float(local.get("air_c", thermal_model.ambient_temperature_c))
 		if loaded_contact:
-			last_local_conditions[i] = {
-				"water_mm": thermal_water[i], "snow_mm": thermal_snow[i],
-				"ground_c": thermal_ground[i], "air_c": thermal_air[i],
-				"surface_name": str(contact["surface"]),
-			}
+			last_local_conditions[i] = local.duplicate(true)
+		else:
+			last_local_conditions[i] = {}
 		thermal_model.advance_tire_pressure(i, dt)
 		tire_thermal_states.append(thermal_model.get_tire_thermal_state_snapshot(i))
 
@@ -634,7 +643,18 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
 			var mz := float(tire_result.get("aligning_torque_nm", 0.0))
 			var flat_drag := -clampf(longitudinal_speed, -1.0, 1.0) * normal_load * 0.045 * float(thermal_state.pressure_loss_fraction)
+			var puddle_response := PuddleModel.contact_response(
+				float(last_local_conditions[i].get("puddle_depth_mm", 0.0)),
+				point_velocity.slide(normal).length(),
+				str(tire_model.wheel_compounds[i].get("id", active_compound_id)) == "gravel_wet",
+				normal_load, wheel_widths[i], float(last_local_conditions[i].get("puddle_drag", 0.0)))
+			last_local_conditions[i]["puddle_support"] = float(puddle_response.support)
+			last_local_conditions[i]["puddle_drag_n"] = float(puddle_response.drag_n)
+			fx *= float(puddle_response.support)
+			fy *= float(puddle_response.support)
+			mz *= float(puddle_response.support)
 			var tire_force := forward * (fx + flat_drag) + right * fy
+			tire_force -= point_velocity.slide(normal).normalized() * float(puddle_response.drag_n)
 			var sat_torque := normal * mz
 
 			if normal_load > 0.0:
@@ -649,7 +669,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
-			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0))
+			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * float(puddle_response.support)
 			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * wheel_radii[i]
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
@@ -743,6 +763,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"spin_rad_s": wheel_spins[index],
 				"slip_ratio": wheel_slips[index].x,
 				"slip_angle_rad": wheel_slips[index].y,
+				"puddle_depth_mm": float(last_local_conditions[index].get("puddle_depth_mm", 0.0)),
+				"water_mm": float(last_local_conditions[index].get("water_mm", 0.0)),
+				"puddle_support": float(last_local_conditions[index].get("puddle_support", 1.0)),
+				"puddle_drag_n": float(last_local_conditions[index].get("puddle_drag_n", 0.0)),
 				"patch_pos": tire_model.states[index].patch_pos,
 				"patch_energy_j": tire_model.states[index].patch_energy_j,
 				"unsprung_mass_kg": mass_model.unsprung_mass_kg[index],

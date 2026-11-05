@@ -429,7 +429,11 @@ func solve_rotation(
 	var nominal_sync_time := maxf(shift_time_seconds + gear_inertia_shift_seconds, 0.02)
 	var sync_overtime := clampf(shift_phase_seconds / nominal_sync_time, 1.0, 4.0) if synchronizing else 1.0
 	var effective_sync_cap := synchronizer_capacity_nm * sync_overtime * h
-	var lsd_pair_inv := inverse[2] + inverse[3] + h * differential_slip_transition_threshold_rad_s * 0.35
+	# Select the driven pair for FWD; retain the existing rear LSD for RWD.
+	var diff_left := 0 if front_torque_split >= 1.0 else 2
+	var diff_right := diff_left + 1
+	var diff_share := front_torque_split if diff_left == 0 else 1.0 - front_torque_split
+	var lsd_pair_inv := inverse[diff_left] + inverse[diff_right] + h * differential_slip_transition_threshold_rad_s * 0.35
 
 	for iteration in 48:
 		if connected:
@@ -482,8 +486,8 @@ func solve_rotation(
 			if driveline_compliance_enabled
 			else (-ratio * gear_impulse / h if connected else 0.0)
 		)
-		var differential_input := transmitted * (1.0 - front_torque_split)
-		var rear_carrier := 0.5 * (spins[2] + spins[3])
+		var differential_input := transmitted * diff_share
+		var rear_carrier := 0.5 * (spins[diff_left] + spins[diff_right])
 		var driving_power := differential_input * (
 			rear_carrier if absf(rear_carrier) > 0.5 else signf(differential_input)
 		)
@@ -499,17 +503,17 @@ func solve_rotation(
 			friction_mu,
 			0.0,
 		) * 0.16
-		var diff_speed := spins[2] - spins[3]
+		var diff_speed := spins[diff_left] - spins[diff_right]
 		var slip_scale := clampf(
 			absf(diff_speed) / maxf(differential_slip_transition_threshold_rad_s, 0.05),
 			0.25,
 			1.0,
 		)
-		var lsd_capacity := (maxf(differential_preload_nm, 0.0) + ramp_capacity) * slip_scale * h if front_torque_split < 1.0 else 0.0
+		var lsd_capacity := (maxf(differential_preload_nm, 0.0) + ramp_capacity) * slip_scale * h
 		var next_lsd := clampf(lsd_impulse + diff_speed / lsd_pair_inv, -lsd_capacity, lsd_capacity)
 		var lsd_delta := next_lsd - lsd_impulse
-		spins[2] -= lsd_delta * inverse[2]
-		spins[3] += lsd_delta * inverse[3]
+		spins[diff_left] -= lsd_delta * inverse[diff_left]
+		spins[diff_right] += lsd_delta * inverse[diff_right]
 		lsd_impulse = next_lsd
 
 		for i in 4:

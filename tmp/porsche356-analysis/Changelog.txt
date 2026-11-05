@@ -1,0 +1,25 @@
+
+Porsche 356A 1600 Coupè (AD of Doom v1.0)
+
+
+01) Changes to the appearance:
+
+_Changed values of some car materials to make them more similar to kunos cars (mainly interiors interiors);
+_Added (kunos) license plates;
+_skin.ini (assigned brand, suits, helmets)
+_Added Porsche Brand to the box/crew stuff
+_New previews
+
+
+
+02) Changes to the data:
+
+_decreased ground clearance
+_Corrections to the Aero (I was surprised that I had to work on the aerodynamics on a car like this... if you know what I mean XD)
+
+
+
+03) Miscellaneus changes:
+
+_Ai Tweaked
+_setup menu changed (the options that can be managed have been uniformed to the kunos equivalent [ie: you can't expect to be able to modify the fast rebound on a road car)

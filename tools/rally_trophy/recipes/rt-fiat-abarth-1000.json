@@ -1,0 +1,9 @@
+{
+  "id": "rt-fiat-abarth-1000",
+  "archive": "car_9.bzf",
+  "historical_id": "fiat-abarth-1000",
+  "display_name": "Fiat 600 Abarth",
+  "engine_layout": "rear",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived"
+}

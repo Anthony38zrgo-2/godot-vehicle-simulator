@@ -118,7 +118,17 @@ const EXHAUST_VOLUME_ACCELERATION := 0.30
 const LOAD_TIMBRE_RPM_OFFSET := 380.0
 
 @export var vehicle_path: NodePath
+@export_file("*.json") var engine_bank_manifest_path: String = ""
 @export var impact_cooldown_seconds: float = 0.25
+
+var engine_definitions: Array = ENGINE_SAMPLE_DEFINITIONS
+var exhaust_definitions: Array = EXHAUST_SAMPLE_DEFINITIONS
+var coast_engine_definitions: Array = COAST_ENGINE_DEFINITIONS
+var coast_exhaust_definitions: Array = COAST_EXHAUST_DEFINITIONS
+var whine_paths: Array = [GEAR_WHINE_PATH, GEAR_WHINE_HIGH_PATH]
+var backfire_paths: Array = BACKFIRE_SAMPLE_PATHS
+var engine_position := Vector3(0.0, 0.55, -0.8)
+var exhaust_position := BACKFIRE_POSITION
 
 var vehicle: RallyEscortVehicle
 var engine_voices: Array[SampleVoice] = []
@@ -184,6 +194,24 @@ func _ready() -> void:
 		push_error("Rally audio cannot resolve its vehicle: " + str(vehicle_path))
 		set_physics_process(false)
 		return
+	if not engine_bank_manifest_path.is_empty():
+		var bank_file := FileAccess.open(engine_bank_manifest_path, FileAccess.READ)
+		var bank: Variant = JSON.parse_string(bank_file.get_as_text()) if bank_file != null else null
+		if not bank is Dictionary:
+			push_error("Invalid vehicle audio bank: " + engine_bank_manifest_path)
+			set_physics_process(false)
+			return
+		engine_definitions = bank.get("engine", [])
+		exhaust_definitions = bank.get("exhaust", [])
+		coast_engine_definitions = bank.get("coast_engine", [])
+		coast_exhaust_definitions = bank.get("coast_exhaust", [])
+		whine_paths = bank.get("whine", [])
+		backfire_paths = bank.get("backfire", [])
+		var ep: Array = bank.get("engine_position", [0.0, 0.55, -0.8])
+		var xp: Array = bank.get("exhaust_position", [0.0, 0.20, 1.50])
+		engine_position = Vector3(float(ep[0]), float(ep[1]), float(ep[2]))
+		exhaust_position = Vector3(float(xp[0]), float(xp[1]), float(xp[2]))
+		routing.configure_bank(engine_bank_manifest_path, "Rally:" + str(bank.get("vehicle_id", "custom")) + ":")
 	var level_file := FileAccess.open("res://data/rally/audio_sample_levels.json", FileAccess.READ)
 	if level_file != null:
 		var parsed: Variant = JSON.parse_string(level_file.get_as_text())
@@ -191,9 +219,9 @@ func _ready() -> void:
 			sample_levels = parsed.get("samples", { })
 
 	build_sample_layer(
-		ENGINE_SAMPLE_DEFINITIONS,
+		engine_definitions,
 		engine_voices,
-		Vector3(0.0, 0.55, -0.8),
+		engine_position,
 		4.5,
 		400.0,
 		ENGINE_VOLUME_BASE,
@@ -201,9 +229,9 @@ func _ready() -> void:
 		false,
 	)
 	build_sample_layer(
-		EXHAUST_SAMPLE_DEFINITIONS,
+		exhaust_definitions,
 		exhaust_voices,
-		Vector3(0.0, 0.20, 1.50),
+		exhaust_position,
 		6.0,
 		1030.0,
 		EXHAUST_VOLUME_BASE,
@@ -253,7 +281,7 @@ func build_sample_layer(
 		voice.lower_rpm = float(definition["lower"])
 		voice.upper_rpm = float(definition["upper"])
 		voice.is_exhaust = is_exhaust
-		voice.level_gain = float(sample_levels.get(path_str.get_file(), { }).get("gain", 1.0))
+		voice.level_gain = float(definition.get("gain", sample_levels.get(path_str.get_file(), { }).get("gain", 1.0)))
 		voice.base_gain = base_gain
 		voice.acceleration_gain = acceleration_gain
 		voices.append(voice)
@@ -780,8 +808,8 @@ func build_auxiliary_audio() -> void:
 	limiter_player = build_limiter_player()
 	build_event_voice_pool(
 		backfire_players,
-		BACKFIRE_SAMPLE_PATHS,
-		BACKFIRE_POSITION,
+		backfire_paths,
+		exhaust_position,
 		-10.0,
 		8.0,
 		160.0,
@@ -795,10 +823,9 @@ func build_auxiliary_audio() -> void:
 
 # Una sola voz de transmisión, modulada por velocidad de eje y par.
 func build_whine_voices() -> void:
-	var defs := [
-		[GEAR_WHINE_PATH, SHIFT_EVENT_POSITION],
-		[GEAR_WHINE_HIGH_PATH, SHIFT_EVENT_POSITION],
-	]
+	var defs: Array = []
+	for path in whine_paths:
+		defs.append([path, SHIFT_EVENT_POSITION])
 	for entry in defs:
 		var stream := load_looping_stream(str(entry[0]))
 		if stream == null:
@@ -819,9 +846,9 @@ func build_whine_voices() -> void:
 func update_whine_audio(smoothing: float) -> void:
 	if whine_players.is_empty():
 		return
-	var shaft := absf(
-		(vehicle.simulation.wheel_spins[2] + vehicle.simulation.wheel_spins[3]) * 0.5
-	)
+	var split := vehicle.simulation.powertrain_model.front_torque_split
+	var spins := vehicle.simulation.wheel_spins
+	var shaft := absf(0.5 * (split * (spins[0] + spins[1]) + (1.0 - split) * (spins[2] + spins[3])))
 	# La caja de dientes rectos silba cuando está acoplada bajo par (aceleración o retención)
 	# y cae a un leve arrastre inercial cuando se pisa el embrague (clutch_open == true)
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
@@ -838,8 +865,8 @@ func update_whine_audio(smoothing: float) -> void:
 
 # Five RPM layers for closed-throttle engine and exhaust, replacing CMR2 retention.
 func build_retention_voices() -> void:
-	build_sample_layer(COAST_ENGINE_DEFINITIONS, coast_engine_voices, Vector3(0.0, 0.55, -0.8), 4.5, 400.0, ENGINE_VOLUME_BASE, ENGINE_VOLUME_ACCELERATION, false)
-	build_sample_layer(COAST_EXHAUST_DEFINITIONS, coast_exhaust_voices, BACKFIRE_POSITION, 6.0, 1030.0, EXHAUST_VOLUME_BASE, EXHAUST_VOLUME_ACCELERATION, true)
+	build_sample_layer(coast_engine_definitions, coast_engine_voices, engine_position, 4.5, 400.0, ENGINE_VOLUME_BASE, ENGINE_VOLUME_ACCELERATION, false)
+	build_sample_layer(coast_exhaust_definitions, coast_exhaust_voices, exhaust_position, 6.0, 1030.0, EXHAUST_VOLUME_BASE, EXHAUST_VOLUME_ACCELERATION, true)
 	play_layer(coast_engine_voices)
 	play_layer(coast_exhaust_voices)
 
