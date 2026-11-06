@@ -1,0 +1,130 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-porsche-356a",
+  "source": {
+    "source_blend": "Porsche_356A_Carrera_GT_Ruby_Red.blend",
+    "credits": "Ensyuya (Mitsunari Ishii) & Patrice Cote"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "be86f9edb360d0d07274d6e68f50195863618ea9a654239b1daeb84f04786759",
+    "size_bytes": 18799136
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "a52dffcbd8f419d880ed909342b12b6c7d241c240143fe89f9c8388655426b8b",
+      "size_bytes": 1609272
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "56b398f4b5599be199d9d96a78fa3fddf455d6dbde4c802b0b131e1d7a0f39d7",
+      "size_bytes": 1607308
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "6066e984b7878e2c211fdf81ff1e2f71db788ea0ae9ec7ffb947b7ad9bb66baa",
+      "size_bytes": 1619536
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "e8c1b90649ab129fb11eaac5b57c4830793e1e86fb84414a0beec79adac768b9",
+      "size_bytes": 1619696
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.6517511606216431,
+        "y": 0.3124670684337616,
+        "z": -1.1346510648727417
+      },
+      "radius_metres": 0.3027938916347921,
+      "width_metres": 0.16075795888900757
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.653923511505127,
+        "y": 0.31253108382225037,
+        "z": -1.134637713432312
+      },
+      "radius_metres": 0.3027938902378082,
+      "width_metres": 0.15968376398086548
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6275358200073242,
+        "y": 0.31076017022132874,
+        "z": 0.9458982944488525
+      },
+      "radius_metres": 0.3027938916347921,
+      "width_metres": 0.1595483422279358
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.6304113864898682,
+        "y": 0.31347373127937317,
+        "z": 0.9460129737854004
+      },
+      "radius_metres": 0.3027938902378082,
+      "width_metres": 0.15956705808639526
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.0805493593215942,
+    "front_axle_z": -1.1346510648727417,
+    "rear_axle_z": 0.9458982944488525,
+    "front_track": 1.30567467212677,
+    "rear_track": 1.2579472064971924
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "1d1891997b3cdac8b74850b425f2df67aa5b0cf81d1debfaec11821429bf992c"
+  },
+  "visual_damage": {
+    "files": {
+      "damage/damage.glb": {
+        "sha256": "5002ce249323609731b86da5c3b4c23300bdb6c51779a77573e2522bd7881f76"
+      },
+      "damage/windows_damaged.png": {
+        "sha256": "0d41ddd3f4b6e6e4b6641ac6b7f9a7a9463a9c9045c70aa69123b0f9405fec7f"
+      },
+      "damage/interior_windows_damaged.png": {
+        "sha256": "cf2da6b012a155befa9163c35d2925ca10cc60a56f9e83f1eaa98c0e4221b21f"
+      },
+      "damage/lights_damaged.png": {
+        "sha256": "25e7a53ccee759f25569267448ab413f9ba19d41b5e50e2433ebf380d6b0a6d4"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.8148021101951599,
+      -0.053322382271289825,
+      -1.9312571287155151
+    ],
+    "max_godot": [
+      0.8127442002296448,
+      1.3063124418258667,
+      1.9012703895568848
+    ]
+  },
+  "measurement": {
+    "geometry_policy": "native",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.0805493593215942
+  },
+  "capabilities": {
+    "cockpit": true,
+    "native_arm_poses": 19,
+    "seats": 2,
+    "damage_variants": 4
+  },
+  "warnings": []
+}

@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-porsche-356a",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Porsche 356A 1600GS Carrera GT",
+    "sources": {
+      "factory": {
+        "model": "Porsche 356A 1600GS Carrera GT Coupe",
+        "engine": "Type 692/3 Four-Cam Fuhrmann 1587cc",
+        "carburetion": "Twin dual-throat Solex 44 PII-4",
+        "compression": "9.8:1",
+        "power_hp": 141,
+        "power_rpm": 6500
+      },
+      "dyno_s1": {
+        "source": "Willhoit Auto Restoration / SCCA Carrera GT S1 track tune",
+        "engine": "Type 692/3A Four-Cam bored to 1755cc",
+        "power_bhp": 151,
+        "torque_nm": 168,
+        "rev_limit": 7850,
+        "weight_kg": 790
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1587,
+        "status": "documented"
+      },
+      "drive": {
+        "value": "RWD",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.1,
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.306,
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.272,
+        "status": "documented"
+      },
+      "engine_layout": {
+        "value": "rear",
+        "status": "documented"
+      },
+      "gearbox": {
+        "value": "Porsche Type 716 4-speed manual",
+        "status": "documented"
+      }
+    }
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "7c2f6c735ca98eedc384752491a08c34b8e06defd7c795972f93ed555fac2ec3",
+    "chassis.json": "484ba50aabea960f916757dda7434e1bbe6f8d9f5424d31ff03a3163617f95e0",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "22f4dc50b8768473b7f79908c46b02664e73f1a30e55cf205ae940e79ec209ce",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "48992afe8fc033691f9078bf59887133efae39e01335efef1223aa68c588ad06",
+    "powertrain.json": "17471a88e32695e0e0fe7cc2a14a318cfe9adab13bee0e46671a3f1b81f0c1cb",
+    "steering.json": "d56e8c9fb7164b2be823791dc6f582a23b7d2ce967fab9ca959c9b51716a47bc",
+    "suspension.json": "da5582c6e30fa27307831cd0eda0b4c24d4d075b9736038f7d11328593804f9a",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "160a667cf1049fabb59c60608a2454bde2f009e5afc7a0aaba2283f6a8cbc1f8",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "27715e04ea30e31f0290e62fabc8555c64672a18be39a1352ce02eccd6bbfdd1"
+  }
+}

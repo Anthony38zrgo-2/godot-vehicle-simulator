@@ -51,9 +51,11 @@ func _bind_part(part: String, clean: MeshInstance3D, crash: MeshInstance3D) -> v
 		if part == "body":
 			_bind_exterior_surface(clean, i, material)
 	for i in crash.mesh.get_surface_count():
-		var name := crash.mesh.surface_get_material(i).resource_name.trim_suffix(".001")
+		var material_name := crash.mesh.surface_get_material(i).resource_name
+		var name := material_name.trim_suffix(".001")
 		var source_name := "windows" if name == "windshield_interior" else name
-		var material: Material = materials.get(source_name)
+		var exact_name := "windows" if name == "windshield_interior" else material_name
+		var material: Material = materials.get(exact_name, materials.get(source_name))
 		assert(material != null, "Missing original Escort material: " + source_name)
 		if part == "hood" and name == "#E1 body":
 			# The grey underside can protrude through the paint after deformation.
