@@ -56,11 +56,14 @@ const GEAR_WHINE_PATH := "res://sounds/banks/EscortRS1600/whinelo.wav"
 const GEAR_WHINE_HIGH_PATH := "res://sounds/banks/EscortRS1600/whinehi.wav"
 # CMR4 lift-off events; not claimed to be isolated combustion detonations.
 const BACKFIRE_SAMPLE_PATHS := [
-	"res://sounds/banks/EscortRS1600/loadoff1.wav",
-	"res://sounds/banks/EscortRS1600/loadoff2.wav",
-	"res://sounds/banks/EscortRS1600/loadoff3.wav",
-	"res://sounds/banks/EscortRS1600/loadoff4.wav",
+	"res://sounds/banks/commons/backfire_ext_1.wav",
+	"res://sounds/banks/commons/backfire_ext_2.wav",
+	"res://sounds/banks/commons/backfire_ext_3.wav",
+	"res://sounds/banks/commons/backfire_ext_4.wav",
 ]
+const BACKFIRE_CABIN_SAMPLE_PATH := "res://sounds/banks/commons/backfire_5.wav"
+const BACKFIRE_CABIN_POSITION := Vector3(0.0, 0.50, 0.20)
+const BACKFIRE_CABIN_VOLUME_DB := -6.0
 # Probabilidad de pop al soltar, por marcha (CMR2: mas probable en cortas).
 const BACKFIRE_GEAR_PROB := [0.5, 0.9, 0.65, 0.4, 0.2]
 const BACKFIRE_VOLUME_DB := -10.0
@@ -74,6 +77,10 @@ const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
 const LIMITER_GAIN := 0.225
 const SURFACE_GAIN := 0.45
+const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
+const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
+const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
+const ENGINE_GAIN_BOOST := 3.1622776601683795 # +10.0 dB (db_to_linear(10.0), boosted by additional +5.0 dB)
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
 const VIEW_ENGINE_GAIN := [1.0, 0.6]
@@ -100,7 +107,7 @@ const IMPACT_LAND_PATHS := [
 	"res://sounds/banks/commons/impact_land_2.wav",
 	"res://sounds/banks/commons/impact_land_3.wav",
 ]
-const LAND_VOLUME_DB := [-14.0, -11.0, -8.0]
+const LAND_VOLUME_DB := [-24.0, -21.0, -18.0]
 const LAND_MIN_MS := 2.5
 const LAND_MID_MS := 4.0
 const LAND_HIGH_MS := 7.0
@@ -127,6 +134,7 @@ var coast_engine_definitions: Array = COAST_ENGINE_DEFINITIONS
 var coast_exhaust_definitions: Array = COAST_EXHAUST_DEFINITIONS
 var whine_paths: Array = [GEAR_WHINE_PATH, GEAR_WHINE_HIGH_PATH]
 var backfire_paths: Array = BACKFIRE_SAMPLE_PATHS
+var backfire_cabin_path: String = BACKFIRE_CABIN_SAMPLE_PATH
 var engine_position := Vector3(0.0, 0.55, -0.8)
 var exhaust_position := BACKFIRE_POSITION
 
@@ -158,6 +166,7 @@ var onboard_downshift_players: Array[AudioStreamPlayer3D] = []
 var extra_upshift_players: Array[AudioStreamPlayer3D] = []
 var extra_downshift_players: Array[AudioStreamPlayer3D] = []
 var backfire_players: Array[AudioStreamPlayer3D] = []
+var backfire_cabin_players: Array[AudioStreamPlayer3D] = []
 var upshift_cooldown: float = 0.0
 var downshift_cooldown: float = 0.0
 var backfire_event_cooldown: float = 0.0
@@ -206,7 +215,16 @@ func _ready() -> void:
 		coast_engine_definitions = bank.get("coast_engine", [])
 		coast_exhaust_definitions = bank.get("coast_exhaust", [])
 		whine_paths = bank.get("whine", [])
-		backfire_paths = bank.get("backfire", [])
+		backfire_paths = bank.get("backfire", BACKFIRE_SAMPLE_PATHS)
+		if backfire_paths.is_empty():
+			backfire_paths = BACKFIRE_SAMPLE_PATHS
+		var cabin_cfg: Variant = bank.get("backfire_interior", [BACKFIRE_CABIN_SAMPLE_PATH])
+		if cabin_cfg is Array and not cabin_cfg.is_empty():
+			backfire_cabin_path = str(cabin_cfg[0])
+		elif cabin_cfg is String and not cabin_cfg.is_empty():
+			backfire_cabin_path = str(cabin_cfg)
+		else:
+			backfire_cabin_path = BACKFIRE_CABIN_SAMPLE_PATH
 		var ep: Array = bank.get("engine_position", [0.0, 0.55, -0.8])
 		var xp: Array = bank.get("exhaust_position", [0.0, 0.20, 1.50])
 		engine_position = Vector3(float(ep[0]), float(ep[1]), float(ep[2]))
@@ -472,7 +490,7 @@ func _physics_process(delta: float) -> void:
 	update_wheel_damage_audio(packet.get("wheels", []), delta)
 
 	if scrape_player != null:
-		var gain := 0.62 * clampf(
+		var gain := 0.62 * SCRAPE_GAIN_SCALE * clampf(
 			float(vehicle.body_contact_audio.get("scrape_power_w", 0.0)) / 15000.0,
 			0.0,
 			1.0,
@@ -514,14 +532,14 @@ func update_cockpit_audio(delta: float) -> void:
 		if str(player.bus).begins_with("Rally:surface_"):
 			if not cockpit_surface_reverbs.has(player.bus):
 				var reverb := AudioEffectReverb.new()
-				reverb.room_size = 0.35
-				reverb.damping = 0.6
+				reverb.room_size = 0.15
+				reverb.damping = 0.85
 				reverb.dry = 1.0
 				reverb.wet = 0.0
 				AudioServer.add_bus_effect(bus, reverb)
 				cockpit_surface_reverbs[player.bus] = reverb
 			var reverb: AudioEffectReverb = cockpit_surface_reverbs[player.bus]
-			reverb.wet = 0.18 * cockpit_audio_blend
+			reverb.wet = 0.04 * cockpit_audio_blend
 
 
 func update_view_balance() -> void:
@@ -581,7 +599,7 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 			gain *= sqrt(throttle)
 		voice.layer_level = lerpf(voice.layer_level, gain, volume_smoothing)
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
-		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain
+		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST
 		voice.player.pitch_scale = clampf(revolutions / voice.reference_rpm, 0.5, 3.5)
 
 
@@ -611,6 +629,15 @@ func is_onboard_camera() -> bool:
 	return camera_rig != null and int(camera_rig.get("camera_mode")) == 2
 
 
+func is_onboard_or_bonnet_camera() -> bool:
+	if camera_rig == null and vehicle != null and vehicle.get_parent() != null:
+		camera_rig = vehicle.get_parent().get_node_or_null("RallyCameraRig")
+	if camera_rig == null:
+		return false
+	var mode := int(camera_rig.get("camera_mode"))
+	return mode == 1 or mode == 2
+
+
 func play_extra_shift(players: Array[AudioStreamPlayer3D], sequence: int, ascending: bool) -> void:
 	if players.is_empty():
 		return
@@ -623,15 +650,25 @@ func play_extra_shift(players: Array[AudioStreamPlayer3D], sequence: int, ascend
 # Detonaciones Cosworth con ciclo de semilla + probabilidad por marcha destino
 # (CMR2: mas probable en marchas cortas), manteniendo voice_limit 1.
 func play_backfire_event(target_gear: int) -> void:
-	if backfire_players.is_empty() or backfire_event_cooldown > 0.0:
+	if (backfire_players.is_empty() and backfire_cabin_players.is_empty()) or backfire_event_cooldown > 0.0:
 		return
 	var prob: float = BACKFIRE_GEAR_PROB[clampi(target_gear, 0, BACKFIRE_GEAR_PROB.size() - 1)]
 	if randf() > prob:
 		return
 	backfire_rng_state = _next_rng_state(backfire_rng_state)
-	var player := backfire_players[int((backfire_rng_state >> 33) % backfire_players.size())]
+
+	var is_cabin := is_onboard_or_bonnet_camera()
+	var player: AudioStreamPlayer3D = null
+	if is_cabin and not backfire_cabin_players.is_empty():
+		player = backfire_cabin_players[int((backfire_rng_state >> 33) % backfire_cabin_players.size())]
+		player.volume_db = BACKFIRE_CABIN_VOLUME_DB
+	elif not backfire_players.is_empty():
+		player = backfire_players[int((backfire_rng_state >> 33) % backfire_players.size())]
+		player.volume_db = BACKFIRE_VOLUME_DB
+	else:
+		return
+
 	player.pitch_scale = 0.96 + float(backfire_rng_state & 0x03) * 0.025
-	player.volume_db = BACKFIRE_VOLUME_DB
 	player.play()
 	backfire_event_cooldown = BACKFIRE_RETRIGGER_SECONDS
 	vehicle.backfire_triggered.emit()
@@ -656,7 +693,7 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 		var role := parts[1]
 		var target := 0.0
 		if role == "roll":
-			target = float(state.roll.get(surface, 0.0)) * 0.15
+			target = float(state.roll.get(surface, 0.0)) * 0.15 * SURFACE_ROLL_GAIN_SCALE
 		else:
 			# One slip role per surface; lateral and longitudinal slip never stack voices.
 			var roles: Dictionary = state.slip.get(surface, {})
@@ -810,9 +847,18 @@ func build_auxiliary_audio() -> void:
 		backfire_players,
 		backfire_paths,
 		exhaust_position,
-		-10.0,
+		BACKFIRE_VOLUME_DB,
 		8.0,
 		160.0,
+		1,
+	)
+	build_event_voice_pool(
+		backfire_cabin_players,
+		[backfire_cabin_path],
+		BACKFIRE_CABIN_POSITION,
+		BACKFIRE_CABIN_VOLUME_DB,
+		12.0,
+		80.0,
 		1,
 	)
 	build_event_voice_pool(extra_upshift_players, ["res://sounds/banks/commons/f2002_gearup.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
@@ -929,7 +975,7 @@ func update_limiter_audio(smoothing: float) -> void:
 	var rpm := float(acoustic.get("rpm", 0.0))
 	limiter_player.volume_linear = lerpf(
 		limiter_player.volume_linear,
-		cut * LIMITER_GAIN * view_exhaust_gain,
+		cut * LIMITER_GAIN * view_exhaust_gain * ENGINE_GAIN_BOOST,
 		smoothing,
 	)
 	limiter_player.pitch_scale = clampf(rpm / LIMITER_NATIVE_RPM, 0.30, 1.0)
@@ -994,7 +1040,7 @@ func build_tyre_contact_players() -> void:
 		player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
 		routing.route(player, "tyre_contact_wheel_" + str(i))
 		var filter := AudioEffectLowPassFilter.new()
-		filter.cutoff_hz = 1200.0
+		filter.cutoff_hz = 900.0
 		AudioServer.add_bus_effect(AudioServer.get_bus_index(player.bus), filter)
 		add_child(player)
 		tyre_contact_players.append(player)
@@ -1015,7 +1061,7 @@ func update_tyre_contacts(delta: float) -> void:
 		if not vehicle.simulation.suspension_model.contact_active[i] or impact < 0.6 or tyre_contact_cooldowns[i] > 0.0:
 			continue
 		var strength := clampf((impact - 0.6) / 3.4, 0.0, 1.0)
-		player.volume_linear = lerpf(0.09375, 1.3125, strength)
-		tyre_contact_filters[i].cutoff_hz = lerpf(1200.0, 20500.0, strength)
+		player.volume_linear = lerpf(0.09375, 1.3125, strength) * TYRE_CONTACT_GAIN_SCALE
+		tyre_contact_filters[i].cutoff_hz = lerpf(900.0, 4800.0, strength)
 		player.play()
 		tyre_contact_cooldowns[i] = 0.12

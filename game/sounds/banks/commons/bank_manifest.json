@@ -133,7 +133,7 @@
       "peak": 0.889954,
       "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land3.wav (leve <4 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_landing",
-      "sha256": "361b7f9b38bd75edb8e0bd91130b627eb27797bf69096c67e817dc5904e00bad",
+      "sha256": "f2aa9f081c2e917bde4fec92a37b002f51080abfa97edca9cde49afd132062dc",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -153,7 +153,7 @@
       "peak": 0.889954,
       "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land1.wav (media 4-7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_landing",
-      "sha256": "7d88abb37a0518f24c20f515c02c6f3006c65b024d547f418d0701e7fd086f49",
+      "sha256": "753c2ba7f9c252c7eab42f73ddcc4ae8f9ddc57c16a65906978571531a30cc27",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -173,7 +173,7 @@
       "peak": 0.889954,
       "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land2.wav (dura >7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_landing",
-      "sha256": "244c177eea2579c2ba9738c294ff64f960685b82fb08f2fe5ae2143348ef8183",
+      "sha256": "a4cc1a2d6e9ed1347fe85ce555c6ea9905dbb3b52058fc816eaaf41060728160",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -193,7 +193,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_large.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_large",
-      "sha256": "3567602ec27183f400ba0b264113e38e59e5393abe2c530afccbd86332445274",
+      "sha256": "d37808932712e4345cedc962818da33d453be299a14f9f333cee6c376e773ff1",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -213,7 +213,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_medium",
-      "sha256": "e3e9e7e68c6710b09c0ffb3b5e33fb0bfec91e213425c40626319338a24f14d9",
+      "sha256": "f9b1e0502e862e79c982cdc77fe5beddf6ba925b867f6648e591eade30466178",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -233,7 +233,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_medium",
-      "sha256": "5bb9a4aaf2db142c1b9c0f7f65067c80c302039d219606495e622a8f044a1762",
+      "sha256": "c3860c35b7f3a4296d0dd286f586c5669f1019b8eb242f310e40152395825c3e",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -253,7 +253,7 @@
       "peak": 0.693695,
       "provenance": "derived from user-supplied undertray_scrape_metallic_p Edit 1 Export 1.wav",
       "role": "impact_scrape",
-      "sha256": "8a03e8c95c9858d783547a42f89d0bc65628508684de2177b12e4f4f670ecece",
+      "sha256": "eb891d601993c5298a2946fb0ca9b0c5ada9041fc3b63fdacc8805a20478ed96",
       "synthesis": {
         "category": "impact",
         "processing": {
@@ -280,7 +280,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_small",
-      "sha256": "25454b6b1bce0b8aa96cff3534afa05043378ed3cd5223b5823149abb6a2444d",
+      "sha256": "37ea172af0d20a3bd885b9c933e193b779c4fcc8578455d3836fda0cd231317e",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -300,7 +300,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_small",
-      "sha256": "73dcdc5f3bc230ea58e6302bd83f4c8ff6522ebe9927b2ec2dd1bec9d154359c",
+      "sha256": "504c726febab55799e9058359a7dcd25c3bc994efd5e9cb30cc083048b7c815e",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -320,7 +320,7 @@
       "peak": 0.89,
       "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small3.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
       "role": "impact_small",
-      "sha256": "f32117f38d67c796adc430e4ef32656efdee575e78a75bd0894b1e88d5df4950",
+      "sha256": "7d366624b9a5f8732dc68ca8b19d0e3b926c28057e7a569b2226b202a2f001f5",
       "synthesis": {
         "category": "impact",
         "source_archive": "Game/Bigfiles/common.bfl",
@@ -469,6 +469,84 @@
         "target_rms_dbfs": -21,
         "peak_ceiling_dbfs": -3.0
       }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 1; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 3; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 7; exterior rear exhaust detonation variation",
+      "role": "backfire_exhaust",
+      "sha256": "0e771e7d22eae509cc16f365d16f55d4224ac323edd9c8b77182d9f96d64dc0f"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.43,
+      "file": "backfire_ext_4.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 9; exterior rear exhaust deep boom detonation",
+      "role": "backfire_exhaust",
+      "sha256": "0a53416e49602489b4450ea580cc1aa2ec6d46428be0c2635f53326a2c61e51d"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.159,
+      "file": "backfire_5.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.159,
+      "file": "backfire_int.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5 alias; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89"
     }
   ],
   "generator": "commons bank with Rush Rally 3 car-contact collisions (speed-tiered), gear clunks, neutral contact, limiter and underfloor scrape; rolling surfaces moved to sounds/banks/surfaces",

@@ -443,8 +443,12 @@
     "res://sounds/banks/FulviaHF/fulvia_whine_high.wav"
   ],
   "backfire": [
-    "res://sounds/banks/FulviaHF/fulvia_lift_1.wav",
-    "res://sounds/banks/FulviaHF/fulvia_lift_2.wav",
-    "res://sounds/banks/FulviaHF/fulvia_lift_3.wav"
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
   ]
 }

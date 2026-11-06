@@ -434,5 +434,14 @@
       "reference_origin": null
     }
   ],
-  "policy": "Unmodified native PCM. e/x interpreted as engine/exhaust; stat as idle, thr as loaded and idle01-05 as coast. Local RPM references 1050/1800/3000/4200/5500/6800 are estimates, not decoded original FL/NMAP curves. loadoff events replace lift pops; not asserted to be combustion backfires. Ignition and stall retained as inventory. Shared limiter, impacts and surfaces remain in their own banks."
+  "policy": "Unmodified native PCM. e/x interpreted as engine/exhaust; stat as idle, thr as loaded and idle01-05 as coast. Local RPM references 1050/1800/3000/4200/5500/6800 are estimates, not decoded original FL/NMAP curves. loadoff events replace lift pops; not asserted to be combustion backfires. Ignition and stall retained as inventory. Shared limiter, impacts and surfaces remain in their own banks.",
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ]
 }
