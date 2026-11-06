@@ -122,8 +122,17 @@ def build_bank(files, sounds, engine, recipe, destination, provenance):
         envelope = np.exp(-np.arange(count) / (rate * 0.032)) * np.minimum(np.arange(count) / (rate * 0.0015), 1)
         sample = store(f"lift_{i + 1}.wav", encode(grain * envelope[:, None] * 1.5, rate), "derived_lift_approximation", source["source_file"])
         backfire.append(base + sample["file"])
+    commons_backfire_ext = [
+        "res://sounds/banks/commons/backfire_ext_1.wav",
+        "res://sounds/banks/commons/backfire_ext_2.wav",
+        "res://sounds/banks/commons/backfire_ext_3.wav",
+        "res://sounds/banks/commons/backfire_ext_4.wav",
+    ]
+    commons_backfire_int = [
+        "res://sounds/banks/commons/backfire_5.wav",
+    ]
     manifest = {"schema_version": 1, "vehicle_id": recipe["id"], "source": provenance, "samples": samples,
-                **definitions, "whine": whine, "backfire": backfire,
+                **definitions, "whine": whine, "backfire": commons_backfire_ext, "backfire_interior": commons_backfire_int,
                 "engine_position": _position(sounds, "EngineLoc", [0, 0.5, 1]),
                 "exhaust_position": _position(sounds, "ExhaustLoc", [0, 0.1, -1.5]),
                 "calibration": "RPM centres from Sounds.ini; overlap adapted to shared mixer. Native recordings unchanged. Coast/lift derived; gearbox synthesized."}

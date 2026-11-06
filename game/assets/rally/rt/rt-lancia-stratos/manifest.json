@@ -1,0 +1,154 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-lancia-stratos",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_21.bzf",
+    "archive_sha256": "cd5d8255384445384071c7ddf4f721ac9184b60954b7ca59dbe00a38a93e6f68",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver2.bzf",
+    "driver_archive_sha256": "a32ff806e3fc0cad4e5d20fcd79c7e0bff24cfbe887228f694d169670471b326",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-lancia-stratos",
+      "archive": "car_21.bzf",
+      "historical_id": "lancia-stratos",
+      "display_name": "Lancia Stratos HF",
+      "engine_layout": "mid",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived",
+      "body_panels": [
+        "body"
+      ],
+      "interior": {
+        "require_seats": false
+      }
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "b774a32c2456a36b401512675c1b1b65dc8792dab42e8cb9c2521bd7c08bbee6",
+    "size_bytes": 1049944
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "6855e5a1fd1a7c2d1f2967aa8ea3617b18b8d1cc3fdd83c035b9b429736dd1e6",
+      "size_bytes": 63620
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "e7d9be7ed7034745fd0f09815a3a7bc7e8598058a5178cf487a3bb4bedcdb2c6",
+      "size_bytes": 63620
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "5111f8071e74a89b32e8e9e801d8609b8fbe60bd340c6da513668225beed78a9",
+      "size_bytes": 63620
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "522d9c7e0949cceff5995182f99a038a7d60ac82ef13c23a957b053cda325406",
+      "size_bytes": 63616
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.7000000476837158,
+        "y": 0.31919336318969727,
+        "z": -1.0499999523162842
+      },
+      "radius_metres": 0.3192000240087509,
+      "width_metres": 0.22800004482269287
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.7000000476837158,
+        "y": 0.31919336318969727,
+        "z": -1.0499999523162842
+      },
+      "radius_metres": 0.3192000240087509,
+      "width_metres": 0.2279999852180481
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6850000619888306,
+        "y": 0.3191935420036316,
+        "z": 1.0499999523162842
+      },
+      "radius_metres": 0.31919999420642853,
+      "width_metres": 0.31800007820129395
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.684999942779541,
+        "y": 0.3191935420036316,
+        "z": 1.0500000715255737
+      },
+      "radius_metres": 0.3192000240087509,
+      "width_metres": 0.31800001859664917
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.0999999046325684,
+    "front_axle_z": -1.0499999523162842,
+    "rear_axle_z": 1.0499999523162842,
+    "front_track": 1.4000000953674316,
+    "rear_track": 1.3700000047683716
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "4e9a3ba9d0c832a1730f03169f2a7633e7cd01d5bc483d5cfa2339d3bc71476e"
+  },
+  "visual_damage": {
+    "files": {
+      "damage/windows_damaged.png": {
+        "sha256": "77bd8af73a92e89ed6474b0e02d5fc9a1828f331460261a229b665fa90cce356"
+      },
+      "damage/interior_windows_damaged.png": {
+        "sha256": "e9e78c48bd3097829e96215d3d610075c823fb7dd221e58bd45fc3dce1e0dc74"
+      },
+      "damage/lights_damaged.png": {
+        "sha256": "8c7fb5cde4b88f0d2cc6364e5791eda7f464f72cafafedd752b8f62647a5b230"
+      },
+      "damage/damage.glb": {
+        "sha256": "533841cacf6a6bd62741998ecc7aef14237e735bb6d9a76ece9e4e54eb370d14"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.8820370435714722,
+      0.010117029771208763,
+      -1.8823630809783936
+    ],
+    "max_godot": [
+      0.8820370435714722,
+      1.0497610569000244,
+      1.8060142993927002
+    ]
+  },
+  "measurement": {
+    "geometry_policy": "native",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.0999999046325684
+  },
+  "capabilities": {
+    "cockpit": true,
+    "native_arm_poses": 19,
+    "seats": 0,
+    "recovered_components": 0,
+    "damage_variants": 2
+  },
+  "warnings": [
+    "No separately identifiable native seats in interior_lo; interior_hi retained"
+  ]
+}

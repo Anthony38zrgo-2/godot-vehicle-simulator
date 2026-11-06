@@ -1,0 +1,146 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-mini-cooper-s",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_1.bzf",
+    "archive_sha256": "354a7212137f3eacdbdbe457c8d4e71d1975c292ca93c9b616528838f41ef5e0",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
+    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-mini-cooper-s",
+      "archive": "car_1.bzf",
+      "historical_id": "mini-cooper-s",
+      "display_name": "Mini Cooper S",
+      "engine_layout": "front",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "200da8d9d84cca58c1f80d53f1e0bd4f9ff0618ab5837e61399d0371cd73604d",
+    "size_bytes": 1301304
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "4a218fe4f1307195c5650a808ce124d41a817745e1fe466411f4be768dae9667",
+      "size_bytes": 65932
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "d2c5d9e017a5013efcbb30616a5a330e4c633025847a096b1cbf4cea87f9a184",
+      "size_bytes": 65916
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "045da2ba171c4b48d4a89314d96106815eba2a8ca8e3a19b32dbe854023ef4fd",
+      "size_bytes": 65920
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "306058e27d19b64cc0ac08dc23ed6ebda35e0aa6934a91c5c80fe7059c6825c5",
+      "size_bytes": 65920
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.6000000238418579,
+        "y": 0.24999991059303284,
+        "z": -0.9750000834465027
+      },
+      "radius_metres": 0.2499999925494194,
+      "width_metres": 0.1499999761581421
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.6000000238418579,
+        "y": 0.24999994039535522,
+        "z": -0.9750000238418579
+      },
+      "radius_metres": 0.2500000074505806,
+      "width_metres": 0.14999991655349731
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6000000238418579,
+        "y": 0.2500000596046448,
+        "z": 1.0500000715255737
+      },
+      "radius_metres": 0.2499999850988388,
+      "width_metres": 0.1499999761581421
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.6000000238418579,
+        "y": 0.2500000596046448,
+        "z": 1.0499999523162842
+      },
+      "radius_metres": 0.2499999850988388,
+      "width_metres": 0.14999991655349731
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.0250001549720764,
+    "front_axle_z": -0.9750000834465027,
+    "rear_axle_z": 1.0500000715255737,
+    "front_track": 1.2000000476837158,
+    "rear_track": 1.2000000476837158
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "ab0a03175bb71d012cbb192b98514b099033dbdac971e86f6affc7fef844c1e3"
+  },
+  "visual_damage": {
+    "files": {
+      "damage/windows_damaged.png": {
+        "sha256": "13e402246c8d3236fc49d5cf6fc1b02a598eeec05a8a3627188b0776f6c3f455"
+      },
+      "damage/interior_windows_damaged.png": {
+        "sha256": "62595529db05f0c42837c2e11b4dd6855596239b53d6458a22612afaf947de54"
+      },
+      "damage/lights_damaged.png": {
+        "sha256": "4a416185627f1c06ae8b8d9fbcc78d18306508487ebbc16bc90bc805c48e5c74"
+      },
+      "damage/damage.glb": {
+        "sha256": "dc10a4f5c7c19cdcf1da2129ffd01c1cb4d1683361ec2fa2806d39f0c4c0945a"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.7621834874153137,
+      0.05503467097878456,
+      -1.4950000047683716
+    ],
+    "max_godot": [
+      0.7239999771118164,
+      1.2820346355438232,
+      1.5910335779190063
+    ]
+  },
+  "measurement": {
+    "geometry_policy": "native",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.0250001549720764
+  },
+  "capabilities": {
+    "cockpit": true,
+    "native_arm_poses": 19,
+    "seats": 2,
+    "recovered_components": 9,
+    "damage_variants": 4
+  },
+  "warnings": []
+}

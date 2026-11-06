@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-lancia-fulvia",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Lancia Fulvia Coupé HF",
+    "archive_numbers": [
+      13,
+      14
+    ],
+    "sources": {
+      "fia": {
+        "page": "https://historicdb.fia.com/car/lancia-fulvia-coup%C3%A9-rallye-16-hf",
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1649336401/homologation_form_number_3006_group_3.pdf",
+        "homologation": "3006",
+        "group": "3",
+        "pdf_sha256": "5c2351cdba49cd57ae72736898178481ce1725684413e32174dc79ddfba807c3"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1584,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "FWD",
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.33,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.39,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.35,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "fuel_l": {
+        "value": 38,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 780,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "suspension_front": {
+        "value": "independent wishbone and transverse leaf",
+        "source": "fia",
+        "locator": "PDF page 4, base form",
+        "status": "documented"
+      },
+      "suspension_rear": {
+        "value": "dead axle and longitudinal leaf springs",
+        "source": "fia",
+        "locator": "PDF page 4, base form",
+        "status": "documented"
+      },
+      "brake_front_disc_mm": {
+        "value": 257,
+        "source": "fia",
+        "locator": "PDF page 4, base form",
+        "status": "documented"
+      },
+      "brake_rear_disc_mm": {
+        "value": 257,
+        "source": "fia",
+        "locator": "PDF page 4, base form",
+        "status": "documented"
+      }
+    },
+    "variant_note": "FIA 1.6 HF; game lists 1598 cc. Homologated mass excludes fuel and tools.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "aa68411df6c7b6b0b33d6517b3aa03948a3738f59f000d9188b1fb0f4bf87058",
+    "chassis.json": "1971519d0837943efce60b6ecd931469b34a9cadd4d0032961b908dddf075754",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "f9d10b2bac15880a8a3b77337dc081b2244f89120b69a08ba8e1815cb1d6802b",
+    "powertrain.json": "8596420849b2c90312f0f029bca0d926992874c15265dbcce460cf52bc249d5f",
+    "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
+    "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "a9a225866a74e779e30a20b6820a86b0e46328ff759332719e2acbb660913670",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "5e4789972909f0cf5eaa2b53b6d2cb8ccc30d0aa1ac7ff2669ef883629be610b"
+  }
+}

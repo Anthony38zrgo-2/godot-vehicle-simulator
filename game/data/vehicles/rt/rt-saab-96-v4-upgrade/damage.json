@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "collision": {
+    "minimum_speed_m_s": 4.0,
+    "full_severity_speed_m_s": 23.0,
+    "maximum_radiator_damage": 0.55,
+    "maximum_engine_damage": 0.26,
+    "maximum_transmission_damage": 0.3,
+    "severity_exponent": 1.2,
+    "min_impulse_speed_m_s": 1.5,
+    "zone_weights": {
+      "nose": {
+        "radiator": 1.0,
+        "engine": 0.65
+      },
+      "front_underbody": {
+        "radiator": 0.55,
+        "engine": 1.0
+      },
+      "side": {
+        "radiator": 0.2,
+        "engine": 0.2
+      },
+      "rear": {
+        "radiator": 0.08,
+        "engine": 0.12
+      }
+    }
+  },
+  "visual": {
+    "headlight": 0.2,
+    "windshield": 0.34,
+    "windshield_frontal": 0.55,
+    "hood": 0.42,
+    "trunk": 0.42,
+    "body": 0.8
+  },
+  "wheel_collision": {
+    "lateral_reach_m": 0.38,
+    "radial_reach_margin_m": 0.14,
+    "minimum_impulse_ns": 240.0,
+    "puncture_speed_m_s": 5.25,
+    "cut_speed_m_s": 13.0,
+    "brake_damage_speed_m_s": 10.0,
+    "full_brake_damage_speed_m_s": 22.0,
+    "slow_leak_per_second": 0.045,
+    "fast_leak_per_second": 2.0,
+    "maximum_brake_loss_per_impact": 0.55,
+    "minimum_brake_factor": 0.25,
+    "rim_start_speed_m_s": 7.0,
+    "rim_full_speed_m_s": 21.0,
+    "alignment_start_speed_m_s": 10.0,
+    "alignment_full_speed_m_s": 24.0,
+    "maximum_toe_offset_deg": 6.0
+  },
+  "landing": {
+    "minimum_speed_m_s": 2.5,
+    "full_severity_speed_m_s": 9.0,
+    "maximum_radiator_damage": 0.1,
+    "maximum_engine_damage": 0.08,
+    "severity_exponent": 1.0,
+    "zone_weights": {
+      "nose": {
+        "radiator": 1.0,
+        "engine": 0.85
+      },
+      "front_underbody": {
+        "radiator": 0.75,
+        "engine": 1.0
+      },
+      "front_wheels": {
+        "radiator": 0.35,
+        "engine": 0.25
+      },
+      "rear_wheels": {
+        "radiator": 0.1,
+        "engine": 0.1
+      },
+      "rear": {
+        "radiator": 0.1,
+        "engine": 0.15
+      }
+    }
+  },
+  "thermal": {
+    "minimum_cooling_factor": 0.45,
+    "minimum_torque_factor": 0.6,
+    "oil_pressure_loss_at_full_engine_damage": 0.35,
+    "permanent_minimum_torque_factor": 0.7,
+    "damage_start_c": 110.0,
+    "full_rate_temperature_c": 120.0,
+    "grace_seconds": 6.0,
+    "maximum_damage_per_second": 0.015,
+    "recovery_rate_per_second": 2.0
+  },
+  "steam": {
+    "start_damage": 0.25,
+    "continuous_damage": 0.5,
+    "heavy_damage": 0.75,
+    "local_position": [
+      0.0,
+      0.48,
+      -1.76
+    ],
+    "max_intensity": 1.0,
+    "bonnet_attenuation": 0.35,
+    "cold_temperature_c": 75.0,
+    "hot_temperature_c": 95.0
+  }
+}

@@ -69,6 +69,9 @@ func run() -> void:
 		var rest: Basis = cockpit.steering_wheel.basis
 		cockpit.update_steering_pose(0.7)
 		check(not cockpit.steering_wheel.basis.is_equal_approx(rest), "steering wheel animation")
+		# Rally Trophy wheels lie in local XZ. Turning must keep the rim normal fixed.
+		var turned: Basis = cockpit.steering_wheel.basis
+		check(turned.y.is_equal_approx(rest.y), "wheel rotates about its local shaft")
 		cockpit.update_steering_pose(0.0)
 	var rig = session.camera_rig
 	rig.camera_mode = rig.Mode.CHASE

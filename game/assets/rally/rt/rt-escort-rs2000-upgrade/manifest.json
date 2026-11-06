@@ -1,0 +1,149 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-escort-rs2000-upgrade",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_12.bzf",
+    "archive_sha256": "3db0ac91c79fbac689bba18fe38d00b3034a5d38d4648026b09d84529c97ce53",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
+    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-escort-rs2000-upgrade",
+      "archive": "car_12.bzf",
+      "historical_id": "escort-rs2000",
+      "display_name": "Ford Escort RS2000 (RT upgrade)",
+      "engine_layout": "front",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived",
+      "collision_source": "exterior"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "839485f800d919ccb4536107cb5d75e6002f06acec8097554e176760d12c3b35",
+    "size_bytes": 1331608
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "1e70d03b8b34d6506fdfaa519bf3f43f3f48c4436db87c2a8575094d73bd2fea",
+      "size_bytes": 66512
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "621e3d05d0502599294fa434e7d1a9ea285908d9c8cdc398d3cf27ab5affc28e",
+      "size_bytes": 66512
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "c5142b740b96136c7cedbca94d2b0081e049542b9b1f50a3b84510d5e4930d32",
+      "size_bytes": 66512
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "c5f20e3eaa628edde84508305230e6d1dd40a95468e37a7b9735cadc9a5fd381",
+      "size_bytes": 66512
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.64000004529953,
+        "y": 0.2799999415874481,
+        "z": -1.2049999237060547
+      },
+      "radius_metres": 0.28000000119208757,
+      "width_metres": 0.20000004768371582
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.6399999856948853,
+        "y": 0.2799999415874481,
+        "z": -1.2049999237060547
+      },
+      "radius_metres": 0.2800000011920911,
+      "width_metres": 0.19999998807907104
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6400001049041748,
+        "y": 0.28000012040138245,
+        "z": 1.2050001621246338
+      },
+      "radius_metres": 0.28000000119209645,
+      "width_metres": 0.20000004768371582
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.6399999856948853,
+        "y": 0.28000012040138245,
+        "z": 1.2050001621246338
+      },
+      "radius_metres": 0.2800000011920929,
+      "width_metres": 0.19999998807907104
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.4100000858306885,
+    "front_axle_z": -1.2049999237060547,
+    "rear_axle_z": 1.2050001621246338,
+    "front_track": 1.2800000309944153,
+    "rear_track": 1.28000009059906
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "014789ccc9a15a288870f9d4360f8cc9dcd6b6dc9d95f1e6daa0c9991d5916a0"
+  },
+  "visual_damage": {
+    "files": {
+      "damage/windows_damaged.png": {
+        "sha256": "59e02f6380ba37434642e6b59973210b53ab5570cd05b011df8a14dc90827318"
+      },
+      "damage/interior_windows_damaged.png": {
+        "sha256": "cd4d5cc89eacbd9183a73c150c0cde1cdf24e4f8cf53254d5905fa7f9723db9a"
+      },
+      "damage/lights_damaged.png": {
+        "sha256": "ac36ebdaae16891c7b17fe5fb7e0cdcf8307eb3a449f9f67f54d758c5c42beb0"
+      },
+      "damage/damage.glb": {
+        "sha256": "2f03c3cdd7c17c707c30861efb70b15c83a9a5baf969e2e11070493382c4159f"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.8100000023841858,
+      0.0050001200288534164,
+      -1.8400002717971802
+    ],
+    "max_godot": [
+      0.8100000023841858,
+      1.2899999618530273,
+      2.190000057220459
+    ]
+  },
+  "measurement": {
+    "geometry_policy": "native",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.4100000858306885
+  },
+  "capabilities": {
+    "cockpit": true,
+    "native_arm_poses": 19,
+    "seats": 2,
+    "recovered_components": 9,
+    "damage_variants": 4
+  },
+  "warnings": [
+    "Estimated convex hulls from exterior meshes; model.BMF has no collision helper"
+  ]
+}

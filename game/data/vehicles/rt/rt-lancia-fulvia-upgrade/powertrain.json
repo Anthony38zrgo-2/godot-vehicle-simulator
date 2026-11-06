@@ -1,0 +1,203 @@
+{
+  "powertrain": {
+    "automatic_shift": {
+      "downshift_coast_normalized_rpm": 0.28,
+      "downshift_normalized_rpm_full_throttle": 0.62,
+      "downshift_normalized_rpm_low_throttle": 0.42,
+      "downshift_target_rpm_margin_high": 0.88,
+      "downshift_throttle_aggression_factor": 0.4,
+      "kickdown_delay_factor": 0.7,
+      "parked_resume_speed_ms": 1.0,
+      "reverse_max_speed_ms": 10.0,
+      "road_spin_weight": 0.4,
+      "upshift_coast_normalized_rpm": 0.42,
+      "upshift_normalized_rpm_full_throttle": 0.92,
+      "upshift_normalized_rpm_low_throttle": 0.65,
+      "upshift_target_rpm_margin_high": 0.94,
+      "wheel_road_spin_blend_threshold_rads": 8.0,
+      "wheel_spin_weight": 0.6
+    },
+    "automatic_transmission": false,
+    "clutch_release_seconds": 0.1,
+    "clutch_reengage_seconds": 0.15,
+    "synchronizer_capacity_nm": 32.0,
+    "synchronizer_tolerance_rad_s": 0.12,
+    "clutch_out_rpm_offset": 300.0,
+    "constant_brake_ratio": 0.012,
+    "differential": {
+      "clutch_friction_coefficient": 0.1,
+      "clutches": 4,
+      "coast_ramp_angle_deg": 65,
+      "power_ramp_angle_deg": 45,
+      "preload_nm": 30,
+      "slip_transition_threshold_rad_s": 4.0
+    },
+    "downshift_blip_torque_fraction": 0.8,
+    "downshift_blip_response_seconds": 0.04,
+    "downshift_blip_tolerance_rpm": 25.0,
+    "downshift_clutch_reengagement_seconds": 0.12,
+    "downshift_maximum_target_revolutions_per_minute_fraction": 0.92,
+    "downshift_minimum_interval_seconds": 0.22,
+    "downshift_rev_matching_enabled": false,
+    "driveline_compliance": {
+      "enabled": true,
+      "output_inertia_kg_m2": 0.2,
+      "stiffness_nm_per_rad": 8500.0,
+      "damping_nms_per_rad": 130.0
+    },
+    "final_drive": 4.125,
+    "front_torque_split": 1.0,
+    "gear_inertia": 0.025,
+    "gear_ratios": [
+      3.028,
+      1.956,
+      1.492,
+      1.105,
+      1.0
+    ],
+    "handbrake_torque_fraction": 1.0,
+    "idle_disengagement_hysteresis_rpm": 120.0,
+    "idle_rpm": 1500.0,
+    "max_clutch_torque_ratio": 1.4,
+    "max_rpm": 8500.0,
+    "max_torque": 154.0,
+    "motor_moment": 0.12,
+    "reverse_ratio": 3.317,
+    "shift_time": 0.08,
+    "thermal": {
+      "engine_block_heat_capacity_joules_per_kelvin": 65000.0,
+      "engine_block_heat_fraction": 0.1,
+      "engine_to_oil_conductance_watts_per_kelvin": 380.0,
+      "engine_to_water_conductance_watts_per_kelvin": 850.0,
+      "exhaust_heat_fraction": 0.6,
+      "heat_generation_per_mechanical_power": 1.5,
+      "idle_heat_generation_watts": 12000.0,
+      "initial_engine_block_temperature_celsius": 85.0,
+      "initial_oil_temperature_celsius": 85.0,
+      "initial_water_temperature_celsius": 82.0,
+      "minimum_hot_engine_torque_fraction": 0.85,
+      "oil_critical_temperature_celsius": 135.0,
+      "oil_heat_capacity_joules_per_kelvin": 15000.0,
+      "oil_heat_fraction": 0.09,
+      "oil_hot_derating_temperature_celsius": 120.0,
+      "oil_minimum_cold_engine_torque_fraction": 0.88,
+      "oil_optimal_maximum_temperature_celsius": 110.0,
+      "oil_optimal_minimum_temperature_celsius": 80.0,
+      "oil_pressure": {
+        "bar_per_rpm": 0.0012,
+        "hot_viscosity_factor": 0.6,
+        "low_ratio": 0.75,
+        "pressure_response_seconds": 0.25,
+        "relief_valve_bar": 4.0,
+        "viscosity_hot_celsius": 130.0,
+        "viscosity_reference_celsius": 90.0,
+        "warning_ratio": 0.5,
+        "warning_pressure_bar": 0.8
+      },
+      "oil_sump_cooling_conductance_watts_per_kelvin": 12.0,
+      "oil_to_water_conductance_watts_per_kelvin": 250.0,
+      "water_cooling_duct": {
+        "air_specific_heat_joules_per_kilogram_kelvin": 1005.0,
+        "area_response_exponent": 1.0,
+        "base_cooling_conductance_watts_per_kelvin": 70.0,
+        "discharge_coefficient": 0.72,
+        "drag_coefficient": 0.5,
+        "heat_exchanger_conductance_watts_per_kelvin": 4000.0,
+        "maximum_inlet_area_square_meters": 0.2,
+        "opening": 0.1,
+        "pressure_recovery": 0.75
+      },
+      "water_critical_temperature_celsius": 115.0,
+      "water_heat_capacity_joules_per_kelvin": 28000.0,
+      "water_heat_fraction": 0.2,
+      "water_hot_derating_temperature_celsius": 105.0,
+      "water_minimum_cold_engine_torque_fraction": 0.95,
+      "water_optimal_maximum_temperature_celsius": 95.0,
+      "water_optimal_minimum_temperature_celsius": 75.0
+    },
+    "torque_attack_rate_nm_s": 2200.0,
+    "torque_curve": [
+      [
+        0.058823529411764705,
+        0.0
+      ],
+      [
+        0.11764705882352941,
+        0.462
+      ],
+      [
+        0.17647058823529413,
+        0.672
+      ],
+      [
+        0.23529411764705882,
+        0.777
+      ],
+      [
+        0.29411764705882354,
+        0.85
+      ],
+      [
+        0.35294117647058826,
+        0.892
+      ],
+      [
+        0.4117647058823529,
+        0.924
+      ],
+      [
+        0.47058823529411764,
+        0.945
+      ],
+      [
+        0.5294117647058824,
+        0.966
+      ],
+      [
+        0.5882352941176471,
+        0.976
+      ],
+      [
+        0.6470588235294118,
+        0.987
+      ],
+      [
+        0.7058823529411765,
+        1.0
+      ],
+      [
+        0.7647058823529411,
+        0.999
+      ],
+      [
+        0.8235294117647058,
+        0.926
+      ],
+      [
+        0.8823529411764706,
+        0.792
+      ],
+      [
+        0.9411764705882353,
+        0.508
+      ],
+      [
+        1.0,
+        0.271
+      ],
+      [
+        1.0588235294117647,
+        0.0
+      ],
+      [
+        1.1176470588235294,
+        0.0
+      ],
+      [
+        1.1764705882352942,
+        0.0
+      ]
+    ],
+    "variable_drag_ratio": 0.038
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-escort-rs2000",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Ford Escort RS2000",
+    "archive_numbers": [
+      11,
+      12
+    ],
+    "sources": {
+      "fia": {
+        "page": "https://historicdb.fia.com/car/ford-escort-rs-2000",
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601033401/homologation_form_number_5566_group_1.pdf",
+        "homologation": "5566",
+        "group": "1",
+        "pdf_sha256": "42dead57fd8e8fe87430a7b9a0f2de6d60495aff0ea75090783fadf54e5e2575"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1993,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "RWD",
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.4,
+        "source": "fia",
+        "locator": "PDF page 5, base form",
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.293,
+        "source": "fia",
+        "locator": "PDF page 5, base form",
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.313,
+        "source": "fia",
+        "locator": "PDF page 5, base form",
+        "status": "documented"
+      },
+      "fuel_l": {
+        "value": 40.9,
+        "source": "fia",
+        "locator": "PDF page 5, base form",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 865,
+        "source": "fia",
+        "locator": "PDF page 5, base form",
+        "status": "documented"
+      },
+      "suspension_front": {
+        "value": "MacPherson strut and coil",
+        "source": "fia",
+        "locator": "PDF page 7, base form",
+        "status": "documented"
+      },
+      "suspension_rear": {
+        "value": "live axle with longitudinal leaf springs",
+        "source": "fia",
+        "locator": "PDF page 7, base form",
+        "status": "documented"
+      }
+    },
+    "variant_note": "RS2000 Mk1 FIA fiche dated 1974; game labels 1971. Not an RS1600 engine reference.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "f6b3da7f1f06e25a97a9e4b4bec184cb8236df763f85112a1659700c9582be80",
+    "chassis.json": "3169851a853cb41e385f37d0485ca27749878c45cbc0ec75e9d852ff1b0c7d7b",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "bf064edb4158a4e3804cca5bde3c6064ebd028577a3b523da30b95aa92c564af",
+    "powertrain.json": "65c69ad0eb758122829ac347ed7c820e7449979e262ec9a9cbb0550866e02df6",
+    "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
+    "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "a9a225866a74e779e30a20b6820a86b0e46328ff759332719e2acbb660913670",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "19aad15761cd6c78f2657ce266795cff60cbfaaea169dfd928e3bea92b2d5bfa"
+  }
+}

@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-alfa-giulia-gta",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_17.bzf",
+    "archive_sha256": "a42624248b4ed081d611cd24dcbede4a639c958e4e75b132a61aa21f40acd858",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
+    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-alfa-giulia-gta",
+      "archive": "car_17.bzf",
+      "historical_id": "alfa-giulia-gta",
+      "display_name": "Alfa Romeo Giulia Sprint GTA",
+      "engine_layout": "front",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "samples": [
+    {
+      "file": "rt-alfa-giulia-gta__PE_2k1.wav",
+      "sha256": "a1a2553e8d365ee8041250e65d6293b82d603729cd573b33a4f49ce30aa09112",
+      "origin": "native_byte_identical",
+      "source_file": "PE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8430839002267574,
+      "rms": 0.17720897136777258,
+      "gain": 0.6771666190136428,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PE_4k1.wav",
+      "sha256": "e20cea9eba0490ab24e88273401a6dd918666c893630a1c68e9c4b52b9c2a7ec",
+      "origin": "native_byte_identical",
+      "source_file": "PE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.654421768707483,
+      "rms": 0.39901422347391025,
+      "gain": 0.3007411589372735,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PE_6k1.wav",
+      "sha256": "fc7705533b70b71a9e417dc40a8310d2ad09c0743642f76a9a5e4cca90e16d83",
+      "origin": "native_byte_identical",
+      "source_file": "PE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9736961451247166,
+      "rms": 0.5641331690903253,
+      "gain": 0.21271573198488242,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PE_Idle1.wav",
+      "sha256": "7595a1aff70c2ee21488c6400eca0a52c29cc1322f324a0db82481aa0625fcb3",
+      "origin": "native_byte_identical",
+      "source_file": "PE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.065578231292517,
+      "rms": 0.1587017454153617,
+      "gain": 0.7561353511640992,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PX_2k1.wav",
+      "sha256": "171c475aeb1f21fadcb711765967d90760bb25d1ea51f71a677970078bc64969",
+      "origin": "native_byte_identical",
+      "source_file": "PX_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.159455782312925,
+      "rms": 0.46874969835267843,
+      "gain": 0.2560001647397632,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PX_4k1.wav",
+      "sha256": "ac1eb9f69856c8f30c9c57216a283f1701ce715c1a9d16c6df3767db01c08854",
+      "origin": "native_byte_identical",
+      "source_file": "PX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.3219954648526078,
+      "rms": 0.46694239127359755,
+      "gain": 0.25699101697041654,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PX_6k1.wav",
+      "sha256": "198aaccc1d84ce73248ec5ff3bc97741401625898f006c5597af94c8ce9a0083",
+      "origin": "native_byte_identical",
+      "source_file": "PX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8401814058956916,
+      "rms": 0.4494942630540959,
+      "gain": 0.26696669982984456,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PX_idle1.wav",
+      "sha256": "b550b15b3c2d0da766fc44988f6eb63d9318bf9da214704557bc43c16a88c1a9",
+      "origin": "native_byte_identical",
+      "source_file": "PX_idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.1130158730158732,
+      "rms": 0.4911355990124388,
+      "gain": 0.24433170847581098,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__engine_coast_1.wav",
+      "sha256": "167beac7d86f99070074b3bd22af793cf2deddd91164c694184020f50ae2b46c",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8430839002267574,
+      "rms": 0.15681063964763065,
+      "gain": 0.7652541962053858,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__engine_coast_2.wav",
+      "sha256": "067d33bad0dabdb999bded7e8dea9ab18619607b821be3ec0accb171cdc31bc2",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.654421768707483,
+      "rms": 0.31263905284321464,
+      "gain": 0.38382920786348085,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__engine_coast_3.wav",
+      "sha256": "b78023ef7afda5f38a83bcaa8ebee4d9c8ed9f111dc9900d827f0fb95e43664b",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9736961451247166,
+      "rms": 0.47665545033990325,
+      "gain": 0.2517541757141934,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__exhaust_coast_1.wav",
+      "sha256": "31607cf7239d699a4082c58f3ecef699053db3dc4a20a8fd3df6aec35514c566",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PX_idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.1130158730158732,
+      "rms": 0.4908722473230321,
+      "gain": 0.24446279180462746,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__exhaust_coast_2.wav",
+      "sha256": "52169b91213854dd9a15a6452accdf16617c038922fcb7e37eab99cbe0dbfcf4",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.3219954648526078,
+      "rms": 0.4658204622720313,
+      "gain": 0.25760998006550007,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__exhaust_coast_3.wav",
+      "sha256": "854d871500134baf753166dea67c27f457e052479b3ffb026d28691fc1953876",
+      "origin": "derived_lowpass_coast",
+      "source_file": "PX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8401814058956916,
+      "rms": 0.4385985455248474,
+      "gain": 0.27359871851923817,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__whine_low.wav",
+      "sha256": "fe8fb71f0e8d583f79b59c7ba2c404eb5a4642bedc997dfbcea184e18b3b07b8",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_low.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__whine_high.wav",
+      "sha256": "821ad27a9ad7980ad99e2b233ca9594763cd33f43d2cca20620be7be02ce42c3",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_high.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__lift_1.wav",
+      "sha256": "d11ad0ca5d3996db45c262ae97cfcac0311e284d9922bee956f4a5acb03f8dca",
+      "origin": "derived_lift_approximation",
+      "source_file": "PX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.20174790823593214,
+      "gain": 0.5948017059967093,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__lift_2.wav",
+      "sha256": "b49a64458c0ec27064259bd5f674b9538c390ef139859dceed791a51db404549",
+      "origin": "derived_lift_approximation",
+      "source_file": "PX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.1965812665744725,
+      "gain": 0.6104345652617891,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-alfa-giulia-gta__lift_3.wav",
+      "sha256": "62b700225c0c88fe52dfd95e3eafe5070aff71f5baf8a8f325360b873c07be41",
+      "origin": "derived_lift_approximation",
+      "source_file": "PX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.21074722389690673,
+      "gain": 0.5694025182448029,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_Idle1.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.7561353511640992
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_2k1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.6771666190136428
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.3007411589372735
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.21271573198488242
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__engine_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.7652541962053858
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__engine_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.38382920786348085
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__engine_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.2517541757141934
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.24433170847581098
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.24433170847581098
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.25699101697041654
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.26696669982984456
+    }
+  ],
+  "coast_exhaust": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__exhaust_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.24446279180462746
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__exhaust_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.25760998006550007
+    },
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__exhaust_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.27359871851923817
+    }
+  ],
+  "whine": [
+    "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__whine_low.wav",
+    "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "calibration": "RPM centres from Sounds.ini; overlap adapted to shared mixer. Native recordings unchanged. Coast/lift derived; gearbox synthesized.",
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ]
+}

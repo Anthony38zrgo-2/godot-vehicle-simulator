@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-mini-cooper-s-upgrade",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Mini Cooper S",
+    "archive_numbers": [
+      1,
+      2
+    ],
+    "sources": {
+      "fia": {
+        "page": "https://historicdb.fia.com/car/austin-morris-cooper-s-1275",
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601034601/homologation_form_number_1300_group_t.pdf",
+        "homologation": "1300",
+        "group": "T",
+        "pdf_sha256": "e0467217fb789babafd0d41b37f7dbf97bc28a410db3689567a7b10070cccb06"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1275,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "FWD",
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.035,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "track_front_options_m": {
+        "value": [
+          1.207,
+          1.242
+        ],
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "track_rear_options_m": {
+        "value": [
+          1.176,
+          1.203
+        ],
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "fuel_options_l": {
+        "value": [
+          25,
+          50
+        ],
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 620,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "suspension_front": {
+        "value": "independent rubber cones",
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "suspension_rear": {
+        "value": "independent rubber cones",
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "engine_layout": {
+        "value": "front transverse",
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "catalogue_power_bhp": {
+        "value": 78,
+        "source": "fia",
+        "locator": "PDF page 3, base form",
+        "status": "documented"
+      },
+      "catalogue_power_rpm": {
+        "value": 5800,
+        "source": "fia",
+        "locator": "PDF page 3, base form",
+        "status": "documented"
+      }
+    },
+    "variant_note": "Fiche 1964; catalogue output 78 bhp at 5800 rpm, not rally tune.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "557c850ec9746d17cf92483e08b65097200c8e4f6171f23a678509195895c671",
+    "chassis.json": "0b746a7b93a6a4898ad7b12bfff84701eb6767dca3bb84fdb261de79a4841361",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "6bb0c1f137ddf3de2b4777936185205f7619afb7b30c9ed8dc32da2a168403ce",
+    "powertrain.json": "8f1e11c702050ef176af54638a8f7ae6ec9e16f626a2f7d890cc20a5413a3ddf",
+    "steering.json": "7d783989f96ee50018b84d66e13f5ccc304b2209b0a2c10d62e331dc1f419c0d",
+    "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "ff96e082844f1053fce74b8db9976d577f98f935316526a5f9ea40d3fd0c0c55",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "84cf5928938d816dd76bd9df0858423931f4e9807ffdc4e9ca1fe5ae892a45a7"
+  }
+}

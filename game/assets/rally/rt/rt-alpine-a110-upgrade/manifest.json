@@ -1,0 +1,146 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-alpine-a110-upgrade",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_20.bzf",
+    "archive_sha256": "cf3cb6841d799e349d00d970acd0c09eb63e7d60d3c51ceb28ee7fd46744b9f9",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver2.bzf",
+    "driver_archive_sha256": "a32ff806e3fc0cad4e5d20fcd79c7e0bff24cfbe887228f694d169670471b326",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-alpine-a110-upgrade",
+      "archive": "car_20.bzf",
+      "historical_id": "alpine-a110",
+      "display_name": "Alpine Renault A110 1600 (RT upgrade)",
+      "engine_layout": "rear",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "c5845e75d822ce38a0799ce31473f853caaf56dd9846f380badb5944e14e61be",
+    "size_bytes": 1247700
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "6ae0f55547d1643cb762a6b7ba4dad0f73521cdd2b3f86b7c82192fdcb0fceeb",
+      "size_bytes": 60484
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "890b98119dc46965077b03f8eff40c1ffc6c0543b716e5721d13cbe7a6014408",
+      "size_bytes": 60484
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "e8d40f782d9d41dccd48d2263015b9e17de26adcf3eace7b9771ce086c519b03",
+      "size_bytes": 60476
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "d9a558e7130aca517f7d8994689caaf84efc4fda77ae6c82c4595b2193dabcce",
+      "size_bytes": 60480
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.5704421997070312,
+        "y": 0.30799993872642517,
+        "z": -1.0499999523162842
+      },
+      "radius_metres": 0.3079999983310646,
+      "width_metres": 0.22000005841255188
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.5707464814186096,
+        "y": 0.30799993872642517,
+        "z": -1.0499999523162842
+      },
+      "radius_metres": 0.30799999833106817,
+      "width_metres": 0.2199999988079071
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6100000143051147,
+        "y": 0.3080001175403595,
+        "z": 1.0499999523162842
+      },
+      "radius_metres": 0.3079999983310735,
+      "width_metres": 0.22000005841255188
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.60999995470047,
+        "y": 0.3080001175403595,
+        "z": 1.0500000715255737
+      },
+      "radius_metres": 0.30799999833106995,
+      "width_metres": 0.2199999988079071
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.0999999046325684,
+    "front_axle_z": -1.0499999523162842,
+    "rear_axle_z": 1.0499999523162842,
+    "front_track": 1.1411886811256409,
+    "rear_track": 1.2199999690055847
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "dc362eb60662cfac9889f3cff799a47167809efd9eb8f026b62e9a3ca5f122c5"
+  },
+  "visual_damage": {
+    "files": {
+      "damage/windows_damaged.png": {
+        "sha256": "dad52325383462ecc359cebc9575ae0feeb87018ff2f8558a79b01a86ad0bac4"
+      },
+      "damage/interior_windows_damaged.png": {
+        "sha256": "f0856d902b3fd16835a9ae1f0da1df83c9b19417766cdf9cae06dab1e5e83e74"
+      },
+      "damage/lights_damaged.png": {
+        "sha256": "e330f21018a5738cb907610553f87476a5db0096e8daeefc509b446420eba162"
+      },
+      "damage/damage.glb": {
+        "sha256": "ab57720ad450935feb7fcca418eabab11e7bd97ff16faef39db0a30c71ad8e58"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.7679777145385742,
+      0.10002611577510834,
+      -1.8953163623809814
+    ],
+    "max_godot": [
+      0.7680222392082214,
+      1.0647860765457153,
+      1.9984022378921509
+    ]
+  },
+  "measurement": {
+    "geometry_policy": "native",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.0999999046325684
+  },
+  "capabilities": {
+    "cockpit": true,
+    "native_arm_poses": 19,
+    "seats": 2,
+    "recovered_components": 9,
+    "damage_variants": 4
+  },
+  "warnings": []
+}
