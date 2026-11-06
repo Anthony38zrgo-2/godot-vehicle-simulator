@@ -16,11 +16,23 @@
       "path": "short_aged.glb",
       "sha256": "325470f4b707ad7cb1c528cbb1fed300beed2ef9f526bbf4bf041631191b9d41"
     },
+    "short_dry": {
+      "mesh": "Grass main dry",
+      "texture": "textures/Grass_cards_RGBA.png",
+      "path": "short_dry.glb",
+      "sha256": "24ae855246b58e077c8486346bb1f431982bf8d5c8322e444b652230782b5ff7"
+    },
     "tall": {
       "mesh": "Grass tall low",
       "texture": "textures/Grass_tall_card_RGBA.png",
       "path": "tall.glb",
       "sha256": "44f0300449ee3af00eba227afe294c5c4fa60259fc86ca658e24be22667b76fd"
+    },
+    "tall_high": {
+      "mesh": "Grass tall high",
+      "texture": "textures/Grass_tall_card_RGBA.png",
+      "path": "tall_high.glb",
+      "sha256": "27f72de9ceaed8510f4c5acf62e14406424a1a3ec35434dad9d4b6529ac2aacf"
     }
   }
 }
