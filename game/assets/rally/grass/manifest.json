@@ -1,0 +1,26 @@
+{
+  "source_archive": "grass-pack-lowpoly-game-ready.zip",
+  "source_archive_sha256": "0bf1410176e2287bd4c2e56c52a1eadbb3b8fe56638f1e240a248f109afdcb42",
+  "source_mesh": "source/Grass.fbx",
+  "conversion": "Blender 5.2. Meshes baked to metre scale, centered at ground level, with embedded source RGBA textures.",
+  "variants": {
+    "short_fresh": {
+      "mesh": "Grass main fresh",
+      "texture": "textures/Grass_cards_RGBA.png",
+      "path": "short_fresh.glb",
+      "sha256": "b820743928d76eb494437a62f5f1c34ba500da98b4d54461aefe560fe6cb4478"
+    },
+    "short_aged": {
+      "mesh": "Grass main aged",
+      "texture": "textures/Grass_cards_RGBA.png",
+      "path": "short_aged.glb",
+      "sha256": "325470f4b707ad7cb1c528cbb1fed300beed2ef9f526bbf4bf041631191b9d41"
+    },
+    "tall": {
+      "mesh": "Grass tall low",
+      "texture": "textures/Grass_tall_card_RGBA.png",
+      "path": "tall.glb",
+      "sha256": "44f0300449ee3af00eba227afe294c5c4fa60259fc86ca658e24be22667b76fd"
+    }
+  }
+}

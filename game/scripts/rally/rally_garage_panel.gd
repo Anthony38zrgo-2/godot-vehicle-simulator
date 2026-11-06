@@ -8,6 +8,7 @@ const FONT_SERIF: Font = preload("res://fonts/libron/Libron-Regular.ttf")
 const FONT_SERIF_BOLD: Font = preload("res://fonts/libron/Libron-Bold.ttf")
 const FONT_UI: Font = preload("res://fonts/D-DIN.ttf")
 const FONT_UI_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
 # --- Aero Glass 2006: cabecera y pie ----------------------------------------
 const C_BACK := Color("#080d12")
@@ -163,6 +164,10 @@ func _ready() -> void:
 	visible = false
 	set_process_input(false)
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
+	if vehicle == null and get_parent() != null:
+		vehicle = get_parent().find_child("FordEscortRS2000", true, false) as RallyEscortVehicle
+		if vehicle == null:
+			vehicle = get_parent().find_child("LanciaFulvia", true, false) as RallyEscortVehicle
 	input_controller = get_node_or_null(input_controller_path) as RallyVehicleInputController
 	if input_controller != null and not input_controller.garage_menu_requested.is_connected(
 		open_garage
@@ -199,6 +204,8 @@ func _resize_canvas() -> void:
 
 func open_garage_for_event(options: Dictionary = { }) -> void:
 	mandatory_confirmation = bool(options.get("confirmation_required", false))
+	if options.has("window_label") and not str(options.get("window_label", "")).is_empty():
+		circuit_name = str(options["window_label"])
 	compound_change_allowed = bool(options.get("compound_change_allowed", true))
 	event_forecast = (
 		str(options.get("forecast_summary", "")) + "  " + str(options.get("forecast_advice", ""))
@@ -269,7 +276,16 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 		queue_redraw()
 		return
 	if apply_changes:
-		var applied := vehicle.apply_setup_values(draft_values)
+		var setup_to_apply := draft_values.duplicate(true)
+		for k in setup_to_apply.keys():
+			if str(k).begins_with("strategy."):
+				if str(k) == "strategy.spare_wheels":
+					draft_spare_wheels = int(setup_to_apply[k])
+				elif str(k).begins_with("strategy.wheel_compound."):
+					var corner := str(k).trim_prefix("strategy.wheel_compound.")
+					draft_wheel_compounds[corner] = str(setup_to_apply[k])
+				setup_to_apply.erase(k)
+		var applied := vehicle.apply_setup_values(setup_to_apply)
 		if not bool(applied.get("ok", false)):
 			_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 			return
@@ -981,28 +997,45 @@ func _draw_backdrop() -> void:
 		)
 
 
+
+func _get_vehicle_display_name() -> String:
+	if vehicle != null:
+		if vehicle.name.to_lower().contains("fulvia") or vehicle.rally_profile_path.to_lower().contains("fulvia"):
+			return "LANCIA FULVIA HF"
+		if vehicle.name.to_lower().contains("escort") or vehicle.rally_profile_path.to_lower().contains("escort"):
+			return "FORD ESCORT RS2000"
+		if vehicle.rally_profile.has("profile_name"):
+			return str(vehicle.rally_profile.get("profile_name")).to_upper()
+	return "FORD ESCORT RS2000"
+
+
+func _get_team_display_name() -> String:
+	if not team_name.is_empty() and team_name != "Ford Rally Works":
+		return team_name.to_upper()
+	if vehicle != null and (vehicle.name.to_lower().contains("fulvia") or vehicle.rally_profile_path.to_lower().contains("fulvia")):
+		return "LANCIA HF"
+	return "FORD RALLY WORKS"
 func _draw_chrome_header() -> void:
 	_glass_window(Rect2(24, 18, 1232, 76), 10)
 
-	_text_serif(_box(46, 22, 0, 34), "FORD ESCORT RS2000", 20, C_CHROME_TEXT, true)
-	_text_serif(_box(46, 54, 260, 26), "FORD RALLY WORKS", 11, C_CHROME_DIM, true)
+	_text_title(_box(46, 22, 0, 34), _get_vehicle_display_name(), 20, C_CHROME_TEXT)
+	_text_serif(_box(46, 54, 260, 26), _get_team_display_name(), 11, C_CHROME_DIM, true)
 
 	draw_line(Vector2(330, 34), Vector2(330, 78), Color(C_RIM, 0.22), 1.0)
 
-	_text_serif(_box(354, 22, 0, 34), circuit_name.to_upper(), 16, C_CHROME_TEXT, true)
+	_text_title(_box(354, 22, 0, 34), circuit_name.to_upper(), 16, C_CHROME_TEXT)
 	var subtitle := "%s  ·  %0.1f KM  ·  %s" % [
 		circuit_country.to_upper(), circuit_length_m / 1000.0, mode.to_upper()
 	]
 	_text_serif(_box(354, 54, 360, 26), subtitle, 11, C_CHROME_DIM)
 
 	_glass_box(Rect2(986, 30, 250, 52), 7, C_GLASS_DEEP, Color(C_RIM, 0.34), 0.06)
-	_text_serif(_box(1002, 36, 218, 20), "REGLAJE ACTIVO", 9, C_CHROME_DIM, true)
-	_text_serif(
+	_text_title(_box(1002, 36, 218, 20), "REGLAJE ACTIVO", 9, C_CHROME_DIM)
+	_text_title(
 		_box(1002, 54, 218, 24),
 		active_setup_name.to_upper(),
 		15,
 		C_BLUE,
-		true,
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		218
 	)
@@ -1063,7 +1096,7 @@ func _draw_tabs() -> void:
 	var x := 34.0
 	for index in titles.size():
 		var label: String = titles[index]
-		var width: float = maxf(126.0, _serif_width(label, 11, true) + 52.0)
+		var width: float = maxf(126.0, _title_width(label, 11) + 52.0)
 		var rect := Rect2(x, 100, width, 44)
 		_tab(rect, label, index == page)
 		_hit_regions.append({ "rect": rect, "kind": "tab", "page": index })
@@ -1134,12 +1167,11 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 			1.0
 		)
 
-	_text(
+	_text_title(
 		_box(rect.position.x, top + 5.0, rect.size.x, bottom - top - 9.0),
 		label,
 		11,
 		C_TEXT if active else C_DIM,
-		active,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
@@ -1436,7 +1468,7 @@ func _draw_section_bar() -> void:
 	var x := 36.0
 	for i in titles.size():
 		var label: String = titles[i]
-		var width: float = maxf(150.0, _serif_width(label, 11, true) + 50.0)
+		var width: float = maxf(150.0, _title_width(label, 11) + 50.0)
 		var rect := Rect2(x, PAGE_TOP, width, 36)
 		_segment_button(rect, label, i == advanced_section)
 		_hit_regions.append({ "rect": rect, "kind": "section", "index": i })
@@ -1814,11 +1846,11 @@ func _draw_setups_page() -> void:
 	var detail := Rect2(910, 440, 316, 214)
 	draw_rect(detail, C_FIELD)
 	_sunken(detail)
-	_text(_box(detail.position.x + 12, detail.position.y + 10, detail.size.x - 24, 18), "DETALLE", 9, C_DIM, true)
+	_text_title(_box(detail.position.x + 12, detail.position.y + 10, detail.size.x - 24, 18), "DETALLE", 9, C_DIM)
 	_text(_box(detail.position.x + 12, detail.position.y + 32, detail.size.x - 24, 18), "CIRCUITO", 9, Color(C_DIM, 0.75))
 	_text(_box(detail.position.x + 12, detail.position.y + 48, detail.size.x - 24, 18), circuit_name.to_upper(), 11, C_TEXT)
 	_text(_box(detail.position.x + 12, detail.position.y + 74, detail.size.x - 24, 18), "COCHE", 9, Color(C_DIM, 0.75))
-	_text(_box(detail.position.x + 12, detail.position.y + 90, detail.size.x - 24, 18), "ESCORT RS2000", 11, C_TEXT)
+	_text(_box(detail.position.x + 12, detail.position.y + 90, detail.size.x - 24, 18), _get_vehicle_display_name(), 11, C_TEXT)
 	_text(_box(detail.position.x + 12, detail.position.y + 116, detail.size.x - 24, 18), "REGLAJE ACTIVO", 9, Color(C_DIM, 0.75))
 	_text(_box(detail.position.x + 12, detail.position.y + 132, detail.size.x - 24, 18), active_setup_name.to_upper(), 11, C_BLUE, true)
 	_text(
@@ -1838,12 +1870,11 @@ func _draw_modal() -> void:
 	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), Color(0, 0, 0, 0.72))
 	var rect := Rect2(390, 262, 500, 250)
 	_glass_window(rect, 10)
-	_text_serif(
+	_text_title(
 		_box(rect.position.x + 18, rect.position.y + 8, rect.size.x - 36, 32),
 		"PERFIL" if modal_mode == "name" else "CONFIRMACIÓN",
 		11,
-		C_BLUE,
-		true
+		C_BLUE
 	)
 	draw_line(
 		Vector2(rect.position.x + 1, rect.position.y + 44),
@@ -1857,7 +1888,7 @@ func _draw_modal() -> void:
 	_bevel(body, false, 2)
 
 	if modal_mode == "name":
-		_text(_box(body.position.x + 12, body.position.y + 10, body.size.x - 24, 20), "NOMBRE DEL REGLAJE", 10, C_DIM, true)
+		_text_title(_box(body.position.x + 12, body.position.y + 10, body.size.x - 24, 20), "NOMBRE DEL REGLAJE", 10, C_DIM)
 		var input := Rect2(body.position.x + 12, body.position.y + 36, body.size.x - 24, 40)
 		draw_rect(input, C_FIELD)
 		_sunken(input)
@@ -1899,9 +1930,9 @@ func _draw_modal() -> void:
 
 func _group(rect: Rect2, caption: String) -> void:
 	_bevel(rect, false, 1)
-	var cap_w := _serif_width(caption, 10, true) + 14.0
+	var cap_w := _title_width(caption, 10) + 14.0
 	draw_rect(Rect2(rect.position.x + 16, rect.position.y, cap_w, 2), C_FACE)
-	_text(_box(rect.position.x + 22, rect.position.y - 6, cap_w, 13), caption, 10, C_TEXT, true)
+	_text_title(_box(rect.position.x + 22, rect.position.y - 6, cap_w, 13), caption, 10, C_TEXT)
 
 
 func _group_inner(rect: Rect2) -> Rect2:
@@ -2031,12 +2062,11 @@ func _segment_button(rect: Rect2, label: String, active: bool) -> void:
 	_bevel(rect, not active, 2)
 	if active:
 		draw_rect(Rect2(rect.position.x + 3, rect.end.y - 3, rect.size.x - 6, 2), C_BLUE)
-	_text(
+	_text_title(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
 		11,
 		C_TEXT if active else C_DIM,
-		active,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
@@ -2307,6 +2337,21 @@ func _text_serif(
 	width_override: float = -1.0
 ) -> void:
 	_text(rect, text, size, color, bold, align, width_override)
+
+
+func _text_title(
+	rect: Rect2,
+	text: String,
+	size: int,
+	color: Color,
+	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+	width_override: float = -1.0
+) -> void:
+	_text_with(FONT_TITLE, rect, text, size, color, align, width_override)
+
+
+func _title_width(text: String, size: int) -> float:
+	return FONT_TITLE.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
 
 func _text_with(

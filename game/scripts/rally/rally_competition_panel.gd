@@ -13,6 +13,7 @@ const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
 const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
 # --- Aero Glass: cabeceras, pie y badges -------------------------------------
 const C_BACK := Color("#080d12")
@@ -128,7 +129,7 @@ func _build_ui() -> void:
 	header_hbox.add_child(title_vbox)
 
 	title = Label.new()
-	title.add_theme_font_override("font", BOLD)
+	title.add_theme_font_override("font", FONT_TITLE)
 	title.add_theme_font_size_override("font_size", 18)
 	title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(title)
@@ -161,7 +162,7 @@ func _build_ui() -> void:
 	badge_label = Label.new()
 	badge_label.text = "ESTADO DE PRUEBA"
 	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_label.add_theme_font_override("font", BOLD)
+	badge_label.add_theme_font_override("font", FONT_TITLE)
 	badge_label.add_theme_font_size_override("font_size", 9)
 	badge_label.add_theme_color_override("font_color", C_CHROME_DIM)
 	status_vbox.add_child(badge_label)
@@ -201,7 +202,7 @@ func _build_ui() -> void:
 
 	hero_header_label = Label.new()
 	hero_header_label.text = "// RESUMEN DEL PILOTO"
-	hero_header_label.add_theme_font_override("font", BOLD)
+	hero_header_label.add_theme_font_override("font", FONT_TITLE)
 	hero_header_label.add_theme_font_size_override("font_size", 12)
 	hero_header_label.add_theme_color_override("font_color", C_GOLD)
 	hero_vbox.add_child(hero_header_label)
@@ -244,7 +245,7 @@ func _build_ui() -> void:
 
 	table_title = Label.new()
 	table_title.text = "CLASIFICACIÓN OFICIAL"
-	table_title.add_theme_font_override("font", BOLD)
+	table_title.add_theme_font_override("font", FONT_TITLE)
 	table_title.add_theme_font_size_override("font_size", 12)
 	table_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	table_header_hbox.add_child(table_title)
@@ -557,7 +558,7 @@ func _style_tree(tree_node: Tree) -> void:
 	tree_node.add_theme_stylebox_override("cursor", selected_box)
 	tree_node.add_theme_stylebox_override("cursor_unfocused", selected_box)
 
-	tree_node.add_theme_font_override("title_button_font", BOLD)
+	tree_node.add_theme_font_override("title_button_font", FONT_TITLE)
 	tree_node.add_theme_font_size_override("title_button_font_size", 12)
 	tree_node.add_theme_color_override("title_button_color", C_CHROME_TEXT)
 
@@ -588,7 +589,7 @@ func _create_card(label_text: String, primary_text: String, sub_text: String, pr
 
 	var l_title := Label.new()
 	l_title.text = label_text.to_upper()
-	l_title.add_theme_font_override("font", BOLD)
+	l_title.add_theme_font_override("font", FONT_TITLE)
 	l_title.add_theme_font_size_override("font_size", 10)
 	l_title.add_theme_color_override("font_color", C_CHROME_DIM)
 	box.add_child(l_title)
@@ -718,7 +719,8 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 
 func _present_results(state: Dictionary) -> void:
 	var final_result := str(state.get("event_status", "")) == "finished"
-	next_button.visible = not final_result
+	var allow_next: bool = bool(state.get("allow_next", true))
+	next_button.visible = not final_result and allow_next
 	retry_button.visible = not state.has("event_stage_id") and not final_result
 	if final_result:
 		_present_final(state)
@@ -748,7 +750,7 @@ func _present_results(state: Dictionary) -> void:
 	_style_gold_button(next_button)
 	_style_muted_button(restart_button)
 	restart_button.text = "NUEVO RALLY"
-	shortcuts_label.text = "[ ENTER ] CONTINUAR   ·   [ R ] REINTENTAR"
+	shortcuts_label.text = ("[ ENTER ] CONTINUAR   ·   " if allow_next else "") + "[ R ] REINTENTAR"
 	notice.text = _event_notice(state)
 
 	# --- Actualizar panel izquierdo (Hero Cards) ---

@@ -8,6 +8,7 @@ const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
 const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
 # --- Aero Glass -------------------------------------------------------------
 const C_BACK := Color("#080d12")
@@ -149,13 +150,12 @@ func _build_modal_skeleton() -> void:
 
 	header_title = Label.new()
 	header_title.text = "PAUSA · COMPETICIÓN // RALLY"
-	header_title.add_theme_font_override("font", BOLD)
+	header_title.add_theme_font_override("font", FONT_TITLE)
 	header_title.add_theme_font_size_override("font_size", 17)
 	header_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(header_title)
 
 	header_subtitle = Label.new()
-	header_subtitle.text = "GESTIÓN DE VEHÍCULO Y SERVICIOS EN TRAMO"
 	header_subtitle.add_theme_font_override("font", FONT)
 	header_subtitle.add_theme_font_size_override("font_size", 11)
 	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
@@ -183,7 +183,7 @@ func _build_modal_skeleton() -> void:
 	badge_top = Label.new()
 	badge_top.text = "ESTADO DE PRUEBA"
 	badge_top.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_top.add_theme_font_override("font", BOLD)
+	badge_top.add_theme_font_override("font", FONT_TITLE)
 	badge_top.add_theme_font_size_override("font_size", 9)
 	badge_top.add_theme_color_override("font_color", C_CHROME_DIM)
 	badge_vbox.add_child(badge_top)
@@ -442,7 +442,7 @@ func show_quick_repairs() -> void:
 
 	var stat_title := Label.new()
 	stat_title.text = "INTEGRIDAD ESTRUCTURAL DEL RADIADOR: %d%%" % [100 - pct]
-	stat_title.add_theme_font_override("font", BOLD)
+	stat_title.add_theme_font_override("font", FONT_TITLE)
 	stat_title.add_theme_font_size_override("font_size", 11)
 	stat_title.add_theme_color_override("font_color", C_GREEN if pct < 5 else (C_GOLD if pct < 70 else C_ROSE))
 	card_vbox.add_child(stat_title)
@@ -590,7 +590,7 @@ func show_inventory() -> void:
 
 	var t_title := Label.new()
 	t_title.text = "// MALETERO · REPUESTOS A BORDO"
-	t_title.add_theme_font_override("font", BOLD)
+	t_title.add_theme_font_override("font", FONT_TITLE)
 	t_title.add_theme_font_size_override("font_size", 11)
 	t_title.add_theme_color_override("font_color", C_RIM)
 	trunk_header.add_child(t_title)
@@ -867,7 +867,7 @@ func _update_telemetry_panel() -> void:
 
 		var t_title := Label.new()
 		t_title.text = "ESTADO DE NEUMÁTICOS"
-		t_title.add_theme_font_override("font", BOLD)
+		t_title.add_theme_font_override("font", FONT_TITLE)
 		t_title.add_theme_font_size_override("font_size", 10)
 		t_title.add_theme_color_override("font_color", C_CHROME_DIM)
 		t_vbox.add_child(t_title)
@@ -933,7 +933,7 @@ func _create_telemetry_card(title_text: String, prim_text: String, sub_text: Str
 
 	var l_t := Label.new()
 	l_t.text = title_text.to_upper()
-	l_t.add_theme_font_override("font", BOLD)
+	l_t.add_theme_font_override("font", FONT_TITLE)
 	l_t.add_theme_font_size_override("font_size", 10)
 	l_t.add_theme_color_override("font_color", C_CHROME_DIM)
 	box.add_child(l_t)
@@ -1440,7 +1440,7 @@ class WheelSlotControl extends PanelContainer:
 
 		title_label = Label.new()
 		title_label.text = title_text
-		title_label.add_theme_font_override("font", panel_ref.BOLD)
+		title_label.add_theme_font_override("font", panel_ref.FONT_TITLE)
 		title_label.add_theme_font_size_override("font_size", 11)
 		title_label.add_theme_color_override("font_color", panel_ref.C_GOLD if is_sel else panel_ref.C_CHROME_TEXT)
 		head_box.add_child(title_label)
@@ -1573,7 +1573,7 @@ class DiscardBinSlot extends PanelContainer:
 		var title := Label.new()
 		title.text = "🗑️ DESECHAR EN RUTA"
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title.add_theme_font_override("font", panel_ref.BOLD)
+		title.add_theme_font_override("font", panel_ref.FONT_TITLE)
 		title.add_theme_font_size_override("font_size", 11)
 		title.add_theme_color_override("font_color", panel_ref.C_ROSE)
 		vbox.add_child(title)

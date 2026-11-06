@@ -49,8 +49,8 @@ func run() -> void:
 	var controller = scene.input_controller
 	var lights = scene.vehicle.get_node("VisualDamage")
 	check(manager.schedule_for("russia_stage1").start == "08:00", "the rally starts in the morning")
-	check(manager.schedule_for("russia_stage4").start == "19:00", "stage four is scheduled at night")
-	check(manager.schedule_for("russia_stage5").start == "22:00", "stage five is scheduled at night")
+	check(manager.schedule_for("russia_stage4").start == "14:00", "stage four is scheduled in the afternoon")
+	check(manager.schedule_for("russia_stage5").start == "18:00", "stage five is scheduled in the afternoon")
 	check(not lights.headlights_requested, "morning stage starts with headlights off")
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_L

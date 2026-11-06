@@ -1,5 +1,6 @@
 extends CanvasLayer
 signal confirmed
+const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const PARTS := {"engine": ["Motor", 45.0], "radiator": ["Radiador", 20.0], "transmission": ["Transmisión", 35.0], "body": ["Carrocería", 15.0], "hood": ["Capó", 8.0], "trunk": ["Maletero", 8.0], "windshield": ["Parabrisas", 10.0], "headlight_left": ["Faro izquierdo", 5.0], "headlight_right": ["Faro derecho", 5.0]}
 var vehicle
 var manager
@@ -31,6 +32,7 @@ func open(car, event_manager, window: Dictionary) -> void:
 	shade.add_child(panel)
 	var title := Label.new()
 	title.text = "ÁREA DE SERVICIO · REPARACIONES"
+	title.add_theme_font_override("font", FONT_TITLE)
 	title.add_theme_font_size_override("font_size", 26)
 	panel.add_child(title)
 	var hint := Label.new()

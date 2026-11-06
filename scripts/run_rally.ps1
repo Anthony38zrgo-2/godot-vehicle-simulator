@@ -21,6 +21,9 @@ if (-not $vehicleProperty) { throw "Coche desconocido: $Vehicle. Disponibles: $(
 $vehicleConfiguration = $vehicleProperty.Value
 $provingScene = 'res://scenes/rally/' + $vehicleConfiguration.Proving + '.tscn'
 $rallyScene = if ($ProvingGround) { $provingScene } else { 'res://scenes/rally/' + $vehicleConfiguration.Stage + '.tscn' }
+$menuScene = 'res://scenes/rally/rally_maniac_menu.tscn'
+$isInteractive = (-not $PSBoundParameters.ContainsKey('Vehicle')) -and (-not $Smoke) -and (-not $ValidateRuntimeOnly) -and (-not $ExportWindows) -and (-not $ProvingGround)
+$targetScene = if ($isInteractive) { $menuScene } else { $rallyScene }
 $assetManifestPath = Join-Path $gameRoot ('assets/rally/' + $vehicleConfiguration.Assets + '/manifest.json')
 $stageManifestPath = Join-Path $gameRoot 'assets\rally\russia_stage1\manifest.json'
 $vehicleProfilePath = Join-Path $gameRoot ('data/vehicles/' + $vehicleConfiguration.Profile + '/vehicle.json')
@@ -123,10 +126,15 @@ Assert-File (Join-Path $gameRoot 'scripts\rally\rally_escort_vehicle.gd') 'Contr
 Assert-File (Join-Path $gameRoot 'docs\rally\README.md') 'Documentacion del modelo Rally'
 Assert-File (Join-Path $gameRoot 'data\input\input_profile.json') 'Perfil de entrada'
 Assert-File (Join-Path $gameRoot 'fonts\D-DINCondensed-Bold.ttf') 'Fuente del HUD'
+Assert-File (Join-Path $gameRoot 'fonts\montserrat\Montserrat-Bold.ttf') 'Fuente de títulos Montserrat'
 Assert-File (Join-Path $gameRoot 'scenes\rally\rally_f1_head_up_display.tscn') 'HUD F1 para rally'
 Assert-File (Join-Path $gameRoot 'features\retro_hud\scenes\retro_hud_display.tscn') 'Escena RetroHud F1'
 Assert-File (Join-Path $gameRoot 'features\retro_hud\scripts\retro_hud_display.gd') 'Script RetroHud F1'
 Assert-File (Join-Path $gameRoot 'scripts\hud\driving_controls_panel.gd') 'Panel de controles F1'
+if ($isInteractive) {
+    Assert-File (Join-Path $gameRoot 'scenes/rally/rally_maniac_menu.tscn') 'Escena del menú Rally Maniac'
+    Assert-File (Join-Path $gameRoot 'scripts/rally/rally_maniac_menu.gd') 'Script del menú Rally Maniac'
+}
 
 $vehicleManifest = Get-Content -LiteralPath $vehicleProfilePath -Raw | ConvertFrom-Json
 if ([int]$vehicleManifest.schema_version -lt 1 -or [string]$vehicleManifest.units -ne 'SI' -or [string]$vehicleManifest.vehicle_identifier -ne $vehicleConfiguration.Id) {
@@ -218,7 +226,7 @@ $metadata = [ordered]@{
     build_source = $buildSource
     build_source_matches_head = ($buildSource -eq $head)
     godot = $godotVersion
-    scene = $rallyScene
+    scene = $targetScene
     physics_engine = (Get-ProjectSetting $projectPath '3d/physics_engine')
     physics_ticks_per_second = (Get-ProjectSetting $projectPath 'common/physics_ticks_per_second')
     vehicle_id = $vehicleConfiguration.Id
@@ -329,14 +337,18 @@ if ($ExportWindows) {
     exit 0
 }
 
-Write-Host "Iniciando $rallyScene con $($vehicleConfiguration.Id)" -ForegroundColor Green
+if ($isInteractive) {
+    Write-Host "Iniciando menú interactivo Rally Maniac ($targetScene)" -ForegroundColor Green
+} else {
+    Write-Host "Iniciando $targetScene con $($vehicleConfiguration.Id)" -ForegroundColor Green
+}
 $previousErrorAction = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 $runArguments = @('--path', $gameRoot, '--log-file', $godotLogPath)
 if ($QuitAfterFrames -gt 0) {
     $runArguments += @('--quit-after', [string]$QuitAfterFrames)
 }
-$runArguments += @($rallyScene, '--', "--rally-run-id=$runIdentifier", "--rally-telemetry=$telemetryPath", "--rally-log=$launcherLogPath")
+$runArguments += @($targetScene, '--', "--rally-run-id=$runIdentifier", "--rally-telemetry=$telemetryPath", "--rally-log=$launcherLogPath")
 & $godot @runArguments
 $rallyExitCode = $LASTEXITCODE
 $ErrorActionPreference = $previousErrorAction

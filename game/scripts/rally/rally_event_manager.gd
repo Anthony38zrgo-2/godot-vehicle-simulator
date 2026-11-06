@@ -73,6 +73,14 @@ func load_event() -> bool:
 func begin_event(choices: Dictionary = {}) -> bool:
 	if not load_event():
 		return false
+	var start_stage_id := str(choices.get("start_stage_id", choices.get("stage_id", "")))
+	if not start_stage_id.is_empty():
+		var start_index := stage_order.find(start_stage_id)
+		if start_index < 0:
+			error = "Especial inicial desconocida en el evento: " + start_stage_id
+			return false
+		if start_index > 0:
+			stage_order = stage_order.slice(start_index)
 	seed_value = int(choices.get("seed", 0))
 	if seed_value <= 0:
 		var random := RandomNumberGenerator.new()
@@ -166,13 +174,16 @@ func _update_pending_window() -> void:
 	pending_window = {}
 	var current := current_stage_id()
 	var prev_id := "" if cursor <= 0 else str(stage_order[cursor - 1])
+	if cursor == 0 and not windows_attended.has("initial"):
+		pending_window = {
+			"before_stage_id": current,
+			"initial_tab": "tires",
+			"confirmation_required": true,
+			"window_key": "initial"
+		}
+		return
 	for w in setup_windows():
 		var wd: Dictionary = w
-		if wd.has("before_stage_id") and not wd.has("after_stage_id"):
-			if str(wd.get("before_stage_id", "")) == current and not windows_attended.has("initial"):
-				pending_window = wd.duplicate(true)
-				pending_window["window_key"] = "initial"
-				return
 		if wd.has("after_stage_id") and wd.has("before_stage_id"):
 			if str(wd.get("after_stage_id", "")) == prev_id and str(wd.get("before_stage_id", "")) == current:
 				var key := "service:%s>%s" % [prev_id, current]
@@ -631,7 +642,9 @@ func _build_itinerary(choices: Dictionary) -> void:
 			var ids: Array = day.get("stage_ids", [])
 			var starts_day: Array = day.get("starts", [])
 			for i in ids.size():
-				itinerary.append({"stage_id": ids[i], "date": str(day.get("date", "")), "start": str(starts_day[i]) if i < starts_day.size() else "08:00", "day_label": str(day.get("label", ""))})
+				var sid: String = str(ids[i])
+				if stage_order.has(sid):
+					itinerary.append({"stage_id": sid, "date": str(day.get("date", "")), "start": str(starts_day[i]) if i < starts_day.size() else "08:00", "day_label": str(day.get("label", ""))})
 	# Validación: horarios absolutos crecientes y margen entre salidas.
 	var previous := -1
 	for entry in itinerary:

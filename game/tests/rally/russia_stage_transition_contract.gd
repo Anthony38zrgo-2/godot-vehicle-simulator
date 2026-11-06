@@ -54,9 +54,15 @@ func run() -> void:
 		check(old_visual.get_ref() == null and old_body.get_ref() == null, "old visual and collision freed")
 		check(scene.track_collision.collision_scene_path.ends_with(expected + "_collision.glb"), "own collision GLB")
 		check(scene.track_collision.generated_body_count == scene.track_collision.get_child_count(), "no stale collision bodies")
-		if index == 6:
-			check(scene.awaiting_setup and scene.event_clock.paused and scene.vehicle.freeze, "service pauses before stage 6")
+		for child in scene.get_children():
+			if child.has_method("_commit"):
+				child.call("_commit")
+				await process_frame
+				await physics_frame
+		if scene.awaiting_setup:
+			check(scene.event_clock.paused and scene.vehicle.freeze, "service pauses before stage %d" % index)
 			scene.garage_panel.close_garage(true)
+			await physics_frame
 		check(scene.input_controller.controls_enabled and not scene.vehicle.freeze, "controls resumed")
 		check(scene.start_position.distance_to(scene.vehicle.global_position) < 5.0, "vehicle at new spawn")
 		check(manager.official.player.stages.size() == index - 1, "results carried once")

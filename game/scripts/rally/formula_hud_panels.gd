@@ -8,6 +8,7 @@ const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
 const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
 const C_FACE := Color("#2b3d4d")
 const C_FACE_HI := Color("#374c5e")
@@ -89,7 +90,7 @@ func _draw_damage(rect: Rect2) -> void:
 	draw_rect(body, C_FACE)
 	_bevel(body, false, 2)
 
-	_text(Rect2(body.position.x + 6, body.position.y + 2, 220, 14), "ESTADO DE DAÑOS", 9, C_BLUE, true)
+	_title(Rect2(body.position.x + 6, body.position.y + 2, 220, 14), "ESTADO DE DAÑOS", 9, C_BLUE)
 	draw_rect(Rect2(body.position.x + 2, body.position.y + 18, body.size.x - 4, 1), C_SHADOW)
 
 	var dmg: Dictionary = snapshot.get("damage", {})
@@ -143,7 +144,7 @@ func _draw_timing(rect: Rect2) -> void:
 	draw_rect(body, C_FACE)
 	_bevel(body, false, 2)
 
-	_text(Rect2(body.position.x + 2, body.position.y, 220, 14), "TIEMPO DE ESPECIAL", 9, C_BLUE, true)
+	_title(Rect2(body.position.x + 2, body.position.y, 220, 14), "TIEMPO DE ESPECIAL", 9, C_BLUE)
 	draw_rect(Rect2(body.position.x + 2, body.position.y + 16, body.size.x - 4, 1), C_SHADOW)
 
 	var rows := [
@@ -232,12 +233,11 @@ func _draw_map(rect: Rect2) -> void:
 	var strip := Rect2(body.position.x + 8, body.end.y - 68, body.size.x - 16, 60)
 	draw_rect(strip, C_FACE)
 	_bevel(strip, false, 1)
-	_text(
+	_title(
 		Rect2(strip.position.x + 8, strip.position.y, strip.size.x - 16, 24),
 		label.to_upper(),
 		11,
 		C_TEXT,
-		true,
 		HORIZONTAL_ALIGNMENT_CENTER,
 		strip.size.x - 16
 	)
@@ -420,6 +420,22 @@ func _num(
 	var line_height := BOLD.get_height(size_px)
 	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - BOLD.get_descent(size_px)
 	draw_string(BOLD, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
+
+
+func _title(
+	rect: Rect2,
+	value: String,
+	size_px: int,
+	color: Color,
+	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+	width_override: float = -1.0
+) -> void:
+	if value.is_empty():
+		return
+	var width: float = rect.size.x if width_override < 0.0 else width_override
+	var line_height := FONT_TITLE.get_height(size_px)
+	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - FONT_TITLE.get_descent(size_px)
+	draw_string(FONT_TITLE, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
 
 
 func _text(

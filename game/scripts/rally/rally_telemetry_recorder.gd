@@ -121,8 +121,16 @@ func write_header() -> void:
 
 
 func write_metadata() -> void:
+	var track_id_val := ""
+	if get_parent() != null and "session_track_id" in get_parent():
+		track_id_val = str(get_parent().session_track_id)
+	var vehicle_id_val := ""
+	if vehicle != null and vehicle.rally_profile != null:
+		vehicle_id_val = str(vehicle.rally_profile.get("vehicle_identifier", ""))
 	var metadata := {
 		"run_identifier": run_identifier,
+		"track_id": track_id_val,
+		"vehicle_id": vehicle_id_val,
 		"started_at_utc": started_at_utc,
 		"telemetry_file": telemetry_file_path,
 		"vehicle_profile": vehicle.rally_profile_path,
@@ -248,8 +256,16 @@ func _exit_tree() -> void:
 		telemetry_file = null
 	if not telemetry_enabled:
 		return
+	var track_id_val := ""
+	if get_parent() != null and "session_track_id" in get_parent():
+		track_id_val = str(get_parent().session_track_id)
+	var vehicle_id_val := ""
+	if vehicle != null and vehicle.rally_profile != null:
+		vehicle_id_val = str(vehicle.rally_profile.get("vehicle_identifier", ""))
 	var summary := {
 		"run_identifier": run_identifier,
+		"track_id": track_id_val,
+		"vehicle_id": vehicle_id_val,
 		"started_at_utc": started_at_utc,
 		"finished_at_utc": Time.get_datetime_string_from_system(true),
 		"elapsed_seconds": elapsed_seconds,
