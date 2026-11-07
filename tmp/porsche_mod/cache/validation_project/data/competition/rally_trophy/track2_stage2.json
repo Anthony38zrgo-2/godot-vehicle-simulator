@@ -1,0 +1,150 @@
+{
+  "source_game": "Rally Trophy",
+  "source_archive": "Tracks/track2/data.bzf",
+  "source_archive_sha256": "d502a15bcad43692c5359277845c42840aaa7c624ef68f650dcdd00308f01f57",
+  "source_file": "stagetimes2.ini",
+  "source_ini_sha256": "0b7d32626841ebd291020f47256d4116c875e07e4559f8dc53c582b03086ea2e",
+  "raw_ini": "\n# fast, ok, bad\nCommentTimesNovice\t\t\t=\t{220.0, 230.0, 240.0};\nCommentTimesIntermediate\t\t=\t{210.0, 220.0, 230.0};\nCommentTimesExpert\t\t\t=\t{200.0, 210.0, 220.0};\n\n# fast, ok, bad (for FTC cars)\nCommentTimesFTCNovice\t\t=\t{216.0, 226.0, 236.0};\nCommentTimesFTCIntermediate\t=\t{206.0, 216.0, 226.0};\nCommentTimesFTCExpert\t\t=\t{196.0, 206.0, 216.0};\n\n# Optimal split times (novice, intermediate, expert)\nCPUSplit0       =\t{27.0, 26.0, 25.0};\nCPUSplit1       =\t{28.0, 27.0, 26.0};\nCPUSplit2       =\t{29.0, 28.0, 26.0};\nCPUSplit3       =\t{29.0, 28.0, 26.0};\nCPUSplit4       =\t{17.0, 16.0, 15.0};\nCPUSplit5       =\t{29.0, 28.0, 26.0};\nCPUSplit6       =\t{17.0, 16.0, 15.0};\nCPUSplit7       =\t{16.0, 15.0, 15.0};\nCPUSplit8       =\t{14.0, 13.0, 13.0};\nCPUSplit9       =\t{14.0, 13.0, 13.0};\n\n# Optimal split times (novice, intermediate, expert) for FTC cars\nCPUFTCSplit0       =\t{26.0, 25.0, 24.0};\nCPUFTCSplit1       =\t{28.0, 27.0, 26.0};\nCPUFTCSplit2       =\t{29.0, 28.0, 26.0};\nCPUFTCSplit3       =\t{28.0, 27.0, 25.0};\nCPUFTCSplit4       =\t{17.0, 16.0, 15.0};\nCPUFTCSplit5       =\t{28.0, 27.0, 25.0};\nCPUFTCSplit6       =\t{17.0, 16.0, 15.0};\nCPUFTCSplit7       =\t{15.0, 16.0, 14.0};\nCPUFTCSplit8       =\t{14.0, 13.0, 13.0};\nCPUFTCSplit9       =\t{14.0, 13.0, 13.0};\n",
+  "track": "track2",
+  "stage_index": 2,
+  "difficulty_order": [
+    "novice",
+    "intermediate",
+    "expert"
+  ],
+  "values_seconds": {
+    "CommentTimesNovice": [
+      220.0,
+      230.0,
+      240.0
+    ],
+    "CommentTimesIntermediate": [
+      210.0,
+      220.0,
+      230.0
+    ],
+    "CommentTimesExpert": [
+      200.0,
+      210.0,
+      220.0
+    ],
+    "CommentTimesFTCNovice": [
+      216.0,
+      226.0,
+      236.0
+    ],
+    "CommentTimesFTCIntermediate": [
+      206.0,
+      216.0,
+      226.0
+    ],
+    "CommentTimesFTCExpert": [
+      196.0,
+      206.0,
+      216.0
+    ],
+    "CPUSplit0": [
+      27.0,
+      26.0,
+      25.0
+    ],
+    "CPUSplit1": [
+      28.0,
+      27.0,
+      26.0
+    ],
+    "CPUSplit2": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit3": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit4": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit5": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit6": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit7": [
+      16.0,
+      15.0,
+      15.0
+    ],
+    "CPUSplit8": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUSplit9": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUFTCSplit0": [
+      26.0,
+      25.0,
+      24.0
+    ],
+    "CPUFTCSplit1": [
+      28.0,
+      27.0,
+      26.0
+    ],
+    "CPUFTCSplit2": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUFTCSplit3": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUFTCSplit4": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUFTCSplit5": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUFTCSplit6": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUFTCSplit7": [
+      15.0,
+      16.0,
+      14.0
+    ],
+    "CPUFTCSplit8": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUFTCSplit9": [
+      14.0,
+      13.0,
+      13.0
+    ]
+  },
+  "has_cpu_reference": true,
+  "fallback_status": "available_uncalibrated",
+  "usage": "Original game parameters, not a verified executable formula. Route mapping and physics calibration are design inputs."
+}

@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Saab 96 V4",
-    "vehicle_mass": 952.0,
+    "vehicle_mass": 962.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
     "front_weight_distribution": 0.61,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.525
   },
   "geometry": {
-    "wheelbase": 2.3999998569488525,
-    "front_axle_z": -1.2000000476837158,
-    "rear_axle_z": 1.1999998092651367,
-    "front_track": 1.184999942779541,
-    "rear_track": 1.1250000596046448
+    "wheelbase": 2.498,
+    "front_axle_z": -1.249,
+    "rear_axle_z": 1.249,
+    "front_track": 1.27,
+    "rear_track": 1.27
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 952.0,
+    "base_budget_kilograms": 962.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 650.0,
+          "mass_kilograms": 660.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": -0.2633355204802291
+            "y": 0.525,
+            "z": -0.1
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                182.00000000000003,
+                1139.0,
                 0,
                 0
               ],
               [
                 0,
-                357.50000000000006,
+                1173.0,
                 0
               ],
               [
                 0,
                 0,
-                97.5
+                280.5
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": -0.9600000381469727
+            "y": 0.475,
+            "z": -0.6
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.645,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.645,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.9599998474121094
+            "y": 0.505,
+            "z": 0.1
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

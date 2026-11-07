@@ -61,8 +61,9 @@ const BACKFIRE_SAMPLE_PATHS := [
 	"res://sounds/banks/commons/backfire_ext_3.wav",
 	"res://sounds/banks/commons/backfire_ext_4.wav",
 ]
-const BACKFIRE_CABIN_SAMPLE_PATH := "res://sounds/banks/commons/backfire_5.wav"
-const BACKFIRE_CABIN_POSITION := Vector3(0.0, 0.50, 0.20)
+# Cabin/bonnet backfires reuse the exterior exhaust recordings on a dedicated
+# bus; audio_mixer.json ("backfire_cabin") gives that bus its high-pass filter.
+const BACKFIRE_CABIN_BUS := "backfire_cabin"
 const BACKFIRE_CABIN_VOLUME_DB := -6.0
 # Probabilidad de pop al soltar, por marcha (CMR2: mas probable en cortas).
 const BACKFIRE_GEAR_PROB := [0.5, 0.9, 0.65, 0.4, 0.2]
@@ -134,7 +135,6 @@ var coast_engine_definitions: Array = COAST_ENGINE_DEFINITIONS
 var coast_exhaust_definitions: Array = COAST_EXHAUST_DEFINITIONS
 var whine_paths: Array = [GEAR_WHINE_PATH, GEAR_WHINE_HIGH_PATH]
 var backfire_paths: Array = BACKFIRE_SAMPLE_PATHS
-var backfire_cabin_path: String = BACKFIRE_CABIN_SAMPLE_PATH
 var engine_position := Vector3(0.0, 0.55, -0.8)
 var exhaust_position := BACKFIRE_POSITION
 
@@ -218,13 +218,8 @@ func _ready() -> void:
 		backfire_paths = bank.get("backfire", BACKFIRE_SAMPLE_PATHS)
 		if backfire_paths.is_empty():
 			backfire_paths = BACKFIRE_SAMPLE_PATHS
-		var cabin_cfg: Variant = bank.get("backfire_interior", [BACKFIRE_CABIN_SAMPLE_PATH])
-		if cabin_cfg is Array and not cabin_cfg.is_empty():
-			backfire_cabin_path = str(cabin_cfg[0])
-		elif cabin_cfg is String and not cabin_cfg.is_empty():
-			backfire_cabin_path = str(cabin_cfg)
-		else:
-			backfire_cabin_path = BACKFIRE_CABIN_SAMPLE_PATH
+		# "backfire_interior" is intentionally ignored: the interior/bonnet backfire
+		# reuses the exhaust recordings through the HP-filtered cabin bus.
 		var ep: Array = bank.get("engine_position", [0.0, 0.55, -0.8])
 		var xp: Array = bank.get("exhaust_position", [0.0, 0.20, 1.50])
 		engine_position = Vector3(float(ep[0]), float(ep[1]), float(ep[2]))
@@ -854,12 +849,13 @@ func build_auxiliary_audio() -> void:
 	)
 	build_event_voice_pool(
 		backfire_cabin_players,
-		[backfire_cabin_path],
-		BACKFIRE_CABIN_POSITION,
+		backfire_paths,
+		exhaust_position,
 		BACKFIRE_CABIN_VOLUME_DB,
-		12.0,
-		80.0,
+		8.0,
+		160.0,
 		1,
+		BACKFIRE_CABIN_BUS,
 	)
 	build_event_voice_pool(extra_upshift_players, ["res://sounds/banks/commons/f2002_gearup.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
 	build_event_voice_pool(extra_downshift_players, ["res://sounds/banks/commons/f2002_geardn.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
@@ -930,6 +926,7 @@ func build_event_voice_pool(
 	unit_size: float,
 	maximum_distance: float,
 	voices_per_variant: int,
+	bus_key: String = "",
 ) -> void:
 	for voice in voices_per_variant:
 		for path in paths:
@@ -942,7 +939,8 @@ func build_event_voice_pool(
 			if player.stream == null:
 				continue
 			player.position = local_position
-			routing.route(player, voice_key)
+			# bus_key keeps a second pool on its own filtered bus while sharing the sample.
+			routing.route(player, bus_key if not bus_key.is_empty() else voice_key)
 			player.volume_db = volume_db
 			player.unit_size = unit_size
 			player.max_distance = maximum_distance

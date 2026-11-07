@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/rally/rally_proving_ground.tscn" id="1"]
+
+[node name="FordRallyPrototype" type="Node3D"]
+
+[node name="ProvingGround" parent="." instance=ExtResource("1")]

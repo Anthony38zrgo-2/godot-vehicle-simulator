@@ -1,0 +1,42 @@
+{
+  "claim": "Configuration port, not a measurement-validated reconstruction",
+  "estimated_domains": [
+    "suspension kinematics (mandatory geometric proxy)",
+    "component mass allocation and inertia",
+    "thermal parameters",
+    "aerodynamic drag",
+    "tire force calibration"
+  ],
+  "model_vertical_shift_m": 0.5067010000000001,
+  "rally_suspension_raise_m": 0.06,
+  "rear_linkage": "parallel-link direct spring proxy; positive leverage through the complete stroke",
+  "separate_wheels_kg": 80.0,
+  "source_files": [
+    "Car.ini",
+    "Engine.ini",
+    "Tires.ini"
+  ],
+  "source_final_drive": 4.35,
+  "source_gears": 4,
+  "source_idle_rpm": 1800.0,
+  "source_mass_rigid_body_kg": 990.0,
+  "source_torque_nm": 206.0,
+  "rally_thermal_window": {
+    "optimal_tread_c": 50.0,
+    "window_c": 50.0,
+    "overheat_c": 100.0,
+    "carcass_c": 60.0,
+    "cold_pressure_bar": 1.8,
+    "reference_hot_pressure_bar": 2.25,
+    "target_hot_pressure_bar": [
+      2.2,
+      2.4
+    ],
+    "report": "implementation/reports/ford_rally_tires_20261027/README.md",
+    "note": "Gravel compound simulation proxy; temperature envelope and thermal coefficients are calibrated estimates, not measured Escort data.",
+    "sources": [
+      "https://www.pirelli.com/tires/en-us/motorsport/car/rally/catalog/scorpion-gm",
+      "https://www.michelinman.com/motorsport/motorsport-faq"
+    ]
+  }
+}

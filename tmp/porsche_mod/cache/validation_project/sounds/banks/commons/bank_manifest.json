@@ -1,0 +1,557 @@
+{
+  "bank_name": "commons",
+  "channels": 1,
+  "files": [
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.596,
+      "file": "gear_down_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.8,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_1_down.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_downshift",
+      "sha256": "7d06b8623ef28b01f34b47c32a6ac8ab8b92c17d72f218ae5ed5504fcdf45e34",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_1_down.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.602,
+      "file": "gear_down_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -13.41,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_2_down.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_downshift",
+      "sha256": "a7222802b0703e351df5ef31c4373b4857270185354b567ab440149dc6d5d868",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_2_down.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.267,
+      "file": "gear_down_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -10.42,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_3_down.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_downshift",
+      "sha256": "a353037223bace638bff86075ea869157e8bb564306a4174f34f73754f14d5e5",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_3_down.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.213,
+      "file": "gear_up_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -10.62,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_1_up.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_upshift",
+      "sha256": "a0be3c28e18d810357c33ad5790b37ab6c3cdb187749f4efd5342714a9067401",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_1_up.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.155,
+      "file": "gear_up_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -10.09,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_2_up.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_upshift",
+      "sha256": "137e7cfdacbc149bcbfbeb50c0951bfe7ef7e8b21ae20a14738dcfdd385f98df",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_2_up.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.258,
+      "file": "gear_up_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.07,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): data/audio/generic.cpu:gear_change_3_up.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "gearbox_upshift",
+      "sha256": "3d23d60558dbc6650fa32abb4b1c9bb572baecc789974208d65dc6d70406b9e4",
+      "synthesis": {
+        "category": "gearbox",
+        "source_archive": "data/audio/generic.cpu",
+        "source_name": "gear_change_3_up.wav",
+        "target_rate": 44100,
+        "gate": "clutch_open_only"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.496,
+      "file": "impact_land_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -13.45,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land3.wav (leve <4 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "f2aa9f081c2e917bde4fec92a37b002f51080abfa97edca9cde49afd132062dc",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land3.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "leve <4 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.821,
+      "file": "impact_land_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -9.46,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land1.wav (media 4-7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "753c2ba7f9c252c7eab42f73ddcc4ae8f9ddc57c16a65906978571531a30cc27",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land1.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "media 4-7 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.922,
+      "file": "impact_land_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.56,
+      "peak": 0.889954,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land2.wav (dura >7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "a4cc1a2d6e9ed1347fe85ce555c6ea9905dbb3b52058fc816eaaf41060728160",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land2.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "dura >7 m/s"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 1.138,
+      "file": "impact_large.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -15.19,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_large.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_large",
+      "sha256": "d37808932712e4345cedc962818da33d453be299a14f9f333cee6c376e773ff1",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_large.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": ">70"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.813,
+      "file": "impact_medium_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.45,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_medium",
+      "sha256": "f9b1e0502e862e79c982cdc77fe5beddf6ba925b867f6648e591eade30466178",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_medium1.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "40-70"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.789,
+      "file": "impact_medium_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.42,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_medium",
+      "sha256": "c3860c35b7f3a4296d0dd286f586c5669f1019b8eb242f310e40152395825c3e",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_medium2.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "40-70"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 2.586667,
+      "file": "impact_scrape.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -17.74,
+      "peak": 0.693695,
+      "provenance": "derived from user-supplied undertray_scrape_metallic_p Edit 1 Export 1.wav",
+      "role": "impact_scrape",
+      "sha256": "eb891d601993c5298a2946fb0ca9b0c5ada9041fc3b63fdacc8805a20478ed96",
+      "synthesis": {
+        "category": "impact",
+        "processing": {
+          "arithmetic_stereo_downmix": true,
+          "attenuation_decibels": -3.124036380875561,
+          "remove_mean_offset": true,
+          "true_peak_ceiling_decibels_full_scale": -3.0
+        },
+        "promotion_recipe": "underfloor_metallic_scrape_v1",
+        "source_file": "game/sounds/bank_sources/underfloor_metallic_scrape_source.wav",
+        "source_rate": 44100,
+        "source_sha256": "164f2ca76fc1625308583a2af20f09dee0a23cfca0924e7f60be406e56ae5164",
+        "tool_revision": 1
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.58,
+      "file": "impact_small_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -11.27,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "37ea172af0d20a3bd885b9c933e193b779c4fcc8578455d3836fda0cd231317e",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small1.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.627,
+      "file": "impact_small_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -13.01,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "504c726febab55799e9058359a7dcd25c3bc994efd5e9cb30cc083048b7c815e",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small2.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.58,
+      "file": "impact_small_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.86,
+      "peak": 0.89,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small3.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "7d366624b9a5f8732dc68ca8b19d0e3b926c28057e7a569b2226b202a2f001f5",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small3.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40"
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 7.349342,
+      "file": "limiter_cut_loop.wav",
+      "loop": true,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -9.22,
+      "peak": 0.920013,
+      "provenance": "promoted from Formula90s v10-v2-bank (canonical V10 engine bank); canonical_limiter_mono16_peak_headroom_v2",
+      "role": "limiter_event",
+      "sha256": "8d1be4d148e69a2d42bb7b38712cd1682599d57b32f597bf5bf29b21f429264b",
+      "synthesis": {
+        "category": "limiter",
+        "preparation_recipe": "canonical_limiter_mono16_peak_headroom_v2",
+        "source_bank": "v10-v2-bank",
+        "source_file": "limiter.wav",
+        "source_rate": 44100,
+        "trigger_event": "limiter_cut_window",
+        "selection": "single_variant",
+        "voice_limit": 1,
+        "minimum_retrigger_seconds": 0.25,
+        "native_context_rpm": 18000.0
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.741338,
+      "file": "neutral_first_gear_transition.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -22.64,
+      "peak": 0.705968,
+      "provenance": "derived from original user-supplied replacement samples",
+      "role": "neutral_first_gear_transition",
+      "sha256": "b268f1fa879d6305d56f4db01900d8f05b4930e280b9ce467fac75a4b1c6970b",
+      "synthesis": {
+        "category": "shift",
+        "promotion_recipe": "neutral_first_gear_transition_v1",
+        "source_file": "game/sounds/bank_sources/neutral_first_gear_transition_source.wav",
+        "source_rate": 48000,
+        "source_sha256": "2ed935b08d633d5179c08336b71e733524f42c1f5d47d03c2072f1b89e22d0fc",
+        "tool_revision": 1
+      }
+    },
+    {
+      "file": "f2002_gearup.wav",
+      "role": "gearbox_upshift",
+      "sha256": "f656d22c4b161d16e70bda277066246b99e73d83d0dd5833fa5c2d63ae9d0657",
+      "duration_s": 0.2960770975056689,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\gearup.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16
+    },
+    {
+      "file": "f2002_geardn.wav",
+      "role": "gearbox_downshift",
+      "sha256": "421a7136b22b1624fda39fe9c0540de73b8a9b8c170e328bc44c4db44e09ee3e",
+      "duration_s": 0.19376417233560092,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\geardn.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16
+    },
+    {
+      "file": "tyre_contact.wav",
+      "role": "wheel_vertical_impact",
+      "loop": false,
+      "sha256": "f878e0e70b8be140d7755a3419dde1dc5f3dff59fb8326681e6af1161ed321a5",
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\tyre_contact.wav"
+    },
+    {
+      "dc_offset": 1e-08,
+      "duration_s": 8.814717,
+      "file": "flat_tyre_mono.wav",
+      "loop": true,
+      "loop_end_s": 8.814716553287981,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -19.0,
+      "peak": 0.637695,
+      "provenance": "D:/ASETS/Ferrari F2002 Sound Mods/Ferrari F2002 Sound Mods/Ver-D/content/cars/ferrari_f2002/sfx/flat_tyre_mono.wav",
+      "role": "wheel_damage_flat_tire",
+      "sha256": "dcdfe1798df0094862e9f15ea7d88d8636d1c1ed588906f36a51e8a8e7e1c72e",
+      "synthesis": {
+        "source_sha256": "80efe270167bdc4d6ae264c8f262c08ab66baa0d9e5f086b77813580f68e46c9",
+        "source_region_s": null,
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -19,
+        "peak_ceiling_dbfs": -3.0
+      }
+    },
+    {
+      "dc_offset": -3e-08,
+      "duration_s": 2.471111,
+      "file": "damaged_rin.wav",
+      "loop": true,
+      "loop_end_s": 2.471111111111111,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -20.0,
+      "peak": 0.617493,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/damaged_rin.wav",
+      "role": "wheel_damage_rim",
+      "sha256": "5757d331d017cb040194737581b2f8333d7c0c710d2f31bd1183eb96d82e9a6b",
+      "synthesis": {
+        "source_sha256": "f80ffc2d19f8b6414bdb79e878ddf186d30ffcfeb0845f47583b4992b985d02a",
+        "source_region_s": null,
+        "loop_crossfade_ms": 80,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -20,
+        "peak_ceiling_dbfs": -3.0
+      }
+    },
+    {
+      "dc_offset": -2e-08,
+      "duration_s": 1.08,
+      "file": "bad_brakes.wav",
+      "loop": true,
+      "loop_end_s": 1.08,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -21.0,
+      "peak": 0.340515,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/bad_brakes.wav",
+      "role": "wheel_damage_brakes",
+      "sha256": "6b920b3d1eabf79409fe93d09e0cb0363826be31bbef588d0beb43e325d78795",
+      "synthesis": {
+        "source_sha256": "fbac15f84e0bfe87c66c96afda6ed935a6d32c9602079a02714cd1d9a83a282a",
+        "source_region_s": [
+          0.6,
+          1.8
+        ],
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -21,
+        "peak_ceiling_dbfs": -3.0
+      }
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 1; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 3; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.474,
+      "file": "backfire_ext_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 7; exterior rear exhaust detonation variation",
+      "role": "backfire_exhaust",
+      "sha256": "0e771e7d22eae509cc16f365d16f55d4224ac323edd9c8b77182d9f96d64dc0f"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.43,
+      "file": "backfire_ext_4.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -12.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 9; exterior rear exhaust deep boom detonation",
+      "role": "backfire_exhaust",
+      "sha256": "0a53416e49602489b4450ea580cc1aa2ec6d46428be0c2635f53326a2c61e51d"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.159,
+      "file": "backfire_5.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89"
+    },
+    {
+      "dc_offset": 0.0,
+      "duration_s": 0.159,
+      "file": "backfire_int.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.0,
+      "peak": 0.95,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5 alias; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89"
+    }
+  ],
+  "generator": "commons bank with Rush Rally 3 car-contact collisions (speed-tiered), gear clunks, neutral contact, limiter and underfloor scrape; rolling surfaces moved to sounds/banks/surfaces",
+  "pcm_bits": 16,
+  "sample_rate": 44100,
+  "schema_version": 1,
+  "seed": 0
+}

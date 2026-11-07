@@ -1,0 +1,474 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-saab-96-v4",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_7.bzf",
+    "archive_sha256": "c2b09a047622636dc20f706616d3758a2a1d16221ffad736025794e2216bbd7c",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
+    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-saab-96-v4",
+      "archive": "car_7.bzf",
+      "historical_id": "saab-96-v4",
+      "display_name": "Saab 96 V4",
+      "engine_layout": "front",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived",
+      "collision_source": "exterior"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "samples": [
+    {
+      "file": "rt-saab-96-v4__SE_2k1.wav",
+      "sha256": "507ec74e9ca01965a806fd7e8651d643a1c0d680f9b7eb6ff2574d5630e1d684",
+      "origin": "native_byte_identical",
+      "source_file": "SE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 3.329795918367347,
+      "rms": 0.39768603791758517,
+      "gain": 0.3017455695159917,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SE_4k1.wav",
+      "sha256": "9964803f91d0d92dfe0d4136dce435246ecaaf1e2fac2a8d6c4d510df81671d7",
+      "origin": "native_byte_identical",
+      "source_file": "SE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.2647619047619048,
+      "rms": 0.48411143003016044,
+      "gain": 0.24787681627869004,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SE_6k1.wav",
+      "sha256": "2991da270fc63e3f5f291654f16043759cf34f31691088b44df2e19ddfe55fae",
+      "origin": "native_byte_identical",
+      "source_file": "SE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5067120181405895,
+      "rms": 0.45190197281500405,
+      "gain": 0.2655443154020587,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SE_Idle1.wav",
+      "sha256": "1bfa6f03ddbd2ac9e97b0075070d84e9f7ece02de3b639679eb261420bdd202b",
+      "origin": "native_byte_identical",
+      "source_file": "SE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.231609977324263,
+      "rms": 0.322092246579004,
+      "gain": 0.3725640752751431,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SX_2k1.wav",
+      "sha256": "0b9f272d5ee8f3651928d58adea488ff96eeb87263738278a0456c976a482fae",
+      "origin": "native_byte_identical",
+      "source_file": "SX_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.116825396825397,
+      "rms": 0.29370981841990657,
+      "gain": 0.40856652544192523,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SX_4k1.wav",
+      "sha256": "5eb68673abef29349d086d5fea4318593a1c0dbd6f87f321f8e592613373139a",
+      "origin": "native_byte_identical",
+      "source_file": "SX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6734240362811792,
+      "rms": 0.3124912276764343,
+      "gain": 0.38401077973380016,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SX_6k1.wav",
+      "sha256": "f21298fcbaac8e3d700056349b3282744fdefeef2d4d6cff48acbb671ff27216",
+      "origin": "native_byte_identical",
+      "source_file": "SX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.9724263038548753,
+      "rms": 0.4416553020360896,
+      "gain": 0.2717051045165405,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__SX_Idle1.wav",
+      "sha256": "5a1786f3c4047d97abd591c2b18f3d1bbcfb86f13ae2e8abc6f3bd9ae0b5a5d6",
+      "origin": "native_byte_identical",
+      "source_file": "SX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8778231292517007,
+      "rms": 0.4946293147529397,
+      "gain": 0.24260592007155557,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__engine_coast_1.wav",
+      "sha256": "9b413729805801acd3a8b4380a247f9964c22789fcabf31bfcb9965af437392d",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 3.329795918367347,
+      "rms": 0.385962328982231,
+      "gain": 0.3109111718660102,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__engine_coast_2.wav",
+      "sha256": "33dffe3c309d110f70c6e03528db0f56499f3750a4798c54ddf5969cec60fa31",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.2647619047619048,
+      "rms": 0.4593191904248963,
+      "gain": 0.2612562298757716,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__engine_coast_3.wav",
+      "sha256": "5efa759051897a41739c141e32780d8056888b6fb520922e94f6968b65a23ae7",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5067120181405895,
+      "rms": 0.384292066434006,
+      "gain": 0.3122624963703419,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__exhaust_coast_1.wav",
+      "sha256": "ec8ea04160f5f9ae78c8f822878b2701a99e11bcfcd03d510bfea487d7efaed8",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SX_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.116825396825397,
+      "rms": 0.29353499679946754,
+      "gain": 0.4088098567748623,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__exhaust_coast_2.wav",
+      "sha256": "63acb2b2a58d0f91b2c2afe7bb99371a4c8300e4144c36f3806537c0c7d9d15c",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6734240362811792,
+      "rms": 0.3109137111150032,
+      "gain": 0.38595917680714137,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__exhaust_coast_3.wav",
+      "sha256": "b186bb0f4bdb473780edf9e4ff17408dcf4ccd3fae8ad45458e7eee22a8aa3ca",
+      "origin": "derived_lowpass_coast",
+      "source_file": "SX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.9724263038548753,
+      "rms": 0.4404149668052978,
+      "gain": 0.2724703042461556,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__whine_low.wav",
+      "sha256": "fe8fb71f0e8d583f79b59c7ba2c404eb5a4642bedc997dfbcea184e18b3b07b8",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_low.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__whine_high.wav",
+      "sha256": "821ad27a9ad7980ad99e2b233ca9594763cd33f43d2cca20620be7be02ce42c3",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_high.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__lift_1.wav",
+      "sha256": "0f612972bacbcc53d5b4057a4de2dda172356a5f07798168d4851347614bed9f",
+      "origin": "derived_lift_approximation",
+      "source_file": "SX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.19895752885467652,
+      "gain": 0.6031438000401128,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__lift_2.wav",
+      "sha256": "6337cfbb22a31234fd0a0d4871b2f832ee64cb773ef177ce8b49f5f4077b98bd",
+      "origin": "derived_lift_approximation",
+      "source_file": "SX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.20023467367474707,
+      "gain": 0.5992968040836076,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-saab-96-v4__lift_3.wav",
+      "sha256": "b43105d8371045c5734efce71451260c4a5a7a18c7a8e5a543ef211214d2e364",
+      "origin": "derived_lift_approximation",
+      "source_file": "SX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.20552637008223504,
+      "gain": 0.5838666831510998,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_Idle1.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.3725640752751431
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_2k1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.3017455695159917
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.24787681627869004
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.2655443154020587
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__engine_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.3109111718660102
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__engine_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.2612562298757716
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__engine_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.3122624963703419
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_Idle1.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.24260592007155557
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_2k1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.40856652544192523
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.38401077973380016
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.2717051045165405
+    }
+  ],
+  "coast_exhaust": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__exhaust_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.4088098567748623
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__exhaust_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.38595917680714137
+    },
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__exhaust_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.2724703042461556
+    }
+  ],
+  "whine": [
+    "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__whine_low.wav",
+    "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.0,
+    1.0
+  ],
+  "calibration": "RPM centres from Sounds.ini; overlap adapted to shared mixer. Native recordings unchanged. Coast/lift derived; gearbox synthesized.",
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ]
+}

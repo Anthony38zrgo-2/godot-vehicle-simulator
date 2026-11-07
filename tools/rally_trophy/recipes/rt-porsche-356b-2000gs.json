@@ -1,0 +1,110 @@
+{
+  "id": "rt-porsche-356b-2000gs",
+  "archive": "mods/Porsche356bT6CoupeFTC_v30.rtp",
+  "archive_alternate": "mods/Porsche356bT6Carrera.rtp",
+  "historical_id": "porsche-356b-2000gs",
+  "display_name": "Porsche 356B Carrera 2000 GS",
+  "engine_layout": "rear",
+  "geometry_policy": "native",
+  "physics_policy": "game_derived",
+  "body_panels": [
+    "body"
+  ],
+  "collision_source": "exterior",
+  "crew_mass_kg": 150,
+  "tools_mass_kg": 7,
+  "engine_mass_kg": 140,
+  "fuel_capacity_l": 55,
+  "base_variant": "ftc_175bhp_1966cc",
+  "mod_source": {
+    "zip": "Porsche356Carrera2000GS_by_sharbo.zip",
+    "rtp_ftc_sha256": "98aa55c502e9e41fa35f8c5871e834385823b1699ae0bb1c7df7016fc51b5b1d",
+    "rtp_std_sha256": "84649c9072152b559b4bd1c1e7085410a2a5721ca0210fb387dd257d70101a58",
+    "readme": "fictional T6 Coupe body; 1966cc 130bhp std / 175bhp FTC; mesh+TGA sharbo+bugbear; physics YorT; sounds KittX"
+  },
+  "reuse": {
+    "assets": "rt-porsche-356b-2000gs",
+    "sounds": "rt-porsche-356b-2000gs",
+    "collision": "rt-porsche-356a",
+    "reason": "own Blender export from FTC model.BMF (body_panels=[body], collision exterior, seats 42/44); sounds still reused from rt-porsche-356a",
+    "sound_note": "own bank dir with byte-identical 356A recordings (contract requires own bank path); mod WAVs archived"
+  },
+  "build_note": "Manual profile build following physics_profile.compile_profile logic (game INI -> base, ficha overrides on top). Blender/Godot pipeline not run: meshes and bank reused by reference.",
+  "physics_overrides": {
+    "powertrain.json": {
+      "powertrain": {
+        "max_torque": 176.0,
+        "max_rpm": 7200.0,
+        "idle_rpm": 1100.0,
+        "motor_moment": 0.102,
+        "gear_ratios": [
+          3.091,
+          1.765,
+          1.227,
+          0.96
+        ],
+        "reverse_ratio": 3.09,
+        "final_drive": 4.428,
+        "differential": {
+          "preload_nm": 40,
+          "power_ramp_angle_deg": 50,
+          "coast_ramp_angle_deg": 65,
+          "lock_pct_power": 40,
+          "lock_pct_coast": 25,
+          "clutch_friction_coefficient": 0.11,
+          "coast_friction_coefficient": 0.08,
+          "clutches": 4
+        },
+        "note": "FTC game box 3.090/1.762/1.231/0.962 + EndRatio 4.86 replaced by FIA #71 rally BBBD + 4.428 (7:31); torque peak FTC 4500 kept, cut at 7200 per ficha (ficha peak 5200 noted)"
+      }
+    },
+    "chassis.json": {
+      "chassis": {
+        "vehicle_mass": 1047.0,
+        "front_weight_distribution": 0.4,
+        "target_cg_z_m": 0.45
+      }
+    },
+    "suspension.json": {
+      "suspension": {
+        "front": {
+          "ride_frequency_hz": 1.85
+        },
+        "rear": {
+          "ride_frequency_hz": 1.95
+        },
+        "note": "FIA frequencies + 100/75 mm; rear Ausgleichfeder transverse compensating leaf, low rear ARB (reduced roll stiffness per ficha)"
+      }
+    },
+    "brakes.json": {
+      "brakes": {
+        "front_brake_bias": 0.56,
+        "max_brake_torque": 4800.0,
+        "servo_assist": {
+          "enabled": false,
+          "gain": 0.82
+        },
+        "note": "ATE annular 282/285 mm, no servo (ficha §2.2)"
+      }
+    },
+    "steering.json": {
+      "steering": {
+        "turns_lock_to_lock": 2.4,
+        "ratio_to_one": 14.5
+      }
+    }
+  },
+  "interior": {
+    "seat_face_counts": [
+      42,
+      44
+    ],
+    "note": "sharbo interior_lo: 44-face driver (left) + 42-face co-driver (right) buckets",
+    "synthesize_roof": false
+  },
+  "validation": {
+    "filesystem_audit": "PASSED (validate_payload: hashes, 26 audio samples, measured 2.106/1.295/1.265)",
+    "godot_import": "OK (4.7.1 headless)",
+    "runtime_contract": "all green EXCEPT pre-existing instant-floor standing-burnout trap, identical on shipped rt-porsche-356a (see task notes)"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "lancia_fulvia_1600_hf",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_13.bzf",
+    "archive_sha256": "51749065bfb14337db4893ecf9749e06dc8833edd5cdb2f085aabfeb6fc3eb38",
+    "model_bmf_sha256": "65f15089654618ed09b2ef0205521c224826986e58bbccb136d0b6eb70c91fdf",
+    "generator": "D:\\games\\rally-throphy\\exports_flatout\\lancia-fulvia\\export_runtime.py",
+    "occupants": "Shared original driver1.bzf meshes and 19 native steering morphs, relocated using Fulvia DriverLoc/CoDriverLoc.",
+    "sprung_offset_metres": 0.1
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "lancia_fulvia_chassis.glb",
+    "sha256": "a7ac07d7f7e811f2bb89f39fe0c9ab3109d996e578f39f13754c2e4f8a306bed",
+    "size_bytes": 1387456,
+    "exported_nodes": [
+      "body",
+      "hood",
+      "trunk",
+      "interior_hi",
+      "steering_wheel_hi",
+      "indicator_rpm",
+      "indicator_speed",
+      "wipers",
+      "roll_cage_30",
+      "roll_cage_31",
+      "roll_cage_32",
+      "roll_cage_33",
+      "roll_cage_34",
+      "roll_cage_35",
+      "roll_cage_36",
+      "seat_driver",
+      "seat_co_driver",
+      "interior_roof",
+      "co_Driver_co_driver_head",
+      "co_Driver_Surface1",
+      "co_Driver_Surface2",
+      "Driver_driver_body",
+      "Driver_driver_head",
+      "DriverArm_left_frame09",
+      "DriverArm_right_frame09",
+      "CockpitEye"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "lancia_fulvia_wheel_front_left.glb",
+      "sha256": "e7fa6fbd559503b55257abda33b576143ff3da3b69c2f74855bcdd44e5217db3",
+      "size_bytes": 72336
+    },
+    "front_right": {
+      "path": "lancia_fulvia_wheel_front_right.glb",
+      "sha256": "2849bb14a6cae5bcb440a7e968611e0c5f8922242acc9a8316de7892063f09cb",
+      "size_bytes": 72332
+    },
+    "rear_left": {
+      "path": "lancia_fulvia_wheel_rear_left.glb",
+      "sha256": "4425f8b30c23f9bfab76716965e3dc91e3ba29b9427741c28104b0e88215cc40",
+      "size_bytes": 72336
+    },
+    "rear_right": {
+      "path": "lancia_fulvia_wheel_rear_right.glb",
+      "sha256": "20a7edccfa71bd993c101628e906d91866ad0a2773708c561a714c5be15783a8",
+      "size_bytes": 72332
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.6100000739097595,
+        "y": 0.2799999415874481,
+        "z": -1.2400000095367432
+      },
+      "radius_metres": 0.28000000119208757,
+      "width_metres": 0.20000004768371582
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.6100000143051147,
+        "y": 0.2799999415874481,
+        "z": -1.2400000095367432
+      },
+      "radius_metres": 0.2800000011920911,
+      "width_metres": 0.19999998807907104
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6100001335144043,
+        "y": 0.28000012040138245,
+        "z": 1.2400000095367432
+      },
+      "radius_metres": 0.28000000119209645,
+      "width_metres": 0.20000004768371582
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.6100000143051147,
+        "y": 0.28000012040138245,
+        "z": 1.2400000095367432
+      },
+      "radius_metres": 0.2800000011920929,
+      "width_metres": 0.19999998807907104
+    }
+  },
+  "collision": {
+    "path": "lancia_fulvia_collision.json",
+    "sha256": "f155be4e6635d56fefeaab619e60d02adce8aed8eb2facd5a8f2a7d5d027fc9e"
+  },
+  "geometry": {
+    "front_axle_z": -1.2400000095367432,
+    "rear_axle_z": 1.2400000095367432,
+    "wheelbase": 2.4800000190734863,
+    "front_track": 1.2200000882148743,
+    "rear_track": 1.220000147819519
+  },
+  "measurement": {
+    "method": "Native metric FBX geometry, no GTA scaling. Four high-detail wheel mesh bounds and pivots. Source Rally Trophy geometry retained; geometric source is not a measured historical chassis.",
+    "cockpit_eye_metres": {
+      "x": -0.3,
+      "y": 1.0,
+      "z": 0.15
+    }
+  },
+  "visual_damage": {
+    "archive": "car_13.bzf",
+    "mesh": "damage/fulvia_damage.glb",
+    "files": {
+      "fulvia_damage.glb": {
+        "sha256": "936277a1c4ff4d814cd686401ebb9484db7ff666757bffb5663a973a76e5eac6"
+      },
+      "interior_windows_damaged.png": {
+        "sha256": "cf2da6b012a155befa9163c35d2925ca10cc60a56f9e83f1eaa98c0e4221b21f"
+      },
+      "lights_damaged.png": {
+        "sha256": "25e7a53ccee759f25569267448ab413f9ba19d41b5e50e2433ebf380d6b0a6d4"
+      },
+      "windows_damaged.png": {
+        "sha256": "0d41ddd3f4b6e6e4b6641ac6b7f9a7a9463a9c9045c70aa69123b0f9405fec7f"
+      }
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.7700000405311584,
+      0.09999993443489075,
+      -1.962172031402588
+    ],
+    "max_godot": [
+      0.7700000405311584,
+      1.215000033378601,
+      2.0399999618530273
+    ]
+  }
+}

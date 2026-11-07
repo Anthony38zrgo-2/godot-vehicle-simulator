@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Alfa Romeo Giulia Sprint GTA",
-    "vehicle_mass": 927.0,
+    "vehicle_mass": 895.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
-    "front_weight_distribution": 0.52,
+    "front_weight_distribution": 0.5,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.47
   },
   "geometry": {
-    "wheelbase": 2.4000000953674316,
-    "front_axle_z": -1.2000000476837158,
-    "rear_axle_z": 1.2000000476837158,
-    "front_track": 1.199999988079071,
-    "rear_track": 1.2000000476837158
+    "wheelbase": 2.35,
+    "front_axle_z": -1.175,
+    "rear_axle_z": 1.175,
+    "front_track": 1.325,
+    "rear_track": 1.285
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 927.0,
+    "base_budget_kilograms": 895.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 625.0,
+          "mass_kilograms": 593.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": 0.05015040199279766
+            "y": 0.47,
+            "z": 0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                175.00000000000003,
+                1011.5,
                 0,
                 0
               ],
               [
                 0,
-                343.75,
+                1045.5,
                 0
               ],
               [
                 0,
                 0,
-                93.75
+                259.2
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": -0.9600000381469727
+            "y": 0.42,
+            "z": -0.3
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.59,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.59,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.9600000381469727
+            "y": 0.45,
+            "z": -0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

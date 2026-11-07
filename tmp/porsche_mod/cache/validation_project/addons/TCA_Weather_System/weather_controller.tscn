@@ -1,0 +1,90 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://addons/TCA_Weather_System/scripts/WeatherController.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://addons/TCA_Weather_System/seasons/winter.tres" id="2_winter"]
+[ext_resource type="Resource" path="res://addons/TCA_Weather_System/seasons/summer.tres" id="3_summer"]
+[ext_resource type="Shader" path="res://addons/TCA_Weather_System/shaders/weather_system_sky.gdshader" id="4_sky"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_clouds"]
+fractal_weighted_strength = 0.46
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_clouds"]
+width = 1024
+height = 1024
+seamless = true
+noise = SubResource("FastNoiseLite_clouds")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_large"]
+frequency = 0.0014
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_large"]
+width = 1024
+height = 1024
+seamless = true
+noise = SubResource("FastNoiseLite_large")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("4_sky")
+shader_parameter/sky_top_color = Color(0.3, 0.5, 0.7, 1)
+shader_parameter/sky_mid_color = Color(0.15, 0.25, 0.45, 1)
+shader_parameter/sky_horizon_color = Color(0.65, 0.75, 0.85, 1)
+shader_parameter/sky_curve = 0.15
+shader_parameter/sky_energy = 1
+shader_parameter/ground_bottom_color = Color(0.35, 0.65, 0.85, 1)
+shader_parameter/ground_mid_color = Color(0.12, 0.18, 0.25, 1)
+shader_parameter/ground_horizon_color = Color(0.65098, 0.745098, 0.847059, 1)
+shader_parameter/ground_curve = 0.0627672
+shader_parameter/ground_energy = 1
+shader_parameter/cloud_uv_scale = 0.1
+shader_parameter/cloud_uv_scale2 = 0.1
+shader_parameter/small_cloud_cover = 0.5
+shader_parameter/large_cloud_cover = 0.5
+shader_parameter/cloud_inner_colour = Color(0.764706, 0.764706, 0.764706, 1)
+shader_parameter/cloud_outer_colour = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/cloud_speed = 0.001
+shader_parameter/volumetric_clouds = true
+shader_parameter/volumetric_clouds_density = 0.3
+shader_parameter/cloud_texture = SubResource("NoiseTexture2D_clouds")
+shader_parameter/cloud_texture2 = SubResource("NoiseTexture2D_large")
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 3
+ambient_light_energy = 1.0
+reflected_light_source = 2
+tonemap_mode = 3
+tonemap_exposure = 1.0
+fog_enabled = true
+fog_light_color = Color(0.62, 0.66, 0.72, 1)
+fog_density = 0.0004
+fog_sky_affect = 0.0
+fog_sun_scatter = 0.08
+fog_aerial_perspective = 0.08
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.01
+volumetric_fog_albedo = Color(0.9, 0.92, 0.95, 1)
+
+[node name="WeatherController" type="Node3D" node_paths=PackedStringArray("world_environment", "directional_light")]
+script = ExtResource("1_controller")
+world_environment = NodePath("WorldEnvironment")
+directional_light = NodePath("DirectionalLight3D")
+seasons = Array[ExtResource("2_winter")]([ExtResource("2_winter"), ExtResource("3_summer")])
+day_duration = 86400.0
+time_speed_multiplier = 60.0
+start_time = 40000.0
+start_season = 0
+start_weather = 1
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.173648, 0.984808, 0, -0.984808, 0.173648, 0, 0, 0)
+light_color = Color(1, 0.93, 0.82, 1)
+light_energy = 1.0
+shadow_enabled = true
+directional_shadow_max_distance = 280.0

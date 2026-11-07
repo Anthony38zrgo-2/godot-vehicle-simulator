@@ -49,8 +49,8 @@
     "minimum_brake_factor": 0.25,
     "rim_start_speed_m_s": 7.0,
     "rim_full_speed_m_s": 21.0,
-    "alignment_start_speed_m_s": 10.0,
-    "alignment_full_speed_m_s": 24.0,
+    "alignment_start_speed_m_s": 7.22,
+    "alignment_full_speed_m_s": 17.34,
     "maximum_toe_offset_deg": 6.0
   },
   "landing": {

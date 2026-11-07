@@ -1,0 +1,8 @@
+{
+  "wear_per_j": 2e-08,
+  "overheat_start_c": 550.0,
+  "overheat_full_c": 800.0,
+  "maximum_heat_multiplier": 3.0,
+  "maximum_torque_loss": 0.65,
+  "response_exponent": 1.5
+}

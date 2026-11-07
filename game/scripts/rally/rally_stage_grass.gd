@@ -17,10 +17,10 @@ extends Node3D
 ## MultiMeshInstance3D, so the whole stage costs one draw call per visible
 ## sector per variant.
 
-## The source pack ships five grass types over two atlases; all five are used
-## so the verge mixes green, dry and two heights of tall grass.
+## The source pack ships five grass types over two atlases. Four are used: the
+## dry and aged shorts plus both tall types. short_fresh stays exported in the
+## pack but is not scattered, so the verge reads dry rather than lush green.
 const VARIANTS: Array[PackedScene] = [
-	preload("res://assets/rally/grass/short_fresh.glb"),
 	preload("res://assets/rally/grass/short_aged.glb"),
 	preload("res://assets/rally/grass/short_dry.glb"),
 	preload("res://assets/rally/grass/tall.glb"),
@@ -34,7 +34,7 @@ const OFFSETS := [2.5, 3.6, 4.8, 6.0, 7.4, 9.0, 10.6, 12.4, 14.4, 17.0, 20.0, 23
 
 ## Tufts per metre of stage. The total budget is this times the route length,
 ## which keeps density identical across stages instead of scaling with length.
-const TUFTS_PER_METRE := 9.6
+const TUFTS_PER_METRE := 4.8
 ## Hard ceiling on candidates as a multiple of the budget, so a stage whose
 ## terrain is mostly road or dirt cannot spin here.
 const MAX_ATTEMPT_FACTOR := 6.0
@@ -48,21 +48,19 @@ const DENSITY_FLOOR := 0.2
 ## Resolution of the arc-length table used to place candidates in O(1).
 const ARC_TABLE_STEP := 1.0
 
-## Vertical scale range per variant (index matches VARIANTS). The five source
-## meshes are 0.26 / 0.24 / 0.25 / 0.50 / 1.00 m tall: field-accurate but
-## invisible from a car, so each range lifts them into a common 0.5-1.5 m band
-## without letting the tall types swamp the verge.
+## Vertical scale range per variant (index matches VARIANTS). The source meshes
+## are 0.24 / 0.25 / 0.50 / 1.00 m tall: field-accurate but invisible from a
+## car, so each range lifts them into a common 0.5-1.5 m band without letting
+## the tall types swamp the verge.
 const VARIANT_SCALE := [
-	Vector2(2.2, 3.4),
 	Vector2(2.2, 3.4),
 	Vector2(2.2, 3.4),
 	Vector2(1.6, 2.4),
 	Vector2(0.95, 1.45),
 ]
-## Selection weight per variant (index matches VARIANTS). Weights are relative.
-## The two tall types carry the mid-distance and the three shorts fill the
-## verge, so tall grass keeps a real presence without carpeting the shoulder.
-const VARIANT_WEIGHT := [22.0, 21.0, 19.0, 23.0, 15.0]
+## Selection weight per variant (index matches VARIANTS). Weights are relative
+## and sum to 100 here: 20 aged / 30 dry / 10 tall low / 40 tall high.
+const VARIANT_WEIGHT := [20.0, 30.0, 10.0, 40.0]
 const MAX_TILT_DEGREES := 5.0
 
 const SECTOR_LENGTH := 96.0

@@ -71,6 +71,7 @@ const PuddleModel = preload("res://scripts/rally/rally_puddles.gd")
 var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
+var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
 func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH) -> Dictionary:
@@ -307,9 +308,21 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	var powertrain: Dictionary = domains.get("powertrain", { }).get("powertrain", { })
 	var differential: Dictionary = powertrain.get("differential", { })
 	powertrain_model.maximum_rpm = float(powertrain.get("max_rpm", powertrain_model.maximum_rpm))
-	powertrain_model.final_drive_ratio = float(
-		powertrain.get("final_drive", powertrain_model.final_drive_ratio)
-	)
+	powertrain_model.final_drive_gravel = float(powertrain.get("final_drive_gravel", powertrain_model.final_drive_gravel))
+	powertrain_model.final_drive_tarmac = float(powertrain.get("final_drive_tarmac", powertrain_model.final_drive_tarmac))
+	var _preset := str(powertrain.get("final_drive_preset", ""))
+	if _preset == "gravel" and powertrain_model.final_drive_gravel > 0.0:
+		powertrain_model.final_drive_ratio = powertrain_model.final_drive_gravel
+	elif _preset == "tarmac" and powertrain_model.final_drive_tarmac > 0.0:
+		powertrain_model.final_drive_ratio = powertrain_model.final_drive_tarmac
+	else:
+		powertrain_model.final_drive_ratio = float(
+			powertrain.get("final_drive", powertrain_model.final_drive_ratio)
+		)
+	var _fw: Dictionary = powertrain.get("freewheel", {})
+	if not _fw.is_empty():
+		powertrain_model.freewheel_enabled = bool(_fw.get("enabled", powertrain_model.freewheel_enabled))
+		powertrain_model.freewheel_idle_rpm = maxf(float(_fw.get("idle_rpm", powertrain_model.freewheel_idle_rpm)), 400.0)
 	if powertrain.has("gear_ratios") and powertrain["gear_ratios"] is Array:
 		var gr: Array = powertrain["gear_ratios"]
 		powertrain_model.gear_ratios.clear()
@@ -544,6 +557,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var contact: Dictionary = contacts[i]
 		var loaded_contact := bool(contact.get("hit", false)) and normal_loads[i] > 0.0
 		var local := _local_conditions_at_contact(str(contact.get("surface", "Unknown")), contact.get("position", wheel_contact_points[i]), loaded_contact)
+		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
+		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
+		last_puddle_depths_mm[i] = current_puddle_depth
+		local["puddle_depth_rate"] = depth_rate
 		thermal_water[i] = float(local.get("water_mm", 0.0))
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
 		thermal_ground[i] = float(local.get("ground_c", 30.0))
@@ -647,14 +664,28 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(last_local_conditions[i].get("puddle_depth_mm", 0.0)),
 				point_velocity.slide(normal).length(),
 				str(tire_model.wheel_compounds[i].get("id", active_compound_id)) == "gravel_wet",
-				normal_load, wheel_widths[i], float(last_local_conditions[i].get("puddle_drag", 0.0)))
-			last_local_conditions[i]["puddle_support"] = float(puddle_response.support)
-			last_local_conditions[i]["puddle_drag_n"] = float(puddle_response.drag_n)
-			fx *= float(puddle_response.support)
-			fy *= float(puddle_response.support)
-			mz *= float(puddle_response.support)
+				normal_load,
+				wheel_widths[i],
+				float(last_local_conditions[i].get("puddle_drag", 0.0)),
+				float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
+				wheel_radii[i]
+			)
+			var sup_x := float(puddle_response.get("support_longitudinal", puddle_response.support))
+			var sup_y := float(puddle_response.get("support_lateral", puddle_response.support))
+			var drag_n := float(puddle_response.drag_n)
+			last_local_conditions[i]["puddle_support"] = sup_x
+			last_local_conditions[i]["puddle_drag_n"] = drag_n
+			fx *= sup_x
+			fy *= sup_y
+			mz *= sup_y
+
+			# Asymmetrical front wheel steering pull moment
+			if i < 2 and drag_n > 0.0:
+				var steer_sign := -1.0 if i == 0 else 1.0
+				mz += float(puddle_response.get("steering_pull_nm", 0.0)) * steer_sign
+
 			var tire_force := forward * (fx + flat_drag) + right * fy
-			tire_force -= point_velocity.slide(normal).normalized() * float(puddle_response.drag_n)
+			tire_force -= point_velocity.slide(normal).normalized() * drag_n
 			var sat_torque := normal * mz
 
 			if normal_load > 0.0:
@@ -669,8 +700,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
-			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * float(puddle_response.support)
-			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * wheel_radii[i]
+			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
+			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * wheel_radii[i])) * signf(longitudinal_speed)
+			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * wheel_radii[i] + hydro_wheel_torque
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
 			thermal_slip_speeds[i] = wheel_spins[i] * wheel_radii[i] - longitudinal_speed
@@ -789,6 +821,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"autoblip_active": powertrain_model.autoblip_active,
 		"autoblip_target_rpm": powertrain_model.autoblip_target_rpm,
 		"autoblip_throttle": powertrain_model.autoblip_throttle,
+		"freewheel_active": powertrain_model.freewheel_active,
+		"freewheel_enabled": powertrain_model.freewheel_enabled,
+		"final_drive": powertrain_model.final_drive_ratio,
 		"shift_phase": powertrain_model.shift_phase,
 		"pending_gear": powertrain_model.pending_gear,
 		"clutch_engagement": powertrain_model.clutch_engagement,
@@ -830,6 +865,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		},
 		"aids_available": assistance_available.duplicate(),
 	}
+
+
+func set_final_drive_preset(preset: String) -> bool:
+	return powertrain_model.set_final_drive_preset(preset)
 
 
 func _prepare_powertrain(delta: float, inputs: Dictionary) -> void:

@@ -1,0 +1,33 @@
+{
+  "author": "Hsyenoh05",
+  "source": "tropospheric_boxes_1-2v.zip",
+  "source_sha256": "6361eb678049dd7554e23b8eb4c17eed41817bf8755bf1b6ab7b6b293a539ec3",
+  "face_size": 512,
+  "texture_sha256": {
+    "cloudy_1.png": "c9987cd9646c67e6e13e944e2f4caa334b04e2f81531ca01de14c2275f5eb09a",
+    "cloudy_2.png": "1cced194a8edef4091f0a5853a230d50ae6f4a6206e813578d46a97ff81824c7",
+    "cloudy_3.png": "5c6bd78db0da1f2fa1c1b2e2f463d12d2850b29238f1b944fb73671d59b14a6b",
+    "cloudy_4.png": "1bd8d2f1a4c515aa56db187d374cdae7ed0ebca5c0a94913950a1bef65337abe",
+    "cloudy_5.png": "92ef33f3810b5f5cda405d012d8526b5a38b5653e2b0d3009b55dd07d9146cc6",
+    "cloudy_6.png": "3fce79217d50f5f047bbbaa792f6e990f32531b0c6516587b0062ac788343846",
+    "day_1.png": "714e679954ea7304435d1ad57f031b36cb93656dfdeb1b416200f0ef37612d11",
+    "day_2.png": "0d87bd379b35070138ffba4e92def27b9b2e4340d4fee01b9d5392d5ad04d471",
+    "day_3.png": "5da03f66a8a31c9345e870b788dc8896a7fc634041a09fff79f4189eec6a60e5",
+    "day_4.png": "aa422417351b72cf9400f8a5d99fd4de784beaff92c8a7388dac1dce8b908acb",
+    "day_5.png": "ccc05f76fc4bbffdb60585d9ddf316b57718ee985a5fddbd4b89a330aaf22948",
+    "day_6.png": "7b4d1e0614463abfd64e59b87ddf995812b1ce73819c8dfb9107e78bb0aeba1c",
+    "dusk_1.png": "be0bf98c9db686e95846cd36cfed8cce45a6ac96a34a2d05d3777f4500d81480",
+    "dusk_2.png": "d7050a8cb57be83b2dceb2e001c8d3c215154e52226075db0acba63fed2fbf6b",
+    "dusk_3.png": "b626fd67cca584a9c5021b80992a3f33fc74f23708974bf70fbea58097dab04f",
+    "dusk_4.png": "9ed8508f20f8fa7e323c95c4104e28cac668bcb57eb57bb497296f3bf14bd716",
+    "dusk_5.png": "485ce9189c3bd9e893c6cc9a92a2f69571b6273b620d1e9c7cbd38ded95fcee7",
+    "dusk_6.png": "b1210fedd57eb173a2063dac6c1572932ecadef6efbed1e845da8dd98a07d2f0",
+    "night_2.png": "a91adc77a1a9a06b13adbadc6516bb3fa62c28bf297d49e4fad9b89b76f08bc1",
+    "verycloudy_1.png": "9c3c5917c39a0318eec453cdc31323194b8f07c272e2c86f1751cff3a83dc53f",
+    "verycloudy_2.png": "e08eb8b9059376b87c6a0f5ff82d60c3e037f71f0e827baef2d998a325930374",
+    "verycloudy_3.png": "4ba6192b5af1d40e474d88e861ed9630bfd3df628fc73b4156a9920083c3f95f",
+    "verycloudy_4.png": "9ce2f4c2ae19d32acdcd3c057d82374f0e08d8e85f949d705155301dfa597ea9",
+    "verycloudy_5.png": "5df8bc78e659796cd45ea9bda52c7f152a1d7b6a5f7327e047b370d13323970d",
+    "verycloudy_6.png": "17e9a3eb2791816c067bcbf395dd3de11b2648e5612defffe003845782d5e452"
+  }
+}

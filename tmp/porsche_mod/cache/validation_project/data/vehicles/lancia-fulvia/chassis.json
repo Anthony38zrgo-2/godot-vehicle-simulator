@@ -1,0 +1,978 @@
+{
+  "chassis": {
+    "vehicle_name": "Lancia Fulvia 1.6 HF (historic rally reconstruction)",
+    "vehicle_mass": 930.0,
+    "vehicle_mass_excludes_wheel_assemblies": true,
+    "front_weight_distribution": 0.61,
+    "center_of_gravity_height_offset": -0.12,
+    "inertia_multipliers": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "target_cg_z_m": 0.475
+  },
+  "geometry": {
+    "wheelbase": 2.33,
+    "front_track": 1.39,
+    "rear_track": 1.335,
+    "front_axle_z": -1.165,
+    "rear_axle_z": 1.165
+  },
+  "physical_mass_inventory": {
+    "schema_version": 2,
+    "base_budget_kilograms": 930.0,
+    "components": [
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "bodywork_and_cage",
+        "properties": {
+          "name": "bodywork_and_cage",
+          "mass_kilograms": 461.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.53,
+            "z": -0.1065417771326333
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                153.7,
+                0,
+                0
+              ],
+              [
+                0,
+                252.5,
+                0
+              ],
+              [
+                0,
+                0,
+                76.8
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 357.0,
+          "upper_mass_kilograms": 482.99999999999994,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "v4_1584_engine",
+        "properties": {
+          "name": "v4_1584_engine",
+          "mass_kilograms": 125,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.43,
+            "z": -1.4702765244303393
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                9,
+                0,
+                0
+              ],
+              [
+                0,
+                10,
+                0
+              ],
+              [
+                0,
+                0,
+                7
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 106.25,
+          "upper_mass_kilograms": 143.75,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_transaxle",
+        "properties": {
+          "name": "front_transaxle",
+          "mass_kilograms": 40,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.32,
+            "z": -0.9056051056273831
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                3,
+                0,
+                0
+              ],
+              [
+                0,
+                4,
+                0
+              ],
+              [
+                0,
+                0,
+                2
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 34.0,
+          "upper_mass_kilograms": 46.0,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "cooling_system",
+        "properties": {
+          "name": "cooling_system",
+          "mass_kilograms": 15,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.44,
+            "z": -1.7259767895486597
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 12.75,
+          "upper_mass_kilograms": 17.25,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "suspension_and_subframe",
+        "properties": {
+          "name": "suspension_and_subframe",
+          "mass_kilograms": 45,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.3,
+            "z": -0.3728962199642165
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                8,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                6
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 38.25,
+          "upper_mass_kilograms": 51.74999999999999,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "brakes_and_pedals",
+        "properties": {
+          "name": "brakes_and_pedals",
+          "mass_kilograms": 10,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.32,
+            "z": -0.5327088856631664
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                2,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 8.5,
+          "upper_mass_kilograms": 11.5,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "electrical",
+        "properties": {
+          "name": "electrical",
+          "mass_kilograms": 12,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.2590008909973332,
+            "y": 0.4,
+            "z": -0.9588759941936997
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 10.2,
+          "upper_mass_kilograms": 13.799999999999999,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "tank_and_fire_system",
+        "properties": {
+          "name": "tank_and_fire_system",
+          "mass_kilograms": 17,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.4,
+            "z": 1.3317722141579162
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 14.45,
+          "upper_mass_kilograms": 19.549999999999997,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "spare_wheels_and_tools",
+        "properties": {
+          "name": "spare_wheels_and_tools",
+          "mass_kilograms": 35,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.44,
+            "z": 1.3317722141579162
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                3,
+                0,
+                0
+              ],
+              [
+                0,
+                5,
+                0
+              ],
+              [
+                0,
+                0,
+                3
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 29.75,
+          "upper_mass_kilograms": 40.25,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "driver_and_seat",
+        "properties": {
+          "name": "driver_and_seat",
+          "mass_kilograms": 75,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": -0.27626761706382214,
+            "y": 0.63,
+            "z": 0.1065417771326333
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                8,
+                0,
+                0
+              ],
+              [
+                0,
+                6,
+                0
+              ],
+              [
+                0,
+                0,
+                5
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 63.75,
+          "upper_mass_kilograms": 86.25,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "codriver_and_seat",
+        "properties": {
+          "name": "codriver_and_seat",
+          "mass_kilograms": 75,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.27626761706382214,
+            "y": 0.63,
+            "z": 0.1065417771326333
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                8,
+                0,
+                0
+              ],
+              [
+                0,
+                6,
+                0
+              ],
+              [
+                0,
+                0,
+                5
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 63.75,
+          "upper_mass_kilograms": 86.25,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_left_upright",
+        "properties": {
+          "name": "front_left_upright",
+          "mass_kilograms": 5,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.08,
+                0,
+                0
+              ],
+              [
+                0,
+                0.08,
+                0
+              ],
+              [
+                0,
+                0,
+                0.08
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 4.25,
+          "upper_mass_kilograms": 5.75,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_front_left",
+        "properties": {
+          "name": "wheel_front_left",
+          "mass_kilograms": 14,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.5661308065207272,
+                0,
+                0
+              ],
+              [
+                0,
+                0.3208074570284121,
+                0
+              ],
+              [
+                0,
+                0,
+                0.3208074570284121
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": "FrontLeft",
+        "uncertainty": {
+          "lower_mass_kilograms": 11.9,
+          "upper_mass_kilograms": 16.099999999999998,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_right_upright",
+        "properties": {
+          "name": "front_right_upright",
+          "mass_kilograms": 5,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.08,
+                0,
+                0
+              ],
+              [
+                0,
+                0.08,
+                0
+              ],
+              [
+                0,
+                0,
+                0.08
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 4.25,
+          "upper_mass_kilograms": 5.75,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_front_right",
+        "properties": {
+          "name": "wheel_front_right",
+          "mass_kilograms": 14,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.5661308065207272,
+                0,
+                0
+              ],
+              [
+                0,
+                0.3208074570284121,
+                0
+              ],
+              [
+                0,
+                0,
+                0.3208074570284121
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": "FrontRight",
+        "uncertainty": {
+          "lower_mass_kilograms": 11.9,
+          "upper_mass_kilograms": 16.099999999999998,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_left_upright",
+        "properties": {
+          "name": "rear_left_upright",
+          "mass_kilograms": 5,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.08,
+                0,
+                0
+              ],
+              [
+                0,
+                0.08,
+                0
+              ],
+              [
+                0,
+                0,
+                0.08
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 4.25,
+          "upper_mass_kilograms": 5.75,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_rear_left",
+        "properties": {
+          "name": "wheel_rear_left",
+          "mass_kilograms": 14,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.5661308065207272,
+                0,
+                0
+              ],
+              [
+                0,
+                0.3208074570284121,
+                0
+              ],
+              [
+                0,
+                0,
+                0.3208074570284121
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": "RearLeft",
+        "uncertainty": {
+          "lower_mass_kilograms": 11.9,
+          "upper_mass_kilograms": 16.099999999999998,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_right_upright",
+        "properties": {
+          "name": "rear_right_upright",
+          "mass_kilograms": 5,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.08,
+                0,
+                0
+              ],
+              [
+                0,
+                0.08,
+                0
+              ],
+              [
+                0,
+                0,
+                0.08
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 4.25,
+          "upper_mass_kilograms": 5.75,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_rear_right",
+        "properties": {
+          "name": "wheel_rear_right",
+          "mass_kilograms": 14,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.5661308065207272,
+                0,
+                0
+              ],
+              [
+                0,
+                0.3208074570284121,
+                0
+              ],
+              [
+                0,
+                0,
+                0.3208074570284121
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Fulvia packaging estimate; see HISTORICAL_PROVENANCE.json"
+          }
+        },
+        "rotating_wheel": "RearRight",
+        "uncertainty": {
+          "lower_mass_kilograms": 11.9,
+          "upper_mass_kilograms": 16.099999999999998,
+          "center_uncertainty_metres": 0.12,
+          "inertia_relative_uncertainty": 0.25,
+          "rationale": "Engineering reconstruction, not measured component data"
+        }
+      }
+    ],
+    "rim_and_tire_mass_kilograms": [
+      14,
+      14,
+      14,
+      14
+    ],
+    "spare_policy": {
+      "mass_component_name": "spare_wheels_and_tools",
+      "tools_mass_kg": 7,
+      "wheel_mass_kg": 14
+    }
+  }
+}

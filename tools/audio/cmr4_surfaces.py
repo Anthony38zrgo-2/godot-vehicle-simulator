@@ -6,9 +6,13 @@ Subcommands
            write the decrypted WAV files verbatim with their original names.
   prepare  Build the runtime WAVs for the surfaces bank: DC removal, RMS-based level
            with a sample-peak ceiling, and a baked equal-power loop crossfade.
+           Also installs the unified art of rally gravel/grass samples.
            Writes game/sounds/banks/surfaces/manifest.json with every hash.
-  verify   Re-check raw and prepared hashes, WAV formats, runtime mapping and the
-           absence of retired surface references in code and data.
+  unify    Rebuild only the unified art of rally samples and repoint the runtime
+           map: gravel, dirt and sand share artofrally/gravel.wav; every grass
+           role uses artofrally/grass.wav. Does not need the CMR4 raw sources.
+  verify   Re-check raw, prepared and unified hashes, WAV formats, runtime mapping
+           and the absence of retired surface references in code and data.
 
 The CMR4 executable is only read; it is never copied into the repository.
 Usage (from the repository root):
@@ -32,7 +36,7 @@ from pathlib import Path
 
 import numpy as np
 
-TOOL_REVISION = 1
+TOOL_REVISION = 2
 KEY_OFFSET = 1483808
 KEY_LENGTH = 512
 ENTRY_TABLE_OFFSET = 0x24
@@ -53,6 +57,28 @@ CFG_ROLES_PATH = RAW_DIR / "surfaces_cfg_roles.json"
 BANK_DIR = REPO_ROOT / "game" / "sounds" / "banks" / "surfaces"
 MANIFEST_PATH = BANK_DIR / "manifest.json"
 COMMONS_MANIFEST = REPO_ROOT / "game" / "sounds" / "banks" / "commons" / "bank_manifest.json"
+ART_OF_RALLY_DIR = REPO_ROOT / "game" / "sounds" / "bank_sources" / "artofrally" / "surfaces"
+ART_OF_RALLY_MANIFEST = ART_OF_RALLY_DIR / "source_manifest.json"
+UNIFIED_DIR = BANK_DIR / "artofrally"
+
+# Unified replacements: one recording per family, shared by every surface that family covers.
+# gravel3 replaces gravel, dirt and sand (the scenario exposes all three as loose surfaces);
+# grass2 replaces every grass role. Both roles of a surface point at the same loop, so the
+# rally mix keeps its per-role gain and pitch but plays a single recording.
+UNIFIED_SAMPLES = {
+    "gravel": {
+        "file": "artofrally/gravel.wav",
+        "source": "06_tierra_rodadura__gravel3.wav",
+        "surfaces": ["gravel", "dirt", "sand"],
+        "basis": "single loose-surface recording (art of rally 'gravel3') shared by gravel, dirt and sand",
+    },
+    "grass": {
+        "file": "artofrally/grass.wav",
+        "source": "04_hierba_rodadura__grass2.wav",
+        "surfaces": ["grass"],
+        "basis": "single grass recording (art of rally 'grass2') shared by every grass role",
+    },
+}
 
 FAMILY_SURFACE = {
     "grv": "gravel",
@@ -80,16 +106,16 @@ CFG_KEY_ROLES = {
 # Runtime mapping used by the rally mix. Only these files are referenced at runtime; every
 # other prepared sample is inventory. Selection basis is recorded per entry in the manifest.
 RUNTIME_MAP = {
-    "gravel": {"roll": "cmr4/gravel/grv_er11.wav", "skid": "cmr4/gravel/grv_es1.wav"},
-    "grass": {"roll": "cmr4/grass/grs_er11.wav", "skid": "cmr4/grass/grs_es1.wav"},
-    "dirt": {"roll": "cmr4/dirt/drt_er11.wav", "skid": "cmr4/dirt/drt_es1.wav"},
+    "gravel": {"roll": "artofrally/gravel.wav", "skid": "artofrally/gravel.wav"},
+    "grass": {"roll": "artofrally/grass.wav", "skid": "artofrally/grass.wav"},
+    "dirt": {"roll": "artofrally/gravel.wav", "skid": "artofrally/gravel.wav"},
     "tarmac": {
         "roll": "cmr4/tarmac/tar_er21.wav",
         "skid": "cmr4/tarmac/tar_s2.wav",
         "peel": "cmr4/tarmac/tar_p2.wav",
         "lock": "cmr4/tarmac/tar_l2.wav",
     },
-    "sand": {"roll": "legacy/surf_sand.wav"},
+    "sand": {"roll": "artofrally/gravel.wav"},
     "rumble": {"roll": "legacy/surf_rumble.wav"},
 }
 RUNTIME_FILES = {path for roles in RUNTIME_MAP.values() for path in roles.values()}
@@ -343,6 +369,136 @@ def wrap_metric(samples: np.ndarray) -> float:
     return float(wrap_step / max(typical, 1e-9))
 
 
+def runtime_map_basis() -> dict:
+    return {
+        "gravel": "artofrally/gravel.wav: single art of rally gravel recording "
+                  "(06_tierra_rodadura__gravel3.wav) shared by gravel, dirt and sand",
+        "grass": "artofrally/grass.wav: single art of rally grass recording "
+                 "(04_hierba_rodadura__grass2.wav) shared by every grass role",
+        "dirt": "unified with gravel: same artofrally/gravel.wav recording (no separate dirt sample)",
+        "tarmac": "tar set 2 (tar_er21 roll with tar_s2/tar_p2/tar_l2, the cfg pairing of blocks 25/29/35): lowest modulation of the peel and lock candidates (0.73/0.88 dB), and it avoids the 0.48 s peel of set 1; tarmac is not identified by the scenario today",
+        "sand": "unified with gravel: same artofrally/gravel.wav recording (no separate sand sample)",
+        "rumble": "legacy surf_rumble: no CMR4 rumble/curb family exists; not identified by the scenario",
+    }
+
+
+def read_pcm16_mono(path: Path) -> tuple[np.ndarray, int]:
+    with wave.open(str(path), "rb") as handle:
+        if handle.getsampwidth() != 2:
+            raise CmrError(f"{path.name}: expected 16-bit PCM")
+        channels = handle.getnchannels()
+        rate = handle.getframerate()
+        frames = handle.readframes(handle.getnframes())
+    samples = np.frombuffer(frames, dtype="<i2").astype(np.float64) / 32768.0
+    if channels > 1:
+        samples = samples.reshape(-1, channels).mean(axis=1)
+    return samples, rate
+
+
+def resample_linear(samples: np.ndarray, rate: int, target: int = SAMPLE_RATE) -> np.ndarray:
+    if rate == target:
+        return samples
+    count = int(round(samples.size * target / rate))
+    source_time = np.arange(samples.size, dtype=np.float64) / rate
+    target_time = np.arange(count, dtype=np.float64) / target
+    return np.interp(target_time, source_time, samples)
+
+
+def prepare_unified_records(target_rms_db: float) -> list[dict]:
+    """Rebuild the unified art of rally loops and return their manifest records."""
+    if not ART_OF_RALLY_MANIFEST.is_file():
+        raise CmrError(f"missing art of rally source manifest: {ART_OF_RALLY_MANIFEST}")
+    source = json.loads(ART_OF_RALLY_MANIFEST.read_text(encoding="utf-8"))
+    entries = {entry["file"]: entry for entry in source.get("entries", [])}
+    loop_length = int(round(LOOP_CROSSFADE_S * SAMPLE_RATE))
+    records = []
+    for family, spec in UNIFIED_SAMPLES.items():
+        entry = entries.get(spec["source"])
+        if entry is None:
+            raise CmrError(f"art of rally source not listed: {spec['source']}")
+        source_path = ART_OF_RALLY_DIR / spec["source"]
+        if not source_path.is_file() or sha256_file(source_path) != entry["sha256"]:
+            raise CmrError(f"art of rally source changed: {spec['source']}")
+        samples, rate = read_pcm16_mono(source_path)
+        resampled = resample_linear(samples, rate)
+        dc_mean = float(np.mean(resampled))
+        centred = resampled - dc_mean
+        levels = level_metrics(centred)
+        if centred.size < 4 * loop_length:
+            raise CmrError(f"art of rally source too short for the loop crossfade: {spec['source']}")
+        target = 10.0 ** (target_rms_db / 20.0)
+        gain = min(target / max(float(np.sqrt(np.mean(centred * centred))), 1e-9),
+                   PEAK_CEILING / max(float(np.max(np.abs(centred))), 1e-9))
+        scaled = centred * gain
+        body_length = scaled.size - loop_length
+        blended = loop_crossfade(scaled[:body_length].copy(), scaled[body_length:])
+        limiter = min(1.0, PEAK_CEILING / max(float(np.max(np.abs(blended))), 1e-12))
+        blended *= limiter
+        prepared_path = BANK_DIR / spec["file"]
+        write_pcm16(prepared_path, blended)
+        prepared_levels = level_metrics(blended)
+        loop_record = {"mode": "baked_equal_power", "crossfade_ms": LOOP_CROSSFADE_S * 1000.0,
+                       "crossfade_frames": loop_length, "body_frames": body_length,
+                       "runtime_fade": False}
+        records.append({
+            "file": spec["file"],
+            "family": family,
+            "status": "active",
+            "surfaces": spec["surfaces"],
+            "basis": spec["basis"],
+            "source": {
+                "game": source.get("game", "art of rally"),
+                "file": f"game/sounds/bank_sources/artofrally/surfaces/{spec['source']}",
+                "original_file": spec["source"],
+                "clip": entry.get("clip"),
+                "sha256": entry["sha256"],
+                "resource": entry.get("resource"),
+                "resource_offset": entry.get("resource_offset"),
+                "resource_size": entry.get("resource_size"),
+            },
+            "prepared": {
+                "sha256": sha256_file(prepared_path), "sample_rate": SAMPLE_RATE, "channels": 1, "bits": 16,
+                "frames": blended.size, "duration_s": round(blended.size / SAMPLE_RATE, 6),
+                "rms_dbfs": round(prepared_levels["rms_dbfs"], 3),
+                "peak_dbfs": round(dbfs(prepared_levels["peak"]), 3),
+            },
+            "processing": {
+                "resampled_from_hz": rate,
+                "dc_mean_removed_lsb": round(dc_mean * 32768.0, 4),
+                "source_rms_dbfs": round(levels["rms_dbfs"], 3),
+                "source_peak_dbfs": round(dbfs(levels["peak"]), 3),
+                "target_rms_dbfs": round(target_rms_db, 3),
+                "gain_db": round(20.0 * math.log10(gain), 3),
+                "limiter_scale_db": round(20.0 * math.log10(limiter), 4),
+                "loop": loop_record,
+                "wrap_step_ratio": round(wrap_metric(blended), 4),
+            },
+            "analysis": {
+                "spectral_centroid_hz": round(spectral_centroid_hz(resampled - dc_mean), 1),
+                "modulation_db": round(modulation_db(resampled - dc_mean), 3),
+            },
+            "loop": loop_record,
+        })
+    return records
+
+
+def apply_runtime_unification(manifest: dict, records: list[dict]) -> None:
+    """Point the runtime map at the unified samples and refresh status/legacy flags."""
+    manifest["generator"] = f"tools/audio/cmr4_surfaces.py revision {TOOL_REVISION}"
+    manifest["runtime_map"] = RUNTIME_MAP
+    manifest["runtime_map_basis"] = runtime_map_basis()
+    manifest["unified"] = {
+        "reason": "gravel, dirt and sand must sound the same; every grass role must sound the same",
+        "law": "same bank level/loop law as the CMR4 samples (DC removal, RMS target, peak ceiling, "
+               "120 ms baked equal-power crossfade)",
+        "samples": records,
+    }
+    for record in manifest.get("samples", []):
+        record["status"] = "active" if record["file"] in RUNTIME_FILES else "inventory"
+    for legacy in manifest.get("legacy", []):
+        legacy["runtime"] = legacy["file"] in RUNTIME_FILES
+
+
 def cmd_extract(arguments: argparse.Namespace) -> int:
     root = Path(arguments.cmr4_root)
     executable_path = root / EXECUTABLE_NAME
@@ -515,6 +671,7 @@ def cmd_prepare(_arguments: argparse.Namespace) -> int:
             # Read by VehicleSoundRouting: a baked loop must not receive the runtime 512-frame fade.
             **({"loop": loop_record} if not is_event else {}),
         })
+    unified_records = prepare_unified_records(targets["roll"])
     legacy = []
     commons_records = {}
     if COMMONS_MANIFEST.is_file():
@@ -558,18 +715,12 @@ def cmd_prepare(_arguments: argparse.Namespace) -> int:
             "length_change": "each loop loses the crossfade length (120 ms); pitch and sample rate are unchanged",
         },
         "runtime_map": RUNTIME_MAP,
-        "runtime_map_basis": {
-            "gravel": "grv_er11: first exterior roll of gravel set 1; the scenario's Gravel group is the stage road and terrain",
-            "grass": "grs_er11: first exterior roll of grass set 1 (grs_er21 is the alternate)",
-            "dirt": "drt_er11: first exterior roll of dirt set 1 (drt_er12/13 are alternates)",
-            "tarmac": "tar set 2 (tar_er21 roll with tar_s2/tar_p2/tar_l2, the cfg pairing of blocks 25/29/35): lowest modulation of the peel and lock candidates (0.73/0.88 dB), and it avoids the 0.48 s peel of set 1; tarmac is not identified by the scenario today",
-            "sand": "legacy surf_sand: no CMR4 sand family exists",
-            "rumble": "legacy surf_rumble: no CMR4 rumble/curb family exists; not identified by the scenario",
-        },
+        "runtime_map_basis": runtime_map_basis(),
         "samples": sorted(prepared_records, key=lambda record: record["file"]),
         "legacy": legacy,
         "retired_from_commons": RETIRED_COMMONS_FILES,
     }
+    apply_runtime_unification(manifest, unified_records)
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
     update_sample_levels(manifest)
@@ -588,16 +739,40 @@ def update_sample_levels(manifest: dict) -> None:
         "peak_ceiling_dbfs": PEAK_CEILING_DBFS,
         "law": manifest["preparation"]["level_law"],
         "samples": {
-            record["file"]: {
-                "source_rms_dbfs": record["processing"]["source_rms_dbfs"],
-                "gain_db": record["processing"]["gain_db"],
-                "prepared_rms_dbfs": record["prepared"]["rms_dbfs"],
-                "prepared_peak_dbfs": record["prepared"]["peak_dbfs"],
-            }
-            for record in manifest["samples"]
+            **{
+                record["file"]: {
+                    "source_rms_dbfs": record["processing"]["source_rms_dbfs"],
+                    "gain_db": record["processing"]["gain_db"],
+                    "prepared_rms_dbfs": record["prepared"]["rms_dbfs"],
+                    "prepared_peak_dbfs": record["prepared"]["peak_dbfs"],
+                }
+                for record in manifest["samples"]
+            },
+            **{
+                record["file"]: {
+                    "source_rms_dbfs": record["processing"]["source_rms_dbfs"],
+                    "gain_db": record["processing"]["gain_db"],
+                    "prepared_rms_dbfs": record["prepared"]["rms_dbfs"],
+                    "prepared_peak_dbfs": record["prepared"]["peak_dbfs"],
+                }
+                for record in manifest.get("unified", {}).get("samples", [])
+            },
         },
     }
     levels_path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+
+
+def cmd_unify(_arguments: argparse.Namespace) -> int:
+    if not MANIFEST_PATH.is_file():
+        raise CmrError("run prepare first: the bank manifest is missing")
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    target = float(manifest.get("preparation", {}).get("target_rms_dbfs", {}).get("roll", -16.737))
+    records = prepare_unified_records(target)
+    apply_runtime_unification(manifest, records)
+    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    update_sample_levels(manifest)
+    print(f"unified {len(records)} art of rally samples; runtime map -> artofrally/")
+    return 0
 
 
 def cmd_verify(_arguments: argparse.Namespace) -> int:
@@ -633,6 +808,40 @@ def cmd_verify(_arguments: argparse.Namespace) -> int:
             continue
         if facts["sample_rate"] != SAMPLE_RATE or facts["channels"] != 1 or facts["bits"] != 16:
             failures.append(f"prepared format mismatch: {record['file']}")
+    art_entries: dict[str, dict] = {}
+    if not ART_OF_RALLY_MANIFEST.is_file():
+        failures.append("missing art of rally source manifest")
+    else:
+        art = json.loads(ART_OF_RALLY_MANIFEST.read_text(encoding="utf-8"))
+        for entry in art.get("entries", []):
+            art_entries[entry["file"]] = entry
+            art_path = ART_OF_RALLY_DIR / entry["file"]
+            if not art_path.is_file() or sha256_file(art_path) != entry["sha256"]:
+                failures.append(f"art of rally source hash mismatch: {entry['file']}")
+    unified = manifest.get("unified", {}).get("samples", [])
+    if not unified:
+        failures.append("manifest has no unified art of rally samples")
+    for record in unified:
+        path = BANK_DIR / record["file"]
+        if not path.is_file():
+            failures.append(f"unified file missing: {record['file']}")
+            continue
+        if sha256_file(path) != record["prepared"]["sha256"]:
+            failures.append(f"unified hash mismatch: {record['file']}")
+        try:
+            facts = inspect_wav(path.read_bytes())
+        except CmrError as error:
+            failures.append(f"unified WAV invalid {record['file']}: {error}")
+            continue
+        if facts["sample_rate"] != SAMPLE_RATE or facts["channels"] != 1 or facts["bits"] != 16:
+            failures.append(f"unified format mismatch: {record['file']}")
+        source_entry = art_entries.get(record["source"]["original_file"])
+        if source_entry is None:
+            failures.append(f"unified source not in art of rally manifest: {record['source']['original_file']}")
+        elif source_entry["sha256"] != record["source"]["sha256"]:
+            failures.append(f"unified source hash mismatch: {record['source']['original_file']}")
+    if manifest.get("runtime_map") != RUNTIME_MAP:
+        failures.append("runtime_map does not match the unified gravel/grass mapping")
     for surface, roles in manifest["runtime_map"].items():
         for role, relative in roles.items():
             if not (BANK_DIR / relative).is_file():
@@ -676,6 +885,8 @@ def main(argv: list[str] | None = None) -> int:
     extract_parser.set_defaults(handler=cmd_extract)
     prepare_parser = subcommands.add_parser("prepare", help="build the runtime surfaces bank")
     prepare_parser.set_defaults(handler=cmd_prepare)
+    unify_parser = subcommands.add_parser("unify", help="install the unified art of rally gravel/grass samples")
+    unify_parser.set_defaults(handler=cmd_unify)
     verify_parser = subcommands.add_parser("verify", help="check hashes, formats and runtime references")
     verify_parser.set_defaults(handler=cmd_verify)
     arguments = parser.parse_args(argv)

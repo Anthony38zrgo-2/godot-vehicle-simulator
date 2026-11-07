@@ -6,7 +6,7 @@ const CompetitionPanel = preload("res://scripts/rally/rally_competition_panel.gd
 var panel: Control
 var frame_count := 0
 var out_dir := "user://results_redesign/"
-var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/903e96ef-d92d-42eb-96b3-8a01280574f5/"
+var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/f555cd39-d09d-485e-9ac7-83b5ba3bd42a/"
 var sim
 
 func _init() -> void:

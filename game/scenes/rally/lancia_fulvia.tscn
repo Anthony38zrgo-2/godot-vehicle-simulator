@@ -68,6 +68,7 @@ spot_angle = 27.0
 
 [node name="CockpitAnimation" type="Node" parent="."]
 script = ExtResource("11_cockpit")
+steering_wheel_axis = Vector3(0, 1, 0)
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("9_vfx")

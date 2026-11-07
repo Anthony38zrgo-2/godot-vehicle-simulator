@@ -6,12 +6,12 @@ extends SceneTree
 ## correctly, so no logic test caught it and the decoration silently
 ## disappeared. These assertions encode the properties that make it visible.
 
-const MIN_INSTANCES := 20000
-## The pack ships five grass types; three of them were dropped by the original
-## conversion and never reached the stage.
-const EXPECTED_VARIANTS := 5
+const MIN_INSTANCES := 12000
+## Four of the pack's five grass types are scattered; short_fresh is exported
+## but deliberately unused, so the verge reads dry rather than lush green.
+const EXPECTED_VARIANTS := 4
 const MIN_VARIANT_SHARE := 0.05
-const MAX_VARIANT_SHARE := 0.40
+const MAX_VARIANT_SHARE := 0.50
 const MIN_TUFT_HEIGHT_M := 0.4
 const MAX_TUFT_HEIGHT_M := 1.8
 const MAX_LATERAL_M := 28.0

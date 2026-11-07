@@ -12,6 +12,15 @@ var constant_brake_ratio: float = 0.0
 var gear_ratios: Array[float] = []
 var reverse_ratio: float = 0.0
 var final_drive_ratio: float = 1.0
+var final_drive_gravel: float = 0.0
+var final_drive_tarmac: float = 0.0
+var final_drive_preset: String = ""
+
+# P0: Saab freewheel (one-way clutch on primary shaft).
+var freewheel_enabled: bool = false
+var freewheel_idle_rpm: float = 1000.0
+var freewheel_reengage_margin_rad_s: float = 1.5
+var freewheel_active: bool = false
 var engine_inertia_kg_m2: float = 0.1
 var clutch_max_torque_nm: float = 0.0
 var clutch_max_torque_ratio: float = 1.35
@@ -91,6 +100,20 @@ func configure(domains: Dictionary) -> Dictionary:
 	constant_brake_ratio = maxf(float(powertrain.get("constant_brake_ratio", 0.0)), 0.0)
 	reverse_ratio = -absf(float(powertrain.get("reverse_ratio", 3.317)))
 	final_drive_ratio = float(powertrain.get("final_drive", 1.0))
+	final_drive_gravel = float(powertrain.get("final_drive_gravel", 0.0))
+	final_drive_tarmac = float(powertrain.get("final_drive_tarmac", 0.0))
+	final_drive_preset = str(powertrain.get("final_drive_preset", ""))
+	if final_drive_preset == "gravel" and final_drive_gravel > 0.0:
+		final_drive_ratio = final_drive_gravel
+	elif final_drive_preset == "tarmac" and final_drive_tarmac > 0.0:
+		final_drive_ratio = final_drive_tarmac
+	var freewheel_doc: Dictionary = powertrain.get("freewheel", {})
+	freewheel_enabled = bool(freewheel_doc.get("enabled", false))
+	freewheel_idle_rpm = maxf(float(freewheel_doc.get("idle_rpm", 1000.0)), 400.0)
+	freewheel_reengage_margin_rad_s = clampf(
+		float(freewheel_doc.get("reengage_margin_rad_s", 1.5)), 0.0, 10.0
+	)
+	freewheel_active = false
 	engine_inertia_kg_m2 = float(powertrain.get("motor_moment", 0.15))
 	gearbox_input_inertia_kg_m2 = maxf(
 		float(powertrain.get("gearbox_input_inertia_kg_m2", GEVP_GEAR_INERTIA)),
@@ -208,6 +231,18 @@ func configure(domains: Dictionary) -> Dictionary:
 	return { "ok": true }
 
 
+func set_final_drive_preset(preset: String) -> bool:
+	if preset == "gravel" and final_drive_gravel > 0.0:
+		final_drive_ratio = final_drive_gravel
+		final_drive_preset = preset
+		return true
+	if preset == "tarmac" and final_drive_tarmac > 0.0:
+		final_drive_ratio = final_drive_tarmac
+		final_drive_preset = preset
+		return true
+	return false
+
+
 func reset_compliance() -> void:
 	output_shaft_omega_rad_s = 0.0
 	driveline_twist_rad = 0.0
@@ -240,6 +275,7 @@ func set_gear(target_gear: int) -> void:
 
 
 func reset_shift() -> void:
+	freewheel_active = false
 	revmatch_downshift = false
 	autoblip_active = false
 	autoblip_target_rpm = 0.0
@@ -262,7 +298,26 @@ func gear_ratio() -> float:
 	return _ratio_for_gear(current_gear)
 
 
-func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float = 1.0) -> float:
+func _update_freewheel(throttle: float, carrier_omega_rad_s: float) -> void:
+	if not freewheel_enabled:
+		freewheel_active = false
+		return
+	if current_gear <= 0:
+		freewheel_active = false
+		return
+	var engine_omega := engine_rpm * TAU / 60.0
+	var equiv_omega := carrier_omega_rad_s * gear_ratio() * final_drive_ratio
+	freewheel_active = (
+		throttle < 0.1
+		and equiv_omega > engine_omega + freewheel_reengage_margin_rad_s
+	)
+
+
+func is_freewheeling() -> bool:
+	return freewheel_active
+
+
+func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float = 1.0, freewheeling_override: float = -1.0) -> float:
 	var throttle_value := clampf(throttle, 0.0, 1.0)
 	var closed_throttle := 1.0 - throttle_value
 	var rpm_fraction := clampf(rpm / maxf(maximum_rpm, 1.0), 0.0, 1.25)
@@ -274,12 +329,18 @@ func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float =
 		0.0,
 		1.0,
 	) * rev_cut
-	var variable_drag := rpm_fraction * peak_torque_nm * variable_drag_ratio * lerpf(
-		0.15,
-		1.0,
-		closed_throttle,
-	)
-	var constant_brake := peak_torque_nm * constant_brake_ratio * closed_throttle
+	var freewheeling_now := freewheel_active
+	if freewheeling_override >= 0.0:
+		freewheeling_now = freewheeling_override > 0.5
+	var variable_drag := 0.0
+	var constant_brake := 0.0
+	if not (freewheeling_now and freewheel_enabled):
+		variable_drag = rpm_fraction * peak_torque_nm * variable_drag_ratio * lerpf(
+			0.15,
+			1.0,
+			closed_throttle,
+		)
+		constant_brake = peak_torque_nm * constant_brake_ratio * closed_throttle
 	var idle_support := 0.0
 	if rpm < idle_rpm + 250.0:
 		var idle_error := clampf((idle_rpm + 100.0 - rpm) / 250.0, 0.0, 1.5)
@@ -298,6 +359,7 @@ func advance(
 	carrier_omega_rad_s: float = 0.0,
 ) -> void:
 	var dt := maxf(delta, 0.00001)
+	_update_freewheel(throttle, carrier_omega_rad_s)
 	shift_phase_seconds += dt
 	if shift_phase != "idle":
 		shift_remaining_seconds = maxf(dt, shift_remaining_seconds - dt)
@@ -309,6 +371,8 @@ func advance(
 		idle_rpm * 0.65 if thermal_derating > 0.0 else 0.0,
 		maximum_rpm * 1.25,
 	)
+	if freewheel_enabled and freewheel_active:
+		engine_rpm = move_toward(engine_rpm, freewheel_idle_rpm, 4000.0 * dt)
 	if thermal_derating > 0.0 and engine_rpm < idle_rpm and clutch_engagement < 0.05:
 		engine_rpm = move_toward(engine_rpm, idle_rpm, 1500.0 * dt)
 
@@ -396,7 +460,15 @@ func solve_rotation(
 	var synchronizing := shift_phase == "synchronizing" and shift_phase_seconds >= 0.0 and pending_gear != 0
 	var ratio := (_ratio_for_gear(pending_gear) if synchronizing else gear_ratio()) * final_drive_ratio
 	var geared := current_gear != 0 and absf(ratio) > 0.000001
-	var connected := geared or synchronizing
+	var _carrier_now := 0.0
+	for _ci in 4:
+		_carrier_now += (front_torque_split * 0.5 if _ci < 2 else (1.0 - front_torque_split) * 0.5) * spins[_ci]
+	_update_freewheel(1.0 if engine_torque_nm > 0.0 else 0.0, _carrier_now)
+	if freewheel_enabled and freewheel_active:
+		var _equiv := _carrier_now * ratio
+		if engine_omega + freewheel_reengage_margin_rad_s >= _equiv:
+			freewheel_active = false
+	var connected := (geared or synchronizing) and not (freewheel_enabled and freewheel_active)
 	var weights: Array[float] = [
 		front_torque_split * 0.5,
 		front_torque_split * 0.5,

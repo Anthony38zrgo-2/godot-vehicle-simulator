@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-porsche-356b-2000gs",
+  "policy": "game_derived",
+  "source": "Rally Trophy mod INI (FTC 1966cc) + measured 356A asset geometry; sounds/meshes reused from rt-porsche-356a; not a certified historic tune",
+  "mod_source": {
+    "zip": "Porsche356Carrera2000GS_by_sharbo.zip",
+    "rtp_ftc_sha256": "98aa55c502e9e41fa35f8c5871e834385823b1699ae0bb1c7df7016fc51b5b1d",
+    "rtp_std_sha256": "84649c9072152b559b4bd1c1e7085410a2a5721ca0210fb387dd257d70101a58",
+    "base_variant": "ftc (1966cc 175bhp, 4v 3.090/1.762/1.231/0.962, EndRatio 4.86)",
+    "alt_variant": "std (130bhp, 5v 5.91 arcade)",
+    "ini_files": [
+      "car.ini",
+      "Engine.ini",
+      "Sounds.ini",
+      "Tires.ini",
+      "info.ini",
+      "ai.ini"
+    ]
+  },
+  "reuse": {
+    "assets": "rt-porsche-356b-2000gs (own export)",
+    "sounds": "rt-porsche-356a",
+    "collision": "rt-porsche-356a",
+    "reason": "T6 mesh exported from sharbo FTC mod via Blender pipeline; measured 2.106/1.295/1.265 m; sounds+audio bank still reused from rt-porsche-356a"
+  },
+  "historical_reference": {
+    "name": "Porsche 356B Carrera 2000 GS",
+    "group": "FIA Grupo 3 GT #71 (oct 1962)",
+    "sources": {
+      "ficha": {
+        "file": "porsche_356b_carrera_2_2000gs_ficha_tecnica.md"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1966,
+        "source": "ficha",
+        "locator": "Type 587 92x74",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "RWD",
+        "source": "mod_rtp",
+        "locator": "car.ini FrontTraction=0",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "ficha",
+        "locator": "Type 587 boxer DOHC Konigswelle",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.1,
+        "source": "ficha",
+        "locator": "tabla FIA #71",
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.306,
+        "source": "ficha",
+        "locator": "1.306/1.272",
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.272,
+        "source": "ficha",
+        "locator": "1.306/1.272",
+        "status": "documented"
+      },
+      "fuel_l": {
+        "value": 55,
+        "source": "ficha",
+        "locator": "masa operativa 55 L",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 890,
+        "source": "ficha",
+        "locator": "coupe GT aluminio, vacio",
+        "status": "documented"
+      }
+    },
+    "variant_note": "1962-65. Game base FTC (BBBD-like). Historic overrides: BBBD 3.091/1.765/1.227/0.960, final 4.428, 176 Nm/155 CV @6800 corte 7200 (mod peak 4500 vs ficha 5200 noted), ATE 282/285 sin servo, Ausgleichfeder.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "7c68ea20a66082717d892f049667f591b8fbd27adb2123773b85ab5f7149fb8d",
+    "chassis.json": "a3431a6adab89fc195ffe75563098bcb50d257989a582027ca70ba15a55f4ed6",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "22f4dc50b8768473b7f79908c46b02664e73f1a30e55cf205ae940e79ec209ce",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "5b908ae248d5ff496ff34fe3656c6a2ed37c9025861adf5f7c402bd480bf7772",
+    "powertrain.json": "3caf68d39c50574efdd92ca47692cb891871e3875e8f793fd3c9b5e64b39aa44",
+    "steering.json": "67f505151a9d64804be4c7e5e7b11bfd7b655776c57563654dd7d3d173f2a544",
+    "suspension.json": "419c0476e0689116a00ee24eefbfbd9b5b9d2df60ede73695f9faaf4826bae02",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "tires.json": "76f7d591ba55196c2ae03b2f4b2aa939b669c51030e00e4c8c73b52491d5bf87",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "6e89f3a9171cff281b39735109917b1d6d03fac8abe918017c4246644af41f54"
+  }
+}

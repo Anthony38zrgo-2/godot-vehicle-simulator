@@ -6,41 +6,77 @@ signal next_requested
 signal new_rally_requested
 
 # =============================================================================
-# CONSTANTES VISUALES — SISTEMA DE DISEÑO DEL GARAJE
+# CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
 # =============================================================================
 
-const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
-const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
+# 2.2. Estandarización Tipográfica (Sin Serif)
+const FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const BOLD := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
-# --- Aero Glass: cabeceras, pie y badges -------------------------------------
-const C_BACK := Color("#080d12")
-const C_GLASS := Color("#16232f")
-const C_GLASS_DEEP := Color("#0d151d")
-const C_RIM := Color("#7fa8c9")
-const C_CHROME_TEXT := Color("#eaf2f8")
-const C_CHROME_DIM := Color("#93a9bb")
-const C_BLUE := Color("#6db2e8")
-const C_BLUE_DEEP := Color("#2c6da3")
+# 2.3. Paleta Workbench Motorsport (Ventana Competición / Resultados)
+const WB_BG_SHELL := Color("#090e15")
+const WB_BG_HEADER := Color("#0d141e")
+const WB_BG_FOOTER := Color("#0d141e")
+const WB_BG_TAB_INACTIVE := Color("#111822")
+const WB_BG_TAB_ACTIVE := Color("#1a2636")
+const WB_BG_CONTENT := Color("#1a2636")
+const WB_BG_CARD := Color("#223246")
+const WB_BG_CARD_HOVER := Color("#2a3d54")
+const WB_BG_WELL := Color("#0c141e")
+const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
+const WB_BORDER_HOVER := Color(1.0, 1.0, 1.0, 0.20)
+const WB_BORDER_FOCUS := Color("#ffffff")
+const WB_BORDER_ACCENT := Color("#e5a93c")
+const WB_SLIDER_TRACK := Color("#0c141e")
+const WB_SLIDER_FILL := Color("#4a7bb0")
+const WB_SLIDER_THUMB := Color("#eaf2fa")
+const WB_SLIDER_STEPPER := Color("#25364b")
+const WB_TEXT_TITLE := Color("#f0f5fa")
+const WB_TEXT_LABEL := Color("#9ab0c7")
+const WB_TEXT_DATA := Color("#ffffff")
+const WB_TEXT_ACCENT := Color("#e5a93c")
 
-# --- Paneles clásicos y tarjetas de datos ------------------------------------
-const C_FACE := Color("#2b3d4d")
-const C_FACE_HI := Color("#374c5e")
-const C_FACE_LO := Color("#22323f")
-const C_FIELD := Color("#0c151d")
-const C_HI := Color("#93afc8")
-const C_LIGHT := Color("#5d7890")
-const C_SHADOW := Color("#101b25")
-const C_DARK := Color("#000000")
-const C_TEXT := Color("#e2edf6")
-const C_DIM := Color("#9eb3c5")
-const C_GOLD := Color("#e3b23c")
-const C_GOLD_HI := Color("#f6d68a")
-const C_ROSE := Color("#ff6b61")
-const C_SEL := Color("#3b3324")
-const C_GREEN := Color("#55d67b")
+const BG_BASE := WB_BG_SHELL
+const BG_SURFACE := WB_BG_CONTENT
+const BG_HOVER := WB_BG_CARD_HOVER
+const BG_CARD := WB_BG_CARD
+const BORDER_SUBTLE := WB_BORDER_SUBTLE
+const BORDER_FOCUS := WB_BORDER_FOCUS
+const TEXT_PRIMARY := WB_TEXT_TITLE
+const TEXT_MUTED := WB_TEXT_LABEL
+const ACCENT_RALLY := WB_BORDER_ACCENT
+const ACCENT_ALERT := Color("#f59e0b")
+const STATUS_DANGER := Color("#ef4444")
+const STATUS_SUCCESS := Color("#22c55e")
+
+# Aliases de compatibilidad interna
+const C_BACK := WB_BG_SHELL
+const C_GLASS := WB_BG_HEADER
+const C_GLASS_DEEP := WB_BG_WELL
+const C_RIM := WB_BORDER_SUBTLE
+const C_CHROME_TEXT := WB_TEXT_TITLE
+const C_CHROME_DIM := WB_TEXT_LABEL
+const C_BLUE := WB_SLIDER_FILL
+const C_BLUE_DEEP := Color("#16283b")
+
+const C_FACE := WB_BG_CONTENT
+const C_FACE_HI := WB_BG_CARD_HOVER
+const C_FACE_LO := WB_BG_CARD
+const C_FIELD := WB_BG_WELL
+const C_HI := WB_BORDER_HOVER
+const C_LIGHT := WB_BORDER_SUBTLE
+const C_SHADOW := Color(0.0, 0.0, 0.0, 0.25)
+const C_DARK := Color("#060a0f")
+const C_TEXT := WB_TEXT_TITLE
+const C_DIM := WB_TEXT_LABEL
+const C_GOLD := ACCENT_RALLY
+const C_GOLD_HI := Color("#f8df9e")
+const C_ROSE := STATUS_DANGER
+const C_SEL := WB_BG_CARD_HOVER
+const C_GREEN := STATUS_SUCCESS
 const C_SILVER := Color("#d0dbe5")
 const C_BRONZE := Color("#e29b63")
 
@@ -201,7 +237,7 @@ func _build_ui() -> void:
 	hero_margin.add_child(hero_vbox)
 
 	hero_header_label = Label.new()
-	hero_header_label.text = "// RESUMEN DEL PILOTO"
+	hero_header_label.text = "RESUMEN DEL PILOTO"
 	hero_header_label.add_theme_font_override("font", FONT_TITLE)
 	hero_header_label.add_theme_font_size_override("font_size", 12)
 	hero_header_label.add_theme_color_override("font_color", C_GOLD)
@@ -384,55 +420,44 @@ func _make_glass_style(radius: int, fill: Color, rim: Color) -> StyleBoxFlat:
 	s.border_color = rim
 	s.set_border_width_all(1)
 	s.set_corner_radius_all(radius)
-	s.shadow_color = Color(0, 0, 0, 0.35)
-	s.shadow_size = 4
-	s.shadow_offset = Vector2(0, 2)
+	s.shadow_size = 0
 	return s
 
 
 func _make_classic_panel_style() -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color = C_FACE
-	s.border_color = C_HI
-	s.border_width_left = 1
-	s.border_width_top = 1
-	s.border_width_right = 1
-	s.border_width_bottom = 1
-	s.border_color = Color(C_HI.r, C_HI.g, C_HI.b, 0.6)
-	s.shadow_color = Color(0, 0, 0, 0.4)
-	s.shadow_size = 3
+	s.bg_color = BG_SURFACE
+	s.border_color = BORDER_SUBTLE
+	s.set_border_width_all(1)
+	s.shadow_size = 0
 	return s
 
 
 func _style_gold_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#b8862a")
+	normal.bg_color = Color("#d49b2f")
 	normal.border_color = C_GOLD_HI
-	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(6)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 24
 	normal.content_margin_right = 24
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
-	normal.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.4)
-	normal.shadow_size = 6
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#cf9932")
-	hover.border_color = Color("#fff2c2")
-	hover.shadow_size = 8
-	hover.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.65)
+	hover.bg_color = Color("#e5aa37")
+	hover.border_color = Color.WHITE
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#996e1f")
+	pressed.bg_color = Color("#b38020")
 	pressed.border_color = C_GOLD
-	pressed.shadow_size = 2
 
 	var disabled := StyleBoxFlat.new()
-	disabled.bg_color = Color(0.12, 0.16, 0.20, 0.8)
-	disabled.border_color = Color(0.25, 0.32, 0.38, 0.5)
+	disabled.bg_color = Color(0.12, 0.16, 0.20, 0.5)
+	disabled.border_color = BORDER_SUBTLE
 	disabled.set_border_width_all(1)
-	disabled.set_corner_radius_all(6)
+	disabled.set_corner_radius_all(2)
 	disabled.content_margin_left = 24
 	disabled.content_margin_right = 24
 	disabled.content_margin_top = 8
@@ -445,39 +470,38 @@ func _style_gold_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("disabled", disabled)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 13)
-	btn.add_theme_color_override("font_color", Color("#1a1206"))
+	btn.add_theme_color_override("font_color", Color("#0a0e14"))
 	btn.add_theme_color_override("font_hover_color", Color("#000000"))
 	btn.add_theme_color_override("font_pressed_color", Color("#000000"))
-	btn.add_theme_color_override("font_focus_color", Color("#1a1206"))
-	btn.add_theme_color_override("font_disabled_color", Color(0.45, 0.55, 0.65, 0.7))
+	btn.add_theme_color_override("font_focus_color", Color("#0a0e14"))
+	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
 
 
 func _style_chrome_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(C_GLASS, 0.92)
-	normal.border_color = Color(C_RIM, 0.35)
+	normal.bg_color = BG_CARD
+	normal.border_color = BORDER_SUBTLE
 	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 18
 	normal.content_margin_right = 18
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.14, 0.22, 0.30, 0.95)
-	hover.border_color = Color(C_BLUE, 0.65)
-	hover.shadow_color = Color(C_BLUE.r, C_BLUE.g, C_BLUE.b, 0.3)
-	hover.shadow_size = 4
+	hover.bg_color = BG_HOVER
+	hover.border_color = BORDER_FOCUS
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.08, 0.12, 0.18, 0.95)
-	pressed.border_color = Color(C_RIM, 0.5)
+	pressed.bg_color = BG_BASE
+	pressed.border_color = ACCENT_RALLY
 
 	var disabled := StyleBoxFlat.new()
-	disabled.bg_color = Color(0.08, 0.11, 0.14, 0.5)
-	disabled.border_color = Color(0.2, 0.26, 0.32, 0.3)
+	disabled.bg_color = Color(0.08, 0.11, 0.14, 0.4)
+	disabled.border_color = BORDER_SUBTLE
 	disabled.set_border_width_all(1)
-	disabled.set_corner_radius_all(6)
+	disabled.set_corner_radius_all(2)
 	disabled.content_margin_left = 18
 	disabled.content_margin_right = 18
 	disabled.content_margin_top = 8
@@ -490,30 +514,31 @@ func _style_chrome_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("disabled", disabled)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", C_CHROME_TEXT)
+	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", C_BLUE)
+	btn.add_theme_color_override("font_pressed_color", ACCENT_RALLY)
 	btn.add_theme_color_override("font_focus_color", Color.WHITE)
-	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.48, 0.56, 0.5))
+	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
 
 
 func _style_muted_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.10, 0.14, 0.18, 0.85)
-	normal.border_color = Color(0.28, 0.36, 0.44, 0.4)
+	normal.bg_color = BG_CARD
+	normal.border_color = BORDER_SUBTLE
 	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.18, 0.12, 0.12, 0.95)
-	hover.border_color = Color(C_ROSE, 0.6)
+	hover.bg_color = Color(0.18, 0.10, 0.10, 0.95)
+	hover.border_color = STATUS_DANGER
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.08, 0.10, 0.13, 0.95)
+	pressed.bg_color = Color(0.08, 0.05, 0.05, 0.95)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -720,8 +745,10 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 func _present_results(state: Dictionary) -> void:
 	var final_result := str(state.get("event_status", "")) == "finished"
 	var allow_next: bool = bool(state.get("allow_next", true))
+	var is_single_stage: bool = bool(state.get("single_stage_mode", false))
+	var mode_name: String = str(state.get("session_mode", "rally"))
 	next_button.visible = not final_result and allow_next
-	retry_button.visible = not state.has("event_stage_id") and not final_result
+	retry_button.visible = (not state.has("event_stage_id") or is_single_stage) and not final_result
 	if final_result:
 		_present_final(state)
 		return
@@ -731,7 +758,12 @@ func _present_results(state: Dictionary) -> void:
 	var num := _stage_number(state)
 	var total := int(state.get("event_total", 10))
 	var sid := _stage_id(state).to_upper()
-	header_subtitle.text = "ESPECIAL %d DE %d · %s · CRONOMETRAJE OFICIAL" % [num, total, sid]
+	if is_single_stage:
+		header_subtitle.text = "TRAMO ÚNICO · %s · CRONOMETRAJE INDEPENDIENTE" % sid
+	elif mode_name == "championship":
+		header_subtitle.text = "CAMPEONATO · ESPECIAL %d DE %d · %s · CRONOMETRAJE OFICIAL" % [num, total, sid]
+	else:
+		header_subtitle.text = "ESPECIAL %d DE %d · %s · CRONOMETRAJE OFICIAL" % [num, total, sid]
 
 	# Badge de estado
 	var retired := bool(state.get("event_player_retired", state.get("player_retired", false)))
@@ -739,12 +771,23 @@ func _present_results(state: Dictionary) -> void:
 		badge_label.text = "SITUACIÓN DEL PILOTO"
 		badge_value.text = "REENGANCHE (+300s)"
 		badge_value.add_theme_color_override("font_color", C_ROSE)
+	elif is_single_stage:
+		badge_label.text = "MODO DE PRUEBA"
+		badge_value.text = "SINGLE STAGE"
+		badge_value.add_theme_color_override("font_color", C_BLUE)
+	elif mode_name == "championship":
+		badge_label.text = "ESTADO DE PRUEBA"
+		badge_value.text = "CAMPEONATO · COMPLETADO"
+		badge_value.add_theme_color_override("font_color", C_GOLD)
 	else:
 		badge_label.text = "ESTADO DE PRUEBA"
 		badge_value.text = "OFICIAL · COMPLETADO"
 		badge_value.add_theme_color_override("font_color", C_BLUE)
 
 	# Botones
+	if is_single_stage:
+		retry_button.text = "REINTENTAR TRAMO"
+		_style_chrome_button(retry_button)
 	next_button.disabled = _next_disabled(state)
 	next_button.text = _next_label(state)
 	_style_gold_button(next_button)
@@ -817,7 +860,7 @@ func _present_results(state: Dictionary) -> void:
 
 
 func _update_stage_hero_cards(state: Dictionary) -> void:
-	hero_header_label.text = "// RENDIMIENTO DEL PILOTO"
+	hero_header_label.text = "RENDIMIENTO DEL PILOTO"
 	for child in hero_content_vbox.get_children():
 		child.queue_free()
 
@@ -887,7 +930,11 @@ func _update_stage_hero_cards(state: Dictionary) -> void:
 func _present_final(state: Dictionary) -> void:
 	var rows: Array = state.get("event_final_rows", [])
 	var points: Dictionary = state.get("event_points", {})
-	title.text = "RESULTADO FINAL · RALLY DE RUSIA"
+	var mode_name: String = str(state.get("session_mode", "rally"))
+	if mode_name == "championship":
+		title.text = "RESULTADO FINAL · CAMPEONATO DE RUSIA"
+	else:
+		title.text = "RESULTADO FINAL · RALLY DE RUSIA"
 	header_subtitle.text = "EVENTO DE 10 ESPECIALES FINALIZADO · PUNTUACIÓN SEGÚN BAREMO OFICIAL WRC"
 
 	var winner_id := str(points.get("winner", ""))
@@ -960,7 +1007,7 @@ func _present_final(state: Dictionary) -> void:
 
 
 func _update_final_podium(rows: Array, points: Dictionary) -> void:
-	hero_header_label.text = "// PODIO FINAL DEL EVENTO"
+	hero_header_label.text = "PODIO FINAL DEL EVENTO"
 	for child in hero_content_vbox.get_children():
 		child.queue_free()
 
@@ -1173,6 +1220,9 @@ func _next_disabled(state: Dictionary) -> bool:
 
 
 func _event_notice(state: Dictionary) -> String:
+	if bool(state.get("single_stage_mode", false)):
+		var sid := _stage_id(state)
+		return "Especial %s completada. Modo Single Stage finalizado. Usa «Reintentar tramo» para reiniciar o «Nuevo Rally» para volver al menú." % sid
 	if state.has("event_stage_id"):
 		var sid := _stage_id(state)
 		var sched: Dictionary = state.get("event_schedule", {})

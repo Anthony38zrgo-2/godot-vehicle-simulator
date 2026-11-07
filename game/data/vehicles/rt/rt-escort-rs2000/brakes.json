@@ -80,6 +80,10 @@
       }
     },
     "wheel_lock_blend_spin_rad_s": 6.0,
-    "wheel_lock_stick_tau_s": 0.03
+    "wheel_lock_stick_tau_s": 0.03,
+    "servo_assist": {
+      "enabled": true,
+      "gain": 1.0
+    }
   }
 }

@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Alpine Renault A110 1600",
-    "vehicle_mass": 757.0,
+    "vehicle_mass": 855.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
-    "front_weight_distribution": 0.4,
+    "front_weight_distribution": 0.36,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.425
   },
   "geometry": {
-    "wheelbase": 2.0999999046325684,
-    "front_axle_z": -1.0499999523162842,
-    "rear_axle_z": 1.0499999523162842,
-    "front_track": 1.1411886811256409,
-    "rear_track": 1.2199999690055847
+    "wheelbase": 2.1,
+    "front_axle_z": -1.05,
+    "rear_axle_z": 1.05,
+    "front_track": 1.358,
+    "rear_track": 1.337
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 757.0,
+    "base_budget_kilograms": 855.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 455.0,
+          "mass_kilograms": 553.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": 0.011653845624609277
+            "y": 0.425,
+            "z": 0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                127.4,
+                782.0,
                 0,
                 0
               ],
               [
                 0,
-                250.25000000000003,
+                807.5,
                 0
               ],
               [
                 0,
                 0,
-                68.25
+                208.2
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 1.2074999451637267
+            "y": 0.375,
+            "z": 0.4
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.545,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.545,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.8399999618530274
+            "y": 0.405,
+            "z": -0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

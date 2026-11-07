@@ -1,9 +1,0 @@
-{
-  "id": "rt-volvo-amazon-upgrade",
-  "archive": "car_6.bzf",
-  "historical_id": "volvo-amazon",
-  "display_name": "Volvo 122 Amazon (RT upgrade)",
-  "engine_layout": "front",
-  "geometry_policy": "native",
-  "physics_policy": "game_derived"
-}

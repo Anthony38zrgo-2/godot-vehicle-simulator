@@ -1,0 +1,685 @@
+{
+  "schema_version": 1,
+  "status": "planning_input_not_runtime_loaded",
+  "provenance": {
+    "source_id": "user_research_1974",
+    "file": "historical_source_1974.txt",
+    "verification": "user_supplied_not_independently_verified",
+    "ratings": "User-supplied calibration judgments, not measured historical telemetry",
+    "limitations": [
+      "No exposure denominators or MTBF supplied; no empirical failure probability can be inferred",
+      "Aggression and error probability must remain separate",
+      "Portugal Fiat results conflict internally in supplied prose",
+      "1974 roster is a thematic field; Russia stage and current player RS2000 are not asserted to be a historical 1974 entry",
+      "Vehicle associations are candidates, not event entry lists"
+    ]
+  },
+  "rating_scale": {
+    "min": 1,
+    "max": 100,
+    "missing": null
+  },
+  "drivers": [
+    {
+      "id": "sandro_munari",
+      "name": "Sandro Munari",
+      "ratings": {
+        "pace": 96,
+        "asphalt": 99,
+        "gravel_mud": 88,
+        "mechanical_management": 92,
+        "comeback": 90,
+        "aggression": 35
+      },
+      "candidate_vehicle_ids": [
+        "lancia_stratos",
+        "lancia_fulvia"
+      ],
+      "traits": "Calculador; asfalto y montaña; conservador en barro británico",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "timo_makinen",
+      "name": "Timo Mäkinen",
+      "ratings": {
+        "pace": 95,
+        "asphalt": 78,
+        "gravel_mud": 99,
+        "mechanical_management": 88,
+        "comeback": 85,
+        "aggression": 40
+      },
+      "candidate_vehicle_ids": [
+        "ford_escort_rs1600"
+      ],
+      "traits": "Grava rápida, barro, hielo y niebla",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "hannu_mikkola",
+      "name": "Hannu Mikkola",
+      "ratings": {
+        "pace": 96,
+        "asphalt": 80,
+        "gravel_mud": 99,
+        "mechanical_management": 82,
+        "comeback": 92,
+        "aggression": 55
+      },
+      "candidate_vehicle_ids": [
+        "ford_escort_rs1600",
+        "peugeot_504"
+      ],
+      "traits": "Saltos y grava rápida",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "markku_alen",
+      "name": "Markku Alén",
+      "ratings": {
+        "pace": 94,
+        "asphalt": 82,
+        "gravel_mud": 96,
+        "mechanical_management": 65,
+        "comeback": 98,
+        "aggression": 88
+      },
+      "candidate_vehicle_ids": [
+        "fiat_124_abarth"
+      ],
+      "traits": "Ataque máximo; estrés mecánico alto",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "bjorn_waldegard",
+      "name": "Björn Waldegård",
+      "ratings": {
+        "pace": 95,
+        "asphalt": 88,
+        "gravel_mud": 94,
+        "mechanical_management": 94,
+        "comeback": 90,
+        "aggression": 30
+      },
+      "candidate_vehicle_ids": [
+        "porsche_911",
+        "opel_ascona",
+        "toyota_celica"
+      ],
+      "traits": "Metódico y polivalente",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "stig_blomqvist",
+      "name": "Stig Blomqvist",
+      "ratings": {
+        "pace": 94,
+        "asphalt": 80,
+        "gravel_mud": 97,
+        "mechanical_management": 90,
+        "comeback": 88,
+        "aggression": 35
+      },
+      "candidate_vehicle_ids": [
+        "saab_96"
+      ],
+      "traits": "Tracción delantera; pie izquierdo",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "jean_luc_therier",
+      "name": "Jean-Luc Thérier",
+      "ratings": {
+        "pace": 93,
+        "asphalt": 95,
+        "gravel_mud": 92,
+        "mechanical_management": 78,
+        "comeback": 94,
+        "aggression": 75
+      },
+      "candidate_vehicle_ids": [
+        "alpine_a110",
+        "renault_17"
+      ],
+      "traits": "Improvisación; asfalto roto y barro",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "raffaele_pinto",
+      "name": "Raffaele Pinto",
+      "ratings": {
+        "pace": 91,
+        "asphalt": 92,
+        "gravel_mud": 90,
+        "mechanical_management": 60,
+        "comeback": 85,
+        "aggression": 82
+      },
+      "candidate_vehicle_ids": [
+        "fiat_124_abarth"
+      ],
+      "traits": "Explosivo; transmisión y suspensión castigadas",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "walter_rohrl",
+      "name": "Walter Röhrl",
+      "ratings": {
+        "pace": 93,
+        "asphalt": 94,
+        "gravel_mud": 90,
+        "mechanical_management": 85,
+        "comeback": 80,
+        "aggression": 25
+      },
+      "candidate_vehicle_ids": [
+        "opel_ascona"
+      ],
+      "traits": "Trazada limpia",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "joginder_singh",
+      "name": "Joginder Singh",
+      "ratings": {
+        "pace": 78,
+        "asphalt": 65,
+        "gravel_mud": 85,
+        "mechanical_management": 99,
+        "comeback": 75,
+        "aggression": 10
+      },
+      "candidate_vehicle_ids": [
+        "mitsubishi_lancer"
+      ],
+      "traits": "Gestión de resistencia extrema",
+      "source_id": "user_research_1974",
+      "calibration_required": false
+    },
+    {
+      "id": "shekhar_mehta",
+      "name": "Shekhar Mehta",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "lancia_fulvia",
+        "datsun_unspecified"
+      ],
+      "traits": "África, barro y vadeos; gestión sobresaliente",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "amilcare_ballestrieri",
+      "name": "Amilcare Ballestrieri",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "lancia_beta"
+      ],
+      "traits": "Accidente Sanremo; transmisión en POR según fuente",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "simo_lampinen",
+      "name": "Simo Lampinen",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "lancia_beta"
+      ],
+      "traits": "Consistencia en grava; segundo Rideau Lakes",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "alcide_paganelli",
+      "name": "Alcide Paganelli",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "fiat_124_abarth"
+      ],
+      "traits": "Apoyo táctico y conservación",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "maurizio_verini",
+      "name": "Maurizio Verini",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "fiat_124_abarth"
+      ],
+      "traits": "Apoyo táctico; resultado Portugal inconsistente en fuente",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "roger_clark",
+      "name": "Roger Clark",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "ford_escort_rs1600"
+      ],
+      "traits": "Especialista forestal británico; pinchazos y mecánica RAC",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "jean_pierre_nicolas",
+      "name": "Jean-Pierre Nicolas",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "alpine_a110",
+        "renault_17"
+      ],
+      "traits": "Asfalto de montaña; segundo Córcega, tercero POR",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "bernard_darniche",
+      "name": "Bernard Darniche",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "alpine_a110"
+      ],
+      "traits": "Asfalto de montaña; abandonos Safari y Córcega",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "jean_claude_andruet",
+      "name": "Jean-Claude Andruet",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "lancia_stratos"
+      ],
+      "traits": "Ataque en asfalto, noche y lluvia; fatiga en pruebas largas",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "achim_warmbold",
+      "name": "Achim Warmbold",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "bmw_2002",
+        "opel_ascona"
+      ],
+      "traits": "Navegación y regularidad",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "giulio_bisulli",
+      "name": "Giulio Bisulli",
+      "ratings": null,
+      "candidate_vehicle_ids": [
+        "fiat_124_abarth"
+      ],
+      "traits": "Privado; segundo Sanremo",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "keith_billows",
+      "name": "Keith Billows",
+      "ratings": null,
+      "candidate_vehicle_ids": [],
+      "traits": "Privado norteamericano; asignación individual de coche pendiente",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    },
+    {
+      "id": "john_buffum",
+      "name": "John Buffum",
+      "ratings": null,
+      "candidate_vehicle_ids": [],
+      "traits": "Privado norteamericano; asignación individual de coche pendiente",
+      "source_id": "user_research_1974",
+      "calibration_required": true
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "lancia_stratos",
+      "name": "Lancia Stratos HF",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "engine",
+        "steering",
+        "structure"
+      ],
+      "context": "Asfalto revirado; vulnerable a impactos y aterrizajes",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "lancia_fulvia",
+      "name": "Lancia Fulvia 1.6 Coupé HF",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "electrical"
+      ],
+      "context": "Menor aceleración; resistencia y tracción delantera",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "lancia_beta",
+      "name": "Lancia Beta Coupé 1800",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "transmission",
+        "electrical"
+      ],
+      "context": "Transición; palieres y diferencial",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "fiat_124_abarth",
+      "name": "Fiat 124 Abarth Rallye",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "transmission",
+        "suspension",
+        "steering",
+        "brakes"
+      ],
+      "context": "Competitivo en tierra; sensible a abuso mecánico",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "ford_escort_rs1600",
+      "name": "Ford Escort RS1600",
+      "group": "2",
+      "reported_vulnerable_systems": [
+        "engine",
+        "transmission"
+      ],
+      "context": "Grava rápida y barro; aceite, sobrerrégimen y semiejes",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "porsche_911",
+      "name": "Porsche 911 Carrera RS 2.7",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "suspension",
+        "transmission"
+      ],
+      "context": "Velocidad en rectas; fragilidad en terreno extremo",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "alpine_a110",
+      "name": "Alpine-Renault A110 1800",
+      "group": "4",
+      "reported_vulnerable_systems": [
+        "suspension",
+        "electrical",
+        "structure"
+      ],
+      "context": "Asfalto revirado; poco recorrido de suspensión",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "renault_17",
+      "name": "Renault 17 Gordini",
+      "group": "2",
+      "reported_vulnerable_systems": [],
+      "context": "Tracción delantera; POR",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "renault_12",
+      "name": "Renault 12 Gordini",
+      "group": "2",
+      "reported_vulnerable_systems": [],
+      "context": "Sin perfil cuantitativo suministrado",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "mitsubishi_lancer",
+      "name": "Mitsubishi Colt Lancer 1600 GSR",
+      "group": "2",
+      "reported_vulnerable_systems": [],
+      "context": "Robustez en Safari",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "saab_96",
+      "name": "Saab 96 V4",
+      "group": "2",
+      "reported_vulnerable_systems": [],
+      "context": "Resistencia de anclajes; barro y grava",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "opel_ascona",
+      "name": "Opel Ascona 1.9 SR",
+      "group": "2",
+      "reported_vulnerable_systems": [
+        "engine",
+        "transmission",
+        "suspension"
+      ],
+      "context": "Fragilidad mecánica según fuente",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "bmw_2002",
+      "name": "BMW 2002 tii",
+      "group": "2",
+      "reported_vulnerable_systems": [
+        "transmission",
+        "brakes"
+      ],
+      "context": "Regularidad; masa delantera",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "peugeot_504",
+      "name": "Peugeot 504 Ti",
+      "group": null,
+      "reported_vulnerable_systems": [],
+      "context": "Resistencia; variante exacta por inscripción pendiente",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "toyota_celica",
+      "name": "Toyota Celica GT",
+      "group": null,
+      "reported_vulnerable_systems": [],
+      "context": "Mencionado para Portugal",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "datsun_260z",
+      "name": "Datsun 260Z",
+      "group": null,
+      "reported_vulnerable_systems": [],
+      "context": "Resistencia; grupo por verificar",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "datsun_160j",
+      "name": "Datsun 160J",
+      "group": null,
+      "reported_vulnerable_systems": [],
+      "context": "Resistencia; grupo por verificar",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    },
+    {
+      "id": "datsun_unspecified",
+      "name": "Datsun (modelo no precisado)",
+      "group": null,
+      "reported_vulnerable_systems": [],
+      "context": "Asignación pendiente",
+      "numeric_performance": null,
+      "failure_rate_per_km": null
+    }
+  ],
+  "teams": [
+    {
+      "id": "lancia_marlboro",
+      "name": "Lancia Marlboro",
+      "support": "works"
+    },
+    {
+      "id": "fiat_oliofiat",
+      "name": "Fiat Oliofiat",
+      "support": "works"
+    },
+    {
+      "id": "ford_motor",
+      "name": "Ford Motor Co. Ltd",
+      "support": "event_dependent"
+    },
+    {
+      "id": "alpine_renault",
+      "name": "Alpine-Renault / Renault",
+      "support": "event_dependent"
+    },
+    {
+      "id": "privateer",
+      "name": "Privado / semioficial",
+      "support": "entry_specific"
+    }
+  ],
+  "component_failure_modes": {
+    "engine": [
+      "valves",
+      "head_gasket",
+      "overheating",
+      "water_ingestion",
+      "timing_drive",
+      "oil_or_injection_pump"
+    ],
+    "transmission": [
+      "halfshaft",
+      "differential",
+      "gearbox",
+      "clutch"
+    ],
+    "suspension": [
+      "mount",
+      "arm",
+      "damper",
+      "ball_joint"
+    ],
+    "steering": [
+      "tie_rod",
+      "rack",
+      "ball_joint"
+    ],
+    "brakes": [
+      "fade",
+      "hose",
+      "caliper"
+    ],
+    "tyres": [
+      "puncture",
+      "debead",
+      "blowout"
+    ],
+    "electrical": [
+      "alternator",
+      "short_circuit",
+      "ignition"
+    ],
+    "structure": [
+      "subframe_crack",
+      "engine_cradle",
+      "body_panel"
+    ]
+  },
+  "non_mechanical_events": [
+    "off_road_recoverable",
+    "off_road_terminal",
+    "crash_recoverable",
+    "crash_terminal",
+    "navigation_error",
+    "time_control_delay",
+    "time_limit_exceeded",
+    "blocked_road"
+  ],
+  "context_traits": {
+    "safari": [
+      "rocks",
+      "deep_mud",
+      "water_crossings",
+      "long_distance",
+      "road_section_delays"
+    ],
+    "rac": [
+      "wet_gravel",
+      "mud",
+      "blind_route",
+      "local_knowledge"
+    ],
+    "press_on_regardless": [
+      "blind_route",
+      "navigation",
+      "time_controls"
+    ],
+    "corsica": [
+      "twisty_asphalt",
+      "long_descents"
+    ],
+    "sanremo": [
+      "mixed_surface",
+      "rough_sections"
+    ],
+    "1000_lakes": [
+      "fast_gravel",
+      "jumps"
+    ],
+    "rideau_lakes": [
+      "gravel",
+      "endurance"
+    ],
+    "portugal": [
+      "rain",
+      "fog",
+      "ruts"
+    ]
+  },
+  "unverified_numeric_claims": [
+    {
+      "claim": "60% suspension retirements for selected models/events",
+      "simulation_use": "disabled_pending_verification"
+    },
+    {
+      "claim": "3x off-road risk on secret stages",
+      "simulation_use": "qualitative_context_only"
+    },
+    {
+      "claim": "Munari recovery 1–2 seconds/km",
+      "simulation_use": "not_a_fixed_time_bonus"
+    }
+  ]
+}

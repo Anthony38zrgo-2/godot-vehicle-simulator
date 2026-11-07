@@ -1,0 +1,288 @@
+{
+  "rating_order": [
+    "pace",
+    "asphalt",
+    "gravel_mud",
+    "mechanical_management",
+    "comeback",
+    "aggression"
+  ],
+  "estimate_notice": "Missing historical scores are explicit design estimates, not verified history.",
+  "entries": [
+    {
+      "driver_id": "sandro_munari",
+      "vehicle_id": "lancia_stratos",
+      "team": "Lancia Marlboro",
+      "support": 0.9,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "timo_makinen",
+      "vehicle_id": "ford_escort_rs1600",
+      "team": "Ford Motor Co.",
+      "support": 0.9,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "hannu_mikkola",
+      "vehicle_id": "ford_escort_rs1600",
+      "team": "Ford — Suomalainen",
+      "support": 0.75,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "markku_alen",
+      "vehicle_id": "fiat_124_abarth",
+      "team": "Fiat Oliofiat",
+      "support": 0.9,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "bjorn_waldegard",
+      "vehicle_id": "porsche_911",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "stig_blomqvist",
+      "vehicle_id": "saab_96",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "jean_luc_therier",
+      "vehicle_id": "alpine_a110",
+      "team": "Alpine-Renault",
+      "support": 0.9,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "raffaele_pinto",
+      "vehicle_id": "fiat_124_abarth",
+      "team": "Fiat Oliofiat",
+      "support": 0.9,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "walter_rohrl",
+      "vehicle_id": "opel_ascona",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "joginder_singh",
+      "vehicle_id": "mitsubishi_lancer",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": null,
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "shekhar_mehta",
+      "vehicle_id": "lancia_fulvia",
+      "team": "Lancia Marlboro",
+      "support": 0.9,
+      "estimated_ratings": [
+        83,
+        70,
+        90,
+        96,
+        76,
+        25
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "amilcare_ballestrieri",
+      "vehicle_id": "lancia_beta",
+      "team": "Lancia Marlboro",
+      "support": 0.9,
+      "estimated_ratings": [
+        86,
+        91,
+        82,
+        76,
+        82,
+        65
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "simo_lampinen",
+      "vehicle_id": "lancia_beta",
+      "team": "Lancia Marlboro",
+      "support": 0.9,
+      "estimated_ratings": [
+        90,
+        80,
+        95,
+        90,
+        85,
+        38
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "alcide_paganelli",
+      "vehicle_id": "fiat_124_abarth",
+      "team": "Fiat Oliofiat",
+      "support": 0.9,
+      "estimated_ratings": [
+        86,
+        87,
+        87,
+        88,
+        78,
+        40
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "maurizio_verini",
+      "vehicle_id": "fiat_124_abarth",
+      "team": "Fiat Oliofiat",
+      "support": 0.9,
+      "estimated_ratings": [
+        87,
+        91,
+        85,
+        86,
+        80,
+        43
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "roger_clark",
+      "vehicle_id": "ford_escort_rs1600",
+      "team": "Ford Motor Co.",
+      "support": 0.9,
+      "estimated_ratings": [
+        92,
+        78,
+        97,
+        85,
+        90,
+        62
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "jean_pierre_nicolas",
+      "vehicle_id": "alpine_a110",
+      "team": "Alpine-Renault",
+      "support": 0.9,
+      "estimated_ratings": [
+        93,
+        98,
+        89,
+        90,
+        86,
+        40
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "bernard_darniche",
+      "vehicle_id": "alpine_a110",
+      "team": "Alpine-Renault",
+      "support": 0.9,
+      "estimated_ratings": [
+        93,
+        99,
+        83,
+        82,
+        89,
+        58
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "jean_claude_andruet",
+      "vehicle_id": "lancia_stratos",
+      "team": "Lancia Marlboro",
+      "support": 0.9,
+      "estimated_ratings": [
+        95,
+        99,
+        86,
+        75,
+        95,
+        85
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "achim_warmbold",
+      "vehicle_id": "bmw_2002",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": [
+        87,
+        83,
+        90,
+        91,
+        79,
+        35
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "giulio_bisulli",
+      "vehicle_id": "fiat_124_abarth",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": [
+        85,
+        91,
+        81,
+        90,
+        78,
+        35
+      ],
+      "assignment_basis": "user_research_candidate"
+    },
+    {
+      "driver_id": "keith_billows",
+      "vehicle_id": "ford_escort_rs1600",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": [
+        82,
+        76,
+        87,
+        76,
+        82,
+        55
+      ],
+      "assignment_basis": "design_estimate"
+    },
+    {
+      "driver_id": "john_buffum",
+      "vehicle_id": "porsche_911",
+      "team": "Privado / semioficial",
+      "support": 0.65,
+      "estimated_ratings": [
+        86,
+        80,
+        90,
+        80,
+        86,
+        58
+      ],
+      "assignment_basis": "design_estimate"
+    }
+  ]
+}

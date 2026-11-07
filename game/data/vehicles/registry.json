@@ -26,18 +26,6 @@
       "ValidateSoundHashes": false,
       "DisplayName": "Ford Escort RS2000"
     },
-    "rt-alfa-giulia-gta-upgrade": {
-      "Id": "rt-alfa-giulia-gta-upgrade",
-      "Assets": "rt/rt-alfa-giulia-gta-upgrade",
-      "Profile": "rt/rt-alfa-giulia-gta-upgrade",
-      "Scene": "rt/rt-alfa-giulia-gta-upgrade",
-      "Stage": "rt/rt-alfa-giulia-gta-upgrade_stage",
-      "Proving": "rt/rt-alfa-giulia-gta-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-alfa-giulia-gta-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Alfa Romeo Giulia Sprint GTA (RT upgrade)"
-    },
     "rt-alfa-giulia-gta": {
       "Id": "rt-alfa-giulia-gta",
       "Assets": "rt/rt-alfa-giulia-gta",
@@ -49,18 +37,6 @@
       "SoundBank": "rt-alfa-giulia-gta",
       "ValidateSoundHashes": true,
       "DisplayName": "Alfa Romeo Giulia Sprint GTA"
-    },
-    "rt-alpine-a110-upgrade": {
-      "Id": "rt-alpine-a110-upgrade",
-      "Assets": "rt/rt-alpine-a110-upgrade",
-      "Profile": "rt/rt-alpine-a110-upgrade",
-      "Scene": "rt/rt-alpine-a110-upgrade",
-      "Stage": "rt/rt-alpine-a110-upgrade_stage",
-      "Proving": "rt/rt-alpine-a110-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-alpine-a110-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Alpine Renault A110 1600 (RT upgrade)"
     },
     "rt-alpine-a110": {
       "Id": "rt-alpine-a110",
@@ -74,18 +50,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Alpine Renault A110 1600"
     },
-    "rt-escort-rs2000-upgrade": {
-      "Id": "rt-escort-rs2000-upgrade",
-      "Assets": "rt/rt-escort-rs2000-upgrade",
-      "Profile": "rt/rt-escort-rs2000-upgrade",
-      "Scene": "rt/rt-escort-rs2000-upgrade",
-      "Stage": "rt/rt-escort-rs2000-upgrade_stage",
-      "Proving": "rt/rt-escort-rs2000-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-escort-rs2000-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Ford Escort RS2000 (RT upgrade)"
-    },
     "rt-escort-rs2000": {
       "Id": "rt-escort-rs2000",
       "Assets": "rt/rt-escort-rs2000",
@@ -97,18 +61,6 @@
       "SoundBank": "rt-escort-rs2000",
       "ValidateSoundHashes": true,
       "DisplayName": "Ford Escort RS2000"
-    },
-    "rt-fiat-abarth-1000-upgrade": {
-      "Id": "rt-fiat-abarth-1000-upgrade",
-      "Assets": "rt/rt-fiat-abarth-1000-upgrade",
-      "Profile": "rt/rt-fiat-abarth-1000-upgrade",
-      "Scene": "rt/rt-fiat-abarth-1000-upgrade",
-      "Stage": "rt/rt-fiat-abarth-1000-upgrade_stage",
-      "Proving": "rt/rt-fiat-abarth-1000-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-fiat-abarth-1000-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Fiat 600 Abarth (RT upgrade)"
     },
     "rt-fiat-abarth-1000": {
       "Id": "rt-fiat-abarth-1000",
@@ -122,18 +74,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Fiat 600 Abarth"
     },
-    "rt-lancia-fulvia-upgrade": {
-      "Id": "rt-lancia-fulvia-upgrade",
-      "Assets": "rt/rt-lancia-fulvia-upgrade",
-      "Profile": "rt/rt-lancia-fulvia-upgrade",
-      "Scene": "rt/rt-lancia-fulvia-upgrade",
-      "Stage": "rt/rt-lancia-fulvia-upgrade_stage",
-      "Proving": "rt/rt-lancia-fulvia-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lancia-fulvia-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Lancia Fulvia Coupé HF (RT upgrade)"
-    },
     "rt-lancia-fulvia": {
       "Id": "rt-lancia-fulvia",
       "Assets": "rt/rt-lancia-fulvia",
@@ -145,18 +85,6 @@
       "SoundBank": "rt-lancia-fulvia",
       "ValidateSoundHashes": true,
       "DisplayName": "Lancia Fulvia Coupé HF"
-    },
-    "rt-lancia-stratos-upgrade": {
-      "Id": "rt-lancia-stratos-upgrade",
-      "Assets": "rt/rt-lancia-stratos-upgrade",
-      "Profile": "rt/rt-lancia-stratos-upgrade",
-      "Scene": "rt/rt-lancia-stratos-upgrade",
-      "Stage": "rt/rt-lancia-stratos-upgrade_stage",
-      "Proving": "rt/rt-lancia-stratos-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lancia-stratos-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Lancia Stratos HF (RT upgrade)"
     },
     "rt-lancia-stratos": {
       "Id": "rt-lancia-stratos",
@@ -170,18 +98,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Lancia Stratos HF"
     },
-    "rt-lotus-cortina-upgrade": {
-      "Id": "rt-lotus-cortina-upgrade",
-      "Assets": "rt/rt-lotus-cortina-upgrade",
-      "Profile": "rt/rt-lotus-cortina-upgrade",
-      "Scene": "rt/rt-lotus-cortina-upgrade",
-      "Stage": "rt/rt-lotus-cortina-upgrade_stage",
-      "Proving": "rt/rt-lotus-cortina-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lotus-cortina-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Ford Lotus Cortina Mk1 (RT upgrade)"
-    },
     "rt-lotus-cortina": {
       "Id": "rt-lotus-cortina",
       "Assets": "rt/rt-lotus-cortina",
@@ -193,18 +109,6 @@
       "SoundBank": "rt-lotus-cortina",
       "ValidateSoundHashes": true,
       "DisplayName": "Ford Lotus Cortina Mk1"
-    },
-    "rt-mini-cooper-s-upgrade": {
-      "Id": "rt-mini-cooper-s-upgrade",
-      "Assets": "rt/rt-mini-cooper-s-upgrade",
-      "Profile": "rt/rt-mini-cooper-s-upgrade",
-      "Scene": "rt/rt-mini-cooper-s-upgrade",
-      "Stage": "rt/rt-mini-cooper-s-upgrade_stage",
-      "Proving": "rt/rt-mini-cooper-s-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-mini-cooper-s-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Mini Cooper S (RT upgrade)"
     },
     "rt-mini-cooper-s": {
       "Id": "rt-mini-cooper-s",
@@ -218,18 +122,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Mini Cooper S"
     },
-    "rt-opel-kadett-upgrade": {
-      "Id": "rt-opel-kadett-upgrade",
-      "Assets": "rt/rt-opel-kadett-upgrade",
-      "Profile": "rt/rt-opel-kadett-upgrade",
-      "Scene": "rt/rt-opel-kadett-upgrade",
-      "Stage": "rt/rt-opel-kadett-upgrade_stage",
-      "Proving": "rt/rt-opel-kadett-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-opel-kadett-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Opel Kadett Rallye (RT upgrade)"
-    },
     "rt-opel-kadett": {
       "Id": "rt-opel-kadett",
       "Assets": "rt/rt-opel-kadett",
@@ -242,18 +134,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Opel Kadett Rallye"
     },
-    "rt-saab-96-v4-upgrade": {
-      "Id": "rt-saab-96-v4-upgrade",
-      "Assets": "rt/rt-saab-96-v4-upgrade",
-      "Profile": "rt/rt-saab-96-v4-upgrade",
-      "Scene": "rt/rt-saab-96-v4-upgrade",
-      "Stage": "rt/rt-saab-96-v4-upgrade_stage",
-      "Proving": "rt/rt-saab-96-v4-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-saab-96-v4-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Saab 96 V4 (RT upgrade)"
-    },
     "rt-saab-96-v4": {
       "Id": "rt-saab-96-v4",
       "Assets": "rt/rt-saab-96-v4",
@@ -265,18 +145,6 @@
       "SoundBank": "rt-saab-96-v4",
       "ValidateSoundHashes": true,
       "DisplayName": "Saab 96 V4"
-    },
-    "rt-volvo-amazon-upgrade": {
-      "Id": "rt-volvo-amazon-upgrade",
-      "Assets": "rt/rt-volvo-amazon-upgrade",
-      "Profile": "rt/rt-volvo-amazon-upgrade",
-      "Scene": "rt/rt-volvo-amazon-upgrade",
-      "Stage": "rt/rt-volvo-amazon-upgrade_stage",
-      "Proving": "rt/rt-volvo-amazon-upgrade_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-volvo-amazon-upgrade",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Volvo 122 Amazon (RT upgrade)"
     },
     "rt-volvo-amazon": {
       "Id": "rt-volvo-amazon",
@@ -301,6 +169,19 @@
       "SoundBank": "rt-porsche-356a",
       "ValidateSoundHashes": true,
       "DisplayName": "Porsche 356A 1600GS Carrera GT"
+    },
+    "rt-porsche-356b-2000gs": {
+      "Id": "rt-porsche-356b-2000gs",
+      "Assets": "rt/rt-porsche-356b-2000gs",
+      "Profile": "rt/rt-porsche-356b-2000gs",
+      "Scene": "rt/rt-porsche-356b-2000gs",
+      "Stage": "rt/rt-porsche-356b-2000gs_stage",
+      "Proving": "rt/rt-porsche-356b-2000gs_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "rt-porsche-356b-2000gs",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Porsche 356B Carrera 2000 GS",
+      "AssetNote": "own T6 mesh exported from sharbo mod (Blender pipeline); sounds still from rt-porsche-356a"
     }
   }
 }

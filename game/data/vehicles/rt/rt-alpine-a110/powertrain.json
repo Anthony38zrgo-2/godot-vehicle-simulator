@@ -25,12 +25,15 @@
     "clutch_out_rpm_offset": 300.0,
     "constant_brake_ratio": 0.012,
     "differential": {
-      "clutch_friction_coefficient": 0.1,
-      "clutches": 4,
-      "coast_ramp_angle_deg": 65,
-      "power_ramp_angle_deg": 45,
-      "preload_nm": 30,
-      "slip_transition_threshold_rad_s": 4.0
+      "clutch_friction_coefficient": 0.11,
+      "clutches": 4.0,
+      "coast_ramp_angle_deg": 55.0,
+      "power_ramp_angle_deg": 45.0,
+      "preload_nm": 45.0,
+      "slip_transition_threshold_rad_s": 4.0,
+      "lock_pct_power": 45.0,
+      "lock_pct_coast": 30.0,
+      "coast_friction_coefficient": 0.09
     },
     "downshift_blip_torque_fraction": 0.8,
     "downshift_blip_response_seconds": 0.04,
@@ -45,22 +48,22 @@
       "stiffness_nm_per_rad": 8500.0,
       "damping_nms_per_rad": 130.0
     },
-    "final_drive": 4.18,
+    "final_drive": 4.125,
     "front_torque_split": 0.0,
     "gear_inertia": 0.025,
     "gear_ratios": [
-      3.528,
-      2.056,
-      1.566,
-      1.2,
-      1.0
+      3.07,
+      2.25,
+      1.68,
+      1.3,
+      1.03
     ],
     "handbrake_torque_fraction": 1.0,
     "idle_disengagement_hysteresis_rpm": 120.0,
-    "idle_rpm": 1200.0,
+    "idle_rpm": 1000.0,
     "max_clutch_torque_ratio": 1.4,
-    "max_rpm": 8500.0,
-    "max_torque": 184.0,
+    "max_rpm": 7200.0,
+    "max_torque": 190.0,
     "motor_moment": 0.1,
     "reverse_ratio": 3.317,
     "shift_time": 0.1,
@@ -107,12 +110,12 @@
         "opening": 0.1,
         "pressure_recovery": 0.75
       },
-      "water_critical_temperature_celsius": 115.0,
+      "water_critical_temperature_celsius": 108.0,
       "water_heat_capacity_joules_per_kelvin": 28000.0,
       "water_heat_fraction": 0.2,
-      "water_hot_derating_temperature_celsius": 105.0,
+      "water_hot_derating_temperature_celsius": 98.0,
       "water_minimum_cold_engine_torque_fraction": 0.95,
-      "water_optimal_maximum_temperature_celsius": 95.0,
+      "water_optimal_maximum_temperature_celsius": 90.0,
       "water_optimal_minimum_temperature_celsius": 75.0
     },
     "torque_attack_rate_nm_s": 2200.0,
@@ -198,6 +201,9 @@
         0.0
       ]
     ],
-    "variable_drag_ratio": 0.038
+    "variable_drag_ratio": 0.038,
+    "final_drive_gravel": 4.125,
+    "final_drive_tarmac": 3.78,
+    "final_drive_preset": "gravel"
   }
 }

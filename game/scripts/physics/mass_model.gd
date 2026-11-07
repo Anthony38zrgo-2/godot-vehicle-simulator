@@ -150,6 +150,32 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 		else:
 			wheel_spin_inertia[i] = maxf(wheel_spin_inertia[i], fallback_inertia * 0.5)
 
+	# Auto-rebalanceo longitudinal y vertical segun targets historicos
+	var header_fdist := float(chassis_header.get("front_weight_distribution", -1.0))
+	var header_cgz := float(chassis_header.get("target_cg_z_m", chassis_header.get("target_cgz_m", -1.0)))
+	if (header_fdist >= 0.05 and header_fdist <= 0.95) or header_cgz > 0.05:
+		var _sprung_mass := 0.0
+		var _wcom := Vector3.ZERO
+		for _c in chassis_components:
+			_sprung_mass += float(_c.get("mass_kg", 0.0))
+			_wcom += (_c.get("position") as Vector3) * float(_c.get("mass_kg", 0.0))
+		if _sprung_mass > 0.0:
+			var _cur := _wcom / _sprung_mass
+			var _shift := Vector3.ZERO
+			if header_fdist >= 0.05 and header_fdist <= 0.95 and wheel_centres_local.size() == 4:
+				var _fz := (wheel_centres_local[0].z + wheel_centres_local[1].z) * 0.5
+				var _rz := (wheel_centres_local[2].z + wheel_centres_local[3].z) * 0.5
+				var _wb := absf(_rz - _fz)
+				if _wb > 0.5:
+					var _want_z := _rz - header_fdist * _wb
+					_shift.z = clampf(_want_z - _cur.z, -0.45, 0.45)
+			if header_cgz > 0.05:
+				_shift.y = clampf(header_cgz - _cur.y, -0.20, 0.20)
+			if _shift.length_squared() > 0.00000001:
+				for _c in chassis_components:
+					_c["position"] = (_c.get("position") as Vector3) + _shift
+			print("RALLY_MASS_RECENTER ", JSON.stringify({"fdist": header_fdist, "cgz": header_cgz, "shift": [_shift.x, _shift.y, _shift.z]}))
+
 	var fuel: Dictionary = domains.get("fuel", { }).get("fuel", { })
 	fuel_density_kg_per_litre = float(fuel.get("density_kg_per_litre", 0.74))
 	if fuel_density_kg_per_litre <= 0.0:

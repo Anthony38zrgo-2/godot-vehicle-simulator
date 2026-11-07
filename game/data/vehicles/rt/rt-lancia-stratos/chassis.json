@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Lancia Stratos HF",
-    "vehicle_mass": 1037.0,
+    "vehicle_mass": 1040.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
-    "front_weight_distribution": 0.4,
+    "front_weight_distribution": 0.41,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.43
   },
   "geometry": {
-    "wheelbase": 2.0999999046325684,
-    "front_axle_z": -1.0499999523162842,
-    "rear_axle_z": 1.0499999523162842,
-    "front_track": 1.4000000953674316,
-    "rear_track": 1.3700000047683716
+    "wheelbase": 2.18,
+    "front_axle_z": -1.09,
+    "rear_axle_z": 1.09,
+    "front_track": 1.43,
+    "rear_track": 1.46
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 1037.0,
+    "base_budget_kilograms": 1040.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 690.0,
+          "mass_kilograms": 693.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": 0.1739347747097844
+            "y": 0.43,
+            "z": 0.12
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                193.20000000000002,
+                799.0,
                 0,
                 0
               ],
               [
                 0,
-                379.50000000000006,
+                833.0,
                 0
               ],
               [
                 0,
                 0,
-                103.5
+                280.5
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.4724999785423279
+            "y": 0.38,
+            "z": 0.47
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.55,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.55,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.8399999618530274
+            "y": 0.41,
+            "z": -0.12
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

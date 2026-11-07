@@ -25,12 +25,15 @@
     "clutch_out_rpm_offset": 300.0,
     "constant_brake_ratio": 0.012,
     "differential": {
-      "clutch_friction_coefficient": 0.1,
-      "clutches": 4,
-      "coast_ramp_angle_deg": 65,
-      "power_ramp_angle_deg": 45,
-      "preload_nm": 30,
-      "slip_transition_threshold_rad_s": 4.0
+      "clutch_friction_coefficient": 0.14,
+      "clutches": 4.0,
+      "coast_ramp_angle_deg": 45.0,
+      "power_ramp_angle_deg": 30.0,
+      "preload_nm": 70.0,
+      "slip_transition_threshold_rad_s": 4.0,
+      "lock_pct_power": 65.0,
+      "lock_pct_coast": 45.0,
+      "coast_friction_coefficient": 0.12
     },
     "downshift_blip_torque_fraction": 0.8,
     "downshift_blip_response_seconds": 0.04,
@@ -45,21 +48,22 @@
       "stiffness_nm_per_rad": 8500.0,
       "damping_nms_per_rad": 130.0
     },
-    "final_drive": 4.35,
+    "final_drive": 5.14,
     "front_torque_split": 0.0,
     "gear_inertia": 0.025,
     "gear_ratios": [
-      3.172,
-      1.89,
-      1.297,
+      2.99,
+      1.76,
+      1.31,
+      1.14,
       1.0
     ],
     "handbrake_torque_fraction": 1.0,
     "idle_disengagement_hysteresis_rpm": 120.0,
-    "idle_rpm": 1800.0,
+    "idle_rpm": 1100.0,
     "max_clutch_torque_ratio": 1.4,
-    "max_rpm": 9000.0,
-    "max_torque": 206.0,
+    "max_rpm": 8700.0,
+    "max_torque": 220.0,
     "motor_moment": 0.09,
     "reverse_ratio": 3.317,
     "shift_time": 0.1,
@@ -197,6 +201,9 @@
         0.0
       ]
     ],
-    "variable_drag_ratio": 0.038
+    "variable_drag_ratio": 0.038,
+    "final_drive_gravel": 5.14,
+    "final_drive_tarmac": 4.11,
+    "final_drive_preset": "gravel"
   }
 }

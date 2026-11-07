@@ -1,7 +1,7 @@
 {
   "chassis": {
     "vehicle_name": "Lancia Fulvia 1.6 HF (historic rally reconstruction)",
-    "vehicle_mass": 889,
+    "vehicle_mass": 930.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
     "front_weight_distribution": 0.61,
     "center_of_gravity_height_offset": -0.12,
@@ -9,25 +9,26 @@
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.475
   },
   "geometry": {
-    "wheelbase": 2.4800000190734863,
-    "front_track": 1.2200000882148743,
-    "rear_track": 1.220000147819519,
-    "front_axle_z": -1.2400000095367432,
-    "rear_axle_z": 1.2400000095367432
+    "wheelbase": 2.33,
+    "front_track": 1.39,
+    "rear_track": 1.335,
+    "front_axle_z": -1.165,
+    "rear_axle_z": 1.165
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 889,
+    "base_budget_kilograms": 930.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "bodywork_and_cage",
         "properties": {
           "name": "bodywork_and_cage",
-          "mass_kilograms": 420,
+          "mass_kilograms": 461.0,
           "attachment": {
             "kind": "body"
           },
@@ -39,19 +40,19 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                140,
+                153.7,
                 0,
                 0
               ],
               [
                 0,
-                230,
+                252.5,
                 0
               ],
               [
                 0,
                 0,
-                70
+                76.8
               ]
             ]
           },

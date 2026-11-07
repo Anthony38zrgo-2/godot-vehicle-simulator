@@ -12,6 +12,8 @@ const PointsScript := preload("res://scripts/rally/rally_points_rules.gd")
 const SchedulerScript := preload("res://scripts/rally/rally_weather_scheduler.gd")
 const CompoundScript := preload("res://scripts/rally/rally_tire_compound.gd")
 
+var save_path: String = SAVE_PATH
+
 var error: String = ""
 var event_doc: Dictionary = {}
 var stage_order: Array = []
@@ -31,6 +33,7 @@ var sim = null
 var loader = StageLoaderScript.new()
 var weather_schedule: Array = []
 var climate_seed: int = 0
+var initial_weather: String = ""
 var weather_generator_version: int = 1
 var weather_rules_hash: String = ""
 var route_hashes: Dictionary = {}
@@ -71,6 +74,8 @@ func load_event() -> bool:
 	return true
 
 func begin_event(choices: Dictionary = {}) -> bool:
+	if choices.has("save_path"):
+		save_path = str(choices["save_path"])
 	if not load_event():
 		return false
 	var start_stage_id := str(choices.get("start_stage_id", choices.get("stage_id", "")))
@@ -89,6 +94,7 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	difficulty = int(choices.get("difficulty", 1))
 	ambient_rate = float(choices.get("ambient_rate", 1.0))
 	single_day = bool(choices.get("single_day", false))
+	initial_weather = str(choices.get("initial_weather", choices.get("weather", choices.get("start_weather", ""))))
 	cursor = 0
 	official.clear()
 	points_ledger.clear()
@@ -234,7 +240,7 @@ func _generate_weather_schedule() -> bool:
 	var route_paths := {}
 	for sid in stage_order:
 		route_paths[str(sid)] = "res://data/rally/%s_route.json" % str(sid)
-	var result := sched.generate_event_schedule(event_doc, stage_order, itinerary, seed_value, route_paths)
+	var result := sched.generate_event_schedule(event_doc, stage_order, itinerary, seed_value, route_paths, initial_weather)
 	if not bool(result.get("ok", false)):
 		error = "Clima incompatible: " + str(result.get("error", "sin detalle"))
 		return false
@@ -464,6 +470,7 @@ func save() -> bool:
 		"clock": {"rate": ambient_rate},
 		"weather_schedule": weather_schedule,
 		"climate_seed": climate_seed,
+		"initial_weather": initial_weather,
 		"generator_version": weather_generator_version,
 		"route_hashes": route_hashes,
 		"surface_continuity": surface_continuity,
@@ -480,7 +487,9 @@ func save() -> bool:
 		"stage_surface_states": stage_surface_states,
 		"rival_compounds": rival_compounds,
 	}
-	var path: String = SAVE_PATH
+	var path: String = save_path
+	if path.is_empty():
+		return true
 	var file := FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if file == null:
 		error = "No se pudo guardar el evento"
@@ -496,9 +505,9 @@ func save() -> bool:
 	return true
 
 func restore() -> bool:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if save_path.is_empty() or not FileAccess.file_exists(save_path):
 		return false
-	var doc := _read_json(SAVE_PATH)
+	var doc := _read_json(save_path)
 	var ver := int(doc.get("version", -1))
 	if ver == 2:
 		error = "Guardado v2 sin clima/compuesto: requiere migración explícita o iniciar un evento nuevo (no se altera en silencio)"
@@ -528,6 +537,7 @@ func restore() -> bool:
 	# Clima/compuesto/ventanas: reanudar conserva todo; no se re-sortea.
 	weather_schedule = doc.get("weather_schedule", [])
 	climate_seed = int(doc.get("climate_seed", 0))
+	initial_weather = str(doc.get("initial_weather", ""))
 	weather_generator_version = int(doc.get("generator_version", 1))
 	route_hashes = doc.get("route_hashes", {})
 	surface_continuity = doc.get("surface_continuity", {})

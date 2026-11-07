@@ -1,0 +1,18 @@
+{
+  "steering": {
+    "ackermann": 0.18,
+    "countersteer_assist": 0.0,
+    "front_steering_ratio": 1.0,
+    "max_steering_angle": 0.5585053606381855,
+    "rear_steering_ratio": 0.0,
+    "steering_exponent": 1.1,
+    "steering_slip_assist": 0.0,
+    "steering_speed": 5.0,
+    "steering_speed_decay": 0.05,
+    "speed_filter_start_kph": 20.0,
+    "speed_filter_reference_kph": 65.0,
+    "speed_filter_minimum_gain": 0.2,
+    "turns_lock_to_lock": 2.4,
+    "ratio_to_one": 14.0
+  }
+}

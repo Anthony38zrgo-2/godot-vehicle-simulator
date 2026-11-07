@@ -4,7 +4,7 @@ extends Node3D
 const STAGE_MANIFEST_PATH := "res://assets/rally/russia_stage1/manifest.json"
 const FALLBACK_START_POSITION := Vector3(-2.18, -1.7963, -38.388)
 const FALLBACK_START_HEADING := -0.0008558533301677789
-const SPAWN_CLEARANCE_METRES := 0.08
+const SPAWN_CLEARANCE_METRES := 0.02
 const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 # Sesión genérica del evento de Rusia (Entrega 1): el track activo se
 # resuelve por ID con RallyStageLoader. STAGE_MANIFEST_PATH queda como
@@ -25,6 +25,8 @@ const MINIMUM_WORLD_HEIGHT_METRES := -50.0
 @export var weather_season_path: String = "res://data/weather/russia_winter_overcast.tres"
 @export var weather_start_weather: int = 0
 @export var weather_speed_multiplier: float = 1.0
+@export var selected_weather: String = "random"
+@export var single_stage_weather: String = ""
 @export_group("Tropospheric Sky")
 @export_range(0.0, 23.99) var sky_start_hour: float = 11.0
 @export var weather_minutes_per_day: float = 24.0
@@ -102,7 +104,7 @@ func _ready() -> void:
 		push_error("Russia course timing route is missing: " + route_path)
 		return
 	var stage_config_path: String = (resolved_stage["paths"] as Dictionary)["stage_config"]
-	if practice_mode or session_mode in ["single_stage", "championship"]:
+	if practice_mode or session_mode == "single_stage":
 		competition.save_path = ""
 		if not competition.configure(stage_config_path, event_seed):
 			push_error("Rally competition: " + competition.error)
@@ -137,6 +139,8 @@ func _ready() -> void:
 		vehicle.set_stage_headlights(sky_start_hour)
 		event_clock.configure(event_clock.event_date, sky_start_hour * 3600.0, 1.0)
 		event_clock.set_paused(false)
+		if not single_stage_weather.is_empty() and single_stage_weather != "random":
+			_apply_single_stage_weather(single_stage_weather)
 	# Compuesto confirmado antes de precalentar (objetivos térmicos por compuesto).
 	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
@@ -197,7 +201,7 @@ func _ready() -> void:
 	# Se abre automáticamente en las tres modalidades (Rally, Championship, Single Stage).
 	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
 		_open_setup_window()
-	elif practice_mode or session_mode in ["single_stage", "championship"]:
+	elif practice_mode or session_mode == "single_stage":
 		_open_setup_window()
 	print("RALLY_SESSION_READY scene=%s vehicle=%s spawn=" % [session_track_id, vehicle.rally_profile.get("profile_id", "unknown")], start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
@@ -372,6 +376,17 @@ func apply_start_pose_from_manifest() -> void:
 	start_heading = float(start_pose.get("heading_radians", FALLBACK_START_HEADING))
 
 
+func _wheel_lowest_offset() -> float:
+	# Menor cota local del plano de contacto (centro de rueda - radio).
+	var lowest := INF
+	if vehicle != null:
+		var positions: Array[Vector3] = vehicle.simulation.wheel_positions_local
+		var radii: Array[float] = vehicle.simulation.wheel_radii
+		for index in mini(positions.size(), radii.size()):
+			lowest = minf(lowest, positions[index].y - radii[index])
+	return 0.0 if not is_finite(lowest) else lowest
+
+
 func place_vehicle_on_stage() -> void:
 	var ground_query := PhysicsRayQueryParameters3D.create(
 		Vector3(start_position.x, start_position.y + 30.0, start_position.z),
@@ -391,7 +406,11 @@ func place_vehicle_on_stage() -> void:
 		right_axis = Vector3.RIGHT
 	var forward_axis := surface_normal.cross(right_axis).normalized()
 	var start_basis := Basis(right_axis, surface_normal, -forward_axis)
-	start_position = surface_position + surface_normal * SPAWN_CLEARANCE_METRES
+	# El origen del cuerpo no coincide con el plano de contacto de las ruedas.
+	# Desplazarlo ese tanto evita que coches de recorrido corto (356B: 100 mm)
+	# aterricen sobre los topes de suspension al aparecer en el tramo.
+	var lowest := _wheel_lowest_offset()
+	start_position = surface_position + surface_normal * (SPAWN_CLEARANCE_METRES - lowest)
 	vehicle.reset_to_pose(start_position, start_heading)
 	vehicle.global_transform = Transform3D(start_basis, start_position)
 	vehicle.prepare_for_stage()
@@ -718,7 +737,7 @@ func retry_competition_attempt() -> void:
 func continue_competition() -> void:
 	if stage_transition_running or not competition.complete:
 		return
-	if session_mode in ["single_stage", "championship"]:
+	if session_mode == "single_stage":
 		return
 	if event_manager != null and event_manager.status == "finished":
 		return
@@ -731,6 +750,9 @@ func continue_competition() -> void:
 
 func start_new_competition() -> void:
 	if not practice_mode:
+		if ResourceLoader.exists("res://scenes/rally/rally_maniac_menu.tscn"):
+			get_tree().change_scene_to_file("res://scenes/rally/rally_maniac_menu.tscn")
+			return
 		if head_up_display != null:
 			head_up_display.show_status("MODO EVENTO: usa el menú del rally", Color(1.0, 0.45, 0.2), 2.5)
 		return
@@ -978,6 +1000,24 @@ func _refresh_stage_weather() -> void:
 	weather_sky_node.update_visuals(0.0)
 
 
+func _apply_single_stage_weather(w: String) -> void:
+	match w.strip_edges().to_lower():
+		"sunny", "soleado":
+			if weather_sky_node != null:
+				weather_sky_node.set_practice_weather(0.1, 0.0)
+			weather_start_weather = 0
+		"cloudy", "nublado":
+			if weather_sky_node != null:
+				weather_sky_node.set_practice_weather(0.6, 0.0)
+			weather_start_weather = 1
+		"rain", "lluvia", "medium_precipitation", "light_precipitation":
+			if weather_sky_node != null:
+				weather_sky_node.set_practice_weather(0.9, 0.003)
+			weather_start_weather = 2
+			if weather_controller_node != null and weather_controller_node.has_method("set_weather"):
+				weather_controller_node.call("set_weather", 2)
+
+
 func _assign_wetness_zones(entry: Dictionary) -> void:
 	if terrain_wetness == null or not terrain_wetness.has_method("assign_material_zones"):
 		return
@@ -1161,12 +1201,13 @@ func may_service_tires() -> bool:
 	return false
 
 func get_competition_panel_state() -> Dictionary:
-	if event_manager == null or practice_mode or session_mode in ["single_stage", "championship"]:
+	if event_manager == null or practice_mode or session_mode == "single_stage":
 		var state: Dictionary = competition.readout()
 		state["event_stage_id"] = session_track_id
 		state["event_cursor"] = _get_stage_number(session_track_id) - 1
 		state["event_total"] = 10
-		if session_mode in ["single_stage", "championship"]:
+		state["session_mode"] = session_mode
+		if session_mode == "single_stage":
 			state["allow_next"] = false
 			state["single_stage_mode"] = true
 		return state
@@ -1178,6 +1219,7 @@ func get_competition_panel_state() -> Dictionary:
 	state["event_player_retired"] = competition.player_retired
 	state["event_is_last"] = event_manager.is_last_stage()
 	state["event_status"] = event_manager.status
+	state["session_mode"] = session_mode
 	if event_manager.status == "finished":
 		state["event_points"] = event_manager.points_ledger
 		state["event_final_rows"] = event_manager.standings()

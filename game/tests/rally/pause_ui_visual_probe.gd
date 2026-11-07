@@ -8,7 +8,7 @@ var vehicle: RallyEscortVehicle
 var pause_menu: CanvasLayer
 var frame_count := 0
 var out_dir := "user://pause_redesign/"
-var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/903e96ef-d92d-42eb-96b3-8a01280574f5/"
+var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/f555cd39-d09d-485e-9ac7-83b5ba3bd42a/"
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))

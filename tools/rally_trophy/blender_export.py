@@ -136,7 +136,7 @@ def main(job_path):
 
     displacement = float(car.get("WheelDisplacement", 0.1))
     healthy = exterior + [interior]
-    for name in ["steering_wheel_hi", "indicator_rpm", "indicator_speed", "wipers"]:
+    for name in ["steering_wheel_hi", "indicator_rpm", "indicator_speed", "wipers", "ext_pipe01"]:
         obj = group(name, required=name == "steering_wheel_hi")
         if obj:
             healthy.append(obj)
@@ -173,9 +173,9 @@ def main(job_path):
     roof_faces = [f.index for f in body.data.polygons
                   if all((body.matrix_world @ body.data.vertices[v].co).z >= hi[2] - 0.09 for v in f.vertices)
                   and (body.matrix_world.to_3x3() @ f.normal).z > 0.3]
-    if roof_faces:
+    if roof_faces and rules.get("synthesize_roof", True):
         roof = subset(body, roof_faces, "interior_roof")
-        roof.matrix_world.translation.z -= 0.008
+        roof.matrix_world.translation.z -= 0.015
         bm = bmesh.new()
         bm.from_mesh(roof.data)
         bmesh.ops.reverse_faces(bm, faces=list(bm.faces))
@@ -184,6 +184,7 @@ def main(job_path):
         roof.data.materials.clear()
         mat = bpy.data.materials.new("Rally Trophy roof lining")
         mat.use_nodes = True
+        mat.use_backface_culling = True
         bs = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         bs.inputs["Base Color"].default_value = (0.08, 0.075, 0.065, 1)
         roof.data.materials.append(mat)
@@ -266,7 +267,11 @@ def main(job_path):
         if alpha:
             links.new(tex.outputs["Alpha"], shader.inputs["Alpha"])
             shader.inputs["Roughness"].default_value = 0.18
-        material.use_backface_culling = False if alpha or material.name == "interior_lo" else True
+        is_interior_mat = material.name.lower() in ["windows", "interior_windows", "windshield_interior", "interior_hi", "cockpit", "meters", "rally trophy roof lining"]
+        if is_interior_mat:
+            material.use_backface_culling = True
+        else:
+            material.use_backface_culling = False if alpha or material.name == "interior_lo" else True
         material_report.append({"name": material.name, "texture": texture.name, "alpha": alpha})
 
     eye = bpy.data.objects.new("CockpitEye", None)

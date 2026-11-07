@@ -1,32 +1,48 @@
 extends Control
 
 # Paneles de contexto de la HUD: mapa vertical, neumáticos 2×2 y tiempos.
-# Aero Glass en los marcos, Windows 98 en el interior, texto en Libron y
-# números en D-DIN.
+# Sistema de diseño Motorsport Minimalista (Flat Precision):
+# Fondos oscuros mate, bordes sutiles de 1 px al 8-12%, títulos en Montserrat
+# y telemetría/tiempos en D-DIN / D-DIN-Bold.
 
-const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
-const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
+# 2.2. Estandarización Tipográfica (Sin Serif)
+const FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const BOLD := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
-const C_FACE := Color("#2b3d4d")
-const C_FACE_HI := Color("#374c5e")
-const C_FACE_LO := Color("#22323f")
-const C_FIELD := Color("#0c151d")
-const C_HI := Color("#93afc8")
-const C_LIGHT := Color("#5d7890")
-const C_SHADOW := Color("#101b25")
+# 2.1. Paleta de Colores Funcional Unificada
+const BG_BASE := Color("#0a0e14")         # Negro carbón mate
+const BG_SURFACE := Color("#121820")      # Superficie de tarjetas y paneles
+const BG_HOVER := Color("#1c2430")        # Interacción y hover
+const BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.08) # 1 px sutil sin biseles
+const BORDER_FOCUS := Color("#ffffff")              # Blanco puro para foco
+const TEXT_PRIMARY := Color("#f0f4f8")    # Blanco suave, contraste óptimo
+const TEXT_MUTED := Color("#6b7a8d")      # Gris medio para etiquetas
+const ACCENT_RALLY := Color("#e5a93c")    # Dorado histórico sobrio
+const ACCENT_ALERT := Color("#f59e0b")    # Ámbar rally alertas
+const STATUS_DANGER := Color("#ef4444")   # Daños graves, pinchazos
+const STATUS_SUCCESS := Color("#22c55e")  # Tiempos récord, verde de salida
+
+# Aliases de compatibilidad interna
+const C_FACE := BG_SURFACE
+const C_FACE_HI := BG_HOVER
+const C_FACE_LO := Color("#0e141c")
+const C_FIELD := BG_BASE
+const C_HI := Color(1.0, 1.0, 1.0, 0.12)
+const C_LIGHT := Color(1.0, 1.0, 1.0, 0.08)
+const C_SHADOW := Color(1.0, 1.0, 1.0, 0.04)
 const C_DARK := Color("#000000")
-const C_TEXT := Color("#e2edf6")
-const C_DIM := Color("#9eb3c5")
-const C_GOLD := Color("#e3b23c")
-const C_ROSE := Color("#ff6b61")
-const C_GREEN := Color("#8fd36b")
-const C_BLUE := Color("#6db2e8")
-const C_BLUE_DEEP := Color("#2c6da3")
-const C_GLASS := Color("#16232f")
-const C_RIM := Color("#7fa8c9")
+const C_TEXT := TEXT_PRIMARY
+const C_DIM := TEXT_MUTED
+const C_GOLD := ACCENT_RALLY
+const C_ROSE := STATUS_DANGER
+const C_GREEN := STATUS_SUCCESS
+const C_BLUE := Color("#5fa8e0")
+const C_BLUE_DEEP := Color("#1a3144")
+const C_GLASS := BG_SURFACE
+const C_RIM := BORDER_SUBTLE
 
 const MAP_RECT := Rect2(24, 24, 264, 330)
 const TIMING_RECT := Rect2(1620, 24, 276, 132)
@@ -364,39 +380,26 @@ func _draw_tires(rect: Rect2) -> void:
 
 func _glass(rect: Rect2) -> void:
 	var body := StyleBoxFlat.new()
-	body.bg_color = Color(C_GLASS, 0.90)
-	body.border_color = Color(C_RIM, 0.40)
+	body.bg_color = Color(BG_SURFACE, 0.92)
+	body.border_color = BORDER_SUBTLE
 	body.set_border_width_all(1)
-	body.set_corner_radius_all(10)
+	body.set_corner_radius_all(2)
 	draw_style_box(body, rect)
 
 
-func _bevel(rect: Rect2, raised: bool, thick: int = 2) -> void:
-	for i in thick:
-		var top_color: Color
-		var bottom_color: Color
-		if i == 0:
-			top_color = C_HI if raised else C_SHADOW
-			bottom_color = C_DARK if raised else C_HI
-		else:
-			top_color = C_LIGHT if raised else C_DARK
-			bottom_color = C_SHADOW if raised else C_LIGHT
-		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, rect.size.x - i * 2, 1), top_color)
-		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, 1, rect.size.y - i * 2), top_color)
-		draw_rect(Rect2(rect.position.x + i, rect.end.y - 1 - i, rect.size.x - i * 2, 1), bottom_color)
-		draw_rect(Rect2(rect.end.x - 1 - i, rect.position.y + i, 1, rect.size.y - i * 2), bottom_color)
+func _bevel(rect: Rect2, _raised: bool, _thick: int = 2) -> void:
+	# Sistema Minimalista: Borde plano sutil de 1 px sin relieves 3D ni biseles
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 
 
 func _sunken(rect: Rect2) -> void:
-	draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 1), C_SHADOW)
-	draw_rect(Rect2(rect.position.x, rect.position.y, 1, rect.size.y), C_SHADOW)
-	draw_rect(Rect2(rect.position.x, rect.end.y - 1, rect.size.x, 1), C_HI)
-	draw_rect(Rect2(rect.end.x - 1, rect.position.y, 1, rect.size.y), C_HI)
+	# Sistema Minimalista: Contorno plano sutil de 1 px sin efecto hundido
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 
 
 func _field(rect: Rect2, value: String, size_px: int, color: Color) -> void:
-	draw_rect(rect, C_FIELD)
-	_sunken(rect)
+	draw_rect(rect, BG_BASE)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	_num(
 		Rect2(rect.position.x + 8, rect.position.y, rect.size.x - 16, rect.size.y),
 		value,
@@ -417,9 +420,9 @@ func _num(
 	if value.is_empty():
 		return
 	var width: float = rect.size.x if width_override < 0.0 else width_override
-	var line_height := BOLD.get_height(size_px)
-	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - BOLD.get_descent(size_px)
-	draw_string(BOLD, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
+	var line_height := DIN_BOLD.get_height(size_px)
+	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - DIN_BOLD.get_descent(size_px)
+	draw_string(DIN_BOLD, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
 
 
 func _title(

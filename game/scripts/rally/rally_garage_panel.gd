@@ -4,37 +4,72 @@ extends Control
 signal garage_closed(applied: bool)
 
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
-const FONT_SERIF: Font = preload("res://fonts/libron/Libron-Regular.ttf")
-const FONT_SERIF_BOLD: Font = preload("res://fonts/libron/Libron-Bold.ttf")
+# 2.2. Estandarización Tipográfica (Sin Serif)
+const FONT_SERIF: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const FONT_SERIF_BOLD: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const FONT_UI: Font = preload("res://fonts/D-DIN.ttf")
 const FONT_UI_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
-# --- Aero Glass 2006: cabecera y pie ----------------------------------------
-const C_BACK := Color("#080d12")
-const C_GLASS := Color("#16232f")
-const C_GLASS_DEEP := Color("#0d151d")
-const C_RIM := Color("#7fa8c9")
-const C_CHROME_TEXT := Color("#eaf2f8")
-const C_CHROME_DIM := Color("#93a9bb")
-const C_BLUE := Color("#6db2e8")
-const C_BLUE_DEEP := Color("#2c6da3")
+# 2.1. Paleta de Colores Funcional Unificada
+const BG_BASE := Color("#0a0e14")         # Negro carbón mate
+const BG_SURFACE := Color("#121820")      # Superficie de tarjetas y paneles
+const BG_HOVER := Color("#1c2430")        # Interacción y hover
+const BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.08) # 1 px sutil sin biseles
+const BORDER_FOCUS := Color("#ffffff")              # Blanco puro para foco
+const TEXT_PRIMARY := Color("#f0f4f8")    # Blanco suave, contraste óptimo
+const TEXT_MUTED := Color("#6b7a8d")      # Gris medio para etiquetas
+const ACCENT_RALLY := Color("#e5a93c")    # Dorado histórico sobrio
+const ACCENT_ALERT := Color("#f59e0b")    # Ámbar rally alertas
+const STATUS_DANGER := Color("#ef4444")   # Pinchazos, abandonos, errores
+const STATUS_SUCCESS := Color("#22c55e")  # Tiempos récord, verde de salida
 
-# --- Windows 98 clásico: panel central ---------------------------------------
-const C_FACE := Color("#2b3d4d")
-const C_FACE_HI := Color("#374c5e")
-const C_FACE_LO := Color("#22323f")
-const C_FIELD := Color("#0c151d")
-const C_HI := Color("#93afc8")
-const C_LIGHT := Color("#5d7890")
-const C_SHADOW := Color("#101b25")
-const C_DARK := Color("#000000")
-const C_TEXT := Color("#e2edf6")
-const C_DIM := Color("#9eb3c5")
-const C_GOLD := Color("#e3b23c")
-const C_GOLD_HI := Color("#f6d68a")
-const C_ROSE := Color("#ff6b61")
-const C_SEL := Color("#3b3324")
+# 2.3. Paleta Workbench Motorsport (Ventanas y Paneles Técnicos)
+const WB_BG_SHELL := Color("#090e15")
+const WB_BG_HEADER := Color("#0d141e")
+const WB_BG_FOOTER := Color("#0d141e")
+const WB_BG_TAB_INACTIVE := Color("#111822")
+const WB_BG_TAB_ACTIVE := Color("#1a2636")
+const WB_BG_CONTENT := Color("#1a2636")
+const WB_BG_CARD := Color("#223246")
+const WB_BG_CARD_HOVER := Color("#2a3d54")
+const WB_BG_WELL := Color("#0c141e")
+const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
+const WB_BORDER_HOVER := Color(1.0, 1.0, 1.0, 0.20)
+const WB_BORDER_FOCUS := Color("#ffffff")
+const WB_BORDER_ACCENT := Color("#e5a93c")
+const WB_SLIDER_TRACK := Color("#0c141e")
+const WB_SLIDER_FILL := Color("#4a7bb0")
+const WB_SLIDER_THUMB := Color("#eaf2fa")
+const WB_SLIDER_STEPPER := Color("#25364b")
+const WB_TEXT_TITLE := Color("#f0f5fa")
+const WB_TEXT_LABEL := Color("#9ab0c7")
+const WB_TEXT_DATA := Color("#ffffff")
+const WB_TEXT_ACCENT := Color("#e5a93c")
+
+const C_BACK := WB_BG_SHELL
+const C_GLASS := WB_BG_HEADER
+const C_GLASS_DEEP := WB_BG_WELL
+const C_RIM := WB_BORDER_SUBTLE
+const C_CHROME_TEXT := WB_TEXT_TITLE
+const C_CHROME_DIM := WB_TEXT_LABEL
+const C_BLUE := WB_SLIDER_FILL
+const C_BLUE_DEEP := Color("#16283b")
+
+const C_FACE := WB_BG_CONTENT
+const C_FACE_HI := WB_BG_CARD_HOVER
+const C_FACE_LO := WB_BG_CARD
+const C_FIELD := WB_BG_WELL
+const C_HI := WB_BORDER_HOVER
+const C_LIGHT := WB_BORDER_SUBTLE
+const C_SHADOW := Color(0.0, 0.0, 0.0, 0.25)
+const C_DARK := Color("#060a0f")
+const C_TEXT := WB_TEXT_TITLE
+const C_DIM := WB_TEXT_LABEL
+const C_GOLD := ACCENT_RALLY
+const C_GOLD_HI := Color("#f8df9e")
+const C_ROSE := STATUS_DANGER
+const C_SEL := WB_BG_CARD_HOVER
 
 const PAD_NAME_CHARACTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
 
@@ -1083,12 +1118,8 @@ func _notice_is_error() -> bool:
 
 func _draw_classic_panel() -> void:
 	draw_rect(PANEL, C_FACE)
-	draw_rect(Rect2(PANEL.position.x, PANEL.position.y, PANEL.size.x, 1), C_HI)
-	draw_rect(Rect2(PANEL.position.x, PANEL.position.y, 1, PANEL.size.y), C_HI)
-	draw_rect(Rect2(PANEL.position.x, PANEL.end.y - 1, PANEL.size.x, 1), C_DARK)
-	draw_rect(Rect2(PANEL.end.x - 1, PANEL.position.y, 1, PANEL.size.y), C_DARK)
-	draw_rect(Rect2(PANEL.position.x + 1, 144, PANEL.size.x - 2, 1), C_SHADOW)
-	draw_rect(Rect2(PANEL.position.x + 1, 145, PANEL.size.x - 2, 1), C_LIGHT)
+	draw_rect(PANEL, BORDER_SUBTLE, false, 1.0)
+	draw_line(Vector2(PANEL.position.x, 144), Vector2(PANEL.end.x, 144), BORDER_SUBTLE, 1.0)
 
 
 func _draw_tabs() -> void:
@@ -1140,9 +1171,9 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 			Vector2(rect.end.x, bottom),
 		]
 	)
-	var faced := C_FACE if active else C_FACE_LO
+	var faced := WB_BG_CONTENT if active else WB_BG_TAB_INACTIVE
 	if not active and _mouse_over(rect):
-		faced = C_FACE_HI
+		faced = WB_BG_CARD
 	draw_colored_polygon(pts, faced)
 
 	var top_path := PackedVector2Array(
@@ -1152,20 +1183,13 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 			Vector2(rect.position.x + cut, top + 0.5),
 			Vector2(rect.end.x - cut, top + 0.5),
 			Vector2(rect.end.x - 0.5, top + cut),
+			Vector2(rect.end.x - 0.5, bottom),
 		]
 	)
-	draw_polyline(top_path, C_HI if active else C_LIGHT, 1.0)
-	draw_line(Vector2(rect.end.x - 0.5, top + cut), Vector2(rect.end.x - 0.5, bottom), C_DARK, 1.0)
+	draw_polyline(top_path, BORDER_FOCUS if active else BORDER_SUBTLE, 1.0)
 	if active:
-		# La pestaña activa tapa el borde de página para leerse como conectada.
-		draw_rect(Rect2(rect.position.x + 1, 144, rect.size.x - 2, 3), C_FACE)
-	else:
-		draw_line(
-			Vector2(rect.position.x + 1, bottom - 0.5),
-			Vector2(rect.end.x - 1, bottom - 0.5),
-			C_SHADOW,
-			1.0
-		)
+		# La pestaña activa se fusiona directamente sobre el área de contenido
+		draw_rect(Rect2(rect.position.x + 1, 143, rect.size.x - 2, 4), C_FACE)
 
 	_text_title(
 		_box(rect.position.x, top + 5.0, rect.size.x, bottom - top - 9.0),
@@ -1301,8 +1325,7 @@ func _draw_compound_group(rect: Rect2) -> void:
 		_hit_regions.append({ "rect": dry_rect, "kind": "all_compound", "compound": "gravel_normal" })
 		_hit_regions.append({ "rect": wet_rect, "kind": "all_compound", "compound": "gravel_wet" })
 
-	draw_rect(Rect2(52, 610, 340, 1), C_SHADOW)
-	draw_rect(Rect2(52, 611, 340, 1), C_LIGHT)
+	draw_line(Vector2(52, 611), Vector2(392, 611), BORDER_SUBTLE, 1.0)
 	_hint(_box(52, 618, 340, 18), "SE APLICA A LOS CUATRO NEUMÁTICOS")
 	if not compound_change_allowed:
 		_hint(_box(52, 636, 340, 18), "BLOQUEADO POR EL EVENTO")
@@ -1310,7 +1333,7 @@ func _draw_compound_group(rect: Rect2) -> void:
 	var memo := Rect2(420, 548, 412, 106)
 	draw_rect(memo, C_FIELD)
 	_sunken(memo)
-	_text(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "EL COMPUESTO CAMBIA:", 9, C_TEXT, true)
+	_text(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "EL COMPUESTO CAMBIA:", 9, C_GOLD, true)
 	_text(_box(memo.position.x + 10, memo.position.y + 28, memo.size.x - 20, 18), "· REPARTO DE AGARRE", 9, C_DIM)
 	_text(_box(memo.position.x + 10, memo.position.y + 44, memo.size.x - 20, 18), "· TEMPERATURA DE TRABAJO", 9, C_DIM)
 	_text(_box(memo.position.x + 10, memo.position.y + 60, memo.size.x - 20, 18), "· DESGASTE POR VUELTA", 9, C_DIM)
@@ -1353,7 +1376,7 @@ func _draw_state_group(rect: Rect2) -> void:
 			Rect2(inner.end.x - 176, y + (height - 34.0) * 0.5, 176, 34),
 			str(rows[i].v),
 			13,
-			C_TEXT,
+			WB_TEXT_DATA,
 			bool(rows[i].get("numeric", true))
 		)
 
@@ -1415,33 +1438,33 @@ func _draw_tire_group(rect: Rect2) -> void:
 			card_w,
 			card_h
 		)
-		draw_rect(card, C_FACE_LO)
-		_sunken(card)
+		draw_rect(card, C_FIELD)
+		draw_rect(card, BORDER_SUBTLE, false, 1.0)
 		var wet: bool = draft_wheel_compounds.get(codes[i]) == "gravel_wet"
 		_text(_box(card.position.x + 10, card.position.y + 6, 60, 20), codes[i], 13, C_TEXT, true)
 		_text(
 			_box(card.position.x, card.position.y + 8, card.size.x - 10, 16),
 			"MOJADO" if wet else "SECO",
 			9,
-			C_DIM,
+			Color("#60a5fa") if wet else C_GOLD,
 			true,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 10
 		)
 		var bar := Rect2(card.position.x + 10, card.position.y + 32, card.size.x - 20, 10)
-		draw_rect(bar, C_FIELD)
-		_sunken(bar)
+		draw_rect(bar, WB_BG_CONTENT)
+		draw_rect(bar, BORDER_SUBTLE, false, 1.0)
 		var fraction := 0.55 if wet else 0.72
 		draw_rect(
 			Rect2(bar.position + Vector2(1, 1), Vector2((bar.size.x - 2) * fraction, bar.size.y - 2)),
-			Color(C_BLUE_DEEP, 0.9),
+			C_BLUE,
 			false
 		)
 		_num(
-			_box(card.position.x, card.position.y + 50, card.size.x - 10, 18),
+			_box(card.position.x, card.position.y + 48, card.size.x - 10, 18),
 			"%0.0f kPa · %0.0f °C" % [_wheel_pressure(i), _wheel_temperature(i)],
-			9,
-			C_DIM,
+			10,
+			WB_TEXT_DATA,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 10
 		)
@@ -1929,10 +1952,16 @@ func _draw_modal() -> void:
 
 
 func _group(rect: Rect2, caption: String) -> void:
-	_bevel(rect, false, 1)
+	draw_rect(rect, C_FACE_LO)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	var cap_w := _title_width(caption, 10) + 14.0
-	draw_rect(Rect2(rect.position.x + 16, rect.position.y, cap_w, 2), C_FACE)
-	_text_title(_box(rect.position.x + 22, rect.position.y - 6, cap_w, 13), caption, 10, C_TEXT)
+	_text_title(_box(rect.position.x + 14, rect.position.y + 4, cap_w, 14), caption, 10, C_TEXT)
+	draw_line(
+		Vector2(rect.position.x + 14, rect.position.y + 19),
+		Vector2(rect.end.x - 14, rect.position.y + 19),
+		Color(BORDER_SUBTLE.r, BORDER_SUBTLE.g, BORDER_SUBTLE.b, 0.12),
+		1.0
+	)
 
 
 func _group_inner(rect: Rect2) -> Rect2:
@@ -1940,7 +1969,7 @@ func _group_inner(rect: Rect2) -> Rect2:
 
 
 func _row_frame(
-	rect: Rect2, selected: bool, last: bool, hovered: bool, base: Color = C_FACE
+	rect: Rect2, selected: bool, last: bool, hovered: bool, base: Color = C_FACE_LO
 ) -> void:
 	var background := base
 	if selected:
@@ -1950,54 +1979,41 @@ func _row_frame(
 	draw_rect(rect, background)
 	if selected:
 		draw_rect(Rect2(rect.position.x, rect.position.y, 3, rect.size.y), C_GOLD)
-		draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 1), C_GOLD)
-		draw_rect(Rect2(rect.position.x, rect.end.y - 1, rect.size.x, 1), C_GOLD)
-		draw_rect(Rect2(rect.end.x - 1, rect.position.y, 1, rect.size.y), C_GOLD)
+		draw_rect(rect, Color(C_GOLD, 0.35), false, 1.0)
 	if not last:
-		draw_rect(Rect2(rect.position.x, rect.end.y - 2, rect.size.x, 1), C_SHADOW)
-		draw_rect(Rect2(rect.position.x, rect.end.y - 1, rect.size.x, 1), C_LIGHT)
+		draw_line(
+			Vector2(rect.position.x + 8, rect.end.y - 1),
+			Vector2(rect.end.x - 8, rect.end.y - 1),
+			Color(1.0, 1.0, 1.0, 0.05),
+			1.0
+		)
 
 
-func _bevel(rect: Rect2, raised: bool, thick: int = 2) -> void:
-	for i in thick:
-		var top_color: Color
-		var bottom_color: Color
-		if i == 0:
-			top_color = C_HI if raised else C_SHADOW
-			bottom_color = C_DARK if raised else C_HI
-		else:
-			top_color = C_LIGHT if raised else C_DARK
-			bottom_color = C_SHADOW if raised else C_LIGHT
-		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, rect.size.x - i * 2, 1), top_color)
-		draw_rect(Rect2(rect.position.x + i, rect.position.y + i, 1, rect.size.y - i * 2), top_color)
-		draw_rect(Rect2(rect.position.x + i, rect.end.y - 1 - i, rect.size.x - i * 2, 1), bottom_color)
-		draw_rect(Rect2(rect.end.x - 1 - i, rect.position.y + i, 1, rect.size.y - i * 2), bottom_color)
+func _bevel(rect: Rect2, _raised: bool, _thick: int = 2) -> void:
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 
 
 func _sunken(rect: Rect2) -> void:
-	draw_rect(Rect2(rect.position.x, rect.position.y, rect.size.x, 1), C_SHADOW)
-	draw_rect(Rect2(rect.position.x, rect.position.y, 1, rect.size.y), C_SHADOW)
-	draw_rect(Rect2(rect.position.x, rect.end.y - 1, rect.size.x, 1), C_HI)
-	draw_rect(Rect2(rect.end.x - 1, rect.position.y, 1, rect.size.y), C_HI)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 
 
 func _field_box(rect: Rect2, text: String, size: int, color: Color, numeric: bool = true) -> void:
 	draw_rect(rect, C_FIELD)
-	_sunken(rect)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	var inner := _box(rect.position.x + 6, rect.position.y, rect.size.x - 12, rect.size.y)
 	if numeric:
 		_num(inner, text, size, color, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x - 12)
 	else:
-		_text(inner, text, size, color, true, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x - 12)
+		_text(inner, text, size, color, true, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 12)
 
 
 func _stepper(rect: Rect2, plus: bool) -> void:
 	var hovered := _mouse_over(rect)
-	draw_rect(rect, C_FACE_HI if hovered else C_FACE)
-	_bevel(rect, true, 2)
+	draw_rect(rect, WB_SLIDER_STEPPER if not hovered else C_FACE_HI)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	var cx: float = round(rect.get_center().x)
 	var cy: float = round(rect.get_center().y)
-	var glyph: Color = C_TEXT
+	var glyph: Color = C_TEXT if hovered else C_DIM
 	draw_rect(Rect2(cx - 4, cy - 1, 9, 2), glyph)
 	if plus:
 		draw_rect(Rect2(cx - 1, cy - 4, 2, 9), glyph)
@@ -2005,36 +2021,28 @@ func _stepper(rect: Rect2, plus: bool) -> void:
 
 func _track(rect: Rect2, fraction: float, selected: bool) -> void:
 	draw_rect(rect, C_FIELD)
-	_sunken(rect)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	var inner := rect.grow(-2.0)
 	var fill_w: float = maxf(inner.size.x * clampf(fraction, 0.0, 1.0), 2.0)
-	draw_rect(Rect2(inner.position, Vector2(fill_w, inner.size.y)), Color(C_BLUE_DEEP, 0.95))
-	draw_rect(
-		Rect2(inner.position, Vector2(fill_w, maxf(floorf(inner.size.y * 0.5), 1.0))),
-		Color(C_BLUE, 0.5),
-		false
-	)
+	draw_rect(Rect2(inner.position, Vector2(fill_w, inner.size.y)), C_BLUE)
 	for i in 4:
 		var tx := inner.position.x + inner.size.x * (0.2 + 0.2 * float(i))
-		if tx > inner.position.x + fill_w + 1.0:
-			draw_rect(Rect2(tx, inner.position.y, 1, inner.size.y), Color(C_SHADOW, 0.55))
+		draw_rect(Rect2(tx, inner.position.y, 1, inner.size.y), Color(1.0, 1.0, 1.0, 0.12))
 
-	var thumb := Rect2(inner.position.x + fill_w - 7.0, rect.position.y - 6.0, 14.0, rect.size.y + 12.0)
-	draw_rect(Rect2(thumb.position + Vector2(1, 1), thumb.size), Color(0, 0, 0, 0.35))
-	draw_rect(thumb, C_FACE)
-	_bevel(thumb, true, 2)
+	var thumb := Rect2(inner.position.x + fill_w - 6.0, rect.position.y - 5.0, 12.0, rect.size.y + 10.0)
+	draw_rect(thumb, WB_SLIDER_THUMB)
+	draw_rect(thumb, Color("#000000"), false, 1.0)
 	if selected:
-		draw_rect(Rect2(thumb.position.x, thumb.position.y, thumb.size.x, 2), C_GOLD)
+		draw_rect(Rect2(thumb.position.x, thumb.position.y, thumb.size.x, 3), C_GOLD)
 
 
 func _radio(rect: Rect2, label: String, on: bool) -> void:
 	var radius := 6.0
 	var center := Vector2(rect.position.x + radius + 1.0, rect.position.y + rect.size.y * 0.5)
 	draw_circle(center, radius, C_FIELD)
-	draw_arc(center, radius, 0.0, TAU, 20, C_SHADOW, 1.0)
-	draw_arc(center + Vector2(1, 1), radius - 1.0, PI * 1.05, PI * 1.55, 8, C_LIGHT, 1.0)
+	draw_arc(center, radius, 0.0, TAU, 24, C_GOLD if on else BORDER_SUBTLE, 1.2)
 	if on:
-		draw_circle(center, radius - 3.5, C_TEXT)
+		draw_circle(center, radius - 3.0, C_GOLD)
 	_text(
 		_box(rect.position.x + 18, rect.position.y, rect.size.x - 18, rect.size.y),
 		label,
@@ -2045,23 +2053,27 @@ func _radio(rect: Rect2, label: String, on: bool) -> void:
 
 
 func _toggle(rect: Rect2, label: String, on: bool) -> void:
-	draw_rect(rect, C_FACE_LO if on else C_FACE_HI)
-	_bevel(rect, not on, 2)
+	var fill := C_BLUE if on else C_FIELD
+	draw_rect(rect, fill)
+	draw_rect(rect, C_GOLD if on else BORDER_SUBTLE, false, 1.0)
 	_text(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
 		10,
-		C_TEXT if on else C_DIM,
+		WB_TEXT_TITLE if on else C_DIM,
 		on,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
 
 func _segment_button(rect: Rect2, label: String, active: bool) -> void:
-	draw_rect(rect, C_FACE_LO if active else C_FACE_HI)
-	_bevel(rect, not active, 2)
+	var fill := WB_BG_TAB_ACTIVE if active else WB_BG_TAB_INACTIVE
+	if not active and _mouse_over(rect):
+		fill = WB_BG_CARD
+	draw_rect(rect, fill)
+	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	if active:
-		draw_rect(Rect2(rect.position.x + 3, rect.end.y - 3, rect.size.x - 6, 2), C_BLUE)
+		draw_rect(Rect2(rect.position.x + 3, rect.end.y - 3, rect.size.x - 6, 3), C_BLUE)
 	_text_title(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
@@ -2072,9 +2084,10 @@ func _segment_button(rect: Rect2, label: String, active: bool) -> void:
 
 
 func _classic_button(rect: Rect2, label: String, action: String, modal: bool = false) -> void:
-	var fill := C_FACE_HI.lightened(0.12) if _mouse_over(rect) else C_FACE_HI
+	var hovered := _mouse_over(rect)
+	var fill := C_FACE_HI if hovered else C_FACE_LO
 	draw_rect(rect, fill)
-	_bevel(rect, true, 2)
+	draw_rect(rect, BORDER_FOCUS if hovered else BORDER_SUBTLE, false, 1.0)
 	_text(
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
@@ -2164,36 +2177,17 @@ func _field_fraction(field: Dictionary, path: String) -> float:
 
 
 func _glass_window(rect: Rect2, radius: int) -> void:
-	for i in 3:
-		var shadow := StyleBoxFlat.new()
-		shadow.bg_color = Color(0, 0, 0, 0)
-		shadow.border_color = Color(0, 0, 0, 0.16 - float(i) * 0.045)
-		shadow.set_border_width_all(1)
-		shadow.set_corner_radius_all(radius + i * 2)
-		draw_style_box(
-			shadow,
-			Rect2(rect.position - Vector2(i, i - 3), rect.size + Vector2(i * 2, i * 2 + 4))
-		)
-	_glass_box(rect, radius, Color(C_GLASS, 0.94), Color(C_RIM, 0.30), 0.13)
+	_glass_box(rect, radius, BG_SURFACE, BORDER_SUBTLE, 0.0)
 
 
-func _glass_box(rect: Rect2, radius: int, fill: Color, rim: Color, gloss_alpha: float) -> void:
+func _glass_box(rect: Rect2, radius: int, fill: Color, rim: Color, _gloss_alpha: float) -> void:
 	var base := StyleBoxFlat.new()
 	base.bg_color = fill
 	base.border_color = rim
 	base.set_border_width_all(1)
 	base.set_corner_radius_all(radius)
+	base.shadow_size = 0
 	draw_style_box(base, rect)
-
-	if gloss_alpha > 0.0 and rect.size.y > 10.0:
-		_gloss(rect, radius, minf(rect.size.y * 0.5, rect.size.y - 2.0), gloss_alpha)
-
-	var inner := StyleBoxFlat.new()
-	inner.bg_color = Color(0, 0, 0, 0)
-	inner.border_color = Color(1.0, 1.0, 1.0, minf(0.28, gloss_alpha * 1.8))
-	inner.border_width_top = 1
-	inner.set_corner_radius_all(maxi(radius - 1, 1))
-	draw_style_box(inner, rect.grow(-1.0))
 
 
 # Degradado vertical recortado a las esquinas: separa el cristal de una banda
@@ -2242,9 +2236,9 @@ func _glow(rect: Rect2, radius: int, color: Color) -> void:
 
 func _chrome_button(rect: Rect2, label: String, action: String) -> void:
 	var hovered := _mouse_over(rect)
-	_glass_box(rect, 7, Color(C_GLASS, 0.92), Color(C_RIM, 0.32), 0.12)
-	if hovered:
-		_glow(rect, 7, Color(C_BLUE, 0.28))
+	var fill := WB_BG_CARD_HOVER if hovered else WB_BG_CARD
+	draw_rect(rect, fill)
+	draw_rect(rect, BORDER_FOCUS if hovered else BORDER_SUBTLE, false, 1.0)
 	_text_serif(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
@@ -2258,17 +2252,17 @@ func _chrome_button(rect: Rect2, label: String, action: String) -> void:
 
 func _gold_button(rect: Rect2, label: String, action: String, modal: bool = false) -> void:
 	var hovered := _mouse_over(rect)
-	_glow(rect, 7, Color(C_GOLD, 0.7 if hovered else 0.5))
-	_glass_box(rect, 7, Color("#b8862a"), C_GOLD_HI, 0.32 if not hovered else 0.4)
+	var fill := Color("#f5b74c") if hovered else ACCENT_RALLY
+	draw_rect(rect, fill)
+	draw_rect(rect, Color("#fff3c4"), false, 1.0)
 	_text_serif(
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
 		12,
-		Color("#1a1206"),
+		Color("#090e15"),
 		true,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
-	_focus_dots(rect.grow(-5.0), Color("#1a1206"))
 	_hit_regions.append({ "rect": rect, "kind": "button", "action": action, "modal": modal })
 
 
@@ -2301,7 +2295,7 @@ func _mouse_over(rect: Rect2) -> bool:
 
 # El ancho se pasa siempre: con width < 0 Godot ignora la alineación y dibuja el
 # texto desde el ancla en lugar de hacia ella (ese era el fallo de raíz).
-# Texto general en Libron; los números y sus unidades usan D-DIN.
+# Texto general en Montserrat; los números y sus unidades usan D-DIN.
 func _text(
 	rect: Rect2,
 	text: String,
@@ -2384,7 +2378,7 @@ func _ui_width(text: String, size: int, bold: bool) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
 
-# Ancho medido con la fuente real del texto general (Libron).
+# Ancho medido con la fuente real del texto general (Montserrat).
 func _serif_width(text: String, size: int, bold: bool) -> float:
 	var font := FONT_SERIF_BOLD if bold else FONT_SERIF
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x

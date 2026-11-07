@@ -1,0 +1,35 @@
+extends SceneTree
+
+func _initialize() -> void:
+	call_deferred("verify")
+
+func verify() -> void:
+	var tracks = load("res://scripts/rally/rally_tire_tracks.gd").new()
+	root.add_child(tracks)
+	assert(tracks.batches.size() == 6)
+	assert(tracks.variant_for("asphalt", 0.0, 0) == 0)
+	assert(tracks.variant_for("asphalt", 0.0, 1) == 1)
+	assert(tracks.variant_for("dirt", 1.0, 0) == 2)
+	assert(tracks.variant_for("ice", 0.0, 0) == 4)
+	assert(tracks.variant_for("gravel", 0.0, 0) == 5)
+	tracks.add_contact(0, Vector3.ZERO, Vector3.UP, 0.2, 0, 0.8)
+	tracks.add_contact(0, Vector3(0, 0, 0.5), Vector3.UP, 0.2, 0, 0.8)
+	assert(tracks.counts[0] == 1)
+	var color: Color = tracks.batches[0].get_instance_color(0)
+	assert(color.r < 1.0 and is_equal_approx(color.r, color.g) and is_equal_approx(color.g, color.b) and color.a > 0.75, "Tracks must darken the surface without adding a hue")
+	assert(tracks.color_for("dirt", 5) != tracks.color_for("sand", 5))
+	var transform: Transform3D = tracks.batches[0].get_instance_transform(0)
+	assert(transform.origin.distance_to(Vector3(0, 0.025, 0.25)) < 0.001)
+	tracks.break_track(0)
+	tracks.add_contact(0, Vector3(0, 0, 1), Vector3.UP, 0.2, 0, 0.8)
+	assert(tracks.counts[0] == 1)
+	tracks.add_contact(0, Vector3(0, 0, 5), Vector3.UP, 0.2, 0, 0.8)
+	assert(tracks.counts[0] == 1 and not tracks.active[0])
+	for i in 260:
+		tracks.add_contact(1, Vector3(0, 0, i * 0.2), Vector3.UP, 0.2, 5, 0.5)
+	assert(tracks.counts[5] == 259 and tracks.batches[5].visible_instance_count == tracks.CAPACITY)
+	tracks.clear_tracks()
+	assert(tracks.counts[0] == 0 and tracks.batches[5].visible_instance_count == 0)
+	tracks.queue_free()
+	print("TIRE_TRACKS_CONTRACT_OK")
+	quit()

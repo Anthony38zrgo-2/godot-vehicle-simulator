@@ -1,9 +1,0 @@
-{
-  "id": "rt-alfa-giulia-gta-upgrade",
-  "archive": "car_18.bzf",
-  "historical_id": "alfa-giulia-gta",
-  "display_name": "Alfa Romeo Giulia Sprint GTA (RT upgrade)",
-  "engine_layout": "front",
-  "geometry_policy": "native",
-  "physics_policy": "game_derived"
-}

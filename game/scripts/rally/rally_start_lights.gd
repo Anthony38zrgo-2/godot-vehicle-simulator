@@ -1,5 +1,5 @@
 extends Control
-const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
+const FONT := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 var state: Dictionary = {}
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -13,10 +13,10 @@ func _draw() -> void:
 	draw_set_transform(Vector2(size.x * 0.5, 125.0 * scale_factor), 0.0, Vector2.ONE * scale_factor)
 	var phase := str(state.get("phase", "off"))
 	var background := StyleBoxFlat.new()
-	background.bg_color = Color(0.035, 0.045, 0.055, 0.95)
-	background.border_color = Color(0.4, 0.45, 0.5)
-	background.set_border_width_all(2)
-	background.set_corner_radius_all(12)
+	background.bg_color = Color(0.04, 0.055, 0.08, 0.96)
+	background.border_color = Color(1.0, 1.0, 1.0, 0.12)
+	background.set_border_width_all(1)
+	background.set_corner_radius_all(2)
 	draw_style_box(background, Rect2(-125, -70, 250, 175))
 	for i in 2:
 		var point := Vector2(-58 + 116 * i, -10)

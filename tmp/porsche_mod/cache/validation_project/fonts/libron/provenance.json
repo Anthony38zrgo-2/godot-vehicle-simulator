@@ -1,0 +1,15 @@
+{
+  "family": "Libron",
+  "release": "v0.32",
+  "source": "https://github.com/nicoverbruggen/libron/releases/tag/v0.32",
+  "download": "https://github.com/nicoverbruggen/libron/releases/download/v0.32/Libron.zip",
+  "license": "SIL Open Font License 1.1",
+  "license_file": "LICENSE.txt",
+  "files": {
+    "Libron-Regular.ttf": "f7924d25b01d3ef2aac6fc961048272d0ee4ce81bc18be0f6310594e5ef3a6a8",
+    "Libron-Bold.ttf": "da9348facda55d5c584b37fd24659dda3aa2ca0c6fc0c2a9316faa8babace29e",
+    "Libron-Italic.ttf": "b017b66c5764aaa8abbcae83f0f27b6e7b72e6a416592cc70cbdc64fabd5f0e2",
+    "Libron-BoldItalic.ttf": "d64fd727f7e003e8d787385ebbd76c2986ac6d60c82715b73f59a871188d2ad2",
+    "LICENSE.txt": "bc596e272be47691f70c090bca17a8b6e58bd021baada8be18510beceed6cfbd"
+  }
+}

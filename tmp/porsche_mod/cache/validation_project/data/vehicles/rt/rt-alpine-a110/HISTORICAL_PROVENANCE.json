@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-alpine-a110",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Alpine Renault A110 1600",
+    "archive_numbers": [
+      19,
+      20
+    ],
+    "sources": {
+      "fia": {
+        "page": "https://historicdb.fia.com/car/alpine-renault-110-1600",
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1759327201/homologation_form_number_3035_group_3.pdf",
+        "homologation": "3035",
+        "group": "3",
+        "pdf_sha256": "6579b371adb588010baf74c25b3e18efdfbaa543378fc50b9bb384d3d552c351"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1565,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "RWD",
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.1,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.353,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.337,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "fuel_l": {
+        "value": 30,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 685,
+        "source": "fia",
+        "locator": "PDF page 2, base form",
+        "status": "documented"
+      }
+    },
+    "variant_note": "1970 base FIA fiche; game lists 1596 cc. Later extensions change displacement. Mass excludes fuel and tools.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "abcf2e457c7cd1e854a8b839a12b94477c33f957e14d847fc28fae4443172a9b",
+    "chassis.json": "5fe25d8c52e3fcf05831b86e1936ca0f75905d61a49120053894d1f954c946e7",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "2536ac360ec83af1f385290cd40d99551193b5e48095a39e964015e3b0fc2a9a",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "2cd6869797c11cab8a90fb3e6bc917876386577d2a0990956319182e9c7f833c",
+    "powertrain.json": "6412ccdddd8837458cc4dd80f22f3156cf6f21fbce530b935186f77b2c73f0a7",
+    "steering.json": "732801786b7fd7b5e2472fec5acaccc2536145fc11dde3821451e72c8aaa5a82",
+    "suspension.json": "419259f598fa297acb42254a9cc7c9fdc773416d5cfeebf00460d9a2efca9334",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "tires.json": "cd80a7dfff42b313792a055d96a3c69d8b553277c0fec524dea45c7059501ba1",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "ead4a9c16c22ef2c545f33f020621928eb33b332bb8ccc310bdb613c689a698a"
+  }
+}

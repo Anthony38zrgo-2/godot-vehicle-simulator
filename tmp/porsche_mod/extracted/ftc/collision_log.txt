@@ -1,0 +1,655 @@
+nFileVersion: 0x10003 Retro Demo / Tough Trucks Track (Export Only)
+
+Materials begin
+Count: 28
+
+Material 0
+Name: <default material>
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 1
+Name: lights
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: lights.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 2
+Name: indicators
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 3
+Name: Steerign wheel
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: steering_wheel.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 4
+Name: interior_lo
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: interior_lo.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 5
+Name: tire
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: tire_intermediate.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 6
+Name: tire_alpha
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: tire_intermediate.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 7
+Name: collision
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 8
+Name: window front
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 9
+Name: window back
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 10
+Name: window leftside
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 11
+Name: window rightside
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 12
+Name: interior roof
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 13
+Name: cockpit
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: interior_hi.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 14
+Name: windows
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: interior_windows.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 15
+Name: meters
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: meters.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 16
+Name: #E1 body
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: body.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 17
+Name: #E1 body dust
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: body.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 18
+Name: wipers
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: wipers.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 19
+Name: #E1 window front
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: windows.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 20
+Name: #E1 window leftside
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: windows.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 21
+Name: #E1 window rightside
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: windows.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 22
+Name: #E1 window back
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: windows.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 23
+Name: #E1 headlight_left
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: lights.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 24
+Name: #E1 headlight_right
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: lights.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 25
+Name: #E1 rearlight_left
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: lights.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 26
+Name: #E1 rearlight_right
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 5 (rendertarget shadow)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: lights.tga
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Material 27
+Name: rain_drop
+nAlpha: 0
+nUnknown1: 0
+nNumTextures: 0
+nShaderId: 2 (lightmapped)
+nUseColormap: 0
+nUnknown4: 0
+nUnknown5: 0, 0, 0
+nUnknown6: 0, 0, 0
+nUnknown7: 0, 0, 0, 0
+nUnknown8: 0, 0, 0, 0
+nUnknown9: 0, 0, 0, 0
+nUnknown10: 0, 0, 0, 0
+nUnknown11: 0
+Texture 1: 
+Texture 2: 
+Texture 3: 
+Total references: 0
+
+Materials end
+
+Streams begin
+Count: 0
+
+Streams end
+
+Surfaces begin
+Count: 0
+
+Surfaces end
+
+Static Batches begin
+Count: 0
+
+Static Batches end
+
+Tree Colors begin
+Count: 0
+
+
+Tree Colors end
+
+Tree LODs begin
+Count: 0
+
+Tree LODs end
+
+Tree Meshes begin
+Count: 0
+
+Tree Meshes end
+
+Collision Offset Matrix:
+0, 0, 0, 0
+0, 0, 0, 0
+0, 0, 0, 0
+0, 0, 0, 0
+
+Models begin
+Count: 1
+
+nUnknown1: 0
+sName: 
+vCenter.x: 0.000000
+vCenter.y: 0.057459
+vCenter.z: 0.005708
+vRadius.x: 1.872233
+vRadius.y: -0.819199
+vRadius.z: -0.012839
+fRadius: -0.819199
+vAABBMin: { -1.8722326, 0.87665814, 0.018547244 }
+vAABBMax: { 1.8722328, -0.7617405, -0.007131138 }
+nNumSurfaces: 0
+
+Models end
+
+Objects begin
+Count: 0
+
+Objects end
+
+Collidable Models begin
+Count: 0
+
+Collidable Models end
+
+Mesh Damage Associations begin
+Count: 0
+
+Mesh Damage Associations end
+
+Compact Meshes begin
+Group Count: 0
+Count: 1
+
+sObjectName: collision
+sDynamicName: 
+nFlags: 0x0
+nGroup: -1
+mMatrix: 
+1, -0, -0, 0
+0, 1, 0, 0
+0, -0, 1, 0
+-0, 0.00014839321, 0, 1
+nNumLODs: 1
+0 - 
+
+Compact Meshes end
+

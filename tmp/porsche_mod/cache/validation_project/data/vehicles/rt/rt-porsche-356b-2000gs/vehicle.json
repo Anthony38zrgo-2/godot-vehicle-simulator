@@ -1,0 +1,27 @@
+{
+  "coordinate_contract": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y"
+  },
+  "domains": {
+    "aerodynamics": "aerodynamics.json",
+    "brakes": "brakes.json",
+    "chassis": "chassis.json",
+    "coupled_world": "coupled_world.json",
+    "damage": "damage.json",
+    "driving_assistance": "driving_assistance.json",
+    "fuel": "fuel.json",
+    "powertrain": "powertrain.json",
+    "steering": "steering.json",
+    "suspension": "suspension.json",
+    "suspension_filters": "suspension_filters.json",
+    "tire_filters": "tire_filters.json",
+    "tires": "tires.json",
+    "underfloor_contact": "underfloor_contact.json"
+  },
+  "profile_name": "Porsche 356B Carrera 2000 GS — game-derived engineering profile",
+  "schema_version": 1,
+  "units": "SI",
+  "vehicle_identifier": "rt-porsche-356b-2000gs"
+}

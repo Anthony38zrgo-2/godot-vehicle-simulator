@@ -27,10 +27,13 @@
     "differential": {
       "clutch_friction_coefficient": 0.12,
       "clutches": 4.0,
-      "coast_ramp_angle_deg": 60.0,
-      "power_ramp_angle_deg": 45.0,
+      "coast_ramp_angle_deg": 55.0,
+      "power_ramp_angle_deg": 40.0,
       "preload_nm": 55.0,
-      "slip_transition_threshold_rad_s": 4.0
+      "slip_transition_threshold_rad_s": 4.0,
+      "lock_pct_power": 50.0,
+      "lock_pct_coast": 35.0,
+      "coast_friction_coefficient": 0.1
     },
     "downshift_blip_torque_fraction": 0.8,
     "downshift_blip_response_seconds": 0.04,
@@ -45,22 +48,27 @@
       "stiffness_nm_per_rad": 8500.0,
       "damping_nms_per_rad": 130.0
     },
-    "final_drive": 4.11,
+    "final_drive": 4.63,
     "front_torque_split": 0.0,
     "gear_inertia": 0.02,
-    "gear_ratios": [2.54, 1.66, 1.25, 1.0],
+    "gear_ratios": [
+      2.54,
+      1.66,
+      1.26,
+      1.0
+    ],
     "handbrake_torque_fraction": 1.0,
     "idle_disengagement_hysteresis_rpm": 120.0,
-    "idle_rpm": 1000.0,
+    "idle_rpm": 900.0,
     "max_clutch_torque_ratio": 1.4,
-    "max_rpm": 7200.0,
-    "max_torque": 210.0,
+    "max_rpm": 7300.0,
+    "max_torque": 205.0,
     "motor_moment": 0.15,
     "reverse_ratio": 3.317,
     "shift_time": 0.08,
     "thermal": {
       "engine_block_heat_capacity_joules_per_kelvin": 65000.0,
-      "engine_block_heat_fraction": 0.10,
+      "engine_block_heat_fraction": 0.1,
       "engine_to_oil_conductance_watts_per_kelvin": 380.0,
       "engine_to_water_conductance_watts_per_kelvin": 850.0,
       "exhaust_heat_fraction": 0.6,
@@ -98,7 +106,7 @@
         "drag_coefficient": 0.5,
         "heat_exchanger_conductance_watts_per_kelvin": 4000.0,
         "maximum_inlet_area_square_meters": 0.2,
-        "opening": 0.10,
+        "opening": 0.1,
         "pressure_recovery": 0.75
       },
       "water_critical_temperature_celsius": 115.0,
@@ -116,7 +124,7 @@
         0.0
       ],
       [
-        0.10,
+        0.1,
         0.48
       ],
       [
@@ -129,7 +137,7 @@
       ],
       [
         0.28,
-        0.80
+        0.8
       ],
       [
         0.35,
@@ -172,7 +180,7 @@
         0.925
       ],
       [
-        0.90,
+        0.9,
         0.89
       ],
       [
@@ -184,6 +192,9 @@
         0.75
       ]
     ],
-    "variable_drag_ratio": 0.038
+    "variable_drag_ratio": 0.038,
+    "final_drive_gravel": 4.63,
+    "final_drive_tarmac": 3.77,
+    "final_drive_preset": "gravel"
   }
 }

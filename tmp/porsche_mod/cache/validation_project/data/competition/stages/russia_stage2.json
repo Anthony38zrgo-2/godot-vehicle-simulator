@@ -1,0 +1,174 @@
+{
+  "id": "russia_stage2",
+  "name": "Rusia — Stage 2",
+  "route_path": "res://data/rally/russia_stage2_route.json",
+  "fallback_path": "res://data/competition/rally_trophy/track1_stage2.json",
+  "difficulty": 1,
+  "reference_scale": 1.0,
+  "mapping_basis": "Recovered original split_00..split_09 trigger planes from source BMF, aligned with checkpoint signs in exported GLB.",
+  "sector_checkpoint_indices": [
+    38,
+    90,
+    148,
+    199,
+    266,
+    307,
+    347,
+    390,
+    440,
+    478
+  ],
+  "sector_lengths_km": [
+    0.39190005553285095,
+    0.5204396467104137,
+    0.6017154254322877,
+    0.5131216392677498,
+    0.6881884963573416,
+    0.41025075374131303,
+    0.4070981438067947,
+    0.44330958058749004,
+    0.5095525027373019,
+    0.40183173953166534
+  ],
+  "surface": "gravel_mud",
+  "roughness": 0.55,
+  "water": 0.15,
+  "jumps": 0.45,
+  "visibility": 0.8,
+  "wetness": 0.35,
+  "blind_route": false,
+  "night": false,
+  "timing_gates_path": "res://data/competition/stages/russia_stage2_timing_gates.json",
+  "cpu_reference_splits": {
+    "CommentTimesNovice": [
+      176.0,
+      186.0,
+      196.0
+    ],
+    "CommentTimesIntermediate": [
+      164.0,
+      174.0,
+      184.0
+    ],
+    "CommentTimesExpert": [
+      150.0,
+      160.0,
+      170.0
+    ],
+    "CommentTimesFTCNovice": [
+      172.0,
+      182.0,
+      192.0
+    ],
+    "CommentTimesFTCIntermediate": [
+      160.0,
+      170.0,
+      180.0
+    ],
+    "CommentTimesFTCExpert": [
+      146.0,
+      156.0,
+      166.0
+    ],
+    "CPUSplit0": [
+      18.0,
+      17.0,
+      15.0
+    ],
+    "CPUSplit1": [
+      16.0,
+      16.0,
+      14.0
+    ],
+    "CPUSplit2": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit3": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit4": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUSplit5": [
+      17.0,
+      15.0,
+      14.0
+    ],
+    "CPUSplit6": [
+      16.0,
+      14.0,
+      13.0
+    ],
+    "CPUSplit7": [
+      13.0,
+      12.0,
+      11.0
+    ],
+    "CPUSplit8": [
+      20.0,
+      18.0,
+      16.0
+    ],
+    "CPUSplit9": [
+      14.0,
+      13.0,
+      12.0
+    ],
+    "CPUFTCSplit0": [
+      17.0,
+      16.0,
+      14.0
+    ],
+    "CPUFTCSplit1": [
+      16.0,
+      16.0,
+      14.0
+    ],
+    "CPUFTCSplit2": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUFTCSplit3": [
+      16.0,
+      15.0,
+      14.0
+    ],
+    "CPUFTCSplit4": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUFTCSplit5": [
+      17.0,
+      15.0,
+      14.0
+    ],
+    "CPUFTCSplit6": [
+      15.0,
+      13.0,
+      12.0
+    ],
+    "CPUFTCSplit7": [
+      13.0,
+      12.0,
+      11.0
+    ],
+    "CPUFTCSplit8": [
+      19.0,
+      17.0,
+      15.0
+    ],
+    "CPUFTCSplit9": [
+      14.0,
+      13.0,
+      12.0
+    ]
+  }
+}

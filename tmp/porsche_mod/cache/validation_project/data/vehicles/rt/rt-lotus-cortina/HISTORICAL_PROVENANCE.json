@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-lotus-cortina",
+  "policy": "game_derived",
+  "source": "Rally Trophy Car.ini/Engine.ini + measured asset geometry; not a certified historic tune",
+  "historical_reference": {
+    "name": "Ford Lotus Cortina Mk1",
+    "archive_numbers": [
+      3,
+      4
+    ],
+    "sources": {
+      "fia": {
+        "page": "https://historicdb.fia.com/car/ford-consul-cortina-lotus",
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1679331601/homologation_form_number_1224_group_t.pdf",
+        "homologation": "1224",
+        "group": "T",
+        "pdf_sha256": "5fb1f90c0dd976d3303289ffa73b6a6aeb9d376b6a52ca799d70e786785b7962"
+      }
+    },
+    "facts": {
+      "displacement_cc": {
+        "value": 1558,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "drive": {
+        "value": "RWD",
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "cylinders": {
+        "value": 4,
+        "source": "fia",
+        "locator": "FIA record",
+        "status": "documented"
+      },
+      "wheelbase_m": {
+        "value": 2.499,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "track_front_m": {
+        "value": 1.31,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "track_rear_m": {
+        "value": 1.275,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "fuel_l": {
+        "value": 36.35,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "mass_kg": {
+        "value": 751,
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "suspension_front": {
+        "value": "independent coil",
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      },
+      "suspension_rear": {
+        "value": "live axle with A-frame and coils",
+        "source": "fia",
+        "locator": "PDF page 6, base form",
+        "status": "documented"
+      }
+    },
+    "variant_note": "Game lists 1598 cc; fiche specifies 1558 cc.",
+    "review": [
+      "period rally mass and weight distribution",
+      "competition torque curve and gearing",
+      "spring and damper rates",
+      "differential setup"
+    ]
+  },
+  "engineering_estimates": [
+    "Mass decomposition, crew, CG and inertia tensor",
+    "Equivalent suspension rates and damping; no measured linkage reconstruction",
+    "Fuel capacity unless explicitly overridden",
+    "Aero, thermal, damage, tire force and filter template calibration"
+  ],
+  "game_derived_fields": [
+    "vehicle dry mass",
+    "gear ratios",
+    "final drive",
+    "torque curve",
+    "idle RPM",
+    "front/rear drive",
+    "brake settings"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
+    "brakes.json": "66c6557c3d1d27382271ff1bb5d4b438ad63dee33a2fcb65e49e07cbd8c89c35",
+    "chassis.json": "63bf5a52ce7e40d9c7f9a08ba59b902f669b591342a745215ee1f517f808a5a4",
+    "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
+    "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
+    "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
+    "fuel.json": "8e217ce2307aef16af17bf1eee9604e6f3b1b34f8e6c53b097f6b6bd799aeb5b",
+    "powertrain.json": "b0d7cc51aaf13de9da2b5470dabe0c86bef40b623988e1d9e839f62ca2925de9",
+    "steering.json": "608b64b6f3293545c503d018ec1f925986205f10c9e613d0521cddc97b00c49d",
+    "suspension.json": "20905f2a8964eca47c163ad912967d7cefa7c0b1659ccdd9762225367f81a916",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tire_filters.json": "d3214594607cc0b4294fb07806802c079dbf98bf9f0a55557502a3ee76776cd9",
+    "tires.json": "a9a225866a74e779e30a20b6820a86b0e46328ff759332719e2acbb660913670",
+    "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
+    "vehicle.json": "85877c9ca4638ddcfbfe28b3c32bcb951a7ae9a2fef5ff498c7bce27a701654a"
+  }
+}

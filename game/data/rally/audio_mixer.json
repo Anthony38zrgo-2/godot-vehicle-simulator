@@ -32,6 +32,11 @@
     }
   },
   "sounds": {
+    "backfire_cabin": {
+      "filter": {
+        "hpf_hz": 380.0
+      }
+    },
     "flat_tyre_mono": {
       "filter": {
         "lpf_hz": 1800.0

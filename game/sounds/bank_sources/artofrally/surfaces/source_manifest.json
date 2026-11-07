@@ -1,0 +1,42 @@
+{
+  "game": "art of rally",
+  "source": {
+    "installation": "D:\\SteamLibrary\\steamapps\\common\\artofrally",
+    "metadata": "artofrally_Data/resources.assets",
+    "audio_stream": "artofrally_Data/resources.resource",
+    "extractor": "UnityPy AudioClip decode (tools; see D:\\ASETS\\arto_rally_surface_sounds)",
+    "note": "Unified tire surfaces: gravel3 also covers dirt and sand; grass2 replaces every grass role."
+  },
+  "entries": [
+    {
+      "file": "06_tierra_rodadura__gravel3.wav",
+      "clip": "gravel3",
+      "role": "unified_gravel",
+      "sha256": "c839520f7ce6fd768807184002edd2ae42604c8f9151e972b507032bf8bb40f2",
+      "frames": 80396,
+      "sample_rate": 22050,
+      "channels": 1,
+      "bits": 16,
+      "duration_s": 3.646077,
+      "clip_path_id": 3728,
+      "resource": "resources.resource",
+      "resource_offset": 373294624,
+      "resource_size": 160836
+    },
+    {
+      "file": "04_hierba_rodadura__grass2.wav",
+      "clip": "grass2",
+      "role": "unified_grass",
+      "sha256": "7e27fe80dfe737df48e2fe7fb3fa37b46258674a659d991561c7204419b8810a",
+      "frames": 151308,
+      "sample_rate": 44100,
+      "channels": 1,
+      "bits": 16,
+      "duration_s": 3.43102,
+      "clip_path_id": 3716,
+      "resource": "resources.resource",
+      "resource_offset": 333182688,
+      "resource_size": 302660
+    }
+  ]
+}

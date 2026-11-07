@@ -1,9 +1,0 @@
-{
-  "id": "rt-alpine-a110-upgrade",
-  "archive": "car_20.bzf",
-  "historical_id": "alpine-a110",
-  "display_name": "Alpine Renault A110 1600 (RT upgrade)",
-  "engine_layout": "rear",
-  "geometry_policy": "native",
-  "physics_policy": "game_derived"
-}

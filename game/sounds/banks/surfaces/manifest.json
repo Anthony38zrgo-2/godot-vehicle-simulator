@@ -1,7 +1,7 @@
 {
   "bank_name": "surfaces",
   "schema_version": 1,
-  "generator": "tools/audio/cmr4_surfaces.py revision 1",
+  "generator": "tools/audio/cmr4_surfaces.py revision 2",
   "source": {
     "game": "Colin McRae Rally 04",
     "executable_sha256": "7dca9f4cab16bc1a98df8871f3d20aec4cd931a818ea0899db86c83c1f712b41",
@@ -40,16 +40,16 @@
   },
   "runtime_map": {
     "gravel": {
-      "roll": "cmr4/gravel/grv_er11.wav",
-      "skid": "cmr4/gravel/grv_es1.wav"
+      "roll": "artofrally/gravel.wav",
+      "skid": "artofrally/gravel.wav"
     },
     "grass": {
-      "roll": "cmr4/grass/grs_er11.wav",
-      "skid": "cmr4/grass/grs_es1.wav"
+      "roll": "artofrally/grass.wav",
+      "skid": "artofrally/grass.wav"
     },
     "dirt": {
-      "roll": "cmr4/dirt/drt_er11.wav",
-      "skid": "cmr4/dirt/drt_es1.wav"
+      "roll": "artofrally/gravel.wav",
+      "skid": "artofrally/gravel.wav"
     },
     "tarmac": {
       "roll": "cmr4/tarmac/tar_er21.wav",
@@ -58,18 +58,18 @@
       "lock": "cmr4/tarmac/tar_l2.wav"
     },
     "sand": {
-      "roll": "legacy/surf_sand.wav"
+      "roll": "artofrally/gravel.wav"
     },
     "rumble": {
       "roll": "legacy/surf_rumble.wav"
     }
   },
   "runtime_map_basis": {
-    "gravel": "grv_er11: first exterior roll of gravel set 1; the scenario's Gravel group is the stage road and terrain",
-    "grass": "grs_er11: first exterior roll of grass set 1 (grs_er21 is the alternate)",
-    "dirt": "drt_er11: first exterior roll of dirt set 1 (drt_er12/13 are alternates)",
+    "gravel": "artofrally/gravel.wav: single art of rally gravel recording (06_tierra_rodadura__gravel3.wav) shared by gravel, dirt and sand",
+    "grass": "artofrally/grass.wav: single art of rally grass recording (04_hierba_rodadura__grass2.wav) shared by every grass role",
+    "dirt": "unified with gravel: same artofrally/gravel.wav recording (no separate dirt sample)",
     "tarmac": "tar set 2 (tar_er21 roll with tar_s2/tar_p2/tar_l2, the cfg pairing of blocks 25/29/35): lowest modulation of the peel and lock candidates (0.73/0.88 dB), and it avoids the 0.48 s peel of set 1; tarmac is not identified by the scenario today",
-    "sand": "legacy surf_sand: no CMR4 sand family exists",
+    "sand": "unified with gravel: same artofrally/gravel.wav recording (no separate sand sample)",
     "rumble": "legacy surf_rumble: no CMR4 rumble/curb family exists; not identified by the scenario"
   },
   "samples": [
@@ -83,7 +83,7 @@
       "role_class": "roll",
       "set": 1,
       "variant": 1,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/drt_er11.wav",
         "sha256": "9833f207dfc8b5661a26608c52ba4fcaf95f5e379771060f02b1d93d873b3293",
@@ -284,7 +284,7 @@
       "role_class": "slip",
       "set": 1,
       "variant": null,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/drt_es1.wav",
         "sha256": "e5f812393e3dc8a624d825d3526cc18ae0ea85e3356514b8203b710a9a794797",
@@ -353,7 +353,7 @@
       "role_class": "roll",
       "set": 1,
       "variant": 1,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/grs_er11.wav",
         "sha256": "f0372e7ff30ebcac2ab379730c3f440a255f3cadb620a6c569ad6bd6950d3e1e",
@@ -491,7 +491,7 @@
       "role_class": "slip",
       "set": 1,
       "variant": null,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/grs_es1.wav",
         "sha256": "3f37702c953618d53a15de4b006f6f190208280891050510bc5b0a2b95963aa6",
@@ -633,7 +633,7 @@
       "role_class": "roll",
       "set": 1,
       "variant": 1,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/grv_er11.wav",
         "sha256": "72e058baa7ef89fe8632047df9266eb1f3d3a257bdbf1d3cf43115f932966192",
@@ -861,7 +861,7 @@
       "role_class": "slip",
       "set": 1,
       "variant": null,
-      "status": "active",
+      "status": "inventory",
       "raw": {
         "path": "game/sounds/bank_sources/cmr4/surfaces/grv_es1.wav",
         "sha256": "d5318c4e0325633f3f8d70722b610ec1b7130affb68fad768a6addb953fd3532",
@@ -4417,14 +4417,16 @@
       "status": "legacy_fallback",
       "sha256": "83840ea38ced28d9efbf97e736206d036fa908fe32d0c8620b412fa3fe99835c",
       "provenance": "moved from commons; see git history",
-      "previous_commons_sha256": null
+      "previous_commons_sha256": null,
+      "runtime": true
     },
     {
       "file": "legacy/surf_sand.wav",
       "status": "legacy_fallback",
       "sha256": "6c57419ae6ee10b3c9fa7d1aca047e0fd37f7f7863e3c6c57f2d52a99ca44885",
       "provenance": "moved from commons; see git history",
-      "previous_commons_sha256": null
+      "previous_commons_sha256": null,
+      "runtime": false
     }
   ],
   "retired_from_commons": [
@@ -4433,5 +4435,127 @@
     "surf_sand.wav",
     "surf_rumble.wav",
     "tyre_scrub.wav"
-  ]
+  ],
+  "unified": {
+    "reason": "gravel, dirt and sand must sound the same; every grass role must sound the same",
+    "law": "same bank level/loop law as the CMR4 samples (DC removal, RMS target, peak ceiling, 120 ms baked equal-power crossfade)",
+    "samples": [
+      {
+        "file": "artofrally/gravel.wav",
+        "family": "gravel",
+        "status": "active",
+        "surfaces": [
+          "gravel",
+          "dirt",
+          "sand"
+        ],
+        "basis": "single loose-surface recording (art of rally 'gravel3') shared by gravel, dirt and sand",
+        "source": {
+          "game": "art of rally",
+          "file": "game/sounds/bank_sources/artofrally/surfaces/06_tierra_rodadura__gravel3.wav",
+          "original_file": "06_tierra_rodadura__gravel3.wav",
+          "clip": "gravel3",
+          "sha256": "c839520f7ce6fd768807184002edd2ae42604c8f9151e972b507032bf8bb40f2",
+          "resource": "resources.resource",
+          "resource_offset": 373294624,
+          "resource_size": 160836
+        },
+        "prepared": {
+          "sha256": "6f20605d814cb0d3841f548960067ba3f34289444df292fa41e9171f4c4a0125",
+          "sample_rate": 22050,
+          "channels": 1,
+          "bits": 16,
+          "frames": 77750,
+          "duration_s": 3.526077,
+          "rms_dbfs": -16.754,
+          "peak_dbfs": -3.195
+        },
+        "processing": {
+          "resampled_from_hz": 22050,
+          "dc_mean_removed_lsb": 253.9875,
+          "source_rms_dbfs": -13.766,
+          "source_peak_dbfs": -0.224,
+          "target_rms_dbfs": -16.737,
+          "gain_db": -2.971,
+          "limiter_scale_db": 0.0,
+          "loop": {
+            "mode": "baked_equal_power",
+            "crossfade_ms": 120.0,
+            "crossfade_frames": 2646,
+            "body_frames": 77750,
+            "runtime_fade": false
+          },
+          "wrap_step_ratio": 0.5349
+        },
+        "analysis": {
+          "spectral_centroid_hz": 1942.4,
+          "modulation_db": 0.813
+        },
+        "loop": {
+          "mode": "baked_equal_power",
+          "crossfade_ms": 120.0,
+          "crossfade_frames": 2646,
+          "body_frames": 77750,
+          "runtime_fade": false
+        }
+      },
+      {
+        "file": "artofrally/grass.wav",
+        "family": "grass",
+        "status": "active",
+        "surfaces": [
+          "grass"
+        ],
+        "basis": "single grass recording (art of rally 'grass2') shared by every grass role",
+        "source": {
+          "game": "art of rally",
+          "file": "game/sounds/bank_sources/artofrally/surfaces/04_hierba_rodadura__grass2.wav",
+          "original_file": "04_hierba_rodadura__grass2.wav",
+          "clip": "grass2",
+          "sha256": "7e27fe80dfe737df48e2fe7fb3fa37b46258674a659d991561c7204419b8810a",
+          "resource": "resources.resource",
+          "resource_offset": 333182688,
+          "resource_size": 302660
+        },
+        "prepared": {
+          "sha256": "1797a8136e4b19b6b1461be82b56c5b9a679de0674192117ad4083c198846abf",
+          "sample_rate": 22050,
+          "channels": 1,
+          "bits": 16,
+          "frames": 73008,
+          "duration_s": 3.31102,
+          "rms_dbfs": -16.756,
+          "peak_dbfs": -3.283
+        },
+        "processing": {
+          "resampled_from_hz": 44100,
+          "dc_mean_removed_lsb": 124.4682,
+          "source_rms_dbfs": -19.334,
+          "source_peak_dbfs": -5.88,
+          "target_rms_dbfs": -16.737,
+          "gain_db": 2.597,
+          "limiter_scale_db": 0.0,
+          "loop": {
+            "mode": "baked_equal_power",
+            "crossfade_ms": 120.0,
+            "crossfade_frames": 2646,
+            "body_frames": 73008,
+            "runtime_fade": false
+          },
+          "wrap_step_ratio": 0.0568
+        },
+        "analysis": {
+          "spectral_centroid_hz": 2784.6,
+          "modulation_db": 0.498
+        },
+        "loop": {
+          "mode": "baked_equal_power",
+          "crossfade_ms": 120.0,
+          "crossfade_frames": 2646,
+          "body_frames": 73008,
+          "runtime_fade": false
+        }
+      }
+    ]
+  }
 }

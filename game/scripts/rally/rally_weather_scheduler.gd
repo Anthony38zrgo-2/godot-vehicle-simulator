@@ -245,7 +245,7 @@ func _precipitation_kind(precip_mm_h: float, ground_c: float, profile: Dictionar
 
 ## Genera el cronograma climático completo del rally. Llamar una sola vez
 ## tras Aceptar el reglaje; el resultado resuelto se persiste.
-func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerary: Array, rally_seed: int, route_paths: Dictionary = {}) -> Dictionary:
+func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerary: Array, rally_seed: int, route_paths: Dictionary = {}, initial_weather: String = "") -> Dictionary:
 	error = ""
 	var rules: Dictionary = event_doc.get("weather_rules", {})
 	if rules.is_empty():
@@ -282,7 +282,30 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 	for i in ordered.size():
 		init_options.append(i)
 		init_weights.append(float(init_weights_d.get(str(ordered[i]), 1.0)))
-	var current := _pick_weighted(rng, init_options, init_weights)
+
+	var current := -1
+	var requested_weather := initial_weather.strip_edges().to_lower()
+	if requested_weather.is_empty() and event_doc.has("initial_weather"):
+		requested_weather = str(event_doc.get("initial_weather", "")).strip_edges().to_lower()
+
+	match requested_weather:
+		"sunny", "soleado":
+			current = ordered.find("sunny")
+		"cloudy", "nublado":
+			current = ordered.find("cloudy")
+		"rain", "lluvia", "medium_precipitation":
+			current = ordered.find("medium_precipitation")
+			if current < 0:
+				current = ordered.find("light_precipitation")
+		"light_precipitation":
+			current = ordered.find("light_precipitation")
+		"random", "aleatorio", "":
+			current = -1
+		_:
+			current = ordered.find(requested_weather)
+
+	if current < 0 or current >= ordered.size():
+		current = _pick_weighted(rng, init_options, init_weights)
 	var adv_w := float(regional.get("within_stage_advance_weight", 0.55))
 	var ret_w := float(regional.get("within_stage_retreat_weight", 0.45))
 	var schedule: Array = []
@@ -351,10 +374,12 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 			var preset: Dictionary = presets[state_id]
 			var climate := _resolve_climate_values(rng, preset, prev_zone_climate)
 			prev_zone_climate = climate
-			# Antecedentes físicos regionales y continuidad térmica/hidrológica:
+			var precip_rate := float(climate.get("precipitation_mm_h", 0.0))
 			var init_water_lo := float(((antecedent.get("initial_water_mm", [0.0, 1.2]) as Array)[0]))
 			var init_water_hi := float(((antecedent.get("initial_water_mm", [0.0, 1.2]) as Array)[1]))
-			var base_water := _sample_range(rng, init_water_lo, init_water_hi)
+			var base_water := 0.0
+			if precip_rate > 0.05:
+				base_water = _sample_range(rng, maxf(init_water_lo, 0.6), maxf(init_water_hi, 1.5))
 			var ground_lo := 13.0
 			var ground_hi := 21.0
 			if antecedent.has("initial_ground_c"):
@@ -364,18 +389,18 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 			if si > 0 and zi == 0:
 				var prev_abs_m := float((itinerary[si - 1] as Dictionary).get("absolute_minutes", (si - 1) * 120.0)) if si > 0 and si - 1 < itinerary.size() else float((si - 1) * 120.0)
 				var sim_res := simulate_liaison_physical_balance(gap_h, prev_abs_m, prev_avg_ground, prev_avg_water, regional)
-				var precip_add := float(climate.get("precipitation_mm_h", 0.0)) * (0.30 + rng.randf() * 0.20)
+				var precip_add := precip_rate * (0.30 + rng.randf() * 0.20)
 				base_water = clampf(float(sim_res.water_mm) + precip_add, 0.0, 12.0)
 				ground_c = lerpf(float(sim_res.ground_c), float(climate.get("air_temperature_c", ground_c)), 0.35) + rng.randf_range(-0.5, 0.5)
 			elif zi > 0:
 				var carry_water: float = float((zones_out[zi - 1] as Dictionary).get("initial_water_mm", base_water))
 				var carry_ground: float = float((zones_out[zi - 1] as Dictionary).get("initial_ground_c", ground_c))
-				var precip_add := float(climate.get("precipitation_mm_h", 0.0)) * (0.22 + rng.randf() * 0.18)
-				base_water = clampf(carry_water * 0.85 + precip_add * 0.38 + base_water * 0.15, 0.0, 12.0)
+				var precip_add := precip_rate * (0.22 + rng.randf() * 0.18)
+				base_water = clampf(carry_water * 0.80 + precip_add * 0.38, 0.0, 12.0)
 				ground_c = lerpf(carry_ground, float(climate.get("air_temperature_c", ground_c)), 0.28) + rng.randf_range(-0.4, 0.4)
 			else:
-				if float(climate.get("precipitation_mm_h", 0.0)) > 0.5:
-					base_water = maxf(base_water, 0.8 + rng.randf() * 1.2)
+				if precip_rate > 0.4:
+					base_water = maxf(base_water, 1.0 + precip_rate * 0.35 + rng.randf() * 0.5)
 				ground_c = lerpf(ground_c, float(climate.get("air_temperature_c", ground_c)), 0.3)
 			var init_sat_lo := 0.05
 			var init_sat_hi := 0.35

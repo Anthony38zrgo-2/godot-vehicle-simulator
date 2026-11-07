@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_garage_panel.gd" id="1_garage"]
+
+[node name="RallyGaragePanel" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_garage")
+vehicle_path = NodePath("../FordEscortRS2000")
+input_controller_path = NodePath("../RallyInputController")
+mode = "rally"

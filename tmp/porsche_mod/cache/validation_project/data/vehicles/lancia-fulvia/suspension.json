@@ -1,0 +1,326 @@
+{
+  "suspension": {
+    "contact_shape_count": 1,
+    "contact_query_type": "ShapeCast3D",
+    "front": {
+      "spring_architecture": "double_wishbone_transverse_leaf",
+      "spring_can_unseat": false,
+      "arb_ratio": 0.16,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": -0.03490658503988659,
+      "camber_gain_rad_per_m": -0.015,
+      "damping_ratio": 0.55,
+      "rebound_damp_multiplier": 1.3333333333333333,
+      "resting_ratio": 0.35,
+      "spring_length": 0.28,
+      "toe": 0.001745,
+      "toe_gain_rad_per_m": 0.01,
+      "ride_frequency_hz": 1.75,
+      "axle_type": "transverse_leaf_wishbone",
+      "roll_center_height_m": 0.05,
+      "transverse_leaf": true,
+      "leaf_symmetric_rate_n_per_m": 20000.0
+    },
+    "geometry_physical": {
+      "corners": {
+        "FL": {
+          "damper": {
+            "chassis": [
+              -0.05499307390975949,
+              -0.3649550810108185,
+              -1.0050000095367428
+            ]
+          },
+          "hub_center": [
+            -0.6100000739097596,
+            -0.29495508101081847,
+            -1.2400000095367432
+          ],
+          "lower_wishbone": {
+            "inner_front": [
+              -0.11044007390975952,
+              -0.3272100810108185,
+              -1.2857310095367431
+            ],
+            "inner_rear": [
+              -0.13250707390975947,
+              -0.3262130810108185,
+              -0.828059009536743
+            ],
+            "outer": [
+              -0.4679180739097596,
+              -0.3266550810108185,
+              -1.2438980095367431
+            ]
+          },
+          "provenance": {
+            "origin": "estimated",
+            "note": "Equivalent Fulvia suspension geometry reanchored to original Rally Trophy high-detail wheel centres."
+          },
+          "rocker": {
+            "axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "damper_arm": [
+              -0.05499307390975949,
+              -0.1645200810108185,
+              -1.0650000095367433
+            ],
+            "pivot": [
+              -0.05499307390975949,
+              -0.1645200810108185,
+              -1.211208009536743
+            ],
+            "pushrod_arm": [
+              -0.05499307390975949,
+              -0.1645200810108185,
+              -1.3712080095367432
+            ]
+          },
+          "rod": {
+            "attachment": "lower",
+            "outer": [
+              -0.43724207390975944,
+              -0.3142290810108185,
+              -1.2039290095367434
+            ],
+            "type": "pushrod"
+          },
+          "trackrod": {
+            "inner": [
+              -0.10908607390975955,
+              -0.32790708101081856,
+              -1.371327009536743
+            ],
+            "outer": [
+              -0.4646530739097595,
+              -0.3283610810108185,
+              -1.3510780095367432
+            ]
+          },
+          "upper_wishbone": {
+            "inner_front": [
+              -0.11044007390975952,
+              -0.15885908101081847,
+              -1.2857310095367431
+            ],
+            "inner_rear": [
+              -0.13250707390975947,
+              -0.15786208101081844,
+              -0.9616320095367432
+            ],
+            "outer": [
+              -0.4679180739097596,
+              -0.15830508101081847,
+              -1.2438980095367431
+            ]
+          }
+        },
+        "FR": {
+          "mirror_of": "FL",
+          "provenance": {
+            "origin": "estimated",
+            "note": "Equivalent Fulvia suspension geometry reanchored to original Rally Trophy high-detail wheel centres."
+          }
+        },
+        "RL": {
+          "damper": {
+            "chassis": [
+              -0.3700001335144042,
+              0.44174609780311586,
+              0.8400000095367433
+            ]
+          },
+          "driveshaft": {
+            "inner": [
+              -0.04474113351440423,
+              -0.28826590219688414,
+              1.252802009536743
+            ],
+            "outer": [
+              -0.6100001335144044,
+              -0.28488790219688415,
+              1.2400000095367432
+            ]
+          },
+          "hub_center": [
+            -0.6100001335144044,
+            -0.28488790219688415,
+            1.2400000095367432
+          ],
+          "lower_wishbone": {
+            "inner_front": [
+              -0.07000013351440426,
+              -0.3848879021968841,
+              1.040000009536743
+            ],
+            "inner_rear": [
+              -0.07000013351440426,
+              -0.3848879021968841,
+              1.4400000095367433
+            ],
+            "outer": [
+              -0.4900001335144043,
+              -0.3848879021968841,
+              1.2400000095367432
+            ]
+          },
+          "provenance": {
+            "origin": "estimated",
+            "note": "Equivalent Fulvia suspension geometry reanchored to original Rally Trophy high-detail wheel centres."
+          },
+          "rocker": {
+            "axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "damper_arm": [
+              -0.3700001335144042,
+              0.09174609780311585,
+              0.8400000095367433
+            ],
+            "pivot": [
+              -0.3700001335144042,
+              0.09174609780311585,
+              1.2400000095367432
+            ],
+            "pushrod_arm": [
+              -0.3700001335144042,
+              0.09174609780311585,
+              0.8400000095367433
+            ]
+          },
+          "rod": {
+            "attachment": "lower",
+            "outer": [
+              -0.4900001335144043,
+              -0.3848879021968841,
+              1.2400000095367432
+            ],
+            "type": "pushrod"
+          },
+          "trackrod": {
+            "inner": [
+              -0.07000013351440426,
+              -0.28488790219688415,
+              1.390000009536743
+            ],
+            "outer": [
+              -0.4900001335144043,
+              -0.28488790219688415,
+              1.390000009536743
+            ]
+          },
+          "upper_wishbone": {
+            "inner_front": [
+              -0.07000013351440426,
+              -0.18488790219688417,
+              1.040000009536743
+            ],
+            "inner_rear": [
+              -0.07000013351440426,
+              -0.18488790219688417,
+              1.4400000095367433
+            ],
+            "outer": [
+              -0.4900001335144043,
+              -0.18488790219688417,
+              1.2400000095367432
+            ]
+          }
+        },
+        "RR": {
+          "mirror_of": "RL",
+          "provenance": {
+            "origin": "estimated",
+            "note": "Equivalent Fulvia suspension geometry reanchored to original Rally Trophy high-detail wheel centres."
+          }
+        }
+      },
+      "front": {
+        "arb_damper_Ns_per_m": 120.0,
+        "bump_stop_damper_Ns_per_m": 600.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.02,
+        "damper_bump_Ns_per_m": 1800.0,
+        "damper_fast_factor": 0.5,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.45,
+        "damper_min_m": 0.15,
+        "damper_rebound_Ns_per_m": 2400.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.28,
+        "spring_installed_length_m": 0.24,
+        "spring_rate_N_per_m": 28000.0,
+        "wheel_bump_m": 0.095,
+        "wheel_droop_m": 0.075
+      },
+      "front_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.2
+      },
+      "rear": {
+        "arb_damper_Ns_per_m": 80.0,
+        "bump_stop_damper_Ns_per_m": 600.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.02,
+        "damper_bump_Ns_per_m": 3000.0,
+        "damper_fast_factor": 0.8,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.6,
+        "damper_min_m": 0.1,
+        "damper_rebound_Ns_per_m": 4000.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.28,
+        "spring_installed_length_m": 0.24,
+        "spring_rate_N_per_m": 24000.0,
+        "wheel_bump_m": 0.095,
+        "wheel_droop_m": 0.075
+      },
+      "rear_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.08
+      },
+      "version": 1
+    },
+    "model": "geometric",
+    "model_version": 1,
+    "rear": {
+      "spring_architecture": "dead_axle_longitudinal_leaf",
+      "spring_can_unseat": false,
+      "arb_ratio": 0.07,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": -0.008726646259971648,
+      "camber_gain_rad_per_m": 0.0,
+      "damping_ratio": 0.55,
+      "rebound_damp_multiplier": 1.3333333333333333,
+      "resting_ratio": 0.35,
+      "spring_length": 0.28,
+      "toe": 0.0,
+      "toe_gain_rad_per_m": 0.0,
+      "ride_frequency_hz": 1.85,
+      "axle_type": "live_axle_leaf",
+      "jacking_coeff": 0.0,
+      "droop_strap_m": 99.0,
+      "roll_center_height_m": 0.1
+    },
+    "tri_ray_spacing_ratio": 0.35,
+    "use_authored_wheel_centers": true,
+    "virtual_unsprung_mass_multiplier": 1.15
+  }
+}

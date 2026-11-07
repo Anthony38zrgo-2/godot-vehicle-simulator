@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Fiat 600 Abarth",
-    "vehicle_mass": 827.0,
+    "vehicle_mass": 775.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
     "front_weight_distribution": 0.4,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.445
   },
   "geometry": {
-    "wheelbase": 2.065000057220459,
-    "front_axle_z": -1.0299999713897705,
-    "rear_axle_z": 1.0350000858306885,
-    "front_track": 1.1750000715255737,
-    "rear_track": 1.1750000715255737
+    "wheelbase": 2.0,
+    "front_axle_z": -1.0,
+    "rear_axle_z": 1.0,
+    "front_track": 1.21,
+    "rear_track": 1.22
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 827.0,
+    "base_budget_kilograms": 775.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 525.0,
+          "mass_kilograms": 473.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": 0.040630073479243606
+            "y": 0.445,
+            "z": 0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                147.0,
+                603.5,
                 0,
                 0
               ],
               [
                 0,
-                288.75,
+                629.0,
                 0
               ],
               [
                 0,
                 0,
-                78.75
+                178.5
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 1.1902500987052917
+            "y": 0.395,
+            "z": 0.4
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.565,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.565,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.8280000686645508
+            "y": 0.425,
+            "z": -0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

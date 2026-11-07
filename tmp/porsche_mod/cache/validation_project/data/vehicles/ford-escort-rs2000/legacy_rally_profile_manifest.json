@@ -1,0 +1,11 @@
+{
+  "profile_id": "ford-escort-rs2000",
+  "domains": {
+    "chassis": "res://data/vehicles/ford-escort-rs2000/chassis.json",
+    "suspension": "res://data/vehicles/ford-escort-rs2000/suspension.json",
+    "tires": "res://data/vehicles/ford-escort-rs2000/tires.json",
+    "tire_filters": "res://data/vehicles/ford-escort-rs2000/tire_filters.json",
+    "powertrain": "res://data/vehicles/ford-escort-rs2000/powertrain.json",
+    "aerodynamics": "res://data/vehicles/ford-escort-rs2000/aerodynamics.json"
+  }
+}

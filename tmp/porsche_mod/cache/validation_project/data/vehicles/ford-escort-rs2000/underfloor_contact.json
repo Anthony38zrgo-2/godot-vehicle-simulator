@@ -1,0 +1,19 @@
+{
+  "underfloor_contact": {
+    "activation_clearance_m": 0.05,
+    "approach_clearance_m": 0.08,
+    "clearance_filter_seconds": 0.015,
+    "contact_hold_seconds": 0.06,
+    "damping_n_s_m": 3500.0,
+    "enabled": true,
+    "linear_rate_n_m": 450000.0,
+    "max_force_per_probe_n": 15000.0,
+    "normal_min_y": 0.5,
+    "progressive_rate_n_m2": 6000000.0,
+    "release_clearance_m": 0.12,
+    "rigid_contact_spring_scale": 0.3,
+    "rigid_hold_seconds": 0.08,
+    "rigid_maximum_local_height_metres": -0.05,
+    "rigid_minimum_impulse_newton_seconds": 12.0
+  }
+}

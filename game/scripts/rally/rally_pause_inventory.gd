@@ -1,41 +1,77 @@
 extends CanvasLayer
 
 # =============================================================================
-# CONSTANTES VISUALES — SISTEMA DE DISEÑO DEL GARAJE
+# CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
 # =============================================================================
 
-const FONT := preload("res://fonts/libron/Libron-Regular.ttf")
-const BOLD := preload("res://fonts/libron/Libron-Bold.ttf")
+# 2.2. Estandarización Tipográfica (Sin Serif)
+const FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const BOLD := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 
-# --- Aero Glass -------------------------------------------------------------
-const C_BACK := Color("#080d12")
-const C_GLASS := Color("#16232f")
-const C_GLASS_DEEP := Color("#0d151d")
-const C_RIM := Color("#7fa8c9")
-const C_CHROME_TEXT := Color("#eaf2f8")
-const C_CHROME_DIM := Color("#93a9bb")
-const C_BLUE := Color("#6db2e8")
-const C_BLUE_DEEP := Color("#2c6da3")
+# 2.3. Paleta Workbench Motorsport (Ventana Pausa / Inventario)
+const WB_BG_SHELL := Color("#090e15")
+const WB_BG_HEADER := Color("#0d141e")
+const WB_BG_FOOTER := Color("#0d141e")
+const WB_BG_TAB_INACTIVE := Color("#111822")
+const WB_BG_TAB_ACTIVE := Color("#1a2636")
+const WB_BG_CONTENT := Color("#1a2636")
+const WB_BG_CARD := Color("#223246")
+const WB_BG_CARD_HOVER := Color("#2a3d54")
+const WB_BG_WELL := Color("#0c141e")
+const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
+const WB_BORDER_HOVER := Color(1.0, 1.0, 1.0, 0.20)
+const WB_BORDER_FOCUS := Color("#ffffff")
+const WB_BORDER_ACCENT := Color("#e5a93c")
+const WB_SLIDER_TRACK := Color("#0c141e")
+const WB_SLIDER_FILL := Color("#4a7bb0")
+const WB_SLIDER_THUMB := Color("#eaf2fa")
+const WB_SLIDER_STEPPER := Color("#25364b")
+const WB_TEXT_TITLE := Color("#f0f5fa")
+const WB_TEXT_LABEL := Color("#9ab0c7")
+const WB_TEXT_DATA := Color("#ffffff")
+const WB_TEXT_ACCENT := Color("#e5a93c")
 
-# --- Paneles clásicos y tarjetas de datos ------------------------------------
-const C_FACE := Color("#2b3d4d")
-const C_FACE_HI := Color("#374c5e")
-const C_FACE_LO := Color("#22323f")
-const C_FIELD := Color("#0c151d")
-const C_HI := Color("#93afc8")
-const C_LIGHT := Color("#5d7890")
-const C_SHADOW := Color("#101b25")
-const C_DARK := Color("#000000")
-const C_TEXT := Color("#e2edf6")
-const C_DIM := Color("#9eb3c5")
-const C_GOLD := Color("#e3b23c")
-const C_GOLD_HI := Color("#f6d68a")
-const C_ROSE := Color("#ff6b61")
-const C_SEL := Color("#3b3324")
-const C_GREEN := Color("#55d67b")
+const BG_BASE := WB_BG_SHELL
+const BG_SURFACE := WB_BG_CONTENT
+const BG_HOVER := WB_BG_CARD_HOVER
+const BG_CARD := WB_BG_CARD
+const BORDER_SUBTLE := WB_BORDER_SUBTLE
+const BORDER_FOCUS := WB_BORDER_FOCUS
+const TEXT_PRIMARY := WB_TEXT_TITLE
+const TEXT_MUTED := WB_TEXT_LABEL
+const ACCENT_RALLY := WB_BORDER_ACCENT
+const ACCENT_ALERT := Color("#f59e0b")
+const STATUS_DANGER := Color("#ef4444")
+const STATUS_SUCCESS := Color("#22c55e")
+
+# Aliases de compatibilidad interna
+const C_BACK := WB_BG_SHELL
+const C_GLASS := WB_BG_HEADER
+const C_GLASS_DEEP := WB_BG_WELL
+const C_RIM := WB_BORDER_SUBTLE
+const C_CHROME_TEXT := WB_TEXT_TITLE
+const C_CHROME_DIM := WB_TEXT_LABEL
+const C_BLUE := WB_SLIDER_FILL
+const C_BLUE_DEEP := Color("#16283b")
+
+const C_FACE := WB_BG_CONTENT
+const C_FACE_HI := WB_BG_CARD_HOVER
+const C_FACE_LO := WB_BG_CARD
+const C_FIELD := WB_BG_WELL
+const C_HI := WB_BORDER_HOVER
+const C_LIGHT := WB_BORDER_SUBTLE
+const C_SHADOW := Color(0.0, 0.0, 0.0, 0.25)
+const C_DARK := Color("#060a0f")
+const C_TEXT := WB_TEXT_TITLE
+const C_DIM := WB_TEXT_LABEL
+const C_GOLD := ACCENT_RALLY
+const C_GOLD_HI := Color("#f8df9e")
+const C_ROSE := STATUS_DANGER
+const C_SEL := WB_BG_CARD_HOVER
+const C_GREEN := STATUS_SUCCESS
 
 # =============================================================================
 # VARIABLES PÚBLICAS Y DE CONTRATO
@@ -149,7 +185,7 @@ func _build_modal_skeleton() -> void:
 	header_hbox.add_child(title_vbox)
 
 	header_title = Label.new()
-	header_title.text = "PAUSA · COMPETICIÓN // RALLY"
+	header_title.text = "PAUSA · COMPETICIÓN · RALLY"
 	header_title.add_theme_font_override("font", FONT_TITLE)
 	header_title.add_theme_font_size_override("font_size", 17)
 	header_title.add_theme_color_override("font_color", C_CHROME_TEXT)
@@ -330,7 +366,7 @@ func label(text: String) -> void:
 	var node := Label.new()
 	node.text = text
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if text.begins_with("//") or text.begins_with("PAUSA") or text.begins_with("NEUMÁTICOS") or text.begins_with("REPARACIONES"):
+	if text.begins_with("PAUSA") or text.begins_with("NEUMÁTICOS") or text.begins_with("REPARACIONES") or text.begins_with("OPCIONES") or text.begins_with("DIAGNÓSTICO"):
 		node.add_theme_font_override("font", BOLD)
 		node.add_theme_font_size_override("font_size", 12)
 		node.add_theme_color_override("font_color", C_GOLD)
@@ -394,10 +430,10 @@ func show_menu() -> void:
 	if telemetry_panel != null:
 		telemetry_panel.visible = true
 	clear()
-	_update_header("PAUSA · COMPETICIÓN // RALLY", "GESTIÓN DEL VEHÍCULO Y OPCIONES EN TRAMO")
+	_update_header("PAUSA · COMPETICIÓN · RALLY", "GESTIÓN DEL VEHÍCULO Y OPCIONES EN TRAMO")
 	_update_telemetry_panel()
 
-	label("// OPCIONES DISPONIBLES")
+	label("OPCIONES DISPONIBLES")
 	
 	# Acción primaria: Reanudar carrera
 	button("Reanudar", toggle)
@@ -427,10 +463,10 @@ func show_quick_repairs() -> void:
 	if telemetry_panel != null:
 		telemetry_panel.visible = true
 	clear()
-	_update_header("REPARACIONES RÁPIDAS // RADIADOR", "SERVICIO DE EMERGENCIA Y REPARACIÓN EN TRAMO")
+	_update_header("REPARACIONES RÁPIDAS · RADIADOR", "SERVICIO DE EMERGENCIA Y REPARACIÓN EN TRAMO")
 	_update_telemetry_panel()
 
-	label("// DIAGNÓSTICO DEL RADIADOR")
+	label("DIAGNÓSTICO DEL RADIADOR")
 	var rad_damage := get_radiator_damage()
 	var pct := roundi(rad_damage * 100.0)
 
@@ -589,7 +625,7 @@ func show_inventory() -> void:
 	trunk_vbox.add_child(trunk_header)
 
 	var t_title := Label.new()
-	t_title.text = "// MALETERO · REPUESTOS A BORDO"
+	t_title.text = "MALETERO · REPUESTOS A BORDO"
 	t_title.add_theme_font_override("font", FONT_TITLE)
 	t_title.add_theme_font_size_override("font_size", 11)
 	t_title.add_theme_color_override("font_color", C_RIM)
@@ -966,58 +1002,52 @@ func _make_glass_style(radius: int, fill: Color, rim: Color) -> StyleBoxFlat:
 	s.border_color = rim
 	s.set_border_width_all(1)
 	s.set_corner_radius_all(radius)
-	s.shadow_color = Color(0, 0, 0, 0.45)
-	s.shadow_size = 6
-	s.shadow_offset = Vector2(0, 3)
+	s.shadow_size = 0
 	return s
 
 
 func _make_classic_panel_style() -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color = C_FACE
-	s.border_color = Color(C_HI.r, C_HI.g, C_HI.b, 0.6)
+	s.bg_color = BG_SURFACE
+	s.border_color = BORDER_SUBTLE
 	s.set_border_width_all(1)
-	s.shadow_color = Color(0, 0, 0, 0.35)
-	s.shadow_size = 4
+	s.shadow_size = 0
 	return s
 
 
 func _make_card_style() -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color = Color(C_FIELD, 0.95)
-	s.border_color = Color(0.18, 0.26, 0.34, 0.6)
+	s.bg_color = BG_CARD
+	s.border_color = BORDER_SUBTLE
 	s.set_border_width_all(1)
-	s.set_corner_radius_all(5)
+	s.set_corner_radius_all(2)
 	s.content_margin_left = 10
 	s.content_margin_right = 10
 	s.content_margin_top = 6
 	s.content_margin_bottom = 6
+	s.shadow_size = 0
 	return s
 
 
 func _style_gold_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#b8862a")
+	normal.bg_color = Color("#d49b2f")
 	normal.border_color = C_GOLD_HI
-	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(6)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 20
 	normal.content_margin_right = 20
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
-	normal.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.4)
-	normal.shadow_size = 6
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#cf9932")
-	hover.border_color = Color("#fff2c2")
-	hover.shadow_size = 8
-	hover.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.65)
+	hover.bg_color = Color("#e5aa37")
+	hover.border_color = Color.WHITE
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#996e1f")
+	pressed.bg_color = Color("#b38020")
 	pressed.border_color = C_GOLD
-	pressed.shadow_size = 2
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -1025,32 +1055,31 @@ func _style_gold_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 13)
-	btn.add_theme_color_override("font_color", Color("#1a1206"))
+	btn.add_theme_color_override("font_color", Color("#0a0e14"))
 	btn.add_theme_color_override("font_hover_color", Color("#000000"))
 	btn.add_theme_color_override("font_pressed_color", Color("#000000"))
-	btn.add_theme_color_override("font_focus_color", Color("#1a1206"))
+	btn.add_theme_color_override("font_focus_color", Color("#0a0e14"))
 
 
 func _style_chrome_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(C_GLASS, 0.92)
-	normal.border_color = Color(C_RIM, 0.35)
+	normal.bg_color = BG_CARD
+	normal.border_color = BORDER_SUBTLE
 	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.14, 0.22, 0.30, 0.95)
-	hover.border_color = Color(C_BLUE, 0.65)
-	hover.shadow_color = Color(C_BLUE.r, C_BLUE.g, C_BLUE.b, 0.3)
-	hover.shadow_size = 4
+	hover.bg_color = BG_HOVER
+	hover.border_color = BORDER_FOCUS
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.08, 0.12, 0.18, 0.95)
-	pressed.border_color = Color(C_RIM, 0.5)
+	pressed.bg_color = BG_BASE
+	pressed.border_color = ACCENT_RALLY
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -1058,31 +1087,30 @@ func _style_chrome_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", C_CHROME_TEXT)
+	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", C_BLUE)
+	btn.add_theme_color_override("font_pressed_color", ACCENT_RALLY)
 	btn.add_theme_color_override("font_focus_color", Color.WHITE)
 
 
 func _style_caution_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.16, 0.13, 0.08, 0.90)
-	normal.border_color = Color(C_GOLD, 0.45)
+	normal.bg_color = Color(0.14, 0.11, 0.06, 0.90)
+	normal.border_color = Color(ACCENT_ALERT, 0.40)
 	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.24, 0.18, 0.10, 0.95)
-	hover.border_color = C_GOLD_HI
-	hover.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.3)
-	hover.shadow_size = 4
+	hover.bg_color = Color(0.20, 0.15, 0.08, 0.95)
+	hover.border_color = ACCENT_ALERT
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.10, 0.08, 0.05, 0.95)
+	pressed.bg_color = Color(0.08, 0.06, 0.03, 0.95)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -1090,31 +1118,30 @@ func _style_caution_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", C_GOLD_HI)
+	btn.add_theme_color_override("font_color", ACCENT_ALERT)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", C_GOLD)
-	btn.add_theme_color_override("font_focus_color", C_GOLD_HI)
+	btn.add_theme_color_override("font_pressed_color", ACCENT_ALERT)
+	btn.add_theme_color_override("font_focus_color", ACCENT_ALERT)
 
 
 func _style_danger_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.18, 0.08, 0.08, 0.90)
-	normal.border_color = Color(C_ROSE, 0.5)
+	normal.bg_color = Color(0.14, 0.06, 0.08, 0.85)
+	normal.border_color = Color(STATUS_DANGER, 0.40)
 	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.26, 0.10, 0.10, 0.95)
-	hover.border_color = Color(1.0, 0.45, 0.45)
-	hover.shadow_color = Color(C_ROSE.r, C_ROSE.g, C_ROSE.b, 0.3)
-	hover.shadow_size = 4
+	hover.bg_color = Color(0.22, 0.08, 0.10, 0.95)
+	hover.border_color = Color("#ff857d")
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.10, 0.05, 0.05, 0.95)
+	pressed.bg_color = Color(0.08, 0.04, 0.05, 0.95)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -1124,26 +1151,25 @@ func _style_danger_button(btn: Button) -> void:
 	btn.add_theme_font_size_override("font_size", 12)
 	btn.add_theme_color_override("font_color", Color("#ff9e97"))
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", C_ROSE)
+	btn.add_theme_color_override("font_pressed_color", STATUS_DANGER)
 	btn.add_theme_color_override("font_focus_color", Color("#ff9e97"))
 
 
 func _style_selected_wheel_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = C_SEL
-	normal.border_color = C_GOLD
-	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(6)
+	normal.bg_color = BG_HOVER
+	normal.border_color = ACCENT_RALLY
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(2)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
-	normal.shadow_color = Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.3)
-	normal.shadow_size = 4
+	normal.shadow_size = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#4a3f2c")
-	hover.border_color = C_GOLD_HI
+	hover.bg_color = Color(0.18, 0.24, 0.32, 0.95)
+	hover.border_color = BORDER_FOCUS
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -1151,10 +1177,10 @@ func _style_selected_wheel_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", BOLD)
 	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", Color("#ffd700"))
+	btn.add_theme_color_override("font_color", ACCENT_RALLY)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", Color("#ffd700"))
-	btn.add_theme_color_override("font_focus_color", Color("#ffd700"))
+	btn.add_theme_color_override("font_pressed_color", ACCENT_RALLY)
+	btn.add_theme_color_override("font_focus_color", ACCENT_RALLY)
 
 
 func _style_option_button(opt: OptionButton) -> void:
@@ -1430,7 +1456,7 @@ class WheelSlotControl extends PanelContainer:
 
 		var title_text: String
 		if slot_type == "mounted":
-			var names: Array[String] = ["FL // DELANT. IZQ", "FR // DELANT. DER", "RL // TRAS. IZQ", "RR // TRAS. DER"]
+			var names: Array[String] = ["FL · DELANT. IZQ", "FR · DELANT. DER", "RL · TRAS. IZQ", "RR · TRAS. DER"]
 			title_text = names[slot_index]
 		else:
 			title_text = "MALETERO #%d (#%d)" % [slot_index + 1, int(tire_data.get("id", 0))]

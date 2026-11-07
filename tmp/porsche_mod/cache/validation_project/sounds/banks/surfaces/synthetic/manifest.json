@@ -1,0 +1,13 @@
+{
+  "source": "Original procedural synthesis; no game samples",
+  "generator": "tools/audio/synthesize_sand_impact.py",
+  "seed": 43017,
+  "sample_rate": 22050,
+  "channels": 1,
+  "bits": 16,
+  "duration_s": 0.72,
+  "peak_dbfs": -9,
+  "rms_dbfs": -29.488414852169903,
+  "sha256": "3350282f43ea05e1058963235d16cc336fcbad49ec705986ea84f5afaed35bb7",
+  "role": "Sparse sand grains hitting bodywork; non-looping; Sand contact only"
+}

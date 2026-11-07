@@ -1,5 +1,7 @@
 extends SceneTree
 
+const EventManagerScript = preload("res://scripts/rally/rally_event_manager.gd")
+
 var failures: Array[String] = []
 
 func check(ok: bool, message: String) -> void:
@@ -167,8 +169,8 @@ func test_rally_event_itinerary_slicing() -> void:
 
 
 func test_single_stage_and_championship_isolation() -> void:
-	print("[5] Comprobando aislamiento de guardado oficial en Single Stage y Championship...")
-	# Comprobar que en single_stage o championship la sesión no escribe guardados oficiales de evento
+	print("[5] Comprobando aislamiento de guardado oficial en Single Stage y progresión en Championship...")
+	# 1. Comprobar que en single_stage la sesión es aislada y no permite pasar al siguiente tramo
 	var session_scene = load("res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn").instantiate()
 	session_scene.track_id = "russia_stage2"
 	session_scene.session_track_id = "russia_stage2"
@@ -191,6 +193,36 @@ func test_single_stage_and_championship_isolation() -> void:
 	check(bool(comp_state.get("allow_next", true)) == false, "Single stage no debe permitir pasar al siguiente tramo")
 
 	session_scene.queue_free()
+	await process_frame
+
+	# 2. Comprobar que Championship tiene gestor propio, progresión habilitada y guardado independiente
+	var champ_scene = load("res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn").instantiate()
+	champ_scene.track_id = "russia_stage1"
+	champ_scene.session_track_id = "russia_stage1"
+	champ_scene.session_mode = "championship"
+	champ_scene.selected_vehicle_key = "escort"
+	champ_scene.weather_enabled = false
+
+	var champ_manager = EventManagerScript.new()
+	var champ_ok: bool = champ_manager.begin_event({"start_stage_id": "russia_stage1", "save_path": "user://championship_event_v1.json", "preview": true})
+	check(champ_ok, "Gestor de evento para Championship se inicia correctamente")
+	check(champ_manager.save_path == "user://championship_event_v1.json", "Championship usa guardado independiente")
+	champ_scene.begin_event_session(champ_manager, "russia_stage1")
+
+	root.add_child(champ_scene)
+	current_scene = champ_scene
+
+	for i in 300:
+		await physics_frame
+		if champ_scene.session_ready:
+			break
+
+	check(champ_scene.session_ready, "Sesión de Championship lista")
+	check(champ_scene.event_manager != null, "Championship tiene gestor de evento")
+	var champ_comp_state: Dictionary = champ_scene.get_competition_panel_state()
+	check(bool(champ_comp_state.get("allow_next", true)) == true, "Championship debe permitir pasar al siguiente tramo")
+
+	champ_scene.queue_free()
 	await process_frame
 
 

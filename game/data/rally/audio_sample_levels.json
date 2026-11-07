@@ -493,6 +493,18 @@
         "gain_db": -1.938,
         "prepared_rms_dbfs": -13.386,
         "prepared_peak_dbfs": -2.093
+      },
+      "artofrally/gravel.wav": {
+        "source_rms_dbfs": -13.766,
+        "gain_db": -2.971,
+        "prepared_rms_dbfs": -16.754,
+        "prepared_peak_dbfs": -3.195
+      },
+      "artofrally/grass.wav": {
+        "source_rms_dbfs": -19.334,
+        "gain_db": 2.597,
+        "prepared_rms_dbfs": -16.756,
+        "prepared_peak_dbfs": -3.283
       }
     }
   }

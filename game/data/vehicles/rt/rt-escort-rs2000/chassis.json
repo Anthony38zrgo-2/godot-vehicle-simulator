@@ -1,64 +1,65 @@
 {
   "chassis": {
     "vehicle_name": "Ford Escort RS2000",
-    "vehicle_mass": 1104.0,
+    "vehicle_mass": 965.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
     "front_weight_distribution": 0.52,
     "inertia_multipliers": {
       "x": 1,
       "y": 1,
       "z": 1
-    }
+    },
+    "target_cg_z_m": 0.485
   },
   "geometry": {
-    "wheelbase": 2.4100000858306885,
-    "front_axle_z": -1.2049999237060547,
-    "rear_axle_z": 1.2050001621246338,
-    "front_track": 1.2800000309944153,
-    "rear_track": 1.28000009059906
+    "wheelbase": 2.41,
+    "front_axle_z": -1.205,
+    "rear_axle_z": 1.205,
+    "front_track": 1.37,
+    "rear_track": 1.395
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 1104.0,
+    "base_budget_kilograms": 965.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "body_and_systems",
         "properties": {
           "name": "body_and_systems",
-          "mass_kilograms": 802.0,
+          "mass_kilograms": 663.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.48,
-            "z": 0.028607627744983863
+            "y": 0.485,
+            "z": 0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                224.56000000000003,
+                1071.0,
                 0,
                 0
               ],
               [
                 0,
-                441.1,
+                1113.5,
                 0
               ],
               [
                 0,
                 0,
-                120.3
+                284.8
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "mass_origin": "recalibrated_1974",
+            "center_of_mass_origin": "recalibrated_1974",
+            "inertia_origin": "recalibrated_1974"
           }
         },
         "rotating_wheel": null
@@ -74,8 +75,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": -0.9639999389648438
+            "y": 0.435,
+            "z": -0.3
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -116,8 +117,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": -0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.605,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -158,8 +159,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0.3,
-            "y": 0.6,
-            "z": 0
+            "y": 0.605,
+            "z": 0.05
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -200,8 +201,8 @@
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.4,
-            "z": 0.964000129699707
+            "y": 0.465,
+            "z": -0.02
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

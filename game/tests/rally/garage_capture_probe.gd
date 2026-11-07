@@ -7,8 +7,8 @@ var root_node: Node3D
 var vehicle: RallyEscortVehicle
 var garage: Control
 var frame_count := 0
-var out_dir := "user://garage_recalibrated_v2/"
-var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/eb4dd1c3-160a-4704-9234-decca75916c2/"
+var out_dir := "user://garage_workbench/"
+var brain_dir := "C:/Users/bill/.gemini/antigravity/brain/f555cd39-d09d-485e-9ac7-83b5ba3bd42a/"
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))
@@ -29,46 +29,32 @@ func _init() -> void:
 
 func _process(delta: float) -> bool:
 	frame_count += 1
-	if frame_count == 3:
+	if frame_count == 4:
 		garage.set("vehicle", vehicle)
 		garage.call("open_garage_for_event", {
 			"forecast_summary": "Cielo nublado · Humedad 60%",
 			"forecast_advice": "Compuesto sugerido: Normal",
-			"window_label": "Asistencia de Competición"
+			"window_label": "Inicio · Stage 1"
 		})
-		garage.set("page", 1)
-		garage.set("active_subsystem_idx", 2)
-		garage.set("active_subparam_idx", 0)
+		garage.call("_set_page", 0)
 		garage.queue_redraw()
 		print("Garage opened: visible=", garage.visible, " page=", garage.get("page"))
-	elif frame_count == 6:
-		_save_capture("cmr_page_0.png")
-		garage.set("page", 1)
-		garage.set("active_subsystem_idx", 0)
-		garage.set("active_subparam_idx", 0)
-		garage.queue_redraw()
-	elif frame_count == 9:
-		_save_capture("cmr_page_1.png")
-		garage.set("page", 1)
-		garage.set("active_subsystem_idx", 1)
-		garage.set("active_subparam_idx", 0)
+	elif frame_count == 8:
+		_save_capture("workbench_page_0_rapido.png")
+		garage.call("_set_page", 1)
+		garage.set("advanced_section", 0)
 		garage.queue_redraw()
 	elif frame_count == 12:
-		_save_capture("cmr_page_2.png")
-		garage.set("page", 2)
+		_save_capture("workbench_page_1_avanzado.png")
+		garage.call("_set_page", 2)
 		garage.queue_redraw()
-	elif frame_count == 15:
-		_save_capture("cmr_page_3.png")
-		garage.set("page", 3)
+	elif frame_count == 16:
+		_save_capture("workbench_page_2_estrategia.png")
+		garage.call("_set_page", 3)
 		garage.queue_redraw()
-	elif frame_count == 18:
-		_save_capture("cmr_page_4.png")
-		garage.set("modal_mode", "name")
-		garage.set("modal_text", "Rally Asfalto Mixto")
-		garage.queue_redraw()
-	elif frame_count == 21:
-		_save_capture("cmr_modal_name.png")
-		print("All Colin McRae minimal Y2K captures completed successfully!")
+	elif frame_count == 20:
+		_save_capture("workbench_page_3_perfiles.png")
+		print("All Workbench captures completed successfully!")
 		quit(0)
 	return false
 

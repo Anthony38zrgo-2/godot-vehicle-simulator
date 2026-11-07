@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-lotus-cortina",
+  "source": {
+    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_3.bzf",
+    "archive_sha256": "3f12ab1299da918892c84150377cf56d5fa85844583b674a3be7de10f33691a6",
+    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
+    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
+    "generator": "tools/rally_trophy",
+    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
+    "recipe": {
+      "id": "rt-lotus-cortina",
+      "archive": "car_3.bzf",
+      "historical_id": "lotus-cortina",
+      "display_name": "Ford Lotus Cortina Mk1",
+      "engine_layout": "front",
+      "geometry_policy": "native",
+      "physics_policy": "game_derived"
+    },
+    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+  },
+  "samples": [
+    {
+      "file": "rt-lotus-cortina__CE_2k1.wav",
+      "sha256": "0667ff0febbf2577bf695f872ae1a376f427cd021dd90442cf24f0c861654e90",
+      "origin": "native_byte_identical",
+      "source_file": "CE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.455419501133787,
+      "rms": 0.36154382836219945,
+      "gain": 0.3319099666106937,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CE_4k1.wav",
+      "sha256": "2633661ac8d4b81294c158e45918ee62ab6cbd3ad63009c86e6f389d3e066c37",
+      "origin": "native_byte_identical",
+      "source_file": "CE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5554648526077097,
+      "rms": 0.44142682604866523,
+      "gain": 0.27184573505455817,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CE_6k1.wav",
+      "sha256": "8118946bc6d7a6f64fd7ad2aecd8c60262a9c132dc9a128778c8c90cc7f5a0f4",
+      "origin": "native_byte_identical",
+      "source_file": "CE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.111609977324263,
+      "rms": 0.5748084556995325,
+      "gain": 0.2087651961451436,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CE_Idle2.wav",
+      "sha256": "24378bb85aecb421723ff86b525e7cfacbb5dfc934c8596788474dcfe84ef6d6",
+      "origin": "native_byte_identical",
+      "source_file": "CE_Idle2.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7921995464852607,
+      "rms": 0.29956317186773085,
+      "gain": 0.400583286830014,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CX_2k1.wav",
+      "sha256": "b77c04dc2817dfa0312c55ecfdb22635959775059ec47bf06ad009a46e48db20",
+      "origin": "native_byte_identical",
+      "source_file": "CX_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.004126984126984,
+      "rms": 0.27058297972963,
+      "gain": 0.4434868745990806,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CX_4k1.wav",
+      "sha256": "ee1e382f8b163a8ee600198d304613d22414cafc041c2ad5df6b121c42c9f943",
+      "origin": "native_byte_identical",
+      "source_file": "CX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9033106575963719,
+      "rms": 0.43177519136176384,
+      "gain": 0.27792240592039413,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CX_6k1.wav",
+      "sha256": "0e79d4c66e22c0f8c4a2be25656a843634f7b2aa62b46d3774d9aa1caf11d016",
+      "origin": "native_byte_identical",
+      "source_file": "CX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5797278911564625,
+      "rms": 0.36800246465221087,
+      "gain": 0.32608477259359864,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__CX_Idle1.wav",
+      "sha256": "455a27f7ec4e4413a0cca6b7e3ed84543400423294af2cf93db84a4f61593c35",
+      "origin": "native_byte_identical",
+      "source_file": "CX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6406802721088436,
+      "rms": 0.31208152120204613,
+      "gain": 0.38451491628788315,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__engine_coast_1.wav",
+      "sha256": "ab05ba8676bf9affffed632cfc8a807ad80107a8bed32bfa4cd47b4606787f5c",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CE_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.455419501133787,
+      "rms": 0.357389159624503,
+      "gain": 0.33576843832107284,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__engine_coast_2.wav",
+      "sha256": "a1bfc7c62d19c919b513a4852a1f787266d6297cea7ac8d40fe8e87b9c20b95b",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CE_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5554648526077097,
+      "rms": 0.4235831672873293,
+      "gain": 0.2832973764479181,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__engine_coast_3.wav",
+      "sha256": "27b339044725f7d32ad0754ffa9ae1469aec21235a489f24e342e609c6804f84",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CE_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.111609977324263,
+      "rms": 0.5623631938461121,
+      "gain": 0.21338523095598855,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__exhaust_coast_1.wav",
+      "sha256": "7944733497b172ea3de20c3dc2a312cfea4dc700b13a9e8a2588116abd3ee3ad",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CX_2k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.004126984126984,
+      "rms": 0.26962920559412246,
+      "gain": 0.44505564497578237,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__exhaust_coast_2.wav",
+      "sha256": "7b70944e8e378b3595e372d4f74ed3f9e1c347ed3636f0f5199fbc0f2e15f089",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CX_4k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9033106575963719,
+      "rms": 0.4270048561963703,
+      "gain": 0.2810272488910866,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__exhaust_coast_3.wav",
+      "sha256": "966812536f9ad592ad6cc1374026cb97ad7a53a7869b12e6ff70d30c2748a954",
+      "origin": "derived_lowpass_coast",
+      "source_file": "CX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.5797278911564625,
+      "rms": 0.35915729580486777,
+      "gain": 0.33411544579953817,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__whine_low.wav",
+      "sha256": "fe8fb71f0e8d583f79b59c7ba2c404eb5a4642bedc997dfbcea184e18b3b07b8",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_low.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__whine_high.wav",
+      "sha256": "821ad27a9ad7980ad99e2b233ca9594763cd33f43d2cca20620be7be02ce42c3",
+      "origin": "synthesized_generic_gearbox",
+      "source_file": "whine_high.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.0,
+      "rms": 0.07342548131218873,
+      "gain": 1.634310022290311,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__lift_1.wav",
+      "sha256": "2866d876d279d31a5de4a10e474554b8fe051e545eb5262fd40d21c2990f67d5",
+      "origin": "derived_lift_approximation",
+      "source_file": "CX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.15433883721543087,
+      "gain": 0.7775100691765633,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__lift_2.wav",
+      "sha256": "75bbba30dd5a8a9775f6db65b5ecbb3a9f6c7b3df5c0bc3581203ec7f0e7275f",
+      "origin": "derived_lift_approximation",
+      "source_file": "CX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.18125957332457435,
+      "gain": 0.6620339979788032,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "file": "rt-lotus-cortina__lift_3.wav",
+      "sha256": "18e398cc4ac5521dbdc33a28cba550c547399f7c87418c6267afaf498d7a455f",
+      "origin": "derived_lift_approximation",
+      "source_file": "CX_6k1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.16,
+      "rms": 0.15508302747520197,
+      "gain": 0.7737790650184991,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_Idle2.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.400583286830014
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_2k1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.3319099666106937
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.27184573505455817
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.2087651961451436
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__engine_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.33576843832107284
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__engine_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.2832973764479181
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__engine_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.21338523095598855
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_Idle1.wav",
+      "reference": 1200.0,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.38451491628788315
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_2k1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "drive",
+      "gain": 0.4434868745990806
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_4k1.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "drive",
+      "gain": 0.27792240592039413
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_6k1.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "drive",
+      "gain": 0.32608477259359864
+    }
+  ],
+  "coast_exhaust": [
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__exhaust_coast_1.wav",
+      "reference": 1500.0,
+      "lower": 0,
+      "upper": 4000.0,
+      "mode": "coast",
+      "gain": 0.44505564497578237
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__exhaust_coast_2.wav",
+      "reference": 3000.0,
+      "lower": 1300.0,
+      "upper": 6000.0,
+      "mode": "coast",
+      "gain": 0.2810272488910866
+    },
+    {
+      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__exhaust_coast_3.wav",
+      "reference": 5000.0,
+      "lower": 2800.0,
+      "upper": 15000,
+      "mode": "coast",
+      "gain": 0.33411544579953817
+    }
+  ],
+  "whine": [
+    "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__whine_low.wav",
+    "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -0.8
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "calibration": "RPM centres from Sounds.ini; overlap adapted to shared mixer. Native recordings unchanged. Coast/lift derived; gearbox synthesized.",
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ]
+}

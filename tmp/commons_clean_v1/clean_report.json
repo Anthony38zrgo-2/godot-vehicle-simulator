@@ -1,0 +1,1581 @@
+{
+  "ceiling_dbfs": -3.0,
+  "rows": [
+    {
+      "file": "backfire_1.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match backfire_ext (-16.8->-18.8 LUFS)"
+      ],
+      "sha_before": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b",
+      "before": {
+        "lufs": -16.757636540859263,
+        "true_peak_dbfs": -2.0995283287816076,
+        "sub_30_ratio": 0.003706371208727932,
+        "seam_ratio": 0.050525890308292055,
+        "duration_s": 0.474286
+      },
+      "gain_db": -2.06367514702308,
+      "trimmed_s": 2.8571428567492063e-07,
+      "after": {
+        "lufs": -18.82331236127268,
+        "true_peak_dbfs": -2.99972484758651,
+        "peak": 0.7079681922837702,
+        "rms_dbfs": -18.475132351789362,
+        "dc_offset": 2.8202649255587953e-06,
+        "sub_30_ratio": 0.0005762210175329523,
+        "seam_ratio": 0.011889030684780337,
+        "duration_s": 0.4742857142857143,
+        "frames": 20916
+      },
+      "sha256_after": "8548d39f94ce12e064e2a97286f381d54c033258b177c84fe5aed57e59ed67a0"
+    },
+    {
+      "file": "backfire_5.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "trim -3.8 dB (pico sobre techo)",
+        "limit +3.8->-3.0 dBFS (-3.0 dB pico)"
+      ],
+      "sha_before": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89",
+      "before": {
+        "lufs": -9.505944734968747,
+        "true_peak_dbfs": 0.029338910831446848,
+        "sub_30_ratio": 0.0006288232308613919,
+        "seam_ratio": 0.4777002896431488,
+        "duration_s": 0.158821
+      },
+      "gain_db": -3.7708972526514426,
+      "trimmed_s": 1.383219954409487e-07,
+      "limiter_reduction_db": 3.0,
+      "after": {
+        "lufs": -15.55939270187586,
+        "true_peak_dbfs": -3.0000000000000018,
+        "peak": 0.707744936646845,
+        "rms_dbfs": -14.419927816052693,
+        "dc_offset": -0.001279546024505852,
+        "sub_30_ratio": 0.0003540563691609614,
+        "seam_ratio": 0.20775249925406286,
+        "duration_s": 0.15882086167800455,
+        "frames": 7004
+      },
+      "sha256_after": "e44c88ef399860fb0596765f9a779375c795ac7c1b2dcff5112a2201fac0076f"
+    },
+    {
+      "file": "backfire_7.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match backfire_ext (-16.8->-18.8 LUFS)"
+      ],
+      "sha_before": "0e771e7d22eae509cc16f365d16f55d4224ac323edd9c8b77182d9f96d64dc0f",
+      "before": {
+        "lufs": -16.75763845232103,
+        "true_peak_dbfs": -2.1005190770764774,
+        "sub_30_ratio": 0.003706362485985878,
+        "seam_ratio": 0.048847864169249404,
+        "duration_s": 0.474286
+      },
+      "gain_db": -2.0636732372203817,
+      "trimmed_s": 2.8571428567492063e-07,
+      "after": {
+        "lufs": -18.823312361272684,
+        "true_peak_dbfs": -3.0000000000000027,
+        "peak": 0.7079441997364299,
+        "rms_dbfs": -18.475131871771477,
+        "dc_offset": 2.81648982079209e-06,
+        "sub_30_ratio": 0.0005762235836747442,
+        "seam_ratio": 0.010189163639369518,
+        "duration_s": 0.4742857142857143,
+        "frames": 20916
+      },
+      "sha256_after": "73e078e05765f68d3cea444ae1f378984accee34490977fd23f040f0f4e7cb5d"
+    },
+    {
+      "file": "backfire_9.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "fade-in 0.4 ms",
+        "match backfire_ext (-10.5->-18.8 LUFS)"
+      ],
+      "sha_before": "0a53416e49602489b4450ea580cc1aa2ec6d46428be0c2635f53326a2c61e51d",
+      "before": {
+        "lufs": -10.41159475523638,
+        "true_peak_dbfs": -0.8569881154021517,
+        "sub_30_ratio": 0.015119685810075013,
+        "seam_ratio": 3.7710978501374695,
+        "duration_s": 0.429569
+      },
+      "gain_db": -8.341795058510893,
+      "trimmed_s": -1.609977324235068e-07,
+      "after": {
+        "lufs": -18.823312361272684,
+        "true_peak_dbfs": -5.827785593543965,
+        "peak": 0.49854501850892635,
+        "rms_dbfs": -17.21582056943314,
+        "dc_offset": -0.00023071200631873977,
+        "sub_30_ratio": 0.003148687271632339,
+        "seam_ratio": 0.2164500803835728,
+        "duration_s": 0.4295691609977324,
+        "frames": 18944
+      },
+      "sha256_after": "9f5d5ce712b3d040c77b93b363e1c7ada8a3392157ad225fb3440daad3c28461"
+    },
+    {
+      "file": "backfire_ext_1.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match backfire_ext (-16.8->-18.8 LUFS)",
+        "alias de backfire_1.wav (mismo sha256)"
+      ],
+      "sha_before": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b",
+      "before": {
+        "lufs": -16.757636540859263,
+        "true_peak_dbfs": -2.0995283287816076,
+        "sub_30_ratio": 0.003706371208727932,
+        "seam_ratio": 0.050525890308292055,
+        "duration_s": 0.474286
+      },
+      "gain_db": -2.06367514702308,
+      "trimmed_s": 2.8571428567492063e-07,
+      "after": {
+        "lufs": -18.82331236127268,
+        "true_peak_dbfs": -2.99972484758651,
+        "peak": 0.7079681922837702,
+        "rms_dbfs": -18.475132351789362,
+        "dc_offset": 2.8202649255587953e-06,
+        "sub_30_ratio": 0.0005762210175329523,
+        "seam_ratio": 0.011889030684780337,
+        "duration_s": 0.4742857142857143,
+        "frames": 20916
+      },
+      "sha256_after": "8548d39f94ce12e064e2a97286f381d54c033258b177c84fe5aed57e59ed67a0"
+    },
+    {
+      "file": "backfire_ext_2.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match backfire_ext (-16.8->-18.8 LUFS)",
+        "alias de backfire_1.wav (mismo sha256)"
+      ],
+      "sha_before": "bf7b7dcf5479e88ddc0cb72a3e34198e2ccf852ecee9ae6e46934d13571e3f9b",
+      "before": {
+        "lufs": -16.757636540859263,
+        "true_peak_dbfs": -2.0995283287816076,
+        "sub_30_ratio": 0.003706371208727932,
+        "seam_ratio": 0.050525890308292055,
+        "duration_s": 0.474286
+      },
+      "gain_db": -2.06367514702308,
+      "trimmed_s": 2.8571428567492063e-07,
+      "after": {
+        "lufs": -18.82331236127268,
+        "true_peak_dbfs": -2.99972484758651,
+        "peak": 0.7079681922837702,
+        "rms_dbfs": -18.475132351789362,
+        "dc_offset": 2.8202649255587953e-06,
+        "sub_30_ratio": 0.0005762210175329523,
+        "seam_ratio": 0.011889030684780337,
+        "duration_s": 0.4742857142857143,
+        "frames": 20916
+      },
+      "sha256_after": "8548d39f94ce12e064e2a97286f381d54c033258b177c84fe5aed57e59ed67a0"
+    },
+    {
+      "file": "backfire_ext_3.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match backfire_ext (-16.8->-18.8 LUFS)",
+        "alias de backfire_7.wav (mismo sha256)"
+      ],
+      "sha_before": "0e771e7d22eae509cc16f365d16f55d4224ac323edd9c8b77182d9f96d64dc0f",
+      "before": {
+        "lufs": -16.75763845232103,
+        "true_peak_dbfs": -2.1005190770764774,
+        "sub_30_ratio": 0.003706362485985878,
+        "seam_ratio": 0.048847864169249404,
+        "duration_s": 0.474286
+      },
+      "gain_db": -2.0636732372203817,
+      "trimmed_s": 2.8571428567492063e-07,
+      "after": {
+        "lufs": -18.823312361272684,
+        "true_peak_dbfs": -3.0000000000000027,
+        "peak": 0.7079441997364299,
+        "rms_dbfs": -18.475131871771477,
+        "dc_offset": 2.81648982079209e-06,
+        "sub_30_ratio": 0.0005762235836747442,
+        "seam_ratio": 0.010189163639369518,
+        "duration_s": 0.4742857142857143,
+        "frames": 20916
+      },
+      "sha256_after": "73e078e05765f68d3cea444ae1f378984accee34490977fd23f040f0f4e7cb5d"
+    },
+    {
+      "file": "backfire_ext_4.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "fade-in 0.4 ms",
+        "match backfire_ext (-10.5->-18.8 LUFS)",
+        "alias de backfire_9.wav (mismo sha256)"
+      ],
+      "sha_before": "0a53416e49602489b4450ea580cc1aa2ec6d46428be0c2635f53326a2c61e51d",
+      "before": {
+        "lufs": -10.41159475523638,
+        "true_peak_dbfs": -0.8569881154021517,
+        "sub_30_ratio": 0.015119685810075013,
+        "seam_ratio": 3.7710978501374695,
+        "duration_s": 0.429569
+      },
+      "gain_db": -8.341795058510893,
+      "trimmed_s": -1.609977324235068e-07,
+      "after": {
+        "lufs": -18.823312361272684,
+        "true_peak_dbfs": -5.827785593543965,
+        "peak": 0.49854501850892635,
+        "rms_dbfs": -17.21582056943314,
+        "dc_offset": -0.00023071200631873977,
+        "sub_30_ratio": 0.003148687271632339,
+        "seam_ratio": 0.2164500803835728,
+        "duration_s": 0.4295691609977324,
+        "frames": 18944
+      },
+      "sha256_after": "9f5d5ce712b3d040c77b93b363e1c7ada8a3392157ad225fb3440daad3c28461"
+    },
+    {
+      "file": "backfire_int.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "trim -3.8 dB (pico sobre techo)",
+        "limit +3.8->-3.0 dBFS (-3.0 dB pico)",
+        "alias de backfire_5.wav (mismo sha256)"
+      ],
+      "sha_before": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89",
+      "before": {
+        "lufs": -9.505944734968747,
+        "true_peak_dbfs": 0.029338910831446848,
+        "sub_30_ratio": 0.0006288232308613919,
+        "seam_ratio": 0.4777002896431488,
+        "duration_s": 0.158821
+      },
+      "gain_db": -3.7708972526514426,
+      "trimmed_s": 1.383219954409487e-07,
+      "limiter_reduction_db": 3.0,
+      "after": {
+        "lufs": -15.55939270187586,
+        "true_peak_dbfs": -3.0000000000000018,
+        "peak": 0.707744936646845,
+        "rms_dbfs": -14.419927816052693,
+        "dc_offset": -0.001279546024505852,
+        "sub_30_ratio": 0.0003540563691609614,
+        "seam_ratio": 0.20775249925406286,
+        "duration_s": 0.15882086167800455,
+        "frames": 7004
+      },
+      "sha256_after": "e44c88ef399860fb0596765f9a779375c795ac7c1b2dcff5112a2201fac0076f"
+    },
+    {
+      "file": "bad_brakes.wav",
+      "loop": true,
+      "actions": [
+        "hpf 35 Hz"
+      ],
+      "sha_before": "6b920b3d1eabf79409fe93d09e0cb0363826be31bbef588d0beb43e325d78795",
+      "before": {
+        "lufs": -19.158969561620037,
+        "true_peak_dbfs": -9.357270952969275,
+        "sub_30_ratio": 3.6121787176148596e-06,
+        "seam_ratio": 0.23576826196473552,
+        "duration_s": 1.08
+      },
+      "gain_db": 0.0,
+      "trimmed_s": 0.0,
+      "after": {
+        "lufs": -19.158974887233754,
+        "true_peak_dbfs": -9.351479689593903,
+        "peak": 0.34074226776662614,
+        "rms_dbfs": -21.00002397755035,
+        "dc_offset": 4.349714328653251e-06,
+        "sub_30_ratio": 2.132012174662726e-07,
+        "seam_ratio": 0.2056268361654045,
+        "duration_s": 1.08,
+        "frames": 47628
+      },
+      "sha256_after": "31f77a3fe04a7aec8efba24102edde4e97d6dc7c1a5a751a3b3ade92b61ab5dd"
+    },
+    {
+      "file": "damaged_rin.wav",
+      "loop": true,
+      "actions": [
+        "hpf 35 Hz"
+      ],
+      "sha_before": "5757d331d017cb040194737581b2f8333d7c0c710d2f31bd1183eb96d82e9a6b",
+      "before": {
+        "lufs": -19.022829547003187,
+        "true_peak_dbfs": -4.169446353194975,
+        "sub_30_ratio": 3.614396528493743e-06,
+        "seam_ratio": 0.021073758153537382,
+        "duration_s": 2.471111
+      },
+      "gain_db": 0.0,
+      "trimmed_s": -1.1111111097861226e-07,
+      "after": {
+        "lufs": -19.02284134781944,
+        "true_peak_dbfs": -4.342022365381255,
+        "peak": 0.604007381224561,
+        "rms_dbfs": -20.000034811668197,
+        "dc_offset": 2.2834264294364194e-06,
+        "sub_30_ratio": 2.3921351549318687e-07,
+        "seam_ratio": 0.029037259903526902,
+        "duration_s": 2.471111111111111,
+        "frames": 108976
+      },
+      "sha256_after": "d75f34221cb0d5bada7bd77edd4a5c1bd8ae90e67ea03b0df71a94f2208360e8"
+    },
+    {
+      "file": "f2002_geardn.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match gearbox_f2002 (-16.3->-17.1 LUFS)"
+      ],
+      "sha_before": "421a7136b22b1624fda39fe9c0540de73b8a9b8c170e328bc44c4db44e09ee3e",
+      "before": {
+        "lufs": -16.119334425194282,
+        "true_peak_dbfs": -3.561411025277973,
+        "sub_30_ratio": 0.004747208932701302,
+        "seam_ratio": 0.07624633431085044,
+        "duration_s": 0.193764
+      },
+      "gain_db": -0.847039103449692,
+      "trimmed_s": -1.7233560092866362e-07,
+      "after": {
+        "lufs": -17.116647670780395,
+        "true_peak_dbfs": -4.151266666650592,
+        "peak": 0.6200642128558098,
+        "rms_dbfs": -14.69909856539574,
+        "dc_offset": -7.776501233108747e-05,
+        "sub_30_ratio": 0.001755151213067879,
+        "seam_ratio": 1.1734526121177873,
+        "duration_s": 0.19376417233560092,
+        "frames": 8545
+      },
+      "sha256_after": "d67e07d0d144518d1383719b9c13c15cbe87680b83691c8e6b47d9262efe6a82"
+    },
+    {
+      "file": "f2002_gearup.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match gearbox_f2002 (-18.0->-17.1 LUFS)"
+      ],
+      "sha_before": "f656d22c4b161d16e70bda277066246b99e73d83d0dd5833fa5c2d63ae9d0657",
+      "before": {
+        "lufs": -17.926027468165092,
+        "true_peak_dbfs": -5.676072892760119,
+        "sub_30_ratio": 0.0132015271439208,
+        "seam_ratio": 0.0,
+        "duration_s": 0.296077
+      },
+      "gain_db": 0.8470391034496885,
+      "trimmed_s": -9.750566892785528e-08,
+      "after": {
+        "lufs": -17.11664767078039,
+        "true_peak_dbfs": -4.8455636804343385,
+        "peak": 0.5722140770527583,
+        "rms_dbfs": -15.884929345244228,
+        "dc_offset": -7.315427186495714e-05,
+        "sub_30_ratio": 0.004468509198711017,
+        "seam_ratio": 0.19556438816779892,
+        "duration_s": 0.2960770975056689,
+        "frames": 13057
+      },
+      "sha256_after": "484e6237cfc5003cf309999837457c745479c75f8e95d5786d4859eb2abee46c"
+    },
+    {
+      "file": "flat_tyre_mono.wav",
+      "loop": true,
+      "actions": [
+        "hpf 35 Hz"
+      ],
+      "sha_before": "dcdfe1798df0094862e9f15ea7d88d8636d1c1ed588906f36a51e8a8e7e1c72e",
+      "before": {
+        "lufs": -20.820585184182093,
+        "true_peak_dbfs": -3.8228051606152498,
+        "sub_30_ratio": 0.026324786362476885,
+        "seam_ratio": 0.031496062992125984,
+        "duration_s": 8.814717
+      },
+      "gain_db": 0.0,
+      "trimmed_s": 4.467120184870055e-07,
+      "after": {
+        "lufs": -20.963070481465653,
+        "true_peak_dbfs": -3.7332842394231385,
+        "peak": 0.6502699229944116,
+        "rms_dbfs": -19.372460114076233,
+        "dc_offset": 1.7055646034208366e-05,
+        "sub_30_ratio": 0.005634795673095142,
+        "seam_ratio": 0.17098427669728863,
+        "duration_s": 8.814716553287981,
+        "frames": 388729
+      },
+      "sha256_after": "018971f6d6a7a116f314d0213aabf91c396ec2f9d3f91f49f280eaed0f9cd80c"
+    },
+    {
+      "file": "impact_land_1.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_land (-14.2->-16.5 LUFS)"
+      ],
+      "sha_before": "f2aa9f081c2e917bde4fec92a37b002f51080abfa97edca9cde49afd132062dc",
+      "before": {
+        "lufs": -14.175875991550729,
+        "true_peak_dbfs": -0.9898992419334691,
+        "sub_30_ratio": 0.00042840154713116136,
+        "seam_ratio": 0.0,
+        "duration_s": 0.495601
+      },
+      "gain_db": -2.3075563749176116,
+      "trimmed_s": 9.297052155909924e-08,
+      "after": {
+        "lufs": -16.496295479469527,
+        "true_peak_dbfs": -3.0,
+        "peak": 0.7079524596427826,
+        "rms_dbfs": -16.64295012768941,
+        "dc_offset": 1.1834309522503057e-05,
+        "sub_30_ratio": 7.73514989479603e-05,
+        "seam_ratio": 0.0144864475774236,
+        "duration_s": 0.49560090702947845,
+        "frames": 21856
+      },
+      "sha256_after": "e808075eba05af6c769a0c5459400c26b04db7c6a95faa843bc1644639c6ecb2"
+    },
+    {
+      "file": "impact_land_2.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_land (-9.8->-16.5 LUFS)"
+      ],
+      "sha_before": "753c2ba7f9c252c7eab42f73ddcc4ae8f9ddc57c16a65906978571531a30cc27",
+      "before": {
+        "lufs": -9.84184113140476,
+        "true_peak_dbfs": -0.42395295883571965,
+        "sub_30_ratio": 0.06234905573082539,
+        "seam_ratio": 0.00020786909236039506,
+        "duration_s": 0.821224
+      },
+      "gain_db": -6.647388344547059,
+      "trimmed_s": -4.897959183791656e-07,
+      "after": {
+        "lufs": -16.49629547946953,
+        "true_peak_dbfs": -4.7980120235572254,
+        "peak": 0.5418291682367771,
+        "rms_dbfs": -17.302016300746043,
+        "dc_offset": -1.5115848152394781e-05,
+        "sub_30_ratio": 0.0013726326691703137,
+        "seam_ratio": 0.004240835210221704,
+        "duration_s": 0.8212244897959183,
+        "frames": 36216
+      },
+      "sha256_after": "4c8d7caaa37317632d162fecb5c7994de485f953e7bfc2c3237cc97feca832a0"
+    },
+    {
+      "file": "impact_land_3.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_land (-14.3->-16.5 LUFS)",
+        "trim -0.2 dB (pico sobre techo)",
+        "limit -1.0->-3.0 dBFS (-1.9 dB pico)"
+      ],
+      "sha_before": "a4cc1a2d6e9ed1347fe85ce555c6ea9905dbb3b52058fc816eaaf41060728160",
+      "before": {
+        "lufs": -14.244869791783918,
+        "true_peak_dbfs": -0.8420334451352974,
+        "sub_30_ratio": 0.08626861384233221,
+        "seam_ratio": 0.0,
+        "duration_s": 0.921542
+      },
+      "gain_db": -2.3345890279901145,
+      "trimmed_s": 4.9886621278361076e-08,
+      "limiter_reduction_db": 1.9,
+      "after": {
+        "lufs": -16.861185892368976,
+        "true_peak_dbfs": -3.0000000000000018,
+        "peak": 0.6930952253731482,
+        "rms_dbfs": -15.58752210451674,
+        "dc_offset": 5.38121885318572e-06,
+        "sub_30_ratio": 0.022437079925216437,
+        "seam_ratio": 0.11205932701343635,
+        "duration_s": 0.9215419501133787,
+        "frames": 40640
+      },
+      "sha256_after": "470c6cb83886eb10aa834f0eac188a77ac632c8eb781acb34a6e17cba3c3a782"
+    },
+    {
+      "file": "impact_large.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "trim -0.2 dB (pico sobre techo)",
+        "limit -1.0->-3.0 dBFS (-2.0 dB pico)"
+      ],
+      "sha_before": "d37808932712e4345cedc962818da33d453be299a14f9f333cee6c376e773ff1",
+      "before": {
+        "lufs": -15.67938020133756,
+        "true_peak_dbfs": -0.9158969986297465,
+        "sub_30_ratio": 0.004171185091606414,
+        "seam_ratio": 0.01612630738277709,
+        "duration_s": 1.131633
+      },
+      "gain_db": -0.1812410523699377,
+      "trimmed_s": 3.469387754861941e-07,
+      "limiter_reduction_db": 1.97,
+      "after": {
+        "lufs": -16.093228208258008,
+        "true_peak_dbfs": -3.0000000000000018,
+        "peak": 0.6933267354206455,
+        "rms_dbfs": -15.698682476469338,
+        "dc_offset": 0.00010986598269421667,
+        "sub_30_ratio": 0.0011450072538333484,
+        "seam_ratio": 0.03156609239828849,
+        "duration_s": 1.1316326530612244,
+        "frames": 49905
+      },
+      "sha256_after": "557c714dc22def4cd389a1cee3c5167953c36f56084613c4a7e91e04c115f806"
+    },
+    {
+      "file": "impact_medium_1.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_medium (-14.2->-17.8 LUFS)",
+        "limit -3.0->-3.0 dBFS (-0.0 dB pico)"
+      ],
+      "sha_before": "f9b1e0502e862e79c982cdc77fe5beddf6ba925b867f6648e591eade30466178",
+      "before": {
+        "lufs": -14.171569192632626,
+        "true_peak_dbfs": -0.9538230604614926,
+        "sub_30_ratio": 0.018672819471805317,
+        "seam_ratio": 0.014363608731591409,
+        "duration_s": 0.803719
+      },
+      "gain_db": -3.6372320409678145,
+      "trimmed_s": 1.791383219540421e-07,
+      "limiter_reduction_db": 0.0,
+      "after": {
+        "lufs": -17.841093333222336,
+        "true_peak_dbfs": -2.9999999999999987,
+        "peak": 0.6747831910046542,
+        "rms_dbfs": -18.202995798537216,
+        "dc_offset": 1.959323954668039e-06,
+        "sub_30_ratio": 0.0061886158258431705,
+        "seam_ratio": 0.020225341651467894,
+        "duration_s": 0.803718820861678,
+        "frames": 35444
+      },
+      "sha256_after": "e25fd1e0807aa93dd85d8b4c477024ae60b3de7ca5e7bb728a6efe072581700d"
+    },
+    {
+      "file": "impact_medium_2.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_medium (-15.6->-17.8 LUFS)"
+      ],
+      "sha_before": "c3860c35b7f3a4296d0dd286f586c5669f1019b8eb242f310e40152395825c3e",
+      "before": {
+        "lufs": -15.532485977272607,
+        "true_peak_dbfs": -0.998440684481598,
+        "sub_30_ratio": 0.0036721950373333413,
+        "seam_ratio": 0.001526745528162347,
+        "duration_s": 0.786961
+      },
+      "gain_db": -2.2181690246599413,
+      "trimmed_s": -4.512471655226946e-07,
+      "after": {
+        "lufs": -17.810781259157174,
+        "true_peak_dbfs": -3.030312074065158,
+        "peak": 0.7054794965251066,
+        "rms_dbfs": -16.779447762820944,
+        "dc_offset": 1.590557827679478e-06,
+        "sub_30_ratio": 0.0013116901419239985,
+        "seam_ratio": 0.010604977973895304,
+        "duration_s": 0.7869614512471655,
+        "frames": 34705
+      },
+      "sha256_after": "2e9e1c9fdddd0b7c5a3714d715f8632aefbd19e4e4c78b9aa78ef2127830af4b"
+    },
+    {
+      "file": "impact_scrape.wav",
+      "loop": true,
+      "actions": [
+        "hpf 30 Hz",
+        "loop crossfade 60 ms"
+      ],
+      "sha_before": "eb891d601993c5298a2946fb0ca9b0c5ada9041fc3b63fdacc8805a20478ed96",
+      "before": {
+        "lufs": -14.41886739839685,
+        "true_peak_dbfs": -2.9998838841670143,
+        "sub_30_ratio": 5.513771913308489e-08,
+        "seam_ratio": 1.6104705838996634,
+        "duration_s": 2.348277
+      },
+      "gain_db": 0.0,
+      "trimmed_s": 0.06000035600907028,
+      "after": {
+        "lufs": -14.381685988856756,
+        "true_peak_dbfs": -2.9903492735375337,
+        "peak": 0.6931422891555372,
+        "rms_dbfs": -17.613011857657806,
+        "dc_offset": -3.6705903351365635e-08,
+        "sub_30_ratio": 7.956927187819069e-09,
+        "seam_ratio": 0.02137226824341833,
+        "duration_s": 2.2882766439909297,
+        "frames": 100913
+      },
+      "sha256_after": "9426450544a63f0589bb0156dfb2a004e1bce5045f80a810c589e94866926abe"
+    },
+    {
+      "file": "impact_small_1.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_small (-12.4->-16.3 LUFS)"
+      ],
+      "sha_before": "37ea172af0d20a3bd885b9c933e193b779c4fcc8578455d3836fda0cd231317e",
+      "before": {
+        "lufs": -12.347271550231413,
+        "true_peak_dbfs": -1.0129821398171004,
+        "sub_30_ratio": 0.1403365169303581,
+        "seam_ratio": 0.00012672986262482887,
+        "duration_s": 0.578503
+      },
+      "gain_db": -3.8578690993053666,
+      "trimmed_s": -4.0136054424433354e-07,
+      "after": {
+        "lufs": -16.26992209461235,
+        "true_peak_dbfs": -3.1920128914443904,
+        "peak": 0.6903572944894965,
+        "rms_dbfs": -15.761209828981412,
+        "dc_offset": 8.826633474126957e-07,
+        "sub_30_ratio": 0.03384819749029653,
+        "seam_ratio": 0.0009888101464543546,
+        "duration_s": 0.5785034013605442,
+        "frames": 25512
+      },
+      "sha256_after": "58b544e47cde0f397fa2210f4fb6392bcaa6c0dc7660365d706fd824fd525dc7"
+    },
+    {
+      "file": "impact_small_2.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_small (-12.6->-16.3 LUFS)"
+      ],
+      "sha_before": "504c726febab55799e9058359a7dcd25c3bc994efd5e9cb30cc083048b7c815e",
+      "before": {
+        "lufs": -12.583234800596562,
+        "true_peak_dbfs": -0.9860830424266115,
+        "sub_30_ratio": 0.03319568081893739,
+        "seam_ratio": 0.00505853510056455,
+        "duration_s": 0.62415
+      },
+      "gain_db": -3.6718022907416596,
+      "trimmed_s": 3.4013605443306005e-07,
+      "after": {
+        "lufs": -16.269922094612355,
+        "true_peak_dbfs": -2.9999999999999987,
+        "peak": 0.6941637487771073,
+        "rms_dbfs": -16.853810236787076,
+        "dc_offset": 1.491444967707488e-06,
+        "sub_30_ratio": 0.002113993558981768,
+        "seam_ratio": 0.004994794308762706,
+        "duration_s": 0.6241496598639455,
+        "frames": 27525
+      },
+      "sha256_after": "01cca8f7d5b49408ce599aee01e65825fe4144b3cd9f9d73fe8adf503080a2e6"
+    },
+    {
+      "file": "impact_small_3.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz",
+        "match impact_small (-14.2->-16.3 LUFS)",
+        "trim -0.2 dB (pico sobre techo)",
+        "limit -2.4->-3.0 dBFS (-0.6 dB pico)"
+      ],
+      "sha_before": "7d366624b9a5f8732dc68ca8b19d0e3b926c28057e7a569b2226b202a2f001f5",
+      "before": {
+        "lufs": -14.152217969632966,
+        "true_peak_dbfs": -0.9965748413270907,
+        "sub_30_ratio": 0.06438555176095447,
+        "seam_ratio": 0.01135735062454913,
+        "duration_s": 0.554649
+      },
+      "gain_db": -2.315601948324113,
+      "trimmed_s": 4.7392290247749713e-07,
+      "limiter_reduction_db": 0.59,
+      "after": {
+        "lufs": -16.507963794390367,
+        "true_peak_dbfs": -3.0000000000000027,
+        "peak": 0.6906278207695847,
+        "rms_dbfs": -17.25454324757375,
+        "dc_offset": -0.00010250845535685022,
+        "sub_30_ratio": 0.008811193266893256,
+        "seam_ratio": 0.007765037240386829,
+        "duration_s": 0.5546485260770975,
+        "frames": 24460
+      },
+      "sha256_after": "20dacf148ac914e2bc14672a6b6e349c49a3cc5f805e2d332542446c3d712a96"
+    },
+    {
+      "file": "limiter_cut_loop.wav",
+      "loop": true,
+      "actions": [
+        "hpf 35 Hz",
+        "attenuate +1.8->-3.0 dBFS"
+      ],
+      "sha_before": "8d1be4d148e69a2d42bb7b38712cd1682599d57b32f597bf5bf29b21f429264b",
+      "before": {
+        "lufs": -9.408971796437099,
+        "true_peak_dbfs": -0.7241370997761187,
+        "sub_30_ratio": 0.002073417709982158,
+        "seam_ratio": 0.17006230005051357,
+        "duration_s": 7.349342
+      },
+      "gain_db": -4.7504996538069095,
+      "trimmed_s": -4.0362811759564465e-07,
+      "after": {
+        "lufs": -14.176455590661956,
+        "true_peak_dbfs": -3.0000000000000044,
+        "peak": 0.7066280359769165,
+        "rms_dbfs": -14.01140136544371,
+        "dc_offset": -4.037481650430045e-05,
+        "sub_30_ratio": 0.00015859289497708852,
+        "seam_ratio": 0.7134936722075493,
+        "duration_s": 7.349342403628118,
+        "frames": 324106
+      },
+      "sha256_after": "104a7113fbf2874dec2c55e240d59f5a19f0f021e563c396fc9132e247d0f7ca"
+    },
+    {
+      "file": "neutral_first_gear_transition.wav",
+      "loop": false,
+      "actions": [
+        "hpf 30 Hz"
+      ],
+      "sha_before": "b268f1fa879d6305d56f4db01900d8f05b4930e280b9ce467fac75a4b1c6970b",
+      "before": {
+        "lufs": -23.133593726159805,
+        "true_peak_dbfs": -3.0027742355524776,
+        "sub_30_ratio": 0.010705491283352258,
+        "seam_ratio": 0.0,
+        "duration_s": 0.741338
+      },
+      "gain_db": 0.0,
+      "trimmed_s": 1.3151927447108136e-07,
+      "after": {
+        "lufs": -23.161316952303455,
+        "true_peak_dbfs": -3.302430818029501,
+        "peak": 0.6800822298610298,
+        "rms_dbfs": -22.752720088687234,
+        "dc_offset": -1.1506013062691184e-05,
+        "sub_30_ratio": 0.0008736649324566908,
+        "seam_ratio": 0.044985617447829127,
+        "duration_s": 0.7413378684807256,
+        "frames": 32693
+      },
+      "sha256_after": "41c7287b6220498ac4c7da3796a79d634987816b70b00ad8b0705e1979a06044"
+    },
+    {
+      "file": "tyre_contact.wav",
+      "loop": false,
+      "actions": [
+        "downmix 2->1",
+        "hpf 30 Hz",
+        "limit -0.1->-3.0 dBFS (-2.9 dB pico)"
+      ],
+      "sha_before": "f878e0e70b8be140d7755a3419dde1dc5f3dff59fb8326681e6af1161ed321a5",
+      "before": {
+        "lufs": -15.167260931560872,
+        "true_peak_dbfs": -0.09702622919592088,
+        "sub_30_ratio": 0.0064462769299026305,
+        "seam_ratio": 0.02043132803632236,
+        "duration_s": 0.358118
+      },
+      "gain_db": -0.008827445954608557,
+      "trimmed_s": 8.616780045045402e-08,
+      "limiter_reduction_db": 2.93,
+      "after": {
+        "lufs": -15.906332278968753,
+        "true_peak_dbfs": -2.9999999999999973,
+        "peak": 0.7072266664945553,
+        "rms_dbfs": -14.760361375031037,
+        "dc_offset": 0.0006227036619829314,
+        "sub_30_ratio": 0.0017740776988274323,
+        "seam_ratio": 0.016385531317295938,
+        "duration_s": 0.35811791383219954,
+        "frames": 15793
+      },
+      "sha256_after": "6d7fa13ad136ea150c79a27f80177d2d5986cf67bb2f8c74fc80219064180190"
+    }
+  ],
+  "manifest_patch": [
+    {
+      "dc_offset": -0.0013,
+      "duration_s": 0.158821,
+      "file": "backfire_5.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.42,
+      "peak": 0.707745,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "e44c88ef399860fb0596765f9a779375c795ac7c1b2dcff5112a2201fac0076f",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -3.77,
+          "actions": [
+            "hpf 30 Hz",
+            "trim -3.8 dB (pico sobre techo)",
+            "limit +3.8->-3.0 dBFS (-3.0 dB pico)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 2.8e-06,
+      "duration_s": 0.474286,
+      "file": "backfire_ext_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -18.48,
+      "peak": 0.707968,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 1; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "8548d39f94ce12e064e2a97286f381d54c033258b177c84fe5aed57e59ed67a0",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.06,
+          "actions": [
+            "hpf 30 Hz",
+            "match backfire_ext (-16.8->-18.8 LUFS)",
+            "alias de backfire_1.wav (mismo sha256)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 2.8e-06,
+      "duration_s": 0.474286,
+      "file": "backfire_ext_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -18.48,
+      "peak": 0.707968,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 3; exterior rear exhaust detonation",
+      "role": "backfire_exhaust",
+      "sha256": "8548d39f94ce12e064e2a97286f381d54c033258b177c84fe5aed57e59ed67a0",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.06,
+          "actions": [
+            "hpf 30 Hz",
+            "match backfire_ext (-16.8->-18.8 LUFS)",
+            "alias de backfire_1.wav (mismo sha256)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 2.8e-06,
+      "duration_s": 0.474286,
+      "file": "backfire_ext_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -18.48,
+      "peak": 0.707944,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 7; exterior rear exhaust detonation variation",
+      "role": "backfire_exhaust",
+      "sha256": "73e078e05765f68d3cea444ae1f378984accee34490977fd23f040f0f4e7cb5d",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.06,
+          "actions": [
+            "hpf 30 Hz",
+            "match backfire_ext (-16.8->-18.8 LUFS)",
+            "alias de backfire_7.wav (mismo sha256)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -0.00023,
+      "duration_s": 0.429569,
+      "file": "backfire_ext_4.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -17.22,
+      "peak": 0.498545,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 9; exterior rear exhaust deep boom detonation",
+      "role": "backfire_exhaust",
+      "sha256": "9f5d5ce712b3d040c77b93b363e1c7ada8a3392157ad225fb3440daad3c28461",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -8.34,
+          "actions": [
+            "hpf 30 Hz",
+            "fade-in 0.4 ms",
+            "match backfire_ext (-10.5->-18.8 LUFS)",
+            "alias de backfire_9.wav (mismo sha256)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -0.0013,
+      "duration_s": 0.158821,
+      "file": "backfire_int.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -14.42,
+      "peak": 0.707745,
+      "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5 alias; cockpit and bonnet low-frequency dry thump",
+      "role": "backfire_cockpit_bonnet",
+      "sha256": "e44c88ef399860fb0596765f9a779375c795ac7c1b2dcff5112a2201fac0076f",
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -3.77,
+          "actions": [
+            "hpf 30 Hz",
+            "trim -3.8 dB (pico sobre techo)",
+            "limit +3.8->-3.0 dBFS (-3.0 dB pico)",
+            "alias de backfire_5.wav (mismo sha256)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 4.3e-06,
+      "duration_s": 1.08,
+      "file": "bad_brakes.wav",
+      "loop": true,
+      "loop_end_s": 1.08,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -21.0,
+      "peak": 0.340742,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/bad_brakes.wav",
+      "role": "wheel_damage_brakes",
+      "sha256": "31f77a3fe04a7aec8efba24102edde4e97d6dc7c1a5a751a3b3ade92b61ab5dd",
+      "synthesis": {
+        "source_sha256": "fbac15f84e0bfe87c66c96afda6ed935a6d32c9602079a02714cd1d9a83a282a",
+        "source_region_s": [
+          0.6,
+          1.8
+        ],
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -21,
+        "peak_ceiling_dbfs": -3.0,
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 35.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.0,
+          "actions": [
+            "hpf 35 Hz"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 2.3e-06,
+      "duration_s": 2.471111,
+      "file": "damaged_rin.wav",
+      "loop": true,
+      "loop_end_s": 2.471111,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -20.0,
+      "peak": 0.604007,
+      "provenance": "D:/ASETS/WRCEvolved/Assets/Sounds/Vehicles_Surfaces_SFX/Surface_08_file_1438_68fc073b/damaged_rin.wav",
+      "role": "wheel_damage_rim",
+      "sha256": "d75f34221cb0d5bada7bd77edd4a5c1bd8ae90e67ea03b0df71a94f2208360e8",
+      "synthesis": {
+        "source_sha256": "f80ffc2d19f8b6414bdb79e878ddf186d30ffcfeb0845f47583b4992b985d02a",
+        "source_region_s": null,
+        "loop_crossfade_ms": 80,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -20,
+        "peak_ceiling_dbfs": -3.0,
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 35.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.0,
+          "actions": [
+            "hpf 35 Hz"
+          ]
+        }
+      }
+    },
+    {
+      "file": "f2002_geardn.wav",
+      "role": "gearbox_downshift",
+      "sha256": "d67e07d0d144518d1383719b9c13c15cbe87680b83691c8e6b47d9262efe6a82",
+      "duration_s": 0.193764,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\geardn.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16,
+      "peak": 0.620064,
+      "loudness_dbfs": -14.7,
+      "dc_offset": -7.8e-05,
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -0.85,
+          "actions": [
+            "hpf 30 Hz",
+            "match gearbox_f2002 (-16.3->-17.1 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "file": "f2002_gearup.wav",
+      "role": "gearbox_upshift",
+      "sha256": "484e6237cfc5003cf309999837457c745479c75f8e95d5786d4859eb2abee46c",
+      "duration_s": 0.296077,
+      "loop": false,
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\gearup.wav",
+      "channels": 1,
+      "sample_rate_hz": 44100,
+      "bits": 16,
+      "peak": 0.572214,
+      "loudness_dbfs": -15.88,
+      "dc_offset": -7.3e-05,
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.85,
+          "actions": [
+            "hpf 30 Hz",
+            "match gearbox_f2002 (-18.0->-17.1 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 1.7e-05,
+      "duration_s": 8.814717,
+      "file": "flat_tyre_mono.wav",
+      "loop": true,
+      "loop_end_s": 8.814717,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -19.37,
+      "peak": 0.65027,
+      "provenance": "D:/ASETS/Ferrari F2002 Sound Mods/Ferrari F2002 Sound Mods/Ver-D/content/cars/ferrari_f2002/sfx/flat_tyre_mono.wav",
+      "role": "wheel_damage_flat_tire",
+      "sha256": "018971f6d6a7a116f314d0213aabf91c396ec2f9d3f91f49f280eaed0f9cd80c",
+      "synthesis": {
+        "source_sha256": "80efe270167bdc4d6ae264c8f262c08ab66baa0d9e5f086b77813580f68e46c9",
+        "source_region_s": null,
+        "loop_crossfade_ms": 120,
+        "loop_mode": "baked_equal_power",
+        "target_rms_dbfs": -19,
+        "peak_ceiling_dbfs": -3.0,
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 35.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.0,
+          "actions": [
+            "hpf 35 Hz"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 1.2e-05,
+      "duration_s": 0.495601,
+      "file": "impact_land_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -16.64,
+      "peak": 0.707952,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land3.wav (leve <4 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "e808075eba05af6c769a0c5459400c26b04db7c6a95faa843bc1644639c6ecb2",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land3.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "leve <4 m/s",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.31,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_land (-14.2->-16.5 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -1.5e-05,
+      "duration_s": 0.821224,
+      "file": "impact_land_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -17.3,
+      "peak": 0.541829,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land1.wav (media 4-7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "4c8d7caaa37317632d162fecb5c7994de485f953e7bfc2c3237cc97feca832a0",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land1.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "media 4-7 m/s",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -6.65,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_land (-9.8->-16.5 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 5.4e-06,
+      "duration_s": 0.921542,
+      "file": "impact_land_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -15.59,
+      "peak": 0.693095,
+      "provenance": "extracted from Colin McRae Rally 2 PC install (D:/open-cmr2-rust/og-cmr2): Game/Bigfiles/common.bfl:land2.wav (dura >7 m/s); mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_landing",
+      "sha256": "470c6cb83886eb10aa834f0eac188a77ac632c8eb781acb34a6e17cba3c3a782",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "land2.wav",
+        "target_rate": 44100,
+        "vertical_band_ms": "dura >7 m/s",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.33,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_land (-14.3->-16.5 LUFS)",
+            "trim -0.2 dB (pico sobre techo)",
+            "limit -1.0->-3.0 dBFS (-1.9 dB pico)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 0.00011,
+      "duration_s": 1.131633,
+      "file": "impact_large.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -15.7,
+      "peak": 0.693327,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_large.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_large",
+      "sha256": "557c714dc22def4cd389a1cee3c5167953c36f56084613c4a7e91e04c115f806",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_large.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": ">70",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -0.18,
+          "actions": [
+            "hpf 30 Hz",
+            "trim -0.2 dB (pico sobre techo)",
+            "limit -1.0->-3.0 dBFS (-2.0 dB pico)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 2e-06,
+      "duration_s": 0.803719,
+      "file": "impact_medium_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -18.2,
+      "peak": 0.674783,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_medium",
+      "sha256": "e25fd1e0807aa93dd85d8b4c477024ae60b3de7ca5e7bb728a6efe072581700d",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_medium1.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "40-70",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -3.64,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_medium (-14.2->-17.8 LUFS)",
+            "limit -3.0->-3.0 dBFS (-0.0 dB pico)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 1.6e-06,
+      "duration_s": 0.786961,
+      "file": "impact_medium_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -16.78,
+      "peak": 0.705479,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_medium2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_medium",
+      "sha256": "2e9e1c9fdddd0b7c5a3714d715f8632aefbd19e4e4c78b9aa78ef2127830af4b",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_medium2.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "40-70",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.22,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_medium (-15.6->-17.8 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -3.7e-08,
+      "duration_s": 2.288277,
+      "file": "impact_scrape.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -17.61,
+      "peak": 0.693142,
+      "provenance": "derived from user-supplied undertray_scrape_metallic_p Edit 1 Export 1.wav",
+      "role": "impact_scrape",
+      "sha256": "9426450544a63f0589bb0156dfb2a004e1bce5045f80a810c589e94866926abe",
+      "synthesis": {
+        "category": "impact",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 35.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.0,
+          "actions": [
+            "hpf 30 Hz",
+            "loop crossfade 60 ms"
+          ]
+        },
+        "promotion_recipe": "underfloor_metallic_scrape_v1",
+        "source_file": "game/sounds/bank_sources/underfloor_metallic_scrape_source.wav",
+        "source_rate": 44100,
+        "source_sha256": "164f2ca76fc1625308583a2af20f09dee0a23cfca0924e7f60be406e56ae5164",
+        "tool_revision": 1
+      }
+    },
+    {
+      "dc_offset": 8.8e-07,
+      "duration_s": 0.578503,
+      "file": "impact_small_1.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -15.76,
+      "peak": 0.690357,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small1.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "58b544e47cde0f397fa2210f4fb6392bcaa6c0dc7660365d706fd824fd525dc7",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small1.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -3.86,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_small (-12.4->-16.3 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": 1.5e-06,
+      "duration_s": 0.62415,
+      "file": "impact_small_2.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -16.85,
+      "peak": 0.694164,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small2.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "01cca8f7d5b49408ce599aee01e65825fe4144b3cd9f9d73fe8adf503080a2e6",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small2.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -3.67,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_small (-12.6->-16.3 LUFS)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -0.0001,
+      "duration_s": 0.554649,
+      "file": "impact_small_3.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -17.25,
+      "peak": 0.690628,
+      "provenance": "extracted from Rush Rally 3 PC install (C:/Program Files (x86)/Steam/steamapps/common/Rush Rally 3): Game/Bigfiles/common.bfl:car_collision_small3.wav; mono PCM16 44.1 kHz, mean removed, peak 0.89",
+      "role": "impact_small",
+      "sha256": "20dacf148ac914e2bc14672a6b6e349c49a3cc5f805e2d332542446c3d712a96",
+      "synthesis": {
+        "category": "impact",
+        "source_archive": "Game/Bigfiles/common.bfl",
+        "source_name": "car_collision_small3.wav",
+        "target_rate": 44100,
+        "speed_tier_kph": "<40",
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -2.32,
+          "actions": [
+            "hpf 30 Hz",
+            "match impact_small (-14.2->-16.3 LUFS)",
+            "trim -0.2 dB (pico sobre techo)",
+            "limit -2.4->-3.0 dBFS (-0.6 dB pico)"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -4e-05,
+      "duration_s": 7.349342,
+      "file": "limiter_cut_loop.wav",
+      "loop": true,
+      "loop_end_s": 7.349342,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -14.01,
+      "peak": 0.706628,
+      "provenance": "promoted from Formula90s v10-v2-bank (canonical V10 engine bank); canonical_limiter_mono16_peak_headroom_v2",
+      "role": "limiter_event",
+      "sha256": "104a7113fbf2874dec2c55e240d59f5a19f0f021e563c396fc9132e247d0f7ca",
+      "synthesis": {
+        "category": "limiter",
+        "preparation_recipe": "canonical_limiter_mono16_peak_headroom_v2",
+        "source_bank": "v10-v2-bank",
+        "source_file": "limiter.wav",
+        "source_rate": 44100,
+        "trigger_event": "limiter_cut_window",
+        "selection": "single_variant",
+        "voice_limit": 1,
+        "minimum_retrigger_seconds": 0.25,
+        "native_context_rpm": 18000.0,
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 35.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -4.75,
+          "actions": [
+            "hpf 35 Hz",
+            "attenuate +1.8->-3.0 dBFS"
+          ]
+        }
+      }
+    },
+    {
+      "dc_offset": -1.2e-05,
+      "duration_s": 0.741338,
+      "file": "neutral_first_gear_transition.wav",
+      "loop": false,
+      "loop_end_s": null,
+      "loop_start_s": null,
+      "loudness_dbfs": -22.75,
+      "peak": 0.680082,
+      "provenance": "derived from original user-supplied replacement samples",
+      "role": "neutral_first_gear_transition",
+      "sha256": "41c7287b6220498ac4c7da3796a79d634987816b70b00ad8b0705e1979a06044",
+      "synthesis": {
+        "category": "shift",
+        "promotion_recipe": "neutral_first_gear_transition_v1",
+        "source_file": "game/sounds/bank_sources/neutral_first_gear_transition_source.wav",
+        "source_rate": 48000,
+        "source_sha256": "2ed935b08d633d5179c08336b71e733524f42c1f5d47d03c2072f1b89e22d0fc",
+        "tool_revision": 1,
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": 0.0,
+          "actions": [
+            "hpf 30 Hz"
+          ]
+        }
+      }
+    },
+    {
+      "file": "tyre_contact.wav",
+      "role": "wheel_vertical_impact",
+      "loop": false,
+      "sha256": "6d7fa13ad136ea150c79a27f80177d2d5986cf67bb2f8c74fc80219064180190",
+      "provenance": "D:\\ASETS\\Ferrari F2002 Sound Mods\\Ferrari F2002 Sound Mods\\Ver-D\\content\\cars\\ferrari_f2002\\sfx\\tyre_contact.wav",
+      "duration_s": 0.358118,
+      "peak": 0.707227,
+      "loudness_dbfs": -14.76,
+      "dc_offset": 0.00062,
+      "synthesis": {
+        "processing": {
+          "tool": "tools/audio/clean_commons_bank.py",
+          "revision": 1,
+          "highpass_hz": 30.0,
+          "true_peak_ceiling_dbfs": -3.0,
+          "loudness_match_db": -0.01,
+          "actions": [
+            "downmix 2->1",
+            "hpf 30 Hz",
+            "limit -0.1->-3.0 dBFS (-2.9 dB pico)"
+          ]
+        }
+      }
+    }
+  ],
+  "aliases": [
+    {
+      "canonical": "backfire_1.wav",
+      "alias": "backfire_ext_1.wav"
+    },
+    {
+      "canonical": "backfire_1.wav",
+      "alias": "backfire_ext_2.wav"
+    },
+    {
+      "canonical": "backfire_5.wav",
+      "alias": "backfire_int.wav"
+    },
+    {
+      "canonical": "backfire_7.wav",
+      "alias": "backfire_ext_3.wav"
+    },
+    {
+      "canonical": "backfire_9.wav",
+      "alias": "backfire_ext_4.wav"
+    }
+  ]
+}

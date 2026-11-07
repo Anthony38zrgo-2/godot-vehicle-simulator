@@ -1,0 +1,71 @@
+{
+  "preserved_meshes": {
+    "body": {
+      "triangles": 2142,
+      "max_vertex_error_m": 0.0
+    },
+    "hood": {
+      "triangles": 116,
+      "max_vertex_error_m": 0.0
+    },
+    "trunk": {
+      "triangles": 112,
+      "max_vertex_error_m": 0.0
+    },
+    "seat_driver": {
+      "triangles": 44,
+      "max_vertex_error_m": 0.0
+    },
+    "seat_co_driver": {
+      "triangles": 44,
+      "max_vertex_error_m": 0.0
+    },
+    "Driver_driver_body": {
+      "triangles": 44,
+      "max_vertex_error_m": 0.0
+    },
+    "Driver_driver_head": {
+      "triangles": 168,
+      "max_vertex_error_m": 0.0
+    },
+    "co_Driver_Surface1": {
+      "triangles": 56,
+      "max_vertex_error_m": 0.0
+    },
+    "co_Driver_Surface2": {
+      "triangles": 192,
+      "max_vertex_error_m": 0.0
+    },
+    "co_Driver_co_driver_head": {
+      "triangles": 168,
+      "max_vertex_error_m": 0.0
+    },
+    "DriverArm_left_frame09": {
+      "triangles": 108,
+      "max_vertex_error_m": 0.0
+    },
+    "DriverArm_right_frame09": {
+      "triangles": 108,
+      "max_vertex_error_m": 0.0
+    }
+  },
+  "arm_poses_unchanged": {
+    "DriverArm_left_frame09": {
+      "poses": 19,
+      "max_vertex_error_m": 0.0
+    },
+    "DriverArm_right_frame09": {
+      "poses": 19,
+      "max_vertex_error_m": 0.0
+    }
+  },
+  "removed_redundant_nodes": [
+    "interior_rear_tub",
+    "interior_rear_side_left",
+    "interior_rear_side_right",
+    "interior_rear_window"
+  ],
+  "roof_liner_max_distance_to_body_m": 0.007993956096470356,
+  "collision_sha256": "0478a4d6e0811149424ff44d43a36afdd219559ecad2aa3eac551b29298a9624",
+  "single_window_shell": true
+}

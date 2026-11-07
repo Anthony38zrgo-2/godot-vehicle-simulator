@@ -65,9 +65,18 @@ func run() -> void:
 	check(vehicle.get_node_or_null("Chassis/CockpitEye") != null, "driver eye anchor exported")
 	var cockpit = vehicle.get_node("CockpitAnimation")
 	check(cockpit.arms.size() == 2 and cockpit._pose_indices[0].size() == 19, "original driver arm poses loaded")
+	# The Fulvia chassis bakes the column tilt into the wheel node, so the rim lies in
+	# local XZ and the shaft is local +Y (the Escort instead bakes the tilt into the mesh).
+	var wheel_size: Vector3 = (cockpit.steering_wheel as MeshInstance3D).get_aabb().size
+	var shaft_axis := 0
+	for axis_index in 3:
+		if wheel_size[axis_index] < wheel_size[shaft_axis]:
+			shaft_axis = axis_index
+	check(absf(cockpit.steering_wheel_axis.normalized()[shaft_axis]) > 0.99, "Fulvia steering axis follows the model shaft")
 	var rest_basis: Basis = cockpit.steering_wheel.basis
 	cockpit.update_steering_pose(0.8)
 	check(not cockpit.steering_wheel.basis.is_equal_approx(rest_basis), "steering wheel animates")
+	check(cockpit.steering_wheel.basis.y.is_equal_approx(rest_basis.y), "wheel turns about its shaft without tilting the rim")
 	check(cockpit.arms[0].get_blend_shape_value(cockpit._pose_indices[0][1]) > 0.0, "native steering morph selected")
 	cockpit.update_steering_pose(0.0)
 	check_damage(vehicle)

@@ -1,7 +1,35 @@
 extends CanvasLayer
 signal confirmed
+
 const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const PARTS := {"engine": ["Motor", 45.0], "radiator": ["Radiador", 20.0], "transmission": ["Transmisión", 35.0], "body": ["Carrocería", 15.0], "hood": ["Capó", 8.0], "trunk": ["Maletero", 8.0], "windshield": ["Parabrisas", 10.0], "headlight_left": ["Faro izquierdo", 5.0], "headlight_right": ["Faro derecho", 5.0]}
+const FONT_REGULAR: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const FONT_DATA: Font = preload("res://fonts/D-DIN.ttf")
+const FONT_DATA_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+
+const WB_BG_SHELL := Color("#090e15")
+const WB_BG_CONTENT := Color("#1a2636")
+const WB_BG_CARD := Color("#223246")
+const WB_BG_WELL := Color("#0c141e")
+const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
+const WB_BORDER_FOCUS := Color("#ffffff")
+const WB_TEXT_TITLE := Color("#f0f5fa")
+const WB_TEXT_LABEL := Color("#9ab0c7")
+const WB_TEXT_DATA := Color("#ffffff")
+const ACCENT_RALLY := Color("#e5a93c")
+const STATUS_DANGER := Color("#ef4444")
+const STATUS_SUCCESS := Color("#22c55e")
+
+const PARTS := {
+	"engine": ["Motor", 45.0],
+	"radiator": ["Radiador", 20.0],
+	"transmission": ["Transmisión", 35.0],
+	"body": ["Carrocería", 15.0],
+	"hood": ["Capó", 8.0],
+	"trunk": ["Maletero", 8.0],
+	"windshield": ["Parabrisas", 10.0],
+	"headlight_left": ["Faro izquierdo", 5.0],
+	"headlight_right": ["Faro derecho", 5.0]
+}
 var vehicle
 var manager
 var rows: Array[Dictionary] = []
@@ -19,31 +47,58 @@ func open(car, event_manager, window: Dictionary) -> void:
 	penalty_per_minute = maxi(int(window.get("repair_penalty_seconds_per_minute", 10)), 0)
 	layer = 110
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	var shade := ColorRect.new()
-	shade.color = Color(0.02, 0.03, 0.05, 0.96)
+	shade.color = Color(0.04, 0.06, 0.09, 0.92)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
+
+	var modal_card := PanelContainer.new()
+	modal_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	modal_card.offset_left = 60
+	modal_card.offset_right = -60
+	modal_card.offset_top = 32
+	modal_card.offset_bottom = -32
+	var card_sb := StyleBoxFlat.new()
+	card_sb.bg_color = WB_BG_CONTENT
+	card_sb.border_color = WB_BORDER_SUBTLE
+	card_sb.set_border_width_all(1)
+	card_sb.set_corner_radius_all(6)
+	card_sb.shadow_size = 0
+	card_sb.content_margin_left = 24
+	card_sb.content_margin_right = 24
+	card_sb.content_margin_top = 20
+	card_sb.content_margin_bottom = 20
+	modal_card.add_theme_stylebox_override("panel", card_sb)
+	shade.add_child(modal_card)
+
 	var panel := VBoxContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	panel.offset_left = 70
-	panel.offset_right = -70
-	panel.offset_top = 35
-	panel.offset_bottom = -35
-	shade.add_child(panel)
+	panel.add_theme_constant_override("separation", 12)
+	modal_card.add_child(panel)
+
 	var title := Label.new()
 	title.text = "ÁREA DE SERVICIO · REPARACIONES"
 	title.add_theme_font_override("font", FONT_TITLE)
-	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", WB_TEXT_TITLE)
 	panel.add_child(title)
+
 	var hint := Label.new()
 	hint.text = "Marca las piezas a reparar. Neumáticos y rines se gestionan por separado.\nExceso: %d s de penalización por minuto iniciado." % penalty_per_minute
+	hint.add_theme_font_override("font", FONT_REGULAR)
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.add_theme_color_override("font_color", WB_TEXT_LABEL)
 	panel.add_child(hint)
+
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_child(scroll)
+
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
 	scroll.add_child(list)
+
 	var damage: Dictionary = vehicle.damage_snapshot()
 	for key in PARTS:
 		var amount := float(damage.get(key, 0.0)) if key in ["engine", "radiator", "transmission"] else (1.0 if bool(damage.get("visual", {}).get(key, false)) else 0.0)
@@ -57,13 +112,37 @@ func open(car, event_manager, window: Dictionary) -> void:
 	if rows.is_empty():
 		var healthy := Label.new()
 		healthy.text = "No hay componentes que necesiten reparación."
+		healthy.add_theme_font_override("font", FONT_REGULAR)
+		healthy.add_theme_font_size_override("font_size", 12)
+		healthy.add_theme_color_override("font_color", STATUS_SUCCESS)
 		list.add_child(healthy)
+
 	summary = Label.new()
+	summary.add_theme_font_override("font", FONT_DATA_BOLD)
+	summary.add_theme_font_size_override("font_size", 13)
 	panel.add_child(summary)
+
 	commit = Button.new()
 	commit.text = "CONFIRMAR REPARACIONES Y CONTINUAR"
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = ACCENT_RALLY
+	btn_normal.border_color = Color("#fff3c4")
+	btn_normal.set_border_width_all(1)
+	btn_normal.set_corner_radius_all(2)
+	btn_normal.content_margin_top = 10
+	btn_normal.content_margin_bottom = 10
+	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
+	btn_hover.bg_color = Color("#f5b74c")
+	commit.add_theme_stylebox_override("normal", btn_normal)
+	commit.add_theme_stylebox_override("hover", btn_hover)
+	commit.add_theme_stylebox_override("pressed", btn_hover)
+	commit.add_theme_font_override("font", FONT_TITLE)
+	commit.add_theme_font_size_override("font_size", 13)
+	commit.add_theme_color_override("font_color", Color("#090e15"))
+	commit.add_theme_color_override("font_hover_color", Color("#000000"))
 	commit.pressed.connect(_commit)
 	panel.add_child(commit)
+
 	_refresh()
 	if not rows.is_empty():
 		(rows[0].box as CheckBox).grab_focus()
@@ -75,7 +154,10 @@ func _add_row(list: VBoxContainer, key: String, title: String, damage: float, fu
 		return
 	var minutes := maxi(1, ceili(clampf(damage, 0.0, 1.0) * full_minutes))
 	var box := CheckBox.new()
-	box.text = "%s · daño %.1f%% · %d min" % [title, damage * 100.0, minutes]
+	box.text = "%s  ·  daño %.1f%%  ·  %d min" % [title, damage * 100.0, minutes]
+	box.add_theme_font_override("font", FONT_REGULAR)
+	box.add_theme_font_size_override("font_size", 12)
+	box.add_theme_color_override("font_color", WB_TEXT_TITLE)
 	list.add_child(box)
 	rows.append({"key": key, "minutes": minutes, "box": box})
 	box.toggled.connect(func(_on: bool): _refresh())
@@ -90,8 +172,8 @@ func _minutes() -> int:
 func _refresh() -> void:
 	var total := _minutes()
 	var excess := maxi(0, ceili(float(total) - limit_minutes))
-	summary.text = "Disponible: %.0f min · Seleccionado: %d min · Exceso: %d min · PENALIZACIÓN: +%d s" % [limit_minutes, total, excess, excess * penalty_per_minute]
-	summary.modulate = Color(1.0, 0.45, 0.3) if excess > 0 else Color(0.65, 0.95, 0.75)
+	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, excess, excess * penalty_per_minute]
+	summary.add_theme_color_override("font_color", STATUS_DANGER if excess > 0 else STATUS_SUCCESS)
 
 func _commit() -> void:
 	commit.disabled = true
@@ -110,3 +192,4 @@ func _commit() -> void:
 	manager.save()
 	confirmed.emit()
 	queue_free()
+

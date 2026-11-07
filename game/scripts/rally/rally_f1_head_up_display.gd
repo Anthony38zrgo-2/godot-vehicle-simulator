@@ -1,7 +1,7 @@
 class_name RallyF1HeadUpDisplay
 extends Control
 
-const UI_FONT := preload("res://fonts/libron/Libron-Regular.ttf")
+const UI_FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
 
 @export var vehicle_path: NodePath
 @export var retro_hud_path: NodePath = NodePath("RetroHud")

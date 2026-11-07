@@ -11,6 +11,8 @@
     "steering_speed_decay": 0.05,
     "speed_filter_start_kph": 20.0,
     "speed_filter_reference_kph": 65.0,
-    "speed_filter_minimum_gain": 0.2
+    "speed_filter_minimum_gain": 0.2,
+    "turns_lock_to_lock": 2.4,
+    "ratio_to_one": 14.5
   }
 }

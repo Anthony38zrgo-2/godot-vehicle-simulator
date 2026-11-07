@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DERWeatherResource" load_steps=3 format=3]
+
+[ext_resource type="Resource" path="res://addons/TCA_Weather_System/precipitation/heavy_rain.tres" id="1_jcby2"]
+[ext_resource type="Script" path="res://addons/TCA_Weather_System/scripts/WeatherResource.gd" id="2_qdrfx"]
+
+[resource]
+script = ExtResource("2_qdrfx")
+min_duration = 40000.0
+max_duration = 100000.0
+cloud_speed = 0.001
+small_cloud_cover = 0.7
+large_cloud_cover = 1.0
+cloud_inner_colour = Color(0.498039, 0.498039, 0.498039, 1)
+cloud_outer_colour = Color(0.156863, 0.156863, 0.156863, 1)
+precipitation = ExtResource("1_jcby2")
+fog_density = 0.015
