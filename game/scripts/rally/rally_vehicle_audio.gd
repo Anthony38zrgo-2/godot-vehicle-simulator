@@ -62,7 +62,7 @@ const BACKFIRE_SAMPLE_PATHS := [
 	"res://sounds/banks/commons/backfire_ext_4.wav",
 ]
 # Cabin/bonnet backfires reuse the exterior exhaust recordings on a dedicated
-# bus; audio_mixer.json ("backfire_cabin") gives that bus its high-pass filter.
+# bus; audio_mixer.json ("backfire_cabin") gives that bus its low-pass filter.
 const BACKFIRE_CABIN_BUS := "backfire_cabin"
 const BACKFIRE_CABIN_VOLUME_DB := -6.0
 # Probabilidad de pop al soltar, por marcha (CMR2: mas probable en cortas).
@@ -76,12 +76,12 @@ const DOWNSHIFT_RETRIGGER_SECONDS := 0.10
 const BACKFIRE_RETRIGGER_SECONDS := 1.0
 const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
-const LIMITER_GAIN := 0.225
-const SURFACE_GAIN := 0.45
+const LIMITER_GAIN := 0.1005 # -7.0 dB (0.225 * db_to_linear(-7.0))
+const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
-const ENGINE_GAIN_BOOST := 3.1622776601683795 # +10.0 dB (db_to_linear(10.0), boosted by additional +5.0 dB)
+const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
 const VIEW_ENGINE_GAIN := [1.0, 0.6]
@@ -150,6 +150,14 @@ var clunk_scale: float = 1.0
 var packet_rpm_idle: float = 1050.0
 var surface_map: Dictionary = {}
 var sand_impact_player: AudioStreamPlayer3D
+var sand_impact_streams: Array[AudioStreamWAV] = []
+var sand_last_variant := -1
+var rain_impact_player: AudioStreamPlayer3D
+var rain_impact_players: Array[AudioStreamPlayer3D] = []
+var rain_impact_streams: Array[AudioStreamWAV] = []
+var rain_last_variant := -1
+var rain_burst_remaining := 0
+var rain_impact_cooldown := 0.0
 var sand_impact_cooldown := 0.0
 var impact_small_players: Array[AudioStreamPlayer3D] = []
 var impact_medium_players: Array[AudioStreamPlayer3D] = []
@@ -219,7 +227,7 @@ func _ready() -> void:
 		if backfire_paths.is_empty():
 			backfire_paths = BACKFIRE_SAMPLE_PATHS
 		# "backfire_interior" is intentionally ignored: the interior/bonnet backfire
-		# reuses the exhaust recordings through the HP-filtered cabin bus.
+		# reuses the exhaust recordings through the LP-filtered cabin bus.
 		var ep: Array = bank.get("engine_position", [0.0, 0.55, -0.8])
 		var xp: Array = bank.get("exhaust_position", [0.0, 0.20, 1.50])
 		engine_position = Vector3(float(ep[0]), float(ep[1]), float(ep[2]))
@@ -349,14 +357,7 @@ func update_neutral_audio(_smoothing: float) -> void:
 
 
 func build_surface_players() -> void:
-	sand_impact_player = AudioStreamPlayer3D.new()
-	sand_impact_player.stream = load_event_stream(SURFACE_BANK + "synthetic/sand_body_impact.wav", "surface_sand_body_impact")
-	sand_impact_player.position = Vector3(0.0, -0.1, 0.3)
-	sand_impact_player.unit_size = 8.0
-	sand_impact_player.max_distance = 45.0
-	sand_impact_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
-	routing.route(sand_impact_player, "surface_sand_body_impact")
-	add_child(sand_impact_player)
+	_build_sand_and_rain_impact_players()
 	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SURFACE_BANK + "manifest.json"))
 	surface_map = manifest["runtime_map"]
 	for surface in surface_map:
@@ -510,6 +511,9 @@ func update_cockpit_audio(delta: float) -> void:
 			players.append(voice.player)
 	if sand_impact_player != null:
 		players.append(sand_impact_player)
+	for rp in rain_impact_players:
+		if rp != null:
+			players.append(rp)
 	if neutral_player != null:
 		players.append(neutral_player)
 	for player: AudioStreamPlayer3D in players:
@@ -681,6 +685,7 @@ func _next_rng_state(state: int) -> int:
 func update_surface_audio(packet: Dictionary, delta: float) -> void:
 	var state: Dictionary = SurfaceMixer.evaluate(packet.get("wheels", []), absf(float(packet.get("speed_kph", 0.0))), float(packet.get("throttle", 0.0)), maxf(float(packet.get("brake", 0.0)), float(packet.get("handbrake", 0.0))), vehicle.mass * 9.81)
 	update_sand_impacts(state, absf(float(packet.get("speed_kph", 0.0))), delta)
+	update_rain_impacts(delta)
 	current_slip_ratio = float(state.slip_total)
 	for key in surface_players:
 		var parts: PackedStringArray = str(key).split(":")
@@ -699,7 +704,7 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 			var selected := strongest if surface_map[surface].has(strongest) else "skid"
 			if role == selected:
 				target = float(roles.get(strongest, 0.0)) * 0.135
-		target *= 0.75 * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+		target *= SURFACE_GAIN * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
 		var player: AudioStreamPlayer3D = surface_players[key]
 		player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
 		player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, float(state.roll_pitch if role == "roll" else state.slip_pitch), delta, 0.12)
@@ -775,6 +780,124 @@ func update_wheel_damage_audio(wheels: Array, delta: float) -> void:
 				player.stop()
 
 
+func _ensure_bus_hpf(bus_name: String, cutoff_hz: float) -> void:
+	var bus_idx := AudioServer.get_bus_index(bus_name)
+	if bus_idx < 0:
+		return
+	for i in AudioServer.get_bus_effect_count(bus_idx):
+		var eff := AudioServer.get_bus_effect(bus_idx, i)
+		if eff is AudioEffectHighPassFilter:
+			(eff as AudioEffectHighPassFilter).cutoff_hz = maxf((eff as AudioEffectHighPassFilter).cutoff_hz, cutoff_hz)
+			return
+	var hpf := AudioEffectHighPassFilter.new()
+	hpf.cutoff_hz = cutoff_hz
+	AudioServer.add_bus_effect(bus_idx, hpf)
+
+
+func _build_sand_and_rain_impact_players() -> void:
+	var base_sand := SeamlessVehicleLoop.load_pcm(SURFACE_BANK + "synthetic/sand_body_impact.wav", false)
+	sand_impact_streams.clear()
+	if base_sand != null and base_sand.data.size() >= 4000:
+		var src: PackedByteArray = base_sand.data
+		var total_samples := src.size() / 2
+		var offsets := [0.02, 0.16, 0.31, 0.45, 0.59, 0.73]
+		var lengths := [0.11, 0.15, 0.09, 0.17, 0.12, 0.14]
+		for idx in offsets.size():
+			var start_s := clampi(int(offsets[idx] * total_samples), 0, maxi(total_samples - 1200, 0))
+			var count_s := clampi(int(lengths[idx] * base_sand.mix_rate), 900, total_samples - start_s)
+			var dst := PackedByteArray()
+			dst.resize(count_s * 2)
+			var prev_x := 0.0
+			var prev_y := 0.0
+			for s in count_s:
+				var raw := src.decode_s16((start_s + s) * 2) / 32768.0
+				# Gentle, subtle high-pass filter (~320 Hz) for natural acoustic presence without sub-bass boom
+				var hp := raw - prev_x + 0.35 * prev_y
+				prev_x = raw
+				prev_y = hp
+				var env := sin(PI * float(s) / float(count_s))
+				var out_i := clampi(int(roundf(hp * env * 32767.0)), -32768, 32767)
+				dst.encode_s16(s * 2, out_i)
+			var variant := AudioStreamWAV.new()
+			variant.format = AudioStreamWAV.FORMAT_16_BITS
+			variant.mix_rate = base_sand.mix_rate
+			variant.stereo = false
+			variant.loop_mode = AudioStreamWAV.LOOP_DISABLED
+			variant.data = dst
+			sand_impact_streams.append(variant)
+
+	sand_impact_player = AudioStreamPlayer3D.new()
+	sand_impact_player.stream = sand_impact_streams[0] if not sand_impact_streams.is_empty() else load_event_stream(SURFACE_BANK + "synthetic/sand_body_impact.wav", "surface_sand_body_impact")
+	sand_impact_player.position = Vector3(0.0, -0.1, 0.3)
+	sand_impact_player.unit_size = 8.0
+	sand_impact_player.max_distance = 45.0
+	sand_impact_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+	routing.route(sand_impact_player, "surface_sand_body_impact")
+	_ensure_bus_hpf(sand_impact_player.bus, 320.0)
+	add_child(sand_impact_player)
+
+	# Synthesize 8 distinct short, subtle high-passed rain droplet transient variants (warm, natural click)
+	rain_impact_streams.clear()
+	var mix_rate := 22050
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x5241494E
+	for v_idx in 8:
+		var dur_s := rng.randf_range(0.045, 0.095)
+		var count_s := int(dur_s * mix_rate)
+		var sub_drops := 1 if v_idx < 5 else 2
+		var buf := PackedFloat32Array()
+		buf.resize(count_s)
+		for d in sub_drops:
+			var onset := 0 if d == 0 else rng.randi_range(int(count_s * 0.15), int(count_s * 0.55))
+			var freq_a := rng.randf_range(1400.0, 2800.0)
+			var freq_b := rng.randf_range(3200.0, 4800.0)
+			var decay_rate := rng.randf_range(110.0, 190.0)
+			var amp := rng.randf_range(0.60, 1.0) / float(sub_drops)
+			for s in range(onset, count_s):
+				var t := float(s - onset) / float(mix_rate)
+				var env := (1.0 - exp(-t * 1600.0)) * exp(-t * decay_rate)
+				var glass_ping := sin(TAU * freq_a * t) * 0.40 + sin(TAU * freq_b * t) * 0.20
+				var water_snap := rng.randf_range(-0.8, 0.8) * exp(-t * decay_rate * 1.5) * 0.60
+				buf[s] += (glass_ping + water_snap) * env * amp
+		# Gentle, subtle single-stage HPF (~420 Hz cutoff) for smooth roll-off without harshness
+		var dst := PackedByteArray()
+		dst.resize(count_s * 2)
+		var x1 := 0.0
+		var y1 := 0.0
+		for s in count_s:
+			var s0 := buf[s]
+			y1 = s0 - x1 + 0.38 * y1
+			x1 = s0
+			var pcm := clampi(int(roundf(y1 * 26000.0)), -32768, 32767)
+			dst.encode_s16(s * 2, pcm)
+		var stream := AudioStreamWAV.new()
+		stream.format = AudioStreamWAV.FORMAT_16_BITS
+		stream.mix_rate = mix_rate
+		stream.stereo = false
+		stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
+		stream.data = dst
+		rain_impact_streams.append(stream)
+
+	var positions := [
+		Vector3(-0.34, 0.90, -0.42),
+		Vector3(0.30, 0.90, -0.42),
+		Vector3(-0.06, 1.08, -0.08),
+	]
+	rain_impact_players.clear()
+	for p_idx in positions.size():
+		var rp := AudioStreamPlayer3D.new()
+		rp.stream = rain_impact_streams[p_idx % rain_impact_streams.size()]
+		rp.position = positions[p_idx]
+		rp.unit_size = 5.0
+		rp.max_distance = 32.0
+		rp.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		routing.route(rp, "rain_impact")
+		_ensure_bus_hpf(rp.bus, 420.0)
+		add_child(rp)
+		rain_impact_players.append(rp)
+	rain_impact_player = rain_impact_players[0]
+
+
 func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> void:
 	sand_impact_cooldown = maxf(0.0, sand_impact_cooldown - delta)
 	var sand_share := clampf(float(state.shares.get("sand", 0.0)) + float(state.shares.get("gravel", 0.0)), 0.0, 1.0)
@@ -782,11 +905,55 @@ func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> v
 		return
 	if sand_impact_cooldown > 0.0 or sand_impact_player.playing:
 		return
+	if not sand_impact_streams.is_empty():
+		var v_idx := randi() % sand_impact_streams.size()
+		if v_idx == sand_last_variant and sand_impact_streams.size() > 1:
+			v_idx = (v_idx + 1 + (randi() % (sand_impact_streams.size() - 1))) % sand_impact_streams.size()
+		sand_last_variant = v_idx
+		sand_impact_player.stream = sand_impact_streams[v_idx]
 	var presence := smoothstep(12.0, 70.0, speed_kph) * sand_share * float(state.load_factor)
-	sand_impact_player.volume_linear = 0.075 * presence * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
-	sand_impact_player.pitch_scale = randf_range(0.92, 1.08)
+	var amp_jitter := randf_range(0.48, 1.18)
+	sand_impact_player.volume_linear = 0.094875 * presence * amp_jitter * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+	sand_impact_player.pitch_scale = randf_range(0.84, 1.28)
 	sand_impact_player.play()
-	sand_impact_cooldown = randf_range(0.85, 1.50)
+	# Exponential-like irregular spacing so gravel/sand body hits never sound periodic
+	var exp_sample := -log(clampf(randf(), 0.06, 1.0))
+	sand_impact_cooldown = clampf(lerpf(1.35, 0.42, presence) * exp_sample * randf_range(0.65, 1.45), 0.22, 2.60)
+
+
+func update_rain_impacts(delta: float) -> void:
+	rain_impact_cooldown = maxf(0.0, rain_impact_cooldown - delta)
+	if rain_impact_players.is_empty() or rain_impact_streams.is_empty() or vehicle == null or vehicle.simulation == null:
+		return
+	var conditions: Array = vehicle.simulation.last_local_conditions
+	var climate: Dictionary = conditions[2].get("climate", {}) if conditions.size() > 2 and conditions[2] is Dictionary else {}
+	var precip := float(climate.get("precipitation_mm_h", 0.0))
+	if precip < 0.15 or rain_impact_cooldown > 0.0:
+		return
+	var player: AudioStreamPlayer3D = rain_impact_players[randi() % rain_impact_players.size()]
+	if player.playing:
+		for candidate in rain_impact_players:
+			if not candidate.playing:
+				player = candidate
+				break
+	var v_idx := randi() % rain_impact_streams.size()
+	if v_idx == rain_last_variant and rain_impact_streams.size() > 1:
+		v_idx = (v_idx + 1 + (randi() % (rain_impact_streams.size() - 1))) % rain_impact_streams.size()
+	rain_last_variant = v_idx
+	player.stream = rain_impact_streams[v_idx]
+
+	var intensity := clampf(precip / 12.0, 0.0, 1.0)
+	var speed_mps: float = vehicle.linear_velocity.length()
+	var speed_factor := clampf(speed_mps / 25.0, 0.0, 0.8)
+	var cabin_gain := lerpf(0.026, 0.088, cockpit_audio_blend)
+	var drop_weight := randf_range(0.45, 1.15)
+	player.volume_linear = cabin_gain * intensity * (1.0 + speed_factor) * drop_weight
+	player.pitch_scale = randf_range(0.85, 1.35)
+	player.play()
+
+	# Continuous, rhythmic patter on glass and roof without wide silences
+	var cadence := lerpf(0.095, 0.038, intensity) / (1.0 + speed_factor * 0.45)
+	rain_impact_cooldown = randf_range(cadence * 0.70, cadence * 1.30)
 
 
 func play_landing(_other_body: Node) -> void:

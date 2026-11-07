@@ -281,22 +281,38 @@ func advance_wheel_particles(wetness: float) -> void:
 func _update_rain_splats(climate: Dictionary) -> void:
 	rain_splat_ticks = maxi(0, rain_splat_ticks - 1)
 	var precipitation := float(climate.get("precipitation_mm_h", 0.0))
-	if rain_splat_ticks > 0 or precipitation < 0.15:
+	var vis: Node = vehicle.get_node_or_null("VisualDamage") if vehicle != null else null
+	if vis != null and vis.has_method("update_weather_glass"):
+		vis.update_weather_glass(precipitation, vehicle.linear_velocity.length() if vehicle != null else 0.0)
+	if precipitation < 0.15:
 		return
+	var snow_mm := float(wheel_conditions(2).get("snow_mm", 0.0))
 	var kind := str(wheel_conditions(2).get("precipitation_kind", "none"))
-	if kind != "rain":
+	if kind != "rain" and (kind != "none" or snow_mm > 0.0):
 		return
-	rain_splat_ticks = roundi(lerpf(5.0, 2.0, clampf(precipitation / 10.0, 0.0, 1.0)))
-	var angle := wheel_particles.rng.randf_range(0.0, TAU)
-	var radius := wheel_particles.rng.randf_range(2.5, 11.0)
-	var origin := vehicle.global_position + Vector3(cos(angle), 0.0, sin(angle)) * radius
-	var ray := PhysicsRayQueryParameters3D.create(origin + Vector3.UP * 4.0, origin - Vector3.UP * 5.0, 1, [vehicle.get_rid()])
-	var hit := get_world_3d().direct_space_state.intersect_ray(ray)
-	if hit.is_empty() or (hit.normal as Vector3).y < 0.65:
+	var intensity := clampf(precipitation / 12.0, 0.0, 1.0)
+	var splats_to_emit := clampi(int(ceil(intensity * 4.0)), 1, 4)
+	if rain_splat_ticks > 0:
+		if intensity < 0.4:
+			return
+		splats_to_emit = 1
+	rain_splat_ticks = clampi(roundi(lerpf(3.0, 1.0, intensity)), 1, 3)
+	var space_state := get_world_3d().direct_space_state
+	if space_state == null:
 		return
-	var point: Vector3 = hit.position
-	var normal: Vector3 = hit.normal
-	wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.RAIN_SPLAT, RAIN_SPLAT, point + normal * 0.08, normal * 0.25, point, normal)
+	var forward_lead := vehicle.linear_velocity * 0.35 if vehicle != null else Vector3.ZERO
+	forward_lead.y = 0.0
+	for i in splats_to_emit:
+		var angle := wheel_particles.rng.randf_range(0.0, TAU)
+		var radius := lerpf(1.1, 9.5, sqrt(wheel_particles.rng.randf()))
+		var origin := vehicle.global_position + forward_lead + Vector3(cos(angle), 0.0, sin(angle)) * radius
+		var ray := PhysicsRayQueryParameters3D.create(origin + Vector3.UP * 4.0, origin - Vector3.UP * 5.0, 1, [vehicle.get_rid()])
+		var hit := space_state.intersect_ray(ray)
+		if hit.is_empty() or (hit.normal as Vector3).y < 0.65:
+			continue
+		var point: Vector3 = hit.position
+		var normal: Vector3 = hit.normal
+		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.RAIN_SPLAT, RAIN_SPLAT, point + normal * 0.08, normal * 0.25, point, normal)
 
 
 func _update_exhaust() -> void:

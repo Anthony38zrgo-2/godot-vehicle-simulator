@@ -221,8 +221,26 @@ func verify() -> void:
 	for i in 20:
 		vfx.emit_impact(Vector3.ZERO, Vector3.UP, Color.WHITE, 0.5, true)
 	assert(vfx.emitted_impacts == 6, "The pool must cap overlapping impact effects")
+
+	# Rain splat and windshield weather verification
+	vfx.clear_wheel_bursts()
+	vfx.rain_splat_ticks = 0
+	sim.last_local_conditions[2] = {"climate": {"precipitation_mm_h": 10.0}, "precipitation_kind": "rain"}
+	vfx._update_rain_splats(sim.last_local_conditions[2].climate)
+	var splats: Array = vfx.wheel_particles.particles.filter(func(p): return p.ticks > 0 and p.kind == vfx.WHEEL_PARTICLES.Kind.RAIN_SPLAT)
+	assert(splats.size() >= 1, "Rain splats must emit on precipitation")
+	var splat_batch: MultiMesh = vfx.wheel_particles.batches[vfx.RAIN_SPLAT]
+	var splat_material := splat_batch.mesh.surface_get_material(0) as ShaderMaterial
+	assert(
+		is_equal_approx(float(splat_material.get_shader_parameter("body_exclusion_strength")), 0.0),
+		"Rain splat sprites must not be clipped by the body box",
+	)
+	var vis: Node = vehicle.get_node_or_null("VisualDamage")
+	assert(vis != null and vis._windshield_rain_material != null, "Windshield rain shader must be initialized")
+	assert(is_equal_approx(float(vis._windshield_rain_material.get_shader_parameter("rain_intensity")), clampf(10.0 / 12.0, 0.0, 1.0)))
+
 	vfx.reset_effects()
-	print("RALLY_VFX_CONTRACT_OK real_contacts surfaces wetness skid airborne impact_cooldown pool_reset spray snow sparks mud leaves")
+	print("RALLY_VFX_CONTRACT_OK real_contacts surfaces wetness skid airborne impact_cooldown pool_reset spray snow sparks mud leaves rain_splats windshield")
 	scene.queue_free()
 	await process_frame
 	quit()

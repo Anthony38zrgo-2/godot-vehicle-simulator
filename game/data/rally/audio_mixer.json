@@ -34,7 +34,7 @@
   "sounds": {
     "backfire_cabin": {
       "filter": {
-        "hpf_hz": 380.0
+        "lpf_hz": 5500.0
       }
     },
     "flat_tyre_mono": {
@@ -889,8 +889,18 @@
     "surface_sand_body_impact": {
       "volume": 0.55,
       "filter": {
-        "hpf_hz": 380.0,
+        "hpf_hz": 320.0,
         "lpf_hz": 5400.0
+      },
+      "reverb": {
+        "enabled": false
+      }
+    },
+    "rain_impact": {
+      "volume": 0.55,
+      "filter": {
+        "hpf_hz": 420.0,
+        "lpf_hz": 7200.0
       },
       "reverb": {
         "enabled": false

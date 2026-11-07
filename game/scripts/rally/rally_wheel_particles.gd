@@ -292,9 +292,9 @@ const TYPES := {
 	},
 	Kind.RAIN_SPLAT: {
 		"color": Color(0.84, 0.91, 1.0),
-		"ticks": 14,
-		"size": Vector2(0.14, 0.32),
-		"alpha": 0.65,
+		"ticks": 8,
+		"size": Vector2(0.14, 0.42),
+		"alpha": 0.82,
 		"gravity": 0.0,
 		"drag": 0.0,
 	},
@@ -625,6 +625,8 @@ func _make_batch(texture: Texture2D, kind: Kind) -> void:
 	if texture.resource_path.begins_with("res://assets/vfx/cmr4/"):
 		frames = 1.0
 	material.set_shader_parameter("sprite_frames", frames)
+	if kind == Kind.RAIN_SPLAT or texture.resource_path.ends_with("splat.png"):
+		material.set_shader_parameter("body_exclusion_strength", 0.0)
 	_apply_material_style(material, kind)
 	var mesh := QuadMesh.new()
 	mesh.material = material

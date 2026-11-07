@@ -3,6 +3,7 @@ extends Node3D
 signal windshield_broken(local_normal: Vector3)
 
 const EXTERIOR_GLASS := preload("res://scripts/rally/rally_escort_exterior_glass.gdshader")
+const WINDSHIELD_RAIN := preload("res://scripts/rally/rally_windshield_rain.gdshader")
 @export var damage_meshes: PackedScene = preload("res://assets/rally/ford_escort_rs2000_1971/damage/escort_damage.glb")
 @export var broken_light: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/lights_damaged.png")
 @export var broken_glass: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/windows_damaged.png")
@@ -23,9 +24,18 @@ var _broken: Dictionary = {}
 var _dirty := false
 var _cockpit_view := false
 var _exterior_windows: Array[Dictionary] = []
+var _rain_intensity := 0.0
+var _car_speed_mps := 0.0
+var _windshield_rain_material: ShaderMaterial = null
 
 
 func _ready() -> void:
+	if _windshield_rain_material == null:
+		_windshield_rain_material = ShaderMaterial.new()
+		_windshield_rain_material.shader = WINDSHIELD_RAIN
+		_windshield_rain_material.set_shader_parameter("is_cockpit_view", _cockpit_view)
+		_windshield_rain_material.set_shader_parameter("rain_intensity", _rain_intensity)
+		_windshield_rain_material.set_shader_parameter("car_speed_mps", _car_speed_mps)
 	var chassis := get_node("../Chassis")
 	var variants := damage_meshes.instantiate() as Node3D
 	add_child(variants)
@@ -86,8 +96,10 @@ func _bind_exterior_surface(mesh: MeshInstance3D, surface: int, material: Materi
 			if material.resource_name == "#E1 window front":
 				var cracked := glass.duplicate() as StandardMaterial3D
 				cracked.albedo_texture = broken_glass
+				cracked.next_pass = _windshield_rain_material
 				binding["cracked"] = cracked
 				binding["tinted_cracked"] = _make_tinted_glass(broken_glass, true)
+				glass.next_pass = _windshield_rain_material
 			_exterior_windows.append(binding)
 
 
@@ -96,13 +108,35 @@ func _make_tinted_glass(texture: Texture2D, cracked: bool) -> ShaderMaterial:
 	material.shader = EXTERIOR_GLASS
 	material.set_shader_parameter("glass_texture", texture)
 	material.set_shader_parameter("cracked", cracked)
+	material.set_shader_parameter("rain_intensity", _rain_intensity)
+	material.set_shader_parameter("car_speed_mps", _car_speed_mps)
 	return material
 
 
 func set_cockpit_view(enabled: bool) -> void:
 	if _cockpit_view != enabled:
 		_cockpit_view = enabled
+		if _windshield_rain_material != null:
+			_windshield_rain_material.set_shader_parameter("is_cockpit_view", _cockpit_view)
 		_update_exterior_glass()
+
+
+func update_weather_glass(precipitation_mm_h: float, speed_mps: float) -> void:
+	var intensity := clampf(precipitation_mm_h / 12.0, 0.0, 1.0)
+	if absf(_rain_intensity - intensity) < 0.005 and absf(_car_speed_mps - speed_mps) < 0.5:
+		return
+	_rain_intensity = intensity
+	_car_speed_mps = speed_mps
+	if _windshield_rain_material != null:
+		_windshield_rain_material.set_shader_parameter("rain_intensity", _rain_intensity)
+		_windshield_rain_material.set_shader_parameter("car_speed_mps", _car_speed_mps)
+		_windshield_rain_material.set_shader_parameter("is_cockpit_view", _cockpit_view)
+	for binding in _exterior_windows:
+		for key in ["tinted", "tinted_cracked"]:
+			if binding.has(key) and binding[key] is ShaderMaterial:
+				var mat: ShaderMaterial = binding[key]
+				mat.set_shader_parameter("rain_intensity", _rain_intensity)
+				mat.set_shader_parameter("car_speed_mps", _car_speed_mps)
 
 
 func _update_exterior_glass() -> void:

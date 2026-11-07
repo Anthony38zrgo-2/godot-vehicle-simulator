@@ -66,12 +66,12 @@ func run() -> void:
 			cabin_bus = AudioServer.get_bus_index(p.bus)
 		check(cabin_bus >= 0, vid + ": cabin bus exists")
 		if cabin_bus >= 0:
-			var hpf_found := false
+			var lpf_found := false
 			for index in AudioServer.get_bus_effect_count(cabin_bus):
 				var effect := AudioServer.get_bus_effect(cabin_bus, index)
-				if effect is AudioEffectHighPassFilter and float(effect.cutoff_hz) > 100.0:
-					hpf_found = true
-			check(hpf_found, vid + ": cabin bus has a high-pass filter")
+				if effect is AudioEffectLowPassFilter and float(effect.cutoff_hz) < 18000.0:
+					lpf_found = true
+			check(lpf_found, vid + ": cabin bus has a low-pass filter")
 		
 		# Test camera modes: CHASE (0) -> backfire_players, BONNET (1) -> backfire_cabin_players, COCKPIT (2) -> backfire_cabin_players
 		var rig = session.get("camera_rig")
@@ -92,7 +92,7 @@ func run() -> void:
 					break
 			check(ext_played, vid + ": CHASE mode (0) plays exterior rear backfire")
 			
-			# Mode 1: BONNET -> exhaust samples on the HP-filtered cabin bus
+			# Mode 1: BONNET -> exhaust samples on the LP-filtered cabin bus
 			rig.set("camera_mode", 1)
 			var bonnet_played := false
 			for attempt in 30:
@@ -107,7 +107,7 @@ func run() -> void:
 					break
 			check(bonnet_played, vid + ": BONNET mode (1) plays the exhaust sample on the cabin bus")
 			
-			# Mode 2: COCKPIT -> exhaust samples on the HP-filtered cabin bus
+			# Mode 2: COCKPIT -> exhaust samples on the LP-filtered cabin bus
 			rig.set("camera_mode", 2)
 			var cockpit_played := false
 			for attempt in 30:

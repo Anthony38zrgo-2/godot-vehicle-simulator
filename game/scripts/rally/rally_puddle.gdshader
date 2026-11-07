@@ -35,6 +35,37 @@ vec3 rotate_y(vec3 d, float yaw) {
 	return vec3(cos(yaw) * d.x + sin(yaw) * d.z, d.y, -sin(yaw) * d.x + cos(yaw) * d.z);
 }
 
+float puddle_hash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float rain_drop_ripples(vec2 uv_world, float time, float intensity) {
+	if (intensity <= 0.01) return 0.0;
+	float total = 0.0;
+	for (int layer = 0; layer < 2; layer++) {
+		float scale = (layer == 0) ? 5.5 : 9.5;
+		vec2 p = uv_world * scale + float(layer) * 17.3;
+		vec2 g = floor(p);
+		vec2 f = fract(p) - 0.5;
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				vec2 n = vec2(float(i), float(j));
+				float h = puddle_hash(g + n);
+				float age = fract(time * (1.1 + 0.5 * h) + h * 6.2831);
+				float rad = age * 0.45;
+				vec2 d = f - n;
+				float dist = length(d);
+				if (dist < rad && dist > rad - 0.16) {
+					float wave = sin((dist - rad) * 36.0);
+					float fade = (1.0 - age) * smoothstep(rad - 0.16, rad, dist);
+					total += wave * fade;
+				}
+			}
+		}
+	}
+	return total * intensity;
+}
+
 void vertex() {
 	patch_uv = VERTEX.xz / max(patch_size, vec2(0.1));
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -115,7 +146,8 @@ void fragment() {
 		float r2 = sin(length(uv2) * mix(68.0, 32.0, depth_norm) - TIME * 10.5);
 		float wave_amplitude = mix(0.020, 0.055, depth_norm);
 		float ripples = (r1 * 0.60 + r2 * 0.40) * rain * wave_amplitude * water_body;
-		n_mod = normalize(NORMAL + TANGENT * ripples + BINORMAL * ripples);
+		float drops = rain_drop_ripples(world_position.xz, TIME, rain) * 0.035 * water_body;
+		n_mod = normalize(NORMAL + TANGENT * (ripples + drops) + BINORMAL * (ripples - drops));
 	}
 	NORMAL = n_mod;
 

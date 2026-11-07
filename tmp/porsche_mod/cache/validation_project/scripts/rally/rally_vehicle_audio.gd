@@ -75,12 +75,12 @@ const DOWNSHIFT_RETRIGGER_SECONDS := 0.10
 const BACKFIRE_RETRIGGER_SECONDS := 1.0
 const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
-const LIMITER_GAIN := 0.225
+const LIMITER_GAIN := 0.1005 # -7.0 dB (0.225 * db_to_linear(-7.0))
 const SURFACE_GAIN := 0.45
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
-const ENGINE_GAIN_BOOST := 3.1622776601683795 # +10.0 dB (db_to_linear(10.0), boosted by additional +5.0 dB)
+const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
 const VIEW_ENGINE_GAIN := [1.0, 0.6]
