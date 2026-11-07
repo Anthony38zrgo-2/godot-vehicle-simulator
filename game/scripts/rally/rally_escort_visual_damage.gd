@@ -26,6 +26,7 @@ var _cockpit_view := false
 var _exterior_windows: Array[Dictionary] = []
 var _rain_intensity := 0.0
 var _car_speed_mps := 0.0
+var _rain_scroll := 0.0
 var _windshield_rain_material: ShaderMaterial = null
 
 
@@ -36,6 +37,7 @@ func _ready() -> void:
 		_windshield_rain_material.set_shader_parameter("is_cockpit_view", _cockpit_view)
 		_windshield_rain_material.set_shader_parameter("rain_intensity", _rain_intensity)
 		_windshield_rain_material.set_shader_parameter("car_speed_mps", _car_speed_mps)
+		_windshield_rain_material.set_shader_parameter("rain_scroll", _rain_scroll)
 	var chassis := get_node("../Chassis")
 	var variants := damage_meshes.instantiate() as Node3D
 	add_child(variants)
@@ -110,6 +112,7 @@ func _make_tinted_glass(texture: Texture2D, cracked: bool) -> ShaderMaterial:
 	material.set_shader_parameter("cracked", cracked)
 	material.set_shader_parameter("rain_intensity", _rain_intensity)
 	material.set_shader_parameter("car_speed_mps", _car_speed_mps)
+	material.set_shader_parameter("rain_scroll", _rain_scroll)
 	return material
 
 
@@ -123,10 +126,11 @@ func set_cockpit_view(enabled: bool) -> void:
 
 func update_weather_glass(precipitation_mm_h: float, speed_mps: float) -> void:
 	var intensity := clampf(precipitation_mm_h / 12.0, 0.0, 1.0)
-	if absf(_rain_intensity - intensity) < 0.005 and absf(_car_speed_mps - speed_mps) < 0.5:
+	var smoothed_speed := lerpf(_car_speed_mps, speed_mps, 0.25) if _car_speed_mps > 0.01 else speed_mps
+	if absf(_rain_intensity - intensity) < 0.003 and absf(_car_speed_mps - smoothed_speed) < 0.25:
 		return
 	_rain_intensity = intensity
-	_car_speed_mps = speed_mps
+	_car_speed_mps = smoothed_speed
 	if _windshield_rain_material != null:
 		_windshield_rain_material.set_shader_parameter("rain_intensity", _rain_intensity)
 		_windshield_rain_material.set_shader_parameter("car_speed_mps", _car_speed_mps)
@@ -199,7 +203,16 @@ func _mark_broken(part: String, severity: float, config: Dictionary) -> void:
 		_dirty = true
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _rain_intensity > 0.001:
+		var speed_norm := clampf(_car_speed_mps / 28.0, 0.0, 1.5)
+		_rain_scroll = fposmod(_rain_scroll + delta * (0.04 + speed_norm * 0.22), 1000.0)
+		if _windshield_rain_material != null:
+			_windshield_rain_material.set_shader_parameter("rain_scroll", _rain_scroll)
+		for binding in _exterior_windows:
+			for key in ["tinted", "tinted_cracked"]:
+				if binding.has(key) and binding[key] is ShaderMaterial:
+					(binding[key] as ShaderMaterial).set_shader_parameter("rain_scroll", _rain_scroll)
 	if not _dirty:
 		return
 	_dirty = false

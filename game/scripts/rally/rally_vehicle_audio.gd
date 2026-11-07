@@ -158,6 +158,7 @@ var rain_impact_streams: Array[AudioStreamWAV] = []
 var rain_last_variant := -1
 var rain_burst_remaining := 0
 var rain_impact_cooldown := 0.0
+var _cached_rain_precip := 0.0
 var sand_impact_cooldown := 0.0
 var impact_small_players: Array[AudioStreamPlayer3D] = []
 var impact_medium_players: Array[AudioStreamPlayer3D] = []
@@ -926,8 +927,20 @@ func update_rain_impacts(delta: float) -> void:
 	if rain_impact_players.is_empty() or rain_impact_streams.is_empty() or vehicle == null or vehicle.simulation == null:
 		return
 	var conditions: Array = vehicle.simulation.last_local_conditions
-	var climate: Dictionary = conditions[2].get("climate", {}) if conditions.size() > 2 and conditions[2] is Dictionary else {}
-	var precip := float(climate.get("precipitation_mm_h", 0.0))
+	var precip := _cached_rain_precip
+	var found_climate := false
+	for cond in conditions:
+		if cond is Dictionary and cond.has("climate") and cond["climate"] is Dictionary:
+			precip = float(cond["climate"].get("precipitation_mm_h", 0.0))
+			_cached_rain_precip = precip
+			found_climate = true
+			break
+	if not found_climate and vehicle.simulation.weather_controller != null:
+		var wc: Object = vehicle.simulation.weather_controller
+		var blend = wc.get("current_blend")
+		if blend is Dictionary and blend.has("climate") and blend["climate"] is Dictionary:
+			precip = float(blend["climate"].get("precipitation_mm_h", 0.0))
+			_cached_rain_precip = precip
 	if precip < 0.15 or rain_impact_cooldown > 0.0:
 		return
 	var player: AudioStreamPlayer3D = rain_impact_players[randi() % rain_impact_players.size()]

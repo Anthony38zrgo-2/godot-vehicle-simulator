@@ -1,12 +1,23 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded;
 
+// Lluvia de parabrisas estilizada (look 2004-2006).
+// - Sin normales de malla, sin VERTEX/UV: todo se calcula en espacio de pantalla.
+// - La "lente" de cada gota es un simple offset de muestreo (imagen invertida), sin normal maps.
+// - La malla del parabrisas solo actua como mascara de donde se dibuja.
+
 uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear_mipmap;
 uniform float rain_intensity : hint_range(0.0, 1.0) = 0.0;
 uniform float car_speed_mps : hint_range(0.0, 80.0) = 0.0;
+uniform float rain_scroll = 0.0;          // acumulado desde GDScript (se mantiene igual)
 uniform bool is_cockpit_view = true;
 
-varying vec2 v_glass_pos;
+uniform float refraction : hint_range(0.0, 0.08) = 0.03;   // fuerza de la lente
+uniform float bead_scale = 38.0;          // gotas quietas: celdas por alto de pantalla
+uniform float slider_scale = 11.0;        // gotas que se deslizan
+uniform float wind_slant : hint_range(0.0, 0.5) = 0.18;    // inclinacion lateral a velocidad
+uniform float slide_dir : hint_range(-1.0, 1.0) = -1.0;    // -1 = caen hacia abajo, +1 = suben
+uniform float fall_speed : hint_range(0.0, 0.5) = 0.10;    // velocidad base de caida (parado)
 
 float hash12(vec2 p) {
 	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -14,165 +25,60 @@ float hash12(vec2 p) {
 	return fract((p3.x + p3.y) * p3.z);
 }
 
-vec2 hash22(vec2 p) {
-	vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-	p3 += dot(p3, p3.yzx + 33.33);
-	return fract((p3.xx + p3.yz) * p3.zy);
+// Gotas quietas. Devuelve (offset de refraccion, mascara).
+vec3 beads(vec2 uv, float scale, float density, float seed) {
+	vec2 p = uv * scale + vec2(seed * 17.3, seed * 31.7);
+	vec2 id = floor(p);
+	vec2 f = fract(p) - 0.5;
+	if (hash12(id + seed) > density) {
+		return vec3(0.0);
+	}
+	vec2 c = (vec2(hash12(id + seed + 3.1), hash12(id + seed + 7.7)) - 0.5) * 0.5;
+	float r = mix(0.14, 0.30, hash12(id + seed + 11.3));
+	vec2 d = (f - c) / r;
+	float m = 1.0 - smoothstep(0.80, 1.0, length(d));
+	return vec3(-d * m, m);
 }
 
-// 1. Persistent Static Droplets:
-// Stable resting water beads adhering to the glass.
-// Never flickers or blinks; presence scales continuously with rain_intensity.
-vec3 persistent_droplet_layer(vec2 pos_m, float scale, float density, float seed) {
-	vec2 p = pos_m * scale + vec2(seed * 19.3, seed * 37.1);
-	vec2 cell = floor(p);
-	vec2 local = fract(p) - 0.5;
-
-	float prob = hash12(cell + vec2(7.3, 13.9));
-	if (prob > density) {
+// Gotas que suben/se deslizan con estela corta. Cada celda tiene su propia velocidad y fase,
+// asi que cada gota se mueve distinto. La gota nace y muere con fundido (no hay saltos).
+vec3 slider(vec2 uv, float scale, float density, float seed, float t) {
+	vec2 p = vec2(uv.x * scale + seed * 13.1, uv.y * scale * 0.45 + seed * 5.7);
+	vec2 id = floor(p);
+	vec2 f = fract(p);
+	if (hash12(id + seed) > density) {
 		return vec3(0.0);
 	}
+	float h2 = hash12(id + seed + 9.1);
+	float h3 = hash12(id + seed + 21.7);
 
-	vec2 rnd = hash22(cell + vec2(31.4, 9.1));
-	vec2 center = (rnd - 0.5) * 0.62;
-	vec2 delta = local - center;
-	delta.y *= 0.88; // Slight teardrop elongation on inclined windshield
+	float raw = fract(h2 + t * mix(0.6, 1.4, h3));
+	float life = sin(raw * PI);
+	// Avance a tirones (se frena y acelera, como una gota real sobre el cristal); siempre avanza
+	float phase = clamp(raw + 0.04 * sin(raw * 18.85 + h3 * 6.28), 0.0, 1.0);
+	float dir = (slide_dir >= 0.0) ? 1.0 : -1.0;
+	float py = (dir > 0.0) ? phase : 1.0 - phase;
+	// Pequeno vaiven lateral mientras se desplaza
+	float px = mix(0.25, 0.75, hash12(id + seed + 4.3)) + 0.04 * sin(phase * 20.0 + h2 * 6.28);
+	float rr = mix(0.10, 0.16, h3);
 
-	float base_rad = mix(0.12, 0.22, hash12(cell + vec2(11.2, 5.7)));
-	// Softly fade in new droplets as rain_intensity increases without popping
-	float threshold_fade = clamp((density - prob) / 0.12, 0.0, 1.0);
-	float radius = base_rad * threshold_fade;
-	float dist = length(delta);
-	if (dist >= radius) {
-		return vec3(0.0);
-	}
+	// Cuerpo de la gota (circular en pantalla gracias al 0.45 del eje Y)
+	vec2 d = vec2((f.x - px) / rr, (f.y - py) / (rr * 0.45));
+	float drop_m = 1.0 - smoothstep(0.80, 1.0, length(d));
 
-	float r = dist / max(radius, 0.0001);
-	float lens_curve = r * (0.35 + 0.65 * r * r);
-	vec2 dir = delta / max(dist, 0.0001);
-	vec2 normal_2d = dir * lens_curve * threshold_fade;
-	float coverage = (1.0 - smoothstep(0.80, 1.0, r)) * threshold_fade;
-	return vec3(normal_2d, coverage);
-}
+	// Estela detras de la gota (por debajo de ella en el sentido del movimiento)
+	float behind = (py - f.y) * dir;   // >0 = lado por donde ya paso la gota
+	float avail = (dir > 0.0) ? py : 1.0 - py;
+	float trail_len = max(min(avail, 0.55), 0.01);
+	float tx = (f.x - px - 0.025 * sin(f.y * 16.0 + h2 * 6.28)) / (rr * 0.28);
+	float trail_m = (1.0 - smoothstep(0.6, 1.0, abs(tx)))
+		* step(0.0, behind)
+		* (1.0 - clamp(behind / trail_len, 0.0, 1.0))
+		* 0.55;
 
-// 2. Dual-Phase Smooth Dynamic Micro-Droplets:
-// Two time-offset phases blended with sin/cos so total coverage is mathematically
-// constant over time (w_a^2 + w_b^2 == 1.0), completely eliminating strobing/popping.
-vec3 smooth_dynamic_layer(vec2 pos_m, float scale, float time, float density, float seed) {
-	vec2 p = pos_m * scale + vec2(seed * 23.7, seed * 41.3);
-	vec2 cell = floor(p);
-	vec2 local = fract(p) - 0.5;
-
-	float prob = hash12(cell + vec2(17.1, 8.9));
-	if (prob > density) {
-		return vec3(0.0);
-	}
-
-	vec2 rnd = hash22(cell);
-	vec2 center = (rnd - 0.5) * 0.58;
-	vec2 delta = local - center;
-	delta.y *= 0.90;
-
-	float cycle_rate = 0.45 + 0.35 * rnd.x;
-	float t_val = time * cycle_rate + rnd.y * 6.2831;
-
-	// Dual-phase sine/cosine weights guarantee seamless continuous presence
-	float w_a = sin(t_val);
-	float w_b = cos(t_val);
-	float weight = max(w_a * w_a, w_b * w_b); // Smooth breathing envelope, never drops to 0
-
-	float base_rad = mix(0.10, 0.18, hash12(cell + vec2(2.3, 19.8)));
-	float radius = base_rad * (0.85 + 0.25 * weight);
-	float dist = length(delta);
-	if (dist >= radius) {
-		return vec3(0.0);
-	}
-
-	float r = dist / max(radius, 0.0001);
-	float lens_curve = r * (0.32 + 0.68 * r * r);
-	vec2 dir = delta / max(dist, 0.0001);
-	vec2 normal_2d = dir * lens_curve * weight;
-	float coverage = (1.0 - smoothstep(0.78, 1.0, r)) * weight;
-	return vec3(normal_2d, coverage);
-}
-
-// 3. Continuous Aerodynamic Rivulets & Streaks:
-// Uses continuous vertical flow channels so water runs smoothly upward/outward
-// with vehicle speed without jumping across cell boundaries.
-vec3 continuous_streak_layer(vec2 pos_m, float time, float intensity, float speed_mps) {
-	if (intensity <= 0.01) {
-		return vec3(0.0);
-	}
-
-	float speed_norm = clamp(speed_mps / 28.0, 0.0, 1.6);
-	float flow_speed = 0.06 + speed_norm * 0.38;
-
-	// Outward aerodynamic splay across the windshield curved glass
-	vec2 flow_pos = pos_m;
-	flow_pos.x -= pos_m.x * (pos_m.y * 0.16 * clamp(speed_norm, 0.0, 1.0));
-
-	float num_channels = 36.0;
-	float ch = floor(flow_pos.x * num_channels);
-	float ch_prob = hash12(vec2(ch, 53.0));
-	if (ch_prob > intensity * 0.78) {
-		return vec3(0.0);
-	}
-
-	float ch_x_center = (ch + 0.5) / num_channels;
-	float dist_x = (flow_pos.x - ch_x_center) * num_channels; // [-0.5 .. 0.5]
-
-	float ch_speed = flow_speed * (0.82 + 0.36 * ch_prob);
-	// Continuous scrolling vertical parameter
-	float y_stream = flow_pos.y * 2.8 - time * ch_speed * 2.8 + ch_prob * 11.0;
-
-	// Two staggered drops per channel for a continuous uninterrupted stream
-	vec2 normal_total = vec2(0.0);
-	float cov_total = 0.0;
-
-	for (int i = 0; i < 2; i++) {
-		float offset = float(i) * 0.5;
-		float y_phase = fract(y_stream + offset); // 0.0 -> 1.0
-
-		// Meandering path
-		float meander = sin(y_stream * 4.0 + ch_prob * 6.28) * 0.12;
-		float dx = dist_x - meander;
-
-		// Droplet head at y_phase in [0.70 .. 0.88]
-		float head_dist_y = (y_phase - 0.80) * 5.0;
-		vec2 head_vec = vec2(dx * 1.8, head_dist_y);
-		float head_len = length(head_vec);
-		float head_rad = 0.28;
-
-		if (head_len < head_rad) {
-			float r = head_len / head_rad;
-			float curve = r * (0.35 + 0.65 * r * r);
-			vec2 n = (head_vec / max(head_len, 0.0001)) * curve;
-			float cov = 1.0 - smoothstep(0.75, 1.0, r);
-			normal_total += n * cov;
-			cov_total = max(cov_total, cov);
-		}
-
-		// Trailing continuous wake (y_phase in [0.15 .. 0.78])
-		if (y_phase < 0.78 && y_phase > 0.18) {
-			float wake_norm = (y_phase - 0.18) / 0.60; // 0 (tail) -> 1 (near head)
-			float wake_width = mix(0.04, 0.14, wake_norm);
-			float adx = abs(dx);
-			if (adx < wake_width) {
-				float wr = adx / wake_width;
-				float wake_fade = wake_norm * (1.0 - smoothstep(0.60, 1.0, wr));
-				vec2 wake_n = vec2(sign(dx) * wr * 0.45, -0.12) * wake_fade;
-				normal_total += wake_n;
-				cov_total = max(cov_total, wake_fade * 0.65);
-			}
-		}
-	}
-
-	return vec3(normal_total, clamp(cov_total, 0.0, 1.0));
-}
-
-void vertex() {
-	// Isometric coordinates in meters on the windshield plane
-	v_glass_pos = vec2(VERTEX.x, VERTEX.y * 0.608 + VERTEX.z * 0.794);
+	vec2 off = -d * drop_m + vec2(tx * 0.25, 0.0) * trail_m;
+	float mask = max(drop_m, trail_m) * life;
+	return vec3(off * life, mask);
 }
 
 void fragment() {
@@ -181,43 +87,44 @@ void fragment() {
 		discard;
 	}
 
-	// 1. Persistent resting beads (stable, steady, continuous)
-	vec3 p1 = persistent_droplet_layer(v_glass_pos, 52.0, rain_intensity * 0.88, 1.0);
-	vec3 p2 = persistent_droplet_layer(v_glass_pos, 88.0, rain_intensity * 0.76, 2.0);
+	float aspect = VIEWPORT_SIZE.x / VIEWPORT_SIZE.y;
+	// Espacio de pantalla con aspecto corregido; Y hacia arriba
+	vec2 uv = vec2(SCREEN_UV.x * aspect, 1.0 - SCREEN_UV.y);
 
-	// 2. Dual-phase smooth dynamic droplets (no flickering/choppiness)
-	vec3 d1 = smooth_dynamic_layer(v_glass_pos, 64.0, TIME, rain_intensity * 0.80, 3.0);
-	vec3 d2 = smooth_dynamic_layer(v_glass_pos, 120.0, TIME * 1.1, rain_intensity * 0.70, 4.0);
+	// Inclinacion por viento: leve cizalla uniforme, acotada (nunca colapsa)
+	float speed_norm = clamp(car_speed_mps / 28.0, 0.0, 1.0);
+	uv.x += (uv.y - 0.5) * wind_slant * speed_norm;
 
-	// 3. Continuous aerodynamic sliding streaks
-	vec3 s1 = continuous_streak_layer(v_glass_pos, TIME, rain_intensity, car_speed_mps);
+	float t = rain_scroll * 0.35 + TIME * fall_speed;
+	float ri = rain_intensity;
 
-	vec2 lens_normal = p1.xy + p2.xy * 0.80 + d1.xy * 0.75 + d2.xy * 0.55 + s1.xy * 1.10;
-	float coverage = clamp(max(max(max(p1.z, p2.z), max(d1.z, d2.z)), s1.z), 0.0, 1.0);
+	vec3 b1 = beads(uv, bead_scale, ri * 0.55, 1.0);
+	vec3 b2 = beads(uv, bead_scale * 1.8, ri * 0.45, 2.0);
+	vec3 b3 = beads(uv, bead_scale * 4.0, ri * 0.60, 5.0);   // rocio fino
+	vec3 s1 = slider(uv, slider_scale, ri * 0.45, 3.0, t);
+	vec3 s2 = slider(uv, slider_scale * 1.6, ri * 0.35, 4.0, t * 1.3);
 
-	if (coverage <= 0.003) {
+	vec2 off = b1.xy + b2.xy * 0.8 + b3.xy * 0.5 + s1.xy + s2.xy;
+	float mask = clamp(max(max(max(b1.z, b2.z), max(b3.z * 0.7, s1.z)), s2.z), 0.0, 1.0);
+
+	if (mask <= 0.003) {
 		ALPHA = 0.0;
 		discard;
 	}
 
-	// Pure optical refraction of the 3D scene behind the windshield
-	float refr_strength = 0.020;
-	vec2 refr_uv = clamp(SCREEN_UV + lens_normal * refr_strength, vec2(0.002), vec2(0.998));
-	vec3 refracted = textureLod(screen_tex, refr_uv, 0.0).rgb;
+	// Lente falsa: la gota muestrea la escena "invertida" y un poco borrosa
+	vec2 refr_off = off * refraction * vec2(1.0 / aspect, -1.0);
+	vec2 refr_uv = clamp(SCREEN_UV + refr_off, vec2(0.002), vec2(0.998));
+	vec3 scene = textureLod(screen_tex, refr_uv, 1.0).rgb;
 
-	// Optical rim physics: steep outer rim bends sky light, center remains clear
-	float rim_steepness = clamp(length(lens_normal), 0.0, 1.0);
-	float rim_ring = smoothstep(0.32, 0.85, rim_steepness);
-	vec2 n_dir = lens_normal / max(rim_steepness, 0.0001);
+	// Borde oscuro + brillo puntual arriba-izquierda (se deriva del propio offset, sin normales)
+	float len_off = clamp(length(off), 0.0, 1.0);
+	float rim = smoothstep(0.55, 1.0, len_off);
+	vec2 dd = -off;
+	float spec = smoothstep(0.30, 0.0, length(dd - vec2(-0.35, 0.40)));
 
-	// Subtle pinpoint crescent glint on sky-facing rim
-	float sky_catch = clamp(dot(n_dir, normalize(vec2(0.2, 0.98))), 0.0, 1.0);
-	float lower_meniscus = clamp(dot(n_dir, normalize(vec2(-0.1, -0.99))), 0.0, 1.0);
+	vec3 col = scene * (1.0 - 0.22 * rim) + vec3(0.85, 0.92, 1.0) * spec * 0.30;
 
-	float scene_luma = dot(refracted, vec3(0.299, 0.587, 0.114));
-	vec3 glint = vec3(0.88, 0.94, 1.0) * pow(sky_catch, 4.0) * rim_ring * (0.12 + 0.16 * scene_luma);
-	float meniscus_darken = 1.0 - (pow(lower_meniscus, 3.0) * rim_ring * 0.10);
-
-	ALBEDO = refracted * meniscus_darken + glint;
-	ALPHA = clamp(smoothstep(0.0, 0.18, coverage) * 0.95, 0.0, 0.96);
+	ALBEDO = col;
+	ALPHA = clamp(smoothstep(0.0, 0.25, mask) * 0.92, 0.0, 0.95);
 }

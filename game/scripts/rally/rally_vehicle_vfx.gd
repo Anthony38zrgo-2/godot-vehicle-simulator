@@ -75,6 +75,7 @@ var current_steam_strength: float = 0.0
 var camera_rig: Node = null
 var tire_tracks: Node3D
 var _last_vfx_transform := Transform3D.IDENTITY
+var _cached_weather_condition: Dictionary = {}
 
 
 func _ready() -> void:
@@ -265,8 +266,24 @@ func get_wetness() -> float:
 	return clampf(float(wetness_node.get("wetness")), 0.0, 1.0) if is_instance_valid(wetness_node) else 0.0
 
 
+func _resolve_weather_condition() -> Dictionary:
+	for i in 4:
+		var cond := wheel_conditions(i)
+		if not cond.is_empty() and cond.has("climate"):
+			_cached_weather_condition = cond
+			return cond
+	if vehicle != null and vehicle.simulation != null and vehicle.simulation.weather_controller != null:
+		var wc: Object = vehicle.simulation.weather_controller
+		var blend = wc.get("current_blend")
+		if blend is Dictionary and blend.has("climate"):
+			_cached_weather_condition = blend
+			return blend
+	return _cached_weather_condition
+
+
 func advance_wheel_particles(wetness: float) -> void:
-	var climate: Dictionary = wheel_conditions(2).get("climate", {})
+	var weather_cond := _resolve_weather_condition()
+	var climate: Dictionary = weather_cond.get("climate", {})
 	var direction := deg_to_rad(float(climate.get("wind_direction_deg", 0.0)))
 	var wind := Vector3(cos(direction), 0.0, sin(direction)) * float(climate.get("wind_m_s", 0.0))
 	for i in 4:
@@ -280,14 +297,16 @@ func advance_wheel_particles(wetness: float) -> void:
 
 func _update_rain_splats(climate: Dictionary) -> void:
 	rain_splat_ticks = maxi(0, rain_splat_ticks - 1)
-	var precipitation := float(climate.get("precipitation_mm_h", 0.0))
+	var weather_cond := _resolve_weather_condition()
+	var effective_climate: Dictionary = climate if not climate.is_empty() else weather_cond.get("climate", {})
+	var precipitation := float(effective_climate.get("precipitation_mm_h", 0.0))
 	var vis: Node = vehicle.get_node_or_null("VisualDamage") if vehicle != null else null
 	if vis != null and vis.has_method("update_weather_glass"):
 		vis.update_weather_glass(precipitation, vehicle.linear_velocity.length() if vehicle != null else 0.0)
 	if precipitation < 0.15:
 		return
-	var snow_mm := float(wheel_conditions(2).get("snow_mm", 0.0))
-	var kind := str(wheel_conditions(2).get("precipitation_kind", "none"))
+	var snow_mm := float(weather_cond.get("snow_mm", 0.0))
+	var kind := str(weather_cond.get("precipitation_kind", "none"))
 	if kind != "rain" and (kind != "none" or snow_mm > 0.0):
 		return
 	var intensity := clampf(precipitation / 12.0, 0.0, 1.0)
@@ -627,6 +646,7 @@ func reset_effects() -> void:
 	impact_cooldown = 0.0
 	current_steam_strength = 0.0
 	steam_time = 0.0
+	_cached_weather_condition = {}
 
 
 func make_steam_emitter() -> GPUParticles3D:

@@ -238,6 +238,15 @@ func verify() -> void:
 	var vis: Node = vehicle.get_node_or_null("VisualDamage")
 	assert(vis != null and vis._windshield_rain_material != null, "Windshield rain shader must be initialized")
 	assert(is_equal_approx(float(vis._windshield_rain_material.get_shader_parameter("rain_intensity")), clampf(10.0 / 12.0, 0.0, 1.0)))
+	# Unloading wheel 2 over a bump must not reset windshield rain intensity to zero
+	sim.last_local_conditions[2] = {}
+	vfx._update_rain_splats({})
+	assert(
+		is_equal_approx(float(vis._windshield_rain_material.get_shader_parameter("rain_intensity")), clampf(10.0 / 12.0, 0.0, 1.0)),
+		"Windshield rain must not flicker off when wheel 2 unloads momentarily",
+	)
+	vis._process(0.05)
+	assert(float(vis._windshield_rain_material.get_shader_parameter("rain_scroll")) > 0.0, "Windshield rain scroll phase must advance smoothly")
 
 	vfx.reset_effects()
 	print("RALLY_VFX_CONTRACT_OK real_contacts surfaces wetness skid airborne impact_cooldown pool_reset spray snow sparks mud leaves rain_splats windshield")

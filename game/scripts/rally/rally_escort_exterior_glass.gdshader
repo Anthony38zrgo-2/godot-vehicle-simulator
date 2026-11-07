@@ -5,39 +5,54 @@ uniform sampler2D glass_texture : source_color, filter_linear_mipmap_anisotropic
 uniform bool cracked = false;
 uniform float rain_intensity : hint_range(0.0, 1.0) = 0.0;
 uniform float car_speed_mps : hint_range(0.0, 80.0) = 0.0;
+uniform float rain_scroll = 0.0;
 
 varying vec3 v_local_pos;
 varying vec3 v_local_normal;
 
 float hash12(vec2 p) {
-	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-	p3 += dot(p3, p3.yzx + 33.33);
-	return fract((p3.x + p3.y) * p3.z);
+	vec2 q = fract(vec2(
+		p.x * 0.443897 + p.y * 0.129731,
+		p.y * 0.408327 - p.x * 0.173891
+	));
+	q += dot(q, q.yx + vec2(37.19, 19.73));
+	return fract((q.x + q.y) * q.x * 23.17);
 }
 
 vec2 hash22(vec2 p) {
-	vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-	p3 += dot(p3, p3.yzx + 33.33);
-	return fract((p3.xx + p3.yz) * p3.zy);
+	return vec2(
+		hash12(p + vec2(13.71, 47.29)),
+		hash12(p + vec2(71.13, 29.83))
+	);
 }
 
-vec3 ext_persistent_droplets(vec2 pos_m, float scale, float density, float seed) {
-	vec2 p = pos_m * scale + vec2(seed * 19.3, seed * 37.1);
+vec2 rotate2d(vec2 p, float cs, float sn) {
+	return vec2(p.x * cs - p.y * sn, p.x * sn + p.y * cs);
+}
+
+vec3 ext_persistent_droplets(vec2 pos_m, float scale, float density, float cs, float sn, float seed) {
+	if (density <= 0.005) {
+		return vec3(0.0);
+	}
+	vec2 rpos = rotate2d(pos_m, cs, sn);
+	rpos += 0.014 * sin(rpos.yx * 11.0 + vec2(seed * 2.1, seed * 4.7));
+
+	vec2 p = rpos * scale + vec2(seed * 19.3, seed * 37.1);
 	vec2 cell = floor(p);
 	vec2 local = fract(p) - 0.5;
 
-	float prob = hash12(cell + vec2(7.3, 13.9));
+	float prob = hash12(cell + vec2(seed * 7.3, seed * 13.9));
 	if (prob > density) {
 		return vec3(0.0);
 	}
 
-	vec2 rnd = hash22(cell + vec2(31.4, 9.1));
-	vec2 center = (rnd - 0.5) * 0.62;
-	vec2 delta = local - center;
+	vec2 rnd = hash22(cell + vec2(seed * 31.4, seed * 9.1));
+	vec2 center = (rnd - 0.5) * 0.52;
+	vec2 delta = rotate2d(local - center, cs, -sn);
 	delta.y *= 0.88;
 
-	float base_rad = mix(0.11, 0.20, hash12(cell + vec2(11.2, 5.7)));
-	float threshold_fade = clamp((density - prob) / 0.12, 0.0, 1.0);
+	float base_rad = mix(0.11, 0.20, hash12(cell + vec2(seed * 11.2, seed * 5.7)));
+	float threshold_fade = clamp((density - prob) / 0.14, 0.0, 1.0);
 	float radius = base_rad * threshold_fade;
 	float dist = length(delta);
 	if (dist >= radius) {
@@ -48,70 +63,53 @@ vec3 ext_persistent_droplets(vec2 pos_m, float scale, float density, float seed)
 	float lens_curve = r * (0.35 + 0.65 * r * r);
 	vec2 dir = delta / max(dist, 0.0001);
 	vec2 normal_2d = dir * lens_curve * threshold_fade;
-	float coverage = (1.0 - smoothstep(0.80, 1.0, r)) * threshold_fade;
+	float coverage = (1.0 - smoothstep(0.78, 1.0, r)) * threshold_fade;
 	return vec3(normal_2d, coverage);
 }
 
-vec3 ext_continuous_streaks(vec2 pos_m, float time, float intensity, float speed_mps) {
-	if (intensity <= 0.01) {
+vec3 ext_sliding_droplets(vec2 pos_m, float scale, float scroll, float density, float speed_norm, float cs, float sn, float seed) {
+	if (density <= 0.005) {
 		return vec3(0.0);
 	}
 
-	float speed_norm = clamp(speed_mps / 28.0, 0.0, 1.6);
-	float flow_speed = 0.06 + speed_norm * 0.36;
+	vec2 rpos = rotate2d(pos_m, cs, sn);
+	rpos += 0.016 * sin(rpos.yx * 9.5 + vec2(seed * 3.7, seed * 6.1));
 
-	float num_channels = 32.0;
-	float ch = floor(pos_m.x * num_channels);
-	float ch_prob = hash12(vec2(ch, 47.0));
-	if (ch_prob > intensity * 0.75) {
+	vec2 p = rpos * scale + vec2(seed * 23.7, seed * 41.3);
+	vec2 scroll_dir = rotate2d(vec2(0.0, 1.0), cs, sn);
+	p -= scroll_dir * scroll;
+
+	vec2 cell = floor(p);
+	vec2 local = fract(p) - 0.5;
+
+	float prob = hash12(cell + vec2(seed * 17.1, seed * 8.9));
+	if (prob > density) {
 		return vec3(0.0);
 	}
 
-	float ch_x_center = (ch + 0.5) / num_channels;
-	float dist_x = (pos_m.x - ch_x_center) * num_channels;
+	vec2 rnd = hash22(cell + vec2(seed * 14.3, seed * 27.6));
+	vec2 center = (rnd - 0.5) * 0.40;
+	vec2 delta = rotate2d(local - center, cs, -sn);
 
-	float ch_speed = flow_speed * (0.80 + 0.40 * ch_prob);
-	float y_stream = pos_m.y * 2.6 - time * ch_speed * 2.6 + ch_prob * 13.0;
+	float base_rad = mix(0.11, 0.18, hash12(cell + vec2(seed * 2.3, seed * 19.8)));
+	float threshold_fade = clamp((density - prob) / 0.14, 0.0, 1.0);
+	float radius = base_rad * threshold_fade;
 
-	vec2 normal_total = vec2(0.0);
-	float cov_total = 0.0;
+	float trail_stretch = (delta.y < 0.0) ? mix(0.84, 0.72, clamp(speed_norm, 0.0, 1.0)) : 1.0;
+	float trail_taper = (delta.y < 0.0) ? (1.0 + clamp(-delta.y / max(radius * 1.35, 0.001), 0.0, 1.0) * 0.45) : 1.0;
+	vec2 shaped = vec2(delta.x * trail_taper, delta.y * trail_stretch);
 
-	for (int i = 0; i < 2; i++) {
-		float offset = float(i) * 0.5;
-		float y_phase = fract(y_stream + offset);
-
-		float meander = sin(y_stream * 4.0 + ch_prob * 6.28) * 0.10;
-		float dx = dist_x - meander;
-
-		float head_dist_y = (y_phase - 0.80) * 5.0;
-		vec2 head_vec = vec2(dx * 1.8, head_dist_y);
-		float head_len = length(head_vec);
-		float head_rad = 0.26;
-
-		if (head_len < head_rad) {
-			float r = head_len / head_rad;
-			float curve = r * (0.35 + 0.65 * r * r);
-			vec2 n = (head_vec / max(head_len, 0.0001)) * curve;
-			float cov = 1.0 - smoothstep(0.75, 1.0, r);
-			normal_total += n * cov;
-			cov_total = max(cov_total, cov);
-		}
-
-		if (y_phase < 0.78 && y_phase > 0.20) {
-			float wake_norm = (y_phase - 0.20) / 0.58;
-			float wake_width = mix(0.03, 0.12, wake_norm);
-			float adx = abs(dx);
-			if (adx < wake_width) {
-				float wr = adx / wake_width;
-				float wake_fade = wake_norm * (1.0 - smoothstep(0.60, 1.0, wr));
-				vec2 wake_n = vec2(sign(dx) * wr * 0.40, -0.10) * wake_fade;
-				normal_total += wake_n;
-				cov_total = max(cov_total, wake_fade * 0.60);
-			}
-		}
+	float dist = length(shaped);
+	if (dist >= radius) {
+		return vec3(0.0);
 	}
 
-	return vec3(normal_total, clamp(cov_total, 0.0, 1.0));
+	float r = dist / max(radius, 0.0001);
+	float lens_curve = r * (0.35 + 0.65 * r * r);
+	vec2 dir = shaped / max(dist, 0.0001);
+	vec2 normal_2d = dir * lens_curve * threshold_fade;
+	float coverage = (1.0 - smoothstep(0.76, 1.0, r)) * threshold_fade;
+	return vec3(normal_2d, coverage);
 }
 
 void vertex() {
@@ -134,12 +132,16 @@ void fragment() {
 			? vec2(v_local_pos.z, v_local_pos.y)
 			: vec2(v_local_pos.x, v_local_pos.y * 0.61 + abs(v_local_pos.z) * 0.79);
 
-		vec3 p1 = ext_persistent_droplets(win_pos, 54.0, rain_intensity * 0.86, 1.0);
-		vec3 p2 = ext_persistent_droplets(win_pos, 96.0, rain_intensity * 0.72, 2.0);
-		vec3 s1 = ext_continuous_streaks(win_pos, TIME, rain_intensity, car_speed_mps);
+		float speed_norm = clamp(car_speed_mps / 28.0, 0.0, 1.5);
+		float total_scroll = rain_scroll * 14.0 + TIME * 0.45;
 
-		lens_normal = p1.xy + p2.xy * 0.75 + s1.xy * 1.05;
-		coverage = clamp(max(max(p1.z, p2.z), s1.z), 0.0, 1.0);
+		vec3 p1 = ext_persistent_droplets(win_pos, 50.0, rain_intensity * 0.84, 0.9455, 0.3256, 1.0);
+		vec3 p2 = ext_persistent_droplets(win_pos, 88.0, rain_intensity * 0.72, 0.8572, -0.5150, 2.0);
+		vec3 s1 = ext_sliding_droplets(win_pos, 42.0, total_scroll, rain_intensity * 0.76, speed_norm, 0.9816, 0.1908, 3.0);
+		vec3 s2 = ext_sliding_droplets(win_pos, 66.0, total_scroll * 1.28, rain_intensity * 0.68, speed_norm, 0.9563, -0.2924, 4.0);
+
+		lens_normal = p1.xy + p2.xy * 0.75 + s1.xy * 0.90 + s2.xy * 0.70;
+		coverage = clamp(max(max(p1.z, p2.z), max(s1.z, s2.z)), 0.0, 1.0);
 
 		float steepness = clamp(length(lens_normal), 0.0, 1.0);
 		float rim_ring = smoothstep(0.40, 0.88, steepness);
