@@ -3,6 +3,7 @@ extends Node3D
 const SHADER := preload("res://scripts/rally/rally_tropospheric_sky.gdshader")
 const SKY_DIR := "res://assets/weather/tropospheric/"
 const CLEAR := preload("res://assets/weather/tropospheric/day_1.png")
+const PRESETS_PATH := "res://data/weather/rally_weather_presets.json"
 const CLOUDY := "cloudy_1"
 const STORM := "verycloudy_4"
 const DAWN := "day_2"
@@ -53,12 +54,20 @@ func _ready() -> void:
 	add_child(moon)
 	sun.directional_shadow_max_distance = 60.0 if dreamcast_visual_mode else 80.0
 	moon.shadow_enabled = false
+	if visual.is_empty() and FileAccess.file_exists(PRESETS_PATH):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PRESETS_PATH))
+		if parsed is Dictionary and (parsed as Dictionary).has("visual_response"):
+			visual = ((parsed as Dictionary)["visual_response"] as Dictionary).duplicate()
+	environment.adjustment_enabled = true
+	environment.adjustment_contrast = 1.08
+	environment.adjustment_saturation = float(visual.get("saturation_clear", 1.25))
 	update_visuals(0.0)
 
 func apply_climate(next_climate: Dictionary, next_visual: Dictionary) -> void:
 	_practice_target.clear()
 	climate = next_climate.duplicate()
-	visual = next_visual
+	if not next_visual.is_empty():
+		visual = next_visual
 
 func set_practice_weather(cover: float, fog: float) -> void:
 	_practice_target = {"cumulus_coverage": cover, "fog_density": fog}
@@ -123,8 +132,12 @@ func update_visuals(delta: float) -> void:
 	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0045)), 0.00001), 0.0, 1.0)
 	environment.fog_depth_end = lerpf(float(visual.get("fog_clear_end_m", 460.0)), float(visual.get("fog_storm_end_m", 175.0)), fog_weight)
 	environment.fog_depth_begin = environment.fog_depth_end * float(visual.get("fog_start_fraction", 0.22))
-	environment.fog_sky_affect = lerpf(float(visual.get("fog_sky_affect_clear", 0.24)),
+	environment.fog_sky_affect = lerpf(float(visual.get("fog_sky_affect_clear", 0.05)),
 		float(visual.get("fog_sky_affect_storm", 0.42)), fog_weight)
+	if environment.adjustment_enabled:
+		var sat_clear := float(visual.get("saturation_clear", 1.30))
+		var sat_storm := float(visual.get("saturation_storm", 1.12))
+		environment.adjustment_saturation = lerpf(sat_storm, sat_clear, daylight * (1.0 - overcast * 0.5))
 
 func _bind_sky(a: String, b: String, c: String, weather_mix: float, daylight_mix: float,
 		twilight_yaw: float, second_yaw: float, tint_a: Vector3, tint_b: Vector3, tint_c: Vector3) -> void:

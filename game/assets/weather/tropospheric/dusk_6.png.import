@@ -3,20 +3,19 @@
 importer="cubemap_texture"
 type="CompressedCubemap"
 uid="uid://uwpq1bvil8f8"
-path.bptc="res://.godot/imported/dusk_6.png-e4bd315727fbe51ebac23e4cbce54c6c.bptc.ccube"
+path="res://.godot/imported/dusk_6.png-e4bd315727fbe51ebac23e4cbce54c6c.ccube"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/weather/tropospheric/dusk_6.png"
-dest_files=["res://.godot/imported/dusk_6.png-e4bd315727fbe51ebac23e4cbce54c6c.bptc.ccube"]
+dest_files=["res://.godot/imported/dusk_6.png-e4bd315727fbe51ebac23e4cbce54c6c.ccube"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0

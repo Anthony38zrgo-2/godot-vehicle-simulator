@@ -3,20 +3,19 @@
 importer="cubemap_texture"
 type="CompressedCubemap"
 uid="uid://b5vwpptn18gh2"
-path.bptc="res://.godot/imported/cloudy_3.png-c69ed8267145e1cbbbf3247b690136a6.bptc.ccube"
+path="res://.godot/imported/cloudy_3.png-c69ed8267145e1cbbbf3247b690136a6.ccube"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/weather/tropospheric/cloudy_3.png"
-dest_files=["res://.godot/imported/cloudy_3.png-c69ed8267145e1cbbbf3247b690136a6.bptc.ccube"]
+dest_files=["res://.godot/imported/cloudy_3.png-c69ed8267145e1cbbbf3247b690136a6.ccube"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0

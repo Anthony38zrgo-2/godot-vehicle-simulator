@@ -75,7 +75,7 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		if not bool(damage_validation.get("ok", false)):
 			return damage_validation
 
-	var resolved_filters := _resolve_tire_filters(domains["tires"], domains["tire_filters"])
+	var resolved_filters := resolve_tire_filters(domains["tires"], domains["tire_filters"])
 	return {
 		"ok": true,
 		"manifest": manifest,
@@ -122,6 +122,10 @@ const TIRE_NESTED_KEYS := [
 
 
 static func _resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) -> Dictionary:
+	return resolve_tire_filters(tire_doc, filter_doc)
+
+
+static func resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) -> Dictionary:
 	# tire_filters.json es una capa opcional sobre tires.json.
 	# - Las claves de TIRE_FORCE_KEYS van a force_model por eje.
 	# - surfaces/thermal/pressure_mechanics/radial_model/pressure por eje se

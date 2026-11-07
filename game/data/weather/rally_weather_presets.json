@@ -13,7 +13,7 @@
     "fog_storm_end_m": 175.0,
     "fog_density_reference": 0.0045,
     "fog_start_fraction": 0.22,
-    "fog_sky_affect_clear": 0.24,
+    "fog_sky_affect_clear": 0.05,
     "fog_sky_affect_storm": 0.42,
     "fog_color_clear": [
       0.64,

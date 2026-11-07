@@ -77,7 +77,7 @@ def main():
             if not settings.exists():
                 settings.write_text(
                     '[remap]\nimporter="cubemap_texture"\ntype="CompressedCubemap"\n'
-                    '[params]\ncompress/mode=2\ncompress/high_quality=true\n'
+                    '[params]\ncompress/mode=0\ncompress/high_quality=true\n'
                     'mipmaps/generate=true\nslices/arrangement=3\n',
                     encoding="utf-8",
                 )

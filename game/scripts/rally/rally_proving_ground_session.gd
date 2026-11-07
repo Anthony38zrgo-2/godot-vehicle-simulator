@@ -2,6 +2,10 @@ class_name RallyProvingGroundSession
 extends Node3D
 
 const SPAWN_POSITION := Vector3(0.0, 0.12, 0.0)
+# Altura de spawn medida desde el plano de contacto de las ruedas, no desde el
+# origen del cuerpo: un descenso mayor que el recorrido bump del perfil hace que
+# el coche aterrice sobre los topes de suspension (356B: 100 mm reales).
+const SPAWN_CLEARANCE_METRES := 0.02
 const SPAWN_HEADING := 0.0
 const FALL_RESET_HEIGHT := -25.0
 
@@ -48,7 +52,10 @@ func _ready() -> void:
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	session_ready = true
-	print("RALLY_PROVING_GROUND_READY physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
+	print(
+		"RALLY_PROVING_GROUND_READY physics_engine=",
+		ProjectSettings.get_setting("physics/3d/physics_engine"),
+	)
 	if OS.get_cmdline_user_args().has("--rally-smoke"):
 		_run_gdscript_smoke()
 
@@ -56,8 +63,13 @@ func _ready() -> void:
 func _run_gdscript_smoke() -> void:
 	var alignment := _check_alignment_symmetry()
 	var initial_engine := vehicle.get_engine_thermal_state()
-	var initial_block_c := float(initial_engine.get("block", {}).get("temperature_c", 0.0))
-	var required_actions := [InputBindings.THROTTLE, InputBindings.BRAKES, InputBindings.STEER_LEFT, InputBindings.STEER_RIGHT]
+	var initial_block_c := float(initial_engine.get("block", { }).get("temperature_c", 0.0))
+	var required_actions := [
+		InputBindings.THROTTLE,
+		InputBindings.BRAKES,
+		InputBindings.STEER_LEFT,
+		InputBindings.STEER_RIGHT,
+	]
 	var actions_ready := true
 	for action in required_actions:
 		actions_ready = actions_ready and InputMap.has_action(action)
@@ -78,10 +90,17 @@ func _run_gdscript_smoke() -> void:
 	var contacts := vehicle.get_number_of_contacting_wheels()
 	var query_count := vehicle.simulation.contact_query_count
 	var final_engine := vehicle.get_engine_thermal_state()
-	var final_block_c := float(final_engine.get("block", {}).get("temperature_c", initial_block_c))
+	var final_block_c := float(final_engine.get("block", { }).get("temperature_c", initial_block_c))
 	var tire_state := vehicle.get_tire_thermal_state(0)
-	var thermal_changed := absf(final_block_c - initial_block_c) > 0.001 or float(tire_state.get("tread_c", 0.0)) != float(simulation_initial_tire_temperature())
-	var passed := forward_speed_under_throttle > 0.5 and actions_ready and throttle_seen and brake_seen and steering_seen and vehicle.current_gear == 1 and contacts > 0 and query_count == 4 and thermal_changed and bool(alignment.get("passed", false))
+	var thermal_changed := (
+		absf(final_block_c - initial_block_c) > 0.001
+		or float(tire_state.get("tread_c", 0.0)) != float(simulation_initial_tire_temperature())
+	)
+	var passed := (
+		forward_speed_under_throttle > 0.5 and actions_ready and throttle_seen and brake_seen
+		and steering_seen and vehicle.current_gear == 1 and contacts > 0
+		and query_count == 4 and thermal_changed and bool(alignment.get("passed", false))
+	)
 	var evidence := {
 		"passed": passed,
 		"alignment": alignment,
@@ -113,30 +132,70 @@ func _check_alignment_symmetry() -> Dictionary:
 	var rear_left_toe := suspension.dynamic_toe(2)
 	var rear_right_toe := suspension.dynamic_toe(3)
 	var front_parameters: Dictionary = suspension.axle_parameters[0]
-	var front_travel_delta: float = float(suspension.compression[0]) - float(front_parameters.get("rest_compression_offset", 0.0))
-	var front_axle_toe: float = float(front_parameters.get("toe", 0.0)) + float(front_parameters.get("toe_gain", 0.0)) * front_travel_delta
-	var tire_domain: Dictionary = simulation.domains.get("tires", {})
-	var tire_filter_domain: Dictionary = simulation.domains.get("tire_filters", {})
-	var resolved_filters := VehicleProfileLoader._resolve_tire_filters(tire_domain, tire_filter_domain)
+	var front_travel_delta: float = float(suspension.compression[0]) - float(
+		front_parameters.get("rest_compression_offset", 0.0)
+	)
+	var front_axle_toe: float = float(front_parameters.get("toe", 0.0)) + float(
+		front_parameters.get("toe_gain", 0.0)
+	) * front_travel_delta
+	var tire_domain: Dictionary = simulation.domains.get("tires", { })
+	var tire_filter_domain: Dictionary = simulation.domains.get("tire_filters", { })
+	var resolved_filters := VehicleProfileLoader.resolve_tire_filters(
+		tire_domain,
+		tire_filter_domain,
+	)
 	var tire_probe := TireModel.new()
 	tire_probe.configure(simulation.domains, resolved_filters, suspension.static_corner_loads_n)
 	var wheel_speed := 8.0 / simulation.wheel_radii[0]
-	var left_pressure := float(simulation.thermal_model.get_tire_thermal_state_snapshot(0).get("pressure_kpa_gauge", 180.0))
-	var right_pressure := float(simulation.thermal_model.get_tire_thermal_state_snapshot(1).get("pressure_kpa_gauge", 180.0))
+	var left_pressure := float(
+		simulation.thermal_model.get_tire_thermal_state_snapshot(0).get("pressure_kpa_gauge", 180.0)
+	)
+	var right_pressure := float(
+		simulation.thermal_model.get_tire_thermal_state_snapshot(1).get("pressure_kpa_gauge", 180.0)
+	)
 	var left_result: Dictionary = tire_probe.evaluate(
-		0, suspension.static_corner_loads_n[0], "Gravel", 8.0, 0.0, wheel_speed,
-		simulation.wheel_radii[0], front_left_camber, 1.0, left_pressure, 1.0 / 120.0, 25.0
+		0,
+		suspension.static_corner_loads_n[0],
+		"Gravel",
+		8.0,
+		0.0,
+		wheel_speed,
+		simulation.wheel_radii[0],
+		front_left_camber,
+		1.0,
+		left_pressure,
+		1.0 / 120.0,
+		25.0,
 	)
 	var right_result: Dictionary = tire_probe.evaluate(
-		1, suspension.static_corner_loads_n[1], "Gravel", 8.0, 0.0, wheel_speed,
-		simulation.wheel_radii[1], front_right_camber, 1.0, right_pressure, 1.0 / 120.0, 25.0
+		1,
+		suspension.static_corner_loads_n[1],
+		"Gravel",
+		8.0,
+		0.0,
+		wheel_speed,
+		simulation.wheel_radii[1],
+		front_right_camber,
+		1.0,
+		right_pressure,
+		1.0 / 120.0,
+		25.0,
 	)
 	var camber_axis_error := absf(front_left_camber - front_right_camber)
 	var wheel_camber_mirror_error := absf(front_left_wheel_camber + front_right_wheel_camber)
 	var toe_mirror_error := absf(front_left_toe + front_right_toe)
-	var toe_convention_error := maxf(absf(front_left_toe + front_axle_toe), absf(front_right_toe - front_axle_toe))
-	var camber_force_sum := float(left_result.get("lateral_force_n", 0.0)) + float(right_result.get("lateral_force_n", 0.0))
-	var passed := camber_axis_error < 1e-7 and wheel_camber_mirror_error < 1e-7 and toe_mirror_error < 1e-7 and toe_convention_error < 1e-7 and absf(rear_left_toe) < 1e-7 and absf(rear_right_toe) < 1e-7 and absf(camber_force_sum) < 1e-4
+	var toe_convention_error := maxf(
+		absf(front_left_toe + front_axle_toe),
+		absf(front_right_toe - front_axle_toe),
+	)
+	var camber_force_sum := float(left_result.get("lateral_force_n", 0.0)) + float(
+		right_result.get("lateral_force_n", 0.0)
+	)
+	var passed := (
+		camber_axis_error < 1e-7 and wheel_camber_mirror_error < 1e-7
+		and toe_mirror_error < 1e-7 and toe_convention_error < 1e-7 and absf(rear_left_toe) < 1e-7
+		and absf(rear_right_toe) < 1e-7 and absf(camber_force_sum) < 1e-4
+	)
 	return {
 		"passed": passed,
 		"front_camber_axis_error_rad": camber_axis_error,
@@ -150,7 +209,13 @@ func _check_alignment_symmetry() -> Dictionary:
 
 
 func simulation_initial_tire_temperature() -> float:
-	return float(vehicle.simulation.thermal_model.tire_config.get("initial_temperature_c", vehicle.simulation.thermal_model.ambient_temperature_c))
+	return float(
+		vehicle
+		.simulation
+		.thermal_model
+		.tire_config
+		.get("initial_temperature_c", vehicle.simulation.thermal_model.ambient_temperature_c)
+	)
 
 
 func _create_dc_material(color: Color) -> StandardMaterial3D:
@@ -167,20 +232,23 @@ func build_environment() -> void:
 	sky.name = "RallyTroposphericSky"
 	sky.current_time = 12.0
 	sky.exposure = 1.05
-	sky.apply_climate({"cumulus_coverage": 0.15, "fog_density": 0.0}, {
-		"fog_color_clear": [0.68, 0.82, 0.94],
-		"fog_clear_end_m": 240.0,
-		"fog_start_fraction": 65.0 / 240.0,
-		"ambient_energy_clear": 0.85,
-		"sun_energy_clear": 1.1,
-		"shadow_opacity_clear": 0.55,
-	})
+	sky.apply_climate(
+		{ "cumulus_coverage": 0.15, "fog_density": 0.0 },
+		{
+			"fog_color_clear": [0.68, 0.82, 0.94],
+			"fog_clear_end_m": 240.0,
+			"fog_start_fraction": 65.0 / 240.0,
+			"ambient_energy_clear": 0.85,
+			"sun_energy_clear": 1.1,
+			"shadow_opacity_clear": 0.55,
+		},
+	)
 	add_child(sky)
 	sky.set_process(false)
 	sky.sun.directional_shadow_max_distance = 60.0
 	sky.environment.adjustment_enabled = true
 	sky.environment.adjustment_contrast = 1.12
-	sky.environment.adjustment_saturation = 1.25
+	sky.environment.adjustment_saturation = 1.5
 
 
 func build_ground() -> void:
@@ -313,16 +381,34 @@ func build_ramp(position: Vector3) -> void:
 	add_child(body)
 
 
+func spawn_position() -> Vector3:
+	# El suelo del campo de pruebas esta a y=0: dejar las ruedas a ras evita que
+	# el coche caiga sobre los topes cuando su recorrido real es corto.
+	var lowest := INF
+	if vehicle != null:
+		var positions: Array[Vector3] = vehicle.simulation.wheel_positions_local
+		var radii: Array[float] = vehicle.simulation.wheel_radii
+		for index in mini(positions.size(), radii.size()):
+			lowest = minf(lowest, positions[index].y - radii[index])
+	if not is_finite(lowest):
+		lowest = 0.0
+	return Vector3(SPAWN_POSITION.x, SPAWN_CLEARANCE_METRES - lowest, SPAWN_POSITION.z)
+
+
 func place_vehicle() -> void:
-	vehicle.global_transform = Transform3D(Basis(Vector3.UP, SPAWN_HEADING), SPAWN_POSITION)
+	vehicle.global_transform = Transform3D(Basis(Vector3.UP, SPAWN_HEADING), spawn_position())
 	vehicle.simulation.unsprung_rig.reset()
 	vehicle.linear_velocity = Vector3.ZERO
 	vehicle.angular_velocity = Vector3.ZERO
 	vehicle.sleeping = false
 	vehicle.freeze = false
-	input_controller.set_spawn_pose(SPAWN_POSITION, SPAWN_HEADING)
+	input_controller.set_spawn_pose(spawn_position(), SPAWN_HEADING)
 	camera_rig.snap_to_target()
-	head_up_display.show_status("PROVING GROUND  ARROWS DRIVE  A/Z SHIFT  DELETE AUTO  T TCS  R RESET  C CAMERA", Color(0.34, 0.82, 0.45), 4.0)
+	head_up_display.show_status(
+		"PROVING GROUND  ARROWS DRIVE  A/Z SHIFT  DELETE AUTO  T TCS  R RESET  C CAMERA",
+		Color(0.34, 0.82, 0.45),
+		4.0,
+	)
 
 
 func on_camera_mode_toggle_requested() -> void:
@@ -343,6 +429,6 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed_seconds += delta
 	if vehicle.global_position.y < FALL_RESET_HEIGHT:
-		vehicle.reset_to_pose(SPAWN_POSITION, SPAWN_HEADING)
+		vehicle.reset_to_pose(spawn_position(), SPAWN_HEADING)
 	if vehicle.sleeping:
 		vehicle.sleeping = false
