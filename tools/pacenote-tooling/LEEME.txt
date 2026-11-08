@@ -1,0 +1,42 @@
+Tooling versionado de pacenotes CMR2 (snapshot; fuente canónica en
+D:\games\rally-throphy\stage_exporter\tools\).
+
+Contenido
+---------
+v1/pacenote_analyzer.py
+  Generador original: heurística sobre nodos de reset (~22 llamadas/stage).
+v2/pacenote_analyzer_v2.py
+  Curvatura remuestreada + tabla calibrada RU1 + planificador de ritmo con
+  degradación por niveles (~22 llamadas en russia_stage1).
+v3/rally_road_reconstruction_v2/
+  Pipeline completo: road_mesh_extractor, road_spatial_index,
+  road_cross_sections, road_corridor_solver, road_centerline,
+  road_geometry_analyzer, road_validator, pacenote_analyzer_v3.
+  Detección 100% geométrica, multi-ápice, obstáculos TRACK+HIERARCHY,
+  3 escenarios de velocidad, planificador t(s), palabra única por evento,
+  hoisting de caution, cooldown 85 m/4.5 s y dedup de hazards (<65 m).
+  51 llamadas en russia_stage1 (~1/98 m; original CMR2 ~1/95 m).
+deps/bmf_parser.py
+  Parser compartido del .BMF (copia; el canónico vive en stage_exporter/tools).
+validation/validate_stage.py
+  Validador de paquete (9 artefactos, gates, pacenotes CMR2, UV clamp).
+runtime/pacenote_runtime.py
+  convert_notes(): authoring -> runtime del juego (gates + calls).
+tests/test_russia_stage1_v3.py
+  Suite de 6 tests obligatorios (PASS 6/6 en russia_stage1).
+docs/russia_stage1_v2_vs_v3.md
+  Comparativa v2 vs v3 + desviaciones documentadas del spec.
+
+Orden de uso (v3, desde stage_exporter como cwd y con numpy/scipy/trimesh)
+------------------------------------------------------------------------
+1. python tools/rally_road_reconstruction_v2/pacenote_analyzer_v3.py ^
+     --route-json stages/russia/stage1/russia_stage1_route.json ^
+     --bmf work_cache/russia/stage1.BMF ^
+     --output-dir stages/russia/stage1 ^
+     --country russia --stage stage1 ^
+     [--geo-json stages/russia/stage1/russia_stage1_road_geometry.json]
+2. python tools/validate_stage.py --stage-dir stages/russia/stage1
+3. python game/tests/rally-v2/test_russia_stage1_v3.py ^
+     --stage-dir stages/russia/stage1
+4. Importar al juego: python tools/rally/import_stage_export.py ^
+     --source <stage_exporter>/stages/russia/stage1
