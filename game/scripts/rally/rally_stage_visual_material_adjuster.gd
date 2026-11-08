@@ -21,6 +21,62 @@ const CUTOUT_MATERIAL_NAMES := [
 	"power_line_cord",
 	"polyn_1_wire",
 	"terrain_field_1_",
+	# Kenia (shader_id == 5)
+	"kenya_audience",
+	"kenya_bighut_roofalpha",
+	"kenya_roundhut_pale",
+	"kenya_roundhut_roofalpha",
+	"plane2_bush",
+	"plane2_wood",
+	"plane3_bush",
+	"plane3_wood",
+	"plane_bush",
+	"plane_bush2",
+	"river1_1",
+	"river2_1",
+	"rope",
+	"village_fence",
+	# Finlandia (shader_id == 5)
+	"fin_fence_1_1",
+	"fin_fence_1_2",
+	"fin_fence_metal",
+	"fin_field1_edge",
+	"fin_forest_mixed1",
+	"fin_pole_wires",
+	"fin_powerline_insulation",
+	"fin_puuaita",
+	"fin_string_red",
+	"fin_trees_leaves",
+	"forest_ends",
+	"forest_ends2",
+	"water",
+	# Suecia (shader_id == 5)
+	"fence_snow_1",
+	"forest_snow_1",
+	"forest_snow_1_end",
+	"forest_snow_2",
+	"forest_snow_2_end",
+	"polyn_1_wire",
+	"sweden_tree_plane",
+	# Suiza (shader_id == 5)
+	"fence_metal_2",
+	"fence_metal_tunnel_1",
+	"mountain_tree_plane",
+	"waterfall_1",
+	"waterfall_2",
+	# Comunes (ya presentes o compartidos)
+	# "audience_4", "fence_metal", "string_red" (arriba)
+]
+
+## Banners/carteles que el .glb exporta con CLAMP_TO_EDGE: nunca forzar REPEAT.
+const BANNER_MATERIAL_PREFIXES := [
+	"sign_",
+	"checkpoint",
+	"fin_checkpoint",
+	"gate_finish",
+	"fin_gate_finish",
+	"sponsors",
+	"fin_sponsors",
 ]
 
 @export var visual_root_path: NodePath
@@ -81,9 +137,19 @@ func adjust_material(material: BaseMaterial3D) -> void:
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		if material.albedo_texture != null:
 			material.albedo_texture = prepare_texture(material.albedo_texture)
-		# Asegurar texture_repeat activo para que las texturas que se repiten (bosque, carretera) no se estiren
-		if is_cutout or not material_name.begins_with("sign_"):
-			material.set_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT, true)
+		# Asegurar texture_repeat activo para que las texturas que se repiten (bosque, carretera) no se estiren.
+		# Respetar CLAMP_TO_EDGE del .glb (gltf_postprocessor): si el material ya
+		# viene con REPEAT desactivado (checkpoint, gate_finish, banners, árboles
+		# individuales, público), no sobrescribirlo para no crear wrapping.
+		var is_banner := false
+		for prefix in BANNER_MATERIAL_PREFIXES:
+			if material_name == prefix or material_name.begins_with(prefix):
+				is_banner = true
+				break
+		if material.get_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT):
+			if is_cutout or not is_banner:
+				material.set_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT, true)
+		# Si ya viene en false (CLAMP_TO_EDGE), se deja en false.
 
 	if is_cutout:
 		# Punch-through alpha de PowerVR2

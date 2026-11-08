@@ -1,0 +1,3689 @@
+{
+  "stage": "finland-stage6",
+  "total_curves": 40,
+  "vertical_crests_count": 29,
+  "near_obstacles_count": 285,
+  "vertical_crests": [
+    {
+      "node": 14,
+      "dist_m": 141.4,
+      "slope_in_pct": 0.5,
+      "slope_out_pct": -3.0,
+      "delta_slope_pct": -2.22,
+      "is_jump": false
+    },
+    {
+      "node": 21,
+      "dist_m": 212.2,
+      "slope_in_pct": 2.6,
+      "slope_out_pct": -2.9,
+      "delta_slope_pct": -3.23,
+      "is_jump": false
+    },
+    {
+      "node": 37,
+      "dist_m": 374.4,
+      "slope_in_pct": 1.6,
+      "slope_out_pct": -3.4,
+      "delta_slope_pct": -2.89,
+      "is_jump": false
+    },
+    {
+      "node": 48,
+      "dist_m": 485.4,
+      "slope_in_pct": 3.1,
+      "slope_out_pct": -4.5,
+      "delta_slope_pct": -3.41,
+      "is_jump": false
+    },
+    {
+      "node": 56,
+      "dist_m": 566.4,
+      "slope_in_pct": 1.0,
+      "slope_out_pct": -3.4,
+      "delta_slope_pct": -2.38,
+      "is_jump": false
+    },
+    {
+      "node": 68,
+      "dist_m": 687.8,
+      "slope_in_pct": 3.5,
+      "slope_out_pct": -2.9,
+      "delta_slope_pct": -2.77,
+      "is_jump": false
+    },
+    {
+      "node": 91,
+      "dist_m": 920.8,
+      "slope_in_pct": 0.0,
+      "slope_out_pct": -7.0,
+      "delta_slope_pct": -4.17,
+      "is_jump": false
+    },
+    {
+      "node": 99,
+      "dist_m": 1001.5,
+      "slope_in_pct": 5.3,
+      "slope_out_pct": -1.2,
+      "delta_slope_pct": -3.85,
+      "is_jump": false
+    },
+    {
+      "node": 120,
+      "dist_m": 1213.9,
+      "slope_in_pct": 4.3,
+      "slope_out_pct": -0.8,
+      "delta_slope_pct": -2.46,
+      "is_jump": false
+    },
+    {
+      "node": 133,
+      "dist_m": 1345.6,
+      "slope_in_pct": 7.2,
+      "slope_out_pct": -4.1,
+      "delta_slope_pct": -4.21,
+      "is_jump": false
+    },
+    {
+      "node": 181,
+      "dist_m": 1832.6,
+      "slope_in_pct": 2.4,
+      "slope_out_pct": -10.0,
+      "delta_slope_pct": -5.08,
+      "is_jump": false
+    },
+    {
+      "node": 189,
+      "dist_m": 1913.7,
+      "slope_in_pct": 7.7,
+      "slope_out_pct": -2.9,
+      "delta_slope_pct": -4.92,
+      "is_jump": false
+    },
+    {
+      "node": 200,
+      "dist_m": 2025.5,
+      "slope_in_pct": 2.0,
+      "slope_out_pct": -5.1,
+      "delta_slope_pct": -3.43,
+      "is_jump": false
+    },
+    {
+      "node": 208,
+      "dist_m": 2106.4,
+      "slope_in_pct": 1.8,
+      "slope_out_pct": -5.4,
+      "delta_slope_pct": -2.91,
+      "is_jump": false
+    },
+    {
+      "node": 221,
+      "dist_m": 2237.8,
+      "slope_in_pct": 1.1,
+      "slope_out_pct": -3.3,
+      "delta_slope_pct": -2.3,
+      "is_jump": false
+    },
+    {
+      "node": 228,
+      "dist_m": 2308.9,
+      "slope_in_pct": 3.2,
+      "slope_out_pct": -2.4,
+      "delta_slope_pct": -2.92,
+      "is_jump": false
+    },
+    {
+      "node": 248,
+      "dist_m": 2511.5,
+      "slope_in_pct": 0.3,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -2.38,
+      "is_jump": false
+    },
+    {
+      "node": 258,
+      "dist_m": 2613.5,
+      "slope_in_pct": 5.5,
+      "slope_out_pct": -2.2,
+      "delta_slope_pct": -3.57,
+      "is_jump": false
+    },
+    {
+      "node": 266,
+      "dist_m": 2694.5,
+      "slope_in_pct": 1.8,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -2.38,
+      "is_jump": false
+    },
+    {
+      "node": 277,
+      "dist_m": 2805.9,
+      "slope_in_pct": 5.1,
+      "slope_out_pct": -4.2,
+      "delta_slope_pct": -4.64,
+      "is_jump": false
+    },
+    {
+      "node": 283,
+      "dist_m": 2866.3,
+      "slope_in_pct": 8.0,
+      "slope_out_pct": -9.1,
+      "delta_slope_pct": -8.46,
+      "is_jump": false
+    },
+    {
+      "node": 346,
+      "dist_m": 3507.1,
+      "slope_in_pct": 3.4,
+      "slope_out_pct": -0.8,
+      "delta_slope_pct": -3.26,
+      "is_jump": false
+    },
+    {
+      "node": 371,
+      "dist_m": 3761.4,
+      "slope_in_pct": 9.2,
+      "slope_out_pct": 0.8,
+      "delta_slope_pct": -3.3,
+      "is_jump": false
+    },
+    {
+      "node": 384,
+      "dist_m": 3892.4,
+      "slope_in_pct": 3.6,
+      "slope_out_pct": -3.7,
+      "delta_slope_pct": -3.7,
+      "is_jump": false
+    },
+    {
+      "node": 401,
+      "dist_m": 4064.3,
+      "slope_in_pct": -2.1,
+      "slope_out_pct": -10.0,
+      "delta_slope_pct": -3.57,
+      "is_jump": false
+    },
+    {
+      "node": 415,
+      "dist_m": 4206.1,
+      "slope_in_pct": 6.8,
+      "slope_out_pct": 0.5,
+      "delta_slope_pct": -2.66,
+      "is_jump": false
+    },
+    {
+      "node": 418,
+      "dist_m": 4236.4,
+      "slope_in_pct": 0.5,
+      "slope_out_pct": -6.9,
+      "delta_slope_pct": -2.74,
+      "is_jump": false
+    },
+    {
+      "node": 438,
+      "dist_m": 4439.6,
+      "slope_in_pct": 0.7,
+      "slope_out_pct": -6.9,
+      "delta_slope_pct": -2.84,
+      "is_jump": false
+    },
+    {
+      "node": 455,
+      "dist_m": 4612.2,
+      "slope_in_pct": 3.7,
+      "slope_out_pct": -4.0,
+      "delta_slope_pct": -2.92,
+      "is_jump": false
+    }
+  ],
+  "near_obstacles": [
+    {
+      "node": 460,
+      "dist_m": 4662.9,
+      "name": "gate_finish",
+      "materials": [
+        "fin_gate_finish",
+        "fin_pylon_1"
+      ],
+      "dist_3d_m": 4.32,
+      "lateral_m": 0.11,
+      "side": "right"
+    },
+    {
+      "node": 41,
+      "dist_m": 414.9,
+      "name": "checkpoint0",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.49,
+      "lateral_m": -5.77,
+      "side": "left"
+    },
+    {
+      "node": 41,
+      "dist_m": 414.9,
+      "name": "checkpoint1",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 5.93,
+      "lateral_m": 4.55,
+      "side": "right"
+    },
+    {
+      "node": 86,
+      "dist_m": 870.3,
+      "name": "checkpoint2",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 3.83,
+      "lateral_m": -3.19,
+      "side": "left"
+    },
+    {
+      "node": 86,
+      "dist_m": 870.3,
+      "name": "checkpoint3",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 8.15,
+      "lateral_m": 7.59,
+      "side": "right"
+    },
+    {
+      "node": 134,
+      "dist_m": 1355.8,
+      "name": "checkpoint4",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 5.58,
+      "lateral_m": -5.0,
+      "side": "left"
+    },
+    {
+      "node": 134,
+      "dist_m": 1355.8,
+      "name": "checkpoint5",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.84,
+      "lateral_m": 5.76,
+      "side": "right"
+    },
+    {
+      "node": 176,
+      "dist_m": 1781.7,
+      "name": "checkpoint6",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.8,
+      "lateral_m": -5.51,
+      "side": "left"
+    },
+    {
+      "node": 176,
+      "dist_m": 1781.7,
+      "name": "checkpoint7",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.66,
+      "lateral_m": 5.41,
+      "side": "right"
+    },
+    {
+      "node": 230,
+      "dist_m": 2329.2,
+      "name": "checkpoint8",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.3,
+      "lateral_m": -4.15,
+      "side": "left"
+    },
+    {
+      "node": 230,
+      "dist_m": 2329.2,
+      "name": "checkpoint9",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 8.54,
+      "lateral_m": 6.87,
+      "side": "right"
+    },
+    {
+      "node": 285,
+      "dist_m": 2886.5,
+      "name": "checkpoint10",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.04,
+      "lateral_m": 5.48,
+      "side": "right"
+    },
+    {
+      "node": 285,
+      "dist_m": 2886.5,
+      "name": "checkpoint11",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 5.27,
+      "lateral_m": -4.89,
+      "side": "left"
+    },
+    {
+      "node": 336,
+      "dist_m": 3405.1,
+      "name": "checkpoint12",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.04,
+      "lateral_m": 3.39,
+      "side": "right"
+    },
+    {
+      "node": 336,
+      "dist_m": 3405.1,
+      "name": "checkpoint13",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 7.41,
+      "lateral_m": -6.86,
+      "side": "left"
+    },
+    {
+      "node": 380,
+      "dist_m": 3852.0,
+      "name": "checkpoint14",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 3.75,
+      "lateral_m": 3.73,
+      "side": "right"
+    },
+    {
+      "node": 380,
+      "dist_m": 3852.0,
+      "name": "checkpoint15",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.81,
+      "lateral_m": -6.73,
+      "side": "left"
+    },
+    {
+      "node": 425,
+      "dist_m": 4307.6,
+      "name": "checkpoint16",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.16,
+      "lateral_m": 5.75,
+      "side": "right"
+    },
+    {
+      "node": 425,
+      "dist_m": 4307.6,
+      "name": "checkpoint17",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 5.72,
+      "lateral_m": -5.3,
+      "side": "left"
+    },
+    {
+      "node": 256,
+      "dist_m": 2593.1,
+      "name": "001_R_fence2",
+      "materials": [
+        "fin_fence_metal_railing_1"
+      ],
+      "dist_3d_m": 4.53,
+      "lateral_m": 3.79,
+      "side": "right"
+    },
+    {
+      "node": 402,
+      "dist_m": 4074.4,
+      "name": "001_L_fence4",
+      "materials": [
+        "fin_fence_metal_railing_1"
+      ],
+      "dist_3d_m": 8.36,
+      "lateral_m": -8.04,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors_00",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 12.7,
+      "lateral_m": 0.45,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors_01",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.26,
+      "lateral_m": -5.94,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 30.4,
+      "name": "001sponsors_04",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.1,
+      "lateral_m": -6.13,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 30.4,
+      "name": "001sponsors_03",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.49,
+      "lateral_m": 6.1,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors_02",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.46,
+      "lateral_m": 6.23,
+      "side": "right"
+    },
+    {
+      "node": 463,
+      "dist_m": 4693.1,
+      "name": "001sponsors_05",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 4.05,
+      "lateral_m": 3.96,
+      "side": "right"
+    },
+    {
+      "node": 463,
+      "dist_m": 4693.1,
+      "name": "001sponsors_06",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.83,
+      "lateral_m": -6.5,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001string_red03",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 12.93,
+      "lateral_m": -0.25,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.3,
+      "name": "001string_red02",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 6.39,
+      "lateral_m": 6.15,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.3,
+      "name": "001string_red01",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 6.59,
+      "lateral_m": -6.4,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "001string_red05",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 5.25,
+      "lateral_m": -5.08,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "001string_red06",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 6.29,
+      "lateral_m": 6.25,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "phone_pole69",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.41,
+      "lateral_m": -7.12,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.3,
+      "name": "phone_pole70",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.88,
+      "lateral_m": -8.02,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 50.6,
+      "name": "phone_pole71",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.15,
+      "lateral_m": -6.67,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 70.7,
+      "name": "phone_pole72",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.11,
+      "lateral_m": -5.75,
+      "side": "left"
+    },
+    {
+      "node": 10,
+      "dist_m": 101.0,
+      "name": "phone_pole73",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.6,
+      "lateral_m": -5.24,
+      "side": "left"
+    },
+    {
+      "node": 12,
+      "dist_m": 121.1,
+      "name": "phone_pole74",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.58,
+      "lateral_m": -6.06,
+      "side": "left"
+    },
+    {
+      "node": 15,
+      "dist_m": 151.4,
+      "name": "phone_pole75",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.99,
+      "lateral_m": -7.04,
+      "side": "left"
+    },
+    {
+      "node": 17,
+      "dist_m": 171.7,
+      "name": "phone_pole76",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.57,
+      "lateral_m": -7.8,
+      "side": "left"
+    },
+    {
+      "node": 19,
+      "dist_m": 192.0,
+      "name": "phone_pole77",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.43,
+      "lateral_m": -7.99,
+      "side": "left"
+    },
+    {
+      "node": 22,
+      "dist_m": 222.4,
+      "name": "phone_pole78",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.34,
+      "lateral_m": -7.43,
+      "side": "left"
+    },
+    {
+      "node": 24,
+      "dist_m": 242.7,
+      "name": "phone_pole79",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.58,
+      "lateral_m": -6.36,
+      "side": "left"
+    },
+    {
+      "node": 27,
+      "dist_m": 273.2,
+      "name": "phone_pole80",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.48,
+      "lateral_m": -6.62,
+      "side": "left"
+    },
+    {
+      "node": 29,
+      "dist_m": 293.5,
+      "name": "phone_pole81",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.48,
+      "lateral_m": -5.12,
+      "side": "left"
+    },
+    {
+      "node": 32,
+      "dist_m": 323.8,
+      "name": "phone_pole82",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.96,
+      "lateral_m": -5.92,
+      "side": "left"
+    },
+    {
+      "node": 34,
+      "dist_m": 344.1,
+      "name": "phone_pole83",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.94,
+      "lateral_m": -7.88,
+      "side": "left"
+    },
+    {
+      "node": 36,
+      "dist_m": 364.3,
+      "name": "phone_pole84",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.95,
+      "lateral_m": -6.45,
+      "side": "left"
+    },
+    {
+      "node": 39,
+      "dist_m": 394.7,
+      "name": "phone_pole85",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.43,
+      "lateral_m": -5.03,
+      "side": "left"
+    },
+    {
+      "node": 42,
+      "dist_m": 424.9,
+      "name": "phone_pole86",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.52,
+      "lateral_m": -6.99,
+      "side": "left"
+    },
+    {
+      "node": 44,
+      "dist_m": 444.9,
+      "name": "phone_pole87",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.15,
+      "lateral_m": -8.58,
+      "side": "left"
+    },
+    {
+      "node": 46,
+      "dist_m": 465.1,
+      "name": "phone_pole88",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.77,
+      "lateral_m": -8.81,
+      "side": "left"
+    },
+    {
+      "node": 49,
+      "dist_m": 495.5,
+      "name": "phone_pole89",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.23,
+      "lateral_m": -8.82,
+      "side": "left"
+    },
+    {
+      "node": 51,
+      "dist_m": 515.8,
+      "name": "phone_pole90",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.61,
+      "lateral_m": -7.65,
+      "side": "left"
+    },
+    {
+      "node": 53,
+      "dist_m": 536.0,
+      "name": "phone_pole91",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.02,
+      "lateral_m": 8.05,
+      "side": "right"
+    },
+    {
+      "node": 55,
+      "dist_m": 556.2,
+      "name": "phone_pole92",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.76,
+      "lateral_m": 6.52,
+      "side": "right"
+    },
+    {
+      "node": 58,
+      "dist_m": 586.7,
+      "name": "phone_pole93",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.62,
+      "lateral_m": 7.29,
+      "side": "right"
+    },
+    {
+      "node": 60,
+      "dist_m": 606.8,
+      "name": "phone_pole94",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.88,
+      "lateral_m": 7.73,
+      "side": "right"
+    },
+    {
+      "node": 63,
+      "dist_m": 637.1,
+      "name": "phone_pole95",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.76,
+      "lateral_m": 6.62,
+      "side": "right"
+    },
+    {
+      "node": 65,
+      "dist_m": 657.5,
+      "name": "phone_pole96",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.77,
+      "lateral_m": 5.48,
+      "side": "right"
+    },
+    {
+      "node": 68,
+      "dist_m": 687.8,
+      "name": "phone_pole98",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.46,
+      "lateral_m": 5.36,
+      "side": "right"
+    },
+    {
+      "node": 71,
+      "dist_m": 718.0,
+      "name": "phone_pole99",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.82,
+      "lateral_m": 5.06,
+      "side": "right"
+    },
+    {
+      "node": 73,
+      "dist_m": 738.3,
+      "name": "phone_pole100",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.24,
+      "lateral_m": 5.34,
+      "side": "right"
+    },
+    {
+      "node": 76,
+      "dist_m": 768.7,
+      "name": "phone_pole101",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.43,
+      "lateral_m": 5.98,
+      "side": "right"
+    },
+    {
+      "node": 78,
+      "dist_m": 788.9,
+      "name": "phone_pole102",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": 6.15,
+      "side": "right"
+    },
+    {
+      "node": 81,
+      "dist_m": 819.3,
+      "name": "phone_pole103",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.59,
+      "lateral_m": 7.22,
+      "side": "right"
+    },
+    {
+      "node": 83,
+      "dist_m": 839.9,
+      "name": "phone_pole104",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.4,
+      "lateral_m": 8.49,
+      "side": "right"
+    },
+    {
+      "node": 85,
+      "dist_m": 860.1,
+      "name": "phone_pole105",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.15,
+      "lateral_m": 9.06,
+      "side": "right"
+    },
+    {
+      "node": 88,
+      "dist_m": 890.5,
+      "name": "phone_pole106",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.32,
+      "lateral_m": 7.19,
+      "side": "right"
+    },
+    {
+      "node": 90,
+      "dist_m": 910.7,
+      "name": "phone_pole107",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.27,
+      "lateral_m": 6.63,
+      "side": "right"
+    },
+    {
+      "node": 93,
+      "dist_m": 940.9,
+      "name": "phone_pole108",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.52,
+      "lateral_m": 9.5,
+      "side": "right"
+    },
+    {
+      "node": 95,
+      "dist_m": 961.2,
+      "name": "phone_pole109",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.24,
+      "lateral_m": 7.03,
+      "side": "right"
+    },
+    {
+      "node": 98,
+      "dist_m": 991.3,
+      "name": "phone_pole110",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.52,
+      "lateral_m": 6.9,
+      "side": "right"
+    },
+    {
+      "node": 100,
+      "dist_m": 1011.6,
+      "name": "phone_pole111",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.98,
+      "lateral_m": 7.01,
+      "side": "right"
+    },
+    {
+      "node": 102,
+      "dist_m": 1031.9,
+      "name": "phone_pole112",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.74,
+      "lateral_m": 3.83,
+      "side": "right"
+    },
+    {
+      "node": 105,
+      "dist_m": 1062.1,
+      "name": "phone_pole113",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.2,
+      "lateral_m": 6.96,
+      "side": "right"
+    },
+    {
+      "node": 107,
+      "dist_m": 1082.5,
+      "name": "phone_pole114",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.28,
+      "lateral_m": 9.62,
+      "side": "right"
+    },
+    {
+      "node": 109,
+      "dist_m": 1102.8,
+      "name": "phone_pole115",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.78,
+      "lateral_m": 8.33,
+      "side": "right"
+    },
+    {
+      "node": 112,
+      "dist_m": 1133.1,
+      "name": "phone_pole116",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.12,
+      "lateral_m": 5.8,
+      "side": "right"
+    },
+    {
+      "node": 115,
+      "dist_m": 1163.3,
+      "name": "phone_pole117",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.77,
+      "lateral_m": 5.07,
+      "side": "right"
+    },
+    {
+      "node": 117,
+      "dist_m": 1183.7,
+      "name": "phone_pole118",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.05,
+      "lateral_m": 5.47,
+      "side": "right"
+    },
+    {
+      "node": 120,
+      "dist_m": 1213.9,
+      "name": "phone_pole119",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.33,
+      "lateral_m": 4.4,
+      "side": "right"
+    },
+    {
+      "node": 122,
+      "dist_m": 1234.2,
+      "name": "phone_pole120",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.05,
+      "lateral_m": -8.22,
+      "side": "left"
+    },
+    {
+      "node": 124,
+      "dist_m": 1254.6,
+      "name": "phone_pole121",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.35,
+      "lateral_m": -6.06,
+      "side": "left"
+    },
+    {
+      "node": 126,
+      "dist_m": 1274.9,
+      "name": "phone_pole122",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.38,
+      "lateral_m": -7.41,
+      "side": "left"
+    },
+    {
+      "node": 129,
+      "dist_m": 1305.2,
+      "name": "phone_pole123",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.28,
+      "lateral_m": -7.59,
+      "side": "left"
+    },
+    {
+      "node": 131,
+      "dist_m": 1325.5,
+      "name": "phone_pole124",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.79,
+      "lateral_m": -7.53,
+      "side": "left"
+    },
+    {
+      "node": 134,
+      "dist_m": 1355.8,
+      "name": "phone_pole125",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.64,
+      "lateral_m": -6.36,
+      "side": "left"
+    },
+    {
+      "node": 136,
+      "dist_m": 1376.2,
+      "name": "phone_pole126",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.84,
+      "lateral_m": -7.85,
+      "side": "left"
+    },
+    {
+      "node": 139,
+      "dist_m": 1406.4,
+      "name": "phone_pole127",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.21,
+      "lateral_m": -7.45,
+      "side": "left"
+    },
+    {
+      "node": 141,
+      "dist_m": 1427.0,
+      "name": "phone_pole128",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.63,
+      "lateral_m": -6.37,
+      "side": "left"
+    },
+    {
+      "node": 144,
+      "dist_m": 1457.2,
+      "name": "phone_pole129",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.92,
+      "lateral_m": -5.43,
+      "side": "left"
+    },
+    {
+      "node": 146,
+      "dist_m": 1477.4,
+      "name": "phone_pole130",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.38,
+      "lateral_m": -7.07,
+      "side": "left"
+    },
+    {
+      "node": 149,
+      "dist_m": 1507.9,
+      "name": "phone_pole131",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.04,
+      "lateral_m": -6.18,
+      "side": "left"
+    },
+    {
+      "node": 151,
+      "dist_m": 1528.3,
+      "name": "phone_pole132",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.3,
+      "lateral_m": -5.42,
+      "side": "left"
+    },
+    {
+      "node": 154,
+      "dist_m": 1558.7,
+      "name": "phone_pole133",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 6.8,
+      "lateral_m": -3.67,
+      "side": "left"
+    },
+    {
+      "node": 156,
+      "dist_m": 1578.9,
+      "name": "phone_pole134",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.71,
+      "lateral_m": -6.45,
+      "side": "left"
+    },
+    {
+      "node": 159,
+      "dist_m": 1609.2,
+      "name": "phone_pole135",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.69,
+      "lateral_m": -7.57,
+      "side": "left"
+    },
+    {
+      "node": 161,
+      "dist_m": 1629.4,
+      "name": "phone_pole136",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.67,
+      "lateral_m": -7.37,
+      "side": "left"
+    },
+    {
+      "node": 164,
+      "dist_m": 1659.8,
+      "name": "phone_pole137",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.3,
+      "lateral_m": -6.5,
+      "side": "left"
+    },
+    {
+      "node": 166,
+      "dist_m": 1680.0,
+      "name": "phone_pole138",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.79,
+      "lateral_m": -6.72,
+      "side": "left"
+    },
+    {
+      "node": 169,
+      "dist_m": 1710.5,
+      "name": "phone_pole139",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": -5.35,
+      "side": "left"
+    },
+    {
+      "node": 171,
+      "dist_m": 1730.8,
+      "name": "phone_pole140",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.37,
+      "lateral_m": -6.47,
+      "side": "left"
+    },
+    {
+      "node": 174,
+      "dist_m": 1761.1,
+      "name": "phone_pole141",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.39,
+      "lateral_m": -6.21,
+      "side": "left"
+    },
+    {
+      "node": 176,
+      "dist_m": 1781.7,
+      "name": "phone_pole142",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.9,
+      "lateral_m": -5.93,
+      "side": "left"
+    },
+    {
+      "node": 179,
+      "dist_m": 1812.4,
+      "name": "phone_pole143",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.71,
+      "lateral_m": -4.98,
+      "side": "left"
+    },
+    {
+      "node": 181,
+      "dist_m": 1832.6,
+      "name": "phone_pole144",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.6,
+      "lateral_m": -4.82,
+      "side": "left"
+    },
+    {
+      "node": 184,
+      "dist_m": 1862.9,
+      "name": "phone_pole145",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.18,
+      "lateral_m": -5.58,
+      "side": "left"
+    },
+    {
+      "node": 187,
+      "dist_m": 1893.3,
+      "name": "phone_pole146",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.15,
+      "lateral_m": -5.83,
+      "side": "left"
+    },
+    {
+      "node": 190,
+      "dist_m": 1923.8,
+      "name": "phone_pole147",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.14,
+      "lateral_m": -6.24,
+      "side": "left"
+    },
+    {
+      "node": 192,
+      "dist_m": 1944.1,
+      "name": "phone_pole148",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.15,
+      "lateral_m": -6.76,
+      "side": "left"
+    },
+    {
+      "node": 195,
+      "dist_m": 1974.3,
+      "name": "phone_pole149",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.64,
+      "lateral_m": -7.67,
+      "side": "left"
+    },
+    {
+      "node": 197,
+      "dist_m": 1994.8,
+      "name": "phone_pole150",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.79,
+      "lateral_m": -7.81,
+      "side": "left"
+    },
+    {
+      "node": 199,
+      "dist_m": 2015.2,
+      "name": "phone_pole151",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.41,
+      "lateral_m": -6.85,
+      "side": "left"
+    },
+    {
+      "node": 202,
+      "dist_m": 2045.5,
+      "name": "phone_pole152",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.94,
+      "lateral_m": -7.3,
+      "side": "left"
+    },
+    {
+      "node": 204,
+      "dist_m": 2065.8,
+      "name": "phone_pole153",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.46,
+      "lateral_m": -6.39,
+      "side": "left"
+    },
+    {
+      "node": 207,
+      "dist_m": 2096.2,
+      "name": "phone_pole154",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.94,
+      "lateral_m": -7.98,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2116.5,
+      "name": "phone_pole155",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.97,
+      "lateral_m": -9.44,
+      "side": "left"
+    },
+    {
+      "node": 211,
+      "dist_m": 2136.8,
+      "name": "phone_pole156",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.68,
+      "lateral_m": -9.68,
+      "side": "left"
+    },
+    {
+      "node": 213,
+      "dist_m": 2157.0,
+      "name": "phone_pole157",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.43,
+      "lateral_m": -5.6,
+      "side": "left"
+    },
+    {
+      "node": 216,
+      "dist_m": 2187.3,
+      "name": "phone_pole158",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.93,
+      "lateral_m": -8.22,
+      "side": "left"
+    },
+    {
+      "node": 218,
+      "dist_m": 2207.5,
+      "name": "phone_pole159",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.88,
+      "lateral_m": -8.81,
+      "side": "left"
+    },
+    {
+      "node": 221,
+      "dist_m": 2237.8,
+      "name": "phone_pole160",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.1,
+      "lateral_m": -8.8,
+      "side": "left"
+    },
+    {
+      "node": 223,
+      "dist_m": 2258.3,
+      "name": "phone_pole161",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.33,
+      "lateral_m": -8.57,
+      "side": "left"
+    },
+    {
+      "node": 225,
+      "dist_m": 2278.5,
+      "name": "phone_pole162",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.45,
+      "lateral_m": -8.24,
+      "side": "left"
+    },
+    {
+      "node": 227,
+      "dist_m": 2298.8,
+      "name": "phone_pole163",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.3,
+      "lateral_m": 6.32,
+      "side": "right"
+    },
+    {
+      "node": 230,
+      "dist_m": 2329.2,
+      "name": "phone_pole164",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.0,
+      "lateral_m": 6.82,
+      "side": "right"
+    },
+    {
+      "node": 232,
+      "dist_m": 2349.6,
+      "name": "phone_pole165",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.09,
+      "lateral_m": 7.34,
+      "side": "right"
+    },
+    {
+      "node": 234,
+      "dist_m": 2369.9,
+      "name": "phone_pole166",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.06,
+      "lateral_m": 5.79,
+      "side": "right"
+    },
+    {
+      "node": 237,
+      "dist_m": 2400.3,
+      "name": "phone_pole167",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.74,
+      "lateral_m": 7.73,
+      "side": "right"
+    },
+    {
+      "node": 239,
+      "dist_m": 2420.5,
+      "name": "phone_pole168",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.83,
+      "lateral_m": 9.08,
+      "side": "right"
+    },
+    {
+      "node": 242,
+      "dist_m": 2451.0,
+      "name": "phone_pole169",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.8,
+      "lateral_m": 8.45,
+      "side": "right"
+    },
+    {
+      "node": 244,
+      "dist_m": 2471.4,
+      "name": "phone_pole170",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.01,
+      "lateral_m": 5.47,
+      "side": "right"
+    },
+    {
+      "node": 247,
+      "dist_m": 2501.5,
+      "name": "phone_pole171",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.03,
+      "lateral_m": 4.8,
+      "side": "right"
+    },
+    {
+      "node": 249,
+      "dist_m": 2521.9,
+      "name": "phone_pole172",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": 6.6,
+      "side": "right"
+    },
+    {
+      "node": 252,
+      "dist_m": 2552.2,
+      "name": "phone_pole173",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.97,
+      "lateral_m": 3.99,
+      "side": "right"
+    },
+    {
+      "node": 254,
+      "dist_m": 2572.8,
+      "name": "phone_pole174",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.53,
+      "lateral_m": 6.32,
+      "side": "right"
+    },
+    {
+      "node": 257,
+      "dist_m": 2603.3,
+      "name": "phone_pole175",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.25,
+      "lateral_m": 8.72,
+      "side": "right"
+    },
+    {
+      "node": 259,
+      "dist_m": 2623.7,
+      "name": "phone_pole176",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.38,
+      "lateral_m": 6.33,
+      "side": "right"
+    },
+    {
+      "node": 261,
+      "dist_m": 2643.8,
+      "name": "phone_pole177",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 7.96,
+      "lateral_m": 4.51,
+      "side": "right"
+    },
+    {
+      "node": 264,
+      "dist_m": 2674.3,
+      "name": "phone_pole178",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.1,
+      "lateral_m": 8.31,
+      "side": "right"
+    },
+    {
+      "node": 266,
+      "dist_m": 2694.5,
+      "name": "phone_pole179",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.99,
+      "lateral_m": 7.34,
+      "side": "right"
+    },
+    {
+      "node": 269,
+      "dist_m": 2724.8,
+      "name": "phone_pole180",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.52,
+      "lateral_m": 8.36,
+      "side": "right"
+    },
+    {
+      "node": 271,
+      "dist_m": 2745.3,
+      "name": "phone_pole181",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.38,
+      "lateral_m": 8.52,
+      "side": "right"
+    },
+    {
+      "node": 273,
+      "dist_m": 2765.5,
+      "name": "phone_pole182",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.29,
+      "lateral_m": 7.2,
+      "side": "right"
+    },
+    {
+      "node": 276,
+      "dist_m": 2795.7,
+      "name": "phone_pole183",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.28,
+      "lateral_m": 8.13,
+      "side": "right"
+    },
+    {
+      "node": 278,
+      "dist_m": 2816.0,
+      "name": "phone_pole184",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.0,
+      "lateral_m": 8.24,
+      "side": "right"
+    },
+    {
+      "node": 280,
+      "dist_m": 2836.0,
+      "name": "phone_pole185",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.04,
+      "lateral_m": -5.22,
+      "side": "left"
+    },
+    {
+      "node": 283,
+      "dist_m": 2866.3,
+      "name": "phone_pole186",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.45,
+      "lateral_m": -5.94,
+      "side": "left"
+    },
+    {
+      "node": 285,
+      "dist_m": 2886.5,
+      "name": "phone_pole187",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.45,
+      "lateral_m": -5.73,
+      "side": "left"
+    },
+    {
+      "node": 288,
+      "dist_m": 2916.9,
+      "name": "phone_pole188",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.25,
+      "lateral_m": -7.01,
+      "side": "left"
+    },
+    {
+      "node": 290,
+      "dist_m": 2937.3,
+      "name": "phone_pole189",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.85,
+      "lateral_m": -6.69,
+      "side": "left"
+    },
+    {
+      "node": 292,
+      "dist_m": 2957.5,
+      "name": "phone_pole190",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.18,
+      "lateral_m": -6.46,
+      "side": "left"
+    },
+    {
+      "node": 295,
+      "dist_m": 2987.9,
+      "name": "phone_pole191",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.7,
+      "lateral_m": -6.65,
+      "side": "left"
+    },
+    {
+      "node": 297,
+      "dist_m": 3008.1,
+      "name": "phone_pole192",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.36,
+      "lateral_m": -7.37,
+      "side": "left"
+    },
+    {
+      "node": 299,
+      "dist_m": 3028.5,
+      "name": "phone_pole193",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.24,
+      "lateral_m": -6.69,
+      "side": "left"
+    },
+    {
+      "node": 301,
+      "dist_m": 3048.7,
+      "name": "phone_pole194",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.13,
+      "lateral_m": -6.37,
+      "side": "left"
+    },
+    {
+      "node": 304,
+      "dist_m": 3079.1,
+      "name": "phone_pole195",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.26,
+      "lateral_m": -7.3,
+      "side": "left"
+    },
+    {
+      "node": 306,
+      "dist_m": 3099.2,
+      "name": "phone_pole196",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.84,
+      "lateral_m": -7.37,
+      "side": "left"
+    },
+    {
+      "node": 309,
+      "dist_m": 3129.6,
+      "name": "phone_pole197",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.02,
+      "lateral_m": -7.85,
+      "side": "left"
+    },
+    {
+      "node": 311,
+      "dist_m": 3149.8,
+      "name": "phone_pole198",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.71,
+      "lateral_m": -7.8,
+      "side": "left"
+    },
+    {
+      "node": 313,
+      "dist_m": 3170.1,
+      "name": "phone_pole199",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.71,
+      "lateral_m": -7.32,
+      "side": "left"
+    },
+    {
+      "node": 316,
+      "dist_m": 3200.6,
+      "name": "phone_pole200",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.62,
+      "lateral_m": -7.24,
+      "side": "left"
+    },
+    {
+      "node": 318,
+      "dist_m": 3221.0,
+      "name": "phone_pole201",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.39,
+      "lateral_m": -7.12,
+      "side": "left"
+    },
+    {
+      "node": 321,
+      "dist_m": 3251.6,
+      "name": "phone_pole202",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.65,
+      "lateral_m": -6.9,
+      "side": "left"
+    },
+    {
+      "node": 323,
+      "dist_m": 3272.4,
+      "name": "phone_pole203",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.53,
+      "lateral_m": -5.98,
+      "side": "left"
+    },
+    {
+      "node": 326,
+      "dist_m": 3302.5,
+      "name": "phone_pole204",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.58,
+      "lateral_m": -5.21,
+      "side": "left"
+    },
+    {
+      "node": 328,
+      "dist_m": 3323.0,
+      "name": "phone_pole205",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.43,
+      "lateral_m": -5.95,
+      "side": "left"
+    },
+    {
+      "node": 331,
+      "dist_m": 3353.8,
+      "name": "phone_pole206",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.03,
+      "lateral_m": -6.08,
+      "side": "left"
+    },
+    {
+      "node": 333,
+      "dist_m": 3374.2,
+      "name": "phone_pole207",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.72,
+      "lateral_m": -6.61,
+      "side": "left"
+    },
+    {
+      "node": 335,
+      "dist_m": 3394.8,
+      "name": "phone_pole208",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 11.05,
+      "lateral_m": -8.27,
+      "side": "left"
+    },
+    {
+      "node": 338,
+      "dist_m": 3425.2,
+      "name": "phone_pole209",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.15,
+      "lateral_m": -7.82,
+      "side": "left"
+    },
+    {
+      "node": 340,
+      "dist_m": 3445.6,
+      "name": "phone_pole210",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.94,
+      "lateral_m": -7.79,
+      "side": "left"
+    },
+    {
+      "node": 343,
+      "dist_m": 3476.3,
+      "name": "phone_pole211",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.01,
+      "lateral_m": -7.12,
+      "side": "left"
+    },
+    {
+      "node": 345,
+      "dist_m": 3496.8,
+      "name": "phone_pole212",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 8.46,
+      "lateral_m": -6.16,
+      "side": "left"
+    },
+    {
+      "node": 348,
+      "dist_m": 3527.7,
+      "name": "phone_pole213",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.65,
+      "lateral_m": -7.15,
+      "side": "left"
+    },
+    {
+      "node": 350,
+      "dist_m": 3548.0,
+      "name": "phone_pole214",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 10.35,
+      "lateral_m": -8.49,
+      "side": "left"
+    },
+    {
+      "node": 352,
+      "dist_m": 3568.4,
+      "name": "phone_pole215",
+      "materials": [
+        "fin_pole",
+        "fin_pole_metals",
+        "fin_pole_wires"
+      ],
+      "dist_3d_m": 9.71,
+      "lateral_m": -6.61,
+      "side": "left"
+    },
+    {
+      "node": 240,
+      "dist_m": 2430.6,
+      "name": "sign_speedlimit71",
+      "materials": [
+        "sign_splimit50",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 8.06,
+      "lateral_m": 7.8,
+      "side": "right"
+    },
+    {
+      "node": 313,
+      "dist_m": 3170.1,
+      "name": "sign_direction_single01",
+      "materials": [
+        "sign_direction_both"
+      ],
+      "dist_3d_m": 7.22,
+      "lateral_m": -5.79,
+      "side": "left"
+    },
+    {
+      "node": 318,
+      "dist_m": 3221.0,
+      "name": "sign_speedlimit72",
+      "materials": [
+        "sign_splimit50",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 5.24,
+      "lateral_m": 4.77,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 40.5,
+      "name": "stone_3_medium_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.26,
+      "lateral_m": 10.75,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 40.5,
+      "name": "stone_3_tiny_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 10.65,
+      "lateral_m": 10.56,
+      "side": "right"
+    },
+    {
+      "node": 16,
+      "dist_m": 161.6,
+      "name": "stone_3_big_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 10.49,
+      "lateral_m": -10.17,
+      "side": "left"
+    },
+    {
+      "node": 16,
+      "dist_m": 161.6,
+      "name": "stone_3_tiny_02",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 9.22,
+      "lateral_m": -9.19,
+      "side": "left"
+    },
+    {
+      "node": 61,
+      "dist_m": 616.8,
+      "name": "stone_1_medium_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 12.05,
+      "lateral_m": 11.72,
+      "side": "right"
+    },
+    {
+      "node": 61,
+      "dist_m": 616.8,
+      "name": "stone_3_big_02",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.86,
+      "lateral_m": 11.8,
+      "side": "right"
+    },
+    {
+      "node": 61,
+      "dist_m": 616.8,
+      "name": "stone_1_tiny_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 10.69,
+      "lateral_m": 10.35,
+      "side": "right"
+    },
+    {
+      "node": 83,
+      "dist_m": 839.9,
+      "name": "stone_1_tiny_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 16.0,
+      "lateral_m": 15.88,
+      "side": "right"
+    },
+    {
+      "node": 90,
+      "dist_m": 910.7,
+      "name": "stone_3_medium_02",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 12.95,
+      "lateral_m": -12.43,
+      "side": "left"
+    },
+    {
+      "node": 90,
+      "dist_m": 910.7,
+      "name": "stone_2_tiny_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.04,
+      "lateral_m": -10.65,
+      "side": "left"
+    },
+    {
+      "node": 105,
+      "dist_m": 1062.1,
+      "name": "stone_2_medium_02",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 10.69,
+      "lateral_m": 9.48,
+      "side": "right"
+    },
+    {
+      "node": 105,
+      "dist_m": 1062.1,
+      "name": "stone_1_tiny_03",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.78,
+      "lateral_m": 8.88,
+      "side": "right"
+    },
+    {
+      "node": 128,
+      "dist_m": 1295.1,
+      "name": "stone_1_big_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.12,
+      "lateral_m": 8.27,
+      "side": "right"
+    },
+    {
+      "node": 127,
+      "dist_m": 1285.0,
+      "name": "stone_3_tiny_03",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.24,
+      "lateral_m": 7.88,
+      "side": "right"
+    },
+    {
+      "node": 145,
+      "dist_m": 1467.4,
+      "name": "stone_2_medium_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 7.59,
+      "lateral_m": 7.59,
+      "side": "right"
+    },
+    {
+      "node": 145,
+      "dist_m": 1467.4,
+      "name": "stone_2_tiny_04",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 7.15,
+      "lateral_m": 6.99,
+      "side": "right"
+    },
+    {
+      "node": 178,
+      "dist_m": 1802.2,
+      "name": "stone_2_medium_04",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.11,
+      "lateral_m": 7.75,
+      "side": "right"
+    },
+    {
+      "node": 178,
+      "dist_m": 1802.2,
+      "name": "stone_3_tiny_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 9.05,
+      "lateral_m": 8.44,
+      "side": "right"
+    },
+    {
+      "node": 193,
+      "dist_m": 1954.2,
+      "name": "stone_1_medium_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 7.65,
+      "lateral_m": 7.63,
+      "side": "right"
+    },
+    {
+      "node": 199,
+      "dist_m": 2015.2,
+      "name": "stone_2_tiny_05",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.27,
+      "lateral_m": -10.11,
+      "side": "left"
+    },
+    {
+      "node": 200,
+      "dist_m": 2025.5,
+      "name": "stone_3_medium_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.76,
+      "lateral_m": -10.98,
+      "side": "left"
+    },
+    {
+      "node": 199,
+      "dist_m": 2015.2,
+      "name": "stone_1_big_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 12.33,
+      "lateral_m": -11.48,
+      "side": "left"
+    },
+    {
+      "node": 244,
+      "dist_m": 2471.4,
+      "name": "stone_3_medium_05",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.51,
+      "lateral_m": 11.34,
+      "side": "right"
+    },
+    {
+      "node": 244,
+      "dist_m": 2471.4,
+      "name": "stone_3_tiny_06",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 10.72,
+      "lateral_m": 10.72,
+      "side": "right"
+    },
+    {
+      "node": 273,
+      "dist_m": 2765.5,
+      "name": "stone_1_medium_03",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 8.08,
+      "lateral_m": 7.87,
+      "side": "right"
+    },
+    {
+      "node": 281,
+      "dist_m": 2846.1,
+      "name": "stone_3_medium_06",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.42,
+      "lateral_m": 10.82,
+      "side": "right"
+    },
+    {
+      "node": 302,
+      "dist_m": 3058.8,
+      "name": "stone_2_tiny_06",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.0,
+      "lateral_m": -10.33,
+      "side": "left"
+    },
+    {
+      "node": 302,
+      "dist_m": 3058.8,
+      "name": "stone_3_big_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 11.25,
+      "lateral_m": -11.11,
+      "side": "left"
+    },
+    {
+      "node": 313,
+      "dist_m": 3170.1,
+      "name": "stone_1_medium_04",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 11.29,
+      "lateral_m": -10.49,
+      "side": "left"
+    },
+    {
+      "node": 313,
+      "dist_m": 3170.1,
+      "name": "stone_1_tiny_05",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.89,
+      "lateral_m": -9.56,
+      "side": "left"
+    },
+    {
+      "node": 349,
+      "dist_m": 3538.0,
+      "name": "stone_2_medium_05",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 12.58,
+      "lateral_m": 12.46,
+      "side": "right"
+    },
+    {
+      "node": 352,
+      "dist_m": 3568.4,
+      "name": "stone_1_medium_05",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 15.14,
+      "lateral_m": -14.42,
+      "side": "left"
+    },
+    {
+      "node": 360,
+      "dist_m": 3649.5,
+      "name": "stone_2_medium_06",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 12.94,
+      "lateral_m": 12.29,
+      "side": "right"
+    },
+    {
+      "node": 366,
+      "dist_m": 3710.8,
+      "name": "stone_1_medium_06",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.56,
+      "lateral_m": -8.82,
+      "side": "left"
+    },
+    {
+      "node": 371,
+      "dist_m": 3761.4,
+      "name": "stone_2_medium_07",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.62,
+      "lateral_m": -9.39,
+      "side": "left"
+    },
+    {
+      "node": 371,
+      "dist_m": 3761.4,
+      "name": "stone_2_tiny_07",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.31,
+      "lateral_m": -8.64,
+      "side": "left"
+    },
+    {
+      "node": 397,
+      "dist_m": 4023.9,
+      "name": "stone_2_medium_08",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.54,
+      "lateral_m": -8.37,
+      "side": "left"
+    },
+    {
+      "node": 397,
+      "dist_m": 4023.9,
+      "name": "stone_1_tiny_06",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 8.62,
+      "lateral_m": -8.61,
+      "side": "left"
+    },
+    {
+      "node": 407,
+      "dist_m": 4125.1,
+      "name": "stone_2_medium_09",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 5.37,
+      "lateral_m": 5.29,
+      "side": "right"
+    },
+    {
+      "node": 407,
+      "dist_m": 4125.1,
+      "name": "stone_2_tiny_08",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 4.46,
+      "lateral_m": 4.43,
+      "side": "right"
+    },
+    {
+      "node": 427,
+      "dist_m": 4327.9,
+      "name": "stone_3_medium_07",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 7.84,
+      "lateral_m": 7.5,
+      "side": "right"
+    },
+    {
+      "node": 427,
+      "dist_m": 4327.9,
+      "name": "stone_2_tiny_09",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.22,
+      "lateral_m": 8.31,
+      "side": "right"
+    },
+    {
+      "node": 437,
+      "dist_m": 4429.5,
+      "name": "stone_2_medium_10",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.76,
+      "lateral_m": 7.58,
+      "side": "right"
+    },
+    {
+      "node": 437,
+      "dist_m": 4429.5,
+      "name": "stone_1_tiny_07",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.2,
+      "lateral_m": 8.56,
+      "side": "right"
+    },
+    {
+      "node": 448,
+      "dist_m": 4541.5,
+      "name": "stone_2_big_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.37,
+      "lateral_m": 11.25,
+      "side": "right"
+    },
+    {
+      "node": 453,
+      "dist_m": 4592.0,
+      "name": "stone_3_tiny_07",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 5.87,
+      "lateral_m": -5.26,
+      "side": "left"
+    },
+    {
+      "node": 453,
+      "dist_m": 4592.0,
+      "name": "stone_2_medium_11",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 6.62,
+      "lateral_m": -5.54,
+      "side": "left"
+    },
+    {
+      "node": 459,
+      "dist_m": 4652.6,
+      "name": "stone_3_medium_08",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.7,
+      "lateral_m": 8.04,
+      "side": "right"
+    },
+    {
+      "node": 459,
+      "dist_m": 4652.6,
+      "name": "stone_2_tiny_10",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.08,
+      "lateral_m": 7.75,
+      "side": "right"
+    },
+    {
+      "node": 459,
+      "dist_m": 4652.6,
+      "name": "001string_red11",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 11.3,
+      "lateral_m": -11.17,
+      "side": "left"
+    },
+    {
+      "node": 458,
+      "dist_m": 4642.5,
+      "name": "001string_red12",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 12.98,
+      "lateral_m": 12.3,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_9",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.56,
+      "lateral_m": 7.5,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_17",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.07,
+      "lateral_m": -7.87,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_18",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.0,
+      "lateral_m": -7.92,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_19",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.71,
+      "lateral_m": -6.74,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_20",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.04,
+      "lateral_m": -6.93,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_21",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.24,
+      "lateral_m": 7.64,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_22",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.99,
+      "lateral_m": -7.7,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_23",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.37,
+      "lateral_m": -7.29,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_24",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 14.6,
+      "lateral_m": -4.01,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_25",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.59,
+      "lateral_m": 8.09,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_26",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.05,
+      "lateral_m": 6.37,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_27",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 14.72,
+      "lateral_m": 4.45,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_28",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 13.83,
+      "lateral_m": 0.75,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_29",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 13.93,
+      "lateral_m": -1.11,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_30",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.04,
+      "lateral_m": -7.11,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_31",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 11.39,
+      "lateral_m": 7.76,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_78",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.48,
+      "lateral_m": -7.82,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_79",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.13,
+      "lateral_m": -7.97,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_80",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.26,
+      "lateral_m": -8.88,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_81",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.76,
+      "lateral_m": -8.86,
+      "side": "left"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_82",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.48,
+      "lateral_m": -8.44,
+      "side": "left"
+    },
+    {
+      "node": 464,
+      "dist_m": 4703.2,
+      "name": "002audience_103",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 4.72,
+      "lateral_m": 4.54,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_104",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.83,
+      "lateral_m": 5.67,
+      "side": "right"
+    },
+    {
+      "node": 464,
+      "dist_m": 4703.2,
+      "name": "002audience_105",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 5.52,
+      "lateral_m": 4.34,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_106",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.25,
+      "lateral_m": 5.58,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_107",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 5.4,
+      "lateral_m": 4.03,
+      "side": "right"
+    },
+    {
+      "node": 463,
+      "dist_m": 4693.1,
+      "name": "002audience_108",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 5.06,
+      "lateral_m": 4.63,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_109",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 5.85,
+      "lateral_m": 4.83,
+      "side": "right"
+    },
+    {
+      "node": 461,
+      "dist_m": 4673.0,
+      "name": "002audience_128",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.39,
+      "lateral_m": -7.04,
+      "side": "left"
+    },
+    {
+      "node": 461,
+      "dist_m": 4673.0,
+      "name": "002audience_129",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.23,
+      "lateral_m": -6.88,
+      "side": "left"
+    },
+    {
+      "node": 460,
+      "dist_m": 4662.9,
+      "name": "002audience_130",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.64,
+      "lateral_m": -6.88,
+      "side": "left"
+    },
+    {
+      "node": 464,
+      "dist_m": 4703.2,
+      "name": "002audience_131",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.19,
+      "lateral_m": -8.55,
+      "side": "left"
+    },
+    {
+      "node": 462,
+      "dist_m": 4683.0,
+      "name": "002audience_132",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.05,
+      "lateral_m": -7.77,
+      "side": "left"
+    },
+    {
+      "node": 462,
+      "dist_m": 4683.0,
+      "name": "002audience_133",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.75,
+      "lateral_m": -7.69,
+      "side": "left"
+    },
+    {
+      "node": 463,
+      "dist_m": 4693.1,
+      "name": "002audience_134",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.16,
+      "lateral_m": -8.03,
+      "side": "left"
+    },
+    {
+      "node": 464,
+      "dist_m": 4703.2,
+      "name": "002audience_135",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.24,
+      "lateral_m": -8.1,
+      "side": "left"
+    },
+    {
+      "node": 461,
+      "dist_m": 4673.0,
+      "name": "002audience_136",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.03,
+      "lateral_m": 6.79,
+      "side": "right"
+    },
+    {
+      "node": 465,
+      "dist_m": 4713.2,
+      "name": "002audience_137",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.51,
+      "lateral_m": 4.97,
+      "side": "right"
+    },
+    {
+      "node": 461,
+      "dist_m": 4673.0,
+      "name": "002audience_138",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.59,
+      "lateral_m": 6.81,
+      "side": "right"
+    },
+    {
+      "node": 462,
+      "dist_m": 4683.0,
+      "name": "002audience_139",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.57,
+      "lateral_m": 6.06,
+      "side": "right"
+    },
+    {
+      "node": 462,
+      "dist_m": 4683.0,
+      "name": "002audience_140",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 6.73,
+      "lateral_m": 6.16,
+      "side": "right"
+    },
+    {
+      "node": 464,
+      "dist_m": 4703.2,
+      "name": "002audience_141",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.38,
+      "lateral_m": -8.28,
+      "side": "left"
+    },
+    {
+      "node": 67,
+      "dist_m": 677.7,
+      "name": "005trackref_02",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 13.18,
+      "lateral_m": 3.84,
+      "side": "right"
+    },
+    {
+      "node": 207,
+      "dist_m": 2096.2,
+      "name": "005trackref_08",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 13.79,
+      "lateral_m": 8.13,
+      "side": "right"
+    },
+    {
+      "node": 241,
+      "dist_m": 2440.9,
+      "name": "005trackref_12",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 15.54,
+      "lateral_m": 0.8,
+      "side": "right"
+    },
+    {
+      "node": 251,
+      "dist_m": 2542.2,
+      "name": "005trackref_13",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 10.58,
+      "lateral_m": -2.67,
+      "side": "left"
+    },
+    {
+      "node": 260,
+      "dist_m": 2633.7,
+      "name": "005trackref_15",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 12.52,
+      "lateral_m": -2.52,
+      "side": "left"
+    },
+    {
+      "node": 270,
+      "dist_m": 2735.0,
+      "name": "005trackref_16",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 13.5,
+      "lateral_m": -1.75,
+      "side": "left"
+    },
+    {
+      "node": 322,
+      "dist_m": 3262.0,
+      "name": "005trackref_18",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 14.4,
+      "lateral_m": 1.71,
+      "side": "right"
+    },
+    {
+      "node": 332,
+      "dist_m": 3364.0,
+      "name": "005trackref_20",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 12.44,
+      "lateral_m": -1.64,
+      "side": "left"
+    },
+    {
+      "node": 341,
+      "dist_m": 3455.7,
+      "name": "005trackref_21",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 10.75,
+      "lateral_m": -4.61,
+      "side": "left"
+    },
+    {
+      "node": 352,
+      "dist_m": 3568.4,
+      "name": "005trackref_22",
+      "materials": [
+        "fin_forest_mixed1",
+        "fin_lake_bank"
+      ],
+      "dist_3d_m": 15.18,
+      "lateral_m": 10.07,
+      "side": "right"
+    }
+  ]
+}

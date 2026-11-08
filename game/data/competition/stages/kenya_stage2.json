@@ -1,0 +1,174 @@
+{
+  "id": "kenya_stage2",
+  "name": "Kenia — Stage 2",
+  "route_path": "res://data/rally/kenya_stage2_route.json",
+  "fallback_path": "res://data/competition/rally_trophy/track2_stage2.json",
+  "difficulty": 1,
+  "reference_scale": 1.0,
+  "mapping_basis": "Recovered original split_00..split_09 trigger planes from source BMF, aligned with checkpoint signs in exported GLB.",
+  "sector_checkpoint_indices": [
+    73,
+    136,
+    223,
+    324,
+    379,
+    467,
+    518,
+    566,
+    610,
+    651
+  ],
+  "sector_lengths_km": [
+    0.771213934890281,
+    0.6539621344165752,
+    0.9036807229637585,
+    1.0558214044639553,
+    0.578678091163969,
+    0.9187881775287783,
+    0.521564392426335,
+    0.5092213263417543,
+    0.45203869729207874,
+    0.4462089038708082
+  ],
+  "surface": "gravel_mud",
+  "roughness": 0.55,
+  "water": 0.15,
+  "jumps": 0.45,
+  "visibility": 0.8,
+  "wetness": 0.35,
+  "blind_route": false,
+  "night": false,
+  "timing_gates_path": "res://data/competition/stages/kenya_stage2_timing_gates.json",
+  "cpu_reference_splits": {
+    "CommentTimesNovice": [
+      220.0,
+      230.0,
+      240.0
+    ],
+    "CommentTimesIntermediate": [
+      210.0,
+      220.0,
+      230.0
+    ],
+    "CommentTimesExpert": [
+      200.0,
+      210.0,
+      220.0
+    ],
+    "CommentTimesFTCNovice": [
+      216.0,
+      226.0,
+      236.0
+    ],
+    "CommentTimesFTCIntermediate": [
+      206.0,
+      216.0,
+      226.0
+    ],
+    "CommentTimesFTCExpert": [
+      196.0,
+      206.0,
+      216.0
+    ],
+    "CPUSplit0": [
+      27.0,
+      26.0,
+      25.0
+    ],
+    "CPUSplit1": [
+      28.0,
+      27.0,
+      26.0
+    ],
+    "CPUSplit2": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit3": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit4": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit5": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUSplit6": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit7": [
+      16.0,
+      15.0,
+      15.0
+    ],
+    "CPUSplit8": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUSplit9": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUFTCSplit0": [
+      26.0,
+      25.0,
+      24.0
+    ],
+    "CPUFTCSplit1": [
+      28.0,
+      27.0,
+      26.0
+    ],
+    "CPUFTCSplit2": [
+      29.0,
+      28.0,
+      26.0
+    ],
+    "CPUFTCSplit3": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUFTCSplit4": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUFTCSplit5": [
+      28.0,
+      27.0,
+      25.0
+    ],
+    "CPUFTCSplit6": [
+      17.0,
+      16.0,
+      15.0
+    ],
+    "CPUFTCSplit7": [
+      15.0,
+      16.0,
+      14.0
+    ],
+    "CPUFTCSplit8": [
+      14.0,
+      13.0,
+      13.0
+    ],
+    "CPUFTCSplit9": [
+      14.0,
+      13.0,
+      13.0
+    ]
+  }
+}

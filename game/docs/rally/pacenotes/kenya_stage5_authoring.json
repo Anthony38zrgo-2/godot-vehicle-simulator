@@ -1,0 +1,996 @@
+{
+  "stage": "kenya-stage5",
+  "author": "Antigravity Agent",
+  "methodology": "3D route curvature + vertical slope inflection + 3D obstacle alignment with CMR2 audio codec",
+  "total_curves_classified": 33,
+  "curves": [
+    {
+      "curve_id": "KE5_CURVE_00",
+      "start_node": 14,
+      "end_node": 19,
+      "advisory_gate_node": 9,
+      "route_distance_m": 145.3,
+      "length_m": 52.7,
+      "total_angle_deg": 9.2,
+      "direction": "left",
+      "estimated_radius_m": 273.3,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000010d1",
+      "call_index": 0,
+      "speech_slots": [
+        16,
+        5,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=273.3m, ángulo=9.2 deg, longitud=52.7m.",
+        "Portal de aviso asignado en nodo 9 a 92.4m (52.8m de anticipación).",
+        "Radio decreciente en ápice (R_in=513m -> R_out=270m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_01",
+      "start_node": 22,
+      "end_node": 32,
+      "advisory_gate_node": 17,
+      "route_distance_m": 229.1,
+      "length_m": 105.6,
+      "total_angle_deg": 19.9,
+      "direction": "left",
+      "estimated_radius_m": 246.4,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00000491",
+      "call_index": 1,
+      "speech_slots": [
+        15,
+        10,
+        5,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=246.4m, ángulo=19.9 deg, longitud=105.6m.",
+        "Portal de aviso asignado en nodo 17 a 176.9m (52.2m de anticipación).",
+        "Longitud de curva sostenida (105.6m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_02",
+      "start_node": 33,
+      "end_node": 39,
+      "advisory_gate_node": 28,
+      "route_distance_m": 345.1,
+      "length_m": 62.8,
+      "total_angle_deg": 10.5,
+      "direction": "left",
+      "estimated_radius_m": 297.3,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00000251",
+      "call_index": 2,
+      "speech_slots": [
+        22,
+        5,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=297.3m, ángulo=10.5 deg, longitud=62.8m.",
+        "Portal de aviso asignado en nodo 28 a 293.5m (51.5m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_03",
+      "start_node": 83,
+      "end_node": 89,
+      "advisory_gate_node": 78,
+      "route_distance_m": 881.5,
+      "length_m": 63.2,
+      "total_angle_deg": 13.3,
+      "direction": "left",
+      "estimated_radius_m": 215.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00001091",
+      "call_index": 3,
+      "speech_slots": [
+        15,
+        5,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=215.6m, ángulo=13.3 deg, longitud=63.2m.",
+        "Portal de aviso asignado en nodo 78 a 829.2m (52.3m de anticipación).",
+        "Radio decreciente en ápice (R_in=377m -> R_out=222m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_04",
+      "start_node": 90,
+      "end_node": 111,
+      "advisory_gate_node": 85,
+      "route_distance_m": 955.1,
+      "length_m": 218.5,
+      "total_angle_deg": 71.2,
+      "direction": "right",
+      "estimated_radius_m": 128.9,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00049a62",
+      "call_index": 4,
+      "speech_slots": [
+        22,
+        28,
+        4,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=128.9m, ángulo=71.2 deg, longitud=218.5m.",
+        "Portal de aviso asignado en nodo 85 a 902.2m (52.9m de anticipación).",
+        "Longitud de curva extendida (218.5m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=231m -> R_out=141m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 110 (+0.1% -> -6.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_05",
+      "start_node": 138,
+      "end_node": 154,
+      "advisory_gate_node": 133,
+      "route_distance_m": 1464.9,
+      "length_m": 172.4,
+      "total_angle_deg": 47.9,
+      "direction": "left",
+      "estimated_radius_m": 154.7,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000488d1",
+      "call_index": 5,
+      "speech_slots": [
+        16,
+        28,
+        5,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=154.7m, ángulo=47.9 deg, longitud=172.4m.",
+        "Portal de aviso asignado en nodo 133 a 1410.2m (54.6m de anticipación).",
+        "Longitud de curva extendida (172.4m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 143 (-2.2% -> -7.0%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_06",
+      "start_node": 157,
+      "end_node": 166,
+      "advisory_gate_node": 152,
+      "route_distance_m": 1668.7,
+      "length_m": 93.8,
+      "total_angle_deg": 20.8,
+      "direction": "right",
+      "estimated_radius_m": 205.4,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00049661",
+      "call_index": 6,
+      "speech_slots": [
+        22,
+        10,
+        5,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=205.4m, ángulo=20.8 deg, longitud=93.8m.",
+        "Portal de aviso asignado en nodo 152 a 1616.1m (52.6m de anticipación).",
+        "Longitud de curva sostenida (93.8m >= 80m): calificada como 'long'.",
+        "Radio decreciente en ápice (R_in=392m -> R_out=222m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 165 (+14.7% -> +5.7%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_07",
+      "start_node": 215,
+      "end_node": 242,
+      "advisory_gate_node": 210,
+      "route_distance_m": 2280.8,
+      "length_m": 281.6,
+      "total_angle_deg": 105.8,
+      "direction": "left",
+      "estimated_radius_m": 100.5,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00048892",
+      "call_index": 7,
+      "speech_slots": [
+        15,
+        28,
+        4,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=100.5m, ángulo=105.8 deg, longitud=281.6m.",
+        "Portal de aviso asignado en nodo 210 a 2227.3m (53.5m de anticipación).",
+        "Longitud de curva extendida (281.6m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 235 (-1.3% -> -10.5%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_08",
+      "start_node": 243,
+      "end_node": 249,
+      "advisory_gate_node": 238,
+      "route_distance_m": 2572.5,
+      "length_m": 61.8,
+      "total_angle_deg": 83.2,
+      "direction": "right",
+      "estimated_radius_m": 28.5,
+      "cmr2_kind": "two",
+      "caution": "none",
+      "call_word_hex": "0x000020e5",
+      "call_index": 8,
+      "speech_slots": [
+        16,
+        1,
+        9,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=28.5m, ángulo=83.2 deg, longitud=61.8m.",
+        "Portal de aviso asignado en nodo 238 a 2520.7m (51.8m de anticipación).",
+        "Radio creciente en salida (R_in=29m -> R_out=72m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_09",
+      "start_node": 252,
+      "end_node": 254,
+      "advisory_gate_node": 247,
+      "route_distance_m": 2665.0,
+      "length_m": 20.9,
+      "total_angle_deg": 12.6,
+      "direction": "left",
+      "estimated_radius_m": 87.8,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00001213",
+      "call_index": 9,
+      "speech_slots": [
+        21,
+        3,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=87.8m, ángulo=12.6 deg, longitud=20.9m.",
+        "Portal de aviso asignado en nodo 247 a 2613.8m (51.2m de anticipación).",
+        "Radio decreciente en ápice (R_in=274m -> R_out=95m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_10",
+      "start_node": 269,
+      "end_node": 279,
+      "advisory_gate_node": 264,
+      "route_distance_m": 2845.3,
+      "length_m": 103.7,
+      "total_angle_deg": 32.9,
+      "direction": "left",
+      "estimated_radius_m": 127.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00001492",
+      "call_index": 10,
+      "speech_slots": [
+        15,
+        10,
+        4,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=127.2m, ángulo=32.9 deg, longitud=103.7m.",
+        "Portal de aviso asignado en nodo 264 a 2792.0m (53.3m de anticipación).",
+        "Longitud de curva sostenida (103.7m >= 80m): calificada como 'long'.",
+        "Radio decreciente en ápice (R_in=284m -> R_out=140m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_11",
+      "start_node": 281,
+      "end_node": 287,
+      "advisory_gate_node": 276,
+      "route_distance_m": 2969.7,
+      "length_m": 61.3,
+      "total_angle_deg": 56.0,
+      "direction": "right",
+      "estimated_radius_m": 42.0,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00048064",
+      "call_index": 11,
+      "speech_slots": [
+        14,
+        2,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=42.0m, ángulo=56.0 deg, longitud=61.3m.",
+        "Portal de aviso asignado en nodo 276 a 2918.2m (51.5m de anticipación).",
+        "Cambio convexo de rasante en nodo 287 (+6.1% -> -4.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_12",
+      "start_node": 286,
+      "end_node": 297,
+      "advisory_gate_node": 281,
+      "route_distance_m": 3020.7,
+      "length_m": 112.8,
+      "total_angle_deg": 74.2,
+      "direction": "left",
+      "estimated_radius_m": 70.6,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00048553",
+      "call_index": 12,
+      "speech_slots": [
+        18,
+        10,
+        3,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=70.6m, ángulo=74.2 deg, longitud=112.8m.",
+        "Portal de aviso asignado en nodo 281 a 2969.7m (51.0m de anticipación).",
+        "Longitud de curva sostenida (112.8m >= 80m): calificada como 'long'.",
+        "Cambio convexo de rasante en nodo 287 (+6.1% -> -4.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_13",
+      "start_node": 304,
+      "end_node": 311,
+      "advisory_gate_node": 299,
+      "route_distance_m": 3205.6,
+      "length_m": 73.9,
+      "total_angle_deg": 34.1,
+      "direction": "right",
+      "estimated_radius_m": 90.9,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00000063",
+      "call_index": 13,
+      "speech_slots": [
+        14,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=90.9m, ángulo=34.1 deg, longitud=73.9m.",
+        "Portal de aviso asignado en nodo 299 a 3153.8m (51.8m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_14",
+      "start_node": 311,
+      "end_node": 317,
+      "advisory_gate_node": 306,
+      "route_distance_m": 3279.5,
+      "length_m": 61.5,
+      "total_angle_deg": 46.4,
+      "direction": "left",
+      "estimated_radius_m": 54.4,
+      "cmr2_kind": "three",
+      "caution": "care",
+      "call_word_hex": "0x00228094",
+      "call_index": 14,
+      "speech_slots": [
+        15,
+        26,
+        2,
+        8,
+        23,
+        25
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=54.4m, ángulo=46.4 deg, longitud=61.5m.",
+        "Portal de aviso asignado en nodo 306 a 3227.5m (52.0m de anticipación).",
+        "Ruptura de rasante con caída pronunciada en nodo 316 (+7.6% -> -13.7%, d=-8.5%): 'over jump'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_15",
+      "start_node": 318,
+      "end_node": 331,
+      "advisory_gate_node": 313,
+      "route_distance_m": 3351.5,
+      "length_m": 135.7,
+      "total_angle_deg": 48.9,
+      "direction": "left",
+      "estimated_radius_m": 125.0,
+      "cmr2_kind": "five",
+      "caution": "care",
+      "call_word_hex": "0x00229892",
+      "call_index": 15,
+      "speech_slots": [
+        15,
+        26,
+        28,
+        4,
+        8,
+        12,
+        23,
+        25
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=125.0m, ángulo=48.9 deg, longitud=135.7m.",
+        "Portal de aviso asignado en nodo 313 a 3299.7m (51.9m de anticipación).",
+        "Longitud de curva extendida (135.7m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=146m -> R_out=12m): 'tightens'.",
+        "Ruptura de rasante con caída pronunciada en nodo 316 (+7.6% -> -13.7%, d=-8.5%): 'over jump'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_16",
+      "start_node": 332,
+      "end_node": 338,
+      "advisory_gate_node": 327,
+      "route_distance_m": 3497.3,
+      "length_m": 62.9,
+      "total_angle_deg": 18.0,
+      "direction": "right",
+      "estimated_radius_m": 145.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00002061",
+      "call_index": 16,
+      "speech_slots": [
+        14,
+        5,
+        9,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=145.6m, ángulo=18.0 deg, longitud=62.9m.",
+        "Portal de aviso asignado en nodo 327 a 3445.5m (51.8m de anticipación).",
+        "Radio creciente en salida (R_in=5m -> R_out=254m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_17",
+      "start_node": 338,
+      "end_node": 344,
+      "advisory_gate_node": 333,
+      "route_distance_m": 3560.2,
+      "length_m": 62.6,
+      "total_angle_deg": 12.3,
+      "direction": "right",
+      "estimated_radius_m": 209.4,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000480a1",
+      "call_index": 17,
+      "speech_slots": [
+        15,
+        5,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=209.4m, ángulo=12.3 deg, longitud=62.6m.",
+        "Portal de aviso asignado en nodo 333 a 3507.9m (52.3m de anticipación).",
+        "Cambio convexo de rasante en nodo 345 (+2.8% -> -4.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_18",
+      "start_node": 345,
+      "end_node": 352,
+      "advisory_gate_node": 340,
+      "route_distance_m": 3633.3,
+      "length_m": 72.6,
+      "total_angle_deg": 17.4,
+      "direction": "right",
+      "estimated_radius_m": 158.0,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000490e1",
+      "call_index": 18,
+      "speech_slots": [
+        16,
+        5,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=158.0m, ángulo=17.4 deg, longitud=72.6m.",
+        "Portal de aviso asignado en nodo 340 a 3580.9m (52.4m de anticipación).",
+        "Radio decreciente en ápice (R_in=318m -> R_out=180m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 345 (+2.8% -> -4.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_19",
+      "start_node": 355,
+      "end_node": 365,
+      "advisory_gate_node": 350,
+      "route_distance_m": 3736.5,
+      "length_m": 105.9,
+      "total_angle_deg": 25.6,
+      "direction": "right",
+      "estimated_radius_m": 193.7,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00000521",
+      "call_index": 19,
+      "speech_slots": [
+        17,
+        10,
+        5,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=193.7m, ángulo=25.6 deg, longitud=105.9m.",
+        "Portal de aviso asignado en nodo 350 a 3685.4m (51.1m de anticipación).",
+        "Longitud de curva sostenida (105.9m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_20",
+      "start_node": 370,
+      "end_node": 382,
+      "advisory_gate_node": 365,
+      "route_distance_m": 3894.9,
+      "length_m": 128.4,
+      "total_angle_deg": 18.5,
+      "direction": "left",
+      "estimated_radius_m": 321.1,
+      "cmr2_kind": "six",
+      "caution": "care",
+      "call_word_hex": "0x00228591",
+      "call_index": 20,
+      "speech_slots": [
+        19,
+        26,
+        10,
+        5,
+        8,
+        23,
+        25
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=321.1m, ángulo=18.5 deg, longitud=128.4m.",
+        "Portal de aviso asignado en nodo 365 a 3842.4m (52.5m de anticipación).",
+        "Longitud de curva sostenida (128.4m >= 80m): calificada como 'long'.",
+        "Ruptura de rasante con caída pronunciada en nodo 370 (+5.7% -> -13.0%, d=-8.5%): 'over jump'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_21",
+      "start_node": 390,
+      "end_node": 404,
+      "advisory_gate_node": 385,
+      "route_distance_m": 4108.4,
+      "length_m": 149.1,
+      "total_angle_deg": 26.4,
+      "direction": "right",
+      "estimated_radius_m": 224.8,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000488a1",
+      "call_index": 21,
+      "speech_slots": [
+        15,
+        28,
+        5,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=224.8m, ángulo=26.4 deg, longitud=149.1m.",
+        "Portal de aviso asignado en nodo 385 a 4055.5m (52.8m de anticipación).",
+        "Longitud de curva extendida (149.1m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 405 (+9.0% -> +3.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_22",
+      "start_node": 405,
+      "end_node": 428,
+      "advisory_gate_node": 400,
+      "route_distance_m": 4268.3,
+      "length_m": 240.1,
+      "total_angle_deg": 122.6,
+      "direction": "right",
+      "estimated_radius_m": 74.5,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x000498e3",
+      "call_index": 22,
+      "speech_slots": [
+        16,
+        28,
+        3,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=74.5m, ángulo=122.6 deg, longitud=240.1m.",
+        "Portal de aviso asignado en nodo 400 a 4214.9m (53.3m de anticipación).",
+        "Longitud de curva extendida (240.1m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=144m -> R_out=85m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 428 (+12.3% -> -0.2%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_23",
+      "start_node": 431,
+      "end_node": 450,
+      "advisory_gate_node": 426,
+      "route_distance_m": 4539.3,
+      "length_m": 199.5,
+      "total_angle_deg": 81.3,
+      "direction": "left",
+      "estimated_radius_m": 91.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00048a53",
+      "call_index": 23,
+      "speech_slots": [
+        22,
+        28,
+        3,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=91.3m, ángulo=81.3 deg, longitud=199.5m.",
+        "Portal de aviso asignado en nodo 426 a 4487.7m (51.7m de anticipación).",
+        "Longitud de curva extendida (199.5m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 434 (+2.2% -> -4.8%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_24",
+      "start_node": 471,
+      "end_node": 491,
+      "advisory_gate_node": 466,
+      "route_distance_m": 4964.5,
+      "length_m": 206.7,
+      "total_angle_deg": 93.2,
+      "direction": "right",
+      "estimated_radius_m": 86.9,
+      "cmr2_kind": "four",
+      "caution": "care",
+      "call_word_hex": "0x00229963",
+      "call_index": 24,
+      "speech_slots": [
+        18,
+        26,
+        28,
+        3,
+        9,
+        12,
+        23,
+        25
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=86.9m, ángulo=93.2 deg, longitud=206.7m.",
+        "Portal de aviso asignado en nodo 466 a 4909.6m (54.9m de anticipación).",
+        "Longitud de curva extendida (206.7m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=163m -> R_out=99m): 'tightens'.",
+        "Ruptura de rasante con caída pronunciada en nodo 485 (+13.8% -> -11.7%, d=-10.1%): 'over jump'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_25",
+      "start_node": 498,
+      "end_node": 517,
+      "advisory_gate_node": 493,
+      "route_distance_m": 5243.8,
+      "length_m": 201.2,
+      "total_angle_deg": 77.5,
+      "direction": "left",
+      "estimated_radius_m": 112.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00048a52",
+      "call_index": 25,
+      "speech_slots": [
+        22,
+        28,
+        4,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=112.2m, ángulo=77.5 deg, longitud=201.2m.",
+        "Portal de aviso asignado en nodo 493 a 5191.6m (52.2m de anticipación).",
+        "Longitud de curva extendida (201.2m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 503 (-2.1% -> -7.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_26",
+      "start_node": 539,
+      "end_node": 545,
+      "advisory_gate_node": 534,
+      "route_distance_m": 5676.6,
+      "length_m": 61.8,
+      "total_angle_deg": 8.2,
+      "direction": "left",
+      "estimated_radius_m": 349.5,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000481d1",
+      "call_index": 26,
+      "speech_slots": [
+        20,
+        5,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=349.5m, ángulo=8.2 deg, longitud=61.8m.",
+        "Portal de aviso asignado en nodo 534 a 5625.0m (51.5m de anticipación).",
+        "Cambio convexo de rasante en nodo 539 (+6.0% -> -2.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_27",
+      "start_node": 557,
+      "end_node": 563,
+      "advisory_gate_node": 552,
+      "route_distance_m": 5864.9,
+      "length_m": 63.5,
+      "total_angle_deg": 13.3,
+      "direction": "right",
+      "estimated_radius_m": 191.9,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000480a1",
+      "call_index": 27,
+      "speech_slots": [
+        15,
+        5,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=191.9m, ángulo=13.3 deg, longitud=63.5m.",
+        "Portal de aviso asignado en nodo 552 a 5812.1m (52.8m de anticipación).",
+        "Cambio convexo de rasante en nodo 555 (-0.5% -> -5.2%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_28",
+      "start_node": 564,
+      "end_node": 573,
+      "advisory_gate_node": 559,
+      "route_distance_m": 5939.3,
+      "length_m": 94.6,
+      "total_angle_deg": 39.4,
+      "direction": "right",
+      "estimated_radius_m": 107.1,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x0004a4e2",
+      "call_index": 28,
+      "speech_slots": [
+        16,
+        10,
+        4,
+        9,
+        11,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=107.1m, ángulo=39.4 deg, longitud=94.6m.",
+        "Portal de aviso asignado en nodo 559 a 5886.0m (53.3m de anticipación).",
+        "Longitud de curva sostenida (94.6m >= 80m): calificada como 'long'.",
+        "Radio creciente en salida (R_in=112m -> R_out=177m): 'opens'.",
+        "Cambio convexo de rasante en nodo 562 (+5.8% -> +0.9%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_29",
+      "start_node": 576,
+      "end_node": 591,
+      "advisory_gate_node": 571,
+      "route_distance_m": 6066.1,
+      "length_m": 159.6,
+      "total_angle_deg": 31.0,
+      "direction": "right",
+      "estimated_radius_m": 240.2,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000488a1",
+      "call_index": 29,
+      "speech_slots": [
+        15,
+        28,
+        5,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=240.2m, ángulo=31.0 deg, longitud=159.6m.",
+        "Portal de aviso asignado en nodo 571 a 6013.0m (53.2m de anticipación).",
+        "Longitud de curva extendida (159.6m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 578 (+5.5% -> -7.5%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_30",
+      "start_node": 593,
+      "end_node": 604,
+      "advisory_gate_node": 588,
+      "route_distance_m": 6247.1,
+      "length_m": 114.3,
+      "total_angle_deg": 18.8,
+      "direction": "right",
+      "estimated_radius_m": 282.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000004e1",
+      "call_index": 30,
+      "speech_slots": [
+        16,
+        10,
+        5,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=282.6m, ángulo=18.8 deg, longitud=114.3m.",
+        "Portal de aviso asignado en nodo 588 a 6193.5m (53.6m de anticipación).",
+        "Longitud de curva sostenida (114.3m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_31",
+      "start_node": 607,
+      "end_node": 610,
+      "advisory_gate_node": 602,
+      "route_distance_m": 6394.2,
+      "length_m": 31.3,
+      "total_angle_deg": 8.2,
+      "direction": "right",
+      "estimated_radius_m": 192.7,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00001161",
+      "call_index": 31,
+      "speech_slots": [
+        18,
+        5,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=192.7m, ángulo=8.2 deg, longitud=31.3m.",
+        "Portal de aviso asignado en nodo 602 a 6340.9m (53.3m de anticipación).",
+        "Radio decreciente en ápice (R_in=416m -> R_out=210m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "KE5_CURVE_32",
+      "start_node": 618,
+      "end_node": 622,
+      "advisory_gate_node": 613,
+      "route_distance_m": 6509.2,
+      "length_m": 42.1,
+      "total_angle_deg": 8.2,
+      "direction": "right",
+      "estimated_radius_m": 261.7,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00048021",
+      "call_index": 32,
+      "speech_slots": [
+        5,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=261.7m, ángulo=8.2 deg, longitud=42.1m.",
+        "Portal de aviso asignado en nodo 613 a 6457.0m (52.3m de anticipación).",
+        "Cambio convexo de rasante en nodo 622 (+1.9% -> -4.8%): 'over crest'."
+      ]
+    }
+  ]
+}

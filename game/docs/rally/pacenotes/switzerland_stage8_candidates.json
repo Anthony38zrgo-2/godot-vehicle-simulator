@@ -1,0 +1,624 @@
+{
+  "stage": "switzerland-stage8",
+  "total_curves": 21,
+  "vertical_crests_count": 3,
+  "near_obstacles_count": 51,
+  "vertical_crests": [
+    {
+      "node": 148,
+      "dist_m": 1571.4,
+      "slope_in_pct": 12.7,
+      "slope_out_pct": 5.4,
+      "delta_slope_pct": -3.05,
+      "is_jump": false
+    },
+    {
+      "node": 160,
+      "dist_m": 1698.9,
+      "slope_in_pct": 4.0,
+      "slope_out_pct": -2.5,
+      "delta_slope_pct": -2.52,
+      "is_jump": false
+    },
+    {
+      "node": 173,
+      "dist_m": 1835.4,
+      "slope_in_pct": -5.1,
+      "slope_out_pct": -11.7,
+      "delta_slope_pct": -2.72,
+      "is_jump": false
+    }
+  ],
+  "near_obstacles": [
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "oventakalevy",
+      "materials": [
+        "gate_metal1"
+      ],
+      "dist_3d_m": 13.46,
+      "lateral_m": -11.76,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.2,
+      "name": "sign_wooden1",
+      "materials": [
+        "sign_wooden1"
+      ],
+      "dist_3d_m": 7.11,
+      "lateral_m": -6.53,
+      "side": "left"
+    },
+    {
+      "node": 17,
+      "dist_m": 179.9,
+      "name": "sign_wooden2",
+      "materials": [
+        "sign_wooden1"
+      ],
+      "dist_3d_m": 8.9,
+      "lateral_m": -8.77,
+      "side": "left"
+    },
+    {
+      "node": 69,
+      "dist_m": 729.0,
+      "name": "001fencerock1",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 9.59,
+      "lateral_m": 9.53,
+      "side": "right"
+    },
+    {
+      "node": 72,
+      "dist_m": 760.7,
+      "name": "001fencerock2",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.48,
+      "lateral_m": 7.07,
+      "side": "right"
+    },
+    {
+      "node": 76,
+      "dist_m": 804.4,
+      "name": "001fencerock3",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.49,
+      "lateral_m": 7.45,
+      "side": "right"
+    },
+    {
+      "node": 94,
+      "dist_m": 999.0,
+      "name": "001fencerock4",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 9.82,
+      "lateral_m": 8.11,
+      "side": "right"
+    },
+    {
+      "node": 83,
+      "dist_m": 878.7,
+      "name": "001fencerock5",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.49,
+      "lateral_m": 6.67,
+      "side": "right"
+    },
+    {
+      "node": 80,
+      "dist_m": 847.3,
+      "name": "001fencerock6",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.18,
+      "lateral_m": 6.65,
+      "side": "right"
+    },
+    {
+      "node": 98,
+      "dist_m": 1043.3,
+      "name": "001fencerock7",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.78,
+      "lateral_m": 7.69,
+      "side": "right"
+    },
+    {
+      "node": 91,
+      "dist_m": 965.2,
+      "name": "001fencerock8",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.91,
+      "lateral_m": 7.88,
+      "side": "right"
+    },
+    {
+      "node": 87,
+      "dist_m": 921.9,
+      "name": "001fencerock9",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.8,
+      "lateral_m": 7.38,
+      "side": "right"
+    },
+    {
+      "node": 114,
+      "dist_m": 1211.7,
+      "name": "001fencerock25",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.97,
+      "lateral_m": 7.6,
+      "side": "right"
+    },
+    {
+      "node": 109,
+      "dist_m": 1158.7,
+      "name": "001fencerock24",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.5,
+      "lateral_m": 7.0,
+      "side": "right"
+    },
+    {
+      "node": 106,
+      "dist_m": 1126.4,
+      "name": "001fencerock23",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 6.69,
+      "lateral_m": 6.04,
+      "side": "right"
+    },
+    {
+      "node": 102,
+      "dist_m": 1084.5,
+      "name": "001fencerock10",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.2,
+      "lateral_m": 8.17,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 62.2,
+      "name": "001fencerock11",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.6,
+      "lateral_m": 7.59,
+      "side": "right"
+    },
+    {
+      "node": 219,
+      "dist_m": 2328.9,
+      "name": "001fencerock26",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 6.38,
+      "lateral_m": 6.18,
+      "side": "right"
+    },
+    {
+      "node": 13,
+      "dist_m": 137.3,
+      "name": "001fencerock12",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 9.84,
+      "lateral_m": 8.62,
+      "side": "right"
+    },
+    {
+      "node": 10,
+      "dist_m": 104.5,
+      "name": "001fencerock13",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.61,
+      "lateral_m": 8.16,
+      "side": "right"
+    },
+    {
+      "node": 225,
+      "dist_m": 2392.8,
+      "name": "001fencerock14",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 15.98,
+      "lateral_m": 5.23,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "001fencerock15",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.4,
+      "lateral_m": 6.92,
+      "side": "right"
+    },
+    {
+      "node": 215,
+      "dist_m": 2286.3,
+      "name": "001fencerock16",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 5.28,
+      "lateral_m": 5.09,
+      "side": "right"
+    },
+    {
+      "node": 223,
+      "dist_m": 2372.0,
+      "name": "001fencerock17",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 6.78,
+      "lateral_m": 5.12,
+      "side": "right"
+    },
+    {
+      "node": 211,
+      "dist_m": 2243.2,
+      "name": "001fencerock20",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 8.56,
+      "lateral_m": 7.03,
+      "side": "right"
+    },
+    {
+      "node": 208,
+      "dist_m": 2211.6,
+      "name": "001fencerock21",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 10.85,
+      "lateral_m": 9.78,
+      "side": "right"
+    },
+    {
+      "node": 17,
+      "dist_m": 179.9,
+      "name": "001fencerock27",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 9.26,
+      "lateral_m": 8.87,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.2,
+      "name": "sponsors_7",
+      "materials": [
+        "fence_metal",
+        "sponsors"
+      ],
+      "dist_3d_m": 5.61,
+      "lateral_m": -4.97,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.2,
+      "name": "sponsors_6",
+      "materials": [
+        "fence_metal",
+        "sponsors"
+      ],
+      "dist_3d_m": 7.78,
+      "lateral_m": 6.89,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.2,
+      "name": "001string_red07",
+      "materials": [
+        "string_red"
+      ],
+      "dist_3d_m": 9.71,
+      "lateral_m": -9.08,
+      "side": "left"
+    },
+    {
+      "node": 85,
+      "dist_m": 900.7,
+      "name": "oventakalevy01",
+      "materials": [
+        "gate_metal1"
+      ],
+      "dist_3d_m": 13.08,
+      "lateral_m": -11.14,
+      "side": "left"
+    },
+    {
+      "node": 25,
+      "dist_m": 264.0,
+      "name": "checkpoint",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 10.49,
+      "lateral_m": 9.33,
+      "side": "right"
+    },
+    {
+      "node": 25,
+      "dist_m": 264.0,
+      "name": "checkpoint01",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.19,
+      "lateral_m": -5.86,
+      "side": "left"
+    },
+    {
+      "node": 48,
+      "dist_m": 504.7,
+      "name": "checkpoint02",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 9.19,
+      "lateral_m": -8.29,
+      "side": "left"
+    },
+    {
+      "node": 48,
+      "dist_m": 504.7,
+      "name": "checkpoint03",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.79,
+      "lateral_m": 7.78,
+      "side": "right"
+    },
+    {
+      "node": 77,
+      "dist_m": 814.7,
+      "name": "checkpoint04",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 9.48,
+      "lateral_m": -8.45,
+      "side": "left"
+    },
+    {
+      "node": 77,
+      "dist_m": 814.7,
+      "name": "checkpoint05",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.84,
+      "lateral_m": 6.2,
+      "side": "right"
+    },
+    {
+      "node": 104,
+      "dist_m": 1105.4,
+      "name": "checkpoint06",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 9.72,
+      "lateral_m": -9.26,
+      "side": "left"
+    },
+    {
+      "node": 104,
+      "dist_m": 1105.4,
+      "name": "checkpoint07",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.87,
+      "lateral_m": 7.4,
+      "side": "right"
+    },
+    {
+      "node": 130,
+      "dist_m": 1381.9,
+      "name": "checkpoint09",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 3.46,
+      "lateral_m": 2.64,
+      "side": "right"
+    },
+    {
+      "node": 156,
+      "dist_m": 1656.5,
+      "name": "checkpoint10",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 8.18,
+      "lateral_m": -6.71,
+      "side": "left"
+    },
+    {
+      "node": 156,
+      "dist_m": 1656.5,
+      "name": "checkpoint11",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.06,
+      "lateral_m": 4.9,
+      "side": "right"
+    },
+    {
+      "node": 175,
+      "dist_m": 1856.1,
+      "name": "checkpoint12",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 8.14,
+      "lateral_m": -7.63,
+      "side": "left"
+    },
+    {
+      "node": 175,
+      "dist_m": 1856.1,
+      "name": "checkpoint13",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 4.78,
+      "lateral_m": 4.43,
+      "side": "right"
+    },
+    {
+      "node": 193,
+      "dist_m": 2051.7,
+      "name": "checkpoint14",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.8,
+      "lateral_m": 6.31,
+      "side": "right"
+    },
+    {
+      "node": 192,
+      "dist_m": 2040.8,
+      "name": "checkpoint15",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 9.39,
+      "lateral_m": -8.4,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2222.9,
+      "name": "checkpoint16",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.84,
+      "lateral_m": -7.61,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2222.9,
+      "name": "checkpoint17",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 8.24,
+      "lateral_m": 7.47,
+      "side": "right"
+    },
+    {
+      "node": 67,
+      "dist_m": 708.4,
+      "name": "sign_stop",
+      "materials": [
+        "sign_stop",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 7.52,
+      "lateral_m": 6.34,
+      "side": "right"
+    },
+    {
+      "node": 20,
+      "dist_m": 211.5,
+      "name": "sign_speedlimit50",
+      "materials": [
+        "sign_splimit50",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 7.45,
+      "lateral_m": 5.49,
+      "side": "right"
+    },
+    {
+      "node": 205,
+      "dist_m": 2179.0,
+      "name": "001fencerockAddUp",
+      "materials": [
+        "fence_metal_2",
+        "fence_rock_2"
+      ],
+      "dist_3d_m": 7.76,
+      "lateral_m": 6.92,
+      "side": "right"
+    }
+  ]
+}

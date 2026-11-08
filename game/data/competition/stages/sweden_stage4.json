@@ -1,0 +1,174 @@
+{
+  "id": "sweden_stage4",
+  "name": "Suecia — Stage 4",
+  "route_path": "res://data/rally/sweden_stage4_route.json",
+  "fallback_path": "res://data/competition/rally_trophy/track4_stage4.json",
+  "difficulty": 1,
+  "reference_scale": 1.0,
+  "mapping_basis": "Recovered original split_00..split_09 trigger planes from source BMF, aligned with checkpoint signs in exported GLB.",
+  "sector_checkpoint_indices": [
+    27,
+    73,
+    143,
+    203,
+    267,
+    313,
+    351,
+    385,
+    431,
+    463
+  ],
+  "sector_lengths_km": [
+    0.28552382193187226,
+    0.4801085293498625,
+    0.7405778372399748,
+    0.6338426027179682,
+    0.6694352093066396,
+    0.47862993231748624,
+    0.406932050318801,
+    0.36382298234050586,
+    0.4800817500697917,
+    0.34601817135813145
+  ],
+  "surface": "gravel_mud",
+  "roughness": 0.55,
+  "water": 0.15,
+  "jumps": 0.45,
+  "visibility": 0.8,
+  "wetness": 0.35,
+  "blind_route": false,
+  "night": false,
+  "timing_gates_path": "res://data/competition/stages/sweden_stage4_timing_gates.json",
+  "cpu_reference_splits": {
+    "CommentTimesNovice": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesIntermediate": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesExpert": [
+      186.0,
+      196.0,
+      206.0
+    ],
+    "CommentTimesFTCNovice": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesFTCIntermediate": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesFTCExpert": [
+      182.0,
+      192.0,
+      202.0
+    ],
+    "CPUSplit0": [
+      20.0,
+      18.0,
+      14.0
+    ],
+    "CPUSplit1": [
+      20.0,
+      18.2,
+      17.0
+    ],
+    "CPUSplit2": [
+      20.0,
+      18.0,
+      27.0
+    ],
+    "CPUSplit3": [
+      20.0,
+      18.0,
+      25.0
+    ],
+    "CPUSplit4": [
+      20.0,
+      18.0,
+      23.0
+    ],
+    "CPUSplit5": [
+      20.0,
+      18.0,
+      18.0
+    ],
+    "CPUSplit6": [
+      20.0,
+      18.0,
+      17.0
+    ],
+    "CPUSplit7": [
+      20.0,
+      18.0,
+      14.0
+    ],
+    "CPUSplit8": [
+      20.0,
+      18.0,
+      19.0
+    ],
+    "CPUSplit9": [
+      20.0,
+      18.0,
+      12.0
+    ],
+    "CPUFTCSplit0": [
+      20.0,
+      18.0,
+      14.0
+    ],
+    "CPUFTCSplit1": [
+      20.0,
+      18.2,
+      17.0
+    ],
+    "CPUFTCSplit2": [
+      20.0,
+      18.0,
+      26.0
+    ],
+    "CPUFTCSplit3": [
+      20.0,
+      18.0,
+      24.0
+    ],
+    "CPUFTCSplit4": [
+      20.0,
+      18.0,
+      22.0
+    ],
+    "CPUFTCSplit5": [
+      20.0,
+      18.0,
+      18.0
+    ],
+    "CPUFTCSplit6": [
+      20.0,
+      18.0,
+      16.0
+    ],
+    "CPUFTCSplit7": [
+      20.0,
+      18.0,
+      14.0
+    ],
+    "CPUFTCSplit8": [
+      20.0,
+      18.0,
+      19.0
+    ],
+    "CPUFTCSplit9": [
+      20.0,
+      18.0,
+      12.0
+    ]
+  }
+}

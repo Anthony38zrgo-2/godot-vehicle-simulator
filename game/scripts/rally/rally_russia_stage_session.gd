@@ -277,6 +277,11 @@ func _build_stage_grass() -> void:
 	if previous != null:
 		remove_child(previous)
 		previous.queue_free()
+	# La nieve de Suecia usa Collision_Terrain_Grass para el manto nevado:
+	# no generar matas de hierba de verano sobre la nieve. En Finlandia el
+	# suelo es Dirt/Sand (grass=0) y RallyStageGrass retorna limpio sin error.
+	if session_track_id.begins_with("sweden_"):
+		return
 	var grass := preload("res://scripts/rally/rally_stage_grass.gd").new()
 	grass.name = "StageGrass"
 	add_child(grass)
@@ -723,6 +728,9 @@ func reset_competition_car() -> void:
 	course.generation = vehicle.simulation.session_generation
 	reset_start_sequence()
 	camera_rig.snap_to_target()
+	var _rm_reset := get_node_or_null("/root/RallyMusic")
+	if _rm_reset != null and _rm_reset.has_method("on_start_rally"):
+		_rm_reset.call("on_start_rally")
 	apply_competition_controls()
 
 func retry_competition_attempt() -> void:
@@ -745,6 +753,9 @@ func continue_competition() -> void:
 		if competition.next_stage():
 			reset_competition_car()
 		return
+	var _rm_trans := get_node_or_null("/root/RallyMusic")
+	if _rm_trans != null and _rm_trans.has_method("on_begin_stage_transition"):
+		_rm_trans.call("on_begin_stage_transition")
 	_close_event_stage(false, "")
 	await _advance_event_stage()
 
@@ -771,6 +782,9 @@ func withdraw_event_definitive(reason: String = "Retiro definitivo") -> void:
 	if practice_mode or event_manager == null:
 		retire_competition_player()
 		return
+	var _rm_wd := get_node_or_null("/root/RallyMusic")
+	if _rm_wd != null and _rm_wd.has_method("on_begin_stage_transition"):
+		_rm_wd.call("on_begin_stage_transition")
 	_close_event_stage(true, reason)
 	_advance_event_stage()
 
@@ -1043,6 +1057,9 @@ func _connect_garage_panel() -> void:
 func _open_setup_window() -> void:
 	if garage_panel == null:
 		return
+	var music := get_node_or_null("/root/RallyMusic")
+	if music != null and music.has_method("on_enter_garage"):
+		music.call("on_enter_garage")
 	if not practice_mode and event_manager != null:
 		var window: Dictionary = event_manager.get_pending_window()
 		if window.is_empty():
@@ -1164,6 +1181,9 @@ func _on_garage_closed(applied: bool) -> void:
 		event_clock.set_paused(false)
 
 	awaiting_setup = false
+	var _garage_music := get_node_or_null("/root/RallyMusic")
+	if _garage_music != null and _garage_music.has_method("on_start_rally"):
+		_garage_music.call("on_start_rally")
 	input_controller.arm_start_handbrake()
 	reset_start_sequence()
 	apply_competition_controls()

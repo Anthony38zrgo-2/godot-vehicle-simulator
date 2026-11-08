@@ -5,7 +5,19 @@ extends Node
 ## TCA aporta la lluvia (intensidad y duracion); esta clase acumula, seca y aplica
 ## el efecto visual sobre los materiales de la pista.
 
-const WETTABLE_NAME_FRAGMENTS := ["road", "gravel", "terrain"]
+const WETTABLE_NAME_FRAGMENTS := [
+	"road", "gravel", "terrain",
+	# Nuevos países: asfalto alpino, túneles, cruces, sendas y vías.
+	"tarmac", "tunnel", "crossroad", "fin_path", "railroad", "railway",
+	"bridge", "asphalt",
+	# Tierra/barro: selva, taludes de erosión y suelos de bosque/campo.
+	"jungle", "erosio", "forestground", "dirt", "mud", "field",
+	# Sabana africana (Kenia): hierba seca que sí se humedece.
+	"savanna",
+	# NOTA: "snow" se excluye a propósito. La nieve de Suecia no debe
+	# oscurecerse como barro húmedo; sus materiales (snow_*, forest_snow_*)
+	# no contienen otros fragmentos de esta lista y quedan secos.
+]
 
 @export var visual_root: Node3D
 @export var rain_accumulation_rate: float = 0.35

@@ -230,12 +230,35 @@ def import_single_stage(stage_source_dir: Path, backup_dir: Optional[Path] = Non
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="Ruta al directorio de stage exportado o directorio raíz de stages")
+    parser.add_argument("--source", required=False, default=None, type=Path, help="Ruta al directorio de stage exportado o directorio raíz de stages")
+    parser.add_argument("--source-root", required=False, default=None, type=Path, help="Alias de --source (compatibilidad con plan de migración)")
+    parser.add_argument("--country", required=False, default=None, type=str, help="Filtrar por país (kenya, finland, sweden, switzerland, russia)")
     parser.add_argument("--all", action="store_true", help="Buscar recursivamente e importar todas las etapas en --source")
+    parser.add_argument("--all-stages", dest="all_stages", action="store_true", help="Alias de --all (compatibilidad con plan de migración)")
     parser.add_argument("--no-backup", action="store_true", help="No crear carpeta de respaldo temporal")
+    parser.add_argument("--skip-backup", dest="no_backup", action="store_true", help="Alias de --no-backup")
     args = parser.parse_args()
 
-    source = args.source.resolve()
+    raw_source = args.source or args.source_root
+    if raw_source is None:
+        parser.error("Se requiere --source o --source-root")
+    source = Path(raw_source).resolve()
+    # Compatibilidad plan: --source-root <stages> --country kenya -> <stages>/kenya.
+    # Aceptar también layout legacy .../exports mapeándolo a .../stages.
+    if str(source).replace("\\", "/").endswith("/exports"):
+        alt = source.parent / "stages"
+        if alt.exists():
+            print(f"[Compat] --source-root exports no existe; usando {alt}")
+            source = alt.resolve()
+    if args.country:
+        c = args.country.lower()
+        if source.name.lower() != c:
+            cand = source / c
+            if cand.exists():
+                source = cand.resolve()
+            else:
+                # Permitir --source-root <stages> sin subdir y filtrar después por track_id.
+                pass
     if not source.exists():
         raise FileNotFoundError(f"Origen no encontrado: {source}")
 
@@ -245,12 +268,32 @@ def main():
         print(f"[Backup] Respaldos guardados en: {backup_dir}")
 
     stages_to_import = []
-    if args.all or (source / "manifest.json").exists() is False:
+    do_all = bool(args.all or getattr(args, "all_stages", False))
+    if do_all or (source / "manifest.json").exists() is False:
         # Buscar todas las subcarpetas con manifest.json
         for m_file in source.glob("**/manifest.json"):
             stages_to_import.append(m_file.parent)
     else:
         stages_to_import.append(source)
+
+    # Filtrar por país si se pidió --country pero el source aún es el raíz.
+    if args.country:
+        c = args.country.lower()
+        if source.name.lower() != c:
+            filtered = []
+            for p in stages_to_import:
+                # Caso estándar stages/<country>/stageN.
+                if p.parent.name.lower() == c:
+                    filtered.append(p)
+                    continue
+                try:
+                    tid = read_json(p / "manifest.json").get("track_id", "")
+                    if tid.startswith(c + "_stage"):
+                        filtered.append(p)
+                except Exception:
+                    pass
+            if filtered:
+                stages_to_import = filtered
 
     if not stages_to_import:
         raise ValueError(f"No se encontraron etapas con manifest.json en: {source}")

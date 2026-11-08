@@ -10,6 +10,14 @@ const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const FONT_REGULAR: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
 const FONT_UI: Font = preload("res://fonts/D-DIN.ttf")
 const FONT_UI_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+# Libron para opciones del menú principal (verificado en res://fonts/libron/)
+const FONT_LIBRON: Font = preload("res://fonts/libron/Libron-Regular.ttf")
+const FONT_LIBRON_BOLD: Font = preload("res://fonts/libron/Libron-Bold.ttf")
+const FONT_LIBRON_ITALIC: Font = preload("res://fonts/libron/Libron-Italic.ttf")
+const FONT_LIBRON_BOLD_ITALIC: Font = preload("res://fonts/libron/Libron-BoldItalic.ttf")
+# Montserrat Bold Italic no existe como TTF en el proyecto (solo Bold/Regular);
+# el título central usa faux-italic vía FontVariation (ver _montserrat_bold_italic()).
+var _montserrat_bold_italic_cache: FontVariation
 
 # 2.1. Paleta de Colores Funcional Unificada
 const BG_BASE := Color("#0a0e14")         # Negro carbón mate
@@ -65,6 +73,61 @@ const STAGE_METADATA := {
 	"russia_stage8": {"km": "4.6 KM", "surface": "Grava helada", "tag": "Técnico"},
 	"russia_stage9": {"km": "1.4 KM", "surface": "Sprint corto", "tag": "Sprint"},
 	"russia_stage10": {"km": "2.4 KM", "surface": "Super especial", "tag": "Final"},
+	"kenya_stage1": {"km": "4.6 KM", "surface": "Grava africana", "tag": "Sabana"},
+	"kenya_stage2": {"km": "6.8 KM", "surface": "Grava africana", "tag": "Rápido"},
+	"kenya_stage3": {"km": "4.2 KM", "surface": "Tierra y selva", "tag": "Técnico"},
+	"kenya_stage4": {"km": "5.0 KM", "surface": "Grava africana", "tag": "Curvas"},
+	"kenya_stage5": {"km": "7.0 KM", "surface": "Tierra y río", "tag": "Resistencia"},
+	"kenya_stage6": {"km": "6.8 KM", "surface": "Grava africana", "tag": "Rápido"},
+	"kenya_stage7": {"km": "5.4 KM", "surface": "Sabana y chozas", "tag": "Estrecho"},
+	"kenya_stage8": {"km": "2.4 KM", "surface": "Sprint sabana", "tag": "Sprint"},
+	"finland_stage1": {"km": "4.5 KM", "surface": "Grava rápida", "tag": "Veloz"},
+	"finland_stage2": {"km": "4.5 KM", "surface": "Grava y bosque", "tag": "Saltos"},
+	"finland_stage3": {"km": "4.4 KM", "surface": "Grava rápida", "tag": "Ciego"},
+	"finland_stage4": {"km": "4.9 KM", "surface": "Tierra y lagos", "tag": "Rápido"},
+	"finland_stage5": {"km": "4.9 KM", "surface": "Grava y asfalto", "tag": "Mixto"},
+	"finland_stage6": {"km": "4.7 KM", "surface": "Bosque y cercas", "tag": "Estrecho"},
+	"finland_stage7": {"km": "2.2 KM", "surface": "Sprint bosque", "tag": "Sprint"},
+	"finland_stage8": {"km": "2.8 KM", "surface": "Tierra rápida", "tag": "Final"},
+	"sweden_stage1": {"km": "4.8 KM", "surface": "Nieve / hielo", "tag": "Deslizante"},
+	"sweden_stage2": {"km": "4.8 KM", "surface": "Nieve compacta", "tag": "Veloz"},
+	"sweden_stage3": {"km": "4.4 KM", "surface": "Nieve y bosque", "tag": "Técnico"},
+	"sweden_stage4": {"km": "4.9 KM", "surface": "Hielo y nieve", "tag": "Rápido"},
+	"sweden_stage5": {"km": "3.8 KM", "surface": "Nieve / hielo", "tag": "Estrecho"},
+	"sweden_stage6": {"km": "3.3 KM", "surface": "Pista nevada", "tag": "Curvas"},
+	"sweden_stage7": {"km": "1.6 KM", "surface": "Sprint nieve", "tag": "Sprint"},
+	"sweden_stage8": {"km": "2.3 KM", "surface": "Hielo final", "tag": "Final"},
+	"switzerland_stage1": {"km": "4.7 KM", "surface": "Asfalto alpino", "tag": "Montaña"},
+	"switzerland_stage2": {"km": "3.8 KM", "surface": "Asfalto y puente", "tag": "Técnico"},
+	"switzerland_stage3": {"km": "3.2 KM", "surface": "Asfalto alpino", "tag": "Horquillas"},
+	"switzerland_stage4": {"km": "4.6 KM", "surface": "Túnel y asfalto", "tag": "Rápido"},
+	"switzerland_stage5": {"km": "4.2 KM", "surface": "Asfalto alpino", "tag": "Curvas"},
+	"switzerland_stage6": {"km": "4.6 KM", "surface": "Túnel largo", "tag": "Ciego"},
+	"switzerland_stage7": {"km": "2.7 KM", "surface": "Sprint alpino", "tag": "Sprint"},
+	"switzerland_stage8": {"km": "2.4 KM", "surface": "Asfalto final", "tag": "Final"},
+}
+
+const COUNTRY_ORDER: Array[String] = ["russia", "kenya", "finland", "sweden", "switzerland"]
+const COUNTRY_LABELS := {
+	"russia": "Russia",
+	"kenya": "Kenya",
+	"finland": "Finland",
+	"sweden": "Sweden",
+	"switzerland": "Switzerland",
+}
+const COUNTRY_STAGE_COUNTS := {
+	"russia": 10,
+	"kenya": 8,
+	"finland": 8,
+	"sweden": 8,
+	"switzerland": 8,
+}
+const EVENT_PATH_BY_COUNTRY := {
+	"russia": "res://data/competition/events/russia_rally.json",
+	"kenya": "res://data/competition/events/kenya_rally.json",
+	"finland": "res://data/competition/events/finland_rally.json",
+	"sweden": "res://data/competition/events/sweden_rally.json",
+	"switzerland": "res://data/competition/events/switzerland_rally.json",
 }
 
 const VIGNETTE_SHADER_CODE := """
@@ -162,6 +225,7 @@ class StageRoutePreview extends Control:
 
 var selected_mode: String = "championship"
 var selected_stage_id: String = "russia_stage1"
+var selected_country: String = "russia"
 var selected_car_key: String = "fulvia"
 var vehicle_registry: Dictionary = {}
 var vehicle_specs_cache: Dictionary = {}
@@ -172,14 +236,27 @@ var is_loading: bool = false
 var showroom_container: SubViewportContainer
 var vignette_rect: ColorRect
 
+# Componentes de fondo de fotos para el menú principal
+const PHOTOS_DIR := "res://assets/photos"
+var photo_container: Control
+var photo_rect: TextureRect
+var photo_timer: Timer
+var photo_tween: Tween
+var photo_paths: Array[String] = []
+var photo_textures: Dictionary = {}
+var current_photo_index: int = 0
+
 # Componentes de interfaz (layout edge-to-edge)
 var modal_panel: PanelContainer
+var header_hbox_ref: HBoxContainer
+var header_line_ref: ColorRect
 var header_title: Label
 var header_subtitle: Label
 var badge_top: Label
 var badge_bottom: Label
 var content_container: MarginContainer
 var footer_hint: Label
+var main_menu_title: Label
 
 var screen_main_menu: VBoxContainer
 var screen_stage_select: VBoxContainer
@@ -202,6 +279,8 @@ var btn_carousel_next: Button
 var carousel_page_label: Label
 var carousel_scroll_index: int = 0
 var btn_stage_back: Button
+var stage_title_label: Label
+var country_buttons: Array[Button] = []
 
 var car_scroll: ScrollContainer
 var car_buttons: Array[Button] = []
@@ -301,7 +380,20 @@ func _ready() -> void:
 	_load_all_vehicle_specs()
 	_load_all_stage_routes()
 	_build_ui()
+	_ensure_menu_music()
 	show_main_menu()
+
+
+func _ensure_menu_music() -> void:
+	var music := get_node_or_null("/root/RallyMusic")
+	if music == null and get_tree() != null and get_tree().root != null:
+		var music_script := load("res://scripts/audio/rally_music_manager.gd")
+		if music_script != null:
+			music = music_script.new()
+			music.name = "RallyMusic"
+			get_tree().root.add_child(music)
+	if music != null and music.has_method("play_menu_music"):
+		music.call("play_menu_music")
 
 
 func _process(delta: float) -> void:
@@ -367,7 +459,10 @@ func _build_ui() -> void:
 
 	_setup_3d_preview_scene()
 
-	# 3. Viñeteado suave sobre el Showroom para garantizar contraste y legibilidad
+	# 2b. Fondo de fotos históricas intercaladas para el menú principal
+	_setup_photo_background()
+
+	# 3. Viñeteado suave sobre el fondo para garantizar contraste y legibilidad
 	vignette_rect = ColorRect.new()
 	vignette_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vignette_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -404,6 +499,7 @@ func _build_ui() -> void:
 	var header_hbox := HBoxContainer.new()
 	header_hbox.add_theme_constant_override("separation", 16)
 	root_vbox.add_child(header_hbox)
+	header_hbox_ref = header_hbox
 
 	var title_vbox := VBoxContainer.new()
 	title_vbox.add_theme_constant_override("separation", 1)
@@ -454,6 +550,7 @@ func _build_ui() -> void:
 	header_line.color = Color(1, 1, 1, 0.08)
 	header_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_vbox.add_child(header_line)
+	header_line_ref = header_line
 
 	# 6. Contenedor central de contenido
 	content_container = MarginContainer.new()
@@ -515,16 +612,41 @@ func _build_main_menu_screen() -> void:
 	screen_main_menu = VBoxContainer.new()
 	screen_main_menu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	screen_main_menu.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	screen_main_menu.alignment = BoxContainer.ALIGNMENT_CENTER
-	screen_main_menu.add_theme_constant_override("separation", 18)
+	screen_main_menu.alignment = BoxContainer.ALIGNMENT_BEGIN
+	screen_main_menu.add_theme_constant_override("separation", 10)
 	content_container.add_child(screen_main_menu)
+
+	# Título superior-centro del menú principal (la cabecera tachada sigue oculta).
+	# Montserrat Bold Italic: no existe el TTF en el proyecto, se emula con
+	# FontVariation shear sobre Montserrat-Bold (ver _montserrat_bold_italic()).
+	main_menu_title = Label.new()
+	main_menu_title.text = "Rally Maniac"
+	main_menu_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	main_menu_title.add_theme_font_override("font", _montserrat_bold_italic())
+	main_menu_title.add_theme_font_size_override("font_size", 64)
+	main_menu_title.add_theme_color_override("font_color", Color("#f5e6c8"))
+	main_menu_title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
+	main_menu_title.add_theme_constant_override("shadow_offset_x", 2)
+	main_menu_title.add_theme_constant_override("shadow_offset_y", 2)
+	screen_main_menu.add_child(main_menu_title)
+
+	# Separador horizontal bajo el título (mismo estilo que la cabecera original).
+	var main_menu_line := ColorRect.new()
+	main_menu_line.custom_minimum_size = Vector2(0, 1)
+	main_menu_line.color = Color(1, 1, 1, 0.08)
+	main_menu_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen_main_menu.add_child(main_menu_line)
+
+	var spacer_top := Control.new()
+	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	screen_main_menu.add_child(spacer_top)
 
 	var subtitle := Label.new()
 	subtitle.text = "SELECCIÓN DE MODO"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_override("font", FONT_TITLE)
-	subtitle.add_theme_font_size_override("font_size", 12)
-	subtitle.add_theme_color_override("font_color", C_GOLD)
+	subtitle.add_theme_font_override("font", FONT_LIBRON_BOLD)
+	subtitle.add_theme_font_size_override("font_size", 13)
+	subtitle.add_theme_color_override("font_color", Color("#e5a93c"))
 	screen_main_menu.add_child(subtitle)
 
 	var buttons_box := VBoxContainer.new()
@@ -545,6 +667,21 @@ func _build_main_menu_screen() -> void:
 	btn_exit = _create_menu_button("Exit", func(): get_tree().quit(), false, true)
 	buttons_box.add_child(btn_exit)
 
+	var spacer_bottom := Control.new()
+	spacer_bottom.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	screen_main_menu.add_child(spacer_bottom)
+
+
+func _montserrat_bold_italic() -> Font:
+	if _montserrat_bold_italic_cache != null and is_instance_valid(_montserrat_bold_italic_cache):
+		return _montserrat_bold_italic_cache
+	var fv := FontVariation.new()
+	fv.base_font = FONT_TITLE
+	# Shear horizontal para faux-italic (x' = x + 0.22*y).
+	fv.variation_transform = Transform2D(Vector2(1, 0), Vector2(-0.22, 1), Vector2.ZERO)
+	_montserrat_bold_italic_cache = fv
+	return fv
+
 
 # =============================================================================
 # PANTALLA 2: SELECTOR DE TRAMO CON CARRUSEL DE 4 TRAMOS MÁXIMO Y TRAZADO VERTICAL
@@ -562,11 +699,12 @@ func _build_stage_select_screen() -> void:
 	screen_stage_select.add_child(stage_header)
 
 	var stage_title := Label.new()
-	stage_title.text = "Russia Stages · Especiales 1 a 10"
+	stage_title.text = _stage_select_title()
 	stage_title.add_theme_font_override("font", FONT_TITLE)
 	stage_title.add_theme_font_size_override("font_size", 15)
 	stage_title.add_theme_color_override("font_color", C_GOLD)
 	stage_header.add_child(stage_title)
+	stage_title_label = stage_title
 
 	var stage_sub := Label.new()
 	stage_sub.text = "   · Elige el tramo de entrada"
@@ -574,6 +712,23 @@ func _build_stage_select_screen() -> void:
 	stage_sub.add_theme_font_size_override("font_size", 11)
 	stage_sub.add_theme_color_override("font_color", C_CHROME_DIM)
 	stage_header.add_child(stage_sub)
+
+	# Selector de país/evento: Russia (10) + Kenia, Finlandia, Suecia, Suiza (8).
+	var country_row := HBoxContainer.new()
+	country_row.add_theme_constant_override("separation", 8)
+	screen_stage_select.add_child(country_row)
+	country_buttons.clear()
+	for country in COUNTRY_ORDER:
+		var cbtn := Button.new()
+		cbtn.text = str(COUNTRY_LABELS.get(country, country.capitalize()))
+		cbtn.set_meta("country", country)
+		cbtn.custom_minimum_size = Vector2(150, 34)
+		_style_flat_button(cbtn)
+		var target_country := country
+		cbtn.pressed.connect(func(): _on_country_selected(target_country))
+		country_row.add_child(cbtn)
+		country_buttons.append(cbtn)
+	_update_country_buttons()
 
 	# Fila del carrusel: Flecha izquierda + Contenedor de 4 tramos + Flecha derecha
 	var carousel_row := HBoxContainer.new()
@@ -619,10 +774,14 @@ func _build_stage_select_screen() -> void:
 
 	stage_buttons.clear()
 	stage_previews.clear()
+	carousel_scroll_index = 0
+	var _stage_ids := _country_stage_ids()
 
-	for i in range(1, 11):
-		var sid := "russia_stage%d" % i
-		var s_text := "Russia Stage %d" % i
+	for _stage_pos in range(_stage_ids.size()):
+		var i := _stage_pos + 1
+		var sid := str(_stage_ids[_stage_pos])
+		var country_label := str(COUNTRY_LABELS.get(selected_country, selected_country.capitalize()))
+		var s_text := "%s Stage %d" % [country_label, i]
 		var meta_info: Dictionary = STAGE_METADATA.get(sid, {"km": "5.0 KM", "surface": "Grava", "tag": "Tramo"})
 
 		var btn := Button.new()
@@ -761,7 +920,7 @@ func _build_stage_select_screen() -> void:
 	bottom_bar.add_child(spacer)
 
 	carousel_page_label = Label.new()
-	carousel_page_label.text = "ETAPAS 1-4 DE 10"
+	carousel_page_label.text = "ETAPAS 1-4 DE %d" % int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
 	carousel_page_label.add_theme_font_override("font", FONT_TITLE)
 	carousel_page_label.add_theme_font_size_override("font_size", 11)
 	carousel_page_label.add_theme_color_override("font_color", C_CHROME_DIM)
@@ -769,6 +928,49 @@ func _build_stage_select_screen() -> void:
 
 	_update_carousel_ui()
 	_update_stage_card_widths()
+
+
+func _country_stage_ids() -> Array[String]:
+	var out: Array[String] = []
+	var count := int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
+	for i in range(1, count + 1):
+		out.append("%s_stage%d" % [selected_country, i])
+	return out
+
+
+func _stage_select_title() -> String:
+	var count := int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
+	var label := str(COUNTRY_LABELS.get(selected_country, selected_country.capitalize()))
+	return "%s Stages · Especiales 1 a %d" % [label, count]
+
+
+func _carousel_max_index() -> int:
+	return maxi(0, int(COUNTRY_STAGE_COUNTS.get(selected_country, 10)) - 4)
+
+
+func _on_country_selected(country: String) -> void:
+	if not COUNTRY_STAGE_COUNTS.has(country):
+		return
+	selected_country = country
+	selected_stage_id = "%s_stage1" % country
+	carousel_scroll_index = 0
+	# Reconstruir la pantalla con la tira del país (las tarjetas se generan en
+	# _build_stage_select_screen a partir de selected_country).
+	if screen_stage_select != null and is_instance_valid(screen_stage_select):
+		content_container.remove_child(screen_stage_select)
+		screen_stage_select.queue_free()
+		screen_stage_select = null
+	_build_stage_select_screen()
+	_update_country_buttons()
+	if screen_stage_select != null:
+		screen_stage_select.show()
+
+
+func _update_country_buttons() -> void:
+	for b in country_buttons:
+		var c := str(b.get_meta("country"))
+		b.disabled = (c == selected_country)
+		b.modulate.a = 0.45 if b.disabled else 1.0
 
 
 func _update_stage_card_widths() -> void:
@@ -795,13 +997,13 @@ func _on_carousel_prev_pressed() -> void:
 
 
 func _on_carousel_next_pressed() -> void:
-	if carousel_scroll_index < 6:
+	if carousel_scroll_index < _carousel_max_index():
 		carousel_scroll_index += 1
 		_scroll_carousel_to_index(carousel_scroll_index)
 
 
 func _scroll_carousel_to_index(idx: int) -> void:
-	carousel_scroll_index = clampi(idx, 0, 6)
+	carousel_scroll_index = clampi(idx, 0, _carousel_max_index())
 	if stage_scroll == null or stage_buttons.is_empty():
 		return
 	var card_w: float = stage_buttons[0].custom_minimum_size.x
@@ -824,10 +1026,11 @@ func _update_carousel_ui() -> void:
 		btn_carousel_prev.disabled = (carousel_scroll_index <= 0)
 		btn_carousel_prev.modulate.a = 0.35 if btn_carousel_prev.disabled else 1.0
 	if btn_carousel_next != null:
-		btn_carousel_next.disabled = (carousel_scroll_index >= 6)
+		btn_carousel_next.disabled = (carousel_scroll_index >= _carousel_max_index())
 		btn_carousel_next.modulate.a = 0.35 if btn_carousel_next.disabled else 1.0
 	if carousel_page_label != null:
-		carousel_page_label.text = "ETAPAS %d-%d DE 10" % [carousel_scroll_index + 1, carousel_scroll_index + 4]
+		var total := int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
+		carousel_page_label.text = "ETAPAS %d-%d DE %d" % [carousel_scroll_index + 1, mini(carousel_scroll_index + 4, total), total]
 
 
 func _set_mouse_filter_recursive(node: Node, filter: Control.MouseFilter) -> void:
@@ -1273,9 +1476,16 @@ func show_main_menu() -> void:
 	screen_main_menu.show()
 	_hide_status()
 
+	# La info tachada de la captura (cabecera sup. izq/der) se oculta en el principal;
+	# el título vive ahora en el centro (main_menu_title).
+	if header_hbox_ref != null:
+		header_hbox_ref.hide()
+	if header_line_ref != null:
+		header_line_ref.hide()
 	badge_top.text = "PANTALLA"
 	badge_bottom.text = "RALLY MANIAC"
 
+	_start_photo_slideshow()
 	call_deferred("_focus_mode_button")
 
 
@@ -1297,9 +1507,14 @@ func show_stage_select() -> void:
 	screen_stage_select.show()
 	_hide_status()
 
+	if header_hbox_ref != null:
+		header_hbox_ref.show()
+	if header_line_ref != null:
+		header_line_ref.show()
 	badge_top.text = "MODO: " + selected_mode.to_upper()
 	badge_bottom.text = "SELECT STAGE"
 
+	_stop_photo_slideshow()
 	_update_stage_card_widths()
 	call_deferred("_focus_stage_button")
 
@@ -1325,9 +1540,14 @@ func show_car_select() -> void:
 	screen_car_select.show()
 	_hide_status()
 
+	if header_hbox_ref != null:
+		header_hbox_ref.show()
+	if header_line_ref != null:
+		header_line_ref.show()
 	badge_top.text = "TRAMO: " + selected_stage_id.to_upper()
 	badge_bottom.text = "SELECT CAR"
 
+	_stop_photo_slideshow()
 	_preview_car(selected_car_key)
 	call_deferred("_focus_car_button")
 
@@ -1357,9 +1577,14 @@ func show_weather_select() -> void:
 		screen_weather_select.show()
 	_hide_status()
 
+	if header_hbox_ref != null:
+		header_hbox_ref.show()
+	if header_line_ref != null:
+		header_line_ref.show()
 	badge_top.text = "CONDICIÓN"
 	badge_bottom.text = "SELECT WEATHER"
 
+	_stop_photo_slideshow()
 	_update_weather_cards_visuals()
 	call_deferred("_focus_weather_button")
 
@@ -1486,9 +1711,11 @@ func _launch_session() -> void:
 
 	if selected_mode in ["rally", "championship"]:
 		var manager := EventManagerScript.new()
+		var country := str(selected_stage_id).split("_stage")[0].to_lower()
 		var choices := {
 			"start_stage_id": selected_stage_id,
 			"initial_weather": selected_weather,
+			"event_path": str(EVENT_PATH_BY_COUNTRY.get(country, EVENT_PATH_BY_COUNTRY["russia"])),
 		}
 		if selected_mode == "championship":
 			choices["save_path"] = "user://championship_event_v1.json"
@@ -1660,8 +1887,12 @@ func _load_all_vehicle_specs() -> void:
 
 func _load_all_stage_routes() -> void:
 	stage_routes_cache.clear()
-	for i in range(1, 11):
-		var sid := "russia_stage%d" % i
+	var all_ids: Array[String] = []
+	for country in COUNTRY_ORDER:
+		var count := int(COUNTRY_STAGE_COUNTS.get(country, 0))
+		for i in range(1, count + 1):
+			all_ids.append("%s_stage%d" % [country, i])
+	for sid in all_ids:
 		var path := "res://data/rally/%s_route.json" % sid
 		if not FileAccess.file_exists(path):
 			continue
@@ -1721,6 +1952,132 @@ func _compute_vertical_route_points(raw_points: Array) -> PackedVector2Array:
 	for rot_v in rotated_pts:
 		normalized.append((rot_v - min_v) / max_dim)
 	return normalized
+
+
+# =============================================================================
+# FONDO DE FOTOS HISTÓRICAS PARA EL MENÚ PRINCIPAL
+# =============================================================================
+
+func _setup_photo_background() -> void:
+	photo_paths = _discover_photo_paths()
+	if photo_paths.is_empty():
+		return
+
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	current_photo_index = rng.randi_range(0, photo_paths.size() - 1)
+
+	photo_container = Control.new()
+	photo_container.name = "PhotoBackgroundContainer"
+	photo_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	photo_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(photo_container)
+
+	photo_rect = TextureRect.new()
+	photo_rect.name = "PhotoRect"
+	photo_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	photo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	photo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	photo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	photo_container.add_child(photo_rect)
+
+	photo_timer = Timer.new()
+	photo_timer.name = "PhotoTimer"
+	photo_timer.one_shot = true
+	photo_timer.wait_time = 4.0
+	photo_timer.timeout.connect(_on_photo_timer_timeout)
+	photo_container.add_child(photo_timer)
+
+	_show_photo_at_index(current_photo_index)
+
+
+func _discover_photo_paths() -> Array[String]:
+	var paths: Array[String] = []
+	var dir := DirAccess.open(PHOTOS_DIR)
+	if dir == null:
+		dir = DirAccess.open(ProjectSettings.globalize_path(PHOTOS_DIR))
+	if dir != null:
+		for f in dir.get_files():
+			if f.ends_with(".import"):
+				continue
+			var lower := f.to_lower()
+			if lower.ends_with(".jpg") or lower.ends_with(".jpeg") or lower.ends_with(".png") or lower.ends_with(".webp"):
+				paths.append(PHOTOS_DIR + "/" + f)
+	paths.sort()
+	return paths
+
+
+func _get_photo_texture(path: String) -> Texture2D:
+	if photo_textures.has(path):
+		return photo_textures[path]
+	var tex: Texture2D = null
+	if ResourceLoader.exists(path):
+		tex = load(path) as Texture2D
+	if tex == null and FileAccess.file_exists(path):
+		var abs_path := ProjectSettings.globalize_path(path)
+		var img := Image.load_from_file(abs_path)
+		if img != null and not img.is_empty():
+			tex = ImageTexture.create_from_image(img)
+	if tex != null:
+		photo_textures[path] = tex
+	return tex
+
+
+func _show_photo_at_index(index: int) -> void:
+	if photo_paths.is_empty() or photo_rect == null:
+		return
+	var idx := posmod(index, photo_paths.size())
+	var path: String = photo_paths[idx]
+	var tex := _get_photo_texture(path)
+	if tex != null:
+		photo_rect.texture = tex
+	var next_idx := (idx + 1) % photo_paths.size()
+	_get_photo_texture(photo_paths[next_idx])
+
+
+func _start_photo_slideshow() -> void:
+	if photo_paths.is_empty():
+		return
+	if showroom_container != null:
+		showroom_container.hide()
+	if photo_container != null:
+		photo_container.show()
+	if photo_rect != null and photo_rect.texture == null:
+		_show_photo_at_index(current_photo_index)
+	if photo_rect != null:
+		photo_rect.modulate.a = 1.0
+	if photo_timer != null:
+		photo_timer.start(4.0)
+
+
+func _stop_photo_slideshow() -> void:
+	if photo_timer != null:
+		photo_timer.stop()
+	if photo_tween != null and photo_tween.is_valid():
+		photo_tween.kill()
+	if photo_container != null:
+		photo_container.hide()
+	if showroom_container != null:
+		showroom_container.show()
+
+
+func _on_photo_timer_timeout() -> void:
+	if current_screen != "menu" or photo_paths.is_empty() or photo_rect == null or not is_instance_valid(photo_rect):
+		return
+	if photo_tween != null and photo_tween.is_valid():
+		photo_tween.kill()
+
+	photo_tween = create_tween()
+	photo_tween.tween_property(photo_rect, "modulate:a", 0.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	photo_tween.tween_callback(func():
+		current_photo_index = (current_photo_index + 1) % photo_paths.size()
+		_show_photo_at_index(current_photo_index)
+	)
+	photo_tween.tween_property(photo_rect, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	photo_tween.tween_callback(func():
+		if current_screen == "menu" and photo_timer != null and is_instance_valid(photo_timer):
+			photo_timer.start(4.0)
+	)
 
 
 # =============================================================================
@@ -1973,11 +2330,80 @@ func _create_menu_button(text: String, callback: Callable, is_gold: bool = false
 	btn.text = text
 	btn.custom_minimum_size = Vector2(0, 50)
 	if is_danger:
-		_style_danger_button(btn)
+		_style_menu_exit_button(btn)
 	else:
-		_style_flat_button(btn, is_gold)
+		_style_menu_option_button(btn)
 	btn.pressed.connect(callback)
 	return btn
+
+
+# Opciones del menú principal: beige claro de fondo, texto marrón, bordes dorados.
+# Complementa al resto de la GUI oscura manteniendo el dorado como acento común.
+func _style_menu_option_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color("#f5e6c8", 0.96)
+	normal.border_color = Color("#e5a93c")
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(4)
+	normal.content_margin_left = 18
+	normal.content_margin_right = 18
+	normal.content_margin_top = 10
+	normal.content_margin_bottom = 10
+	normal.shadow_size = 0
+
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("#fff8e7", 1.0)
+	hover.border_color = Color("#e5a93c")
+	hover.set_border_width_all(2)
+
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color("#d9c49a", 0.98)
+	pressed.border_color = Color("#e5a93c")
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("focus", hover)
+	btn.add_theme_font_override("font", FONT_LIBRON_BOLD)
+	btn.add_theme_font_size_override("font_size", 15)
+	btn.add_theme_color_override("font_color", Color("#3a2a18"))
+	btn.add_theme_color_override("font_hover_color", Color("#3a2a18"))
+	btn.add_theme_color_override("font_pressed_color", Color("#5c3d1e"))
+	btn.add_theme_color_override("font_focus_color", Color("#3a2a18"))
+
+
+# Exit: rojo-guinda de fondo, texto dorado y borde dorado (el rojo queda solo aquí).
+func _style_menu_exit_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color("#6b0f1a", 0.92)
+	normal.border_color = Color("#e5a93c")
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(4)
+	normal.content_margin_left = 18
+	normal.content_margin_right = 18
+	normal.content_margin_top = 10
+	normal.content_margin_bottom = 10
+	normal.shadow_size = 0
+
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("#8a1622", 0.96)
+	hover.border_color = Color("#f5e6c8")
+	hover.set_border_width_all(2)
+
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color("#4a0a12", 0.96)
+	pressed.border_color = Color("#e5a93c")
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("focus", hover)
+	btn.add_theme_font_override("font", FONT_LIBRON_BOLD)
+	btn.add_theme_font_size_override("font_size", 15)
+	btn.add_theme_color_override("font_color", Color("#f8df9e"))
+	btn.add_theme_color_override("font_hover_color", Color("#fff8e7"))
+	btn.add_theme_color_override("font_pressed_color", Color("#e5a93c"))
+	btn.add_theme_color_override("font_focus_color", Color("#f8df9e"))
 
 
 func _style_flat_button(btn: Button, is_accent: bool = false) -> void:

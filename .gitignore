@@ -2,6 +2,10 @@
 *.import
 !game/assets/rally/russia_stage1/russia_stage1_visual.glb.import
 !game/assets/rally/russia_stage*/russia_stage*_visual.glb.import
+!game/assets/rally/kenya_stage*/kenya_stage*_visual.glb.import
+!game/assets/rally/finland_stage*/finland_stage*_visual.glb.import
+!game/assets/rally/sweden_stage*/sweden_stage*_visual.glb.import
+!game/assets/rally/switzerland_stage*/switzerland_stage*_visual.glb.import
 !game/assets/weather/tropospheric/*.png.import
 *.uid
 

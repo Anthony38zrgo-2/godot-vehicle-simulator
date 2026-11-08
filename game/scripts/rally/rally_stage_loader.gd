@@ -9,11 +9,51 @@ const ROUTE_ROOT := "res://data/rally"
 const PACENOTES_ROOT := "res://data/rally/pacenotes"
 const STAGE_CONFIG_ROOT := "res://data/competition/stages"
 
+## Etapas por país. Rusia tiene 10 (track1); Kenia, Finlandia, Suecia y
+## Suiza tienen 8 (tracks 2-5, solo stage1..8 en los .bzf originales).
+const COUNTRY_STAGE_COUNTS := {
+	"russia": 10,
+	"kenya": 8,
+	"finland": 8,
+	"sweden": 8,
+	"switzerland": 8,
+}
+
 var error: String = ""
 var last_diagnostics: Dictionary = {}
 
 static func track_id_for_index(stage_index: int) -> String:
 	return "russia_stage%d" % stage_index
+
+
+## "kenya", 3 -> "kenya_stage3". Devuelve "" si el país o el índice es inválido.
+static func track_id_for_country_index(country: String, stage_index_1_based: int) -> String:
+	var c := country.to_lower()
+	if not COUNTRY_STAGE_COUNTS.has(c):
+		return ""
+	var count: int = COUNTRY_STAGE_COUNTS[c]
+	if stage_index_1_based < 1 or stage_index_1_based > count:
+		return ""
+	return "%s_stage%d" % [c, stage_index_1_based]
+
+
+## Catálogo ordenado 1..N de un país. Vacío si el país es desconocido.
+static func catalog_for_country(country: String) -> Array[String]:
+	var out: Array[String] = []
+	var c := country.to_lower()
+	if not COUNTRY_STAGE_COUNTS.has(c):
+		return out
+	for i in range(1, int(COUNTRY_STAGE_COUNTS[c]) + 1):
+		out.append("%s_stage%d" % [c, i])
+	return out
+
+
+## Los 42 tracks del juego (10 + 8*4) en orden por país.
+static func all_countries_catalog() -> Array[String]:
+	var out: Array[String] = []
+	for country in ["russia", "kenya", "finland", "sweden", "switzerland"]:
+		out.append_array(catalog_for_country(country))
+	return out
 
 static func is_valid_track_id(track_id: String) -> bool:
 	var parts := track_id.split("_stage")
@@ -103,14 +143,61 @@ func validate_catalog(track_ids: Array) -> Dictionary:
 		if resolved.is_empty():
 			report["ok"] = false
 			(report["errors"] as Array).append("%s: %s" % [track_id, error])
-	# Orden exacto 1..N sin clasificación alfabética ("stage10" nunca antes que "stage2").
-	var expected: Array = []
-	for i in range(1, track_ids.size() + 1):
-		expected.append("russia_stage%d" % i)
-	if track_ids != expected:
-		report["ok"] = false
-		(report["errors"] as Array).append("Secuencia distinta de 1..%d sin ordenar alfabéticamente" % track_ids.size())
+			continue
+	# Compatibilidad Rusia: secuencia exacta russia_stage1..10 sin orden alfabético.
+	var all_russia := true
+	if track_ids.size() == int(COUNTRY_STAGE_COUNTS["russia"]):
+		for i in range(1, track_ids.size() + 1):
+			if not track_ids.has("russia_stage%d" % i):
+				all_russia = false
+				break
+	else:
+		all_russia = false
+	if all_russia:
+		var expected: Array = []
+		for i in range(1, track_ids.size() + 1):
+			expected.append("russia_stage%d" % i)
+		if track_ids != expected:
+			report["ok"] = false
+			(report["errors"] as Array).append("Secuencia distinta de 1..%d sin ordenar alfabéticamente" % track_ids.size())
+		return report
+	# Catálogos de otros países (p. ej. kenya_stage1..8) o el total de 42:
+	# formato <país>_stage<N> válido, sin duplicados y con resolve() exitoso.
+	var countries := {}
+	for track_id in track_ids:
+		var parts := str(track_id).split("_stage")
+		if parts.size() != 2 or not COUNTRY_STAGE_COUNTS.has(str(parts[0]).to_lower()):
+			report["ok"] = false
+			(report["errors"] as Array).append("Formato inválido o país desconocido: %s" % track_id)
+			continue
+		var c := str(parts[0]).to_lower()
+		if not countries.has(c):
+			countries[c] = []
+		(countries[c] as Array).append(track_id)
+	for c in countries:
+		var expected_c := catalog_for_country(str(c))
+		var got: Array = (countries[c] as Array).duplicate()
+		# Secuencia exacta 1..N del país cuando el catálogo está completo.
+		if got.size() == expected_c.size():
+			var ordered := true
+			for want in expected_c:
+				if not got.has(want):
+					ordered = false
+					break
+			if not ordered:
+				report["ok"] = false
+				(report["errors"] as Array).append("Catálogo %s incompleto o desordenado" % c)
 	return report
+
+
+## Valida el catálogo de un país. Sin track_ids, usa el catálogo 1..N por defecto
+## (retrocompatible: validate_country_catalog("russia") == russia_stage1..10).
+func validate_country_catalog(country: String, track_ids: Array = []) -> Dictionary:
+	var c := country.to_lower()
+	if not COUNTRY_STAGE_COUNTS.has(c):
+		return {"ok": false, "stages": {}, "errors": ["País desconocido: %s" % country]}
+	var ids: Array = track_ids if not track_ids.is_empty() else catalog_for_country(c)
+	return validate_catalog(ids)
 
 func _read_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):

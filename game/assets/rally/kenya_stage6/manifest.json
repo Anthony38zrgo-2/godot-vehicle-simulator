@@ -1,0 +1,148 @@
+{
+  "contract_version": 1,
+  "track_id": "kenya_stage6",
+  "source": {
+    "repository": "stage_exporter",
+    "blend": "D:\\games\\rally-throphy\\stage_exporter\\stages\\kenya\\stage6\\kenya_stage6.blend",
+    "blend_sha256": "8abaf87b8d18e00889ecfc8a3755240369bb4f2c69498e99895f248e38db55f4",
+    "blender_version": "5.2.0 LTS",
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
+    "import_source_manifest_sha256": "6d1a7b072d4c88070c2f4dc283a1708c2ff2e0074429e0b9ea18b9ba0a6be208"
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0,
+    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation"
+  },
+  "start_pose": {
+    "ground_blender": [
+      -0.5287,
+      21.8267,
+      1.4225
+    ],
+    "ground_godot": [
+      -0.5287,
+      1.4225,
+      -21.8267
+    ],
+    "heading_radians": 0.014779917609621548,
+    "pitch_degrees": 0.7002,
+    "roll_degrees": -0.0427,
+    "spawn_clearance_metres": 0.08,
+    "ground_source": "raycast against Collision_Road at route_points[0]"
+  },
+  "visual": {
+    "path": "kenya_stage6_visual.glb",
+    "sha256": "ff3506758ab9c69485c42df451b13e8b24b0b5b931d5f41cf74a399ea2cb25a5",
+    "size_bytes": 24700256,
+    "source_objects": [
+      "Track_Road_And_Terrain",
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers"
+    ],
+    "exported_nodes": [
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers",
+      "Track_Road_And_Terrain"
+    ]
+  },
+  "collision": {
+    "path": "kenya_stage6_collision.glb",
+    "sha256": "8834b1b1a753faf2dfa0be059508d877f9f427b893c6b0d9d0744bdc0663ea0a",
+    "size_bytes": 4613096,
+    "collision_objects": {
+      "Collision_Road": 52460,
+      "Collision_Terrain_Grass": 45096,
+      "Collision_Terrain_Dirt": 33248,
+      "Collision_Barriers": 14548,
+      "Collision_Buildings": 1596,
+      "Collision_Props": 15337,
+      "Collision_Tree_trunks": 1540
+    },
+    "exported_nodes": [
+      "Collision_Barriers",
+      "Collision_Buildings",
+      "Collision_Props",
+      "Collision_Road",
+      "Collision_Terrain_Dirt",
+      "Collision_Terrain_Grass",
+      "Collision_Tree_trunks"
+    ],
+    "surface_mapping": {
+      "Collision_Road": "Gravel",
+      "Collision_Terrain_Grass": "Grass",
+      "Collision_Terrain_Dirt": "Dirt",
+      "Collision_Terrain_Sand": "Sand"
+    },
+    "material_policy": {
+      "terrain_split": "terrain faces are partitioned by material into Collision_Road (road_*), Collision_Terrain_Grass (terrain_grass_*), Collision_Terrain_Dirt (terrain_field_*, terrain_potatofield_1, ditch_*), Collision_Terrain_Sand (terrain_housesand_1)",
+      "terrain": [
+        "road_*",
+        "terrain_* except terrain_field_1_alpha"
+      ],
+      "barriers": [
+        "fence_*",
+        "roadbar1",
+        "string_red",
+        "gate_finish",
+        "forest_mixed_*"
+      ],
+      "buildings": [
+        "house_*",
+        "building_*",
+        "tent*",
+        "haybarn_*"
+      ],
+      "props": [
+        "pylon_*",
+        "sign_*",
+        "stone_*",
+        "rock_big_*",
+        "power_line_1",
+        "checkpoint"
+      ],
+      "tree_trunks": [
+        "russian_tree_trunks"
+      ],
+      "excluded": [
+        "russian_tree_plane",
+        "bush_4",
+        "grass",
+        "audience_*",
+        "sand_erosion_*",
+        "field_background",
+        "terrain_field_1_alpha",
+        "power_line_cord",
+        "polyn_1_wire"
+      ]
+    }
+  },
+  "sky_policy": "ProceduralSkyMaterial tuned to Stage1.txt ambient, sun and exponential fog; stage1sky.BMF is not decoded",
+  "trigger_policy": "Triggers_And_Startpoints has no collision role in this experiment and is not exported",
+  "provenance": {
+    "game": "Rally Trophy (2001)",
+    "data_bzf_sha256": "d502a15bcad43692c5359277845c42840aaa7c624ef68f650dcdd00308f01f57",
+    "models_bzf_sha256": "a0ca3581055f1f697765984d54613d0d29f50140e6e44433d8e0070ea955335a",
+    "textures_bzf_sha256": "948caaee10434568d12f822273c9f4f9f24093cb205e039e90cee48c3c02526f",
+    "bmf_filename": "stage6.BMF",
+    "bmf_sha256": "4befb4b1197629ee8ddce69958d815b19e593865a53f6865e0f87c992238ec11"
+  },
+  "geometry_fixes": {
+    "terrain_normal_welding": "Enabled (boundary vertices smoothed across spatial chunks)",
+    "z_fighting_reduction": "Enabled (eliminated duplicate coplanar backface pairs)",
+    "backface_culling": "Strict default (doubleSided disabled on signs, barns, houses and ground)",
+    "decal_offset_metres": 0.002,
+    "texture_clamping": "glTF samplers patched with CLAMP_TO_EDGE on roads (U) and forest cards (V)",
+    "alpha_bleeding": "Enabled on all cutout textures to prevent mipmap halos",
+    "skybox_excluded": true,
+    "timing_triggers_excluded_from_render": true
+  },
+  "export_duration_seconds": 24.46
+}

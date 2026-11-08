@@ -1,0 +1,2320 @@
+{
+  "stage": "kenya-stage5",
+  "total_curves": 33,
+  "vertical_crests_count": 42,
+  "near_obstacles_count": 179,
+  "vertical_crests": [
+    {
+      "node": 59,
+      "dist_m": 626.1,
+      "slope_in_pct": 9.0,
+      "slope_out_pct": -2.6,
+      "delta_slope_pct": -5.69,
+      "is_jump": false
+    },
+    {
+      "node": 110,
+      "dist_m": 1163.6,
+      "slope_in_pct": 0.1,
+      "slope_out_pct": -6.6,
+      "delta_slope_pct": -2.58,
+      "is_jump": false
+    },
+    {
+      "node": 133,
+      "dist_m": 1410.2,
+      "slope_in_pct": 0.8,
+      "slope_out_pct": -14.4,
+      "delta_slope_pct": -7.34,
+      "is_jump": true
+    },
+    {
+      "node": 143,
+      "dist_m": 1519.8,
+      "slope_in_pct": -2.2,
+      "slope_out_pct": -7.0,
+      "delta_slope_pct": -2.32,
+      "is_jump": false
+    },
+    {
+      "node": 165,
+      "dist_m": 1752.4,
+      "slope_in_pct": 14.7,
+      "slope_out_pct": 5.7,
+      "delta_slope_pct": -4.22,
+      "is_jump": false
+    },
+    {
+      "node": 169,
+      "dist_m": 1794.5,
+      "slope_in_pct": 2.8,
+      "slope_out_pct": -6.4,
+      "delta_slope_pct": -3.78,
+      "is_jump": false
+    },
+    {
+      "node": 172,
+      "dist_m": 1827.0,
+      "slope_in_pct": -6.4,
+      "slope_out_pct": -15.3,
+      "delta_slope_pct": -3.93,
+      "is_jump": false
+    },
+    {
+      "node": 184,
+      "dist_m": 1953.9,
+      "slope_in_pct": 5.8,
+      "slope_out_pct": -9.8,
+      "delta_slope_pct": -7.45,
+      "is_jump": false
+    },
+    {
+      "node": 209,
+      "dist_m": 2216.7,
+      "slope_in_pct": 4.7,
+      "slope_out_pct": -4.9,
+      "delta_slope_pct": -3.97,
+      "is_jump": false
+    },
+    {
+      "node": 216,
+      "dist_m": 2291.5,
+      "slope_in_pct": -3.7,
+      "slope_out_pct": -10.2,
+      "delta_slope_pct": -3.46,
+      "is_jump": false
+    },
+    {
+      "node": 235,
+      "dist_m": 2489.4,
+      "slope_in_pct": -1.3,
+      "slope_out_pct": -10.5,
+      "delta_slope_pct": -4.04,
+      "is_jump": false
+    },
+    {
+      "node": 287,
+      "dist_m": 3030.9,
+      "slope_in_pct": 6.1,
+      "slope_out_pct": -4.4,
+      "delta_slope_pct": -4.49,
+      "is_jump": false
+    },
+    {
+      "node": 296,
+      "dist_m": 3123.0,
+      "slope_in_pct": 5.6,
+      "slope_out_pct": -0.7,
+      "delta_slope_pct": -2.63,
+      "is_jump": false
+    },
+    {
+      "node": 300,
+      "dist_m": 3163.9,
+      "slope_in_pct": -2.1,
+      "slope_out_pct": -7.7,
+      "delta_slope_pct": -2.32,
+      "is_jump": false
+    },
+    {
+      "node": 316,
+      "dist_m": 3330.9,
+      "slope_in_pct": 7.6,
+      "slope_out_pct": -13.7,
+      "delta_slope_pct": -8.48,
+      "is_jump": true
+    },
+    {
+      "node": 327,
+      "dist_m": 3445.5,
+      "slope_in_pct": 10.1,
+      "slope_out_pct": 2.5,
+      "delta_slope_pct": -3.12,
+      "is_jump": false
+    },
+    {
+      "node": 345,
+      "dist_m": 3633.3,
+      "slope_in_pct": 2.8,
+      "slope_out_pct": -4.6,
+      "delta_slope_pct": -3.11,
+      "is_jump": false
+    },
+    {
+      "node": 370,
+      "dist_m": 3894.9,
+      "slope_in_pct": 5.7,
+      "slope_out_pct": -13.0,
+      "delta_slope_pct": -8.52,
+      "is_jump": true
+    },
+    {
+      "node": 394,
+      "dist_m": 4150.5,
+      "slope_in_pct": 4.0,
+      "slope_out_pct": -1.9,
+      "delta_slope_pct": -2.32,
+      "is_jump": false
+    },
+    {
+      "node": 405,
+      "dist_m": 4268.3,
+      "slope_in_pct": 9.0,
+      "slope_out_pct": 3.6,
+      "delta_slope_pct": -2.48,
+      "is_jump": false
+    },
+    {
+      "node": 411,
+      "dist_m": 4331.6,
+      "slope_in_pct": 2.1,
+      "slope_out_pct": -2.5,
+      "delta_slope_pct": -2.33,
+      "is_jump": false
+    },
+    {
+      "node": 416,
+      "dist_m": 4384.0,
+      "slope_in_pct": -1.8,
+      "slope_out_pct": -11.9,
+      "delta_slope_pct": -4.5,
+      "is_jump": false
+    },
+    {
+      "node": 428,
+      "dist_m": 4508.4,
+      "slope_in_pct": 12.3,
+      "slope_out_pct": -0.2,
+      "delta_slope_pct": -5.95,
+      "is_jump": false
+    },
+    {
+      "node": 434,
+      "dist_m": 4570.2,
+      "slope_in_pct": 2.2,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -3.43,
+      "is_jump": false
+    },
+    {
+      "node": 446,
+      "dist_m": 4695.6,
+      "slope_in_pct": 1.2,
+      "slope_out_pct": -2.5,
+      "delta_slope_pct": -2.5,
+      "is_jump": false
+    },
+    {
+      "node": 451,
+      "dist_m": 4750.0,
+      "slope_in_pct": -2.3,
+      "slope_out_pct": -8.5,
+      "delta_slope_pct": -2.74,
+      "is_jump": false
+    },
+    {
+      "node": 465,
+      "dist_m": 4898.4,
+      "slope_in_pct": -2.6,
+      "slope_out_pct": -6.4,
+      "delta_slope_pct": -2.33,
+      "is_jump": false
+    },
+    {
+      "node": 474,
+      "dist_m": 4995.8,
+      "slope_in_pct": 6.8,
+      "slope_out_pct": -2.6,
+      "delta_slope_pct": -3.66,
+      "is_jump": false
+    },
+    {
+      "node": 485,
+      "dist_m": 5108.0,
+      "slope_in_pct": 13.8,
+      "slope_out_pct": -11.7,
+      "delta_slope_pct": -10.14,
+      "is_jump": true
+    },
+    {
+      "node": 495,
+      "dist_m": 5212.2,
+      "slope_in_pct": 12.5,
+      "slope_out_pct": -12.1,
+      "delta_slope_pct": -10.19,
+      "is_jump": true
+    },
+    {
+      "node": 503,
+      "dist_m": 5296.6,
+      "slope_in_pct": -2.1,
+      "slope_out_pct": -7.4,
+      "delta_slope_pct": -2.61,
+      "is_jump": false
+    },
+    {
+      "node": 520,
+      "dist_m": 5477.2,
+      "slope_in_pct": 15.7,
+      "slope_out_pct": 2.5,
+      "delta_slope_pct": -6.7,
+      "is_jump": false
+    },
+    {
+      "node": 526,
+      "dist_m": 5540.1,
+      "slope_in_pct": 11.8,
+      "slope_out_pct": -1.4,
+      "delta_slope_pct": -4.71,
+      "is_jump": false
+    },
+    {
+      "node": 532,
+      "dist_m": 5603.2,
+      "slope_in_pct": -5.8,
+      "slope_out_pct": -7.2,
+      "delta_slope_pct": -2.93,
+      "is_jump": false
+    },
+    {
+      "node": 539,
+      "dist_m": 5676.6,
+      "slope_in_pct": 6.0,
+      "slope_out_pct": -2.4,
+      "delta_slope_pct": -4.76,
+      "is_jump": false
+    },
+    {
+      "node": 555,
+      "dist_m": 5843.8,
+      "slope_in_pct": -0.5,
+      "slope_out_pct": -5.2,
+      "delta_slope_pct": -2.44,
+      "is_jump": false
+    },
+    {
+      "node": 562,
+      "dist_m": 5917.7,
+      "slope_in_pct": 5.8,
+      "slope_out_pct": 0.9,
+      "delta_slope_pct": -2.39,
+      "is_jump": false
+    },
+    {
+      "node": 578,
+      "dist_m": 6087.4,
+      "slope_in_pct": 5.5,
+      "slope_out_pct": -7.5,
+      "delta_slope_pct": -5.03,
+      "is_jump": false
+    },
+    {
+      "node": 622,
+      "dist_m": 6551.4,
+      "slope_in_pct": 1.9,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -2.77,
+      "is_jump": false
+    },
+    {
+      "node": 630,
+      "dist_m": 6638.0,
+      "slope_in_pct": 8.9,
+      "slope_out_pct": 1.9,
+      "delta_slope_pct": -3.42,
+      "is_jump": false
+    },
+    {
+      "node": 646,
+      "dist_m": 6806.0,
+      "slope_in_pct": 8.6,
+      "slope_out_pct": -8.0,
+      "delta_slope_pct": -8.18,
+      "is_jump": false
+    },
+    {
+      "node": 658,
+      "dist_m": 6934.5,
+      "slope_in_pct": 4.5,
+      "slope_out_pct": -1.2,
+      "delta_slope_pct": -2.21,
+      "is_jump": false
+    }
+  ],
+  "near_obstacles": [
+    {
+      "node": 243,
+      "dist_m": 2572.5,
+      "name": "kenya_bridge2",
+      "materials": [
+        "kenya_bridge",
+        "kenya_bridge_log",
+        "kenya_bridge_log2"
+      ],
+      "dist_3d_m": 3.59,
+      "lateral_m": 0.39,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "001start_fence",
+      "materials": [
+        "fence_metal",
+        "sponsors",
+        "string_red"
+      ],
+      "dist_3d_m": 2.33,
+      "lateral_m": -0.18,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "gate_finish01",
+      "materials": [
+        "gate_finish",
+        "pylon_1"
+      ],
+      "dist_3d_m": 15.02,
+      "lateral_m": -0.32,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_8_",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.73,
+      "lateral_m": -7.7,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_5_",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.56,
+      "lateral_m": -7.88,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_4_",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.03,
+      "lateral_m": -6.87,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_6_",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.11,
+      "lateral_m": -8.03,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_native_1_",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.99,
+      "lateral_m": -7.66,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_1_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.28,
+      "lateral_m": -6.48,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_8_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.19,
+      "lateral_m": -7.96,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_6_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.48,
+      "lateral_m": -6.38,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_4_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.45,
+      "lateral_m": -6.42,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_3_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.09,
+      "lateral_m": -6.44,
+      "side": "left"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_2_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.18,
+      "lateral_m": -7.99,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_02",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.97,
+      "lateral_m": -7.64,
+      "side": "left"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_5_03",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.68,
+      "lateral_m": -6.78,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_2_03",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.87,
+      "lateral_m": -7.63,
+      "side": "left"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_5_03",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.69,
+      "lateral_m": -6.26,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_1_03",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.18,
+      "lateral_m": -7.73,
+      "side": "left"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_5_04",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.86,
+      "lateral_m": -7.95,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_06",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 10.75,
+      "lateral_m": -7.82,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_06",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 12.29,
+      "lateral_m": -7.8,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_2_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.77,
+      "lateral_m": 8.77,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_8_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.39,
+      "lateral_m": 8.25,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_7_06",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.32,
+      "lateral_m": 8.26,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_6_06",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.91,
+      "lateral_m": 7.76,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_5_06",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.16,
+      "lateral_m": 7.78,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_3_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.52,
+      "lateral_m": 8.3,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_2_08",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.57,
+      "lateral_m": 8.31,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_1_08",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.57,
+      "lateral_m": 7.82,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_4_05",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.81,
+      "lateral_m": 8.71,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.11,
+      "lateral_m": 8.01,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_10_10",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.76,
+      "lateral_m": 8.06,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_5_05",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.01,
+      "lateral_m": 8.7,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.71,
+      "lateral_m": 8.47,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_1_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.61,
+      "lateral_m": 8.18,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_8_08",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.51,
+      "lateral_m": 7.72,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_7_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.37,
+      "lateral_m": 8.02,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_5_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.94,
+      "lateral_m": 8.33,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_3_08",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.02,
+      "lateral_m": 8.86,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_2_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.3,
+      "lateral_m": 8.87,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_3_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": 7.77,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_10_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.49,
+      "lateral_m": 8.4,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_3_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.23,
+      "lateral_m": 8.86,
+      "side": "right"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_native_4_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.79,
+      "lateral_m": 7.68,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_10_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.3,
+      "lateral_m": 7.86,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_5_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.33,
+      "lateral_m": 8.28,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_6_07",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.51,
+      "lateral_m": 8.39,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_2_10",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.96,
+      "lateral_m": 7.69,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_2_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.15,
+      "lateral_m": 7.9,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_10_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.48,
+      "lateral_m": 7.77,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_native_1_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.18,
+      "lateral_m": 7.93,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_native_2_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.47,
+      "lateral_m": 7.93,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_2_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 12.31,
+      "lateral_m": 8.36,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_10_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.81,
+      "lateral_m": 7.9,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_1_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.44,
+      "lateral_m": 8.37,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_native_2_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.07,
+      "lateral_m": 7.99,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_10_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.87,
+      "lateral_m": 9.04,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_3_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.38,
+      "lateral_m": 8.24,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_native_4_09",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.74,
+      "lateral_m": -5.95,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_5_10",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.19,
+      "lateral_m": 8.91,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_5_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.75,
+      "lateral_m": 7.6,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.55,
+      "lateral_m": 6.62,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_6_10",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.81,
+      "lateral_m": 6.7,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.21,
+      "lateral_m": 6.6,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_7_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.74,
+      "lateral_m": 8.84,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_5_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.76,
+      "lateral_m": 8.8,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_4_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.25,
+      "lateral_m": 6.41,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_3_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.04,
+      "lateral_m": 6.38,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_2_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.79,
+      "lateral_m": 6.36,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_4_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.58,
+      "lateral_m": 7.26,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_10_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.03,
+      "lateral_m": 6.81,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_6_11",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.55,
+      "lateral_m": 7.31,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_1_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.82,
+      "lateral_m": 6.58,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_7_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.36,
+      "lateral_m": 6.77,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_4_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.96,
+      "lateral_m": 7.13,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_4_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.66,
+      "lateral_m": 6.45,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_3_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.7,
+      "lateral_m": 6.62,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_2_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.88,
+      "lateral_m": 8.58,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_1_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.38,
+      "lateral_m": 7.92,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_8_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.47,
+      "lateral_m": 7.15,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_2_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.17,
+      "lateral_m": 7.01,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_10_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.7,
+      "lateral_m": 7.24,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_8_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.7,
+      "lateral_m": 6.7,
+      "side": "right"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_6_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.02,
+      "lateral_m": 7.44,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_5_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.87,
+      "lateral_m": 6.59,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_4_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.43,
+      "lateral_m": 7.35,
+      "side": "right"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_3_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.01,
+      "lateral_m": 6.92,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_2_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.3,
+      "lateral_m": 7.42,
+      "side": "right"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_10_22",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.78,
+      "lateral_m": 7.2,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_5_12",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.9,
+      "lateral_m": 6.67,
+      "side": "right"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_native_1_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.53,
+      "lateral_m": 7.15,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_6_13",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.97,
+      "lateral_m": 6.64,
+      "side": "right"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_2_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.58,
+      "lateral_m": 7.32,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_8_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.46,
+      "lateral_m": 7.17,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.3,
+      "name": "002audience_3_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.95,
+      "lateral_m": 6.37,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_2_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.8,
+      "lateral_m": 6.35,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.94,
+      "lateral_m": 7.3,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_4_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.54,
+      "lateral_m": 6.55,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_6_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.95,
+      "lateral_m": 7.44,
+      "side": "right"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_4_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.48,
+      "lateral_m": 7.4,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_2_24",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.93,
+      "lateral_m": -6.46,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_5_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.16,
+      "lateral_m": -7.75,
+      "side": "left"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_4_15",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.99,
+      "lateral_m": 6.39,
+      "side": "right"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_3_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.39,
+      "lateral_m": -7.89,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_3_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.35,
+      "lateral_m": -6.91,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.7,
+      "name": "002audience_native_6_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.74,
+      "lateral_m": -7.66,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_8_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.62,
+      "lateral_m": -6.48,
+      "side": "left"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_6_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.96,
+      "lateral_m": -6.63,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_4_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.89,
+      "lateral_m": -6.78,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_3_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.94,
+      "lateral_m": -6.78,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_2_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.22,
+      "lateral_m": -6.78,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_4_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.34,
+      "lateral_m": -6.93,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_3_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.75,
+      "lateral_m": -7.76,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_26",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 14.51,
+      "lateral_m": -7.14,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_10_26",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.86,
+      "lateral_m": -7.14,
+      "side": "left"
+    },
+    {
+      "node": 4,
+      "dist_m": 41.2,
+      "name": "002audience_native_5_14",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.29,
+      "lateral_m": -6.93,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_24",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.62,
+      "lateral_m": -7.14,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_7_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.42,
+      "lateral_m": -6.25,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_6_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.36,
+      "lateral_m": -6.96,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_4_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.08,
+      "lateral_m": -7.15,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_native_4_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.27,
+      "lateral_m": -7.95,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_3_19",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.65,
+      "lateral_m": -6.36,
+      "side": "left"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_1_25",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.41,
+      "lateral_m": -6.56,
+      "side": "left"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_7_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.34,
+      "lateral_m": -6.96,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_6_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.53,
+      "lateral_m": -6.77,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_5_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.58,
+      "lateral_m": -6.55,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_4_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.32,
+      "lateral_m": -6.73,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_1_22",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.52,
+      "lateral_m": -8.21,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_native_4_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.93,
+      "lateral_m": -6.25,
+      "side": "left"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_5_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.72,
+      "lateral_m": -6.56,
+      "side": "left"
+    },
+    {
+      "node": 6,
+      "dist_m": 61.4,
+      "name": "002audience_native_1_26",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.13,
+      "lateral_m": -6.66,
+      "side": "left"
+    },
+    {
+      "node": 7,
+      "dist_m": 71.6,
+      "name": "002audience_native_6_16",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.51,
+      "lateral_m": -6.33,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_10_29",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.89,
+      "lateral_m": -7.11,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_1_27",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 10.84,
+      "lateral_m": -7.61,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_28",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.59,
+      "lateral_m": -7.61,
+      "side": "left"
+    },
+    {
+      "node": 3,
+      "dist_m": 31.0,
+      "name": "002audience_native_1_28",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.37,
+      "lateral_m": -7.17,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_2_30",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.15,
+      "lateral_m": -7.55,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_native_6_17",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.83,
+      "lateral_m": -8.04,
+      "side": "left"
+    },
+    {
+      "node": 5,
+      "dist_m": 51.3,
+      "name": "002audience_7_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 6.84,
+      "lateral_m": -6.69,
+      "side": "left"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_8_23",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 8.65,
+      "lateral_m": -7.18,
+      "side": "left"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_5_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.12,
+      "lateral_m": 14.71,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_2_32",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.51,
+      "lateral_m": 11.16,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_6_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 7.65,
+      "lateral_m": 7.34,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_4_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.97,
+      "lateral_m": 13.59,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_10_30",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 9.3,
+      "lateral_m": 8.86,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_3_20",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.83,
+      "lateral_m": 15.69,
+      "side": "right"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_2_34",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 14.64,
+      "lateral_m": -14.45,
+      "side": "left"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_4_22",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 12.33,
+      "lateral_m": -12.01,
+      "side": "left"
+    },
+    {
+      "node": 8,
+      "dist_m": 82.1,
+      "name": "002audience_native_3_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 10.07,
+      "lateral_m": -9.92,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_3_29",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 12.2,
+      "lateral_m": 10.01,
+      "side": "right"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_4_37",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 14.83,
+      "lateral_m": 11.93,
+      "side": "right"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_5_18",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 12.38,
+      "lateral_m": 7.75,
+      "side": "right"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_6_27",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.75,
+      "lateral_m": -7.09,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_2_46",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.77,
+      "lateral_m": -6.88,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_5_21",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.94,
+      "lateral_m": -6.2,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_8_35",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 14.3,
+      "lateral_m": 7.53,
+      "side": "right"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_2_53",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 13.2,
+      "lateral_m": -10.48,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_6_32",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 10.29,
+      "lateral_m": -6.62,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_native_4_35",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 15.36,
+      "lateral_m": -12.95,
+      "side": "left"
+    },
+    {
+      "node": 665,
+      "dist_m": 7008.6,
+      "name": "002audience_10_46",
+      "materials": [
+        "kenya_audience"
+      ],
+      "dist_3d_m": 11.67,
+      "lateral_m": -8.19,
+      "side": "left"
+    },
+    {
+      "node": 82,
+      "dist_m": 870.6,
+      "name": "checkpoint01",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 5.35,
+      "lateral_m": 4.86,
+      "side": "right"
+    },
+    {
+      "node": 82,
+      "dist_m": 870.6,
+      "name": "checkpoint",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 5.14,
+      "lateral_m": -4.95,
+      "side": "left"
+    },
+    {
+      "node": 146,
+      "dist_m": 1551.9,
+      "name": "checkpoint02",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 8.25,
+      "lateral_m": 6.18,
+      "side": "right"
+    },
+    {
+      "node": 146,
+      "dist_m": 1551.9,
+      "name": "checkpoint03",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.61,
+      "lateral_m": -4.5,
+      "side": "left"
+    },
+    {
+      "node": 210,
+      "dist_m": 2227.3,
+      "name": "checkpoint04",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 5.28,
+      "lateral_m": 4.86,
+      "side": "right"
+    },
+    {
+      "node": 210,
+      "dist_m": 2227.3,
+      "name": "checkpoint05",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.22,
+      "lateral_m": -5.83,
+      "side": "left"
+    },
+    {
+      "node": 276,
+      "dist_m": 2918.2,
+      "name": "checkpoint06",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.61,
+      "lateral_m": 7.55,
+      "side": "right"
+    },
+    {
+      "node": 276,
+      "dist_m": 2918.2,
+      "name": "checkpoint07",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 3.52,
+      "lateral_m": -3.09,
+      "side": "left"
+    },
+    {
+      "node": 359,
+      "dist_m": 3778.3,
+      "name": "checkpoint08",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.11,
+      "lateral_m": -5.22,
+      "side": "left"
+    },
+    {
+      "node": 359,
+      "dist_m": 3778.3,
+      "name": "checkpoint09",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.07,
+      "lateral_m": 5.46,
+      "side": "right"
+    },
+    {
+      "node": 425,
+      "dist_m": 4477.2,
+      "name": "checkpoint10",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.28,
+      "lateral_m": 6.08,
+      "side": "right"
+    },
+    {
+      "node": 425,
+      "dist_m": 4477.2,
+      "name": "checkpoint11",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 4.74,
+      "lateral_m": -4.59,
+      "side": "left"
+    },
+    {
+      "node": 475,
+      "dist_m": 5006.2,
+      "name": "checkpoint12",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.71,
+      "lateral_m": 6.76,
+      "side": "right"
+    },
+    {
+      "node": 475,
+      "dist_m": 5006.2,
+      "name": "checkpoint13",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 5.23,
+      "lateral_m": -3.93,
+      "side": "left"
+    },
+    {
+      "node": 539,
+      "dist_m": 5676.6,
+      "name": "checkpoint14",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.13,
+      "lateral_m": 7.05,
+      "side": "right"
+    },
+    {
+      "node": 539,
+      "dist_m": 5676.6,
+      "name": "checkpoint15",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 3.7,
+      "lateral_m": -3.63,
+      "side": "left"
+    },
+    {
+      "node": 594,
+      "dist_m": 6257.6,
+      "name": "checkpoint16",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 7.67,
+      "lateral_m": 5.88,
+      "side": "right"
+    },
+    {
+      "node": 594,
+      "dist_m": 6257.6,
+      "name": "checkpoint17",
+      "materials": [
+        "checkpoint"
+      ],
+      "dist_3d_m": 6.21,
+      "lateral_m": -3.77,
+      "side": "left"
+    }
+  ]
+}

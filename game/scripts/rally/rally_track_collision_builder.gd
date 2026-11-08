@@ -53,8 +53,11 @@ func build_collision(visual_root: Node = null) -> bool:
 
 
 func build_erosion_bank_collision(visual_root: Node) -> void:
-	# The exported collision GLB excludes sand_erosion_* even though these
-	# surfaces form raised roadside banks rather than flat decorative decals.
+	# The exported collision GLB excludes sand_erosion_* (and equivalents in
+	# the new countries) even though these surfaces form raised roadside banks
+	# rather than flat decorative decals. Without this pass the car would fall
+	# through the visual ground when leaving the road by half a metre in
+	# Kenya/Finland/Sweden/Switzerland.
 	var meshes: Array[MeshInstance3D] = []
 	collect_mesh_instances(visual_root, meshes)
 	for source in meshes:
@@ -62,15 +65,38 @@ func build_erosion_bank_collision(visual_root: Node) -> void:
 			continue
 		for surface_index in source.mesh.get_surface_count():
 			var material := source.mesh.surface_get_material(surface_index)
-			if material == null or not material.resource_name.to_lower().begins_with("sand_erosion_"):
+			if material == null:
+				continue
+			var mat_name := str(material.resource_name).to_lower()
+			var bank_node := _erosion_bank_collision_node(mat_name)
+			if bank_node.is_empty():
 				continue
 			var bank_mesh := ArrayMesh.new()
 			bank_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, source.mesh.surface_get_arrays(surface_index))
 			var bank := MeshInstance3D.new()
-			bank.name = "Collision_Terrain_Dirt"
+			bank.name = bank_node
 			bank.mesh = bank_mesh
 			build_static_body(bank, source.global_transform)
 			bank.free()
+
+
+## Maps an erosion/edge bank material to its static collision node.
+## Returns "" when the material is not a bank (no runtime collision needed).
+## sand_erosion_ stays on Collision_Terrain_Dirt (legacy behavior pinned by
+## stage_export_import_test: russia Dirt == 11695 + 582 bank triangles).
+## kenya_erosio_/fin_field1_edge -> Dirt, erosion_snow_ -> Grass (snow),
+## rock_edge_/kenya_rock_edge_ -> Collision_Road (Gravel surface group).
+func _erosion_bank_collision_node(mat_name: String) -> String:
+	var m := mat_name.to_lower()
+	if m.begins_with("sand_erosion_"):
+		return "Collision_Terrain_Dirt"
+	if m.begins_with("kenya_erosio_") or m == "fin_field1_edge":
+		return "Collision_Terrain_Dirt"
+	if m.begins_with("erosion_snow_"):
+		return "Collision_Terrain_Grass"
+	if m.begins_with("rock_edge_") or m.begins_with("kenya_rock_edge_"):
+		return "Collision_Road"
+	return ""
 
 
 func collect_mesh_instances(node: Node, output: Array[MeshInstance3D]) -> void:

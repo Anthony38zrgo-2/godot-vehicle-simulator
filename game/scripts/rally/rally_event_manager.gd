@@ -62,21 +62,38 @@ func _read_json(path: String) -> Dictionary:
 		return {}
 	return parsed
 
-func load_event() -> bool:
+var event_path_used: String = EVENT_PATH
+
+func load_event(event_path: String = "") -> bool:
 	error = ""
-	event_doc = _read_json(EVENT_PATH)
+	var path := event_path.strip_edges() if not event_path.is_empty() else EVENT_PATH
+	event_doc = _read_json(path)
 	if event_doc.is_empty():
 		return false
+	event_path_used = path
 	stage_order = (event_doc.get("stages_explicit_order", []) as Array).duplicate()
-	if stage_order.size() != 10:
-		error = "El evento debe listar exactamente diez especiales"
+	# Rusia lista 10 especiales; Kenia/Finlandia/Suecia/Suiza listan 8.
+	if stage_order.size() != 10 and stage_order.size() != 8:
+		error = "El evento debe listar ocho o diez especiales"
 		return false
 	return true
 
 func begin_event(choices: Dictionary = {}) -> bool:
 	if choices.has("save_path"):
 		save_path = str(choices["save_path"])
-	if not load_event():
+	var requested_event := str(choices.get("event_path", choices.get("event_id", "")))
+	# Acepta ruta res:// completa o event_id ("kenya_rally" -> evento de Kenia).
+	if requested_event == "kenya_rally" or requested_event == "kenya":
+		requested_event = "res://data/competition/events/kenya_rally.json"
+	elif requested_event == "finland_rally" or requested_event == "finland":
+		requested_event = "res://data/competition/events/finland_rally.json"
+	elif requested_event == "sweden_rally" or requested_event == "sweden":
+		requested_event = "res://data/competition/events/sweden_rally.json"
+	elif requested_event == "switzerland_rally" or requested_event == "switzerland":
+		requested_event = "res://data/competition/events/switzerland_rally.json"
+	elif requested_event == "russia_rally" or requested_event == "russia":
+		requested_event = EVENT_PATH
+	if not load_event(requested_event):
 		return false
 	var start_stage_id := str(choices.get("start_stage_id", choices.get("stage_id", "")))
 	if not start_stage_id.is_empty():

@@ -1,0 +1,2425 @@
+{
+  "stage": "finland-stage1",
+  "total_curves": 45,
+  "vertical_crests_count": 22,
+  "near_obstacles_count": 202,
+  "vertical_crests": [
+    {
+      "node": 15,
+      "dist_m": 152.3,
+      "slope_in_pct": 3.3,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -2.89,
+      "is_jump": false
+    },
+    {
+      "node": 27,
+      "dist_m": 274.3,
+      "slope_in_pct": 6.4,
+      "slope_out_pct": -4.3,
+      "delta_slope_pct": -4.52,
+      "is_jump": false
+    },
+    {
+      "node": 33,
+      "dist_m": 335.3,
+      "slope_in_pct": 2.5,
+      "slope_out_pct": -4.8,
+      "delta_slope_pct": -3.47,
+      "is_jump": false
+    },
+    {
+      "node": 40,
+      "dist_m": 406.7,
+      "slope_in_pct": 2.1,
+      "slope_out_pct": -2.5,
+      "delta_slope_pct": -2.28,
+      "is_jump": false
+    },
+    {
+      "node": 50,
+      "dist_m": 508.0,
+      "slope_in_pct": 2.9,
+      "slope_out_pct": -5.5,
+      "delta_slope_pct": -3.07,
+      "is_jump": false
+    },
+    {
+      "node": 73,
+      "dist_m": 742.5,
+      "slope_in_pct": 3.6,
+      "slope_out_pct": -6.5,
+      "delta_slope_pct": -4.64,
+      "is_jump": false
+    },
+    {
+      "node": 88,
+      "dist_m": 895.4,
+      "slope_in_pct": 5.3,
+      "slope_out_pct": -4.4,
+      "delta_slope_pct": -3.68,
+      "is_jump": false
+    },
+    {
+      "node": 99,
+      "dist_m": 1009.4,
+      "slope_in_pct": 2.4,
+      "slope_out_pct": -3.3,
+      "delta_slope_pct": -2.21,
+      "is_jump": false
+    },
+    {
+      "node": 115,
+      "dist_m": 1173.0,
+      "slope_in_pct": 7.3,
+      "slope_out_pct": -5.1,
+      "delta_slope_pct": -4.62,
+      "is_jump": false
+    },
+    {
+      "node": 177,
+      "dist_m": 1804.7,
+      "slope_in_pct": 2.9,
+      "slope_out_pct": -5.2,
+      "delta_slope_pct": -2.9,
+      "is_jump": false
+    },
+    {
+      "node": 222,
+      "dist_m": 2265.5,
+      "slope_in_pct": 9.5,
+      "slope_out_pct": 0.4,
+      "delta_slope_pct": -4.44,
+      "is_jump": false
+    },
+    {
+      "node": 253,
+      "dist_m": 2582.3,
+      "slope_in_pct": -0.0,
+      "slope_out_pct": -9.0,
+      "delta_slope_pct": -3.76,
+      "is_jump": false
+    },
+    {
+      "node": 270,
+      "dist_m": 2755.4,
+      "slope_in_pct": 5.8,
+      "slope_out_pct": -2.2,
+      "delta_slope_pct": -2.82,
+      "is_jump": false
+    },
+    {
+      "node": 274,
+      "dist_m": 2796.0,
+      "slope_in_pct": -4.9,
+      "slope_out_pct": -12.4,
+      "delta_slope_pct": -2.76,
+      "is_jump": false
+    },
+    {
+      "node": 314,
+      "dist_m": 3206.5,
+      "slope_in_pct": 8.1,
+      "slope_out_pct": -0.2,
+      "delta_slope_pct": -3.05,
+      "is_jump": false
+    },
+    {
+      "node": 318,
+      "dist_m": 3247.3,
+      "slope_in_pct": -2.9,
+      "slope_out_pct": -11.0,
+      "delta_slope_pct": -3.13,
+      "is_jump": false
+    },
+    {
+      "node": 329,
+      "dist_m": 3359.1,
+      "slope_in_pct": 11.5,
+      "slope_out_pct": 0.9,
+      "delta_slope_pct": -4.31,
+      "is_jump": false
+    },
+    {
+      "node": 340,
+      "dist_m": 3471.4,
+      "slope_in_pct": 0.8,
+      "slope_out_pct": -7.2,
+      "delta_slope_pct": -2.94,
+      "is_jump": false
+    },
+    {
+      "node": 362,
+      "dist_m": 3694.9,
+      "slope_in_pct": -0.7,
+      "slope_out_pct": -6.5,
+      "delta_slope_pct": -2.38,
+      "is_jump": false
+    },
+    {
+      "node": 374,
+      "dist_m": 3818.1,
+      "slope_in_pct": 10.1,
+      "slope_out_pct": 1.0,
+      "delta_slope_pct": -3.72,
+      "is_jump": false
+    },
+    {
+      "node": 397,
+      "dist_m": 4052.7,
+      "slope_in_pct": 2.9,
+      "slope_out_pct": -9.4,
+      "delta_slope_pct": -4.52,
+      "is_jump": false
+    },
+    {
+      "node": 415,
+      "dist_m": 4236.3,
+      "slope_in_pct": -0.6,
+      "slope_out_pct": -5.8,
+      "delta_slope_pct": -3.84,
+      "is_jump": false
+    }
+  ],
+  "near_obstacles": [
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_9",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.12,
+      "lateral_m": 8.01,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_8",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 13.58,
+      "lateral_m": 5.87,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_7",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.53,
+      "lateral_m": -8.43,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_6",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.89,
+      "lateral_m": -9.24,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_5",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.82,
+      "lateral_m": -8.51,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_4",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.27,
+      "lateral_m": -8.39,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_3",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 6.79,
+      "lateral_m": -6.65,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_2",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.39,
+      "lateral_m": -8.07,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_1",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.55,
+      "lateral_m": -7.3,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_16",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.0,
+      "lateral_m": 7.89,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_15",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.72,
+      "lateral_m": 7.64,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_14",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.15,
+      "lateral_m": 7.54,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_13",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 11.4,
+      "lateral_m": 5.87,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_17",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.74,
+      "lateral_m": -7.41,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_19",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 13.16,
+      "lateral_m": -6.21,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_20",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 11.12,
+      "lateral_m": -6.42,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_21",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.23,
+      "lateral_m": 8.13,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_22",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.94,
+      "lateral_m": -7.22,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_23",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.74,
+      "lateral_m": -6.82,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_25",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.46,
+      "lateral_m": 8.63,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_30",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 14.57,
+      "lateral_m": -6.57,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "002audience_31",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 14.2,
+      "lateral_m": 8.29,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_47",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 11.47,
+      "lateral_m": -7.91,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_48",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.13,
+      "lateral_m": 7.79,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_50",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.07,
+      "lateral_m": -6.86,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_51",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 10.8,
+      "lateral_m": 5.89,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_53",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.97,
+      "lateral_m": 7.19,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_54",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.94,
+      "lateral_m": 6.99,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_56",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 14.93,
+      "lateral_m": -9.0,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_61",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 12.06,
+      "lateral_m": 5.29,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_62",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 13.64,
+      "lateral_m": -8.5,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_63",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.91,
+      "lateral_m": 6.68,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_64",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 15.17,
+      "lateral_m": 6.17,
+      "side": "right"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "002audience_65",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.79,
+      "lateral_m": -7.2,
+      "side": "left"
+    },
+    {
+      "node": 433,
+      "dist_m": 4419.2,
+      "name": "gate_finish",
+      "materials": [
+        "fin_gate_finish",
+        "fin_pylon_1"
+      ],
+      "dist_3d_m": 3.75,
+      "lateral_m": -0.74,
+      "side": "left"
+    },
+    {
+      "node": 43,
+      "dist_m": 437.1,
+      "name": "checkpoint0",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.96,
+      "lateral_m": -6.95,
+      "side": "left"
+    },
+    {
+      "node": 43,
+      "dist_m": 437.1,
+      "name": "checkpoint1",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.55,
+      "lateral_m": 4.2,
+      "side": "right"
+    },
+    {
+      "node": 91,
+      "dist_m": 926.8,
+      "name": "checkpoint2",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.38,
+      "lateral_m": -4.64,
+      "side": "left"
+    },
+    {
+      "node": 91,
+      "dist_m": 926.8,
+      "name": "checkpoint3",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.53,
+      "lateral_m": 4.53,
+      "side": "right"
+    },
+    {
+      "node": 126,
+      "dist_m": 1285.1,
+      "name": "checkpoint4",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 1.71,
+      "lateral_m": -1.68,
+      "side": "left"
+    },
+    {
+      "node": 126,
+      "dist_m": 1285.1,
+      "name": "checkpoint5",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 9.25,
+      "lateral_m": 9.24,
+      "side": "right"
+    },
+    {
+      "node": 171,
+      "dist_m": 1743.7,
+      "name": "checkpoint6",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.91,
+      "lateral_m": -4.04,
+      "side": "left"
+    },
+    {
+      "node": 171,
+      "dist_m": 1743.7,
+      "name": "checkpoint7",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 7.15,
+      "lateral_m": 6.85,
+      "side": "right"
+    },
+    {
+      "node": 207,
+      "dist_m": 2112.1,
+      "name": "checkpoint8",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 5.83,
+      "lateral_m": -4.24,
+      "side": "left"
+    },
+    {
+      "node": 207,
+      "dist_m": 2112.1,
+      "name": "checkpoint9",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 8.16,
+      "lateral_m": 6.66,
+      "side": "right"
+    },
+    {
+      "node": 255,
+      "dist_m": 2602.9,
+      "name": "checkpoint10",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.82,
+      "lateral_m": 2.38,
+      "side": "right"
+    },
+    {
+      "node": 255,
+      "dist_m": 2602.9,
+      "name": "checkpoint11",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 9.92,
+      "lateral_m": -8.5,
+      "side": "left"
+    },
+    {
+      "node": 294,
+      "dist_m": 3001.6,
+      "name": "checkpoint12",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 7.93,
+      "lateral_m": 6.88,
+      "side": "right"
+    },
+    {
+      "node": 294,
+      "dist_m": 3001.6,
+      "name": "checkpoint13",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.96,
+      "lateral_m": -3.53,
+      "side": "left"
+    },
+    {
+      "node": 338,
+      "dist_m": 3450.5,
+      "name": "checkpoint14",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 4.48,
+      "lateral_m": 4.29,
+      "side": "right"
+    },
+    {
+      "node": 338,
+      "dist_m": 3450.5,
+      "name": "checkpoint15",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 6.9,
+      "lateral_m": -6.7,
+      "side": "left"
+    },
+    {
+      "node": 385,
+      "dist_m": 3930.3,
+      "name": "checkpoint16",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 3.42,
+      "lateral_m": 2.91,
+      "side": "right"
+    },
+    {
+      "node": 385,
+      "dist_m": 3930.3,
+      "name": "checkpoint17",
+      "materials": [
+        "fin_checkpoint"
+      ],
+      "dist_3d_m": 7.68,
+      "lateral_m": -7.6,
+      "side": "left"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors03",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 15.95,
+      "lateral_m": 1.0,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors02",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.67,
+      "lateral_m": -5.51,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.2,
+      "name": "001sponsors01",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.98,
+      "lateral_m": -6.33,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.2,
+      "name": "001sponsors05",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.88,
+      "lateral_m": 6.16,
+      "side": "right"
+    },
+    {
+      "node": 0,
+      "dist_m": 0.0,
+      "name": "001sponsors04",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 8.27,
+      "lateral_m": 6.66,
+      "side": "right"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "001sponsors06",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 5.42,
+      "lateral_m": 4.62,
+      "side": "right"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "001sponsors12",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 8.56,
+      "lateral_m": -7.15,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "001sponsors09",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 15.5,
+      "lateral_m": -2.28,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "001sponsors08",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.77,
+      "lateral_m": 5.35,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "001sponsors07",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.32,
+      "lateral_m": 5.86,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "001sponsors11",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 7.25,
+      "lateral_m": -5.71,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "001sponsors10",
+      "materials": [
+        "fin_fence_metal",
+        "fin_sponsors"
+      ],
+      "dist_3d_m": 6.21,
+      "lateral_m": -5.79,
+      "side": "left"
+    },
+    {
+      "node": 2,
+      "dist_m": 20.2,
+      "name": "001string_red03",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 7.26,
+      "lateral_m": 7.16,
+      "side": "right"
+    },
+    {
+      "node": 1,
+      "dist_m": 10.1,
+      "name": "001string_red01",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 7.6,
+      "lateral_m": -5.58,
+      "side": "left"
+    },
+    {
+      "node": 442,
+      "dist_m": 4510.8,
+      "name": "001string_red05",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 15.84,
+      "lateral_m": -1.82,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "001string_red06",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 8.6,
+      "lateral_m": -8.27,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "001string_red04",
+      "materials": [
+        "fin_string_red"
+      ],
+      "dist_3d_m": 5.58,
+      "lateral_m": 4.12,
+      "side": "right"
+    },
+    {
+      "node": 23,
+      "dist_m": 233.9,
+      "name": "sign_speedlimit71",
+      "materials": [
+        "sign_splimit30",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 5.74,
+      "lateral_m": 5.38,
+      "side": "right"
+    },
+    {
+      "node": 71,
+      "dist_m": 722.1,
+      "name": "sign_speedlimit72",
+      "materials": [
+        "sign_splimit50",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 7.28,
+      "lateral_m": 5.82,
+      "side": "right"
+    },
+    {
+      "node": 219,
+      "dist_m": 2234.9,
+      "name": "sign_hardturnright02",
+      "materials": [
+        "sign_trunks",
+        "sign_turn_right"
+      ],
+      "dist_3d_m": 6.62,
+      "lateral_m": 5.8,
+      "side": "right"
+    },
+    {
+      "node": 379,
+      "dist_m": 3868.6,
+      "name": "sign_speedlimit73",
+      "materials": [
+        "sign_splimit30",
+        "sign_trunks"
+      ],
+      "dist_3d_m": 8.78,
+      "lateral_m": 6.41,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 60.5,
+      "name": "stone_3_medium_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": 8.06,
+      "side": "right"
+    },
+    {
+      "node": 6,
+      "dist_m": 60.5,
+      "name": "stone_3_tiny_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.51,
+      "lateral_m": 8.47,
+      "side": "right"
+    },
+    {
+      "node": 16,
+      "dist_m": 162.5,
+      "name": "stone_3_big_01",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 9.05,
+      "lateral_m": -8.71,
+      "side": "left"
+    },
+    {
+      "node": 16,
+      "dist_m": 162.5,
+      "name": "stone_3_tiny_02",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 7.67,
+      "lateral_m": -7.63,
+      "side": "left"
+    },
+    {
+      "node": 47,
+      "dist_m": 477.5,
+      "name": "stone_2_big_01",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 15.68,
+      "lateral_m": 15.67,
+      "side": "right"
+    },
+    {
+      "node": 65,
+      "dist_m": 660.6,
+      "name": "stone_1_medium_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 12.13,
+      "lateral_m": -12.12,
+      "side": "left"
+    },
+    {
+      "node": 65,
+      "dist_m": 660.6,
+      "name": "stone_3_big_02",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 12.79,
+      "lateral_m": -12.65,
+      "side": "left"
+    },
+    {
+      "node": 65,
+      "dist_m": 660.6,
+      "name": "stone_1_tiny_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 13.43,
+      "lateral_m": -13.43,
+      "side": "left"
+    },
+    {
+      "node": 92,
+      "dist_m": 937.2,
+      "name": "stone_2_big_02",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.43,
+      "lateral_m": 10.8,
+      "side": "right"
+    },
+    {
+      "node": 92,
+      "dist_m": 937.2,
+      "name": "stone_2_tiny_02",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.45,
+      "lateral_m": 8.0,
+      "side": "right"
+    },
+    {
+      "node": 92,
+      "dist_m": 937.2,
+      "name": "stone_1_tiny_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.2,
+      "lateral_m": 8.66,
+      "side": "right"
+    },
+    {
+      "node": 99,
+      "dist_m": 1009.4,
+      "name": "stone_2_tiny_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 14.43,
+      "lateral_m": -14.33,
+      "side": "left"
+    },
+    {
+      "node": 98,
+      "dist_m": 999.1,
+      "name": "stone_2_medium_02",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 13.61,
+      "lateral_m": 13.42,
+      "side": "right"
+    },
+    {
+      "node": 98,
+      "dist_m": 999.1,
+      "name": "stone_1_tiny_03",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 13.35,
+      "lateral_m": 13.29,
+      "side": "right"
+    },
+    {
+      "node": 123,
+      "dist_m": 1254.5,
+      "name": "stone_1_big_01",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 8.7,
+      "lateral_m": -7.61,
+      "side": "left"
+    },
+    {
+      "node": 122,
+      "dist_m": 1244.2,
+      "name": "stone_3_tiny_03",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.34,
+      "lateral_m": -7.88,
+      "side": "left"
+    },
+    {
+      "node": 138,
+      "dist_m": 1408.0,
+      "name": "stone_2_medium_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.45,
+      "lateral_m": 8.81,
+      "side": "right"
+    },
+    {
+      "node": 138,
+      "dist_m": 1408.0,
+      "name": "stone_2_tiny_04",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.48,
+      "lateral_m": 8.19,
+      "side": "right"
+    },
+    {
+      "node": 196,
+      "dist_m": 1999.9,
+      "name": "stone_2_medium_04",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.91,
+      "lateral_m": -8.57,
+      "side": "left"
+    },
+    {
+      "node": 196,
+      "dist_m": 1999.9,
+      "name": "stone_3_tiny_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.86,
+      "lateral_m": -7.49,
+      "side": "left"
+    },
+    {
+      "node": 204,
+      "dist_m": 2081.4,
+      "name": "stone_3_medium_03",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 9.75,
+      "lateral_m": 8.64,
+      "side": "right"
+    },
+    {
+      "node": 207,
+      "dist_m": 2112.1,
+      "name": "stone_1_medium_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 11.08,
+      "lateral_m": -11.03,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2132.5,
+      "name": "stone_2_tiny_05",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 7.82,
+      "lateral_m": -7.29,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2132.5,
+      "name": "stone_3_medium_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.71,
+      "lateral_m": -8.44,
+      "side": "left"
+    },
+    {
+      "node": 209,
+      "dist_m": 2132.5,
+      "name": "stone_1_big_02",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.17,
+      "lateral_m": -8.33,
+      "side": "left"
+    },
+    {
+      "node": 233,
+      "dist_m": 2377.8,
+      "name": "stone_3_big_03",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 8.68,
+      "lateral_m": 8.27,
+      "side": "right"
+    },
+    {
+      "node": 233,
+      "dist_m": 2377.8,
+      "name": "stone_3_tiny_05",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 9.89,
+      "lateral_m": 9.35,
+      "side": "right"
+    },
+    {
+      "node": 233,
+      "dist_m": 2377.8,
+      "name": "stone_1_tiny_04",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 10.32,
+      "lateral_m": 10.27,
+      "side": "right"
+    },
+    {
+      "node": 254,
+      "dist_m": 2592.5,
+      "name": "stone_3_medium_05",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 10.64,
+      "lateral_m": -10.54,
+      "side": "left"
+    },
+    {
+      "node": 254,
+      "dist_m": 2592.5,
+      "name": "stone_3_tiny_06",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 12.86,
+      "lateral_m": -12.6,
+      "side": "left"
+    },
+    {
+      "node": 298,
+      "dist_m": 3042.6,
+      "name": "stone_1_medium_03",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 7.74,
+      "lateral_m": 5.53,
+      "side": "right"
+    },
+    {
+      "node": 304,
+      "dist_m": 3104.0,
+      "name": "stone_3_medium_06",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 7.05,
+      "lateral_m": 7.02,
+      "side": "right"
+    },
+    {
+      "node": 318,
+      "dist_m": 3247.3,
+      "name": "stone_2_tiny_06",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 15.87,
+      "lateral_m": 15.59,
+      "side": "right"
+    },
+    {
+      "node": 318,
+      "dist_m": 3247.3,
+      "name": "stone_3_big_04",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 14.3,
+      "lateral_m": 14.26,
+      "side": "right"
+    },
+    {
+      "node": 359,
+      "dist_m": 3664.1,
+      "name": "stone_2_medium_05",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 6.15,
+      "lateral_m": -5.79,
+      "side": "left"
+    },
+    {
+      "node": 364,
+      "dist_m": 3715.7,
+      "name": "stone_2_medium_06",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 10.94,
+      "lateral_m": 10.91,
+      "side": "right"
+    },
+    {
+      "node": 368,
+      "dist_m": 3756.7,
+      "name": "stone_1_medium_06",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 8.23,
+      "lateral_m": -6.99,
+      "side": "left"
+    },
+    {
+      "node": 371,
+      "dist_m": 3787.6,
+      "name": "stone_2_medium_07",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 13.45,
+      "lateral_m": 12.44,
+      "side": "right"
+    },
+    {
+      "node": 371,
+      "dist_m": 3787.6,
+      "name": "stone_2_tiny_07",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 12.6,
+      "lateral_m": 12.08,
+      "side": "right"
+    },
+    {
+      "node": 381,
+      "dist_m": 3889.2,
+      "name": "stone_2_medium_08",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.95,
+      "lateral_m": 9.76,
+      "side": "right"
+    },
+    {
+      "node": 381,
+      "dist_m": 3889.2,
+      "name": "stone_1_tiny_06",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 9.13,
+      "lateral_m": 9.11,
+      "side": "right"
+    },
+    {
+      "node": 392,
+      "dist_m": 4001.7,
+      "name": "stone_2_medium_09",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.39,
+      "lateral_m": 7.94,
+      "side": "right"
+    },
+    {
+      "node": 392,
+      "dist_m": 4001.7,
+      "name": "stone_2_tiny_08",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.29,
+      "lateral_m": 8.37,
+      "side": "right"
+    },
+    {
+      "node": 402,
+      "dist_m": 4103.6,
+      "name": "stone_3_medium_07",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 7.79,
+      "lateral_m": -6.86,
+      "side": "left"
+    },
+    {
+      "node": 401,
+      "dist_m": 4093.5,
+      "name": "stone_2_tiny_09",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 9.66,
+      "lateral_m": -8.5,
+      "side": "left"
+    },
+    {
+      "node": 421,
+      "dist_m": 4296.9,
+      "name": "stone_2_big_03",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 6.73,
+      "lateral_m": -5.82,
+      "side": "left"
+    },
+    {
+      "node": 431,
+      "dist_m": 4399.0,
+      "name": "stone_3_tiny_07",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 7.69,
+      "lateral_m": 6.84,
+      "side": "right"
+    },
+    {
+      "node": 431,
+      "dist_m": 4399.0,
+      "name": "stone_2_medium_11",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 8.06,
+      "lateral_m": 7.56,
+      "side": "right"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "stone_3_medium_08",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 12.88,
+      "lateral_m": -12.39,
+      "side": "left"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "stone_2_tiny_10",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 12.88,
+      "lateral_m": -12.71,
+      "side": "left"
+    },
+    {
+      "node": 15,
+      "dist_m": 152.3,
+      "name": "stone_3_tiny_09",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 14.73,
+      "lateral_m": 14.24,
+      "side": "right"
+    },
+    {
+      "node": 155,
+      "dist_m": 1580.7,
+      "name": "stone_2_medium_13",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 10.54,
+      "lateral_m": 9.85,
+      "side": "right"
+    },
+    {
+      "node": 155,
+      "dist_m": 1580.7,
+      "name": "stone_2_tiny_12",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.18,
+      "lateral_m": 10.83,
+      "side": "right"
+    },
+    {
+      "node": 165,
+      "dist_m": 1682.0,
+      "name": "stone_2_medium_14",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 12.14,
+      "lateral_m": 11.63,
+      "side": "right"
+    },
+    {
+      "node": 165,
+      "dist_m": 1682.0,
+      "name": "stone_2_tiny_13",
+      "materials": [
+        "fin_stone_2"
+      ],
+      "dist_3d_m": 11.28,
+      "lateral_m": 11.05,
+      "side": "right"
+    },
+    {
+      "node": 298,
+      "dist_m": 3042.6,
+      "name": "stone_3_medium_11",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 15.82,
+      "lateral_m": 15.73,
+      "side": "right"
+    },
+    {
+      "node": 288,
+      "dist_m": 2940.0,
+      "name": "stone_3_medium_12",
+      "materials": [
+        "fin_stone_3"
+      ],
+      "dist_3d_m": 10.47,
+      "lateral_m": 9.82,
+      "side": "right"
+    },
+    {
+      "node": 288,
+      "dist_m": 2940.0,
+      "name": "stone_1_medium_07",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 11.31,
+      "lateral_m": 11.2,
+      "side": "right"
+    },
+    {
+      "node": 283,
+      "dist_m": 2888.6,
+      "name": "stone_1_medium_08",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 15.65,
+      "lateral_m": 15.64,
+      "side": "right"
+    },
+    {
+      "node": 264,
+      "dist_m": 2694.2,
+      "name": "stone_1_medium_11",
+      "materials": [
+        "fin_stone_1"
+      ],
+      "dist_3d_m": 15.0,
+      "lateral_m": 14.92,
+      "side": "right"
+    },
+    {
+      "node": 352,
+      "dist_m": 3593.2,
+      "name": "fin_maitolaituri_",
+      "materials": [
+        "fin_maitolaituri"
+      ],
+      "dist_3d_m": 6.41,
+      "lateral_m": -6.19,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_66",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.92,
+      "lateral_m": 8.56,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_67",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.81,
+      "lateral_m": 7.85,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_68",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.94,
+      "lateral_m": 8.92,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_69",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.46,
+      "lateral_m": 7.28,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_70",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.17,
+      "lateral_m": 7.25,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_71",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.63,
+      "lateral_m": 7.38,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_72",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.64,
+      "lateral_m": 6.92,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_73",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.38,
+      "lateral_m": 7.33,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_74",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.48,
+      "lateral_m": 8.37,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_75",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.75,
+      "lateral_m": 7.7,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_76",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.43,
+      "lateral_m": 7.15,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_77",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.42,
+      "lateral_m": 7.6,
+      "side": "right"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_78",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.81,
+      "lateral_m": 7.07,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_79",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.26,
+      "lateral_m": 7.14,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_80",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.93,
+      "lateral_m": 7.13,
+      "side": "right"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_81",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.87,
+      "lateral_m": 7.88,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_82",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.31,
+      "lateral_m": 8.15,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_83",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.75,
+      "lateral_m": 8.15,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_84",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.5,
+      "lateral_m": 7.24,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_85",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.95,
+      "lateral_m": 7.78,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_86",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.47,
+      "lateral_m": 7.63,
+      "side": "right"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_87",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.21,
+      "lateral_m": 8.76,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_88",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.15,
+      "lateral_m": -7.03,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_89",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.09,
+      "lateral_m": -7.64,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_90",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.29,
+      "lateral_m": -6.97,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_91",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.87,
+      "lateral_m": -7.75,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_92",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.71,
+      "lateral_m": -7.13,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_93",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.96,
+      "lateral_m": -7.84,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_94",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.43,
+      "lateral_m": -7.2,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_95",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.91,
+      "lateral_m": -7.82,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_96",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.75,
+      "lateral_m": -6.67,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_97",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.36,
+      "lateral_m": -6.95,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_98",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.01,
+      "lateral_m": -6.93,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_99",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.64,
+      "lateral_m": -7.52,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_100",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.04,
+      "lateral_m": -6.9,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_101",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.44,
+      "lateral_m": -7.83,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_102",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.25,
+      "lateral_m": -6.86,
+      "side": "left"
+    },
+    {
+      "node": 440,
+      "dist_m": 4490.4,
+      "name": "002audience_103",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.27,
+      "lateral_m": -7.4,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_104",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.07,
+      "lateral_m": -7.65,
+      "side": "left"
+    },
+    {
+      "node": 439,
+      "dist_m": 4480.1,
+      "name": "002audience_105",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.71,
+      "lateral_m": -6.97,
+      "side": "left"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_106",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.72,
+      "lateral_m": -7.66,
+      "side": "left"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_107",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.57,
+      "lateral_m": -7.27,
+      "side": "left"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_108",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.44,
+      "lateral_m": -7.12,
+      "side": "left"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_109",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.63,
+      "lateral_m": -6.76,
+      "side": "left"
+    },
+    {
+      "node": 441,
+      "dist_m": 4500.5,
+      "name": "002audience_110",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.11,
+      "lateral_m": -6.76,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_111",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.58,
+      "lateral_m": 7.14,
+      "side": "right"
+    },
+    {
+      "node": 437,
+      "dist_m": 4459.6,
+      "name": "002audience_112",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.94,
+      "lateral_m": 6.75,
+      "side": "right"
+    },
+    {
+      "node": 437,
+      "dist_m": 4459.6,
+      "name": "002audience_113",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 6.3,
+      "lateral_m": 6.22,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_114",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.67,
+      "lateral_m": 7.31,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_115",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.75,
+      "lateral_m": 7.71,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_116",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.8,
+      "lateral_m": 7.61,
+      "side": "right"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "002audience_117",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 6.47,
+      "lateral_m": 5.92,
+      "side": "right"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_118",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.02,
+      "lateral_m": -7.66,
+      "side": "left"
+    },
+    {
+      "node": 438,
+      "dist_m": 4469.8,
+      "name": "002audience_119",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.22,
+      "lateral_m": -7.62,
+      "side": "left"
+    },
+    {
+      "node": 437,
+      "dist_m": 4459.6,
+      "name": "002audience_120",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.86,
+      "lateral_m": -7.73,
+      "side": "left"
+    },
+    {
+      "node": 436,
+      "dist_m": 4449.5,
+      "name": "002audience_121",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.76,
+      "lateral_m": -8.24,
+      "side": "left"
+    },
+    {
+      "node": 437,
+      "dist_m": 4459.6,
+      "name": "002audience_122",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.16,
+      "lateral_m": -8.59,
+      "side": "left"
+    },
+    {
+      "node": 437,
+      "dist_m": 4459.6,
+      "name": "002audience_123",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.15,
+      "lateral_m": -8.09,
+      "side": "left"
+    },
+    {
+      "node": 433,
+      "dist_m": 4419.2,
+      "name": "002audience_124",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.53,
+      "lateral_m": -7.98,
+      "side": "left"
+    },
+    {
+      "node": 434,
+      "dist_m": 4429.2,
+      "name": "002audience_125",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.81,
+      "lateral_m": -7.61,
+      "side": "left"
+    },
+    {
+      "node": 434,
+      "dist_m": 4429.2,
+      "name": "002audience_127",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.25,
+      "lateral_m": -8.16,
+      "side": "left"
+    },
+    {
+      "node": 435,
+      "dist_m": 4439.5,
+      "name": "002audience_130",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 9.55,
+      "lateral_m": -8.61,
+      "side": "left"
+    },
+    {
+      "node": 435,
+      "dist_m": 4439.5,
+      "name": "002audience_132",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.36,
+      "lateral_m": -8.21,
+      "side": "left"
+    },
+    {
+      "node": 435,
+      "dist_m": 4439.5,
+      "name": "002audience_133",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 6.58,
+      "lateral_m": 6.45,
+      "side": "right"
+    },
+    {
+      "node": 435,
+      "dist_m": 4439.5,
+      "name": "002audience_134",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 8.55,
+      "lateral_m": 6.8,
+      "side": "right"
+    },
+    {
+      "node": 434,
+      "dist_m": 4429.2,
+      "name": "002audience_135",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.89,
+      "lateral_m": 7.59,
+      "side": "right"
+    },
+    {
+      "node": 433,
+      "dist_m": 4419.2,
+      "name": "002audience_136",
+      "materials": [
+        "audience_4"
+      ],
+      "dist_3d_m": 7.64,
+      "lateral_m": 7.48,
+      "side": "right"
+    }
+  ]
+}

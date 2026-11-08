@@ -1,0 +1,174 @@
+{
+  "id": "finland_stage4",
+  "name": "Finlandia — Stage 4",
+  "route_path": "res://data/rally/finland_stage4_route.json",
+  "fallback_path": "res://data/competition/rally_trophy/track3_stage4.json",
+  "difficulty": 1,
+  "reference_scale": 1.0,
+  "mapping_basis": "Recovered original split_00..split_09 trigger planes from source BMF, aligned with checkpoint signs in exported GLB.",
+  "sector_checkpoint_indices": [
+    38,
+    81,
+    128,
+    175,
+    241,
+    288,
+    342,
+    387,
+    445,
+    480
+  ],
+  "sector_lengths_km": [
+    0.38512122662326403,
+    0.4336477004226778,
+    0.4862583271672013,
+    0.4797953447405223,
+    0.6645117727660071,
+    0.4892738483324356,
+    0.5426464777729384,
+    0.4565694032609654,
+    0.5921132561713848,
+    0.3666387813894662
+  ],
+  "surface": "gravel_mud",
+  "roughness": 0.55,
+  "water": 0.15,
+  "jumps": 0.45,
+  "visibility": 0.8,
+  "wetness": 0.35,
+  "blind_route": false,
+  "night": false,
+  "timing_gates_path": "res://data/competition/stages/finland_stage4_timing_gates.json",
+  "cpu_reference_splits": {
+    "CommentTimesNovice": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesIntermediate": [
+      155.0,
+      165.0,
+      175.0
+    ],
+    "CommentTimesExpert": [
+      145.0,
+      155.0,
+      165.0
+    ],
+    "CommentTimesFTCNovice": [
+      160.0,
+      175.0,
+      190.0
+    ],
+    "CommentTimesFTCIntermediate": [
+      151.0,
+      161.0,
+      171.0
+    ],
+    "CommentTimesFTCExpert": [
+      141.0,
+      151.0,
+      161.0
+    ],
+    "CPUSplit0": [
+      20.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit1": [
+      20.0,
+      13.0,
+      12.0
+    ],
+    "CPUSplit2": [
+      20.0,
+      14.0,
+      13.0
+    ],
+    "CPUSplit3": [
+      20.0,
+      14.0,
+      13.0
+    ],
+    "CPUSplit4": [
+      20.0,
+      21.0,
+      20.0
+    ],
+    "CPUSplit5": [
+      20.0,
+      16.0,
+      15.0
+    ],
+    "CPUSplit6": [
+      20.0,
+      18.0,
+      17.0
+    ],
+    "CPUSplit7": [
+      20.0,
+      14.0,
+      13.0
+    ],
+    "CPUSplit8": [
+      20.0,
+      18.0,
+      17.0
+    ],
+    "CPUSplit9": [
+      20.0,
+      11.0,
+      10.0
+    ],
+    "CPUFTCSplit0": [
+      20.0,
+      15.0,
+      14.0
+    ],
+    "CPUFTCSplit1": [
+      20.0,
+      13.0,
+      12.0
+    ],
+    "CPUFTCSplit2": [
+      20.0,
+      14.0,
+      13.0
+    ],
+    "CPUFTCSplit3": [
+      20.0,
+      13.0,
+      12.0
+    ],
+    "CPUFTCSplit4": [
+      20.0,
+      21.0,
+      20.0
+    ],
+    "CPUFTCSplit5": [
+      20.0,
+      15.0,
+      14.0
+    ],
+    "CPUFTCSplit6": [
+      20.0,
+      18.0,
+      17.0
+    ],
+    "CPUFTCSplit7": [
+      20.0,
+      14.0,
+      13.0
+    ],
+    "CPUFTCSplit8": [
+      20.0,
+      17.0,
+      16.0
+    ],
+    "CPUFTCSplit9": [
+      20.0,
+      11.0,
+      10.0
+    ]
+  }
+}

@@ -1,0 +1,1372 @@
+{
+  "stage": "switzerland-stage1",
+  "author": "Antigravity Agent",
+  "methodology": "3D route curvature + vertical slope inflection + 3D obstacle alignment with CMR2 audio codec",
+  "total_curves_classified": 47,
+  "curves": [
+    {
+      "curve_id": "SW1_CURVE_00",
+      "start_node": 1,
+      "end_node": 6,
+      "advisory_gate_node": 0,
+      "route_distance_m": 10.4,
+      "length_m": 52.4,
+      "total_angle_deg": 25.7,
+      "direction": "right",
+      "estimated_radius_m": 84.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x000000a3",
+      "call_index": 0,
+      "speech_slots": [
+        15,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=84.3m, ángulo=25.7 deg, longitud=52.4m.",
+        "Portal de aviso asignado en nodo 0 a 0.0m (10.4m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_01",
+      "start_node": 7,
+      "end_node": 12,
+      "advisory_gate_node": 2,
+      "route_distance_m": 73.1,
+      "length_m": 52.1,
+      "total_angle_deg": 30.4,
+      "direction": "left",
+      "estimated_radius_m": 67.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00002053",
+      "call_index": 1,
+      "speech_slots": [
+        14,
+        3,
+        8,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=67.3m, ángulo=30.4 deg, longitud=52.1m.",
+        "Portal de aviso asignado en nodo 2 a 20.8m (52.3m de anticipación).",
+        "Radio creciente en salida (R_in=63m -> R_out=126m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_02",
+      "start_node": 11,
+      "end_node": 14,
+      "advisory_gate_node": 6,
+      "route_distance_m": 115.2,
+      "length_m": 30.4,
+      "total_angle_deg": 9.3,
+      "direction": "right",
+      "estimated_radius_m": 121.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00001062",
+      "call_index": 2,
+      "speech_slots": [
+        14,
+        4,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=121.2m, ángulo=9.3 deg, longitud=30.4m.",
+        "Portal de aviso asignado en nodo 6 a 62.8m (52.4m de anticipación).",
+        "Radio decreciente en ápice (R_in=6039m -> R_out=131m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_03",
+      "start_node": 13,
+      "end_node": 17,
+      "advisory_gate_node": 8,
+      "route_distance_m": 135.4,
+      "length_m": 41.8,
+      "total_angle_deg": 20.4,
+      "direction": "left",
+      "estimated_radius_m": 86.0,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00001053",
+      "call_index": 3,
+      "speech_slots": [
+        14,
+        3,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=86.0m, ángulo=20.4 deg, longitud=41.8m.",
+        "Portal de aviso asignado en nodo 8 a 83.7m (51.7m de anticipación).",
+        "Radio decreciente en ápice (R_in=242m -> R_out=101m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_04",
+      "start_node": 17,
+      "end_node": 23,
+      "advisory_gate_node": 12,
+      "route_distance_m": 177.2,
+      "length_m": 61.6,
+      "total_angle_deg": 44.8,
+      "direction": "right",
+      "estimated_radius_m": 49.6,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00001124",
+      "call_index": 4,
+      "speech_slots": [
+        17,
+        2,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=49.6m, ángulo=44.8 deg, longitud=61.6m.",
+        "Portal de aviso asignado en nodo 12 a 125.2m (52.0m de anticipación).",
+        "Radio decreciente en ápice (R_in=161m -> R_out=47m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_05",
+      "start_node": 27,
+      "end_node": 34,
+      "advisory_gate_node": 22,
+      "route_distance_m": 280.5,
+      "length_m": 73.3,
+      "total_angle_deg": 52.0,
+      "direction": "left",
+      "estimated_radius_m": 49.9,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00001054",
+      "call_index": 5,
+      "speech_slots": [
+        14,
+        2,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=49.9m, ángulo=52.0 deg, longitud=73.3m.",
+        "Portal de aviso asignado en nodo 22 a 228.7m (51.8m de anticipación).",
+        "Radio decreciente en ápice (R_in=130m -> R_out=54m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_06",
+      "start_node": 33,
+      "end_node": 39,
+      "advisory_gate_node": 28,
+      "route_distance_m": 343.2,
+      "length_m": 63.0,
+      "total_angle_deg": 23.9,
+      "direction": "right",
+      "estimated_radius_m": 85.5,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x000000a3",
+      "call_index": 6,
+      "speech_slots": [
+        15,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=85.5m, ángulo=23.9 deg, longitud=63.0m.",
+        "Portal de aviso asignado en nodo 28 a 290.9m (52.3m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_07",
+      "start_node": 40,
+      "end_node": 44,
+      "advisory_gate_node": 35,
+      "route_distance_m": 416.4,
+      "length_m": 41.0,
+      "total_angle_deg": 26.7,
+      "direction": "right",
+      "estimated_radius_m": 56.5,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x000020a4",
+      "call_index": 7,
+      "speech_slots": [
+        15,
+        2,
+        9,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=56.5m, ángulo=26.7 deg, longitud=41.0m.",
+        "Portal de aviso asignado en nodo 35 a 364.3m (52.0m de anticipación).",
+        "Radio creciente en salida (R_in=62m -> R_out=402m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_08",
+      "start_node": 45,
+      "end_node": 48,
+      "advisory_gate_node": 40,
+      "route_distance_m": 467.5,
+      "length_m": 30.6,
+      "total_angle_deg": 13.4,
+      "direction": "right",
+      "estimated_radius_m": 114.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00001062",
+      "call_index": 8,
+      "speech_slots": [
+        14,
+        4,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=114.2m, ángulo=13.4 deg, longitud=30.6m.",
+        "Portal de aviso asignado en nodo 40 a 416.4m (51.1m de anticipación).",
+        "Radio decreciente en ápice (R_in=7907m -> R_out=126m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_09",
+      "start_node": 47,
+      "end_node": 56,
+      "advisory_gate_node": 42,
+      "route_distance_m": 488.1,
+      "length_m": 93.3,
+      "total_angle_deg": 50.0,
+      "direction": "left",
+      "estimated_radius_m": 71.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00000493",
+      "call_index": 9,
+      "speech_slots": [
+        15,
+        10,
+        3,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=71.3m, ángulo=50.0 deg, longitud=93.3m.",
+        "Portal de aviso asignado en nodo 42 a 436.7m (51.4m de anticipación).",
+        "Longitud de curva sostenida (93.3m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_10",
+      "start_node": 58,
+      "end_node": 71,
+      "advisory_gate_node": 53,
+      "route_distance_m": 601.6,
+      "length_m": 141.7,
+      "total_angle_deg": 24.8,
+      "direction": "left",
+      "estimated_radius_m": 246.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00000991",
+      "call_index": 10,
+      "speech_slots": [
+        19,
+        28,
+        5,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=246.6m, ángulo=24.8 deg, longitud=141.7m.",
+        "Portal de aviso asignado en nodo 53 a 549.7m (51.9m de anticipación).",
+        "Longitud de curva extendida (141.7m >= 135m): calificada como 'verylong'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_11",
+      "start_node": 79,
+      "end_node": 90,
+      "advisory_gate_node": 74,
+      "route_distance_m": 828.7,
+      "length_m": 116.8,
+      "total_angle_deg": 188.3,
+      "direction": "right",
+      "estimated_radius_m": 19.5,
+      "cmr2_kind": "hairpin",
+      "caution": "care",
+      "call_word_hex": "0x00a01468",
+      "call_index": 11,
+      "speech_slots": [
+        14,
+        26,
+        10,
+        29,
+        7,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=19.5m, ángulo=188.3 deg, longitud=116.8m.",
+        "Portal de aviso asignado en nodo 74 a 774.7m (53.9m de anticipación).",
+        "Longitud de curva sostenida (116.8m >= 80m): calificada como 'long'.",
+        "Radio decreciente en ápice (R_in=134m -> R_out=8m): 'tightens'.",
+        "Intersección/barrera identificada en calzada (sign_hardturnright01 a +4.1m): 'turn'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_12",
+      "start_node": 89,
+      "end_node": 94,
+      "advisory_gate_node": 84,
+      "route_distance_m": 935.2,
+      "length_m": 52.4,
+      "total_angle_deg": 9.9,
+      "direction": "left",
+      "estimated_radius_m": 239.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00002191",
+      "call_index": 12,
+      "speech_slots": [
+        19,
+        5,
+        8,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=239.6m, ángulo=9.9 deg, longitud=52.4m.",
+        "Portal de aviso asignado en nodo 84 a 883.6m (51.6m de anticipación).",
+        "Radio creciente en salida (R_in=189m -> R_out=322m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_13",
+      "start_node": 103,
+      "end_node": 110,
+      "advisory_gate_node": 98,
+      "route_distance_m": 1082.2,
+      "length_m": 72.5,
+      "total_angle_deg": 178.6,
+      "direction": "left",
+      "estimated_radius_m": 15.6,
+      "cmr2_kind": "hairpin",
+      "caution": "care",
+      "call_word_hex": "0x00a01218",
+      "call_index": 13,
+      "speech_slots": [
+        21,
+        26,
+        29,
+        7,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=15.6m, ángulo=178.6 deg, longitud=72.5m.",
+        "Portal de aviso asignado en nodo 98 a 1029.4m (52.8m de anticipación).",
+        "Radio decreciente en ápice (R_in=43m -> R_out=14m): 'tightens'.",
+        "Intersección/barrera identificada en calzada (sign_hardturn a +11.4m): 'turn'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_14",
+      "start_node": 123,
+      "end_node": 128,
+      "advisory_gate_node": 118,
+      "route_distance_m": 1295.0,
+      "length_m": 54.1,
+      "total_angle_deg": 17.3,
+      "direction": "left",
+      "estimated_radius_m": 157.3,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00001091",
+      "call_index": 14,
+      "speech_slots": [
+        15,
+        5,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=157.3m, ángulo=17.3 deg, longitud=54.1m.",
+        "Portal de aviso asignado en nodo 118 a 1240.3m (54.8m de anticipación).",
+        "Radio decreciente en ápice (R_in=402m -> R_out=153m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_15",
+      "start_node": 129,
+      "end_node": 137,
+      "advisory_gate_node": 124,
+      "route_distance_m": 1359.1,
+      "length_m": 84.9,
+      "total_angle_deg": 21.9,
+      "direction": "right",
+      "estimated_radius_m": 141.4,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00001461",
+      "call_index": 15,
+      "speech_slots": [
+        14,
+        10,
+        5,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=141.4m, ángulo=21.9 deg, longitud=84.9m.",
+        "Portal de aviso asignado en nodo 124 a 1306.4m (52.7m de anticipación).",
+        "Longitud de curva sostenida (84.9m >= 80m): calificada como 'long'.",
+        "Radio decreciente en ápice (R_in=262m -> R_out=162m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_16",
+      "start_node": 136,
+      "end_node": 147,
+      "advisory_gate_node": 131,
+      "route_distance_m": 1433.9,
+      "length_m": 116.5,
+      "total_angle_deg": 44.8,
+      "direction": "left",
+      "estimated_radius_m": 107.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00000452",
+      "call_index": 16,
+      "speech_slots": [
+        14,
+        10,
+        4,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=107.2m, ángulo=44.8 deg, longitud=116.5m.",
+        "Portal de aviso asignado en nodo 131 a 1380.3m (53.6m de anticipación).",
+        "Longitud de curva sostenida (116.5m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_17",
+      "start_node": 147,
+      "end_node": 160,
+      "advisory_gate_node": 142,
+      "route_distance_m": 1550.3,
+      "length_m": 138.1,
+      "total_angle_deg": 47.7,
+      "direction": "right",
+      "estimated_radius_m": 108.6,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x000018a2",
+      "call_index": 17,
+      "speech_slots": [
+        15,
+        28,
+        4,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=108.6m, ángulo=47.7 deg, longitud=138.1m.",
+        "Portal de aviso asignado en nodo 142 a 1496.7m (53.6m de anticipación).",
+        "Longitud de curva extendida (138.1m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=332m -> R_out=106m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_18",
+      "start_node": 162,
+      "end_node": 170,
+      "advisory_gate_node": 157,
+      "route_distance_m": 1709.6,
+      "length_m": 85.6,
+      "total_angle_deg": 24.2,
+      "direction": "right",
+      "estimated_radius_m": 171.6,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x000004a1",
+      "call_index": 18,
+      "speech_slots": [
+        15,
+        10,
+        5,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=171.6m, ángulo=24.2 deg, longitud=85.6m.",
+        "Portal de aviso asignado en nodo 157 a 1656.7m (52.9m de anticipación).",
+        "Longitud de curva sostenida (85.6m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_19",
+      "start_node": 171,
+      "end_node": 176,
+      "advisory_gate_node": 166,
+      "route_distance_m": 1805.9,
+      "length_m": 53.0,
+      "total_angle_deg": 41.1,
+      "direction": "left",
+      "estimated_radius_m": 49.5,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00001054",
+      "call_index": 19,
+      "speech_slots": [
+        14,
+        2,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=49.5m, ángulo=41.1 deg, longitud=53.0m.",
+        "Portal de aviso asignado en nodo 166 a 1752.9m (53.0m de anticipación).",
+        "Radio decreciente en ápice (R_in=167m -> R_out=46m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_20",
+      "start_node": 176,
+      "end_node": 183,
+      "advisory_gate_node": 171,
+      "route_distance_m": 1858.9,
+      "length_m": 73.6,
+      "total_angle_deg": 40.1,
+      "direction": "right",
+      "estimated_radius_m": 79.6,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00000063",
+      "call_index": 20,
+      "speech_slots": [
+        14,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=79.6m, ángulo=40.1 deg, longitud=73.6m.",
+        "Portal de aviso asignado en nodo 171 a 1805.9m (53.0m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_21",
+      "start_node": 183,
+      "end_node": 189,
+      "advisory_gate_node": 178,
+      "route_distance_m": 1932.5,
+      "length_m": 63.2,
+      "total_angle_deg": 28.5,
+      "direction": "right",
+      "estimated_radius_m": 90.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00048063",
+      "call_index": 21,
+      "speech_slots": [
+        14,
+        3,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=90.3m, ángulo=28.5 deg, longitud=63.2m.",
+        "Portal de aviso asignado en nodo 178 a 1879.7m (52.7m de anticipación).",
+        "Cambio convexo de rasante en nodo 189 (+17.1% -> +3.8%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_22",
+      "start_node": 188,
+      "end_node": 191,
+      "advisory_gate_node": 183,
+      "route_distance_m": 1985.3,
+      "length_m": 30.8,
+      "total_angle_deg": 12.2,
+      "direction": "left",
+      "estimated_radius_m": 96.7,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00049052",
+      "call_index": 22,
+      "speech_slots": [
+        14,
+        4,
+        8,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=96.7m, ángulo=12.2 deg, longitud=30.8m.",
+        "Portal de aviso asignado en nodo 183 a 1932.5m (52.8m de anticipación).",
+        "Radio decreciente en ápice (R_in=537m -> R_out=106m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 189 (+17.1% -> +3.8%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_23",
+      "start_node": 191,
+      "end_node": 193,
+      "advisory_gate_node": 186,
+      "route_distance_m": 2016.1,
+      "length_m": 20.4,
+      "total_angle_deg": 14.8,
+      "direction": "right",
+      "estimated_radius_m": 61.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00049063",
+      "call_index": 23,
+      "speech_slots": [
+        14,
+        3,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=61.3m, ángulo=14.8 deg, longitud=20.4m.",
+        "Portal de aviso asignado en nodo 186 a 1964.0m (52.1m de anticipación).",
+        "Radio decreciente en ápice (R_in=146m -> R_out=76m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 189 (+17.1% -> +3.8%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_24",
+      "start_node": 192,
+      "end_node": 196,
+      "advisory_gate_node": 187,
+      "route_distance_m": 2026.4,
+      "length_m": 41.2,
+      "total_angle_deg": 16.4,
+      "direction": "left",
+      "estimated_radius_m": 81.8,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00049053",
+      "call_index": 24,
+      "speech_slots": [
+        14,
+        3,
+        8,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=81.8m, ángulo=16.4 deg, longitud=41.2m.",
+        "Portal de aviso asignado en nodo 187 a 1974.9m (51.5m de anticipación).",
+        "Radio decreciente en ápice (R_in=1060m -> R_out=98m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 197 (-11.4% -> -18.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_25",
+      "start_node": 195,
+      "end_node": 202,
+      "advisory_gate_node": 190,
+      "route_distance_m": 2057.5,
+      "length_m": 72.9,
+      "total_angle_deg": 34.9,
+      "direction": "right",
+      "estimated_radius_m": 87.8,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x000480a3",
+      "call_index": 25,
+      "speech_slots": [
+        15,
+        3,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=87.8m, ángulo=34.9 deg, longitud=72.9m.",
+        "Portal de aviso asignado en nodo 190 a 2005.6m (51.9m de anticipación).",
+        "Cambio convexo de rasante en nodo 197 (-11.4% -> -18.6%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_26",
+      "start_node": 203,
+      "end_node": 207,
+      "advisory_gate_node": 198,
+      "route_distance_m": 2141.3,
+      "length_m": 42.6,
+      "total_angle_deg": 13.7,
+      "direction": "left",
+      "estimated_radius_m": 128.2,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00000092",
+      "call_index": 26,
+      "speech_slots": [
+        15,
+        4,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=128.2m, ángulo=13.7 deg, longitud=42.6m.",
+        "Portal de aviso asignado en nodo 198 a 2088.0m (53.3m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_27",
+      "start_node": 208,
+      "end_node": 217,
+      "advisory_gate_node": 203,
+      "route_distance_m": 2194.2,
+      "length_m": 94.4,
+      "total_angle_deg": 59.3,
+      "direction": "left",
+      "estimated_radius_m": 65.2,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00002493",
+      "call_index": 27,
+      "speech_slots": [
+        15,
+        10,
+        3,
+        8,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=65.2m, ángulo=59.3 deg, longitud=94.4m.",
+        "Portal de aviso asignado en nodo 203 a 2141.3m (52.9m de anticipación).",
+        "Longitud de curva sostenida (94.4m >= 80m): calificada como 'long'.",
+        "Radio creciente en salida (R_in=64m -> R_out=125m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_28",
+      "start_node": 218,
+      "end_node": 232,
+      "advisory_gate_node": 213,
+      "route_distance_m": 2298.7,
+      "length_m": 145.9,
+      "total_angle_deg": 59.9,
+      "direction": "left",
+      "estimated_radius_m": 94.9,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00001893",
+      "call_index": 28,
+      "speech_slots": [
+        15,
+        28,
+        3,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=94.9m, ángulo=59.9 deg, longitud=145.9m.",
+        "Portal de aviso asignado en nodo 213 a 2247.0m (51.7m de anticipación).",
+        "Longitud de curva extendida (145.9m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=211m -> R_out=110m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_29",
+      "start_node": 233,
+      "end_node": 246,
+      "advisory_gate_node": 228,
+      "route_distance_m": 2454.9,
+      "length_m": 134.6,
+      "total_angle_deg": 72.8,
+      "direction": "right",
+      "estimated_radius_m": 76.2,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00000463",
+      "call_index": 29,
+      "speech_slots": [
+        14,
+        10,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=76.2m, ángulo=72.8 deg, longitud=134.6m.",
+        "Portal de aviso asignado en nodo 228 a 2403.0m (51.9m de anticipación).",
+        "Longitud de curva sostenida (134.6m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_30",
+      "start_node": 245,
+      "end_node": 264,
+      "advisory_gate_node": 240,
+      "route_distance_m": 2579.3,
+      "length_m": 200.5,
+      "total_angle_deg": 100.9,
+      "direction": "left",
+      "estimated_radius_m": 87.0,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00000853",
+      "call_index": 30,
+      "speech_slots": [
+        14,
+        28,
+        3,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=87.0m, ángulo=100.9 deg, longitud=200.5m.",
+        "Portal de aviso asignado en nodo 240 a 2527.8m (51.5m de anticipación).",
+        "Longitud de curva extendida (200.5m >= 135m): calificada como 'verylong'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_31",
+      "start_node": 264,
+      "end_node": 274,
+      "advisory_gate_node": 259,
+      "route_distance_m": 2779.8,
+      "length_m": 103.4,
+      "total_angle_deg": 76.2,
+      "direction": "right",
+      "estimated_radius_m": 51.1,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x000004a4",
+      "call_index": 31,
+      "speech_slots": [
+        15,
+        10,
+        2,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=51.1m, ángulo=76.2 deg, longitud=103.4m.",
+        "Portal de aviso asignado en nodo 259 a 2727.5m (52.3m de anticipación).",
+        "Longitud de curva sostenida (103.4m >= 80m): calificada como 'long'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_32",
+      "start_node": 275,
+      "end_node": 282,
+      "advisory_gate_node": 270,
+      "route_distance_m": 2893.6,
+      "length_m": 73.9,
+      "total_angle_deg": 53.0,
+      "direction": "right",
+      "estimated_radius_m": 59.6,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x000000a4",
+      "call_index": 32,
+      "speech_slots": [
+        15,
+        2,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=59.6m, ángulo=53.0 deg, longitud=73.9m.",
+        "Portal de aviso asignado en nodo 270 a 2841.7m (51.8m de anticipación)."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_33",
+      "start_node": 283,
+      "end_node": 297,
+      "advisory_gate_node": 278,
+      "route_distance_m": 2977.7,
+      "length_m": 149.5,
+      "total_angle_deg": 102.7,
+      "direction": "left",
+      "estimated_radius_m": 58.1,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00048914",
+      "call_index": 33,
+      "speech_slots": [
+        17,
+        28,
+        2,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=58.1m, ángulo=102.7 deg, longitud=149.5m.",
+        "Portal de aviso asignado en nodo 278 a 2925.3m (52.5m de anticipación).",
+        "Longitud de curva extendida (149.5m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 298 (+14.5% -> +5.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_34",
+      "start_node": 301,
+      "end_node": 312,
+      "advisory_gate_node": 296,
+      "route_distance_m": 3169.3,
+      "length_m": 115.5,
+      "total_angle_deg": 101.1,
+      "direction": "right",
+      "estimated_radius_m": 44.9,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x000014a4",
+      "call_index": 34,
+      "speech_slots": [
+        15,
+        10,
+        2,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=44.9m, ángulo=101.1 deg, longitud=115.5m.",
+        "Portal de aviso asignado en nodo 296 a 3116.3m (53.0m de anticipación).",
+        "Longitud de curva sostenida (115.5m >= 80m): calificada como 'long'.",
+        "Radio decreciente en ápice (R_in=90m -> R_out=50m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_35",
+      "start_node": 313,
+      "end_node": 316,
+      "advisory_gate_node": 308,
+      "route_distance_m": 3295.7,
+      "length_m": 32.1,
+      "total_angle_deg": 13.0,
+      "direction": "left",
+      "estimated_radius_m": 113.3,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00001092",
+      "call_index": 35,
+      "speech_slots": [
+        15,
+        4,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=113.3m, ángulo=13.0 deg, longitud=32.1m.",
+        "Portal de aviso asignado en nodo 308 a 3243.0m (52.7m de anticipación).",
+        "Radio decreciente en ápice (R_in=343m -> R_out=124m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_36",
+      "start_node": 317,
+      "end_node": 322,
+      "advisory_gate_node": 312,
+      "route_distance_m": 3338.0,
+      "length_m": 54.4,
+      "total_angle_deg": 20.6,
+      "direction": "right",
+      "estimated_radius_m": 99.5,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00001062",
+      "call_index": 36,
+      "speech_slots": [
+        14,
+        4,
+        9,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=99.5m, ángulo=20.6 deg, longitud=54.4m.",
+        "Portal de aviso asignado en nodo 312 a 3284.9m (53.1m de anticipación).",
+        "Radio decreciente en ápice (R_in=219m -> R_out=103m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_37",
+      "start_node": 321,
+      "end_node": 333,
+      "advisory_gate_node": 316,
+      "route_distance_m": 3381.5,
+      "length_m": 125.2,
+      "total_angle_deg": 90.3,
+      "direction": "left",
+      "estimated_radius_m": 59.9,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00002494",
+      "call_index": 37,
+      "speech_slots": [
+        15,
+        10,
+        2,
+        8,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=59.9m, ángulo=90.3 deg, longitud=125.2m.",
+        "Portal de aviso asignado en nodo 316 a 3327.8m (53.7m de anticipación).",
+        "Longitud de curva sostenida (125.2m >= 80m): calificada como 'long'.",
+        "Radio creciente en salida (R_in=61m -> R_out=122m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_38",
+      "start_node": 334,
+      "end_node": 344,
+      "advisory_gate_node": 329,
+      "route_distance_m": 3517.5,
+      "length_m": 106.3,
+      "total_angle_deg": 42.8,
+      "direction": "right",
+      "estimated_radius_m": 104.5,
+      "cmr2_kind": "five",
+      "caution": "none",
+      "call_word_hex": "0x00048462",
+      "call_index": 38,
+      "speech_slots": [
+        14,
+        10,
+        4,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=104.5m, ángulo=42.8 deg, longitud=106.3m.",
+        "Portal de aviso asignado en nodo 329 a 3465.0m (52.5m de anticipación).",
+        "Longitud de curva sostenida (106.3m >= 80m): calificada como 'long'.",
+        "Cambio convexo de rasante en nodo 345 (+19.1% -> +16.8%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_39",
+      "start_node": 344,
+      "end_node": 354,
+      "advisory_gate_node": 339,
+      "route_distance_m": 3623.8,
+      "length_m": 106.3,
+      "total_angle_deg": 43.7,
+      "direction": "left",
+      "estimated_radius_m": 88.1,
+      "cmr2_kind": "four",
+      "caution": "care",
+      "call_word_hex": "0x00a4a453",
+      "call_index": 39,
+      "speech_slots": [
+        14,
+        26,
+        10,
+        29,
+        3,
+        8,
+        11,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=88.1m, ángulo=43.7 deg, longitud=106.3m.",
+        "Portal de aviso asignado en nodo 339 a 3570.5m (53.3m de anticipación).",
+        "Longitud de curva sostenida (106.3m >= 80m): calificada como 'long'.",
+        "Radio creciente en salida (R_in=102m -> R_out=205m): 'opens'.",
+        "Cambio convexo de rasante en nodo 349 (+15.5% -> +10.7%): 'over crest'.",
+        "Intersección/barrera identificada en calzada (sign_hardturnright02 a +5.1m): 'turn'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_40",
+      "start_node": 353,
+      "end_node": 365,
+      "advisory_gate_node": 348,
+      "route_distance_m": 3719.4,
+      "length_m": 126.1,
+      "total_angle_deg": 73.1,
+      "direction": "right",
+      "estimated_radius_m": 71.3,
+      "cmr2_kind": "four",
+      "caution": "care",
+      "call_word_hex": "0x00a00463",
+      "call_index": 40,
+      "speech_slots": [
+        14,
+        26,
+        10,
+        29,
+        3,
+        9
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=71.3m, ángulo=73.1 deg, longitud=126.1m.",
+        "Portal de aviso asignado en nodo 348 a 3666.5m (52.9m de anticipación).",
+        "Longitud de curva sostenida (126.1m >= 80m): calificada como 'long'.",
+        "Intersección/barrera identificada en calzada (sign_hardturnright02 a +5.1m): 'turn'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_41",
+      "start_node": 364,
+      "end_node": 378,
+      "advisory_gate_node": 359,
+      "route_distance_m": 3835.3,
+      "length_m": 146.3,
+      "total_angle_deg": 96.2,
+      "direction": "left",
+      "estimated_radius_m": 53.4,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00000854",
+      "call_index": 41,
+      "speech_slots": [
+        14,
+        28,
+        2,
+        8
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=53.4m, ángulo=96.2 deg, longitud=146.3m.",
+        "Portal de aviso asignado en nodo 359 a 3783.6m (51.8m de anticipación).",
+        "Longitud de curva extendida (146.3m >= 135m): calificada como 'verylong'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_42",
+      "start_node": 378,
+      "end_node": 393,
+      "advisory_gate_node": 373,
+      "route_distance_m": 3981.6,
+      "length_m": 156.2,
+      "total_angle_deg": 92.4,
+      "direction": "right",
+      "estimated_radius_m": 67.8,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00049963",
+      "call_index": 42,
+      "speech_slots": [
+        18,
+        28,
+        3,
+        9,
+        12,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=67.8m, ángulo=92.4 deg, longitud=156.2m.",
+        "Portal de aviso asignado en nodo 373 a 3928.7m (52.9m de anticipación).",
+        "Longitud de curva extendida (156.2m >= 135m): calificada como 'verylong'.",
+        "Radio decreciente en ápice (R_in=233m -> R_out=65m): 'tightens'.",
+        "Cambio convexo de rasante en nodo 394 (+22.0% -> +18.4%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_43",
+      "start_node": 401,
+      "end_node": 405,
+      "advisory_gate_node": 396,
+      "route_distance_m": 4220.7,
+      "length_m": 41.7,
+      "total_angle_deg": 28.9,
+      "direction": "left",
+      "estimated_radius_m": 65.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00001113",
+      "call_index": 43,
+      "speech_slots": [
+        17,
+        3,
+        8,
+        12
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=65.3m, ángulo=28.9 deg, longitud=41.7m.",
+        "Portal de aviso asignado en nodo 396 a 4169.1m (51.6m de anticipación).",
+        "Radio decreciente en ápice (R_in=285m -> R_out=61m): 'tightens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_44",
+      "start_node": 410,
+      "end_node": 417,
+      "advisory_gate_node": 405,
+      "route_distance_m": 4315.0,
+      "length_m": 73.9,
+      "total_angle_deg": 24.6,
+      "direction": "right",
+      "estimated_radius_m": 130.1,
+      "cmr2_kind": "six",
+      "caution": "none",
+      "call_word_hex": "0x00002061",
+      "call_index": 44,
+      "speech_slots": [
+        14,
+        5,
+        9,
+        11
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=130.1m, ángulo=24.6 deg, longitud=73.9m.",
+        "Portal de aviso asignado en nodo 405 a 4262.4m (52.6m de anticipación).",
+        "Radio creciente en salida (R_in=124m -> R_out=217m): 'opens'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_45",
+      "start_node": 417,
+      "end_node": 430,
+      "advisory_gate_node": 412,
+      "route_distance_m": 4388.9,
+      "length_m": 136.5,
+      "total_angle_deg": 75.2,
+      "direction": "left",
+      "estimated_radius_m": 79.3,
+      "cmr2_kind": "four",
+      "caution": "none",
+      "call_word_hex": "0x00048893",
+      "call_index": 45,
+      "speech_slots": [
+        15,
+        28,
+        3,
+        8,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=79.3m, ángulo=75.2 deg, longitud=136.5m.",
+        "Portal de aviso asignado en nodo 412 a 4335.3m (53.6m de anticipación).",
+        "Longitud de curva extendida (136.5m >= 135m): calificada como 'verylong'.",
+        "Cambio convexo de rasante en nodo 430 (+15.7% -> +7.9%): 'over crest'."
+      ]
+    },
+    {
+      "curve_id": "SW1_CURVE_46",
+      "start_node": 432,
+      "end_node": 443,
+      "advisory_gate_node": 427,
+      "route_distance_m": 4546.8,
+      "length_m": 115.3,
+      "total_angle_deg": 78.4,
+      "direction": "right",
+      "estimated_radius_m": 54.5,
+      "cmr2_kind": "three",
+      "caution": "none",
+      "call_word_hex": "0x00048424",
+      "call_index": 46,
+      "speech_slots": [
+        10,
+        2,
+        9,
+        23,
+        24
+      ],
+      "confidence": "high",
+      "review_status": "reviewed",
+      "evidence": [
+        "Medida geométrica 3D: R=54.5m, ángulo=78.4 deg, longitud=115.3m.",
+        "Portal de aviso asignado en nodo 427 a 4493.0m (53.8m de anticipación).",
+        "Longitud de curva sostenida (115.3m >= 80m): calificada como 'long'.",
+        "Cambio convexo de rasante en nodo 430 (+15.7% -> +7.9%): 'over crest'."
+      ]
+    }
+  ]
+}
