@@ -20,6 +20,7 @@ func run() -> void:
 	await test_rally_event_itinerary_slicing()
 	await test_single_stage_and_championship_isolation()
 	await test_stage_session_setup_and_freeze()
+	await test_menu_to_garage_music_flow()
 
 	print("RALLY_MANIAC_MENU_CONTRACT ", "PASS" if failures.is_empty() else failures)
 	quit(0 if failures.is_empty() else 1)
@@ -276,3 +277,59 @@ func test_stage_session_setup_and_freeze() -> void:
 
 		session_scene.queue_free()
 		await process_frame
+
+
+func test_menu_to_garage_music_flow() -> void:
+	print("[7] Comprobando que el tema del menú sigue en garaje-reglajes (con corte y reinicio)...")
+	var menu_scene = load("res://scenes/rally/rally_maniac_menu.tscn").instantiate()
+	root.add_child(menu_scene)
+	current_scene = menu_scene
+	await process_frame
+	await process_frame
+
+	var music = root.get_node_or_null("RallyMusic")
+	check(music != null, "Nodo RallyMusic debe existir en /root")
+	if music != null:
+		check(music.is_playing_menu_music(), "La música del menú debe estar reproduciéndose en el primer menú")
+		check(music.menu_stream is AudioStreamMP3 and (music.menu_stream as AudioStreamMP3).loop, "El stream del menú debe ser AudioStreamMP3 con loop activo")
+
+		# Navegar a stage_select, car_select y weather_select: la música debe seguir sonando
+		menu_scene.show_stage_select()
+		await process_frame
+		check(music.is_playing_menu_music(), "La música debe seguir sonando en el selector de tramo")
+
+		menu_scene.show_car_select()
+		await process_frame
+		check(music.is_playing_menu_music(), "La música debe seguir sonando en el selector de vehículo")
+
+		menu_scene.show_weather_select()
+		await process_frame
+		check(music.is_playing_menu_music(), "La música debe seguir sonando en el selector de clima")
+
+	menu_scene.queue_free()
+	await process_frame
+
+	# Ahora entrar a una sesión que abre garaje-reglajes
+	var session_scene = load("res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn").instantiate()
+	session_scene.track_id = "russia_stage1"
+	session_scene.session_track_id = "russia_stage1"
+	session_scene.session_mode = "single_stage"
+	session_scene.selected_vehicle_key = "escort"
+	session_scene.practice_mode = true
+	session_scene.weather_enabled = false
+	root.add_child(session_scene)
+	current_scene = session_scene
+
+	for i in 300:
+		await physics_frame
+		if session_scene.session_ready:
+			break
+
+	if music != null:
+		check(music.is_playing_menu_music(), "La música del menú debe seguir en garaje-reglajes (mismo tema, con corte y reinicio)")
+		check(music.menu_player.playing and music.menu_player.stream == music.menu_stream, "Garaje-reglajes debe sonar con menu_theme.mp3")
+		check(music.current_context == "garage", "El contexto de música debe ser 'garage' al abrir garaje-reglajes")
+
+	session_scene.queue_free()
+	await process_frame
+

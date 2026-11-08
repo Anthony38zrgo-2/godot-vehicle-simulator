@@ -1057,9 +1057,8 @@ func _connect_garage_panel() -> void:
 func _open_setup_window() -> void:
 	if garage_panel == null:
 		return
-	var music := get_node_or_null("/root/RallyMusic")
-	if music != null and music.has_method("on_enter_garage"):
-		music.call("on_enter_garage")
+	# La música la dispara cada panel (garaje -> on_enter_garage,
+	# servicio -> on_enter_service) para evitar doble reinicio en el mismo frame.
 	if not practice_mode and event_manager != null:
 		var window: Dictionary = event_manager.get_pending_window()
 		if window.is_empty():

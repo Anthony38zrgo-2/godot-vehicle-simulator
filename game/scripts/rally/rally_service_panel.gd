@@ -5,6 +5,10 @@ const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const FONT_REGULAR: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
 const FONT_DATA: Font = preload("res://fonts/D-DIN.ttf")
 const FONT_DATA_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const BG_IMAGE_PATHS: Array[String] = [
+	"res://assets/rally/garage/service_repairs_bg.jpg",
+	"res://assets/rally/garage/service_repairs_bg_2.jpg"
+]
 
 const WB_BG_SHELL := Color("#090e15")
 const WB_BG_CONTENT := Color("#1a2636")
@@ -39,7 +43,30 @@ var limit_minutes := 30.0
 var penalty_per_minute := 10
 var window_key := ""
 
+func _load_bg_texture() -> Texture2D:
+	if BG_IMAGE_PATHS.is_empty():
+		return null
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var path: String = BG_IMAGE_PATHS[rng.randi_range(0, BG_IMAGE_PATHS.size() - 1)]
+	if ResourceLoader.exists(path):
+		var tex := load(path) as Texture2D
+		if tex != null:
+			return tex
+	if FileAccess.file_exists(path):
+		var img := Image.load_from_file(ProjectSettings.globalize_path(path))
+		if img != null and not img.is_empty():
+			return ImageTexture.create_from_image(img)
+	return null
+
 func open(car, event_manager, window: Dictionary) -> void:
+	var music := get_node_or_null("/root/RallyMusic")
+	if music != null and music.has_method("on_enter_service"):
+		music.call("on_enter_service")
+	elif music != null and music.has_method("on_enter_garage"):
+		music.call("on_enter_garage")
+	elif music != null and music.has_method("play_menu_music"):
+		music.call("play_menu_music")
 	vehicle = car
 	manager = event_manager
 	window_key = str(window.get("window_key", ""))
@@ -48,8 +75,17 @@ func open(car, event_manager, window: Dictionary) -> void:
 	layer = 110
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	var bg_rect := TextureRect.new()
+	bg_rect.name = "BackgroundImage"
+	bg_rect.texture = _load_bg_texture()
+	bg_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg_rect)
+
 	var shade := ColorRect.new()
-	shade.color = Color(0.04, 0.06, 0.09, 0.92)
+	shade.color = Color(0.04, 0.06, 0.09, 0.48)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 
@@ -60,7 +96,7 @@ func open(car, event_manager, window: Dictionary) -> void:
 	modal_card.offset_top = 32
 	modal_card.offset_bottom = -32
 	var card_sb := StyleBoxFlat.new()
-	card_sb.bg_color = WB_BG_CONTENT
+	card_sb.bg_color = Color(WB_BG_CONTENT.r, WB_BG_CONTENT.g, WB_BG_CONTENT.b, 0.65)
 	card_sb.border_color = WB_BORDER_SUBTLE
 	card_sb.set_border_width_all(1)
 	card_sb.set_corner_radius_all(6)

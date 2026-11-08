@@ -738,6 +738,10 @@ func present(state: Dictionary, viewport_size: Vector2) -> void:
 		return
 	last_signature = signature
 	if results.visible:
+		# Competición/resultados usa el tema del menú (sin fade, con corte).
+		var _rm := get_node_or_null("/root/RallyMusic")
+		if _rm != null and _rm.has_method("on_enter_results"):
+			_rm.call("on_enter_results")
 		_present_results(state)
 	queue_redraw()
 
