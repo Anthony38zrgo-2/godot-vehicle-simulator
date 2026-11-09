@@ -155,11 +155,8 @@ var compound_change_allowed := true
 var draft_wheel_compounds: Dictionary = { }
 var draft_compound_id: String:
 	get:
-		var wet_count := 0
-		for c in draft_wheel_compounds.values():
-			if c == "gravel_wet":
-				wet_count += 1
-		return "gravel_wet" if wet_count >= 2 else "gravel_normal"
+		# Legacy event summary; mounted wheels remain the source of truth.
+		return str(draft_wheel_compounds.get("FL", RallyTireCompound.DEFAULT_ID))
 	set(value):
 		for corner in ["FL", "FR", "RL", "RR"]:
 			draft_wheel_compounds[corner] = value
@@ -335,12 +332,8 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 			_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 			return
 		vehicle.service_tire_inventory(draft_wheel_compounds, draft_spare_wheels, new_tires_service)
-		var wet_count := 0
-		for compound in draft_wheel_compounds.values():
-			if compound == "gravel_wet":
-				wet_count += 1
 		confirmed_setup = {
-			"compound_id": "gravel_wet" if wet_count >= 2 else "gravel_normal",
+			"compound_id": draft_compound_id,
 			"values": draft_values.duplicate(true),
 		}
 	else:
@@ -561,9 +554,10 @@ func _handle_click(point: Vector2) -> void:
 			"compound":
 				if compound_change_allowed:
 					var corner: String = str(region.corner)
-					draft_wheel_compounds[corner] = "gravel_wet" if draft_wheel_compounds.get(
-						corner
-					) == "gravel_normal" else "gravel_normal"
+					var ids := _available_compound_ids()
+					if not ids.is_empty():
+						var current := ids.find(str(draft_wheel_compounds.get(corner, "")))
+						draft_wheel_compounds[corner] = str(ids[(current + 1) % ids.size()])
 			"spares":
 				draft_spare_wheels = posmod(draft_spare_wheels + int(region.get("delta", 1)), 3)
 			"tab":
@@ -1403,53 +1397,49 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 	_hit_regions.append({ "rect": Rect2(track_x - 6, rect.position.y + 27, track_w + 12, 23), "kind": "select", "path": key })
 
 
+func _available_compound_ids() -> Array:
+	return RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())
+
+
+func _compound_label(compound_id: String, short: bool = false) -> String:
+	var info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), compound_id)
+	return str(info.get("short_label" if short else "label", compound_id))
+
+
+func _all_compound(compound_id: String) -> bool:
+	for corner in ["FL", "FR", "RL", "RR"]:
+		if str(draft_wheel_compounds.get(corner, "")) != compound_id:
+			return false
+	return true
+
+
+func _compound_summary() -> String:
+	var first := draft_compound_id
+	return _compound_label(first, true) if _all_compound(first) else "MIXTO"
+
+
 func _draw_compound_group(rect: Rect2) -> void:
 	_group(rect, "COMPUESTO")
-	var dry_rect := Rect2(52, 548, 340, 24)
-	var wet_rect := Rect2(52, 578, 340, 24)
-	_radio(dry_rect, "GRAVA SECA  —  agarre alto en seco", _all_dry())
-	_radio(wet_rect, "GRAVA MOJADA  —  drenaje, menos grip", _all_wet())
-	if compound_change_allowed:
-		_hit_regions.append({ "rect": dry_rect, "kind": "all_compound", "compound": "gravel_normal" })
-		_hit_regions.append({ "rect": wet_rect, "kind": "all_compound", "compound": "gravel_wet" })
-
-	draw_line(Vector2(52, 611), Vector2(392, 611), BORDER_SUBTLE, 1.0)
-	_hint(_box(52, 618, 340, 18), "SE APLICA A LOS CUATRO NEUMÁTICOS")
+	var ids := _available_compound_ids()
+	var rows := maxi(1, ceili(float(ids.size()) / 2.0))
+	for i in ids.size():
+		var column := floori(float(i) / float(rows))
+		var r := i % rows
+		var option_rect := Rect2(52 + column * 365, 548 + r * 30, 340, 25)
+		var cid := str(ids[i])
+		_radio(option_rect, _compound_label(cid).to_upper(), _all_compound(cid))
+		if compound_change_allowed:
+			_hit_regions.append({"rect": option_rect, "kind": "all_compound", "compound": cid})
+	_hint(_box(52, 639, 730, 17), "APLICAR A LAS CUATRO RUEDAS · AJUSTE INDIVIDUAL EN AVANZADO")
 	if not compound_change_allowed:
-		_hint(_box(52, 636, 340, 18), "BLOQUEADO POR EL EVENTO")
-
-	var memo := Rect2(420, 548, 412, 106)
-	draw_rect(memo, C_FIELD)
-	_sunken(memo)
-	_text(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "EL COMPUESTO CAMBIA:", 9, C_GOLD, true)
-	_text(_box(memo.position.x + 10, memo.position.y + 28, memo.size.x - 20, 18), "· REPARTO DE AGARRE", 9, C_DIM)
-	_text(_box(memo.position.x + 10, memo.position.y + 44, memo.size.x - 20, 18), "· TEMPERATURA DE TRABAJO", 9, C_DIM)
-	_text(_box(memo.position.x + 10, memo.position.y + 60, memo.size.x - 20, 18), "· DESGASTE POR VUELTA", 9, C_DIM)
-	_text(
-		_box(memo.position.x + 10, memo.position.y + 84, memo.size.x - 20, 18),
-		"MOJADO PIERDE GRIP EN SECO. SECO PIERDE DRENAJE.",
-		9,
-		C_TEXT
-	)
-
-
-func _all_dry() -> bool:
-	var wet := 0
-	for compound in draft_wheel_compounds.values():
-		if compound == "gravel_wet":
-			wet += 1
-	return wet < 2
-
-
-func _all_wet() -> bool:
-	return not _all_dry()
+		_hint(_box(52, 620, 340, 17), "BLOQUEADO POR EL EVENTO")
 
 
 func _draw_state_group(rect: Rect2) -> void:
 	_group(rect, "ESTADO DEL COCHE")
 	var rows := [
 		{"k": "MASA", "v": "%0.0f kg" % _vehicle_mass()},
-		{"k": "COMPUESTO", "v": "MOJADO" if _all_wet() else "SECO", "numeric": false},
+		{"k": "COMPUESTO", "v": _compound_summary(), "numeric": false},
 		{"k": "COMBUSTIBLE", "v": "%0.1f L" % (float(draft_values.get("fuel.initial_kg", 0.0)) / _fuel_density())},
 		{"k": "PRESIÓN MEDIA", "v": "%0.0f kPa" % _average_pressure()},
 		{"k": "TEMP. MEDIA", "v": "%0.0f °C" % _average_temperature()},
@@ -1664,14 +1654,13 @@ func _draw_wheels_section() -> void:
 	var row_h := floorf(inner.size.y / 4.0)
 	for i in 4:
 		var rect := Rect2(inner.position.x, inner.position.y + float(i) * row_h, inner.size.x, row_h)
-		var wet: bool = draft_wheel_compounds.get(codes[i]) == "gravel_wet"
+		var cid := str(draft_wheel_compounds.get(codes[i], ""))
 		_row_frame(rect, false, i == 3, _mouse_over(rect))
 		_text(_box(rect.position.x + 12, rect.position.y, 90, row_h), codes[i], 13, C_TEXT, true)
-		_hint(_box(rect.position.x + 52, rect.position.y, 180, row_h), "GRAVA MOJADA" if wet else "GRAVA SECA")
+		_hint(_box(rect.position.x + 52, rect.position.y, 180, row_h), _compound_label(cid))
 		_toggle(
 			Rect2(rect.end.x - 132, rect.position.y + (row_h - 30.0) * 0.5, 120, 30),
-			"MOJADO" if wet else "SECO",
-			wet
+			"CAMBIAR", true
 		)
 		_hit_regions.append({ "rect": rect, "kind": "compound", "corner": codes[i] })
 
@@ -1923,7 +1912,7 @@ func _draw_strategy_page() -> void:
 		)
 		draw_rect(card, C_FACE_LO)
 		_sunken(card)
-		var wet: bool = draft_wheel_compounds.get(codes[i]) == "gravel_wet"
+		var cid := str(draft_wheel_compounds.get(codes[i], ""))
 		_text(_box(card.position.x + 12, card.position.y + 8, 70, 22), codes[i], 15, C_TEXT, true)
 		_text(
 			_box(card.position.x, card.position.y + 10, card.size.x - 12, 18),
@@ -1958,7 +1947,7 @@ func _draw_strategy_page() -> void:
 			false
 		)
 		var toggle := Rect2(card.position.x + 12, card.end.y - 44, card.size.x - 24, 32)
-		_toggle(toggle, "MOJADO" if wet else "SECO", wet)
+		_toggle(toggle, _compound_label(cid, true), true)
 		_hit_regions.append({ "rect": toggle, "kind": "compound", "corner": codes[i] })
 
 
