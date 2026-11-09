@@ -28,29 +28,29 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "5d5ee3e88f54f66669b4949c4ac93ee0c4e00e3a29c116a85497c5e81e992f2a",
-    "size_bytes": 1214988
+    "sha256": "ee2e747a4c0ccc846463e85b1a13a63b6d588006addbc50b471498170c16e8e3",
+    "size_bytes": 1239840
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "48dff769a2c2b07e2408090748e7ca68e8c55bfaeda695e24510ea842931ffe7",
-      "size_bytes": 64884
+      "sha256": "59c75cc72dd6c39fc418e1b691c626a555fe682be99af4719dcfa4acb15a7a97",
+      "size_bytes": 64920
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "2d7fe1e8d5e118d4c311f968094f642382ff8d5654002adfc263b11006e6cdc6",
-      "size_bytes": 64880
+      "sha256": "701603d831740711e3655d5b4711fbc663e3149593a9262ca5ce3b8fe67b7cae",
+      "size_bytes": 64920
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "723b32d93920b3117f7b2f104782940c820182030b90cf07e3e1dcd4d91d1f95",
-      "size_bytes": 64884
+      "sha256": "cb0950961eeda7b48df3c178d25477d0d71f71ff099884feb888f252d3e59c9f",
+      "size_bytes": 64920
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "dc8451d3e89deae5684e5e329049aa66df039ec166382b345e3479593b8baf09",
-      "size_bytes": 64880
+      "sha256": "c4523b93442ae245296b7dfc8d2f795ab30978a2eb9762f8f795d53a390e6fb5",
+      "size_bytes": 64920
     }
   },
   "wheel_pivots": {
@@ -114,7 +114,7 @@
         "sha256": "af380b118896df5661d9530962bb7260c48ebe9f1c2a1281fbabd8d8e01c29c8"
       },
       "damage/damage.glb": {
-        "sha256": "42f285334c8bc10679f0378c504a280d69f158c7b509c9166053ae0effbfd138"
+        "sha256": "a4ee120c22142e8a548241a44102b4d3ccf42c6adeb6ef9e2df791f5edf4692e"
       }
     }
   },

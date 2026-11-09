@@ -34,23 +34,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "9f303cf7880c96cc4e17e06fcd8d22b86cd366c2bb9fd6847ab1c1aa16cd229a",
-      "size_bytes": 67748
+      "sha256": "2e937f4aad6ebcef22369e19c631062bac5f171b338dbce2249771fe1438749c",
+      "size_bytes": 67784
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "d31e02cc8f2b2e7ee0060476718a1e3aef90385d578dba92273511095d5d8bc6",
-      "size_bytes": 67748
+      "sha256": "ff42a7f111e7f852fcf6d2133b791b4e168b6bfc00bc320c9176096f45328948",
+      "size_bytes": 67784
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "44e4b2ea54838784587c53000362260c7f9508ecedec3e0bc29349e7a6dc9ebc",
-      "size_bytes": 67744
+      "sha256": "993911634280c37bc7b84a00dcf6df7f3b40727823d75c70cd37d36fbf2b2148",
+      "size_bytes": 67780
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "009895c5a75d83369fe55df49aa7c9093b74fc0ff4a7b7ba339f0c5c904f1ca6",
-      "size_bytes": 67740
+      "sha256": "e4bb9956e7f1cc9dbe52b19b1496294a39cecf4e04b1d8acdd82b0f4999f5265",
+      "size_bytes": 67780
     }
   },
   "wheel_pivots": {
