@@ -164,8 +164,7 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	}
 	active_profile_id = str(loaded.get("profile_id", ""))
 	_apply_default_differential_preset()
-	setup_design_values = RallySetupCatalog.defaults(domains)
-	setup_design_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
+	setup_design_values = filter_garage_values(RallySetupCatalog.defaults(domains))
 	_capture_setup_design()
 	set_compound(active_compound_id)
 	return {
@@ -257,6 +256,28 @@ func active_differential_profile() -> String:
 	return str(profile.get("vehicle_identifier", ""))
 
 
+## Modo dual de diferencial (v1):
+## historic = presets de catálogo (solo si el perfil está cubierto);
+## modern (defecto) = LSD autoblocante moderno totalmente configurable.
+func is_historic_differential() -> bool:
+	if RallyDifferentialCatalog.differential_mode() != RallyDifferentialCatalog.MODE_HISTORIC:
+		return false
+	return not RallyDifferentialCatalog.list_for_profile(active_differential_profile()).is_empty()
+
+
+## Conjunto de valores apto para garaje/snapshots/fábrica según el modo:
+## historic cubierto = preset + sin números libres; resto = números + sin preset.
+func filter_garage_values(values: Dictionary) -> Dictionary:
+	var out := values.duplicate(true)
+	if is_historic_differential():
+		for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
+			out.erase(legacy_path)
+		out[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
+	else:
+		out.erase(DIFFERENTIAL_PRESET_PATH)
+	return out
+
+
 func _base_differential_mu() -> Dictionary:
 	return {
 		"power": float(powertrain_model.base_differential_power_ratio),
@@ -280,10 +301,10 @@ func _sync_differential_to_domains(target_domains: Dictionary, resolved: Diction
 
 
 func _apply_default_differential_preset() -> void:
+	if not is_historic_differential():
+		return
 	var pid := active_differential_profile()
 	if pid.is_empty():
-		return
-	if RallyDifferentialCatalog.list_for_profile(pid).is_empty():
 		return
 	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
 	var differential: Dictionary = powertrain.get("differential", {})
@@ -304,19 +325,21 @@ func _apply_default_differential_preset() -> void:
 
 
 func apply_setup_values(values: Dictionary) -> Dictionary:
-	# Decisión v1.4/5: validar todo antes de mutar; el perfil activo nunca
-	# sale del payload. El preset_id es la única selección editable.
+	# Modo dual v1: historic = presets de catálogo (validación estricta);
+	# modern (defecto) = LSD autoblocante moderno libre (números directos).
+	# El perfil activo nunca sale del payload.
+	var historic := is_historic_differential()
 	var pid := active_differential_profile()
-	var catalog_covers := not RallyDifferentialCatalog.list_for_profile(pid).is_empty()
-	for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
-		if values.has(legacy_path) and catalog_covers:
-			return {
-				"ok": false,
-				"error": "Reglaje de diferencial antiguo incompatible: use el preset " + DIFFERENTIAL_PRESET_PATH + " o restaure fábrica.",
-			}
+	if historic:
+		for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
+			if values.has(legacy_path):
+				return {
+					"ok": false,
+					"error": "Reglaje de diferencial antiguo incompatible: use el preset " + DIFFERENTIAL_PRESET_PATH + " o restaure fábrica.",
+				}
 	var incoming := values.duplicate(true)
 	var requested_preset: Variant = null
-	if incoming.has(DIFFERENTIAL_PRESET_PATH):
+	if historic and incoming.has(DIFFERENTIAL_PRESET_PATH):
 		var requested: Variant = incoming[DIFFERENTIAL_PRESET_PATH]
 		if not requested is String or (requested as String).is_empty():
 			return {
@@ -324,7 +347,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 				"error": "preset_id inválido.",
 			}
 		requested_preset = incoming[DIFFERENTIAL_PRESET_PATH]
-		incoming.erase(DIFFERENTIAL_PRESET_PATH)
+	incoming.erase(DIFFERENTIAL_PRESET_PATH)
 	var validation := RallySetupCatalog.validate(incoming)
 	if not bool(validation.get("ok", false)):
 		return validation
@@ -335,7 +358,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	)
 	# Resolver preset (solicitado > activo > defecto) sin mutar estado.
 	var resolved_preset: Dictionary = {}
-	if catalog_covers:
+	if historic:
 		var wanted := ""
 		if requested_preset is String and not (requested_preset as String).is_empty():
 			wanted = str(requested_preset)
@@ -358,16 +381,19 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	var applied := RallySetupCatalog.apply(staging, effective_values)
 	if not bool(applied.get("ok", false)):
 		return applied
-	if catalog_covers:
+	if historic:
 		_sync_differential_to_domains(staging, resolved_preset)
 	# Commit: a partir de aquí el runtime se sincroniza desde staging.
 	domains = staging
-	if catalog_covers:
+	if historic:
 		var runtime := powertrain_model.apply_differential_preset(resolved_preset)
 		if not bool(runtime.get("ok", false)):
 			return runtime
 		active_differential_preset_id = str(resolved_preset.get("preset_id", ""))
 		effective_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
+	else:
+		# Modern: sin preset activo; el solver usa los números libres.
+		active_differential_preset_id = ""
 	var fuel: Dictionary = domains.get("fuel", { }).get("fuel", { })
 	var fuel_kg := clampf(
 		float(fuel.get("initial_kg", mass_model.fuel_initial_kg)),

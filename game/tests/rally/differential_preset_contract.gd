@@ -67,8 +67,18 @@ func run_model_checks() -> void:
 
 
 func run_setup_catalog_checks() -> void:
-	var legacy := RallySetupCatalog.validate({"powertrain.differential.preload_nm": 55.0})
-	check(not bool(legacy.get("ok", false)) and str(legacy.get("error", "")).to_lower().contains("incompatible"), "legacy diff rejected as incompatible")
+	# Modo modern (defecto): los 4 números del LSD libre vuelven a existir
+	# como campos numéricos (ya no se rechazan como "incompatible").
+	for path in [
+		"powertrain.differential.preload_nm",
+		"powertrain.differential.power_ramp_angle_deg",
+		"powertrain.differential.coast_ramp_angle_deg",
+		"powertrain.differential.clutches",
+	]:
+		check(not RallySetupCatalog.field_for_path(path).is_empty(), "modern exposes " + path)
+	var partial := RallySetupCatalog.validate({"powertrain.differential.preload_nm": 55.0})
+	check(not bool(partial.get("ok", false)) and not str(partial.get("error", "")).to_lower().contains("incompatible"), "no incompatible rejection in modern")
+	check(RallyDifferentialCatalog.differential_mode() == RallyDifferentialCatalog.MODE_MODERN, "modern is default")
 
 
 func diff_state(vehicle: Node) -> String:
@@ -124,6 +134,34 @@ func run_vehicle_checks(vehicle: Node) -> void:
 	check(vehicle.simulation.active_differential_preset_id == "escort_asfalto", "absent field keeps active")
 
 
+func run_modern_checks(vehicle: Node) -> void:
+	RallyDifferentialCatalog.set_mode_override(RallyDifferentialCatalog.MODE_MODERN)
+	check(not vehicle.simulation.is_historic_differential(), "modern disables catalog")
+	# Números libres aceptados, como antes de los presets.
+	var payload = vehicle.simulation.filter_garage_values(RallySetupCatalog.defaults(vehicle.simulation.domains))
+	check(payload.has("powertrain.differential.preload_nm"), "modern draft has free fields")
+	check(not payload.has("powertrain.differential.preset_id"), "modern draft has no preset")
+	payload["powertrain.differential.preload_nm"] = 40.0
+	payload["powertrain.differential.power_ramp_angle_deg"] = 35.0
+	payload["powertrain.differential.coast_ramp_angle_deg"] = 65.0
+	payload["powertrain.differential.clutches"] = 6.0
+	var result = vehicle.apply_setup_values(payload)
+	check(bool(result.get("ok", false)), "free LSD applies")
+	check(vehicle.simulation.active_differential_preset_id == "", "no active preset in modern")
+	var pm = vehicle.simulation.powertrain_model
+	check(pm.differential_preload_nm == 40.0, "free preload 40 applied")
+	check(pm.differential_power_ramp_angle_deg == 35.0 and pm.differential_coast_ramp_angle_deg == 65.0, "free ramps applied")
+	check(pm.differential_clutches == 6.0, "free clutches applied")
+	# preset_id presente se ignora en modern: manda el LSD libre.
+	var ignored = vehicle.simulation.filter_garage_values(RallySetupCatalog.defaults(vehicle.simulation.domains))
+	ignored["powertrain.differential.preset_id"] = "escort_tierra"
+	ignored["powertrain.differential.preload_nm"] = 50.0
+	var ignored_result = vehicle.apply_setup_values(ignored)
+	check(bool(ignored_result.get("ok", false)), "preset ignored in modern")
+	check(vehicle.simulation.powertrain_model.differential_preload_nm == 50.0, "free value wins in modern")
+	check(vehicle.simulation.active_differential_preset_id == "", "still no active preset")
+
+
 func _initialize() -> void:
 	call_deferred("run")
 
@@ -132,6 +170,9 @@ func run() -> void:
 	run_catalog_checks()
 	run_model_checks()
 	run_setup_catalog_checks()
+	# La parte de vehículo se prueba en historic; el modo por defecto
+	# del juego es modern y se cubre después en run_modern_checks.
+	RallyDifferentialCatalog.set_mode_override(RallyDifferentialCatalog.MODE_HISTORIC)
 	var scene = load("res://scenes/rally/rally_proving_ground.tscn").instantiate()
 	root.add_child(scene)
 	current_scene = scene
@@ -144,5 +185,7 @@ func run() -> void:
 		check(false, "proving ground vehicle ready")
 	else:
 		run_vehicle_checks(vehicle)
+		run_modern_checks(vehicle)
+	RallyDifferentialCatalog.set_mode_override(RallyDifferentialCatalog.MODE_MODERN)
 	print("DIFFERENTIAL_PRESET_CONTRACT ", "PASS" if failures.is_empty() else "FAIL")
 	quit(0 if failures.is_empty() else 1)

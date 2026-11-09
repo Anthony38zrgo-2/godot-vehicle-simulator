@@ -130,6 +130,13 @@ const POWERTRAIN_PATHS: Array[String] = [
 const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
 # preload directo: no depende de la caché global de clases del editor.
 const RallyDifferentialCatalog = preload("res://scripts/rally/rally_differential_catalog.gd")
+# Modo modern: LSD libre con los 4 números (como antes de los presets).
+const MODERN_DIFFERENTIAL_PATHS: Array[String] = [
+	"powertrain.differential.preload_nm",
+	"powertrain.differential.power_ramp_angle_deg",
+	"powertrain.differential.coast_ramp_angle_deg",
+	"powertrain.differential.clutches",
+]
 const STRATEGY_PATHS: Array[String] = ["fuel.initial_kg"]
 
 @export var vehicle_path: NodePath
@@ -263,12 +270,11 @@ func open_garage() -> void:
 		return
 	_restore_tree_paused = get_tree().paused
 	_restore_controls_enabled = input_controller.controls_enabled if input_controller != null else true
-	opening_values = RallySetupCatalog.defaults(vehicle.simulation.domains)
+	opening_values = vehicle.simulation.filter_garage_values(RallySetupCatalog.defaults(vehicle.simulation.domains))
 	opening_values["fuel.initial_kg"] = vehicle.simulation.thermal_model.fuel_remaining_litres * vehicle \
 			.simulation \
 			.mass_model \
 			.fuel_density_kg_per_litre
-	opening_values[DIFFERENTIAL_PRESET_PATH] = vehicle.simulation.active_differential_preset_id
 	draft_values = opening_values.duplicate(true)
 	vehicle.ensure_tire_inventory()
 	draft_wheel_compounds.clear()
@@ -613,7 +619,10 @@ func _set_page(next_page: int) -> void:
 					source = WHEELS_PATHS
 				_:
 					source = POWERTRAIN_PATHS.duplicate()
-					source.append(DIFFERENTIAL_PRESET_PATH)
+					if is_instance_valid(vehicle) and vehicle.simulation.is_historic_differential():
+						source.append(DIFFERENTIAL_PRESET_PATH)
+					else:
+						source.append_array(MODERN_DIFFERENTIAL_PATHS)
 		2:
 			source = STRATEGY_PATHS
 	for path in source:
@@ -985,8 +994,9 @@ func _load_selected_setup() -> void:
 		_show_notice(str(validation.get("error", "Incompatible.")), true)
 		return
 	var to_apply: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
-	if has_stored_preset:
+	if has_stored_preset and vehicle.simulation.is_historic_differential():
 		to_apply[DIFFERENTIAL_PRESET_PATH] = stored_preset
+	# En modo modern el preset guardado se ignora: manda el LSD libre.
 	var applied := vehicle.apply_setup_values(to_apply)
 	if not bool(applied.get("ok", false)):
 		_show_notice(str(applied.get("error", "Error al aplicar.")), true)
@@ -1692,17 +1702,32 @@ func _draw_powertrain_section() -> void:
 		]
 	)
 
-	_group(Rect2(652, 200, 592, 240), "DIFERENCIAL — TIPO / CONFIGURACIÓN")
-	_draw_differential_preset_row(Rect2(652, 200, 592, 240))
+	if is_instance_valid(vehicle) and vehicle.simulation.is_historic_differential():
+		_group(Rect2(652, 200, 592, 240), "DIFERENCIAL — TIPO / CONFIGURACIÓN")
+		_draw_differential_preset_row(Rect2(652, 200, 592, 240))
 
-	_group(Rect2(652, 452, 592, 118), "DIRECCIÓN")
-	_field_rows(
-		Rect2(652, 452, 592, 118),
-		[
-			{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
-			{"p": "steering.steering_speed", "l": "Velocidad de giro"},
-		]
-	)
+		_group(Rect2(652, 452, 592, 118), "DIRECCIÓN")
+		_field_rows(
+			Rect2(652, 452, 592, 118),
+			[
+				{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
+				{"p": "steering.steering_speed", "l": "Velocidad de giro"},
+			]
+		)
+	else:
+		# Modo modern: LSD autoblocante moderno con los 4 números libres.
+		_group(Rect2(652, 200, 592, 322), "DIFERENCIAL Y DIRECCIÓN")
+		_field_rows(
+			Rect2(652, 200, 592, 322),
+			[
+				{"p": "powertrain.differential.preload_nm", "l": "Precarga"},
+				{"p": "powertrain.differential.power_ramp_angle_deg", "l": "Rampa de aceleración"},
+				{"p": "powertrain.differential.coast_ramp_angle_deg", "l": "Rampa de retención"},
+				{"p": "powertrain.differential.clutches", "l": "Paquetes de discos"},
+				{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
+				{"p": "steering.steering_speed", "l": "Velocidad de giro"},
+			]
+		)
 
 	_draw_gear_chart(Rect2(36, 582, 1208, 92))
 

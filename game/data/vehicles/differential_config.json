@@ -1,0 +1,5 @@
+{
+  "differential_mode": "modern",
+  "mode_description": "modern = LSD autoblocante moderno totalmente configurable (precarga, rampas y discos libres, como antes de los presets). historic = presets historicos por vehiculo desde data/vehicles/differential_presets.json (seleccion discreta, sin mezcla libre).",
+  "valid_values": ["modern", "historic"]
+}

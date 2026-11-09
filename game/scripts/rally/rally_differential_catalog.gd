@@ -11,6 +11,15 @@ extends RefCounted
 const PRODUCTION_PATH := "res://data/vehicles/differential_presets.json"
 const PRESET_PATH := "powertrain.differential.preset_id"
 
+# Modo dual configurable (game/data/vehicles/differential_config.json).
+# modern (defecto): LSD autoblocante moderno totalmente configurable.
+# historic: presets históricos por vehículo, selección discreta.
+const MODE_CONFIG_PATH := "res://data/vehicles/differential_config.json"
+const MODE_MODERN := "modern"
+const MODE_HISTORIC := "historic"
+
+static var _mode_cache: String = ""
+
 static var _cache: Dictionary = {}
 static var _cache_ok: bool = false
 
@@ -32,6 +41,28 @@ static func _load_document() -> Dictionary:
 static func reset_cache() -> void:
 	_cache = {}
 	_cache_ok = false
+
+
+static func differential_mode() -> String:
+	if not _mode_cache.is_empty():
+		return _mode_cache
+	_mode_cache = MODE_MODERN
+	if FileAccess.file_exists(MODE_CONFIG_PATH):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MODE_CONFIG_PATH))
+		if parsed is Dictionary:
+			var m := str((parsed as Dictionary).get("differential_mode", MODE_MODERN)).to_lower()
+			if m == MODE_HISTORIC or m == MODE_MODERN:
+				_mode_cache = m
+	return _mode_cache
+
+
+static func reset_mode_cache() -> void:
+	_mode_cache = ""
+
+
+static func set_mode_override(mode: String) -> void:
+	if mode == MODE_HISTORIC or mode == MODE_MODERN:
+		_mode_cache = mode
 
 
 static func _profiles(doc: Dictionary) -> Dictionary:
