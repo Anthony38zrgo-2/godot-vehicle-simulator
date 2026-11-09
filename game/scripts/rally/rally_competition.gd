@@ -33,7 +33,6 @@ var weather_compounds: Dictionary = {}
 var reference_condition: Dictionary = {}
 var initial_level: float = 1.0
 var initial_confidence: float = 0.0
-var configuration_hash: String = ""
 var observation_cursor: int = 0
 var observation_ms: int = 0
 var observed_seconds: float = 0.0
@@ -100,7 +99,6 @@ func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_see
 		reference.append(seconds)
 	if not error.is_empty():
 		return false
-	configuration_hash = (JSON.stringify(balance) + JSON.stringify(stage) + JSON.stringify(entries)).sha256_text()
 	begin_stage(carried_rows)
 	return true
 
@@ -492,7 +490,7 @@ func readout() -> Dictionary:
 func save() -> bool:
 	if save_path.is_empty():
 		return true
-	var document := {"version": VERSION, "configuration_hash": configuration_hash, "stage_id": stage.id, "seed": seed_value, "leg": leg, "sector": sector, "initial_confidence": initial_confidence, "initial_level": initial_level, "level": level, "confidence": confidence, "complete": complete, "started": started, "rows": rows, "initial_rows": initial_rows, "player_ms": player_ms, "player_penalty_ms": player_penalty_ms, "player_penalties": player_penalties, "player_retired": player_retired, "player_status": player_status, "player_splits": player_splits, "previous_totals": previous_totals, "player_previous_ms": player_previous_ms, "history": history}
+	var document := {"version": VERSION, "stage_id": stage.id, "seed": seed_value, "leg": leg, "sector": sector, "initial_confidence": initial_confidence, "initial_level": initial_level, "level": level, "confidence": confidence, "complete": complete, "started": started, "rows": rows, "initial_rows": initial_rows, "player_ms": player_ms, "player_penalty_ms": player_penalty_ms, "player_penalties": player_penalties, "player_retired": player_retired, "player_status": player_status, "player_splits": player_splits, "previous_totals": previous_totals, "player_previous_ms": player_previous_ms, "history": history}
 	var file := FileAccess.open(save_path + ".tmp", FileAccess.WRITE)
 	if file == null:
 		error = "No se pudo guardar competición"
@@ -513,9 +511,6 @@ func restore() -> bool:
 	for key: String in ["leg", "sector", "level", "confidence", "complete", "rows", "initial_rows", "player_ms", "player_penalty_ms", "player_retired", "player_status", "player_splits", "previous_totals", "player_previous_ms", "history"]:
 		if not data.has(key):
 			return false
-	if data.get("configuration_hash", "") != configuration_hash:
-		error = "Guardado de otra versión de datos; se inicia una nueva competición"
-		return false
 	if not data.rows is Array or not data.initial_rows is Array or data.rows.size() != entries.size() or data.initial_rows.size() != entries.size():
 		return false
 	if int(data.sector) < 0 or int(data.sector) > reference.size() or not is_finite(float(data.level)) or float(data.level) <= 0.0:
