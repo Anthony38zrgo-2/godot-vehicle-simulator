@@ -162,18 +162,24 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 			var mat_name := str(mat.resource_name).to_lower()
 			if not mat_name.is_empty():
 				material_names.append(mat_name)
-	# Snow is an overlay, never a wholesale remapping of the Grass body.
+	# Snow is an overlay, never a wholesale remapping of the body.
+	# Driven road snow (including rail crossings and snow bridges) is packed;
+	# undriven terrain/ditch mantles and snow-covered rocks are loose.
 	for mat_name in material_names:
-		if mat_name.begins_with("road_snow_") or mat_name == "road_snow":
+		if mat_name.begins_with("road_snow_") or mat_name == "road_snow" \
+		or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 			winter_layer_id = "snow_packed"
 		elif mat_name.begins_with("erosion_snow_"):
 			winter_layer_id = "snow_loose"
+		elif mat_name.begins_with("terrain_snow_") or mat_name.begins_with("ditch_snow_") \
+		or mat_name.begins_with("rock_snow") or mat_name.begins_with("stone_snow"):
+			winter_layer_id = "snow_loose"
 		elif mat_name.begins_with("road_ice_") or mat_name == "road_ice":
 			winter_layer_id = "ice"
-	# The current eight Sweden collision GLBs omit glTF materials entirely.
-	# Their visual road_* primitives were audited: all are snow-covered.
-	# Keep Gravel as base terrain, but explicitly tag imported road bodies
-	# as packed snow until the collision exporter preserves materials.
+	# Legacy safety net, kept loud: the regenerated Sweden GLBs carry real
+	# materials, so this branch must stay silent. If a material-less Sweden
+	# road body ever arrives again, tag it as before but warn instead of
+	# silently assuming packed snow.
 	if (
 		winter_layer_id.is_empty()
 		and material_names.is_empty()
@@ -181,9 +187,11 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 		and source_name.begins_with("collision_road")
 	):
 		winter_layer_id = "snow_packed"
+		push_warning("RallyTrackCollisionBuilder: material-less Sweden road body, tagging snow_packed as fallback")
 	if source_name.begins_with("collision_road"):
 		for mat_name in material_names:
-			if mat_name.begins_with("road_snow_") or mat_name == "road_snow":
+			if mat_name.begins_with("road_snow_") or mat_name == "road_snow" \
+			or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 				surface_group = "Gravel"
 				break
 			if "tarmac" in mat_name or "asphalt" in mat_name or "tunnel" in mat_name or "bridgeroad" in mat_name:
