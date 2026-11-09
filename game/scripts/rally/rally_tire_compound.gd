@@ -22,7 +22,7 @@ static func load_catalog() -> Dictionary:
 
 
 static func invalidate_cache() -> void:
-	_cached_catalog.clear()
+	_cached_catalog = {}
 
 
 static func compound_ids(catalog: Dictionary) -> Array:
