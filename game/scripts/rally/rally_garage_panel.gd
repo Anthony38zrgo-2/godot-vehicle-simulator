@@ -971,8 +971,12 @@ func _load_selected_setup() -> void:
 		return
 	var stored: Dictionary = (result as Dictionary).get("values", {})
 	# v1: el preset es string y no pasa por validate() numérico.
+	# Si el campo existe, reenviar su valor original (incluso inválido) a
+	# vehicle.apply_setup_values() para validación centralizada.
+	# No descartar silenciosamente un preset_id inválido de SQLite.
+	var has_stored_preset := stored.has(DIFFERENTIAL_PRESET_PATH)
 	var stored_preset: Variant = null
-	if stored.has(DIFFERENTIAL_PRESET_PATH):
+	if has_stored_preset:
 		stored_preset = stored[DIFFERENTIAL_PRESET_PATH]
 		stored = stored.duplicate(true)
 		stored.erase(DIFFERENTIAL_PRESET_PATH)
@@ -981,8 +985,8 @@ func _load_selected_setup() -> void:
 		_show_notice(str(validation.get("error", "Incompatible.")), true)
 		return
 	var to_apply: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
-	if stored_preset is String and not (stored_preset as String).is_empty():
-		to_apply[DIFFERENTIAL_PRESET_PATH] = str(stored_preset)
+	if has_stored_preset:
+		to_apply[DIFFERENTIAL_PRESET_PATH] = stored_preset
 	var applied := vehicle.apply_setup_values(to_apply)
 	if not bool(applied.get("ok", false)):
 		_show_notice(str(applied.get("error", "Error al aplicar.")), true)

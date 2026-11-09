@@ -344,6 +344,9 @@
     "lancia-fulvia": {
       "alias_of": "rt-lancia-fulvia"
     },
+    "lancia_fulvia_1600_hf": {
+      "alias_of": "rt-lancia-fulvia"
+    },
     "rt-opel-kadett": {
       "default_preset_id": "kadett_40",
       "presets": [
@@ -550,6 +553,9 @@
       ]
     },
     "ford-escort-rs2000": {
+      "alias_of": "rt-escort-rs2000"
+    },
+    "ford_escort_rs2000_1971": {
       "alias_of": "rt-escort-rs2000"
     },
     "rt-alpine-a110": {

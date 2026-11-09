@@ -317,6 +317,12 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	var incoming := values.duplicate(true)
 	var requested_preset: Variant = null
 	if incoming.has(DIFFERENTIAL_PRESET_PATH):
+		var requested: Variant = incoming[DIFFERENTIAL_PRESET_PATH]
+		if not requested is String or (requested as String).is_empty():
+			return {
+				"ok": false,
+				"error": "preset_id inválido.",
+			}
 		requested_preset = incoming[DIFFERENTIAL_PRESET_PATH]
 		incoming.erase(DIFFERENTIAL_PRESET_PATH)
 	var validation := RallySetupCatalog.validate(incoming)
