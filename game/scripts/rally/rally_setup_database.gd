@@ -53,8 +53,8 @@ func open_database() -> Dictionary:
 
 func list_setups(context: Dictionary) -> Dictionary:
 	var result := _query(
-		"SELECT id,name,team_id,created_at,modified_at FROM car_setup WHERE circuit_id=? AND car_id=? AND physics_backend=? AND base_profile_sha256=? AND mode=? ORDER BY modified_at DESC,id DESC",
-		[context.circuit_id, context.car_id, context.physics_backend, context.base_profile_sha256, context.mode]
+		"SELECT id,name,team_id,created_at,modified_at FROM car_setup WHERE circuit_id=? AND car_id=? AND physics_backend=? AND mode=? ORDER BY modified_at DESC,id DESC",
+		[context.circuit_id, context.car_id, context.physics_backend, context.mode]
 	)
 	return result
 
@@ -71,8 +71,8 @@ func create_setup(context: Dictionary, name: String, values: Dictionary) -> Dict
 
 func update_setup(context: Dictionary, setup_id: int, name: String, values: Dictionary) -> Dictionary:
 	var result := _query(
-		"UPDATE car_setup SET name=?,values_json=?,modified_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=? AND circuit_id=? AND car_id=? AND physics_backend=? AND base_profile_sha256=? AND mode=? AND schema_version=1",
-		[name.strip_edges(), JSON.stringify(values), setup_id, context.circuit_id, context.car_id, context.physics_backend, context.base_profile_sha256, context.mode]
+		"UPDATE car_setup SET name=?,values_json=?,modified_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=? AND circuit_id=? AND car_id=? AND physics_backend=? AND mode=? AND schema_version=1",
+		[name.strip_edges(), JSON.stringify(values), setup_id, context.circuit_id, context.car_id, context.physics_backend, context.mode]
 	)
 	if not bool(result.get("ok", false)):
 		return result
@@ -95,7 +95,6 @@ func load_setup(context: Dictionary, setup_id: int) -> Dictionary:
 	var row: Dictionary = rows[0]
 	if str(row.get("car_id", "")) != str(context.car_id) \
 		or str(row.get("physics_backend", "")) != str(context.physics_backend) \
-		or str(row.get("base_profile_sha256", "")) != str(context.base_profile_sha256) \
 		or int(row.get("schema_version", 0)) != 1 \
 		or str(row.get("mode", "")) != str(context.mode):
 		return {"ok": false, "error": "El reglaje no coincide con el coche, modo o perfil actual."}
@@ -107,8 +106,8 @@ func load_setup(context: Dictionary, setup_id: int) -> Dictionary:
 
 func delete_setup(context: Dictionary, setup_id: int) -> Dictionary:
 	var result := _query(
-		"DELETE FROM car_setup WHERE id=? AND circuit_id=? AND car_id=? AND physics_backend=? AND base_profile_sha256=? AND mode=?",
-		[setup_id, context.circuit_id, context.car_id, context.physics_backend, context.base_profile_sha256, context.mode]
+		"DELETE FROM car_setup WHERE id=? AND circuit_id=? AND car_id=? AND physics_backend=? AND mode=?",
+		[setup_id, context.circuit_id, context.car_id, context.physics_backend, context.mode]
 	)
 	if not bool(result.get("ok", false)):
 		return result
