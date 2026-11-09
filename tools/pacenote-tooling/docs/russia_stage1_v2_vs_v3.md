@@ -4,14 +4,14 @@ Fecha: 2026-11-08. Generado contra `stage1.BMF` + `russia_stage1_route.json`.
 
 | Métrica | v2 (`pacenote_analyzer_v2.py`) | v3 (`rally_road_reconstruction_v2/…`) |
 |---|---|---|
-| Llamadas runtime | 22 (18 curvas + 4 peligros) | **51** (44 curvas + peligros/crestas/jumps; palabra única por evento) |
+| Llamadas runtime | 22 (18 curvas + 4 peligros) | **50** (44 curvas + peligros/crestas/jumps; palabra única por evento) |
 | Descartadas | 14 | 0 (todo auditado: absorbidas, agrupadas o de baja prioridad) |
 | Detección | Auto + tabla calibrada RU1 | 100% geométrica (sin tablas) |
 | Giro 131–136 | Tabla: `right` R22 88.5° (invertido) | Detectado `left` 96.5° `openhairpin` |
 | Recta 2020–2110 | Sin horquillas | Sin horquillas (verificado) |
 | Rocas s≈4309 | — | `HAZ` d_edge 0.12 m → `hazard=4` (+`no_cut` si <1.2 m) |
 | Distancias | `next`/`prev` entre curvas | `to_current`; `into` solo <22 m entre curvas, si no 0 (el gate ya posiciona) |
-| Densidad | ~1/230 m | ~1/98 m (original CMR2: ~1/95 m de media) |
+| Densidad | ~1/230 m | ~1/100 m (original CMR2: ~1/95 m de media) |
 | Voz compuesta | — | Caution hoisting + cooldown 85 m/4.5 s + dedup de hazards (≤65 m), sin multi-palabra |
 | Test suite | — | `game/tests/rally-v2/test_russia_stage1_v3.py` **PASS 6/6** |
 

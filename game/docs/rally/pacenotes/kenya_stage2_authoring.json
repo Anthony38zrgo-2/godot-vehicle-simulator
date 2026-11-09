@@ -1,1335 +1,1936 @@
 {
-  "stage": "kenya-stage2",
-  "author": "Antigravity Agent",
-  "methodology": "3D route curvature + vertical slope inflection + 3D obstacle alignment with CMR2 audio codec",
-  "total_curves_classified": 46,
-  "curves": [
+  "stage": "kenya_stage2",
+  "generator": "pacenote_analyzer_v3",
+  "events": [
     {
-      "curve_id": "KE2_CURVE_00",
-      "start_node": 38,
-      "end_node": 58,
-      "advisory_gate_node": 33,
-      "route_distance_m": 400.7,
-      "length_m": 210.6,
-      "total_angle_deg": 47.3,
+      "id": "EVT_001",
+      "type": "curve",
+      "s_start": 412.0,
+      "s_apex": 768.0,
+      "s_end": 776.0,
+      "guide_node_start": 384,
+      "guide_node_end": 384,
+      "link": null,
       "direction": "right",
-      "estimated_radius_m": 180.2,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000861",
-      "call_index": 0,
-      "speech_slots": [
-        14,
-        28,
-        5,
+      "radius_center_min_m": 51.82,
+      "radius_opt_min_m": 204.75,
+      "angle_deg": 95.02,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.52,
+      "camber_apex_deg": -0.48,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong",
+        "long"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.8,
+        "nominal": 20.4,
+        "fast": 21.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "absorbe EVT_002",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_003",
+      "type": "curve",
+      "s_start": 784.0,
+      "s_apex": 816.0,
+      "s_end": 824.0,
+      "guide_node_start": 408,
+      "guide_node_end": 408,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 87.96,
+      "radius_opt_min_m": 107.76,
+      "angle_deg": 14.84,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.31,
+      "camber_apex_deg": -0.96,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.1,
+        "nominal": 26.2,
+        "fast": 27.4
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        2
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_004",
+      "type": "curve",
+      "s_start": 830.0,
+      "s_apex": 844.0,
+      "s_end": 854.0,
+      "guide_node_start": 422,
+      "guide_node_end": 422,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 74.57,
+      "radius_opt_min_m": 86.91,
+      "angle_deg": 15.63,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 6.14,
+      "camber_apex_deg": 0.18,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.7,
+        "nominal": 24.6,
+        "fast": 26.4
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        3
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_005",
+      "type": "curve",
+      "s_start": 874.0,
+      "s_apex": 890.0,
+      "s_end": 922.0,
+      "guide_node_start": 445,
+      "guide_node_end": 445,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 69.67,
+      "radius_opt_min_m": 93.95,
+      "angle_deg": 27.52,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.3,
+      "camber_apex_deg": 0.15,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.4,
+        "nominal": 22.1,
+        "fast": 23.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        4
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_006",
+      "type": "curve",
+      "s_start": 1106.0,
+      "s_apex": 1262.0,
+      "s_end": 1268.0,
+      "guide_node_start": 631,
+      "guide_node_end": 631,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 111.11,
+      "radius_opt_min_m": 194.77,
+      "angle_deg": 48.47,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.56,
+      "camber_apex_deg": -2.7,
+      "severity_geometric": 2,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 17.9,
+        "nominal": 18.4,
+        "fast": 18.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        5
+      ],
+      "review_reasons": [
+        "decel_demand 19.2>=12.5"
+      ]
+    },
+    {
+      "id": "EVT_007",
+      "type": "curve",
+      "s_start": 1274.0,
+      "s_apex": 1284.0,
+      "s_end": 1296.0,
+      "guide_node_start": 642,
+      "guide_node_end": 642,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 11.44,
+      "radius_opt_min_m": 15.39,
+      "angle_deg": 90.3,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.38,
+      "camber_apex_deg": 8.94,
+      "severity_geometric": 7,
+      "severity_effective": 7,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 9.0,
+        "nominal": 9.8,
+        "fast": 10.5
+      },
+      "priority": 77,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        6
+      ],
+      "review_reasons": [
+        "decel_demand 19.7>=12.5",
+        "capped_square: ang<100 -> openhairpin"
+      ]
+    },
+    {
+      "id": "EVT_008",
+      "type": "curve",
+      "s_start": 1334.0,
+      "s_apex": 1402.0,
+      "s_end": 1596.0,
+      "guide_node_start": 701,
+      "guide_node_end": 701,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 80.34,
+      "radius_opt_min_m": 139.45,
+      "angle_deg": 119.91,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.31,
+      "camber_apex_deg": -1.46,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.5,
+        "nominal": 25.5,
+        "fast": 27.3
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_009",
+      "type": "curve",
+      "s_start": 1662.0,
+      "s_apex": 1700.0,
+      "s_end": 1736.0,
+      "guide_node_start": 850,
+      "guide_node_end": 850,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 178.0,
+      "radius_opt_min_m": 294.62,
+      "angle_deg": 11.4,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.98,
+      "camber_apex_deg": 0.18,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 34.3,
+        "nominal": 35.3,
+        "fast": 36.3
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_010",
+      "type": "curve",
+      "s_start": 1756.0,
+      "s_apex": 1768.0,
+      "s_end": 1782.0,
+      "guide_node_start": 884,
+      "guide_node_end": 884,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 61.78,
+      "radius_opt_min_m": 91.04,
+      "angle_deg": 17.67,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.38,
+      "camber_apex_deg": -0.1,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.0,
+        "nominal": 21.7,
+        "fast": 23.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
         9
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=180.2m, ángulo=47.3 deg, longitud=210.6m.",
-        "Portal de aviso asignado en nodo 33 a 348.2m (52.5m de anticipación).",
-        "Longitud de curva extendida (210.6m >= 135m): calificada como 'verylong'."
+      "review_reasons": [
+        "decel_demand 14.3>=12.5",
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_01",
-      "start_node": 58,
-      "end_node": 76,
-      "advisory_gate_node": 53,
-      "route_distance_m": 611.2,
-      "length_m": 188.3,
-      "total_angle_deg": 52.3,
+      "id": "EVT_011",
+      "type": "curve",
+      "s_start": 1792.0,
+      "s_apex": 1804.0,
+      "s_end": 1818.0,
+      "guide_node_start": 902,
+      "guide_node_end": 902,
+      "link": "into",
       "direction": "right",
-      "estimated_radius_m": 151.1,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000008e1",
-      "call_index": 1,
-      "speech_slots": [
-        16,
-        28,
-        5,
-        9
-      ],
+      "radius_center_min_m": 77.84,
+      "radius_opt_min_m": 112.94,
+      "angle_deg": 14.96,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.33,
+      "camber_apex_deg": 0.67,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 25.3,
+        "nominal": 26.6,
+        "fast": 27.9
+      },
+      "priority": 53,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=151.1m, ángulo=52.3 deg, longitud=188.3m.",
-        "Portal de aviso asignado en nodo 53 a 558.4m (52.8m de anticipación).",
-        "Longitud de curva extendida (188.3m >= 135m): calificada como 'verylong'."
-      ]
+      "status": "emitted",
+      "emitted_call_ids": [
+        10
+      ],
+      "review_reasons": []
     },
     {
-      "curve_id": "KE2_CURVE_02",
-      "start_node": 79,
-      "end_node": 83,
-      "advisory_gate_node": 74,
-      "route_distance_m": 830.6,
-      "length_m": 41.4,
-      "total_angle_deg": 8.5,
-      "direction": "right",
-      "estimated_radius_m": 195.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x0004a061",
-      "call_index": 2,
-      "speech_slots": [
-        14,
-        5,
-        9,
-        11,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=195.9m, ángulo=8.5 deg, longitud=41.4m.",
-        "Portal de aviso asignado en nodo 74 a 778.6m (52.0m de anticipación).",
-        "Radio creciente en salida (R_in=237m -> R_out=447m): 'opens'.",
-        "Cambio convexo de rasante en nodo 81 (+1.5% -> -5.9%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_03",
-      "start_node": 82,
-      "end_node": 90,
-      "advisory_gate_node": 77,
-      "route_distance_m": 861.4,
-      "length_m": 82.9,
-      "total_angle_deg": 28.5,
+      "id": "EVT_012",
+      "type": "curve",
+      "s_start": 1826.0,
+      "s_apex": 1846.0,
+      "s_end": 2020.0,
+      "guide_node_start": 923,
+      "guide_node_end": 923,
+      "link": "into",
       "direction": "left",
-      "estimated_radius_m": 116.6,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00048612",
-      "call_index": 3,
-      "speech_slots": [
-        21,
-        10,
-        4,
-        8,
-        23,
-        24
+      "radius_center_min_m": 38.78,
+      "radius_opt_min_m": 54.79,
+      "angle_deg": 85.37,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 12.57,
+      "camber_apex_deg": -0.58,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "long",
+        "verylong"
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=116.6m, ángulo=28.5 deg, longitud=82.9m.",
-        "Portal de aviso asignado en nodo 77 a 809.6m (51.8m de anticipación).",
-        "Longitud de curva sostenida (82.9m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 81 (+1.5% -> -5.9%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_04",
-      "start_node": 103,
-      "end_node": 120,
-      "advisory_gate_node": 98,
-      "route_distance_m": 1079.8,
-      "length_m": 178.5,
-      "total_angle_deg": 45.0,
-      "direction": "right",
-      "estimated_radius_m": 175.1,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000861",
-      "call_index": 4,
-      "speech_slots": [
-        14,
-        28,
-        5,
-        9
+      "linked_hazard_ids": [
+        "HAZ_002"
       ],
+      "speed_scenarios_ms": {
+        "conservative": 16.2,
+        "nominal": 17.6,
+        "fast": 18.8
+      },
+      "priority": 59,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=175.1m, ángulo=45.0 deg, longitud=178.5m.",
-        "Portal de aviso asignado en nodo 98 a 1027.3m (52.4m de anticipación).",
-        "Longitud de curva extendida (178.5m >= 135m): calificada como 'verylong'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_05",
-      "start_node": 120,
-      "end_node": 125,
-      "advisory_gate_node": 115,
-      "route_distance_m": 1258.3,
-      "length_m": 50.9,
-      "total_angle_deg": 80.5,
-      "direction": "left",
-      "estimated_radius_m": 23.1,
-      "cmr2_kind": "two",
-      "caution": "none",
-      "call_word_hex": "0x00001095",
-      "call_index": 5,
-      "speech_slots": [
-        15,
-        1,
-        8,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=23.1m, ángulo=80.5 deg, longitud=50.9m.",
-        "Portal de aviso asignado en nodo 115 a 1206.5m (51.8m de anticipación).",
-        "Radio decreciente en ápice (R_in=145m -> R_out=22m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_06",
-      "start_node": 126,
-      "end_node": 151,
-      "advisory_gate_node": 121,
-      "route_distance_m": 1319.7,
-      "length_m": 257.5,
-      "total_angle_deg": 118.9,
-      "direction": "right",
-      "estimated_radius_m": 96.9,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00048922",
-      "call_index": 6,
-      "speech_slots": [
-        17,
-        28,
-        4,
-        9,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=96.9m, ángulo=118.9 deg, longitud=257.5m.",
-        "Portal de aviso asignado en nodo 121 a 1268.6m (51.1m de anticipación).",
-        "Longitud de curva extendida (257.5m >= 135m): calificada como 'verylong'.",
-        "Cambio convexo de rasante en nodo 150 (-5.3% -> -13.5%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_07",
-      "start_node": 156,
-      "end_node": 165,
-      "advisory_gate_node": 151,
-      "route_distance_m": 1628.8,
-      "length_m": 93.9,
-      "total_angle_deg": 17.9,
-      "direction": "right",
-      "estimated_radius_m": 238.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000484a1",
-      "call_index": 7,
-      "speech_slots": [
-        15,
-        10,
-        5,
-        9,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=238.9m, ángulo=17.9 deg, longitud=93.9m.",
-        "Portal de aviso asignado en nodo 151 a 1577.2m (51.6m de anticipación).",
-        "Longitud de curva sostenida (93.9m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 162 (+3.6% -> -2.7%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_08",
-      "start_node": 166,
-      "end_node": 169,
-      "advisory_gate_node": 161,
-      "route_distance_m": 1733.2,
-      "length_m": 31.7,
-      "total_angle_deg": 12.7,
-      "direction": "left",
-      "estimated_radius_m": 124.1,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00001112",
-      "call_index": 8,
-      "speech_slots": [
-        17,
-        4,
-        8,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=124.1m, ángulo=12.7 deg, longitud=31.7m.",
-        "Portal de aviso asignado en nodo 161 a 1681.4m (51.9m de anticipación).",
-        "Radio decreciente en ápice (R_in=856m -> R_out=131m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_09",
-      "start_node": 173,
-      "end_node": 181,
-      "advisory_gate_node": 168,
-      "route_distance_m": 1806.5,
-      "length_m": 81.7,
-      "total_angle_deg": 41.1,
-      "direction": "left",
-      "estimated_radius_m": 82.0,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x00048453",
-      "call_index": 9,
-      "speech_slots": [
-        14,
-        10,
-        3,
-        8,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=82.0m, ángulo=41.1 deg, longitud=81.7m.",
-        "Portal de aviso asignado en nodo 168 a 1754.7m (51.8m de anticipación).",
-        "Longitud de curva sostenida (81.7m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 180 (+10.2% -> -3.4%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_10",
-      "start_node": 180,
-      "end_node": 183,
-      "advisory_gate_node": 175,
-      "route_distance_m": 1878.1,
-      "length_m": 30.7,
-      "total_angle_deg": 10.6,
-      "direction": "right",
-      "estimated_radius_m": 115.1,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00049062",
-      "call_index": 10,
-      "speech_slots": [
-        14,
-        4,
-        9,
-        12,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=115.1m, ángulo=10.6 deg, longitud=30.7m.",
-        "Portal de aviso asignado en nodo 175 a 1826.6m (51.5m de anticipación).",
-        "Radio decreciente en ápice (R_in=1962m -> R_out=140m): 'tightens'.",
-        "Cambio convexo de rasante en nodo 180 (+10.2% -> -3.4%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_11",
-      "start_node": 183,
-      "end_node": 195,
-      "advisory_gate_node": 178,
-      "route_distance_m": 1908.8,
-      "length_m": 126.8,
-      "total_angle_deg": 36.3,
-      "direction": "left",
-      "estimated_radius_m": 156.2,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000491",
-      "call_index": 11,
-      "speech_slots": [
-        15,
-        10,
-        5,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=156.2m, ángulo=36.3 deg, longitud=126.8m.",
-        "Portal de aviso asignado en nodo 178 a 1857.5m (51.3m de anticipación).",
-        "Longitud de curva sostenida (126.8m >= 80m): calificada como 'long'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_12",
-      "start_node": 197,
-      "end_node": 217,
-      "advisory_gate_node": 192,
-      "route_distance_m": 2056.5,
-      "length_m": 209.7,
-      "total_angle_deg": 70.5,
-      "direction": "left",
-      "estimated_radius_m": 113.9,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x0004a912",
-      "call_index": 12,
-      "speech_slots": [
-        17,
-        28,
-        4,
-        8,
-        11,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=113.9m, ángulo=70.5 deg, longitud=209.7m.",
-        "Portal de aviso asignado en nodo 192 a 2003.5m (53.1m de anticipación).",
-        "Longitud de curva extendida (209.7m >= 135m): calificada como 'verylong'.",
-        "Radio creciente en salida (R_in=110m -> R_out=335m): 'opens'.",
-        "Cambio convexo de rasante en nodo 198 (-0.6% -> -7.5%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_13",
-      "start_node": 221,
-      "end_node": 236,
-      "advisory_gate_node": 216,
-      "route_distance_m": 2309.4,
-      "length_m": 158.9,
-      "total_angle_deg": 35.4,
-      "direction": "right",
-      "estimated_radius_m": 200.3,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000008a1",
-      "call_index": 13,
-      "speech_slots": [
-        15,
-        28,
-        5,
-        9
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=200.3m, ángulo=35.4 deg, longitud=158.9m.",
-        "Portal de aviso asignado en nodo 216 a 2255.5m (53.9m de anticipación).",
-        "Longitud de curva extendida (158.9m >= 135m): calificada como 'verylong'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_14",
-      "start_node": 238,
-      "end_node": 258,
-      "advisory_gate_node": 233,
-      "route_distance_m": 2489.5,
-      "length_m": 208.4,
-      "total_angle_deg": 65.1,
-      "direction": "right",
-      "estimated_radius_m": 127.5,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000018a2",
-      "call_index": 14,
-      "speech_slots": [
-        15,
-        28,
-        4,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=127.5m, ángulo=65.1 deg, longitud=208.4m.",
-        "Portal de aviso asignado en nodo 233 a 2435.8m (53.7m de anticipación).",
-        "Longitud de curva extendida (208.4m >= 135m): calificada como 'verylong'.",
-        "Radio decreciente en ápice (R_in=248m -> R_out=145m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_15",
-      "start_node": 260,
-      "end_node": 264,
-      "advisory_gate_node": 255,
-      "route_distance_m": 2718.0,
-      "length_m": 42.4,
-      "total_angle_deg": 9.3,
-      "direction": "left",
-      "estimated_radius_m": 222.3,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00001151",
-      "call_index": 15,
-      "speech_slots": [
-        18,
-        5,
-        8,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=222.3m, ángulo=9.3 deg, longitud=42.4m.",
-        "Portal de aviso asignado en nodo 255 a 2666.6m (51.4m de anticipación).",
-        "Radio decreciente en ápice (R_in=394m -> R_out=220m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_16",
-      "start_node": 271,
-      "end_node": 295,
-      "advisory_gate_node": 266,
-      "route_distance_m": 2834.2,
-      "length_m": 249.7,
-      "total_angle_deg": 69.7,
-      "direction": "left",
-      "estimated_radius_m": 163.7,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000951",
-      "call_index": 16,
-      "speech_slots": [
-        18,
-        28,
-        5,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=163.7m, ángulo=69.7 deg, longitud=249.7m.",
-        "Portal de aviso asignado en nodo 266 a 2780.9m (53.3m de anticipación).",
-        "Longitud de curva extendida (249.7m >= 135m): calificada como 'verylong'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_17",
-      "start_node": 303,
-      "end_node": 309,
-      "advisory_gate_node": 298,
-      "route_distance_m": 3168.5,
-      "length_m": 61.5,
-      "total_angle_deg": 25.4,
-      "direction": "right",
-      "estimated_radius_m": 117.2,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000010a2",
-      "call_index": 17,
-      "speech_slots": [
-        15,
-        4,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=117.2m, ángulo=25.4 deg, longitud=61.5m.",
-        "Portal de aviso asignado en nodo 298 a 3116.4m (52.1m de anticipación).",
-        "Radio decreciente en ápice (R_in=199m -> R_out=119m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_18",
-      "start_node": 310,
-      "end_node": 312,
-      "advisory_gate_node": 305,
-      "route_distance_m": 3240.4,
-      "length_m": 20.7,
-      "total_angle_deg": 11.0,
-      "direction": "left",
-      "estimated_radius_m": 103.9,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00001152",
-      "call_index": 18,
-      "speech_slots": [
-        18,
-        4,
-        8,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=103.9m, ángulo=11.0 deg, longitud=20.7m.",
-        "Portal de aviso asignado en nodo 305 a 3188.8m (51.5m de anticipación).",
-        "Radio decreciente en ápice (R_in=186m -> R_out=102m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_19",
-      "start_node": 320,
-      "end_node": 333,
-      "advisory_gate_node": 315,
-      "route_distance_m": 3345.4,
-      "length_m": 136.5,
-      "total_angle_deg": 26.4,
-      "direction": "left",
-      "estimated_radius_m": 233.5,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000951",
-      "call_index": 19,
-      "speech_slots": [
-        18,
-        28,
-        5,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=233.5m, ángulo=26.4 deg, longitud=136.5m.",
-        "Portal de aviso asignado en nodo 315 a 3292.7m (52.7m de anticipación).",
-        "Longitud de curva extendida (136.5m >= 135m): calificada como 'verylong'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_20",
-      "start_node": 339,
-      "end_node": 343,
-      "advisory_gate_node": 334,
-      "route_distance_m": 3544.0,
-      "length_m": 41.0,
-      "total_angle_deg": 16.5,
-      "direction": "right",
-      "estimated_radius_m": 123.1,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000011e2",
-      "call_index": 20,
-      "speech_slots": [
-        20,
-        4,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=123.1m, ángulo=16.5 deg, longitud=41.0m.",
-        "Portal de aviso asignado en nodo 334 a 3492.2m (51.8m de anticipación).",
-        "Radio decreciente en ápice (R_in=331m -> R_out=113m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_21",
-      "start_node": 355,
-      "end_node": 360,
-      "advisory_gate_node": 350,
-      "route_distance_m": 3712.5,
-      "length_m": 52.3,
-      "total_angle_deg": 9.5,
-      "direction": "left",
-      "estimated_radius_m": 207.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000000d1",
-      "call_index": 21,
-      "speech_slots": [
-        16,
-        5,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=207.9m, ángulo=9.5 deg, longitud=52.3m.",
-        "Portal de aviso asignado en nodo 350 a 3658.2m (54.3m de anticipación)."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_22",
-      "start_node": 363,
-      "end_node": 380,
-      "advisory_gate_node": 358,
-      "route_distance_m": 3796.4,
-      "length_m": 178.9,
-      "total_angle_deg": 61.1,
-      "direction": "left",
-      "estimated_radius_m": 127.7,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00048a12",
-      "call_index": 22,
-      "speech_slots": [
-        21,
-        28,
-        4,
-        8,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=127.7m, ángulo=61.1 deg, longitud=178.9m.",
-        "Portal de aviso asignado en nodo 358 a 3743.6m (52.7m de anticipación).",
-        "Longitud de curva extendida (178.9m >= 135m): calificada como 'verylong'.",
-        "Cambio convexo de rasante en nodo 364 (-0.6% -> -6.3%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_23",
-      "start_node": 393,
-      "end_node": 406,
-      "advisory_gate_node": 388,
-      "route_distance_m": 4110.9,
-      "length_m": 135.0,
-      "total_angle_deg": 33.0,
-      "direction": "right",
-      "estimated_radius_m": 183.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000004e1",
-      "call_index": 23,
-      "speech_slots": [
-        16,
-        10,
-        5,
-        9
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=183.9m, ángulo=33.0 deg, longitud=135.0m.",
-        "Portal de aviso asignado en nodo 388 a 4058.1m (52.7m de anticipación).",
-        "Longitud de curva sostenida (135.0m >= 80m): calificada como 'long'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_24",
-      "start_node": 409,
-      "end_node": 411,
-      "advisory_gate_node": 404,
-      "route_distance_m": 4277.9,
-      "length_m": 20.5,
-      "total_angle_deg": 11.4,
-      "direction": "right",
-      "estimated_radius_m": 98.3,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000010a2",
-      "call_index": 24,
-      "speech_slots": [
-        15,
-        4,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=98.3m, ángulo=11.4 deg, longitud=20.5m.",
-        "Portal de aviso asignado en nodo 404 a 4225.1m (52.8m de anticipación).",
-        "Radio decreciente en ápice (R_in=201m -> R_out=105m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_25",
-      "start_node": 413,
-      "end_node": 418,
-      "advisory_gate_node": 408,
-      "route_distance_m": 4318.7,
-      "length_m": 52.2,
-      "total_angle_deg": 13.3,
-      "direction": "right",
-      "estimated_radius_m": 195.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00049121",
-      "call_index": 25,
-      "speech_slots": [
-        17,
-        5,
-        9,
-        12,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=195.9m, ángulo=13.3 deg, longitud=52.2m.",
-        "Portal de aviso asignado en nodo 408 a 4267.5m (51.2m de anticipación).",
-        "Radio decreciente en ápice (R_in=331m -> R_out=212m): 'tightens'.",
-        "Cambio convexo de rasante en nodo 416 (+6.7% -> -3.9%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_26",
-      "start_node": 422,
-      "end_node": 430,
-      "advisory_gate_node": 417,
-      "route_distance_m": 4412.3,
-      "length_m": 82.4,
-      "total_angle_deg": 23.0,
-      "direction": "right",
-      "estimated_radius_m": 139.5,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00001521",
-      "call_index": 26,
-      "speech_slots": [
-        17,
-        10,
-        5,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=139.5m, ángulo=23.0 deg, longitud=82.4m.",
-        "Portal de aviso asignado en nodo 417 a 4360.3m (52.0m de anticipación).",
-        "Longitud de curva sostenida (82.4m >= 80m): calificada como 'long'.",
-        "Radio decreciente en ápice (R_in=259m -> R_out=153m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_27",
-      "start_node": 434,
-      "end_node": 450,
-      "advisory_gate_node": 429,
-      "route_distance_m": 4536.2,
-      "length_m": 165.3,
-      "total_angle_deg": 68.8,
-      "direction": "right",
-      "estimated_radius_m": 94.8,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x00001a23",
-      "call_index": 27,
-      "speech_slots": [
-        21,
-        28,
-        3,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=94.8m, ángulo=68.8 deg, longitud=165.3m.",
-        "Portal de aviso asignado en nodo 429 a 4484.5m (51.7m de anticipación).",
-        "Longitud de curva extendida (165.3m >= 135m): calificada como 'verylong'.",
-        "Radio decreciente en ápice (R_in=247m -> R_out=92m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_28",
-      "start_node": 466,
-      "end_node": 474,
-      "advisory_gate_node": 461,
-      "route_distance_m": 4867.8,
-      "length_m": 82.9,
-      "total_angle_deg": 47.8,
-      "direction": "right",
-      "estimated_radius_m": 74.3,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x00048463",
-      "call_index": 28,
-      "speech_slots": [
-        14,
-        10,
-        3,
-        9,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=74.3m, ángulo=47.8 deg, longitud=82.9m.",
-        "Portal de aviso asignado en nodo 461 a 4816.3m (51.5m de anticipación).",
-        "Longitud de curva sostenida (82.9m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 473 (-5.0% -> -9.8%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_29",
-      "start_node": 473,
-      "end_node": 485,
-      "advisory_gate_node": 468,
-      "route_distance_m": 4940.4,
-      "length_m": 124.6,
-      "total_angle_deg": 48.8,
-      "direction": "left",
-      "estimated_radius_m": 104.6,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00048492",
-      "call_index": 29,
-      "speech_slots": [
-        15,
-        10,
-        4,
-        8,
-        23,
-        24
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=104.6m, ángulo=48.8 deg, longitud=124.6m.",
-        "Portal de aviso asignado en nodo 468 a 4888.6m (51.8m de anticipación).",
-        "Longitud de curva sostenida (124.6m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 473 (-5.0% -> -9.8%): 'over crest'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_30",
-      "start_node": 487,
-      "end_node": 497,
-      "advisory_gate_node": 482,
-      "route_distance_m": 5086.0,
-      "length_m": 104.6,
-      "total_angle_deg": 35.6,
-      "direction": "left",
-      "estimated_radius_m": 128.9,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000004d2",
-      "call_index": 30,
-      "speech_slots": [
-        16,
-        10,
-        4,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=128.9m, ángulo=35.6 deg, longitud=104.6m.",
-        "Portal de aviso asignado en nodo 482 a 5034.3m (51.7m de anticipación).",
-        "Longitud de curva sostenida (104.6m >= 80m): calificada como 'long'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_31",
-      "start_node": 500,
-      "end_node": 503,
-      "advisory_gate_node": 495,
-      "route_distance_m": 5221.6,
-      "length_m": 31.1,
-      "total_angle_deg": 8.1,
-      "direction": "left",
-      "estimated_radius_m": 182.0,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00001091",
-      "call_index": 31,
-      "speech_slots": [
-        15,
-        5,
-        8,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=182.0m, ángulo=8.1 deg, longitud=31.1m.",
-        "Portal de aviso asignado en nodo 495 a 5170.2m (51.4m de anticipación).",
-        "Radio decreciente en ápice (R_in=77549m -> R_out=195m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_32",
-      "start_node": 504,
-      "end_node": 512,
-      "advisory_gate_node": 499,
-      "route_distance_m": 5262.9,
-      "length_m": 82.4,
-      "total_angle_deg": 18.5,
-      "direction": "right",
-      "estimated_radius_m": 176.9,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00001461",
-      "call_index": 32,
-      "speech_slots": [
-        14,
-        10,
-        5,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=176.9m, ángulo=18.5 deg, longitud=82.4m.",
-        "Portal de aviso asignado en nodo 499 a 5211.5m (51.4m de anticipación).",
-        "Longitud de curva sostenida (82.4m >= 80m): calificada como 'long'.",
-        "Radio decreciente en ápice (R_in=328m -> R_out=171m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_33",
-      "start_node": 512,
-      "end_node": 516,
-      "advisory_gate_node": 507,
-      "route_distance_m": 5345.3,
-      "length_m": 41.4,
-      "total_angle_deg": 9.3,
-      "direction": "left",
-      "estimated_radius_m": 200.6,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000051",
-      "call_index": 33,
-      "speech_slots": [
-        14,
-        5,
-        8
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=200.6m, ángulo=9.3 deg, longitud=41.4m.",
-        "Portal de aviso asignado en nodo 507 a 5293.5m (51.8m de anticipación)."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_34",
-      "start_node": 515,
-      "end_node": 521,
-      "advisory_gate_node": 510,
-      "route_distance_m": 5376.4,
-      "length_m": 61.8,
-      "total_angle_deg": 27.2,
-      "direction": "right",
-      "estimated_radius_m": 91.3,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x00001063",
-      "call_index": 34,
-      "speech_slots": [
-        14,
-        3,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=91.3m, ángulo=27.2 deg, longitud=61.8m.",
-        "Portal de aviso asignado en nodo 510 a 5324.4m (52.0m de anticipación).",
-        "Radio decreciente en ápice (R_in=179m -> R_out=107m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_35",
-      "start_node": 521,
-      "end_node": 529,
-      "advisory_gate_node": 516,
-      "route_distance_m": 5438.2,
-      "length_m": 82.3,
-      "total_angle_deg": 27.7,
-      "direction": "left",
-      "estimated_radius_m": 130.0,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000024d1",
-      "call_index": 35,
-      "speech_slots": [
-        16,
-        10,
-        5,
-        8,
+      "status": "emitted",
+      "emitted_call_ids": [
         11
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=130.0m, ángulo=27.7 deg, longitud=82.3m.",
-        "Portal de aviso asignado en nodo 516 a 5386.7m (51.5m de anticipación).",
-        "Longitud de curva sostenida (82.3m >= 80m): calificada como 'long'.",
-        "Radio creciente en salida (R_in=129m -> R_out=240m): 'opens'."
+      "review_reasons": [
+        "absorbe EVT_013",
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_36",
-      "start_node": 532,
-      "end_node": 540,
-      "advisory_gate_node": 527,
-      "route_distance_m": 5551.8,
-      "length_m": 83.4,
-      "total_angle_deg": 29.2,
+      "id": "EVT_014",
+      "type": "curve",
+      "s_start": 2076.0,
+      "s_apex": 2112.0,
+      "s_end": 2266.0,
+      "guide_node_start": 1056,
+      "guide_node_end": 1056,
+      "link": null,
       "direction": "left",
-      "estimated_radius_m": 136.6,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000491",
-      "call_index": 36,
-      "speech_slots": [
-        15,
-        10,
-        5,
-        8
+      "radius_center_min_m": 62.61,
+      "radius_opt_min_m": 226.91,
+      "angle_deg": 69.42,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 6.84,
+      "camber_apex_deg": 0.51,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens",
+        "long",
+        "verylong"
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=136.6m, ángulo=29.2 deg, longitud=83.4m.",
-        "Portal de aviso asignado en nodo 527 a 5499.9m (51.9m de anticipación).",
-        "Longitud de curva sostenida (83.4m >= 80m): calificada como 'long'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_37",
-      "start_node": 541,
-      "end_node": 547,
-      "advisory_gate_node": 536,
-      "route_distance_m": 5645.8,
-      "length_m": 62.7,
-      "total_angle_deg": 26.1,
-      "direction": "right",
-      "estimated_radius_m": 105.2,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x00000062",
-      "call_index": 37,
-      "speech_slots": [
-        14,
-        4,
-        9
+      "linked_hazard_ids": [
+        "HAZ_003"
       ],
+      "speed_scenarios_ms": {
+        "conservative": 18.9,
+        "nominal": 20.5,
+        "fast": 22.0
+      },
+      "priority": 53,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=105.2m, ángulo=26.1 deg, longitud=62.7m.",
-        "Portal de aviso asignado en nodo 536 a 5594.1m (51.7m de anticipación)."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_38",
-      "start_node": 546,
-      "end_node": 549,
-      "advisory_gate_node": 541,
-      "route_distance_m": 5698.4,
-      "length_m": 30.5,
-      "total_angle_deg": 9.8,
-      "direction": "left",
-      "estimated_radius_m": 151.4,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00001091",
-      "call_index": 38,
-      "speech_slots": [
-        15,
-        5,
-        8,
+      "status": "emitted",
+      "emitted_call_ids": [
         12
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=151.4m, ángulo=9.8 deg, longitud=30.5m.",
-        "Portal de aviso asignado en nodo 541 a 5645.8m (52.6m de anticipación).",
-        "Radio decreciente en ápice (R_in=1610m -> R_out=170m): 'tightens'."
+      "review_reasons": [
+        "absorbe EVT_015"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_39",
-      "start_node": 550,
-      "end_node": 556,
-      "advisory_gate_node": 545,
-      "route_distance_m": 5739.5,
-      "length_m": 63.2,
-      "total_angle_deg": 17.7,
+      "id": "EVT_016",
+      "type": "curve",
+      "s_start": 2368.0,
+      "s_apex": 2410.0,
+      "s_end": 2436.0,
+      "guide_node_start": 1205,
+      "guide_node_end": 1205,
+      "link": null,
       "direction": "right",
-      "estimated_radius_m": 164.1,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00000061",
-      "call_index": 39,
-      "speech_slots": [
-        14,
-        5,
-        9
+      "radius_center_min_m": 106.11,
+      "radius_opt_min_m": 142.03,
+      "angle_deg": 25.34,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.82,
+      "camber_apex_deg": 1.03,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_004"
       ],
+      "speed_scenarios_ms": {
+        "conservative": 28.2,
+        "nominal": 30.5,
+        "fast": 32.7
+      },
+      "priority": 47,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=164.1m, ángulo=17.7 deg, longitud=63.2m.",
-        "Portal de aviso asignado en nodo 545 a 5687.9m (51.6m de anticipación)."
+      "status": "emitted",
+      "emitted_call_ids": [
+        13
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_017",
+      "type": "curve",
+      "s_start": 2528.0,
+      "s_apex": 2628.0,
+      "s_end": 2714.0,
+      "guide_node_start": 1314,
+      "guide_node_end": 1314,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 73.65,
+      "radius_opt_min_m": 205.71,
+      "angle_deg": 68.05,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 6.12,
+      "camber_apex_deg": 0.5,
+      "severity_geometric": 1,
+      "severity_effective": 2,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_005"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 20.6,
+        "nominal": 22.3,
+        "fast": 23.9
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "decel_demand 13.9>=12.5",
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_40",
-      "start_node": 556,
-      "end_node": 560,
-      "advisory_gate_node": 551,
-      "route_distance_m": 5802.7,
-      "length_m": 41.8,
-      "total_angle_deg": 8.9,
+      "id": "EVT_018",
+      "type": "curve",
+      "s_start": 2728.0,
+      "s_apex": 2754.0,
+      "s_end": 2766.0,
+      "guide_node_start": 1377,
+      "guide_node_end": 1377,
+      "link": "into",
       "direction": "left",
-      "estimated_radius_m": 186.7,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000020d1",
-      "call_index": 40,
-      "speech_slots": [
-        16,
-        5,
-        8,
-        11
-      ],
+      "radius_center_min_m": 110.66,
+      "radius_opt_min_m": 128.44,
+      "angle_deg": 15.28,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.21,
+      "camber_apex_deg": -2.17,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 30.5,
+        "nominal": 33.0,
+        "fast": 35.3
+      },
+      "priority": 47,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=186.7m, ángulo=8.9 deg, longitud=41.8m.",
-        "Portal de aviso asignado en nodo 551 a 5749.8m (52.9m de anticipación).",
-        "Radio creciente en salida (R_in=169m -> R_out=337m): 'opens'."
-      ]
+      "status": "emitted",
+      "emitted_call_ids": [
+        15
+      ],
+      "review_reasons": []
     },
     {
-      "curve_id": "KE2_CURVE_41",
-      "start_node": 563,
-      "end_node": 586,
-      "advisory_gate_node": 558,
-      "route_distance_m": 5877.0,
-      "length_m": 239.1,
-      "total_angle_deg": 68.4,
+      "id": "EVT_019",
+      "type": "curve",
+      "s_start": 2826.0,
+      "s_apex": 3060.0,
+      "s_end": 3070.0,
+      "guide_node_start": 1530,
+      "guide_node_end": 1530,
+      "link": null,
       "direction": "left",
-      "estimated_radius_m": 142.5,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x000009d1",
-      "call_index": 41,
-      "speech_slots": [
-        20,
-        28,
-        5,
-        8
+      "radius_center_min_m": 62.98,
+      "radius_opt_min_m": 208.31,
+      "angle_deg": 77.86,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.94,
+      "camber_apex_deg": -0.8,
+      "severity_geometric": 2,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong"
       ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.0,
+        "nominal": 21.6,
+        "fast": 23.2
+      },
+      "priority": 53,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=142.5m, ángulo=68.4 deg, longitud=239.1m.",
-        "Portal de aviso asignado en nodo 558 a 5823.3m (53.7m de anticipación).",
-        "Longitud de curva extendida (239.1m >= 135m): calificada como 'verylong'."
+      "status": "emitted",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": [
+        "decel_demand 12.8>=12.5",
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_42",
-      "start_node": 597,
-      "end_node": 603,
-      "advisory_gate_node": 592,
-      "route_distance_m": 6231.7,
-      "length_m": 62.5,
-      "total_angle_deg": 25.5,
-      "direction": "right",
-      "estimated_radius_m": 114.6,
-      "cmr2_kind": "five",
-      "caution": "none",
-      "call_word_hex": "0x000010e2",
-      "call_index": 42,
-      "speech_slots": [
-        16,
-        4,
-        9,
-        12
-      ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=114.6m, ángulo=25.5 deg, longitud=62.5m.",
-        "Portal de aviso asignado en nodo 592 a 6179.0m (52.8m de anticipación).",
-        "Radio decreciente en ápice (R_in=222m -> R_out=114m): 'tightens'."
-      ]
-    },
-    {
-      "curve_id": "KE2_CURVE_43",
-      "start_node": 606,
-      "end_node": 613,
-      "advisory_gate_node": 601,
-      "route_distance_m": 6324.9,
-      "length_m": 72.1,
-      "total_angle_deg": 34.3,
+      "id": "EVT_020",
+      "type": "curve",
+      "s_start": 3126.0,
+      "s_apex": 3144.0,
+      "s_end": 3154.0,
+      "guide_node_start": 1572,
+      "guide_node_end": 1572,
+      "link": null,
       "direction": "left",
-      "estimated_radius_m": 94.8,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x00001053",
-      "call_index": 43,
-      "speech_slots": [
-        14,
-        3,
-        8,
-        12
-      ],
+      "radius_center_min_m": 79.31,
+      "radius_opt_min_m": 91.05,
+      "angle_deg": 15.93,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.56,
+      "camber_apex_deg": 0.75,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 26.6,
+        "nominal": 28.9,
+        "fast": 30.9
+      },
+      "priority": 53,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=94.8m, ángulo=34.3 deg, longitud=72.1m.",
-        "Portal de aviso asignado en nodo 601 a 6273.5m (51.5m de anticipación).",
-        "Radio decreciente en ápice (R_in=212m -> R_out=92m): 'tightens'."
+      "status": "emitted",
+      "emitted_call_ids": [
+        17
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_021",
+      "type": "curve",
+      "s_start": 3176.0,
+      "s_apex": 3196.0,
+      "s_end": 3228.0,
+      "guide_node_start": 1598,
+      "guide_node_end": 1598,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 75.82,
+      "radius_opt_min_m": 123.87,
+      "angle_deg": 28.62,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.35,
+      "camber_apex_deg": -0.2,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.5,
+        "nominal": 20.0,
+        "fast": 21.5
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": [
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_44",
-      "start_node": 613,
-      "end_node": 617,
-      "advisory_gate_node": 608,
-      "route_distance_m": 6397.0,
-      "length_m": 41.0,
-      "total_angle_deg": 26.1,
-      "direction": "right",
-      "estimated_radius_m": 61.7,
-      "cmr2_kind": "four",
-      "caution": "none",
-      "call_word_hex": "0x000021e3",
-      "call_index": 44,
-      "speech_slots": [
-        20,
-        3,
-        9,
-        11
+      "id": "EVT_022",
+      "type": "curve",
+      "s_start": 3244.0,
+      "s_apex": 3278.0,
+      "s_end": 3290.0,
+      "guide_node_start": 1639,
+      "guide_node_end": 1639,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 127.31,
+      "radius_opt_min_m": 156.35,
+      "angle_deg": 12.3,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.19,
+      "camber_apex_deg": 0.11,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "tightens"
       ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 30.2,
+        "nominal": 31.1,
+        "fast": 32.0
+      },
+      "priority": 41,
       "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=61.7m, ángulo=26.1 deg, longitud=41.0m.",
-        "Portal de aviso asignado en nodo 608 a 6345.4m (51.6m de anticipación).",
-        "Radio creciente en salida (R_in=70m -> R_out=128m): 'opens'."
+      "status": "emitted",
+      "emitted_call_ids": [
+        19
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_023",
+      "type": "curve",
+      "s_start": 3354.0,
+      "s_apex": 3378.0,
+      "s_end": 3544.0,
+      "guide_node_start": 1689,
+      "guide_node_end": 1689,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 123.12,
+      "radius_opt_min_m": 233.47,
+      "angle_deg": 35.1,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.6,
+      "camber_apex_deg": -1.47,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "long",
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.3,
+        "nominal": 25.3,
+        "fast": 27.1
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": [
+        "absorbe EVT_024",
+        "degraded_L1"
       ]
     },
     {
-      "curve_id": "KE2_CURVE_45",
-      "start_node": 629,
-      "end_node": 640,
-      "advisory_gate_node": 624,
-      "route_distance_m": 6563.4,
-      "length_m": 115.3,
-      "total_angle_deg": 27.8,
+      "id": "EVT_025",
+      "type": "curve",
+      "s_start": 3552.0,
+      "s_apex": 3574.0,
+      "s_end": 3594.0,
+      "guide_node_start": 1787,
+      "guide_node_end": 1787,
+      "link": "into",
       "direction": "right",
-      "estimated_radius_m": 179.2,
-      "cmr2_kind": "six",
-      "caution": "none",
-      "call_word_hex": "0x00048421",
-      "call_index": 45,
-      "speech_slots": [
-        10,
-        5,
-        9,
-        23,
+      "radius_center_min_m": 60.18,
+      "radius_opt_min_m": 72.3,
+      "angle_deg": 29.11,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.06,
+      "camber_apex_deg": -0.22,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.9,
+        "nominal": 21.6,
+        "fast": 23.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        21
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_026",
+      "type": "curve",
+      "s_start": 3600.0,
+      "s_apex": 3610.0,
+      "s_end": 3628.0,
+      "guide_node_start": 1805,
+      "guide_node_end": 1805,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 78.09,
+      "radius_opt_min_m": 121.15,
+      "angle_deg": 16.97,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.27,
+      "camber_apex_deg": 0.15,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.4,
+        "nominal": 24.3,
+        "fast": 26.0
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        22
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_027",
+      "type": "curve",
+      "s_start": 3686.0,
+      "s_apex": 3702.0,
+      "s_end": 3710.0,
+      "guide_node_start": 1851,
+      "guide_node_end": 1851,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 80.8,
+      "radius_opt_min_m": 91.14,
+      "angle_deg": 14.42,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.25,
+      "camber_apex_deg": -0.21,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.1,
+        "nominal": 25.1,
+        "fast": 26.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        23
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_028",
+      "type": "curve",
+      "s_start": 3720.0,
+      "s_apex": 3734.0,
+      "s_end": 3750.0,
+      "guide_node_start": 1867,
+      "guide_node_end": 1867,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 55.84,
+      "radius_opt_min_m": 82.77,
+      "angle_deg": 21.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.06,
+      "camber_apex_deg": 0.76,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.2,
+        "nominal": 21.9,
+        "fast": 23.4
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
         24
       ],
-      "confidence": "high",
-      "review_status": "reviewed",
-      "evidence": [
-        "Medida geométrica 3D: R=179.2m, ángulo=27.8 deg, longitud=115.3m.",
-        "Portal de aviso asignado en nodo 624 a 6510.6m (52.8m de anticipación).",
-        "Longitud de curva sostenida (115.3m >= 80m): calificada como 'long'.",
-        "Cambio convexo de rasante en nodo 639 (+3.4% -> -3.5%): 'over crest'."
+      "review_reasons": [
+        "degraded_L1"
       ]
+    },
+    {
+      "id": "EVT_029",
+      "type": "curve",
+      "s_start": 3756.0,
+      "s_apex": 3762.0,
+      "s_end": 3784.0,
+      "guide_node_start": 1881,
+      "guide_node_end": 1881,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 79.82,
+      "radius_opt_min_m": 204.59,
+      "angle_deg": 14.37,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.11,
+      "camber_apex_deg": -0.32,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.5,
+        "nominal": 25.5,
+        "fast": 27.3
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        25
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_030",
+      "type": "curve",
+      "s_start": 3806.0,
+      "s_apex": 3814.0,
+      "s_end": 3954.0,
+      "guide_node_start": 1907,
+      "guide_node_end": 1907,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 62.73,
+      "radius_opt_min_m": 149.07,
+      "angle_deg": 61.01,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.37,
+      "camber_apex_deg": -0.13,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 17.7,
+        "nominal": 19.2,
+        "fast": 20.6
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        26
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_031",
+      "type": "curve",
+      "s_start": 4140.0,
+      "s_apex": 4170.0,
+      "s_end": 4204.0,
+      "guide_node_start": 2085,
+      "guide_node_end": 2085,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 81.69,
+      "radius_opt_min_m": 145.07,
+      "angle_deg": 28.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -3.38,
+      "camber_apex_deg": -1.67,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.4,
+        "nominal": 25.4,
+        "fast": 27.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        27
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_032",
+      "type": "curve",
+      "s_start": 4308.0,
+      "s_apex": 4338.0,
+      "s_end": 4368.0,
+      "guide_node_start": 2169,
+      "guide_node_end": 2169,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 104.66,
+      "radius_opt_min_m": 154.33,
+      "angle_deg": 23.64,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 11.01,
+      "camber_apex_deg": -0.74,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_006"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 28.2,
+        "nominal": 30.6,
+        "fast": 32.9
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        28
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_033",
+      "type": "curve",
+      "s_start": 4426.0,
+      "s_apex": 4466.0,
+      "s_end": 4480.0,
+      "guide_node_start": 2233,
+      "guide_node_end": 2233,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 57.05,
+      "radius_opt_min_m": 81.18,
+      "angle_deg": 27.91,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.86,
+      "camber_apex_deg": -0.52,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.2,
+        "nominal": 20.8,
+        "fast": 22.4
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        29
+      ],
+      "review_reasons": [
+        "decel_demand 12.8>=12.5",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_034",
+      "type": "curve",
+      "s_start": 4558.0,
+      "s_apex": 4672.0,
+      "s_end": 4704.0,
+      "guide_node_start": 2336,
+      "guide_node_end": 2336,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 53.04,
+      "radius_opt_min_m": 70.89,
+      "angle_deg": 70.85,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 7.1,
+      "camber_apex_deg": -0.22,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.9,
+        "nominal": 20.5,
+        "fast": 22.0
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        30
+      ],
+      "review_reasons": [
+        "absorbe EVT_035"
+      ]
+    },
+    {
+      "id": "EVT_036",
+      "type": "curve",
+      "s_start": 4874.0,
+      "s_apex": 4912.0,
+      "s_end": 4944.0,
+      "guide_node_start": 2456,
+      "guide_node_end": 2456,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 49.59,
+      "radius_opt_min_m": 83.58,
+      "angle_deg": 49.66,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.6,
+      "camber_apex_deg": 0.04,
+      "severity_geometric": 4,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_008"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 19.3,
+        "nominal": 21.0,
+        "fast": 22.5
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        32
+      ],
+      "review_reasons": [
+        "decel_demand 16.1>=12.5",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_037",
+      "type": "curve",
+      "s_start": 4950.0,
+      "s_apex": 5172.0,
+      "s_end": 5180.0,
+      "guide_node_start": 2586,
+      "guide_node_end": 2586,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 44.24,
+      "radius_opt_min_m": 218.2,
+      "angle_deg": 85.28,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.77,
+      "camber_apex_deg": -0.23,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.2,
+        "nominal": 19.8,
+        "fast": 21.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        33
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_038",
+      "type": "curve",
+      "s_start": 5186.0,
+      "s_apex": 5224.0,
+      "s_end": 5230.0,
+      "guide_node_start": 2612,
+      "guide_node_end": 2612,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 126.45,
+      "radius_opt_min_m": 152.31,
+      "angle_deg": 10.43,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.91,
+      "camber_apex_deg": -0.3,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 26.2,
+        "nominal": 27.3,
+        "fast": 28.3
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        34
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_039",
+      "type": "curve",
+      "s_start": 5238.0,
+      "s_apex": 5252.0,
+      "s_end": 5262.0,
+      "guide_node_start": 2626,
+      "guide_node_end": 2626,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 69.44,
+      "radius_opt_min_m": 79.05,
+      "angle_deg": 15.59,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.66,
+      "camber_apex_deg": 1.27,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.0,
+        "nominal": 26.0,
+        "fast": 27.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        35
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_040",
+      "type": "curve",
+      "s_start": 5282.0,
+      "s_apex": 5304.0,
+      "s_end": 5330.0,
+      "guide_node_start": 2652,
+      "guide_node_end": 2652,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 70.25,
+      "radius_opt_min_m": 113.15,
+      "angle_deg": 25.95,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.37,
+      "camber_apex_deg": -0.25,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 21.4,
+        "nominal": 23.2,
+        "fast": 24.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        36
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_041",
+      "type": "curve",
+      "s_start": 5350.0,
+      "s_apex": 5368.0,
+      "s_end": 5380.0,
+      "guide_node_start": 2684,
+      "guide_node_end": 2684,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 73.49,
+      "radius_opt_min_m": 84.66,
+      "angle_deg": 18.21,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.32,
+      "camber_apex_deg": 0.15,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.4,
+        "nominal": 26.5,
+        "fast": 28.4
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        37
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_042",
+      "type": "curve",
+      "s_start": 5386.0,
+      "s_apex": 5398.0,
+      "s_end": 5428.0,
+      "guide_node_start": 2699,
+      "guide_node_end": 2699,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 51.44,
+      "radius_opt_min_m": 84.74,
+      "angle_deg": 35.36,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.35,
+      "camber_apex_deg": -0.17,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.1,
+        "nominal": 20.7,
+        "fast": 22.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        38
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_043",
+      "type": "curve",
+      "s_start": 5436.0,
+      "s_apex": 5478.0,
+      "s_end": 5644.0,
+      "guide_node_start": 2739,
+      "guide_node_end": 2739,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 81.28,
+      "radius_opt_min_m": 159.15,
+      "angle_deg": 64.5,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.38,
+      "camber_apex_deg": -1.17,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "long",
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.7,
+        "nominal": 26.8,
+        "fast": 28.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        39
+      ],
+      "review_reasons": [
+        "absorbe EVT_044"
+      ]
+    },
+    {
+      "id": "EVT_045",
+      "type": "curve",
+      "s_start": 5654.0,
+      "s_apex": 5688.0,
+      "s_end": 5698.0,
+      "guide_node_start": 2844,
+      "guide_node_end": 2844,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 34.71,
+      "radius_opt_min_m": 41.95,
+      "angle_deg": 45.23,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.18,
+      "camber_apex_deg": -0.16,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.6,
+        "nominal": 16.9,
+        "fast": 18.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        40
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_046",
+      "type": "curve",
+      "s_start": 5702.0,
+      "s_apex": 5710.0,
+      "s_end": 5730.0,
+      "guide_node_start": 2855,
+      "guide_node_end": 2855,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 45.03,
+      "radius_opt_min_m": 78.72,
+      "angle_deg": 28.13,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.32,
+      "camber_apex_deg": 0.15,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 17.7,
+        "nominal": 19.3,
+        "fast": 20.6
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        41
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_047",
+      "type": "curve",
+      "s_start": 5740.0,
+      "s_apex": 5766.0,
+      "s_end": 5792.0,
+      "guide_node_start": 2883,
+      "guide_node_end": 2883,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 76.76,
+      "radius_opt_min_m": 101.81,
+      "angle_deg": 26.31,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.3,
+      "camber_apex_deg": -0.19,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 25.2,
+        "nominal": 27.0,
+        "fast": 28.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        42
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_048",
+      "type": "curve",
+      "s_start": 5810.0,
+      "s_apex": 5820.0,
+      "s_end": 5838.0,
+      "guide_node_start": 2910,
+      "guide_node_end": 2910,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 70.09,
+      "radius_opt_min_m": 135.52,
+      "angle_deg": 16.98,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.2,
+      "camber_apex_deg": 0.24,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.5,
+        "nominal": 25.4,
+        "fast": 27.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        43
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_049",
+      "type": "curve",
+      "s_start": 5844.0,
+      "s_apex": 5852.0,
+      "s_end": 5886.0,
+      "guide_node_start": 2926,
+      "guide_node_end": 2926,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 100.02,
+      "radius_opt_min_m": 680.11,
+      "angle_deg": 13.15,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.2,
+      "camber_apex_deg": -0.34,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 27.9,
+        "nominal": 29.5,
+        "fast": 31.1
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        44
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_050",
+      "type": "curve",
+      "s_start": 5892.0,
+      "s_apex": 5900.0,
+      "s_end": 6094.0,
+      "guide_node_start": 2950,
+      "guide_node_end": 2950,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 50.91,
+      "radius_opt_min_m": 231.43,
+      "angle_deg": 71.97,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.48,
+      "camber_apex_deg": -0.63,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens",
+        "tightens",
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.4,
+        "nominal": 20.0,
+        "fast": 21.4
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        45
+      ],
+      "review_reasons": [
+        "absorbe EVT_051",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_052",
+      "type": "curve",
+      "s_start": 6252.0,
+      "s_apex": 6290.0,
+      "s_end": 6314.0,
+      "guide_node_start": 3145,
+      "guide_node_end": 3145,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 97.72,
+      "radius_opt_min_m": 104.56,
+      "angle_deg": 31.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.62,
+      "camber_apex_deg": 0.18,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 27.2,
+        "nominal": 29.6,
+        "fast": 31.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        46
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_053",
+      "type": "curve",
+      "s_start": 6332.0,
+      "s_apex": 6360.0,
+      "s_end": 6388.0,
+      "guide_node_start": 3180,
+      "guide_node_end": 3180,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 61.77,
+      "radius_opt_min_m": 93.13,
+      "angle_deg": 37.07,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.43,
+      "camber_apex_deg": -2.75,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.2,
+        "nominal": 21.9,
+        "fast": 23.5
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        47
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_054",
+      "type": "curve",
+      "s_start": 6402.0,
+      "s_apex": 6416.0,
+      "s_end": 6434.0,
+      "guide_node_start": 3208,
+      "guide_node_end": 3208,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 54.67,
+      "radius_opt_min_m": 90.98,
+      "angle_deg": 23.19,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.39,
+      "camber_apex_deg": 0.88,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.8,
+        "nominal": 22.6,
+        "fast": 24.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        48
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_055",
+      "type": "curve",
+      "s_start": 6590.0,
+      "s_apex": 6650.0,
+      "s_end": 6670.0,
+      "guide_node_start": 3325,
+      "guide_node_end": 3325,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 102.69,
+      "radius_opt_min_m": 153.21,
+      "angle_deg": 28.42,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.38,
+      "camber_apex_deg": -0.45,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "long"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.9,
+        "nominal": 25.8,
+        "fast": 27.6
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        50
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_056",
+      "type": "curve",
+      "s_start": 6678.0,
+      "s_apex": 6686.0,
+      "s_end": 6692.0,
+      "guide_node_start": 3343,
+      "guide_node_end": 3343,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 63.56,
+      "radius_opt_min_m": 67.15,
+      "angle_deg": 13.49,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.0,
+      "camber_apex_deg": -0.46,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.8,
+        "nominal": 24.7,
+        "fast": 26.5
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        51
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_057",
+      "type": "curve",
+      "s_start": 6698.0,
+      "s_apex": 6704.0,
+      "s_end": 6712.0,
+      "guide_node_start": 3352,
+      "guide_node_end": 3352,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 59.0,
+      "radius_opt_min_m": 77.41,
+      "angle_deg": 13.45,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.5,
+      "camber_apex_deg": -1.27,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_010"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 20.0,
+        "nominal": 21.6,
+        "fast": 23.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        52
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_058",
+      "type": "curve",
+      "s_start": 6738.0,
+      "s_apex": 6752.0,
+      "s_end": 6766.0,
+      "guide_node_start": 3376,
+      "guide_node_end": 3376,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 81.42,
+      "radius_opt_min_m": 101.07,
+      "angle_deg": 15.5,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.61,
+      "camber_apex_deg": -0.13,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.7,
+        "nominal": 26.8,
+        "fast": 28.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        53
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "HAZ_001",
+      "type": "ditch",
+      "s_start": 362.0,
+      "s_apex": 362.0,
+      "s_end": 362.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        0
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.08"
+      ],
+      "label": "ditch:kenya_ditch_1_3",
+      "side": "right",
+      "d_edge": 0.08,
+      "relative_side": null,
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_007",
+      "type": "ditch",
+      "s_start": 4726.0,
+      "s_apex": 4726.0,
+      "s_end": 4726.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        31
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.21"
+      ],
+      "label": "ditch:kenya_ditch_1_3",
+      "side": "right",
+      "d_edge": 0.21,
+      "relative_side": null,
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_009",
+      "type": "ditch",
+      "s_start": 6506.0,
+      "s_apex": 6506.0,
+      "s_end": 6506.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        49
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.13"
+      ],
+      "label": "ditch:kenya_ditch_1_3",
+      "side": "left",
+      "d_edge": 0.13,
+      "relative_side": null,
+      "dont_cut": false
     }
   ]
 }

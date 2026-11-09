@@ -1,410 +1,904 @@
 {
-  "stage": "switzerland-stage7",
-  "total_curves": 14,
-  "vertical_crests_count": 11,
-  "near_obstacles_count": 28,
-  "vertical_crests": [
+  "stage": "switzerland_stage7",
+  "generator": "pacenote_analyzer_v3",
+  "events": [
     {
-      "node": 5,
-      "dist_m": 51.9,
-      "slope_in_pct": 0.0,
-      "slope_out_pct": -11.3,
-      "delta_slope_pct": -4.16,
-      "is_jump": false
-    },
-    {
-      "node": 20,
-      "dist_m": 214.0,
-      "slope_in_pct": 1.9,
-      "slope_out_pct": -5.6,
-      "delta_slope_pct": -3.17,
-      "is_jump": false
-    },
-    {
-      "node": 27,
-      "dist_m": 288.7,
-      "slope_in_pct": -2.4,
-      "slope_out_pct": -14.2,
-      "delta_slope_pct": -4.58,
-      "is_jump": false
-    },
-    {
-      "node": 45,
-      "dist_m": 480.9,
-      "slope_in_pct": -3.7,
-      "slope_out_pct": -11.6,
-      "delta_slope_pct": -3.08,
-      "is_jump": false
-    },
-    {
-      "node": 80,
-      "dist_m": 849.5,
-      "slope_in_pct": -7.4,
-      "slope_out_pct": -11.2,
-      "delta_slope_pct": -2.45,
-      "is_jump": false
-    },
-    {
-      "node": 95,
-      "dist_m": 1013.3,
-      "slope_in_pct": 0.7,
-      "slope_out_pct": -19.0,
-      "delta_slope_pct": -7.9,
-      "is_jump": true
-    },
-    {
-      "node": 160,
-      "dist_m": 1702.5,
-      "slope_in_pct": 20.5,
-      "slope_out_pct": 1.9,
-      "delta_slope_pct": -8.01,
-      "is_jump": true
-    },
-    {
-      "node": 180,
-      "dist_m": 1913.4,
-      "slope_in_pct": 8.8,
-      "slope_out_pct": 3.6,
-      "delta_slope_pct": -2.68,
-      "is_jump": false
-    },
-    {
-      "node": 204,
-      "dist_m": 2164.7,
-      "slope_in_pct": 1.7,
-      "slope_out_pct": -17.7,
-      "delta_slope_pct": -8.92,
-      "is_jump": true
-    },
-    {
-      "node": 215,
-      "dist_m": 2281.3,
-      "slope_in_pct": 12.0,
-      "slope_out_pct": 10.9,
-      "delta_slope_pct": -2.47,
-      "is_jump": false
-    },
-    {
-      "node": 221,
-      "dist_m": 2344.3,
-      "slope_in_pct": 21.0,
-      "slope_out_pct": 5.5,
-      "delta_slope_pct": -6.33,
-      "is_jump": false
-    }
-  ],
-  "near_obstacles": [
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_81",
-      "materials": [
-        "audience_4"
+      "id": "EVT_001",
+      "type": "curve",
+      "s_start": 4.0,
+      "s_apex": 64.0,
+      "s_end": 188.0,
+      "guide_node_start": 32,
+      "guide_node_end": 32,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 96.76,
+      "radius_opt_min_m": 256.75,
+      "angle_deg": 47.61,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.32,
+      "camber_apex_deg": 0.74,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "opens",
+        "long",
+        "verylong"
       ],
-      "dist_3d_m": 15.06,
-      "lateral_m": -15.05,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.6,
+        "nominal": 24.6,
+        "fast": 24.6
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        0
+      ],
+      "review_reasons": [
+        "absorbe EVT_002"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_82",
-      "materials": [
-        "audience_4"
+      "id": "EVT_002",
+      "type": "curve",
+      "s_start": 102.0,
+      "s_apex": 118.0,
+      "s_end": 188.0,
+      "guide_node_start": 59,
+      "guide_node_end": 59,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 126.02,
+      "radius_opt_min_m": 247.89,
+      "angle_deg": 21.51,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.16,
+      "camber_apex_deg": 3.01,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "long"
       ],
-      "dist_3d_m": 15.67,
-      "lateral_m": -15.53,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 41,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        0
+      ],
+      "review_reasons": [
+        "cubierta por EVT_001"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_86",
-      "materials": [
-        "audience_4"
+      "id": "EVT_003",
+      "type": "curve",
+      "s_start": 250.0,
+      "s_apex": 304.0,
+      "s_end": 356.0,
+      "guide_node_start": 152,
+      "guide_node_end": 152,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 64.82,
+      "radius_opt_min_m": 107.12,
+      "angle_deg": 57.85,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.69,
+      "camber_apex_deg": 5.94,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [
+        "long"
       ],
-      "dist_3d_m": 14.77,
-      "lateral_m": -14.13,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.1,
+        "nominal": 24.0,
+        "fast": 25.7
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "decel_demand 13.0>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_91",
-      "materials": [
-        "audience_4"
+      "id": "EVT_004",
+      "type": "curve",
+      "s_start": 440.0,
+      "s_apex": 468.0,
+      "s_end": 482.0,
+      "guide_node_start": 234,
+      "guide_node_end": 234,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 57.57,
+      "radius_opt_min_m": 70.56,
+      "angle_deg": 29.48,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.61,
+      "camber_apex_deg": -0.11,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.0,
+        "nominal": 23.9,
+        "fast": 25.6
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        2
       ],
-      "dist_3d_m": 12.55,
-      "lateral_m": -12.4,
-      "side": "left"
+      "review_reasons": []
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_92",
-      "materials": [
-        "audience_4"
+      "id": "EVT_005",
+      "type": "curve",
+      "s_start": 500.0,
+      "s_apex": 572.0,
+      "s_end": 854.0,
+      "guide_node_start": 286,
+      "guide_node_end": 286,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 30.23,
+      "radius_opt_min_m": 136.03,
+      "angle_deg": 175.14,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.8,
+      "camber_apex_deg": -1.04,
+      "severity_geometric": 1,
+      "severity_effective": 2,
+      "modifiers": [
+        "verylong"
       ],
-      "dist_3d_m": 13.63,
-      "lateral_m": -13.48,
-      "side": "left"
+      "linked_hazard_ids": [
+        "HAZ_001"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 15.6,
+        "nominal": 16.9,
+        "fast": 18.1
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        3
+      ],
+      "review_reasons": [
+        "decel_demand 12.8>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_95",
-      "materials": [
-        "audience_4"
+      "id": "EVT_006",
+      "type": "curve",
+      "s_start": 900.0,
+      "s_apex": 944.0,
+      "s_end": 990.0,
+      "guide_node_start": 472,
+      "guide_node_end": 472,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 51.36,
+      "radius_opt_min_m": 76.86,
+      "angle_deg": 58.3,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.44,
+      "camber_apex_deg": -0.97,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens",
+        "long"
       ],
-      "dist_3d_m": 13.77,
-      "lateral_m": -13.72,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.1,
+        "nominal": 20.7,
+        "fast": 22.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        4
+      ],
+      "review_reasons": [
+        "decel_demand 16.3>=12.5"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "sponsors_7",
-      "materials": [
-        "fence_metal",
-        "sponsors"
+      "id": "EVT_007",
+      "type": "curve",
+      "s_start": 1004.0,
+      "s_apex": 1212.0,
+      "s_end": 1240.0,
+      "guide_node_start": 606,
+      "guide_node_end": 606,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 66.14,
+      "radius_opt_min_m": 99.06,
+      "angle_deg": 85.25,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -2.36,
+      "camber_apex_deg": 1.08,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong",
+        "long"
       ],
-      "dist_3d_m": 9.56,
-      "lateral_m": -9.54,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.5,
+        "nominal": 24.5,
+        "fast": 26.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        5
+      ],
+      "review_reasons": [
+        "absorbe EVT_008"
+      ]
     },
     {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "sponsors_6",
-      "materials": [
-        "fence_metal",
-        "sponsors"
+      "id": "EVT_008",
+      "type": "curve",
+      "s_start": 1192.0,
+      "s_apex": 1212.0,
+      "s_end": 1240.0,
+      "guide_node_start": 606,
+      "guide_node_end": 606,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 66.14,
+      "radius_opt_min_m": 99.06,
+      "angle_deg": 31.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -2.36,
+      "camber_apex_deg": 1.08,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 53,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        5
       ],
-      "dist_3d_m": 9.01,
-      "lateral_m": 8.71,
-      "side": "right"
+      "review_reasons": [
+        "cubierta por EVT_007"
+      ]
     },
     {
-      "node": 23,
-      "dist_m": 247.1,
-      "name": "checkpoint",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_009",
+      "type": "curve",
+      "s_start": 1354.0,
+      "s_apex": 1364.0,
+      "s_end": 1370.0,
+      "guide_node_start": 682,
+      "guide_node_end": 682,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 45.68,
+      "radius_opt_min_m": 51.29,
+      "angle_deg": 17.58,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.31,
+      "camber_apex_deg": -1.21,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens"
       ],
-      "dist_3d_m": 8.5,
-      "lateral_m": 8.3,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.5,
+        "nominal": 20.1,
+        "fast": 21.5
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        6
+      ],
+      "review_reasons": []
     },
     {
-      "node": 23,
-      "dist_m": 247.1,
-      "name": "checkpoint01",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_010",
+      "type": "curve",
+      "s_start": 1374.0,
+      "s_apex": 1380.0,
+      "s_end": 1388.0,
+      "guide_node_start": 690,
+      "guide_node_end": 690,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 32.03,
+      "radius_opt_min_m": 40.14,
+      "angle_deg": 25.16,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.34,
+      "camber_apex_deg": 3.05,
+      "severity_geometric": 5,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.6,
+        "nominal": 17.0,
+        "fast": 18.2
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        7
       ],
-      "dist_3d_m": 9.7,
-      "lateral_m": -8.21,
-      "side": "left"
+      "review_reasons": [
+        "decel_demand 14.8>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 46,
-      "dist_m": 492.0,
-      "name": "checkpoint03",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_011",
+      "type": "curve",
+      "s_start": 1450.0,
+      "s_apex": 1460.0,
+      "s_end": 1714.0,
+      "guide_node_start": 730,
+      "guide_node_end": 730,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 96.28,
+      "radius_opt_min_m": 256.36,
+      "angle_deg": 66.16,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.35,
+      "camber_apex_deg": -0.34,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "long",
+        "verylong"
       ],
-      "dist_3d_m": 8.44,
-      "lateral_m": 7.3,
-      "side": "right"
+      "linked_hazard_ids": [
+        "HAZ_002"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 27.6,
+        "nominal": 28.8,
+        "fast": 29.5
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": [
+        "absorbe EVT_012"
+      ]
     },
     {
-      "node": 76,
-      "dist_m": 808.3,
-      "name": "checkpoint04",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_012",
+      "type": "curve",
+      "s_start": 1584.0,
+      "s_apex": 1686.0,
+      "s_end": 1714.0,
+      "guide_node_start": 843,
+      "guide_node_end": 843,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 83.78,
+      "radius_opt_min_m": 182.5,
+      "angle_deg": 43.77,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 16.42,
+      "camber_apex_deg": 2.19,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "long"
       ],
-      "dist_3d_m": 9.3,
-      "lateral_m": -8.74,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 41,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": [
+        "cubierta por EVT_011"
+      ]
     },
     {
-      "node": 76,
-      "dist_m": 808.3,
-      "name": "checkpoint05",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_013",
+      "type": "curve",
+      "s_start": 1728.0,
+      "s_apex": 1778.0,
+      "s_end": 1818.0,
+      "guide_node_start": 889,
+      "guide_node_end": 889,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 44.87,
+      "radius_opt_min_m": 84.19,
+      "angle_deg": 69.48,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 12.08,
+      "camber_apex_deg": -1.01,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "long"
       ],
-      "dist_3d_m": 8.62,
-      "lateral_m": 8.06,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.9,
+        "nominal": 20.5,
+        "fast": 22.0
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        9
+      ],
+      "review_reasons": []
     },
     {
-      "node": 103,
-      "dist_m": 1097.8,
-      "name": "checkpoint06",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_014",
+      "type": "curve",
+      "s_start": 1952.0,
+      "s_apex": 2020.0,
+      "s_end": 2148.0,
+      "guide_node_start": 1010,
+      "guide_node_end": 1010,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 49.46,
+      "radius_opt_min_m": 167.3,
+      "angle_deg": 112.79,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.97,
+      "camber_apex_deg": -1.79,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens",
+        "verylong"
       ],
-      "dist_3d_m": 7.72,
-      "lateral_m": -7.44,
-      "side": "left"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.6,
+        "nominal": 21.3,
+        "fast": 22.8
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        10
+      ],
+      "review_reasons": []
     },
     {
-      "node": 103,
-      "dist_m": 1097.8,
-      "name": "checkpoint07",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_015",
+      "type": "curve",
+      "s_start": 2152.0,
+      "s_apex": 2158.0,
+      "s_end": 2166.0,
+      "guide_node_start": 1079,
+      "guide_node_end": 1079,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 38.65,
+      "radius_opt_min_m": 47.8,
+      "angle_deg": 21.21,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.93,
+      "camber_apex_deg": 2.34,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 17.5,
+        "nominal": 19.0,
+        "fast": 20.3
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        11
       ],
-      "dist_3d_m": 9.49,
-      "lateral_m": 9.36,
-      "side": "right"
+      "review_reasons": []
     },
     {
-      "node": 127,
-      "dist_m": 1354.7,
-      "name": "checkpoint08",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_016",
+      "type": "curve",
+      "s_start": 2186.0,
+      "s_apex": 2196.0,
+      "s_end": 2206.0,
+      "guide_node_start": 1098,
+      "guide_node_end": 1098,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 77.73,
+      "radius_opt_min_m": 94.18,
+      "angle_deg": 12.99,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.57,
+      "camber_apex_deg": -5.33,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 26.2,
+        "nominal": 27.2,
+        "fast": 28.2
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        12
       ],
-      "dist_3d_m": 9.26,
-      "lateral_m": -9.11,
-      "side": "left"
+      "review_reasons": [
+        "bad_camber -5.3<=-4.5"
+      ]
     },
     {
-      "node": 127,
-      "dist_m": 1354.7,
-      "name": "checkpoint09",
-      "materials": [
-        "checkpoint"
+      "id": "EVT_017",
+      "type": "curve",
+      "s_start": 2326.0,
+      "s_apex": 2374.0,
+      "s_end": 2384.0,
+      "guide_node_start": 1187,
+      "guide_node_end": 1187,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 44.82,
+      "radius_opt_min_m": 91.58,
+      "angle_deg": 38.55,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 21.28,
+      "camber_apex_deg": 0.33,
+      "severity_geometric": 4,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 17.7,
+        "nominal": 19.2,
+        "fast": 20.6
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        13
       ],
-      "dist_3d_m": 7.6,
-      "lateral_m": 7.56,
-      "side": "right"
+      "review_reasons": [
+        "decel_demand 13.8>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 154,
-      "dist_m": 1639.5,
-      "name": "checkpoint10",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_001",
+      "type": "junction",
+      "s_start": 500.0,
+      "s_apex": 500.0,
+      "s_end": 500.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        3
       ],
-      "dist_3d_m": 9.47,
-      "lateral_m": 8.93,
-      "side": "right"
+      "review_reasons": [
+        "side=right d_edge=0.79",
+        "absorbido en EVT_005"
+      ],
+      "label": "junction:sign_turn_right",
+      "side": "right",
+      "d_edge": 0.79,
+      "relative_side": "outside",
+      "dont_cut": false
     },
     {
-      "node": 154,
-      "dist_m": 1639.5,
-      "name": "checkpoint11",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_002",
+      "type": "junction",
+      "s_start": 1694.0,
+      "s_apex": 1694.0,
+      "s_end": 1694.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        8
       ],
-      "dist_3d_m": 8.38,
-      "lateral_m": -7.87,
-      "side": "left"
+      "review_reasons": [
+        "side=right d_edge=1.48",
+        "absorbido en EVT_011"
+      ],
+      "label": "junction:sign_turn_right",
+      "side": "right",
+      "d_edge": 1.48,
+      "relative_side": "outside",
+      "dont_cut": false
     },
     {
-      "node": 189,
-      "dist_m": 2009.3,
-      "name": "checkpoint12",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_001",
+      "type": "jump",
+      "s_start": 216.0,
+      "s_apex": 216.0,
+      "s_end": 216.0,
+      "guide_node_start": 108,
+      "guide_node_end": 108,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 90,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
       ],
-      "dist_3d_m": 10.12,
-      "lateral_m": 9.51,
-      "side": "right"
+      "review_reasons": [
+        "gamma=0.765",
+        "absorbido en EVT_003"
+      ]
     },
     {
-      "node": 189,
-      "dist_m": 2009.3,
-      "name": "checkpoint13",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_002",
+      "type": "crest",
+      "s_start": 288.0,
+      "s_apex": 288.0,
+      "s_end": 288.0,
+      "guide_node_start": 144,
+      "guide_node_end": 144,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
       ],
-      "dist_3d_m": 8.13,
-      "lateral_m": -7.29,
-      "side": "left"
+      "review_reasons": [
+        "gamma=0.559",
+        "absorbido en EVT_003"
+      ]
     },
     {
-      "node": 217,
-      "dist_m": 2302.9,
-      "name": "checkpoint14",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_003",
+      "type": "crest",
+      "s_start": 496.0,
+      "s_apex": 496.0,
+      "s_end": 496.0,
+      "guide_node_start": 248,
+      "guide_node_end": 248,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        2
       ],
-      "dist_3d_m": 7.4,
-      "lateral_m": 7.38,
-      "side": "right"
+      "review_reasons": [
+        "gamma=0.506",
+        "absorbido en EVT_004"
+      ]
     },
     {
-      "node": 217,
-      "dist_m": 2302.9,
-      "name": "checkpoint15",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_004",
+      "type": "crest",
+      "s_start": 1016.0,
+      "s_apex": 1016.0,
+      "s_end": 1016.0,
+      "guide_node_start": 508,
+      "guide_node_end": 508,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        5
       ],
-      "dist_3d_m": 9.63,
-      "lateral_m": -9.42,
-      "side": "left"
+      "review_reasons": [
+        "gamma=0.707",
+        "absorbido en EVT_007"
+      ]
     },
     {
-      "node": 240,
-      "dist_m": 2544.2,
-      "name": "checkpoint16",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_005",
+      "type": "jump",
+      "s_start": 1708.0,
+      "s_apex": 1708.0,
+      "s_end": 1708.0,
+      "guide_node_start": 854,
+      "guide_node_end": 854,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 90,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        8
       ],
-      "dist_3d_m": 8.98,
-      "lateral_m": 8.77,
-      "side": "right"
+      "review_reasons": [
+        "gamma=0.834",
+        "absorbido en EVT_011"
+      ]
     },
     {
-      "node": 240,
-      "dist_m": 2544.2,
-      "name": "checkpoint17",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_006",
+      "type": "crest",
+      "s_start": 2172.0,
+      "s_apex": 2172.0,
+      "s_end": 2172.0,
+      "guide_node_start": 1086,
+      "guide_node_end": 1086,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        11
       ],
-      "dist_3d_m": 7.9,
-      "lateral_m": -7.39,
-      "side": "left"
+      "review_reasons": [
+        "gamma=0.462",
+        "absorbido en EVT_015"
+      ]
     },
     {
-      "node": 159,
-      "dist_m": 1692.3,
-      "name": "sign_hardturnright",
-      "materials": [
-        "sign_trunks",
-        "sign_turn_right"
+      "id": "VRT_007",
+      "type": "crest",
+      "s_start": 2346.0,
+      "s_apex": 2346.0,
+      "s_end": 2346.0,
+      "guide_node_start": 1173,
+      "guide_node_end": 1173,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        13
       ],
-      "dist_3d_m": 6.4,
-      "lateral_m": 5.24,
-      "side": "right"
-    },
-    {
-      "node": 47,
-      "dist_m": 502.8,
-      "name": "sign_hardturnleft",
-      "materials": [
-        "sign_trunks",
-        "sign_turn_right"
-      ],
-      "dist_3d_m": 7.2,
-      "lateral_m": 5.66,
-      "side": "right"
-    },
-    {
-      "node": 46,
-      "dist_m": 492.0,
-      "name": "checkpoint20",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.36,
-      "lateral_m": -4.46,
-      "side": "left"
+      "review_reasons": [
+        "gamma=0.451",
+        "absorbido en EVT_017"
+      ]
     }
   ]
 }

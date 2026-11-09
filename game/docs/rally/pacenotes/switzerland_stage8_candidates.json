@@ -1,624 +1,1420 @@
 {
-  "stage": "switzerland-stage8",
-  "total_curves": 21,
-  "vertical_crests_count": 3,
-  "near_obstacles_count": 51,
-  "vertical_crests": [
+  "stage": "switzerland_stage8",
+  "generator": "pacenote_analyzer_v3",
+  "events": [
     {
-      "node": 148,
-      "dist_m": 1571.4,
-      "slope_in_pct": 12.7,
-      "slope_out_pct": 5.4,
-      "delta_slope_pct": -3.05,
-      "is_jump": false
-    },
-    {
-      "node": 160,
-      "dist_m": 1698.9,
-      "slope_in_pct": 4.0,
-      "slope_out_pct": -2.5,
-      "delta_slope_pct": -2.52,
-      "is_jump": false
-    },
-    {
-      "node": 173,
-      "dist_m": 1835.4,
-      "slope_in_pct": -5.1,
-      "slope_out_pct": -11.7,
-      "delta_slope_pct": -2.72,
-      "is_jump": false
-    }
-  ],
-  "near_obstacles": [
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "oventakalevy",
-      "materials": [
-        "gate_metal1"
+      "id": "EVT_001",
+      "type": "curve",
+      "s_start": 168.0,
+      "s_apex": 190.0,
+      "s_end": 200.0,
+      "guide_node_start": 95,
+      "guide_node_end": 95,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 12.93,
+      "radius_opt_min_m": 14.3,
+      "angle_deg": 107.49,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.28,
+      "camber_apex_deg": -1.09,
+      "severity_geometric": 7,
+      "severity_effective": 8,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_004"
       ],
-      "dist_3d_m": 13.46,
-      "lateral_m": -11.76,
-      "side": "left"
+      "speed_scenarios_ms": {
+        "conservative": 10.1,
+        "nominal": 10.9,
+        "fast": 11.7
+      },
+      "priority": 83,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "decel_demand 19.3>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 1,
-      "dist_m": 10.2,
-      "name": "sign_wooden1",
-      "materials": [
-        "sign_wooden1"
+      "id": "EVT_002",
+      "type": "curve",
+      "s_start": 204.0,
+      "s_apex": 210.0,
+      "s_end": 252.0,
+      "guide_node_start": 105,
+      "guide_node_end": 105,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 66.85,
+      "radius_opt_min_m": 197.78,
+      "angle_deg": 20.88,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.68,
+      "camber_apex_deg": 0.49,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "opens"
       ],
-      "dist_3d_m": 7.11,
-      "lateral_m": -6.53,
-      "side": "left"
+      "linked_hazard_ids": [
+        "HAZ_006"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 14.9,
+        "nominal": 15.5,
+        "fast": 16.1
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        2
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 17,
-      "dist_m": 179.9,
-      "name": "sign_wooden2",
-      "materials": [
-        "sign_wooden1"
+      "id": "EVT_003",
+      "type": "curve",
+      "s_start": 258.0,
+      "s_apex": 268.0,
+      "s_end": 296.0,
+      "guide_node_start": 134,
+      "guide_node_end": 134,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 71.16,
+      "radius_opt_min_m": 101.6,
+      "angle_deg": 24.45,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.93,
+      "camber_apex_deg": -1.54,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.8,
+        "nominal": 24.7,
+        "fast": 25.6
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        3
       ],
-      "dist_3d_m": 8.9,
-      "lateral_m": -8.77,
-      "side": "left"
+      "review_reasons": []
     },
     {
-      "node": 69,
-      "dist_m": 729.0,
-      "name": "001fencerock1",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_004",
+      "type": "curve",
+      "s_start": 310.0,
+      "s_apex": 372.0,
+      "s_end": 384.0,
+      "guide_node_start": 186,
+      "guide_node_end": 186,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 50.45,
+      "radius_opt_min_m": 62.43,
+      "angle_deg": 44.15,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.95,
+      "camber_apex_deg": 3.7,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "tightens"
       ],
-      "dist_3d_m": 9.59,
-      "lateral_m": 9.53,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.4,
+        "nominal": 22.1,
+        "fast": 23.7
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        4
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 72,
-      "dist_m": 760.7,
-      "name": "001fencerock2",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_005",
+      "type": "curve",
+      "s_start": 390.0,
+      "s_apex": 402.0,
+      "s_end": 414.0,
+      "guide_node_start": 201,
+      "guide_node_end": 201,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 73.68,
+      "radius_opt_min_m": 92.74,
+      "angle_deg": 16.16,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.19,
+      "camber_apex_deg": 1.24,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.2,
+        "nominal": 25.2,
+        "fast": 25.9
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        5
       ],
-      "dist_3d_m": 8.48,
-      "lateral_m": 7.07,
-      "side": "right"
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 76,
-      "dist_m": 804.4,
-      "name": "001fencerock3",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_006",
+      "type": "curve",
+      "s_start": 430.0,
+      "s_apex": 440.0,
+      "s_end": 450.0,
+      "guide_node_start": 220,
+      "guide_node_end": 220,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 22.11,
+      "radius_opt_min_m": 30.28,
+      "angle_deg": 41.16,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.91,
+      "camber_apex_deg": 0.39,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 13.0,
+        "nominal": 14.1,
+        "fast": 15.1
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        6
       ],
-      "dist_3d_m": 7.49,
-      "lateral_m": 7.45,
-      "side": "right"
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 94,
-      "dist_m": 999.0,
-      "name": "001fencerock4",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_007",
+      "type": "curve",
+      "s_start": 462.0,
+      "s_apex": 480.0,
+      "s_end": 490.0,
+      "guide_node_start": 240,
+      "guide_node_end": 240,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 69.96,
+      "radius_opt_min_m": 76.93,
+      "angle_deg": 17.77,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.37,
+      "camber_apex_deg": 1.07,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "tightens"
       ],
-      "dist_3d_m": 9.82,
-      "lateral_m": 8.11,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 21.0,
+        "nominal": 21.7,
+        "fast": 22.4
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": []
     },
     {
-      "node": 83,
-      "dist_m": 878.7,
-      "name": "001fencerock5",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_008",
+      "type": "curve",
+      "s_start": 498.0,
+      "s_apex": 506.0,
+      "s_end": 588.0,
+      "guide_node_start": 253,
+      "guide_node_end": 253,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 92.62,
+      "radius_opt_min_m": 330.91,
+      "angle_deg": 28.31,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.72,
+      "camber_apex_deg": 2.65,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "opens",
+        "long"
       ],
-      "dist_3d_m": 8.49,
-      "lateral_m": 6.67,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 24.6,
+        "nominal": 25.3,
+        "fast": 25.9
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 80,
-      "dist_m": 847.3,
-      "name": "001fencerock6",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_009",
+      "type": "curve",
+      "s_start": 606.0,
+      "s_apex": 618.0,
+      "s_end": 630.0,
+      "guide_node_start": 309,
+      "guide_node_end": 309,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 81.4,
+      "radius_opt_min_m": 97.91,
+      "angle_deg": 13.95,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.55,
+      "camber_apex_deg": -2.08,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 27.4,
+        "nominal": 28.9,
+        "fast": 30.3
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        9
       ],
-      "dist_3d_m": 7.18,
-      "lateral_m": 6.65,
-      "side": "right"
+      "review_reasons": []
     },
     {
-      "node": 98,
-      "dist_m": 1043.3,
-      "name": "001fencerock7",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_010",
+      "type": "curve",
+      "s_start": 640.0,
+      "s_apex": 696.0,
+      "s_end": 700.0,
+      "guide_node_start": 348,
+      "guide_node_end": 348,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 68.49,
+      "radius_opt_min_m": 154.27,
+      "angle_deg": 23.92,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.26,
+      "camber_apex_deg": 0.34,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_007"
       ],
-      "dist_3d_m": 7.78,
-      "lateral_m": 7.69,
-      "side": "right"
+      "speed_scenarios_ms": {
+        "conservative": 17.0,
+        "nominal": 17.6,
+        "fast": 18.2
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        10
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 91,
-      "dist_m": 965.2,
-      "name": "001fencerock8",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_011",
+      "type": "curve",
+      "s_start": 704.0,
+      "s_apex": 716.0,
+      "s_end": 738.0,
+      "guide_node_start": 358,
+      "guide_node_end": 358,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 12.61,
+      "radius_opt_min_m": 22.65,
+      "angle_deg": 108.68,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.14,
+      "camber_apex_deg": -1.1,
+      "severity_geometric": 7,
+      "severity_effective": 8,
+      "modifiers": [
+        "opens"
       ],
-      "dist_3d_m": 7.91,
-      "lateral_m": 7.88,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 10.0,
+        "nominal": 10.9,
+        "fast": 11.7
+      },
+      "priority": 83,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        11
+      ],
+      "review_reasons": [
+        "decel_demand 19.6>=12.5",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 87,
-      "dist_m": 921.9,
-      "name": "001fencerock9",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_012",
+      "type": "curve",
+      "s_start": 1006.0,
+      "s_apex": 1046.0,
+      "s_end": 1174.0,
+      "guide_node_start": 523,
+      "guide_node_end": 523,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 101.66,
+      "radius_opt_min_m": 171.47,
+      "angle_deg": 44.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.57,
+      "camber_apex_deg": 0.03,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "verylong"
       ],
-      "dist_3d_m": 7.8,
-      "lateral_m": 7.38,
-      "side": "right"
+      "linked_hazard_ids": [
+        "HAZ_012"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 28.8,
+        "nominal": 31.3,
+        "fast": 33.5
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        13
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 114,
-      "dist_m": 1211.7,
-      "name": "001fencerock25",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_013",
+      "type": "curve",
+      "s_start": 1302.0,
+      "s_apex": 1346.0,
+      "s_end": 1374.0,
+      "guide_node_start": 673,
+      "guide_node_end": 673,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 84.34,
+      "radius_opt_min_m": 173.85,
+      "angle_deg": 27.2,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.35,
+      "camber_apex_deg": 0.7,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 25.1,
+        "nominal": 26.7,
+        "fast": 28.3
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        15
       ],
-      "dist_3d_m": 7.97,
-      "lateral_m": 7.6,
-      "side": "right"
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 109,
-      "dist_m": 1158.7,
-      "name": "001fencerock24",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_014",
+      "type": "curve",
+      "s_start": 1382.0,
+      "s_apex": 1420.0,
+      "s_end": 1436.0,
+      "guide_node_start": 710,
+      "guide_node_end": 710,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 71.55,
+      "radius_opt_min_m": 95.03,
+      "angle_deg": 24.95,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 9.07,
+      "camber_apex_deg": -1.26,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "tightens"
       ],
-      "dist_3d_m": 8.5,
-      "lateral_m": 7.0,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.6,
+        "nominal": 24.5,
+        "fast": 26.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": []
     },
     {
-      "node": 106,
-      "dist_m": 1126.4,
-      "name": "001fencerock23",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_015",
+      "type": "curve",
+      "s_start": 1462.0,
+      "s_apex": 1680.0,
+      "s_end": 1690.0,
+      "guide_node_start": 840,
+      "guide_node_end": 840,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 61.3,
+      "radius_opt_min_m": 85.62,
+      "angle_deg": 73.32,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 7.63,
+      "camber_apex_deg": 0.74,
+      "severity_geometric": 2,
+      "severity_effective": 3,
+      "modifiers": [
+        "long",
+        "tightens",
+        "verylong"
       ],
-      "dist_3d_m": 6.69,
-      "lateral_m": 6.04,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 20.8,
+        "nominal": 22.6,
+        "fast": 24.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        17
+      ],
+      "review_reasons": [
+        "absorbe EVT_016",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 102,
-      "dist_m": 1084.5,
-      "name": "001fencerock10",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_016",
+      "type": "curve",
+      "s_start": 1634.0,
+      "s_apex": 1680.0,
+      "s_end": 1690.0,
+      "guide_node_start": 840,
+      "guide_node_end": 840,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 61.3,
+      "radius_opt_min_m": 85.62,
+      "angle_deg": 31.26,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 7.63,
+      "camber_apex_deg": 0.74,
+      "severity_geometric": 2,
+      "severity_effective": 3,
+      "modifiers": [
+        "tightens"
       ],
-      "dist_3d_m": 8.2,
-      "lateral_m": 8.17,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 53,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        17
+      ],
+      "review_reasons": [
+        "decel_demand 14.2>=12.5",
+        "cubierta por EVT_015"
+      ]
     },
     {
-      "node": 6,
-      "dist_m": 62.2,
-      "name": "001fencerock11",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_017",
+      "type": "curve",
+      "s_start": 1694.0,
+      "s_apex": 1702.0,
+      "s_end": 1708.0,
+      "guide_node_start": 851,
+      "guide_node_end": 851,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 57.89,
+      "radius_opt_min_m": 64.25,
+      "angle_deg": 14.11,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 4.65,
+      "camber_apex_deg": -0.64,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_014"
       ],
-      "dist_3d_m": 7.6,
-      "lateral_m": 7.59,
-      "side": "right"
+      "speed_scenarios_ms": {
+        "conservative": 21.3,
+        "nominal": 23.1,
+        "fast": 24.7
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": []
     },
     {
-      "node": 219,
-      "dist_m": 2328.9,
-      "name": "001fencerock26",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_018",
+      "type": "curve",
+      "s_start": 1714.0,
+      "s_apex": 1724.0,
+      "s_end": 1960.0,
+      "guide_node_start": 862,
+      "guide_node_end": 862,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 62.8,
+      "radius_opt_min_m": 111.28,
+      "angle_deg": 71.27,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.34,
+      "camber_apex_deg": 0.78,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "verylong",
+        "long"
       ],
-      "dist_3d_m": 6.38,
-      "lateral_m": 6.18,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 22.0,
+        "nominal": 23.9,
+        "fast": 25.6
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        19
+      ],
+      "review_reasons": [
+        "absorbe EVT_019",
+        "degraded_L1"
+      ]
     },
     {
-      "node": 13,
-      "dist_m": 137.3,
-      "name": "001fencerock12",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_019",
+      "type": "curve",
+      "s_start": 1820.0,
+      "s_apex": 1928.0,
+      "s_end": 1960.0,
+      "guide_node_start": 964,
+      "guide_node_end": 964,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 82.29,
+      "radius_opt_min_m": 262.01,
+      "angle_deg": 35.85,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.92,
+      "camber_apex_deg": -2.72,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "verylong"
       ],
-      "dist_3d_m": 9.84,
-      "lateral_m": 8.62,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 41,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        19
+      ],
+      "review_reasons": [
+        "cubierta por EVT_018"
+      ]
     },
     {
-      "node": 10,
-      "dist_m": 104.5,
-      "name": "001fencerock13",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_020",
+      "type": "curve",
+      "s_start": 1974.0,
+      "s_apex": 1986.0,
+      "s_end": 2026.0,
+      "guide_node_start": 993,
+      "guide_node_end": 993,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 67.97,
+      "radius_opt_min_m": 186.9,
+      "angle_deg": 24.18,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.12,
+      "camber_apex_deg": -0.35,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens"
       ],
-      "dist_3d_m": 8.61,
-      "lateral_m": 8.16,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.4,
+        "nominal": 25.4,
+        "fast": 27.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": []
     },
     {
-      "node": 225,
-      "dist_m": 2392.8,
-      "name": "001fencerock14",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_021",
+      "type": "curve",
+      "s_start": 2036.0,
+      "s_apex": 2062.0,
+      "s_end": 2108.0,
+      "guide_node_start": 1031,
+      "guide_node_end": 1031,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 82.3,
+      "radius_opt_min_m": 198.26,
+      "angle_deg": 26.16,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.4,
+      "camber_apex_deg": 1.09,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 25.4,
+        "nominal": 27.5,
+        "fast": 29.5
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        21
       ],
-      "dist_3d_m": 15.98,
-      "lateral_m": 5.23,
-      "side": "right"
+      "review_reasons": []
     },
     {
-      "node": 2,
-      "dist_m": 20.7,
-      "name": "001fencerock15",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "EVT_022",
+      "type": "curve",
+      "s_start": 2234.0,
+      "s_apex": 2306.0,
+      "s_end": 2370.0,
+      "guide_node_start": 1153,
+      "guide_node_end": 1153,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 105.7,
+      "radius_opt_min_m": 233.15,
+      "angle_deg": 39.73,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.1,
+      "camber_apex_deg": -0.62,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "verylong"
       ],
-      "dist_3d_m": 7.4,
-      "lateral_m": 6.92,
-      "side": "right"
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 23.1,
+        "nominal": 25.0,
+        "fast": 26.8
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        23
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
     },
     {
-      "node": 215,
-      "dist_m": 2286.3,
-      "name": "001fencerock16",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "HAZ_001",
+      "type": "junction",
+      "s_start": 2.0,
+      "s_apex": 2.0,
+      "s_end": 2.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 80,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        0
       ],
-      "dist_3d_m": 5.28,
-      "lateral_m": 5.09,
-      "side": "right"
+      "review_reasons": [
+        "side=right d_edge=0.29"
+      ],
+      "label": "junction:road_crossroad",
+      "side": "right",
+      "d_edge": 0.29,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 223,
-      "dist_m": 2372.0,
-      "name": "001fencerock17",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "HAZ_002",
+      "type": "post",
+      "s_start": 8.0,
+      "s_apex": 8.0,
+      "s_end": 8.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "dropped_low_priority",
+      "emitted_call_ids": [],
+      "review_reasons": [
+        "side=left d_edge=1.38",
+        "peligro lateral en recta sin curva: no se canta suelto"
       ],
-      "dist_3d_m": 6.78,
-      "lateral_m": 5.12,
-      "side": "right"
+      "label": "post:sign_wooden1",
+      "side": "left",
+      "d_edge": 1.38,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 211,
-      "dist_m": 2243.2,
-      "name": "001fencerock20",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "HAZ_003",
+      "type": "ditch",
+      "s_start": 70.0,
+      "s_apex": 70.0,
+      "s_end": 70.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "dropped_low_priority",
+      "emitted_call_ids": [],
+      "review_reasons": [
+        "side=left d_edge=2.07",
+        "peligro lateral en recta sin curva: no se canta suelto"
       ],
-      "dist_3d_m": 8.56,
-      "lateral_m": 7.03,
-      "side": "right"
+      "label": "ditch:sand_erosion_2_1",
+      "side": "left",
+      "d_edge": 2.07,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 208,
-      "dist_m": 2211.6,
-      "name": "001fencerock21",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "HAZ_004",
+      "type": "ditch",
+      "s_start": 122.0,
+      "s_apex": 122.0,
+      "s_end": 122.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
       ],
-      "dist_3d_m": 10.85,
-      "lateral_m": 9.78,
-      "side": "right"
+      "review_reasons": [
+        "side=left d_edge=4.0",
+        "absorbido en EVT_001"
+      ],
+      "label": "ditch:sand_erosion_2_1",
+      "side": "left",
+      "d_edge": 4.0,
+      "relative_side": "inside",
+      "dont_cut": false
     },
     {
-      "node": 17,
-      "dist_m": 179.9,
-      "name": "001fencerock27",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
+      "id": "HAZ_005",
+      "type": "junction",
+      "s_start": 186.0,
+      "s_apex": 186.0,
+      "s_end": 186.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
       ],
-      "dist_3d_m": 9.26,
-      "lateral_m": 8.87,
-      "side": "right"
+      "review_reasons": [
+        "side=right d_edge=0.42",
+        "absorbido en EVT_001"
+      ],
+      "label": "junction:road_crossroad",
+      "side": "right",
+      "d_edge": 0.42,
+      "relative_side": "outside",
+      "dont_cut": false
     },
     {
-      "node": 1,
-      "dist_m": 10.2,
-      "name": "sponsors_7",
-      "materials": [
-        "fence_metal",
-        "sponsors"
+      "id": "HAZ_006",
+      "type": "ditch",
+      "s_start": 256.0,
+      "s_apex": 256.0,
+      "s_end": 256.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        2
       ],
-      "dist_3d_m": 5.61,
-      "lateral_m": -4.97,
-      "side": "left"
+      "review_reasons": [
+        "side=left d_edge=0.15",
+        "absorbido en EVT_002"
+      ],
+      "label": "ditch:sand_erosion_2_1",
+      "side": "left",
+      "d_edge": 0.15,
+      "relative_side": "outside",
+      "dont_cut": false
     },
     {
-      "node": 1,
-      "dist_m": 10.2,
-      "name": "sponsors_6",
-      "materials": [
-        "fence_metal",
-        "sponsors"
+      "id": "HAZ_007",
+      "type": "ditch",
+      "s_start": 650.0,
+      "s_apex": 650.0,
+      "s_end": 650.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        10
       ],
-      "dist_3d_m": 7.78,
-      "lateral_m": 6.89,
-      "side": "right"
+      "review_reasons": [
+        "side=left d_edge=0.26",
+        "absorbido en EVT_010"
+      ],
+      "label": "ditch:sand_erosion_2_3",
+      "side": "left",
+      "d_edge": 0.26,
+      "relative_side": "outside",
+      "dont_cut": false
     },
     {
-      "node": 1,
-      "dist_m": 10.2,
-      "name": "001string_red07",
-      "materials": [
-        "string_red"
+      "id": "HAZ_008",
+      "type": "junction",
+      "s_start": 706.0,
+      "s_apex": 706.0,
+      "s_end": 706.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        10
       ],
-      "dist_3d_m": 9.71,
-      "lateral_m": -9.08,
-      "side": "left"
+      "review_reasons": [
+        "side=right d_edge=0.54",
+        "absorbido en EVT_010"
+      ],
+      "label": "junction:sign_trunks",
+      "side": "right",
+      "d_edge": 0.54,
+      "relative_side": "inside",
+      "dont_cut": false
     },
     {
-      "node": 85,
-      "dist_m": 900.7,
-      "name": "oventakalevy01",
-      "materials": [
-        "gate_metal1"
+      "id": "HAZ_009",
+      "type": "ditch",
+      "s_start": 780.0,
+      "s_apex": 780.0,
+      "s_end": 780.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "dropped_low_priority",
+      "emitted_call_ids": [],
+      "review_reasons": [
+        "side=left d_edge=3.99",
+        "peligro lateral en recta sin curva: no se canta suelto"
       ],
-      "dist_3d_m": 13.08,
-      "lateral_m": -11.14,
-      "side": "left"
+      "label": "ditch:sand_erosion_2_3",
+      "side": "left",
+      "d_edge": 3.99,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 25,
-      "dist_m": 264.0,
-      "name": "checkpoint",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_010",
+      "type": "ditch",
+      "s_start": 839.0,
+      "s_apex": 839.0,
+      "s_end": 839.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "dropped_low_priority",
+      "emitted_call_ids": [],
+      "review_reasons": [
+        "side=left d_edge=2.05",
+        "peligro lateral en recta sin curva: no se canta suelto"
       ],
-      "dist_3d_m": 10.49,
-      "lateral_m": 9.33,
-      "side": "right"
+      "label": "ditch:sand_erosion_2_3",
+      "side": "left",
+      "d_edge": 2.05,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 25,
-      "dist_m": 264.0,
-      "name": "checkpoint01",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_011",
+      "type": "junction",
+      "s_start": 904.0,
+      "s_apex": 904.0,
+      "s_end": 904.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 80,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        12
       ],
-      "dist_3d_m": 6.19,
-      "lateral_m": -5.86,
-      "side": "left"
+      "review_reasons": [
+        "side=right d_edge=0.27"
+      ],
+      "label": "junction:road_crossroad",
+      "side": "right",
+      "d_edge": 0.27,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 48,
-      "dist_m": 504.7,
-      "name": "checkpoint02",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_012",
+      "type": "ditch",
+      "s_start": 980.0,
+      "s_apex": 980.0,
+      "s_end": 980.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        13
       ],
-      "dist_3d_m": 9.19,
-      "lateral_m": -8.29,
-      "side": "left"
+      "review_reasons": [
+        "side=left d_edge=0.16",
+        "absorbido en EVT_012"
+      ],
+      "label": "ditch:sand_erosion_2_3",
+      "side": "left",
+      "d_edge": 0.16,
+      "relative_side": "inside",
+      "dont_cut": true
     },
     {
-      "node": 48,
-      "dist_m": 504.7,
-      "name": "checkpoint03",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_013",
+      "type": "ditch",
+      "s_start": 1224.0,
+      "s_apex": 1224.0,
+      "s_end": 1224.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        14
       ],
-      "dist_3d_m": 7.79,
-      "lateral_m": 7.78,
-      "side": "right"
+      "review_reasons": [
+        "side=left d_edge=0.75"
+      ],
+      "label": "ditch:sand_erosion_2_3",
+      "side": "left",
+      "d_edge": 0.75,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 77,
-      "dist_m": 814.7,
-      "name": "checkpoint04",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_014",
+      "type": "rock",
+      "s_start": 1714.0,
+      "s_apex": 1714.0,
+      "s_end": 1714.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        18
       ],
-      "dist_3d_m": 9.48,
-      "lateral_m": -8.45,
-      "side": "left"
+      "review_reasons": [
+        "side=right d_edge=0.11",
+        "absorbido en EVT_017"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "right",
+      "d_edge": 0.11,
+      "relative_side": "inside",
+      "dont_cut": true
     },
     {
-      "node": 77,
-      "dist_m": 814.7,
-      "name": "checkpoint05",
-      "materials": [
-        "checkpoint"
+      "id": "HAZ_015",
+      "type": "ditch",
+      "s_start": 2186.0,
+      "s_apex": 2186.0,
+      "s_end": 2186.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        22
       ],
-      "dist_3d_m": 7.84,
-      "lateral_m": 6.2,
-      "side": "right"
+      "review_reasons": [
+        "side=left d_edge=0.22"
+      ],
+      "label": "ditch:sand_erosion_2_1",
+      "side": "left",
+      "d_edge": 0.22,
+      "relative_side": null,
+      "dont_cut": false
     },
     {
-      "node": 104,
-      "dist_m": 1105.4,
-      "name": "checkpoint06",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_001",
+      "type": "crest",
+      "s_start": 1574.0,
+      "s_apex": 1574.0,
+      "s_end": 1574.0,
+      "guide_node_start": 787,
+      "guide_node_end": 787,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        17
       ],
-      "dist_3d_m": 9.72,
-      "lateral_m": -9.26,
-      "side": "left"
+      "review_reasons": [
+        "gamma=0.596",
+        "absorbido en EVT_015"
+      ]
     },
     {
-      "node": 104,
-      "dist_m": 1105.4,
-      "name": "checkpoint07",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_002",
+      "type": "crest",
+      "s_start": 1706.0,
+      "s_apex": 1706.0,
+      "s_end": 1706.0,
+      "guide_node_start": 853,
+      "guide_node_end": 853,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        18
       ],
-      "dist_3d_m": 7.87,
-      "lateral_m": 7.4,
-      "side": "right"
+      "review_reasons": [
+        "gamma=0.383",
+        "absorbido en EVT_017"
+      ]
     },
     {
-      "node": 130,
-      "dist_m": 1381.9,
-      "name": "checkpoint09",
-      "materials": [
-        "checkpoint"
+      "id": "VRT_003",
+      "type": "crest",
+      "s_start": 1838.0,
+      "s_apex": 1838.0,
+      "s_end": 1838.0,
+      "guide_node_start": 919,
+      "guide_node_end": 919,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        19
       ],
-      "dist_3d_m": 3.46,
-      "lateral_m": 2.64,
-      "side": "right"
-    },
-    {
-      "node": 156,
-      "dist_m": 1656.5,
-      "name": "checkpoint10",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.18,
-      "lateral_m": -6.71,
-      "side": "left"
-    },
-    {
-      "node": 156,
-      "dist_m": 1656.5,
-      "name": "checkpoint11",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.06,
-      "lateral_m": 4.9,
-      "side": "right"
-    },
-    {
-      "node": 175,
-      "dist_m": 1856.1,
-      "name": "checkpoint12",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.14,
-      "lateral_m": -7.63,
-      "side": "left"
-    },
-    {
-      "node": 175,
-      "dist_m": 1856.1,
-      "name": "checkpoint13",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 4.78,
-      "lateral_m": 4.43,
-      "side": "right"
-    },
-    {
-      "node": 193,
-      "dist_m": 2051.7,
-      "name": "checkpoint14",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.8,
-      "lateral_m": 6.31,
-      "side": "right"
-    },
-    {
-      "node": 192,
-      "dist_m": 2040.8,
-      "name": "checkpoint15",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 9.39,
-      "lateral_m": -8.4,
-      "side": "left"
-    },
-    {
-      "node": 209,
-      "dist_m": 2222.9,
-      "name": "checkpoint16",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.84,
-      "lateral_m": -7.61,
-      "side": "left"
-    },
-    {
-      "node": 209,
-      "dist_m": 2222.9,
-      "name": "checkpoint17",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.24,
-      "lateral_m": 7.47,
-      "side": "right"
-    },
-    {
-      "node": 67,
-      "dist_m": 708.4,
-      "name": "sign_stop",
-      "materials": [
-        "sign_stop",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 7.52,
-      "lateral_m": 6.34,
-      "side": "right"
-    },
-    {
-      "node": 20,
-      "dist_m": 211.5,
-      "name": "sign_speedlimit50",
-      "materials": [
-        "sign_splimit50",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 7.45,
-      "lateral_m": 5.49,
-      "side": "right"
-    },
-    {
-      "node": 205,
-      "dist_m": 2179.0,
-      "name": "001fencerockAddUp",
-      "materials": [
-        "fence_metal_2",
-        "fence_rock_2"
-      ],
-      "dist_3d_m": 7.76,
-      "lateral_m": 6.92,
-      "side": "right"
+      "review_reasons": [
+        "gamma=0.462",
+        "absorbido en EVT_018"
+      ]
     }
   ]
 }

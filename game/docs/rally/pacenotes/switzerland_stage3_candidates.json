@@ -1,3496 +1,3988 @@
 {
-  "stage": "switzerland-stage3",
-  "total_curves": 34,
-  "vertical_crests_count": 14,
-  "near_obstacles_count": 305,
-  "vertical_crests": [
-    {
-      "node": 21,
-      "dist_m": 216.5,
-      "slope_in_pct": 2.4,
-      "slope_out_pct": -3.1,
-      "delta_slope_pct": -2.46,
-      "is_jump": false
-    },
-    {
-      "node": 36,
-      "dist_m": 370.9,
-      "slope_in_pct": -1.3,
-      "slope_out_pct": -7.6,
-      "delta_slope_pct": -2.86,
-      "is_jump": false
-    },
-    {
-      "node": 41,
-      "dist_m": 422.5,
-      "slope_in_pct": -5.5,
-      "slope_out_pct": -19.1,
-      "delta_slope_pct": -5.67,
-      "is_jump": true
-    },
-    {
-      "node": 58,
-      "dist_m": 597.2,
-      "slope_in_pct": -4.3,
-      "slope_out_pct": -10.4,
-      "delta_slope_pct": -2.98,
-      "is_jump": false
-    },
-    {
-      "node": 105,
-      "dist_m": 1086.3,
-      "slope_in_pct": 8.9,
-      "slope_out_pct": 5.1,
-      "delta_slope_pct": -3.39,
-      "is_jump": false
-    },
-    {
-      "node": 110,
-      "dist_m": 1137.2,
-      "slope_in_pct": 18.0,
-      "slope_out_pct": 7.1,
-      "delta_slope_pct": -6.32,
-      "is_jump": false
-    },
-    {
-      "node": 115,
-      "dist_m": 1189.1,
-      "slope_in_pct": 8.9,
-      "slope_out_pct": -3.2,
-      "delta_slope_pct": -5.34,
-      "is_jump": false
-    },
-    {
-      "node": 164,
-      "dist_m": 1695.9,
-      "slope_in_pct": 0.2,
-      "slope_out_pct": -9.9,
-      "delta_slope_pct": -3.41,
-      "is_jump": false
-    },
-    {
-      "node": 225,
-      "dist_m": 2324.2,
-      "slope_in_pct": 5.6,
-      "slope_out_pct": -1.3,
-      "delta_slope_pct": -2.69,
-      "is_jump": false
-    },
-    {
-      "node": 228,
-      "dist_m": 2354.6,
-      "slope_in_pct": -1.3,
-      "slope_out_pct": -7.1,
-      "delta_slope_pct": -2.24,
-      "is_jump": false
-    },
-    {
-      "node": 239,
-      "dist_m": 2467.4,
-      "slope_in_pct": -5.5,
-      "slope_out_pct": -12.3,
-      "delta_slope_pct": -2.67,
-      "is_jump": false
-    },
-    {
-      "node": 263,
-      "dist_m": 2714.7,
-      "slope_in_pct": 1.3,
-      "slope_out_pct": -14.7,
-      "delta_slope_pct": -5.69,
-      "is_jump": true
-    },
-    {
-      "node": 270,
-      "dist_m": 2787.8,
-      "slope_in_pct": -16.5,
-      "slope_out_pct": -22.1,
-      "delta_slope_pct": -2.74,
-      "is_jump": false
-    },
-    {
-      "node": 297,
-      "dist_m": 3066.4,
-      "slope_in_pct": 5.4,
-      "slope_out_pct": 0.5,
-      "delta_slope_pct": -2.3,
-      "is_jump": false
-    }
-  ],
-  "near_obstacles": [
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_9",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.56,
-      "lateral_m": 6.93,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_8",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.34,
-      "lateral_m": 9.22,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_7",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.19,
-      "lateral_m": 6.87,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_6",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.06,
-      "lateral_m": 6.97,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_5",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.48,
-      "lateral_m": 7.39,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_4",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.13,
-      "lateral_m": 9.5,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_3",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.95,
-      "lateral_m": 7.21,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_2",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.53,
-      "lateral_m": 6.88,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_1",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.74,
-      "lateral_m": 7.41,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_16",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.52,
-      "lateral_m": 11.35,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_15",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.01,
-      "lateral_m": 9.52,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_14",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.14,
-      "lateral_m": 11.75,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_13",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.79,
-      "lateral_m": 8.02,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_12",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.49,
-      "lateral_m": 11.45,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_11",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.4,
-      "lateral_m": 13.22,
-      "side": "right"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_10",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.25,
-      "lateral_m": 7.17,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_17",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.53,
-      "lateral_m": 9.48,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_18",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.92,
-      "lateral_m": 5.94,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_19",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.92,
-      "lateral_m": 7.22,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_20",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.98,
-      "lateral_m": 9.5,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_21",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.8,
-      "lateral_m": 7.4,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_22",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.16,
-      "lateral_m": 6.97,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_23",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.74,
-      "lateral_m": 6.87,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_24",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.7,
-      "lateral_m": 9.23,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_25",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.59,
-      "lateral_m": -8.11,
-      "side": "left"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_26",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.27,
-      "lateral_m": 9.16,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_27",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.41,
-      "lateral_m": 13.23,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_28",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.34,
-      "lateral_m": 11.46,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_29",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.09,
-      "lateral_m": 8.02,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "002audience_30",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.89,
-      "lateral_m": 9.47,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_31",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.63,
-      "lateral_m": 9.53,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_32",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.18,
-      "lateral_m": 7.73,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_33",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 15.17,
-      "lateral_m": 7.27,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_37",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.44,
-      "lateral_m": 8.52,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_40",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 15.99,
-      "lateral_m": 10.35,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_42",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 14.23,
-      "lateral_m": 8.29,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_44",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.12,
-      "lateral_m": 10.53,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_46",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.61,
-      "lateral_m": 6.17,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_47",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 14.58,
-      "lateral_m": -8.21,
-      "side": "left"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_49",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.39,
-      "lateral_m": -9.54,
-      "side": "left"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_52",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.79,
-      "lateral_m": -8.43,
-      "side": "left"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "002audience_53",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.94,
-      "lateral_m": -8.21,
-      "side": "left"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_54",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.54,
-      "lateral_m": -8.45,
-      "side": "left"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_55",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.86,
-      "lateral_m": -8.65,
-      "side": "left"
-    },
-    {
-      "node": 2,
-      "dist_m": 20.5,
-      "name": "002audience_56",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.29,
-      "lateral_m": -10.16,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_57",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.33,
-      "lateral_m": 9.87,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_58",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.68,
-      "lateral_m": 8.56,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_59",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.36,
-      "lateral_m": 10.3,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_60",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.5,
-      "lateral_m": 11.1,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_61",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.78,
-      "lateral_m": 7.85,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_62",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.76,
-      "lateral_m": 10.8,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_63",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.42,
-      "lateral_m": -12.28,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_64",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.34,
-      "lateral_m": -11.27,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_65",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.34,
-      "lateral_m": -9.95,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_66",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.7,
-      "lateral_m": -8.63,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_67",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.31,
-      "lateral_m": -8.23,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "002audience_68",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.04,
-      "lateral_m": -9.99,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_69",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.67,
-      "lateral_m": -10.52,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_70",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.16,
-      "lateral_m": -9.12,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_71",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.57,
-      "lateral_m": -11.5,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_72",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.69,
-      "lateral_m": -7.96,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_73",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.79,
-      "lateral_m": -7.49,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_74",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.88,
-      "lateral_m": -9.31,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_75",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.95,
-      "lateral_m": 11.78,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_76",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.19,
-      "lateral_m": 10.06,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_77",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.22,
-      "lateral_m": 11.69,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_78",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.95,
-      "lateral_m": 12.71,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_79",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.56,
-      "lateral_m": 9.46,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_80",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.25,
-      "lateral_m": 9.78,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_81",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.09,
-      "lateral_m": 7.68,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_82",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.32,
-      "lateral_m": -6.74,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_83",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.56,
-      "lateral_m": -6.55,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_84",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.51,
-      "lateral_m": -7.46,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_85",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.08,
-      "lateral_m": -9.05,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_86",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.23,
-      "lateral_m": -7.14,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_87",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.52,
-      "lateral_m": -7.33,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_88",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.43,
-      "lateral_m": -8.14,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_90",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.78,
-      "lateral_m": -7.67,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_91",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.09,
-      "lateral_m": -7.05,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_92",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.41,
-      "lateral_m": -7.83,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_94",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.17,
-      "lateral_m": -7.75,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_96",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.9,
-      "lateral_m": -8.62,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_97",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.56,
-      "lateral_m": -9.09,
-      "side": "left"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_99",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.97,
-      "lateral_m": -7.88,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_101",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.58,
-      "lateral_m": -7.48,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_102",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.45,
-      "lateral_m": -7.08,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_104",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.78,
-      "lateral_m": -7.55,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_105",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.97,
-      "lateral_m": -7.53,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_107",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.16,
-      "lateral_m": -8.4,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_108",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.59,
-      "lateral_m": -8.55,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_111",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.24,
-      "lateral_m": -8.02,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_112",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.07,
-      "lateral_m": -8.8,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_113",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.87,
-      "lateral_m": -8.63,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_114",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.64,
-      "lateral_m": -7.8,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_115",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.36,
-      "lateral_m": -8.24,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_117",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.98,
-      "lateral_m": -7.54,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_119",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 7.37,
-      "lateral_m": -7.21,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_120",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.86,
-      "lateral_m": -7.67,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_121",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.46,
-      "lateral_m": -6.84,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_122",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.86,
-      "lateral_m": -8.9,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_123",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.61,
-      "lateral_m": -8.53,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_124",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.92,
-      "lateral_m": -8.55,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_126",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.34,
-      "lateral_m": -7.68,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_127",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.52,
-      "lateral_m": -8.57,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_128",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.82,
-      "lateral_m": 9.18,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_129",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.47,
-      "lateral_m": 10.44,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_130",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.75,
-      "lateral_m": 8.61,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_131",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.59,
-      "lateral_m": 9.44,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_132",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.33,
-      "lateral_m": 8.3,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_133",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.09,
-      "lateral_m": 9.03,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_134",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.34,
-      "lateral_m": 11.17,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_135",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.75,
-      "lateral_m": 8.49,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_136",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.66,
-      "lateral_m": 8.79,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_137",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.19,
-      "lateral_m": 9.1,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_138",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.06,
-      "lateral_m": 8.92,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_139",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.56,
-      "lateral_m": 9.16,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_140",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.6,
-      "lateral_m": 7.85,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_141",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.81,
-      "lateral_m": 8.81,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_142",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.13,
-      "lateral_m": 8.92,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_143",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.68,
-      "lateral_m": 8.13,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_144",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.34,
-      "lateral_m": 9.21,
-      "side": "right"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_145",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.13,
-      "lateral_m": 8.15,
-      "side": "right"
-    },
-    {
-      "node": 308,
-      "dist_m": 3179.4,
-      "name": "002audience_146",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.73,
-      "lateral_m": 8.39,
-      "side": "right"
-    },
-    {
-      "node": 307,
-      "dist_m": 3169.3,
-      "name": "002audience_147",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.48,
-      "lateral_m": -8.99,
-      "side": "left"
-    },
-    {
-      "node": 307,
-      "dist_m": 3169.3,
-      "name": "002audience_148",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.35,
-      "lateral_m": -9.25,
-      "side": "left"
-    },
-    {
-      "node": 307,
-      "dist_m": 3169.3,
-      "name": "002audience_149",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.69,
-      "lateral_m": -10.08,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_150",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.32,
-      "lateral_m": 10.42,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_151",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.79,
-      "lateral_m": 8.07,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_152",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.75,
-      "lateral_m": 9.7,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_155",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.31,
-      "lateral_m": 8.14,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_158",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 15.61,
-      "lateral_m": -7.05,
-      "side": "left"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_159",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.25,
-      "lateral_m": 8.19,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_160",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.18,
-      "lateral_m": 7.96,
-      "side": "right"
-    },
-    {
-      "node": 309,
-      "dist_m": 3189.4,
-      "name": "002audience_162",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.77,
-      "lateral_m": 9.48,
-      "side": "right"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_166",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.02,
-      "lateral_m": 10.95,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_168",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 14.06,
-      "lateral_m": -6.82,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "002audience_170",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.93,
-      "lateral_m": 10.77,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "002audience_185",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 15.92,
-      "lateral_m": 8.91,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_202",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.26,
-      "lateral_m": 7.3,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_203",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.54,
-      "lateral_m": 13.37,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_204",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.09,
-      "lateral_m": 7.99,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_205",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.98,
-      "lateral_m": 12.91,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_206",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.64,
-      "lateral_m": 11.21,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_207",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 9.85,
-      "lateral_m": 9.57,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_208",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.42,
-      "lateral_m": 8.39,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_209",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.45,
-      "lateral_m": 9.7,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_210",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 8.2,
-      "lateral_m": 7.68,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_211",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 10.64,
-      "lateral_m": -9.16,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_212",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.84,
-      "lateral_m": -12.49,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_213",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.48,
-      "lateral_m": -10.85,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_214",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 14.92,
-      "lateral_m": -14.07,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_215",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 13.15,
-      "lateral_m": -12.36,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_216",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 12.69,
-      "lateral_m": -12.28,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "002audience_217",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 11.0,
-      "lateral_m": -10.38,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "002audience_218",
-      "materials": [
-        "audience_4"
-      ],
-      "dist_3d_m": 14.81,
-      "lateral_m": -14.38,
-      "side": "left"
-    },
-    {
-      "node": 256,
-      "dist_m": 2641.8,
-      "name": "stone_mountain_111",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.45,
-      "lateral_m": 7.33,
-      "side": "right"
-    },
-    {
-      "node": 256,
-      "dist_m": 2641.8,
-      "name": "stone_mountain_110",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.18,
-      "lateral_m": 7.83,
-      "side": "right"
-    },
-    {
-      "node": 257,
-      "dist_m": 2652.4,
-      "name": "stone_mountain_109",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.86,
-      "lateral_m": -8.8,
-      "side": "left"
-    },
-    {
-      "node": 257,
-      "dist_m": 2652.4,
-      "name": "stone_mountain_108",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.76,
-      "lateral_m": -6.81,
-      "side": "left"
-    },
-    {
-      "node": 257,
-      "dist_m": 2652.4,
-      "name": "stone_mountain_107",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.14,
-      "lateral_m": -8.12,
-      "side": "left"
-    },
-    {
-      "node": 107,
-      "dist_m": 1106.5,
-      "name": "stone_mountain_106",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.18,
-      "lateral_m": 6.58,
-      "side": "right"
-    },
-    {
-      "node": 105,
-      "dist_m": 1086.3,
-      "name": "stone_mountain_105",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.04,
-      "lateral_m": -8.02,
-      "side": "left"
-    },
-    {
-      "node": 105,
-      "dist_m": 1086.3,
-      "name": "stone_mountain_104",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.73,
-      "lateral_m": -9.71,
-      "side": "left"
-    },
-    {
-      "node": 310,
-      "dist_m": 3199.6,
-      "name": "stone_mountain_99",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.62,
-      "lateral_m": 10.9,
-      "side": "right"
-    },
-    {
-      "node": 301,
-      "dist_m": 3107.2,
-      "name": "stone_mountain_98",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.79,
-      "lateral_m": 9.03,
-      "side": "right"
-    },
-    {
-      "node": 300,
-      "dist_m": 3097.0,
-      "name": "stone_mountain_97",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.09,
-      "lateral_m": 6.75,
-      "side": "right"
-    },
-    {
-      "node": 300,
-      "dist_m": 3097.0,
-      "name": "stone_mountain_96",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.38,
-      "lateral_m": 7.38,
-      "side": "right"
-    },
-    {
-      "node": 300,
-      "dist_m": 3097.0,
-      "name": "stone_mountain_95",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.67,
-      "lateral_m": 11.01,
-      "side": "right"
-    },
-    {
-      "node": 302,
-      "dist_m": 3117.4,
-      "name": "stone_mountain_94",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.32,
-      "lateral_m": 8.27,
-      "side": "right"
-    },
-    {
-      "node": 292,
-      "dist_m": 3015.7,
-      "name": "stone_mountain_93",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.23,
-      "lateral_m": -6.86,
-      "side": "left"
-    },
-    {
-      "node": 298,
-      "dist_m": 3076.5,
-      "name": "stone_mountain_92",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.85,
-      "lateral_m": 7.45,
-      "side": "right"
-    },
-    {
-      "node": 290,
-      "dist_m": 2995.2,
-      "name": "stone_mountain_91",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.86,
-      "lateral_m": 7.64,
-      "side": "right"
-    },
-    {
-      "node": 297,
-      "dist_m": 3066.4,
-      "name": "stone_mountain_90",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.39,
-      "lateral_m": 7.29,
-      "side": "right"
-    },
-    {
-      "node": 298,
-      "dist_m": 3076.5,
-      "name": "stone_mountain_89",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.2,
-      "lateral_m": 6.64,
-      "side": "right"
-    },
-    {
-      "node": 282,
-      "dist_m": 2912.3,
-      "name": "stone_mountain_88",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.06,
-      "lateral_m": 7.43,
-      "side": "right"
-    },
-    {
-      "node": 279,
-      "dist_m": 2881.1,
-      "name": "stone_mountain_86",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.69,
-      "lateral_m": 9.64,
-      "side": "right"
-    },
-    {
-      "node": 279,
-      "dist_m": 2881.1,
-      "name": "stone_mountain_85",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.61,
-      "lateral_m": 7.58,
-      "side": "right"
-    },
-    {
-      "node": 279,
-      "dist_m": 2881.1,
-      "name": "stone_mountain_84",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 5.1,
-      "lateral_m": 5.03,
-      "side": "right"
-    },
-    {
-      "node": 276,
-      "dist_m": 2849.9,
-      "name": "stone_mountain_83",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.67,
-      "lateral_m": -9.13,
-      "side": "left"
-    },
-    {
-      "node": 275,
-      "dist_m": 2839.7,
-      "name": "stone_mountain_82",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.8,
-      "lateral_m": -7.59,
-      "side": "left"
-    },
-    {
-      "node": 275,
-      "dist_m": 2839.7,
-      "name": "stone_mountain_81",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.43,
-      "lateral_m": -9.09,
-      "side": "left"
-    },
-    {
-      "node": 268,
-      "dist_m": 2767.4,
-      "name": "stone_mountain_80",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.75,
-      "lateral_m": 7.67,
-      "side": "right"
-    },
-    {
-      "node": 267,
-      "dist_m": 2757.1,
-      "name": "stone_mountain_79",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.82,
-      "lateral_m": 8.53,
-      "side": "right"
-    },
-    {
-      "node": 207,
-      "dist_m": 2139.3,
-      "name": "stone_mountain_77",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.94,
-      "lateral_m": 8.4,
-      "side": "right"
-    },
-    {
-      "node": 207,
-      "dist_m": 2139.3,
-      "name": "stone_mountain_76",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.56,
-      "lateral_m": 7.16,
-      "side": "right"
-    },
-    {
-      "node": 207,
-      "dist_m": 2139.3,
-      "name": "stone_mountain_75",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.79,
-      "lateral_m": 7.92,
-      "side": "right"
-    },
-    {
-      "node": 207,
-      "dist_m": 2139.3,
-      "name": "stone_mountain_74",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.27,
-      "lateral_m": 5.86,
-      "side": "right"
-    },
-    {
-      "node": 122,
-      "dist_m": 1261.7,
-      "name": "stone_mountain_73",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.32,
-      "lateral_m": 8.62,
-      "side": "right"
-    },
-    {
-      "node": 123,
-      "dist_m": 1271.8,
-      "name": "stone_mountain_72",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.37,
-      "lateral_m": 9.01,
-      "side": "right"
-    },
-    {
-      "node": 123,
-      "dist_m": 1271.8,
-      "name": "stone_mountain_71",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.55,
-      "lateral_m": 9.46,
-      "side": "right"
-    },
-    {
-      "node": 115,
-      "dist_m": 1189.1,
-      "name": "stone_mountain_70",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.59,
-      "lateral_m": 6.47,
-      "side": "right"
-    },
-    {
-      "node": 114,
-      "dist_m": 1179.0,
-      "name": "stone_mountain_69",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.92,
-      "lateral_m": 7.72,
-      "side": "right"
-    },
-    {
-      "node": 109,
-      "dist_m": 1127.0,
-      "name": "stone_mountain_68",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.33,
-      "lateral_m": -8.86,
-      "side": "left"
-    },
-    {
-      "node": 104,
-      "dist_m": 1076.1,
-      "name": "stone_mountain_67",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.93,
-      "lateral_m": -7.09,
-      "side": "left"
-    },
-    {
-      "node": 107,
-      "dist_m": 1106.5,
-      "name": "stone_mountain_66",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.99,
-      "lateral_m": 6.97,
-      "side": "right"
-    },
-    {
-      "node": 108,
-      "dist_m": 1116.7,
-      "name": "stone_mountain_65",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.1,
-      "lateral_m": 5.92,
-      "side": "right"
-    },
-    {
-      "node": 25,
-      "dist_m": 257.7,
-      "name": "stone_mountain_64",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.81,
-      "lateral_m": 7.4,
-      "side": "right"
-    },
-    {
-      "node": 24,
-      "dist_m": 247.1,
-      "name": "stone_mountain_63",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.11,
-      "lateral_m": 8.63,
-      "side": "right"
-    },
-    {
-      "node": 24,
-      "dist_m": 247.1,
-      "name": "stone_mountain_62",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.68,
-      "lateral_m": 9.92,
-      "side": "right"
-    },
-    {
-      "node": 25,
-      "dist_m": 257.7,
-      "name": "stone_mountain_61",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.58,
-      "lateral_m": 7.55,
-      "side": "right"
-    },
-    {
-      "node": 24,
-      "dist_m": 247.1,
-      "name": "stone_mountain_60",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 12.63,
-      "lateral_m": 12.56,
-      "side": "right"
-    },
-    {
-      "node": 19,
-      "dist_m": 196.0,
-      "name": "stone_mountain_59",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.45,
-      "lateral_m": -7.09,
-      "side": "left"
-    },
-    {
-      "node": 20,
-      "dist_m": 206.1,
-      "name": "stone_mountain_58",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.81,
-      "lateral_m": -7.2,
-      "side": "left"
-    },
-    {
-      "node": 18,
-      "dist_m": 185.9,
-      "name": "stone_mountain_57",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.85,
-      "lateral_m": -6.57,
-      "side": "left"
-    },
-    {
-      "node": 18,
-      "dist_m": 185.9,
-      "name": "stone_mountain_56",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.8,
-      "lateral_m": -8.79,
-      "side": "left"
-    },
-    {
-      "node": 13,
-      "dist_m": 134.3,
-      "name": "stone_mountain_55",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 5.98,
-      "lateral_m": -5.27,
-      "side": "left"
-    },
-    {
-      "node": 13,
-      "dist_m": 134.3,
-      "name": "stone_mountain_54",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 5.67,
-      "lateral_m": -5.59,
-      "side": "left"
-    },
-    {
-      "node": 13,
-      "dist_m": 134.3,
-      "name": "stone_mountain_53",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 5.29,
-      "lateral_m": -5.29,
-      "side": "left"
-    },
-    {
-      "node": 10,
-      "dist_m": 103.8,
-      "name": "stone_mountain_51",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.2,
-      "lateral_m": 8.14,
-      "side": "right"
-    },
-    {
-      "node": 86,
-      "dist_m": 889.5,
-      "name": "stone_mountain_50",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.01,
-      "lateral_m": 10.18,
-      "side": "right"
-    },
-    {
-      "node": 86,
-      "dist_m": 889.5,
-      "name": "stone_mountain_49",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.7,
-      "lateral_m": 9.28,
-      "side": "right"
-    },
-    {
-      "node": 87,
-      "dist_m": 900.0,
-      "name": "stone_mountain_48",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 12.36,
-      "lateral_m": 11.32,
-      "side": "right"
-    },
-    {
-      "node": 87,
-      "dist_m": 900.0,
-      "name": "stone_mountain_47",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.09,
-      "lateral_m": 10.55,
-      "side": "right"
-    },
-    {
-      "node": 87,
-      "dist_m": 900.0,
-      "name": "stone_mountain_46",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 12.01,
-      "lateral_m": 10.66,
-      "side": "right"
-    },
-    {
-      "node": 81,
-      "dist_m": 838.1,
-      "name": "stone_mountain_45",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.8,
-      "lateral_m": -7.68,
-      "side": "left"
-    },
-    {
-      "node": 82,
-      "dist_m": 848.1,
-      "name": "stone_mountain_44",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.45,
-      "lateral_m": -8.42,
-      "side": "left"
-    },
-    {
-      "node": 82,
-      "dist_m": 848.1,
-      "name": "stone_mountain_43",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.06,
-      "lateral_m": -8.64,
-      "side": "left"
-    },
-    {
-      "node": 26,
-      "dist_m": 268.2,
-      "name": "stone_mountain_42",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.39,
-      "lateral_m": -6.8,
-      "side": "left"
-    },
-    {
-      "node": 27,
-      "dist_m": 278.5,
-      "name": "stone_mountain_41",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.91,
-      "lateral_m": -8.95,
-      "side": "left"
-    },
-    {
-      "node": 34,
-      "dist_m": 350.0,
-      "name": "stone_mountain_40",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.07,
-      "lateral_m": -6.26,
-      "side": "left"
-    },
-    {
-      "node": 33,
-      "dist_m": 340.0,
-      "name": "stone_mountain_39",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.73,
-      "lateral_m": -6.25,
-      "side": "left"
-    },
-    {
-      "node": 66,
-      "dist_m": 679.2,
-      "name": "stone_mountain_38",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.05,
-      "lateral_m": -9.28,
-      "side": "left"
-    },
-    {
-      "node": 66,
-      "dist_m": 679.2,
-      "name": "stone_mountain_37",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.38,
-      "lateral_m": -10.25,
-      "side": "left"
-    },
-    {
-      "node": 66,
-      "dist_m": 679.2,
-      "name": "stone_mountain_36",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 12.3,
-      "lateral_m": -11.53,
-      "side": "left"
-    },
-    {
-      "node": 65,
-      "dist_m": 669.1,
-      "name": "stone_mountain_35",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.21,
-      "lateral_m": 7.44,
-      "side": "right"
-    },
-    {
-      "node": 59,
-      "dist_m": 607.6,
-      "name": "stone_mountain_34",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.01,
-      "lateral_m": 10.69,
-      "side": "right"
-    },
-    {
-      "node": 59,
-      "dist_m": 607.6,
-      "name": "stone_mountain_33",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.35,
-      "lateral_m": 8.1,
-      "side": "right"
-    },
-    {
-      "node": 59,
-      "dist_m": 607.6,
-      "name": "stone_mountain_32",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.76,
-      "lateral_m": 6.46,
-      "side": "right"
-    },
-    {
-      "node": 59,
-      "dist_m": 607.6,
-      "name": "stone_mountain_31",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.5,
-      "lateral_m": 8.33,
-      "side": "right"
-    },
-    {
-      "node": 59,
-      "dist_m": 607.6,
-      "name": "stone_mountain_30",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.93,
-      "lateral_m": 9.85,
-      "side": "right"
-    },
-    {
-      "node": 51,
-      "dist_m": 525.5,
-      "name": "stone_mountain_29",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.65,
-      "lateral_m": 9.83,
-      "side": "right"
-    },
-    {
-      "node": 51,
-      "dist_m": 525.5,
-      "name": "stone_mountain_28",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.36,
-      "lateral_m": 8.81,
-      "side": "right"
-    },
-    {
-      "node": 51,
-      "dist_m": 525.5,
-      "name": "stone_mountain_27",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.3,
-      "lateral_m": 9.15,
-      "side": "right"
-    },
-    {
-      "node": 42,
-      "dist_m": 432.6,
-      "name": "stone_mountain_26",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.72,
-      "lateral_m": 9.98,
-      "side": "right"
-    },
-    {
-      "node": 43,
-      "dist_m": 442.9,
-      "name": "stone_mountain_25",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 11.81,
-      "lateral_m": 11.39,
-      "side": "right"
-    },
-    {
-      "node": 43,
-      "dist_m": 442.9,
-      "name": "stone_mountain_24",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 12.5,
-      "lateral_m": 12.21,
-      "side": "right"
-    },
-    {
-      "node": 36,
-      "dist_m": 370.9,
-      "name": "stone_mountain_23",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.05,
-      "lateral_m": 7.49,
-      "side": "right"
-    },
-    {
-      "node": 36,
-      "dist_m": 370.9,
-      "name": "stone_mountain_22",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 9.45,
-      "lateral_m": 8.77,
-      "side": "right"
-    },
-    {
-      "node": 36,
-      "dist_m": 370.9,
-      "name": "stone_mountain_21",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.43,
-      "lateral_m": 6.41,
-      "side": "right"
-    },
-    {
-      "node": 23,
-      "dist_m": 236.9,
-      "name": "stone_mountain_20",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.66,
-      "lateral_m": 8.62,
-      "side": "right"
-    },
-    {
-      "node": 23,
-      "dist_m": 236.9,
-      "name": "stone_mountain_19",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.56,
-      "lateral_m": 6.52,
-      "side": "right"
-    },
-    {
-      "node": 24,
-      "dist_m": 247.1,
-      "name": "stone_mountain_18",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.42,
-      "lateral_m": 7.07,
-      "side": "right"
-    },
-    {
-      "node": 19,
-      "dist_m": 196.0,
-      "name": "stone_mountain_17",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 8.69,
-      "lateral_m": -8.5,
-      "side": "left"
-    },
-    {
-      "node": 13,
-      "dist_m": 134.3,
-      "name": "stone_mountain_09",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 6.27,
-      "lateral_m": -6.19,
-      "side": "left"
-    },
-    {
-      "node": 10,
-      "dist_m": 103.8,
-      "name": "stone_mountain_08",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 7.78,
-      "lateral_m": 6.87,
-      "side": "right"
-    },
-    {
-      "node": 9,
-      "dist_m": 93.1,
-      "name": "stone_mountain_07",
-      "materials": [
-        "stone_mountain_1"
-      ],
-      "dist_3d_m": 10.26,
-      "lateral_m": 9.23,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "sponsors_13",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 11.53,
-      "lateral_m": -5.69,
-      "side": "left"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "sponsors_12",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 13.15,
-      "lateral_m": 7.66,
-      "side": "right"
-    },
-    {
-      "node": 307,
-      "dist_m": 3169.3,
-      "name": "sponsors_09",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 7.55,
-      "lateral_m": -7.11,
-      "side": "left"
-    },
-    {
-      "node": 307,
-      "dist_m": 3169.3,
-      "name": "sponsors_08",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 5.33,
-      "lateral_m": 5.23,
-      "side": "right"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "sponsors_5",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 7.4,
-      "lateral_m": -6.61,
-      "side": "left"
-    },
-    {
-      "node": 1,
-      "dist_m": 10.1,
-      "name": "sponsors_4",
-      "materials": [
-        "fence_metal",
-        "sponsors"
-      ],
-      "dist_3d_m": 6.88,
-      "lateral_m": 5.57,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "gate_finish01",
-      "materials": [
-        "gate_finish",
-        "pylon_1"
-      ],
-      "dist_3d_m": 7.2,
-      "lateral_m": 0.45,
-      "side": "right"
-    },
-    {
-      "node": 282,
-      "dist_m": 2912.3,
-      "name": "checkpoint17",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.94,
-      "lateral_m": -5.5,
-      "side": "left"
-    },
-    {
-      "node": 281,
-      "dist_m": 2901.8,
-      "name": "checkpoint16",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.7,
-      "lateral_m": 5.36,
-      "side": "right"
-    },
-    {
-      "node": 257,
-      "dist_m": 2652.4,
-      "name": "checkpoint15",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.47,
-      "lateral_m": -5.61,
-      "side": "left"
-    },
-    {
-      "node": 257,
-      "dist_m": 2652.4,
-      "name": "checkpoint14",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.27,
-      "lateral_m": 5.83,
-      "side": "right"
-    },
-    {
-      "node": 231,
-      "dist_m": 2385.4,
-      "name": "checkpoint13",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 5.18,
-      "lateral_m": 5.08,
-      "side": "right"
-    },
-    {
-      "node": 231,
-      "dist_m": 2385.4,
-      "name": "checkpoint12",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 5.68,
-      "lateral_m": -5.67,
-      "side": "left"
-    },
-    {
-      "node": 194,
-      "dist_m": 2005.1,
-      "name": "checkpoint11",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.84,
-      "lateral_m": 8.24,
-      "side": "right"
-    },
-    {
-      "node": 194,
-      "dist_m": 2005.1,
-      "name": "checkpoint10",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 4.61,
-      "lateral_m": -4.56,
-      "side": "left"
-    },
-    {
-      "node": 155,
-      "dist_m": 1601.8,
-      "name": "checkpoint09",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.77,
-      "lateral_m": -7.02,
-      "side": "left"
-    },
-    {
-      "node": 155,
-      "dist_m": 1601.8,
-      "name": "checkpoint08",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.74,
-      "lateral_m": 7.93,
-      "side": "right"
-    },
-    {
-      "node": 120,
-      "dist_m": 1240.9,
-      "name": "checkpoint07",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.97,
-      "lateral_m": -6.76,
-      "side": "left"
-    },
-    {
-      "node": 120,
-      "dist_m": 1240.9,
-      "name": "checkpoint06",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.37,
-      "lateral_m": 6.37,
-      "side": "right"
-    },
-    {
-      "node": 89,
-      "dist_m": 921.1,
-      "name": "checkpoint05",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.33,
-      "lateral_m": -7.04,
-      "side": "left"
-    },
-    {
-      "node": 89,
-      "dist_m": 921.1,
-      "name": "checkpoint04",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 5.74,
-      "lateral_m": 5.69,
-      "side": "right"
-    },
-    {
-      "node": 61,
-      "dist_m": 628.1,
-      "name": "checkpoint03",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.01,
-      "lateral_m": -5.47,
-      "side": "left"
-    },
-    {
-      "node": 61,
-      "dist_m": 628.1,
-      "name": "checkpoint02",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 7.55,
-      "lateral_m": 7.53,
-      "side": "right"
-    },
-    {
-      "node": 29,
-      "dist_m": 299.1,
-      "name": "checkpoint01",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 6.04,
-      "lateral_m": 5.81,
-      "side": "right"
-    },
-    {
-      "node": 29,
-      "dist_m": 299.1,
-      "name": "checkpoint",
-      "materials": [
-        "checkpoint"
-      ],
-      "dist_3d_m": 8.0,
-      "lateral_m": -7.43,
-      "side": "left"
-    },
-    {
-      "node": 80,
-      "dist_m": 827.3,
-      "name": "001string_red25",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 9.94,
-      "lateral_m": -9.82,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "001string_red24",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 8.4,
-      "lateral_m": -6.87,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "001string_red23",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 11.78,
-      "lateral_m": -11.67,
-      "side": "left"
-    },
-    {
-      "node": 80,
-      "dist_m": 827.3,
-      "name": "001string_red22",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 9.5,
-      "lateral_m": 9.46,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "001string_red21",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 6.95,
-      "lateral_m": 6.08,
-      "side": "right"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "001string_red20",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 11.25,
-      "lateral_m": 10.77,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "001string_red19",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 9.2,
-      "lateral_m": 8.78,
-      "side": "right"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "001string_red18",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 6.37,
-      "lateral_m": 5.21,
-      "side": "right"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "001string_red17",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 9.62,
-      "lateral_m": 9.61,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "001string_red12",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 8.74,
-      "lateral_m": 7.65,
-      "side": "right"
-    },
-    {
-      "node": 311,
-      "dist_m": 3210.2,
-      "name": "001string_red11",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 7.03,
-      "lateral_m": -5.38,
-      "side": "left"
-    },
-    {
-      "node": 306,
-      "dist_m": 3159.3,
-      "name": "001string_red09",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 10.52,
-      "lateral_m": 10.06,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "001string_red05",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 7.22,
-      "lateral_m": 6.74,
-      "side": "right"
-    },
-    {
-      "node": 0,
-      "dist_m": 0.0,
-      "name": "001string_red04",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 8.48,
-      "lateral_m": -7.03,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "001string_red02",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 9.9,
-      "lateral_m": -9.41,
-      "side": "left"
-    },
-    {
-      "node": 68,
-      "dist_m": 700.1,
-      "name": "001string_red01",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 12.09,
-      "lateral_m": -11.99,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "001string_red00",
-      "materials": [
-        "string_red"
-      ],
-      "dist_3d_m": 7.59,
-      "lateral_m": -6.61,
-      "side": "left"
-    },
-    {
-      "node": 79,
-      "dist_m": 817.0,
-      "name": "001fence_metal_railing02--merge",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 6.67,
-      "lateral_m": -5.82,
-      "side": "left"
-    },
-    {
-      "node": 69,
-      "dist_m": 711.0,
-      "name": "001fence_metal_railing",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 6.09,
-      "lateral_m": -5.85,
-      "side": "left"
-    },
-    {
-      "node": 115,
-      "dist_m": 1189.1,
-      "name": "sign_yield",
-      "materials": [
-        "sign_noparking",
-        "sign_trunks",
-        "sign_yield"
-      ],
-      "dist_3d_m": 6.2,
-      "lateral_m": 4.79,
-      "side": "right"
-    },
-    {
-      "node": 235,
-      "dist_m": 2426.5,
-      "name": "sign_speedlimit70",
-      "materials": [
-        "sign_splimit70",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 4.48,
-      "lateral_m": 3.97,
-      "side": "right"
-    },
-    {
-      "node": 156,
-      "dist_m": 1612.2,
-      "name": "sign_speedlimit50",
-      "materials": [
-        "sign_splimit50",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 7.14,
-      "lateral_m": 5.01,
-      "side": "right"
-    },
-    {
-      "node": 103,
-      "dist_m": 1065.9,
-      "name": "sign_speedlimit30",
-      "materials": [
-        "sign_splimit30",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 8.54,
-      "lateral_m": 6.94,
-      "side": "right"
-    },
-    {
-      "node": 23,
-      "dist_m": 236.9,
-      "name": "sign_sheeps_falling_down",
-      "materials": [
-        "sign_sheep",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 4.42,
-      "lateral_m": 1.82,
-      "side": "right"
-    },
-    {
-      "node": 83,
-      "dist_m": 858.4,
-      "name": "sign_hardturnright",
-      "materials": [
-        "sign_trunks",
-        "sign_turn_right"
-      ],
-      "dist_3d_m": 5.13,
-      "lateral_m": 4.86,
-      "side": "right"
-    },
-    {
-      "node": 10,
-      "dist_m": 103.8,
-      "name": "sign_hardturnleft",
-      "materials": [
-        "sign_trunks",
-        "sign_turn_right"
-      ],
-      "dist_3d_m": 4.92,
-      "lateral_m": 4.47,
-      "side": "right"
-    },
-    {
-      "node": 64,
-      "dist_m": 658.7,
-      "name": "sign_axleweight",
-      "materials": [
-        "sign_axleweight",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 5.24,
-      "lateral_m": 4.38,
-      "side": "right"
-    },
-    {
-      "node": 5,
-      "dist_m": 51.7,
-      "name": "sign_speedlimit30_2",
-      "materials": [
-        "sign_splimit30",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 6.19,
-      "lateral_m": 5.83,
-      "side": "right"
-    },
-    {
-      "node": 48,
-      "dist_m": 494.0,
-      "name": "sign_speedlimit50_2",
-      "materials": [
-        "sign_splimit50",
-        "sign_trunks"
-      ],
-      "dist_3d_m": 6.63,
-      "lateral_m": 5.64,
-      "side": "right"
-    },
-    {
-      "node": 176,
-      "dist_m": 1820.3,
-      "name": "sign_hardturnright01",
-      "materials": [
-        "sign_trunks",
-        "sign_turn_right"
-      ],
-      "dist_3d_m": 5.13,
-      "lateral_m": 4.03,
-      "side": "right"
-    },
-    {
-      "node": 74,
-      "dist_m": 763.4,
-      "name": "001_bridge_railing_01",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 6.37,
-      "lateral_m": -6.33,
-      "side": "left"
-    },
-    {
-      "node": 74,
-      "dist_m": 763.4,
-      "name": "001_bridge_railing_03",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 6.42,
-      "lateral_m": -6.34,
-      "side": "left"
-    },
-    {
-      "node": 74,
-      "dist_m": 763.4,
-      "name": "001_bridge_railing_04",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 7.0,
-      "lateral_m": 6.92,
-      "side": "right"
-    },
-    {
-      "node": 74,
-      "dist_m": 763.4,
-      "name": "001_bridge_railing_05",
-      "materials": [
-        "fence_metal_railing_1"
-      ],
-      "dist_3d_m": 6.95,
-      "lateral_m": 6.92,
-      "side": "right"
+  "stage": "switzerland_stage3",
+  "generator": "pacenote_analyzer_v3",
+  "events": [
+    {
+      "id": "EVT_001",
+      "type": "curve",
+      "s_start": 24.0,
+      "s_apex": 30.0,
+      "s_end": 36.0,
+      "guide_node_start": 15,
+      "guide_node_end": 15,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 70.32,
+      "radius_opt_min_m": 93.96,
+      "angle_deg": 11.21,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.34,
+      "camber_apex_deg": -1.23,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.8,
+        "nominal": 18.8,
+        "fast": 18.8
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        0
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_002",
+      "type": "curve",
+      "s_start": 40.0,
+      "s_apex": 76.0,
+      "s_end": 146.0,
+      "guide_node_start": 38,
+      "guide_node_end": 38,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 44.82,
+      "radius_opt_min_m": 159.37,
+      "angle_deg": 58.76,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.46,
+      "camber_apex_deg": -1.79,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "long"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_002"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 17.8,
+        "nominal": 19.3,
+        "fast": 20.7
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_003",
+      "type": "curve",
+      "s_start": 154.0,
+      "s_apex": 198.0,
+      "s_end": 210.0,
+      "guide_node_start": 99,
+      "guide_node_end": 99,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 12.43,
+      "radius_opt_min_m": 18.76,
+      "angle_deg": 141.25,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 9.32,
+      "camber_apex_deg": -0.67,
+      "severity_geometric": 7,
+      "severity_effective": 7,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_005"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 10.0,
+        "nominal": 10.8,
+        "fast": 11.6
+      },
+      "priority": 77,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        2
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_004",
+      "type": "curve",
+      "s_start": 216.0,
+      "s_apex": 224.0,
+      "s_end": 282.0,
+      "guide_node_start": 112,
+      "guide_node_end": 112,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 23.17,
+      "radius_opt_min_m": 68.58,
+      "angle_deg": 88.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.73,
+      "camber_apex_deg": 2.02,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_006"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 13.9,
+        "nominal": 15.1,
+        "fast": 16.2
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        3
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_005",
+      "type": "curve",
+      "s_start": 286.0,
+      "s_apex": 290.0,
+      "s_end": 296.0,
+      "guide_node_start": 145,
+      "guide_node_end": 145,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 52.08,
+      "radius_opt_min_m": 67.55,
+      "angle_deg": 15.6,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.88,
+      "camber_apex_deg": 1.53,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.8,
+        "nominal": 21.2,
+        "fast": 22.5
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        4
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_006",
+      "type": "curve",
+      "s_start": 298.0,
+      "s_apex": 302.0,
+      "s_end": 322.0,
+      "guide_node_start": 151,
+      "guide_node_end": 151,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 71.83,
+      "radius_opt_min_m": 217.86,
+      "angle_deg": 15.35,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.3,
+      "camber_apex_deg": 0.03,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 21.6,
+        "nominal": 22.9,
+        "fast": 24.1
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        5
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_007",
+      "type": "curve",
+      "s_start": 326.0,
+      "s_apex": 332.0,
+      "s_end": 346.0,
+      "guide_node_start": 166,
+      "guide_node_end": 166,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 67.25,
+      "radius_opt_min_m": 118.41,
+      "angle_deg": 14.56,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.31,
+      "camber_apex_deg": 0.07,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_007"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 23.0,
+        "nominal": 23.9,
+        "fast": 24.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        6
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_008",
+      "type": "curve",
+      "s_start": 352.0,
+      "s_apex": 444.0,
+      "s_end": 452.0,
+      "guide_node_start": 222,
+      "guide_node_end": 222,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 32.56,
+      "radius_opt_min_m": 38.32,
+      "angle_deg": 102.9,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.49,
+      "camber_apex_deg": -2.61,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "opens",
+        "long"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_008"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 17.7,
+        "nominal": 19.2,
+        "fast": 20.6
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": [
+        "absorbe EVT_009",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_009",
+      "type": "curve",
+      "s_start": 434.0,
+      "s_apex": 444.0,
+      "s_end": 452.0,
+      "guide_node_start": 222,
+      "guide_node_end": 222,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 32.56,
+      "radius_opt_min_m": 38.32,
+      "angle_deg": 24.69,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.49,
+      "camber_apex_deg": -2.61,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": [
+        "cubierta por EVT_008"
+      ]
+    },
+    {
+      "id": "EVT_010",
+      "type": "curve",
+      "s_start": 458.0,
+      "s_apex": 496.0,
+      "s_end": 522.0,
+      "guide_node_start": 248,
+      "guide_node_end": 248,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 34.38,
+      "radius_opt_min_m": 45.85,
+      "angle_deg": 64.81,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -8.86,
+      "camber_apex_deg": 1.58,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_010"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 16.7,
+        "nominal": 18.1,
+        "fast": 19.4
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_011",
+      "type": "curve",
+      "s_start": 568.0,
+      "s_apex": 582.0,
+      "s_end": 604.0,
+      "guide_node_start": 291,
+      "guide_node_end": 291,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 21.95,
+      "radius_opt_min_m": 38.02,
+      "angle_deg": 66.03,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.74,
+      "camber_apex_deg": -0.56,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_011"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 11.5,
+        "nominal": 12.4,
+        "fast": 13.3
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        9
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_012",
+      "type": "curve",
+      "s_start": 618.0,
+      "s_apex": 638.0,
+      "s_end": 652.0,
+      "guide_node_start": 319,
+      "guide_node_end": 319,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 28.2,
+      "radius_opt_min_m": 30.95,
+      "angle_deg": 54.54,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.16,
+      "camber_apex_deg": -0.72,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 12.6,
+        "nominal": 13.7,
+        "fast": 14.7
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        10
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_013",
+      "type": "curve",
+      "s_start": 658.0,
+      "s_apex": 672.0,
+      "s_end": 708.0,
+      "guide_node_start": 336,
+      "guide_node_end": 336,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 57.56,
+      "radius_opt_min_m": 109.2,
+      "angle_deg": 31.56,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.16,
+      "camber_apex_deg": 0.56,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_012"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 17.0,
+        "nominal": 18.4,
+        "fast": 19.7
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        11
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_014",
+      "type": "curve",
+      "s_start": 736.0,
+      "s_apex": 740.0,
+      "s_end": 744.0,
+      "guide_node_start": 370,
+      "guide_node_end": 370,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 65.9,
+      "radius_opt_min_m": 73.73,
+      "angle_deg": 10.03,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.37,
+      "camber_apex_deg": -55.26,
+      "severity_geometric": 3,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 21.2,
+        "nominal": 22.9,
+        "fast": 24.6
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        12
+      ],
+      "review_reasons": [
+        "bad_camber -55.3<=-4.5"
+      ]
+    },
+    {
+      "id": "EVT_015",
+      "type": "curve",
+      "s_start": 748.0,
+      "s_apex": 782.0,
+      "s_end": 784.0,
+      "guide_node_start": 391,
+      "guide_node_end": 391,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 87.81,
+      "radius_opt_min_m": 328.63,
+      "angle_deg": 20.86,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.71,
+      "camber_apex_deg": -48.64,
+      "severity_geometric": 1,
+      "severity_effective": 2,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 25.0,
+        "nominal": 26.8,
+        "fast": 28.4
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        13
+      ],
+      "review_reasons": [
+        "bad_camber -48.6<=-4.5",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_016",
+      "type": "curve",
+      "s_start": 788.0,
+      "s_apex": 790.0,
+      "s_end": 918.0,
+      "guide_node_start": 395,
+      "guide_node_end": 395,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 64.84,
+      "radius_opt_min_m": 139.08,
+      "angle_deg": 50.26,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 17.73,
+      "camber_apex_deg": 0.59,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "long"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_013"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 22.6,
+        "nominal": 24.5,
+        "fast": 26.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "absorbe EVT_017",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_017",
+      "type": "curve",
+      "s_start": 840.0,
+      "s_apex": 890.0,
+      "s_end": 918.0,
+      "guide_node_start": 445,
+      "guide_node_end": 445,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 66.81,
+      "radius_opt_min_m": 135.48,
+      "angle_deg": 37.31,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 6.01,
+      "camber_apex_deg": 3.74,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 53,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "cubierta por EVT_016"
+      ]
+    },
+    {
+      "id": "EVT_018",
+      "type": "curve",
+      "s_start": 952.0,
+      "s_apex": 966.0,
+      "s_end": 994.0,
+      "guide_node_start": 483,
+      "guide_node_end": 483,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 19.78,
+      "radius_opt_min_m": 37.74,
+      "angle_deg": 77.48,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.13,
+      "camber_apex_deg": -0.4,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_016"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 12.6,
+        "nominal": 13.6,
+        "fast": 14.6
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        15
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_019",
+      "type": "curve",
+      "s_start": 1050.0,
+      "s_apex": 1084.0,
+      "s_end": 1098.0,
+      "guide_node_start": 542,
+      "guide_node_end": 542,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 15.56,
+      "radius_opt_min_m": 18.61,
+      "angle_deg": 112.3,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 10.86,
+      "camber_apex_deg": 3.65,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_017"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 12.0,
+        "nominal": 13.0,
+        "fast": 14.0
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_020",
+      "type": "curve",
+      "s_start": 1104.0,
+      "s_apex": 1116.0,
+      "s_end": 1128.0,
+      "guide_node_start": 558,
+      "guide_node_end": 558,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 14.12,
+      "radius_opt_min_m": 18.16,
+      "angle_deg": 78.07,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 20.85,
+      "camber_apex_deg": -0.28,
+      "severity_geometric": 7,
+      "severity_effective": 7,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 10.4,
+        "nominal": 11.3,
+        "fast": 12.1
+      },
+      "priority": 77,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        17
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_021",
+      "type": "curve",
+      "s_start": 1134.0,
+      "s_apex": 1168.0,
+      "s_end": 1176.0,
+      "guide_node_start": 584,
+      "guide_node_end": 584,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 54.73,
+      "radius_opt_min_m": 56.59,
+      "angle_deg": 34.51,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 19.68,
+      "camber_apex_deg": 0.15,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_020"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 18.5,
+        "nominal": 19.0,
+        "fast": 19.5
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_022",
+      "type": "curve",
+      "s_start": 1180.0,
+      "s_apex": 1188.0,
+      "s_end": 1220.0,
+      "guide_node_start": 594,
+      "guide_node_end": 594,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 39.07,
+      "radius_opt_min_m": 48.1,
+      "angle_deg": 51.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 10.0,
+      "camber_apex_deg": -0.5,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.7,
+        "nominal": 20.2,
+        "fast": 21.7
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        19
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_023",
+      "type": "curve",
+      "s_start": 1258.0,
+      "s_apex": 1268.0,
+      "s_end": 1318.0,
+      "guide_node_start": 634,
+      "guide_node_end": 634,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 23.25,
+      "radius_opt_min_m": 43.86,
+      "angle_deg": 91.69,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 3.77,
+      "camber_apex_deg": -0.91,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_022"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 14.5,
+        "nominal": 15.7,
+        "fast": 16.8
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_024",
+      "type": "curve",
+      "s_start": 1334.0,
+      "s_apex": 1358.0,
+      "s_end": 1526.0,
+      "guide_node_start": 679,
+      "guide_node_end": 679,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 31.93,
+      "radius_opt_min_m": 122.79,
+      "angle_deg": 127.71,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 6.73,
+      "camber_apex_deg": -3.73,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.7,
+        "nominal": 17.0,
+        "fast": 18.2
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        21
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_025",
+      "type": "curve",
+      "s_start": 1574.0,
+      "s_apex": 1604.0,
+      "s_end": 1678.0,
+      "guide_node_start": 802,
+      "guide_node_end": 802,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 47.92,
+      "radius_opt_min_m": 238.72,
+      "angle_deg": 53.41,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 10.57,
+      "camber_apex_deg": -0.07,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "opens",
+        "long"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_025"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 19.4,
+        "nominal": 21.1,
+        "fast": 22.6
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        22
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_026",
+      "type": "curve",
+      "s_start": 1722.0,
+      "s_apex": 1728.0,
+      "s_end": 1748.0,
+      "guide_node_start": 864,
+      "guide_node_end": 864,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 85.99,
+      "radius_opt_min_m": 202.21,
+      "angle_deg": 13.09,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.06,
+      "camber_apex_deg": -0.09,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_027"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 27.0,
+        "nominal": 29.2,
+        "fast": 29.8
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        23
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_027",
+      "type": "curve",
+      "s_start": 1758.0,
+      "s_apex": 1788.0,
+      "s_end": 1820.0,
+      "guide_node_start": 894,
+      "guide_node_end": 894,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 24.58,
+      "radius_opt_min_m": 36.22,
+      "angle_deg": 69.35,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.64,
+      "camber_apex_deg": -0.19,
+      "severity_geometric": 5,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_028"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 13.5,
+        "nominal": 14.6,
+        "fast": 15.7
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        24
+      ],
+      "review_reasons": [
+        "decel_demand 16.8>=12.5",
+        "absorbe EVT_028",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_028",
+      "type": "curve",
+      "s_start": 1810.0,
+      "s_apex": 1814.0,
+      "s_end": 1820.0,
+      "guide_node_start": 907,
+      "guide_node_end": 907,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 69.8,
+      "radius_opt_min_m": 95.23,
+      "angle_deg": 10.08,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.23,
+      "camber_apex_deg": 1.8,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 53,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        24
+      ],
+      "review_reasons": [
+        "cubierta por EVT_027"
+      ]
+    },
+    {
+      "id": "EVT_029",
+      "type": "curve",
+      "s_start": 1850.0,
+      "s_apex": 1872.0,
+      "s_end": 1924.0,
+      "guide_node_start": 936,
+      "guide_node_end": 936,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 19.2,
+      "radius_opt_min_m": 21.77,
+      "angle_deg": 116.01,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.11,
+      "camber_apex_deg": -1.46,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_031"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 12.6,
+        "nominal": 13.6,
+        "fast": 14.6
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        25
+      ],
+      "review_reasons": [
+        "absorbe EVT_030"
+      ]
+    },
+    {
+      "id": "EVT_030",
+      "type": "curve",
+      "s_start": 1914.0,
+      "s_apex": 1918.0,
+      "s_end": 1924.0,
+      "guide_node_start": 959,
+      "guide_node_end": 959,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 33.48,
+      "radius_opt_min_m": 39.5,
+      "angle_deg": 34.12,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.65,
+      "camber_apex_deg": -0.14,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        25
+      ],
+      "review_reasons": [
+        "cubierta por EVT_029"
+      ]
+    },
+    {
+      "id": "EVT_031",
+      "type": "curve",
+      "s_start": 1926.0,
+      "s_apex": 1930.0,
+      "s_end": 1934.0,
+      "guide_node_start": 965,
+      "guide_node_end": 965,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 34.09,
+      "radius_opt_min_m": 37.4,
+      "angle_deg": 27.56,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.82,
+      "camber_apex_deg": -1.88,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.8,
+        "nominal": 17.1,
+        "fast": 18.4
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        26
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_032",
+      "type": "curve",
+      "s_start": 1938.0,
+      "s_apex": 1942.0,
+      "s_end": 1988.0,
+      "guide_node_start": 971,
+      "guide_node_end": 971,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 34.7,
+      "radius_opt_min_m": 49.98,
+      "angle_deg": 48.56,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -8.15,
+      "camber_apex_deg": 2.03,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_032"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 18.6,
+        "nominal": 19.8,
+        "fast": 20.9
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        27
+      ],
+      "review_reasons": [
+        "absorbe EVT_033",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_033",
+      "type": "curve",
+      "s_start": 1962.0,
+      "s_apex": 1982.0,
+      "s_end": 1988.0,
+      "guide_node_start": 991,
+      "guide_node_end": 991,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 53.96,
+      "radius_opt_min_m": 64.46,
+      "angle_deg": 26.22,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.34,
+      "camber_apex_deg": -0.65,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 59,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        27
+      ],
+      "review_reasons": [
+        "cubierta por EVT_032"
+      ]
+    },
+    {
+      "id": "EVT_034",
+      "type": "curve",
+      "s_start": 1990.0,
+      "s_apex": 1998.0,
+      "s_end": 2134.0,
+      "guide_node_start": 999,
+      "guide_node_end": 999,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 40.21,
+      "radius_opt_min_m": 49.45,
+      "angle_deg": 110.4,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.53,
+      "camber_apex_deg": -1.0,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [
+        "tightens",
+        "long",
+        "verylong"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 18.6,
+        "nominal": 20.2,
+        "fast": 21.6
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        28
+      ],
+      "review_reasons": [
+        "absorbe EVT_035",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_035",
+      "type": "curve",
+      "s_start": 2020.0,
+      "s_apex": 2096.0,
+      "s_end": 2134.0,
+      "guide_node_start": 1048,
+      "guide_node_end": 1048,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 34.68,
+      "radius_opt_min_m": 69.76,
+      "angle_deg": 87.26,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.76,
+      "camber_apex_deg": 1.38,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "tightens",
+        "long"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 47,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        28
+      ],
+      "review_reasons": [
+        "cubierta por EVT_034"
+      ]
+    },
+    {
+      "id": "EVT_036",
+      "type": "curve",
+      "s_start": 2138.0,
+      "s_apex": 2184.0,
+      "s_end": 2210.0,
+      "guide_node_start": 1092,
+      "guide_node_end": 1092,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 20.61,
+      "radius_opt_min_m": 39.76,
+      "angle_deg": 111.64,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.6,
+      "camber_apex_deg": -2.06,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_033"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 13.9,
+        "nominal": 15.1,
+        "fast": 16.1
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        29
+      ],
+      "review_reasons": [
+        "absorbe EVT_037"
+      ]
+    },
+    {
+      "id": "EVT_037",
+      "type": "curve",
+      "s_start": 2164.0,
+      "s_apex": 2184.0,
+      "s_end": 2210.0,
+      "guide_node_start": 1092,
+      "guide_node_end": 1092,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 20.61,
+      "radius_opt_min_m": 39.76,
+      "angle_deg": 93.95,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.6,
+      "camber_apex_deg": -2.06,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [
+        "opens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 71,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        29
+      ],
+      "review_reasons": [
+        "cubierta por EVT_036"
+      ]
+    },
+    {
+      "id": "EVT_038",
+      "type": "curve",
+      "s_start": 2218.0,
+      "s_apex": 2244.0,
+      "s_end": 2256.0,
+      "guide_node_start": 1122,
+      "guide_node_end": 1122,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 26.8,
+      "radius_opt_min_m": 31.18,
+      "angle_deg": 66.48,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.84,
+      "camber_apex_deg": -1.09,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 12.4,
+        "nominal": 13.4,
+        "fast": 14.4
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        30
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_039",
+      "type": "curve",
+      "s_start": 2262.0,
+      "s_apex": 2286.0,
+      "s_end": 2294.0,
+      "guide_node_start": 1143,
+      "guide_node_end": 1143,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 42.19,
+      "radius_opt_min_m": 56.41,
+      "angle_deg": 36.77,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.73,
+      "camber_apex_deg": -0.0,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.5,
+        "nominal": 16.8,
+        "fast": 18.0
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        31
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_040",
+      "type": "curve",
+      "s_start": 2322.0,
+      "s_apex": 2332.0,
+      "s_end": 2344.0,
+      "guide_node_start": 1166,
+      "guide_node_end": 1166,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 14.94,
+      "radius_opt_min_m": 21.33,
+      "angle_deg": 69.79,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 7.39,
+      "camber_apex_deg": -2.19,
+      "severity_geometric": 7,
+      "severity_effective": 7,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 11.5,
+        "nominal": 12.4,
+        "fast": 13.2
+      },
+      "priority": 77,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        32
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_041",
+      "type": "curve",
+      "s_start": 2352.0,
+      "s_apex": 2388.0,
+      "s_end": 2406.0,
+      "guide_node_start": 1194,
+      "guide_node_end": 1194,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 21.37,
+      "radius_opt_min_m": 27.19,
+      "angle_deg": 86.26,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 1.4,
+      "camber_apex_deg": -3.04,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 15.3,
+        "nominal": 16.6,
+        "fast": 17.8
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        33
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_042",
+      "type": "curve",
+      "s_start": 2414.0,
+      "s_apex": 2502.0,
+      "s_end": 2538.0,
+      "guide_node_start": 1251,
+      "guide_node_end": 1251,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 21.77,
+      "radius_opt_min_m": 31.01,
+      "angle_deg": 108.37,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.34,
+      "camber_apex_deg": -1.73,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "tightens",
+        "long"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 13.4,
+        "nominal": 14.5,
+        "fast": 15.5
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        34
+      ],
+      "review_reasons": [
+        "absorbe EVT_043",
+        "absorbe EVT_044"
+      ]
+    },
+    {
+      "id": "EVT_043",
+      "type": "curve",
+      "s_start": 2470.0,
+      "s_apex": 2502.0,
+      "s_end": 2512.0,
+      "guide_node_start": 1251,
+      "guide_node_end": 1251,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 21.77,
+      "radius_opt_min_m": 31.01,
+      "angle_deg": 60.56,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -5.34,
+      "camber_apex_deg": -1.73,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        34
+      ],
+      "review_reasons": [
+        "cubierta por EVT_042"
+      ]
+    },
+    {
+      "id": "EVT_044",
+      "type": "curve",
+      "s_start": 2524.0,
+      "s_apex": 2530.0,
+      "s_end": 2538.0,
+      "guide_node_start": 1265,
+      "guide_node_end": 1265,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 47.49,
+      "radius_opt_min_m": 64.86,
+      "angle_deg": 16.79,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -4.55,
+      "camber_apex_deg": 0.03,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 59,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        34
+      ],
+      "review_reasons": [
+        "cubierta por EVT_042"
+      ]
+    },
+    {
+      "id": "EVT_045",
+      "type": "curve",
+      "s_start": 2546.0,
+      "s_apex": 2576.0,
+      "s_end": 2596.0,
+      "guide_node_start": 1288,
+      "guide_node_end": 1288,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 25.04,
+      "radius_opt_min_m": 27.55,
+      "angle_deg": 81.45,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.32,
+      "camber_apex_deg": 2.04,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_034"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 14.6,
+        "nominal": 15.8,
+        "fast": 17.0
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        35
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_046",
+      "type": "curve",
+      "s_start": 2602.0,
+      "s_apex": 2606.0,
+      "s_end": 2610.0,
+      "guide_node_start": 1303,
+      "guide_node_end": 1303,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 83.36,
+      "radius_opt_min_m": 103.49,
+      "angle_deg": 12.15,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 2.43,
+      "camber_apex_deg": -0.7,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_036"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 20.1,
+        "nominal": 21.1,
+        "fast": 22.0
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        36
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_047",
+      "type": "curve",
+      "s_start": 2630.0,
+      "s_apex": 2636.0,
+      "s_end": 2642.0,
+      "guide_node_start": 1318,
+      "guide_node_end": 1318,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 33.78,
+      "radius_opt_min_m": 46.39,
+      "angle_deg": 24.04,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 8.59,
+      "camber_apex_deg": -1.87,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_037"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 15.2,
+        "nominal": 16.4,
+        "fast": 17.6
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        37
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_048",
+      "type": "curve",
+      "s_start": 2644.0,
+      "s_apex": 2650.0,
+      "s_end": 2698.0,
+      "guide_node_start": 1325,
+      "guide_node_end": 1325,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 54.12,
+      "radius_opt_min_m": 62.51,
+      "angle_deg": 27.74,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 9.83,
+      "camber_apex_deg": 3.0,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_038"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 17.4,
+        "nominal": 18.5,
+        "fast": 19.6
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        38
+      ],
+      "review_reasons": [
+        "absorbe EVT_049",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_049",
+      "type": "curve",
+      "s_start": 2688.0,
+      "s_apex": 2694.0,
+      "s_end": 2698.0,
+      "guide_node_start": 1347,
+      "guide_node_end": 1347,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 76.71,
+      "radius_opt_min_m": 86.58,
+      "angle_deg": 10.24,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 9.82,
+      "camber_apex_deg": 0.45,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 53,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        38
+      ],
+      "review_reasons": [
+        "cubierta por EVT_048"
+      ]
+    },
+    {
+      "id": "EVT_050",
+      "type": "curve",
+      "s_start": 2736.0,
+      "s_apex": 2746.0,
+      "s_end": 2758.0,
+      "guide_node_start": 1373,
+      "guide_node_end": 1373,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 73.26,
+      "radius_opt_min_m": 80.5,
+      "angle_deg": 14.96,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -3.46,
+      "camber_apex_deg": 1.11,
+      "severity_geometric": 3,
+      "severity_effective": 3,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_039"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 20.0,
+        "nominal": 20.9,
+        "fast": 21.8
+      },
+      "priority": 53,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        39
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_051",
+      "type": "curve",
+      "s_start": 2764.0,
+      "s_apex": 2772.0,
+      "s_end": 2810.0,
+      "guide_node_start": 1386,
+      "guide_node_end": 1386,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 26.51,
+      "radius_opt_min_m": 52.87,
+      "angle_deg": 60.21,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -16.08,
+      "camber_apex_deg": 2.66,
+      "severity_geometric": 5,
+      "severity_effective": 6,
+      "modifiers": [
+        "steep_drop_exit"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_040"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 14.5,
+        "nominal": 15.7,
+        "fast": 16.8
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        40
+      ],
+      "review_reasons": [
+        "downhill_p85 -16.1%<=-9.0%",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_052",
+      "type": "curve",
+      "s_start": 2840.0,
+      "s_apex": 2880.0,
+      "s_end": 2886.0,
+      "guide_node_start": 1440,
+      "guide_node_end": 1440,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 37.77,
+      "radius_opt_min_m": 96.77,
+      "angle_deg": 29.34,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.8,
+      "camber_apex_deg": -0.18,
+      "severity_geometric": 1,
+      "severity_effective": 1,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_041"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 16.0,
+        "nominal": 17.4,
+        "fast": 18.7
+      },
+      "priority": 41,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        41
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_053",
+      "type": "curve",
+      "s_start": 2890.0,
+      "s_apex": 2898.0,
+      "s_end": 2908.0,
+      "guide_node_start": 1449,
+      "guide_node_end": 1449,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 33.07,
+      "radius_opt_min_m": 47.31,
+      "angle_deg": 27.03,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.57,
+      "camber_apex_deg": 0.17,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_042"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 16.1,
+        "nominal": 17.5,
+        "fast": 18.7
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        42
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_054",
+      "type": "curve",
+      "s_start": 2916.0,
+      "s_apex": 2966.0,
+      "s_end": 2992.0,
+      "guide_node_start": 1483,
+      "guide_node_end": 1483,
+      "link": "into",
+      "direction": "right",
+      "radius_center_min_m": 24.26,
+      "radius_opt_min_m": 34.73,
+      "angle_deg": 92.8,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.16,
+      "camber_apex_deg": -2.58,
+      "severity_geometric": 2,
+      "severity_effective": 2,
+      "modifiers": [
+        "tightens"
+      ],
+      "linked_hazard_ids": [
+        "HAZ_043"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 13.5,
+        "nominal": 14.7,
+        "fast": 15.7
+      },
+      "priority": 47,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        43
+      ],
+      "review_reasons": [
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_055",
+      "type": "curve",
+      "s_start": 3038.0,
+      "s_apex": 3052.0,
+      "s_end": 3070.0,
+      "guide_node_start": 1526,
+      "guide_node_end": 1526,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 19.31,
+      "radius_opt_min_m": 35.17,
+      "angle_deg": 69.5,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 5.92,
+      "camber_apex_deg": 0.1,
+      "severity_geometric": 6,
+      "severity_effective": 6,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_044"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 12.8,
+        "nominal": 13.9,
+        "fast": 14.9
+      },
+      "priority": 71,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        44
+      ],
+      "review_reasons": []
+    },
+    {
+      "id": "EVT_056",
+      "type": "curve",
+      "s_start": 3138.0,
+      "s_apex": 3170.0,
+      "s_end": 3174.0,
+      "guide_node_start": 1585,
+      "guide_node_end": 1585,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 49.79,
+      "radius_opt_min_m": 55.08,
+      "angle_deg": 26.74,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.14,
+      "camber_apex_deg": -0.42,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [
+        "HAZ_047"
+      ],
+      "speed_scenarios_ms": {
+        "conservative": 22.4,
+        "nominal": 23.9,
+        "fast": 25.3
+      },
+      "priority": 59,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        46
+      ],
+      "review_reasons": [
+        "absorbe EVT_057",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_057",
+      "type": "curve",
+      "s_start": 3164.0,
+      "s_apex": 3170.0,
+      "s_end": 3174.0,
+      "guide_node_start": 1585,
+      "guide_node_end": 1585,
+      "link": null,
+      "direction": "right",
+      "radius_center_min_m": 49.79,
+      "radius_opt_min_m": 55.08,
+      "angle_deg": 16.03,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -0.14,
+      "camber_apex_deg": -0.42,
+      "severity_geometric": 4,
+      "severity_effective": 4,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 59,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        46
+      ],
+      "review_reasons": [
+        "cubierta por EVT_056"
+      ]
+    },
+    {
+      "id": "EVT_058",
+      "type": "curve",
+      "s_start": 3178.0,
+      "s_apex": 3206.0,
+      "s_end": 3210.0,
+      "guide_node_start": 1603,
+      "guide_node_end": 1603,
+      "link": "into",
+      "direction": "left",
+      "radius_center_min_m": 31.14,
+      "radius_opt_min_m": 32.32,
+      "angle_deg": 35.52,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.72,
+      "camber_apex_deg": -1.98,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {
+        "conservative": 19.2,
+        "nominal": 20.8,
+        "fast": 22.3
+      },
+      "priority": 65,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        47
+      ],
+      "review_reasons": [
+        "absorbe EVT_059",
+        "degraded_L1"
+      ]
+    },
+    {
+      "id": "EVT_059",
+      "type": "curve",
+      "s_start": 3198.0,
+      "s_apex": 3206.0,
+      "s_end": 3210.0,
+      "guide_node_start": 1603,
+      "guide_node_end": 1603,
+      "link": null,
+      "direction": "left",
+      "radius_center_min_m": 31.14,
+      "radius_opt_min_m": 32.32,
+      "angle_deg": 23.02,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": -1.72,
+      "camber_apex_deg": -1.98,
+      "severity_geometric": 5,
+      "severity_effective": 5,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 65,
+      "confidence": "high",
+      "status": "grouped_into",
+      "emitted_call_ids": [
+        47
+      ],
+      "review_reasons": [
+        "cubierta por EVT_058"
+      ]
+    },
+    {
+      "id": "HAZ_001",
+      "type": "rock",
+      "s_start": 72.0,
+      "s_apex": 72.0,
+      "s_end": 72.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.13",
+        "absorbido en EVT_002"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.13,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_002",
+      "type": "rock",
+      "s_start": 106.0,
+      "s_apex": 106.0,
+      "s_end": 106.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.14",
+        "absorbido en EVT_002"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.14,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_003",
+      "type": "junction",
+      "s_start": 106.0,
+      "s_apex": 106.0,
+      "s_end": 106.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "side=right d_edge=2.14",
+        "absorbido en EVT_002"
+      ],
+      "label": "junction:sign_turn_right",
+      "side": "right",
+      "d_edge": 2.14,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_004",
+      "type": "rock",
+      "s_start": 134.0,
+      "s_apex": 134.0,
+      "s_end": 134.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        1
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.07",
+        "absorbido en EVT_002"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.07,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_005",
+      "type": "rock",
+      "s_start": 190.0,
+      "s_apex": 190.0,
+      "s_end": 190.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        2
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.13",
+        "absorbido en EVT_003"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "left",
+      "d_edge": 0.13,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_006",
+      "type": "rock",
+      "s_start": 252.0,
+      "s_apex": 252.0,
+      "s_end": 252.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        3
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.98",
+        "absorbido en EVT_004"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.98,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_007",
+      "type": "rock",
+      "s_start": 344.0,
+      "s_apex": 344.0,
+      "s_end": 344.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        6
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.2",
+        "absorbido en EVT_007"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "left",
+      "d_edge": 0.2,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_008",
+      "type": "rock",
+      "s_start": 370.0,
+      "s_apex": 370.0,
+      "s_end": 370.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.48",
+        "absorbido en EVT_008"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.48,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_009",
+      "type": "rock",
+      "s_start": 448.0,
+      "s_apex": 448.0,
+      "s_end": 448.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": [
+        "side=right d_edge=2.77",
+        "absorbido en EVT_008"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 2.77,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_010",
+      "type": "rock",
+      "s_start": 522.0,
+      "s_apex": 522.0,
+      "s_end": 522.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        8
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.15",
+        "absorbido en EVT_010"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "right",
+      "d_edge": 1.15,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_011",
+      "type": "rock",
+      "s_start": 610.0,
+      "s_apex": 610.0,
+      "s_end": 610.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        9
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.62",
+        "absorbido en EVT_011"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.62,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_012",
+      "type": "rock",
+      "s_start": 676.0,
+      "s_apex": 676.0,
+      "s_end": 676.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        11
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.49",
+        "absorbido en EVT_013"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.49,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_013",
+      "type": "rock",
+      "s_start": 840.0,
+      "s_apex": 840.0,
+      "s_end": 840.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "side=left d_edge=1.29",
+        "absorbido en EVT_016"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "left",
+      "d_edge": 1.29,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_014",
+      "type": "junction",
+      "s_start": 860.0,
+      "s_apex": 860.0,
+      "s_end": 860.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.43",
+        "absorbido en EVT_016"
+      ],
+      "label": "junction:sign_turn_right",
+      "side": "right",
+      "d_edge": 1.43,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_015",
+      "type": "rock",
+      "s_start": 892.0,
+      "s_apex": 892.0,
+      "s_end": 892.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        14
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.95",
+        "absorbido en EVT_016"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 1.95,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_016",
+      "type": "rock",
+      "s_start": 1002.0,
+      "s_apex": 1002.0,
+      "s_end": 1002.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        15
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.68",
+        "absorbido en EVT_018"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.68,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_017",
+      "type": "rock",
+      "s_start": 1028.0,
+      "s_apex": 1028.0,
+      "s_end": 1028.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.13",
+        "absorbido en EVT_019"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.13,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_018",
+      "type": "rock",
+      "s_start": 1085.0,
+      "s_apex": 1085.0,
+      "s_end": 1085.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": [
+        "side=left d_edge=1.44",
+        "absorbido en EVT_019"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "left",
+      "d_edge": 1.44,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_019",
+      "type": "rock",
+      "s_start": 1108.0,
+      "s_apex": 1108.0,
+      "s_end": 1108.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        16
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.6",
+        "absorbido en EVT_019"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.6,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_020",
+      "type": "junction",
+      "s_start": 1184.0,
+      "s_apex": 1184.0,
+      "s_end": 1184.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.72",
+        "absorbido en EVT_021"
+      ],
+      "label": "junction:sign_trunks",
+      "side": "right",
+      "d_edge": 1.72,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_021",
+      "type": "rock",
+      "s_start": 1186.0,
+      "s_apex": 1186.0,
+      "s_end": 1186.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.06",
+        "absorbido en EVT_021"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.06,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_022",
+      "type": "rock",
+      "s_start": 1252.0,
+      "s_apex": 1252.0,
+      "s_end": 1252.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.18",
+        "absorbido en EVT_023"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.18,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_023",
+      "type": "rock",
+      "s_start": 1268.0,
+      "s_apex": 1268.0,
+      "s_end": 1268.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.07",
+        "absorbido en EVT_023"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.07,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_024",
+      "type": "rock",
+      "s_start": 1316.0,
+      "s_apex": 1316.0,
+      "s_end": 1316.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        20
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.71",
+        "absorbido en EVT_023"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.71,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_025",
+      "type": "rock",
+      "s_start": 1594.0,
+      "s_apex": 1594.0,
+      "s_end": 1594.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        22
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.86",
+        "absorbido en EVT_025"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.86,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_026",
+      "type": "rock",
+      "s_start": 1618.0,
+      "s_apex": 1618.0,
+      "s_end": 1618.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        22
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.8",
+        "absorbido en EVT_025"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.8,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_027",
+      "type": "rock",
+      "s_start": 1734.0,
+      "s_apex": 1734.0,
+      "s_end": 1734.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        23
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.02",
+        "absorbido en EVT_026"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.02,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_028",
+      "type": "rock",
+      "s_start": 1776.0,
+      "s_apex": 1776.0,
+      "s_end": 1776.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        24
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.55",
+        "absorbido en EVT_027"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.55,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_029",
+      "type": "rock",
+      "s_start": 1812.0,
+      "s_apex": 1812.0,
+      "s_end": 1812.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        24
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.07",
+        "absorbido en EVT_027"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.07,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_030",
+      "type": "junction",
+      "s_start": 1822.0,
+      "s_apex": 1822.0,
+      "s_end": 1822.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        24
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.95",
+        "absorbido en EVT_027"
+      ],
+      "label": "junction:sign_turn_right",
+      "side": "right",
+      "d_edge": 1.95,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_031",
+      "type": "rock",
+      "s_start": 1882.0,
+      "s_apex": 1882.0,
+      "s_end": 1882.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        25
+      ],
+      "review_reasons": [
+        "side=left d_edge=1.3",
+        "absorbido en EVT_029"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 1.3,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_032",
+      "type": "rock",
+      "s_start": 1998.0,
+      "s_apex": 1998.0,
+      "s_end": 1998.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        27
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.15",
+        "absorbido en EVT_032"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.15,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_033",
+      "type": "rock",
+      "s_start": 2178.0,
+      "s_apex": 2178.0,
+      "s_end": 2178.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        29
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.05",
+        "absorbido en EVT_036"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.05,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_034",
+      "type": "rock",
+      "s_start": 2578.0,
+      "s_apex": 2578.0,
+      "s_end": 2578.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        35
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.55",
+        "absorbido en EVT_045"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.55,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_035",
+      "type": "rock",
+      "s_start": 2595.0,
+      "s_apex": 2595.0,
+      "s_end": 2595.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        35
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.05",
+        "absorbido en EVT_045"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.05,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_036",
+      "type": "rock",
+      "s_start": 2622.0,
+      "s_apex": 2622.0,
+      "s_end": 2622.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        36
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.99",
+        "absorbido en EVT_046"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.99,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_037",
+      "type": "rock",
+      "s_start": 2648.0,
+      "s_apex": 2648.0,
+      "s_end": 2648.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        37
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.38",
+        "absorbido en EVT_047"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.38,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_038",
+      "type": "rock",
+      "s_start": 2710.0,
+      "s_apex": 2710.0,
+      "s_end": 2710.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        38
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.09",
+        "absorbido en EVT_048"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.09,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_039",
+      "type": "rock",
+      "s_start": 2760.0,
+      "s_apex": 2760.0,
+      "s_end": 2760.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        39
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.45",
+        "absorbido en EVT_050"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "right",
+      "d_edge": 0.45,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_040",
+      "type": "rock",
+      "s_start": 2812.0,
+      "s_apex": 2812.0,
+      "s_end": 2812.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        40
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.88",
+        "absorbido en EVT_051"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.88,
+      "relative_side": "inside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_041",
+      "type": "rock",
+      "s_start": 2846.0,
+      "s_apex": 2846.0,
+      "s_end": 2846.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        41
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.09",
+        "absorbido en EVT_052"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "left",
+      "d_edge": 0.09,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_042",
+      "type": "rock",
+      "s_start": 2908.0,
+      "s_apex": 2908.0,
+      "s_end": 2908.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        42
+      ],
+      "review_reasons": [
+        "side=right d_edge=1.04",
+        "absorbido en EVT_053"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "right",
+      "d_edge": 1.04,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_043",
+      "type": "rock",
+      "s_start": 2956.0,
+      "s_apex": 2956.0,
+      "s_end": 2956.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        43
+      ],
+      "review_reasons": [
+        "side=left d_edge=3.07",
+        "absorbido en EVT_054"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 3.07,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_044",
+      "type": "rock",
+      "s_start": 3010.0,
+      "s_apex": 3010.0,
+      "s_end": 3010.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 85,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        44
+      ],
+      "review_reasons": [
+        "side=left d_edge=0.77",
+        "absorbido en EVT_055"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 0.77,
+      "relative_side": "inside",
+      "dont_cut": true
+    },
+    {
+      "id": "HAZ_045",
+      "type": "rock",
+      "s_start": 3072.0,
+      "s_apex": 3072.0,
+      "s_end": 3072.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        44
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.24",
+        "absorbido en EVT_055"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.24,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_046",
+      "type": "rock",
+      "s_start": 3098.0,
+      "s_apex": 3098.0,
+      "s_end": 3098.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "emitted",
+      "emitted_call_ids": [
+        45
+      ],
+      "review_reasons": [
+        "side=right d_edge=0.9"
+      ],
+      "label": "rock:stone_mountain_1",
+      "side": "right",
+      "d_edge": 0.9,
+      "relative_side": null,
+      "dont_cut": false
+    },
+    {
+      "id": "HAZ_047",
+      "type": "rock",
+      "s_start": 3158.0,
+      "s_apex": 3158.0,
+      "s_end": 3158.0,
+      "guide_node_start": 0,
+      "guide_node_end": 0,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 60,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        46
+      ],
+      "review_reasons": [
+        "side=left d_edge=2.88",
+        "absorbido en EVT_056"
+      ],
+      "label": "rock:fence_rock_1",
+      "side": "left",
+      "d_edge": 2.88,
+      "relative_side": "outside",
+      "dont_cut": false
+    },
+    {
+      "id": "VRT_001",
+      "type": "crest",
+      "s_start": 422.0,
+      "s_apex": 422.0,
+      "s_end": 422.0,
+      "guide_node_start": 211,
+      "guide_node_end": 211,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        7
+      ],
+      "review_reasons": [
+        "gamma=0.585",
+        "absorbido en EVT_008"
+      ]
+    },
+    {
+      "id": "VRT_002",
+      "type": "jump",
+      "s_start": 732.0,
+      "s_apex": 732.0,
+      "s_end": 732.0,
+      "guide_node_start": 366,
+      "guide_node_end": 366,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 90,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        12
+      ],
+      "review_reasons": [
+        "gamma=2.645",
+        "absorbido en EVT_014"
+      ]
+    },
+    {
+      "id": "VRT_003",
+      "type": "jump",
+      "s_start": 794.0,
+      "s_apex": 794.0,
+      "s_end": 794.0,
+      "guide_node_start": 397,
+      "guide_node_end": 397,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 90,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        13
+      ],
+      "review_reasons": [
+        "gamma=5.625",
+        "absorbido en EVT_015"
+      ]
+    },
+    {
+      "id": "VRT_004",
+      "type": "crest",
+      "s_start": 1190.0,
+      "s_apex": 1190.0,
+      "s_end": 1190.0,
+      "guide_node_start": 595,
+      "guide_node_end": 595,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        18
+      ],
+      "review_reasons": [
+        "gamma=0.402",
+        "absorbido en EVT_021"
+      ]
+    },
+    {
+      "id": "VRT_005",
+      "type": "crest",
+      "s_start": 1698.0,
+      "s_apex": 1698.0,
+      "s_end": 1698.0,
+      "guide_node_start": 849,
+      "guide_node_end": 849,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        23
+      ],
+      "review_reasons": [
+        "gamma=0.528",
+        "absorbido en EVT_026"
+      ]
+    },
+    {
+      "id": "VRT_006",
+      "type": "crest",
+      "s_start": 2724.0,
+      "s_apex": 2724.0,
+      "s_end": 2724.0,
+      "guide_node_start": 1362,
+      "guide_node_end": 1362,
+      "direction": null,
+      "radius_center_min_m": 0.0,
+      "radius_opt_min_m": 0.0,
+      "angle_deg": 0.0,
+      "width_min_m": 0.0,
+      "grade_p85_down_pct": 0.0,
+      "camber_apex_deg": 0.0,
+      "severity_geometric": 0,
+      "severity_effective": 0,
+      "modifiers": [],
+      "linked_hazard_ids": [],
+      "speed_scenarios_ms": {},
+      "priority": 70,
+      "confidence": "high",
+      "status": "absorbed",
+      "emitted_call_ids": [
+        39
+      ],
+      "review_reasons": [
+        "gamma=0.473",
+        "absorbido en EVT_050"
+      ]
     }
   ]
 }
