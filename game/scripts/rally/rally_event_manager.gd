@@ -235,9 +235,8 @@ func confirm_setup(compound_id: String, values: Dictionary = {}) -> Dictionary:
 	if setup_confirmed and str(compound_id) == confirmed_compound_id and (values.is_empty() or values == setup_values):
 		return {"ok": true, "already": true, "compound": confirmed_compound_id}
 	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
-	var allowed: Array = tire_rules.get("allowed_compound_ids", ["gravel_normal", "gravel_wet"])
-	if str(compound_id) not in allowed:
-		error = "Compuesto no permitido: " + str(compound_id)
+	if not CompoundScript.is_valid(compound_id):
+		error = "Compuesto desconocido: " + compound_id
 		return {"ok": false, "error": error}
 	# El cambio de compuesto solo está habilitado en ventanas JSON; fuera de
 	# ventana se bloquea (el reglaje general sigue sus propias restricciones).
