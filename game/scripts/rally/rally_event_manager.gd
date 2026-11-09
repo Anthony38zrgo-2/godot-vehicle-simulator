@@ -35,7 +35,6 @@ var weather_schedule: Array = []
 var climate_seed: int = 0
 var initial_weather: String = ""
 var weather_generator_version: int = 1
-var weather_rules_hash: String = ""
 var route_hashes: Dictionary = {}
 var surface_continuity: Dictionary = {}
 var confirmed_compound_id: String = "gravel_normal"
@@ -275,7 +274,6 @@ func _generate_weather_schedule() -> bool:
 	weather_generator_version = int(result.get("generator_version", 1))
 	route_hashes = result.get("route_hashes", {})
 	surface_continuity = result.get("surface_continuity", {})
-	weather_rules_hash = str(result.get("rules_hash", ""))
 	return true
 
 
