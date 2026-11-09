@@ -1,12 +1,10 @@
 class_name RallyTireCompound
 extends RefCounted
-## Catálogo de dos compuestos de grava y respuesta por contacto.
-## Mantiene neumático de lluvia apto para grava; no introduce asfalto.
+## Fuente única de IDs de neumático; catálogo extensible sin listas duplicadas.
 ## Por contacto: material real + zona → compuesto/agua/nieve/suelo → una sola
 ## combinación con la curva base y el factor térmico (sin duplicar lo mojado).
 
 const CATALOG_PATH := "res://data/tires/rally_compounds.json"
-const ALLOWED_IDS := ["gravel_normal", "gravel_wet"]
 const DEFAULT_ID := "gravel_normal"
 
 
@@ -27,11 +25,11 @@ static func get_compound(catalog: Dictionary, compound_id: String) -> Dictionary
 
 
 static func is_valid(compound_id: String) -> bool:
-	return str(compound_id) in ALLOWED_IDS
+	return not compound_id.is_empty() and (load_catalog().get("compounds", {}) as Dictionary).has(compound_id)
 
 
 static func validated_id(compound_id: String) -> String:
-	return str(compound_id) if is_valid(compound_id) else DEFAULT_ID
+	return compound_id if is_valid(compound_id) else ""
 
 
 ## Respuesta de compuesto/agua/nieve/temperatura del suelo (multiplicador
