@@ -109,8 +109,6 @@ func configure(
 	var tire_pressure: Dictionary = tires.get("pressure", { })
 	var hot_pressures: Dictionary = tire_pressure.get("reference_hot_kpa_gauge", { })
 	var wheel_keys := ["FL", "FR", "RL", "RR"]
-	var front_radius := float(front_tire.get("radius", tires.get("radius", 0.28)))
-	var rear_radius := float(rear_tire.get("radius", tires.get("radius", 0.28)))
 	# Per-axle scalar defaults: filter axle > tires axle > tires global > builtin.
 	var front_filter_scalars: Dictionary = _filter_scalars(resolved_filters, "front")
 	var rear_filter_scalars: Dictionary = _filter_scalars(resolved_filters, "rear")
@@ -215,7 +213,6 @@ func configure(
 			float(axle_tire.get("contact_patch", tires.get("contact_patch", 0.2))),
 			0.03,
 		)
-		var tire_radius := front_radius if i < 2 else rear_radius
 		base_contact_patch_m.append(contact_patch)
 		base_relaxation_length_m.append(contact_patch * float(axle_relaxation_scale[i]))
 		static_wheel_load_n.append(
