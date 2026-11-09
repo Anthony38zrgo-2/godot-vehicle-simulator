@@ -1,0 +1,40 @@
+name: Sweden GLB material audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/sweden-material-audit.yml
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Sweden GLBs and audit tool
+        uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            game/assets/rally
+            tools/rally/audit_sweden_glb.py
+      - name: Count material triangles
+        run: |
+          python3 tools/rally/audit_sweden_glb.py --json game/docs/rally/sweden_surface_audit.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("game/docs/rally/sweden_surface_audit.json").read_text())
+          for name, stage in report["stages"].items():
+              print("\n=== " + name + " ===")
+              for kind, data in stage.items():
+                  print(kind + " (triangles by original material)")
+                  for item in data["by_material"]:
+                      material = item["material"]
+                      if material.lower().startswith(("road_", "erosion_")) or "ice" in material.lower() or "snow" in material.lower():
+                          print(f"  {material}: {item['triangles']} triangles | {', '.join(item['nodes'])}")
+          PY
+      - name: Attach audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweden-material-audit
+          path: game/docs/rally/sweden_surface_audit.json
