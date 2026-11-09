@@ -819,7 +819,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var puddle_response := PuddleModel.contact_response(
 				float(last_local_conditions[i].get("puddle_depth_mm", 0.0)),
 				point_velocity.slide(normal).length(),
-				str(tire_model.wheel_compounds[i].get("id", active_compound_id)) == "gravel_wet",
+				float(tire_model.wheel_compounds[i].get("water_evacuation_reference_speed_m_s", 16.0)),
 				normal_load,
 				wheel_widths[i],
 				float(last_local_conditions[i].get("puddle_drag", 0.0)),
