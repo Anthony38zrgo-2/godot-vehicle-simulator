@@ -10,7 +10,6 @@ const GENERATOR_VERSION := 2
 const CLIMATE_PURPOSE := "rally_weather_v1"
 const RIVAL_PURPOSE := "rally_weather_rival_v1"
 const PRESET_CATALOG_PATH := "res://data/weather/rally_weather_presets.json"
-const COMPOUND_CATALOG_PATH := "res://data/tires/rally_compounds.json"
 
 var error: String = ""
 
@@ -448,13 +447,11 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 			"regional_profile": regional_id,
 			"zones": zones_out,
 		})
-	var rules_hash := rules_hash_for(event_doc, route_hashes)
 	return {
 		"ok": true,
 		"schedule": schedule,
 		"climate_seed": seed,
 		"generator_version": GENERATOR_VERSION,
-		"rules_hash": rules_hash,
 		"route_hashes": route_hashes,
 		"surface_continuity": {
 			"policy": "regional_shared_context",
@@ -464,26 +461,6 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 			"note": "Las etiquetas conservar/mejorar/empeorar son resultados derivados por variable (una carretera puede secarse mientras se enfría); no se asignan al azar.",
 		},
 	}
-
-
-static func rules_hash_for(event_doc: Dictionary, route_hashes: Dictionary) -> String:
-	var weather_path := str((event_doc.get("weather_rules", {}) as Dictionary).get("preset_catalog_path", PRESET_CATALOG_PATH))
-	var tire_path := str((event_doc.get("tire_rules", {}) as Dictionary).get("compound_catalog_path", COMPOUND_CATALOG_PATH))
-	var payload := {
-		"weather_catalog": FileAccess.get_file_as_string(weather_path).sha256_text(),
-		"tire_catalog": FileAccess.get_file_as_string(tire_path).sha256_text(),
-		"itinerary": event_doc.get("itinerary_default", {}),
-		"event": event_doc.get("event_id", ""),
-		"stages": event_doc.get("stages_explicit_order", []),
-		"points": event_doc.get("points_profile_id", ""),
-		"policy": event_doc.get("retirement_policy", {}),
-		"weather_rules": event_doc.get("weather_rules", {}),
-		"tire_rules": event_doc.get("tire_rules", {}),
-		"setup_windows": event_doc.get("setup_windows", []),
-		"routes": route_hashes,
-		"generator_version": GENERATOR_VERSION,
-	}
-	return JSON.stringify(payload).sha256_text()
 
 
 ## Pronóstico resumido de la próxima mitad: orienta sin revelar la secuencia exacta.
