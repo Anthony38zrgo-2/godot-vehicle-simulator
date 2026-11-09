@@ -107,7 +107,7 @@ func resolve(track_id: String) -> Dictionary:
 		error = "Recurso ausente para %s: %s" % [track_id, ", ".join(missing)]
 		last_diagnostics["missing"] = missing
 		return {}
-	# Verificar hashes visual/colisión contra el manifiesto cuando exista.
+	# Read stage metadata; geometry is reimported freely during development.
 	var manifest: Dictionary = _read_json(paths["manifest"])
 	if manifest.is_empty():
 		error = "Manifiesto ilegible: %s" % paths["manifest"]
