@@ -17,8 +17,8 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "a7ac07d7f7e811f2bb89f39fe0c9ab3109d996e578f39f13754c2e4f8a306bed",
-    "size_bytes": 1387456,
+    "sha256": "cf18a7b5764072c35cdae412abe7623e70f0611407152b1e811f70d79e78d055",
+    "size_bytes": 1414508,
     "exported_nodes": [
       "body",
       "hood",
@@ -132,7 +132,7 @@
     "mesh": "damage/fulvia_damage.glb",
     "files": {
       "fulvia_damage.glb": {
-        "sha256": "936277a1c4ff4d814cd686401ebb9484db7ff666757bffb5663a973a76e5eac6"
+        "sha256": "a55acec300375695ff6699007cf30759961b085f11bd1a306d39b020555f4594"
       },
       "interior_windows_damaged.png": {
         "sha256": "cf2da6b012a155befa9163c35d2925ca10cc60a56f9e83f1eaa98c0e4221b21f"
