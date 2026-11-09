@@ -1025,20 +1025,14 @@ func _delete_selected_setup() -> void:
 
 
 func _database_context() -> Dictionary:
-	var keys: Array = vehicle.simulation.domain_hashes.keys()
-	keys.sort()
-	var canonical := ""
-	for key in keys:
-		canonical += str(key) + ":" + str(vehicle.simulation.domain_hashes[key]) + "\n"
-	var hash_context := HashingContext.new()
-	hash_context.start(HashingContext.HASH_SHA256)
-	hash_context.update(canonical.to_utf8_buffer())
+	# Setups belong to the car and circuit, not to a hash of changing JSON.
+	# Keep the legacy DB column populated with an empty value for old schemas.
 	return {
 		"circuit_id": circuit_id,
 		"team_id": team_id,
 		"car_id": str(vehicle.rally_profile.get("profile_id", "ford_escort_rs2000_1971")),
 		"physics_backend": RallySetupDatabase.PHYSICS_BACKEND,
-		"base_profile_sha256": hash_context.finish().hex_encode(),
+		"base_profile_sha256": "",
 		"mode": mode,
 	}
 
