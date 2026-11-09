@@ -41,32 +41,40 @@ var wheel_compounds: Array[Dictionary] = []
 var compound_catalog: Dictionary = {}
 
 
-func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
-	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
-	active_compound_id = cid
-	var cat := catalog
-	if cat.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
-		if parsed is Dictionary:
-			cat = parsed
-	if not cat.is_empty() and (cat as Dictionary).has("compounds"):
-		active_compound = (((cat as Dictionary).get("compounds", {}) as Dictionary).get(cid, {}) as Dictionary).duplicate(true)
-	else:
-		active_compound = {}
-
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
+	var cat: Dictionary = catalog if not catalog.is_empty() else compound_catalog
+	if cat.is_empty():
+		cat = RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
+	if not definitions.has(compound_id):
+		push_warning("Unknown tire compound: " + compound_id)
+		return false
+	active_compound_id = compound_id
 	compound_catalog = cat
+	active_compound = (definitions[compound_id] as Dictionary).duplicate(true)
 	wheel_compounds.clear()
 	for i in 4:
-		wheel_compounds.append(active_compound.duplicate(true))
-		wheel_compounds[-1]["id"] = cid
+		var selected := active_compound.duplicate(true)
+		selected["id"] = compound_id
+		wheel_compounds.append(selected)
+	return true
 
-func set_wheel_compound(index: int, compound_id: String) -> void:
+
+func set_wheel_compound(index: int, compound_id: String) -> bool:
+	if index < 0 or index >= 4:
+		push_warning("Invalid wheel index: " + str(index))
+		return false
+	var definitions: Dictionary = compound_catalog.get("compounds", {})
+	if not definitions.has(compound_id):
+		push_warning("Unknown wheel compound: " + compound_id)
+		return false
 	while wheel_compounds.size() < 4:
 		wheel_compounds.append(active_compound.duplicate(true))
-	wheel_compounds[index] = (compound_catalog.get("compounds", {}).get(compound_id, {}) as Dictionary).duplicate(true)
-	wheel_compounds[index]["id"] = compound_id
-	if index < axle_optimal_carcass_c.size():
-		axle_optimal_carcass_c[index] = float(wheel_compounds[index].get("carcass_optimum_c", 60.0))
+	var selected: Dictionary = (definitions[compound_id] as Dictionary).duplicate(true)
+	selected["id"] = compound_id
+	wheel_compounds[index] = selected
+	return true
+
 
 func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float, index: int = -1) -> Dictionary:
 	var compound := wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
