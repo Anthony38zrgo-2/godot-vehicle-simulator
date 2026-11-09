@@ -457,20 +457,93 @@ func evaluate(
 	var renewal := exp(-renewal_rate * patch_dt)
 	var integrated_time := (1.0 - renewal) / renewal_rate if renewal_rate > 1.0e-6 else patch_dt
 	var patch_pos := patch_before * renewal + patch_velocity * integrated_time
-	# The cubic brush reaches its limit at three times the normalized demand.
-	var stiffness_x := fx_capacity * 3.0 / (base_peak_lon * maxf(relaxation_length, 0.001))
-	var stiffness_y := fy_capacity * rise_gamma / (base_peak_lat * maxf(relaxation_length, 0.001))
-	var trial := Vector2(stiffness_x * patch_pos.x, stiffness_y * patch_pos.y)
+	# Bidirectional combined-slip reference migration.
+	# Preserve the legacy behavior unless explicitly enabled.
 
-	var is_rear_accelerating := index >= 2 and patch_pos.x > 0.0
-	var lon_coupling_relief := float(profile.get("combined_lateral_peak_migration", 0.3))
-	var effective_norm_x := absf(trial.x) / fx_capacity
-	if is_rear_accelerating:
-		effective_norm_x *= (1.0 - clampf(lon_coupling_relief, 0.0, 0.65))
+	var length_m := maxf(relaxation_length, 0.001)
 
-	var norm_demand_x := effective_norm_x
+	# Original brush stiffness and trial demand.
+	var stiffness_x := fx_capacity * 3.0 / (
+		base_peak_lon * length_m
+	)
+	var stiffness_y := fy_capacity * rise_gamma / (
+		base_peak_lat * length_m
+	)
+
+	var trial := Vector2(
+		stiffness_x * patch_pos.x,
+		stiffness_y * patch_pos.y
+	)
+
+	var migration_v2_enabled := bool(
+		profile.get("combined_migration_v2_enabled", false)
+	)
+
+	if migration_v2_enabled:
+		# Compute utilization BEFORE migration.
+		# Do not calculate these values recursively.
+		var ux := clampf(
+			absf(trial.x) / maxf(3.0 * fx_capacity, 1e-6),
+			0.0,
+			1.0
+		)
+		var uy := clampf(
+			absf(trial.y) / maxf(rise_gamma * fy_capacity, 1e-6),
+			0.0,
+			1.0
+		)
+
+		var m_lat := clampf(
+			float(profile.get("combined_lateral_peak_migration", 0.0)),
+			0.0,
+			0.30
+		)
+		var m_lon := clampf(
+			float(profile.get("combined_longitudinal_peak_migration", 0.0)),
+			0.0,
+			0.30
+		)
+
+		# Longitudinal demand migrates lateral reference.
+		var peak_lat_eff := base_peak_lat * (
+			1.0 + m_lat * ux
+		)
+
+		# Lateral demand migrates longitudinal reference.
+		var peak_lon_eff := base_peak_lon * (
+			1.0 + m_lon * uy
+		)
+
+		# Recompute stiffness without modifying force limits.
+		stiffness_x = fx_capacity * 3.0 / (
+			peak_lon_eff * length_m
+		)
+		stiffness_y = fy_capacity * rise_gamma / (
+			peak_lat_eff * length_m
+		)
+
+		trial = Vector2(
+			stiffness_x * patch_pos.x,
+			stiffness_y * patch_pos.y
+		)
+
+	# Post-peak demand must use the actual migrated trial.
+	var norm_demand_x := absf(trial.x) / fx_capacity
 	var norm_demand_y := absf(trial.y) / fy_capacity
-	var combined_theta := Vector2(norm_demand_x, norm_demand_y).length() / 3.0
+
+	# Keep the previous post-peak behavior for legacy profiles.
+	if not migration_v2_enabled and index >= 2 and patch_pos.x > 0.0:
+		var legacy_relief := clampf(
+			float(profile.get("combined_lateral_peak_migration", 0.3)),
+			0.0,
+			0.65
+		)
+		norm_demand_x *= (1.0 - legacy_relief)
+
+	var combined_theta := Vector2(
+		norm_demand_x,
+		norm_demand_y
+	).length() / 3.0
 	var sharpness := clampf(float(profile.get("falloff_sharpness", 1.2)), 0.2, 8.0)
 	var over_peak := clampf((combined_theta - 0.68) / 0.32 * sharpness, 0.0, 1.0)
 	var target_decay := over_peak * over_peak * (3.0 - 2.0 * over_peak)

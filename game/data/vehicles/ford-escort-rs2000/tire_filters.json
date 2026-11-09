@@ -28,8 +28,9 @@
       }
     },
     "rear": {
-      "combined_lateral_peak_migration": 0.45,
-      "combined_longitudinal_peak_migration": 0.35,
+      "combined_migration_v2_enabled": true,
+      "combined_lateral_peak_migration": 0.15,
+      "combined_longitudinal_peak_migration": 0.08,
       "contact_ramp_tau_s": 0.04,
       "min_relaxation_tau_s": 0.008,
       "relaxation_recovery_scale": 0.95,

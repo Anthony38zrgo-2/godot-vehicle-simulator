@@ -90,6 +90,7 @@ const TIRE_FORCE_KEYS := [
 	"budget_blend_width",
 	"combined_lateral_peak_migration",
 	"combined_longitudinal_peak_migration",
+	"combined_migration_v2_enabled",
 	"contact_ramp_tau_s",
 	"falloff_sharpness",
 	"lateral_peak_slip_angle_rad",
