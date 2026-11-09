@@ -7,7 +7,7 @@
     "blend_sha256": "ed26a1761042d6c2aec690f593605702a65b03b0d90eccb6bd73ea9bef488858",
     "blender_version": "5.2.0 LTS",
     "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
-    "import_source_manifest_sha256": "f13e6676819f0588bb35536759829d8f6eee70ef34ac98bac12b594235389e47"
+    "import_source_manifest_sha256": "9cea7174b47e6385de8bafdbd90b1040300128cc67bf0de9b9a3be718ef63903"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -55,15 +55,15 @@
   },
   "collision": {
     "path": "sweden_stage6_collision.glb",
-    "sha256": "e3575779375abb74977470799fa9763564f77aa28855ee7ca200df8e58c182ee",
-    "size_bytes": 8523072,
+    "sha256": "53c39f8dbcf2b7a5315cfc277ba374875868587636202cf002c2472851113c5c",
+    "size_bytes": 8048396,
     "collision_objects": {
-      "Collision_Road": 53861,
-      "Collision_Terrain_Grass": 80204,
-      "Collision_Terrain_Dirt": 1060,
-      "Collision_Barriers": 42366,
+      "Collision_Barriers": 21183,
       "Collision_Buildings": 32900,
       "Collision_Props": 33651,
+      "Collision_Road": 53861,
+      "Collision_Terrain_Dirt": 1060,
+      "Collision_Terrain_Grass": 78302,
       "Collision_Tree_trunks": 7716
     },
     "exported_nodes": [
@@ -121,6 +121,92 @@
         "terrain_field_1_alpha",
         "power_line_cord",
         "polyn_1_wire"
+      ]
+    },
+    "materials": {
+      "Collision_Barriers": [
+        "fence_metal",
+        "fence_snow_1",
+        "forest_snow_1",
+        "forest_snow_1_end",
+        "gate_finish",
+        "roadbar1",
+        "sponsors",
+        "string_red"
+      ],
+      "Collision_Buildings": [
+        "building_rooftops_1",
+        "building_rooftops_2",
+        "building_snow_01.tga",
+        "building_snow_02",
+        "building_snow_03",
+        "building_snow_04",
+        "building_snow_05",
+        "building_snow_06",
+        "building_snow_07",
+        "building_snow_08",
+        "building_snow_09",
+        "lumikatos_1"
+      ],
+      "Collision_Props": [
+        "checkpoint",
+        "pylon_1",
+        "sign_direction_both",
+        "sign_hardturn",
+        "sign_heightlimitation",
+        "sign_splimit30",
+        "sign_splimit50",
+        "sign_splimit70",
+        "sign_stop",
+        "sign_trunks",
+        "sign_turn_right",
+        "streetlight_metal1",
+        "swe_pylon",
+        "woodpile"
+      ],
+      "Collision_Road": [
+        "bridge_snow_1",
+        "bridge_snow_2",
+        "erosion_snow_1_2",
+        "railroad_snow",
+        "road_snow_1",
+        "road_snow_1_dif1",
+        "road_snow_2",
+        "road_snow_2to1",
+        "road_snow_3",
+        "road_snow_crossroad",
+        "road_snow_crossroad_2",
+        "road_snow_crossroad_3"
+      ],
+      "Collision_Terrain_Dirt": [
+        "terrain_snow_river_1"
+      ],
+      "Collision_Terrain_Grass": [
+        "erosion_snow_1_2",
+        "pedestrian_street_snow",
+        "pedestrian_streetturn_snow",
+        "road_snow_1",
+        "rock_snow_1_1",
+        "rock_snow_1_2",
+        "rock_snow_1_3",
+        "rock_snow_1_4",
+        "rock_snow_2_1",
+        "rock_snow_2_2",
+        "rock_snow_2_3",
+        "rock_snow_2_4",
+        "rock_snow_4_1",
+        "rock_snow_4_2",
+        "rock_snow_4_3",
+        "rock_snow_4_4",
+        "rock_snow_small",
+        "terrain_road_side",
+        "terrain_snow_1",
+        "terrain_snow_2",
+        "terrain_snow_3"
+      ],
+      "Collision_Tree_trunks": [
+        "sign_trunks",
+        "sweden_tree_trunks"
       ]
     }
   },

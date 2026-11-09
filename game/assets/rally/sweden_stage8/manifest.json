@@ -7,7 +7,7 @@
     "blend_sha256": "e20b1845f8b87ca85bed8fa144a177cfb5c8775e1d28e7d3f2c0d7d99e840a4a",
     "blender_version": "5.2.0 LTS",
     "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
-    "import_source_manifest_sha256": "7300c6b8d0118a0618750723961e1195e58da1c9528e8277509a034264bf9667"
+    "import_source_manifest_sha256": "f092a65c8ad5f46d70f066260fa5b5052c8046b936a19b7741faa542a2543a83"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -55,14 +55,14 @@
   },
   "collision": {
     "path": "sweden_stage8_collision.glb",
-    "sha256": "269fc804f8860cba980188358cc2c708d21219d85125c47b5318270c93944e44",
-    "size_bytes": 1650664,
+    "sha256": "b7406bcef1225fe7567b141f0e9eb1404006c1c60dc135c8139eaaae3461ed2c",
+    "size_bytes": 1645460,
     "collision_objects": {
-      "Collision_Road": 16549,
-      "Collision_Terrain_Grass": 37803,
-      "Collision_Barriers": 3982,
+      "Collision_Barriers": 1991,
       "Collision_Buildings": 1514,
       "Collision_Props": 766,
+      "Collision_Road": 16549,
+      "Collision_Terrain_Grass": 36657,
       "Collision_Tree_trunks": 4047
     },
     "exported_nodes": [
@@ -119,6 +119,52 @@
         "terrain_field_1_alpha",
         "power_line_cord",
         "polyn_1_wire"
+      ]
+    },
+    "materials": {
+      "Collision_Barriers": [
+        "forest_snow_1",
+        "forest_snow_1_end",
+        "gate_finish",
+        "string_red"
+      ],
+      "Collision_Buildings": [
+        "building_rooftops_1",
+        "building_rooftops_2",
+        "building_snow_01.tga",
+        "building_snow_02",
+        "building_snow_03",
+        "building_snow_04",
+        "building_snow_05",
+        "building_snow_06",
+        "building_snow_09"
+      ],
+      "Collision_Props": [
+        "checkpoint",
+        "pylon_1",
+        "sign_hardturn"
+      ],
+      "Collision_Road": [
+        "road_snow_1",
+        "road_snow_1_dif1"
+      ],
+      "Collision_Terrain_Grass": [
+        "rock_snow_1_1",
+        "rock_snow_1_2",
+        "rock_snow_1_3",
+        "rock_snow_1_4",
+        "rock_snow_4_1",
+        "rock_snow_4_2",
+        "rock_snow_4_3",
+        "rock_snow_4_4",
+        "rock_snow_small",
+        "terrain_road_side",
+        "terrain_snow_1",
+        "terrain_snow_2",
+        "terrain_snow_3"
+      ],
+      "Collision_Tree_trunks": [
+        "sweden_tree_trunks"
       ]
     }
   },
