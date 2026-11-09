@@ -7,12 +7,22 @@ extends RefCounted
 const CATALOG_PATH := "res://data/tires/rally_compounds.json"
 const DEFAULT_ID := "gravel_normal"
 
+static var _cached_catalog: Dictionary = {}
+
 
 static func load_catalog() -> Dictionary:
+	if not _cached_catalog.is_empty():
+		return _cached_catalog
 	if not FileAccess.file_exists(CATALOG_PATH):
 		return {}
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(CATALOG_PATH))
-	return parsed if parsed is Dictionary else {}
+	if parsed is Dictionary:
+		_cached_catalog = parsed
+	return _cached_catalog
+
+
+static func invalidate_cache() -> void:
+	_cached_catalog.clear()
 
 
 static func compound_ids(catalog: Dictionary) -> Array:
