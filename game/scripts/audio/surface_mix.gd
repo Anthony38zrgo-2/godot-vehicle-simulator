@@ -33,6 +33,7 @@ const SURFACE_KEYS := {
 	"grass": "grass",
 	"dirt": "dirt",
 	"sand": "sand",
+	"snowdeep": "dirt",
 	"road": "tarmac",
 	"asphalt": "tarmac",
 	"tarmac": "tarmac",

@@ -164,15 +164,18 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 				material_names.append(mat_name)
 	# Snow is an overlay, never a wholesale remapping of the body.
 	# Driven road snow (including rail crossings and snow bridges) is packed;
-	# undriven terrain/ditch mantles and snow-covered rocks are loose.
+	# off-track snow mantles (terrain, banks, ditches) are deep; snow-covered
+	# rocks keep their loose tag.
+	var snow_deep := false
 	for mat_name in material_names:
 		if mat_name.begins_with("road_snow_") or mat_name == "road_snow" \
 		or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 			winter_layer_id = "snow_packed"
-		elif mat_name.begins_with("erosion_snow_"):
-			winter_layer_id = "snow_loose"
-		elif mat_name.begins_with("terrain_snow_") or mat_name.begins_with("ditch_snow_") \
-		or mat_name.begins_with("rock_snow") or mat_name.begins_with("stone_snow"):
+		elif mat_name.begins_with("erosion_snow_") or mat_name.begins_with("terrain_snow_") \
+		or mat_name.begins_with("ditch_snow_"):
+			winter_layer_id = "snow_deep"
+			snow_deep = true
+		elif mat_name.begins_with("rock_snow") or mat_name.begins_with("stone_snow"):
 			winter_layer_id = "snow_loose"
 		elif mat_name.begins_with("road_ice_") or mat_name == "road_ice":
 			winter_layer_id = "ice"
@@ -207,8 +210,13 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 			surface_group = terrain_surface_group
 	if role == "terrain" and surface_group.is_empty():
 		surface_group = terrain_surface_group
-	# Metadata for the future per-contact winter physics; no force changes here.
-	static_body.set_meta("base_surface_id", surface_group)
+	# Deep off-track snow keeps its own contact identity (SnowDeep group);
+	# the original physical group is preserved only as metadata.
+	# The global Grass mapping and the GLB geometry are untouched.
+	var original_group := surface_group
+	if snow_deep:
+		surface_group = "SnowDeep"
+	static_body.set_meta("base_surface_id", original_group)
 	static_body.set_meta("winter_layer_id", winter_layer_id)
 	if not material_names.is_empty():
 		static_body.set_meta("source_material", material_names[0])

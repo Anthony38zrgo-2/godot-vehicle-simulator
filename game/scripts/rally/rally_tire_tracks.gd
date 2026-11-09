@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 
 
 func variant_for(surface: String, snow_mm: float, wheel: int) -> int:
-	if snow_mm >= 0.25 or surface == "snow":
+	if snow_mm >= 0.25 or surface == "snow" or surface == "snowdeep":
 		return 2 + wheel % 2
 	if surface == "ice":
 		return 4

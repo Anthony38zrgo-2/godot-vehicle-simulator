@@ -283,22 +283,40 @@ func evaluate(
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
 	if axle_surface_set.is_empty():
 		axle_surface_set = surfaces
-	if not axle_surface_set.has(surface_name):
-		if not missing_surface_warnings.has(surface_name):
-			missing_surface_warnings[surface_name] = true
-			push_warning("Tire contact has no surface profile for '%s'; using the original gravel/road fallback." % surface_name)
-	var target_surface: Dictionary = axle_surface_set.get(
-		surface_name,
-		axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", { })))),
-	)
-	if target_surface.is_empty():
-		target_surface = {
-			"friction": 1.0,
-			"stiffness": 1.0,
-			"rolling_resistance": 1.0,
-			"longitudinal_grip_ratio": 1.0,
-			"lateral_grip_assist": 0.0,
-		}
+	# Virtual deep-snow profile: Dirt friction as the starting point, soft carcass
+	# response and heavy rolling drag. No vehicle JSON carries SnowDeep; the
+	# builder assigns the contact identity from winter materials.
+	var target_surface: Dictionary = {}
+	if surface_name == "SnowDeep":
+		var dirt_base: Dictionary = (axle_surface_set.get("Dirt", surfaces.get("Dirt", { })) as Dictionary).duplicate(true)
+		if dirt_base.is_empty():
+			dirt_base = {
+				"friction": 1.05,
+				"stiffness": 0.9,
+				"rolling_resistance": 2.0,
+				"longitudinal_grip_ratio": 1.0,
+				"lateral_grip_assist": 0.0,
+			}
+		dirt_base["stiffness"] = 0.5
+		dirt_base["rolling_resistance"] = 5.5
+		target_surface = dirt_base
+	else:
+		if not axle_surface_set.has(surface_name):
+			if not missing_surface_warnings.has(surface_name):
+				missing_surface_warnings[surface_name] = true
+				push_warning("Tire contact has no surface profile for '%s'; using the original gravel/road fallback." % surface_name)
+		target_surface = axle_surface_set.get(
+			surface_name,
+			axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", { })))),
+		)
+		if target_surface.is_empty():
+			target_surface = {
+				"friction": 1.0,
+				"stiffness": 1.0,
+				"rolling_resistance": 1.0,
+				"longitudinal_grip_ratio": 1.0,
+				"lateral_grip_assist": 0.0,
+			}
 	var tau_surface := maxf(float(axle_surface_tau_s[index]) if index >= 0 and index < axle_surface_tau_s.size() else surface_transition_tau_s, 0.0)
 	if not bool(state.surface_initialized):
 		state.surface_friction = float(target_surface.get("friction", 1.0))
@@ -425,7 +443,7 @@ func evaluate(
 		match winter_layer_id:
 			"snow_packed":
 				compound_mult = float(compound.get("snow_packed_grip_scale", 1.0))
-			"snow_loose":
+			"snow_loose", "snow_deep":
 				compound_mult = float(compound.get("snow_loose_grip_scale", 1.0))
 			"ice":
 				compound_mult = float(compound.get("ice_grip_scale", 1.0))
@@ -437,7 +455,7 @@ func evaluate(
 				if str(compound.get("id", "")) == "snow_studded":
 					compound_mult *= float(compound.get("uncovered_grip_scale", 1.0))
 
-		if winter_layer_id in ["snow_packed", "snow_loose", "ice"]:
+		if winter_layer_id in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
 			compound_detail["snow"] = compound_mult
 			compound_detail["combined"] = compound_mult
 

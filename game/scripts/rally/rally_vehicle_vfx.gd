@@ -40,6 +40,7 @@ const SURFACES := {
 	"dirt": { "dust": 0.70, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DIRT_DUST },
 	"sand": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SAND_DUST },
 	"grass": { "dust": 0.0, "interval": 10 },
+	"snowdeep": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SNOW },
 	"road": { "dust": 0.0, "interval": 10 },
 	"asphalt": { "dust": 0.0, "interval": 10 },
 	"tarmac": { "dust": 0.0, "interval": 10 },
@@ -405,7 +406,7 @@ func update_wheel(index: int, wetness: float) -> void:
 	var velocity := rearward * clampf(corner_speed.length() * 0.16 + slip, 0.6, 4.0) + side * slip * 0.5
 	var paved := surface in ["road", "asphalt", "tarmac"]
 	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
-	if snow_mm >= SNOW_MIN_MM:
+	if snow_mm >= SNOW_MIN_MM or surface == "snowdeep":
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), source + normal * 0.09, velocity + normal * 1.3, point, normal)
 	elif wet >= 0.35:
 		var spray := smoothstep(0.35, 1.0, wet)

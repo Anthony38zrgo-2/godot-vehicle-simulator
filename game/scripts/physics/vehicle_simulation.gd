@@ -1103,6 +1103,8 @@ func _update_automatic_shift(throttle: float) -> void:
 
 func _surface_for_collider(collider: Variant) -> String:
 	if collider is Node:
+		if collider.is_in_group("SnowDeep"):
+			return "SnowDeep"
 		for surface_name in tire_model.surfaces:
 			if collider.is_in_group(str(surface_name)):
 				return str(surface_name)
