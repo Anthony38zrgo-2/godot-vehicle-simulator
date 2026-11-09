@@ -25,6 +25,7 @@
     "clutch_out_rpm_offset": 300.0,
     "constant_brake_ratio": 0.012,
     "differential": {
+      "preset_id": "escort_tierra",
       "clutch_friction_coefficient": 0.14,
       "clutches": 4.0,
       "coast_ramp_angle_deg": 45.0,

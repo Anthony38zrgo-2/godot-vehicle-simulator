@@ -123,13 +123,13 @@ const POWERTRAIN_PATHS: Array[String] = [
 	"powertrain.gear_ratios.1",
 	"powertrain.gear_ratios.2",
 	"powertrain.gear_ratios.3",
-	"powertrain.differential.preload_nm",
-	"powertrain.differential.power_ramp_angle_deg",
-	"powertrain.differential.coast_ramp_angle_deg",
-	"powertrain.differential.clutches",
 	"steering.max_steering_angle",
 	"steering.steering_speed",
 ]
+# v1: el diferencial es selección discreta por preset, no 4 sliders.
+const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
+# preload directo: no depende de la caché global de clases del editor.
+const RallyDifferentialCatalog = preload("res://scripts/rally/rally_differential_catalog.gd")
 const STRATEGY_PATHS: Array[String] = ["fuel.initial_kg"]
 
 @export var vehicle_path: NodePath
@@ -256,6 +256,9 @@ func get_confirmed_setup() -> Dictionary:
 
 
 func open_garage() -> void:
+	var music := get_node_or_null("/root/RallyMusic")
+	if music != null and music.has_method("on_enter_garage"):
+		music.call("on_enter_garage")
 	if visible or vehicle == null:
 		return
 	_restore_tree_paused = get_tree().paused
@@ -265,6 +268,7 @@ func open_garage() -> void:
 			.simulation \
 			.mass_model \
 			.fuel_density_kg_per_litre
+	opening_values[DIFFERENTIAL_PRESET_PATH] = vehicle.simulation.active_differential_preset_id
 	draft_values = opening_values.duplicate(true)
 	vehicle.ensure_tire_inventory()
 	draft_wheel_compounds.clear()
@@ -568,6 +572,9 @@ func _handle_click(point: Vector2) -> void:
 			"adjust":
 				selected_field_path = str(region.path)
 				_adjust_field(str(region.path), float(region.amount))
+			"preset_adjust":
+				selected_field_path = DIFFERENTIAL_PRESET_PATH
+				_cycle_preset(float(region.amount))
 			"button":
 				_run_button(str(region.action))
 			"setup_row":
@@ -605,7 +612,8 @@ func _set_page(next_page: int) -> void:
 				1:
 					source = WHEELS_PATHS
 				_:
-					source = POWERTRAIN_PATHS
+					source = POWERTRAIN_PATHS.duplicate()
+					source.append(DIFFERENTIAL_PRESET_PATH)
 		2:
 			source = STRATEGY_PATHS
 	for path in source:
@@ -651,6 +659,9 @@ func _adjust_selected(direction: float) -> void:
 
 
 func _adjust_field(path: String, direction: float) -> void:
+	if path == DIFFERENTIAL_PRESET_PATH:
+		_cycle_preset(direction)
+		return
 	var field := RallySetupCatalog.field_for_path(path)
 	if field.is_empty():
 		return
@@ -676,6 +687,54 @@ func _update_value(path: String, value: float) -> void:
 	var result := vehicle.apply_setup_values(draft_values)
 	if not bool(result.get("ok", false)):
 		_show_notice(str(result.get("error", "Error de ajuste.")), true)
+	else:
+		draft_values = result.values
+	queue_redraw()
+
+
+# --- v1 diferencial por preset (selección discreta) ---
+func _garage_profile_id() -> String:
+	if vehicle == null or vehicle.simulation == null:
+		return ""
+	return str(vehicle.simulation.active_differential_profile())
+
+
+func _preset_options() -> Array[Dictionary]:
+	return RallyDifferentialCatalog.list_for_profile(_garage_profile_id())
+
+
+func _draft_preset_id() -> String:
+	var pid := _garage_profile_id()
+	var current := str(draft_values.get(DIFFERENTIAL_PRESET_PATH, ""))
+	if current.is_empty() or not RallyDifferentialCatalog.is_allowed(pid, current):
+		current = vehicle.simulation.active_differential_preset_id
+	if current.is_empty():
+		current = RallyDifferentialCatalog.default_for_profile(pid)
+	return current
+
+
+func _cycle_preset(direction: float) -> void:
+	var options := _preset_options()
+	if options.is_empty():
+		_show_notice("Este vehículo no tiene catálogo de diferencial.", true)
+		return
+	var enabled_ids: Array[String] = []
+	for p in options:
+		if bool(p.get("enabled", false)):
+			enabled_ids.append(str(p.get("id", "")))
+	if enabled_ids.is_empty():
+		_show_notice("Sin presets habilitados (pendiente de calibración).", true)
+		return
+	var current := _draft_preset_id()
+	var index := enabled_ids.find(current)
+	if index < 0:
+		index = 0
+	else:
+		index = posmod(index + int(signf(direction)), enabled_ids.size())
+	draft_values[DIFFERENTIAL_PRESET_PATH] = enabled_ids[index]
+	var result := vehicle.apply_setup_values(draft_values)
+	if not bool(result.get("ok", false)):
+		_show_notice(str(result.get("error", "Error de diferencial.")), true)
 	else:
 		draft_values = result.values
 	queue_redraw()
@@ -910,11 +969,21 @@ func _load_selected_setup() -> void:
 	if not bool(result.get("ok", false)):
 		_show_notice(str(result.get("error", "Error al cargar.")), true)
 		return
-	var validation := RallySetupCatalog.validate(result.values)
+	var stored: Dictionary = (result as Dictionary).get("values", {})
+	# v1: el preset es string y no pasa por validate() numérico.
+	var stored_preset: Variant = null
+	if stored.has(DIFFERENTIAL_PRESET_PATH):
+		stored_preset = stored[DIFFERENTIAL_PRESET_PATH]
+		stored = stored.duplicate(true)
+		stored.erase(DIFFERENTIAL_PRESET_PATH)
+	var validation := RallySetupCatalog.validate(stored)
 	if not bool(validation.get("ok", false)):
 		_show_notice(str(validation.get("error", "Incompatible.")), true)
 		return
-	var applied := vehicle.apply_setup_values(validation.values)
+	var to_apply: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
+	if stored_preset is String and not (stored_preset as String).is_empty():
+		to_apply[DIFFERENTIAL_PRESET_PATH] = str(stored_preset)
+	var applied := vehicle.apply_setup_values(to_apply)
 	if not bool(applied.get("ok", false)):
 		_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 		return
@@ -1146,7 +1215,12 @@ func _draw_tabs() -> void:
 func _dirty_field_count() -> int:
 	var count := 0
 	for path in draft_values:
-		if float(draft_values.get(path, 0.0)) != float(opening_values.get(path, 0.0)):
+		var a: Variant = draft_values.get(path, 0.0)
+		var b: Variant = opening_values.get(path, 0.0)
+		if a is String or b is String:
+			if str(a) != str(b):
+				count += 1
+		elif float(a) != float(b):
 			count += 1
 	if draft_wheel_compounds != opening_wheel_compounds:
 		count += 1
@@ -1614,20 +1688,70 @@ func _draw_powertrain_section() -> void:
 		]
 	)
 
-	_group(Rect2(652, 200, 592, 322), "DIFERENCIAL Y DIRECCIÓN")
+	_group(Rect2(652, 200, 592, 240), "DIFERENCIAL — TIPO / CONFIGURACIÓN")
+	_draw_differential_preset_row(Rect2(652, 200, 592, 240))
+
+	_group(Rect2(652, 452, 592, 118), "DIRECCIÓN")
 	_field_rows(
-		Rect2(652, 200, 592, 322),
+		Rect2(652, 452, 592, 118),
 		[
-			{"p": "powertrain.differential.preload_nm", "l": "Precarga"},
-			{"p": "powertrain.differential.power_ramp_angle_deg", "l": "Rampa de aceleración"},
-			{"p": "powertrain.differential.coast_ramp_angle_deg", "l": "Rampa de retención"},
-			{"p": "powertrain.differential.clutches", "l": "Paquetes de discos"},
 			{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
 			{"p": "steering.steering_speed", "l": "Velocidad de giro"},
 		]
 	)
 
 	_draw_gear_chart(Rect2(36, 582, 1208, 92))
+
+
+func _draw_differential_preset_row(group_rect: Rect2) -> void:
+	var options := _preset_options()
+	var selected := selected_field_path == DIFFERENTIAL_PRESET_PATH
+	var current_id := _draft_preset_id()
+	var current := RallyDifferentialCatalog.get_preset(_garage_profile_id(), current_id)
+	var inner := _group_inner(group_rect)
+	var row := Rect2(inner.position.x, inner.position.y, inner.size.x, 44)
+	_row_frame(row, selected, false, _mouse_over(row))
+	_hit_regions.append({"rect": row, "kind": "select", "path": DIFFERENTIAL_PRESET_PATH})
+	_text(_box(row.position.x + 12, row.position.y, 150, row.size.y), "Configuración", 11, C_TEXT if selected else C_DIM, selected)
+	var minus := Rect2(row.position.x + 168, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
+	var plus := Rect2(row.end.x - 36, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
+	_stepper(minus, false)
+	_stepper(plus, true)
+	_hit_regions.append({"rect": minus, "kind": "preset_adjust", "amount": -1.0})
+	_hit_regions.append({"rect": plus, "kind": "preset_adjust", "amount": 1.0})
+	var name_rect := Rect2(minus.end.x + 8, row.position.y + (row.size.y - 32.0) * 0.5, plus.position.x - minus.end.x - 16, 32)
+	if options.is_empty():
+		_field_box(name_rect, "SIN CATÁLOGO", 12, C_DIM)
+		_hint(_box(inner.position.x + 12, row.end.y + 6, inner.size.x - 24, 18), "Legado temporal: sin presets históricos.")
+		return
+	var label := str(current.get("label", current_id)) if not current.is_empty() else current_id
+	_field_box(name_rect, label, 12, C_GOLD if selected else C_TEXT)
+	var y := row.end.y + 8.0
+	if current.is_empty():
+		_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), "Preset no resuelto.")
+		return
+	if not bool(current.get("enabled", false)):
+		_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), "Pendiente de calibración: no seleccionable.")
+		return
+	var bench: Dictionary = current.get("bench_preload_nm", {})
+	var reported: Dictionary = current.get("reported_nominal_lock_pct", {})
+	var discs: Variant = current.get("physical_disc_count", null)
+	var discs_txt := str(int(discs)) if discs is int or discs is float else "—"
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), str(current.get("supplier_or_family", "")) + " · " + str(current.get("model_reference", "")), 10, C_DIM, false)
+	y += 16.0
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Rampas %d°/%d° · Superficies %d · Discos %s" % [int((current.get("ramp_deg", {}) as Dictionary).get("power", 0)), int((current.get("ramp_deg", {}) as Dictionary).get("coast", 0)), int(current.get("active_friction_surfaces", 0)), discs_txt], 10, C_TEXT, false)
+	y += 16.0
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Banco %.0f–%.0f Nm · Ficha %d%%/%d%% (no bloqueo dinámico)" % [float(bench.get("min", 0.0)), float(bench.get("max", 0.0)), int(reported.get("power", 0)), int(reported.get("coast", 0))], 10, C_DIM, false)
+	y += 18.0
+	var names: Array[String] = []
+	for p in options:
+		var n := str(p.get("label", p.get("id", "")))
+		if not bool(p.get("enabled", false)):
+			n += " (pendiente)"
+		if str(p.get("id", "")) == current_id:
+			n = "«" + n + "»"
+		names.append(n)
+	_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), " · ".join(names))
 
 
 func _draw_gear_chart(rect: Rect2) -> void:

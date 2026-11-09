@@ -44,6 +44,18 @@ var differential_coast_ratio: float = 0.25
 var differential_power_ramp_angle_deg: float = 45.0
 var differential_coast_ramp_angle_deg: float = 60.0
 var differential_clutches: float = 4.0
+# v1 presets: type discreto, ganancia de rampa explícita y telemetría LSD.
+# differential_clutches = active_friction_surfaces (simulation_estimate_v1).
+# physical_disc_count es solo informativo y no entra en la ecuación.
+var differential_type: String = "clutch_lsd"
+var differential_ramp_gain: float = 0.16
+var differential_preset_id: String = ""
+var base_differential_power_ratio: float = 0.0
+var base_differential_coast_ratio: float = 0.25
+var last_diff_speed_rad_s: float = 0.0
+var last_lsd_capacity_nm: float = 0.0
+var last_lsd_torque_nm: float = 0.0
+var last_lsd_saturation: float = 0.0
 var differential_slip_transition_threshold_rad_s: float = 4.0
 var current_gear: int = 0
 var engine_rpm: float = 0.0
@@ -193,6 +205,11 @@ func configure(domains: Dictionary) -> Dictionary:
 	differential_coast_ratio = float(
 		differential.get("coast_friction_coefficient", differential_power_ratio)
 	)
+	base_differential_power_ratio = differential_power_ratio
+	base_differential_coast_ratio = differential_coast_ratio
+	differential_type = str(differential.get("type", "clutch_lsd"))
+	differential_preset_id = str(differential.get("preset_id", ""))
+	differential_ramp_gain = maxf(float(differential.get("ramp_gain", 0.16)), 0.0)
 	differential_power_ramp_angle_deg = float(differential.get("power_ramp_angle_deg", 45.0))
 	differential_coast_ramp_angle_deg = float(differential.get("coast_ramp_angle_deg", 60.0))
 	differential_clutches = float(differential.get("clutches", 4.0))
@@ -241,6 +258,46 @@ func set_final_drive_preset(preset: String) -> bool:
 		final_drive_preset = preset
 		return true
 	return false
+
+
+# v1: actualiza SOLO parámetros del diferencial desde un preset resuelto.
+# No toca caja, embrague, motor ni otros estados de transmisión.
+# resolved: {preset_id, type, preload_nm, power_ramp_deg, coast_ramp_deg,
+#   active_friction_surfaces, friction_mu_power, friction_mu_coast}
+func apply_differential_preset(resolved: Dictionary) -> Dictionary:
+	var preset_id := str(resolved.get("preset_id", ""))
+	if preset_id.is_empty():
+		return {"ok": false, "error": "Preset de diferencial sin ID."}
+	var dtype := str(resolved.get("type", "clutch_lsd"))
+	if dtype != "clutch_lsd" and dtype != "adjustable_friction_lsd":
+		return {"ok": false, "error": "Tipo de diferencial no soportado: " + dtype}
+	var surfaces := int(resolved.get("active_friction_surfaces", 0))
+	if surfaces <= 0:
+		return {"ok": false, "error": "Preset sin superficies activas válidas: " + preset_id}
+	var preload_nm := float(resolved.get("preload_nm", -1.0))
+	if not is_finite(preload_nm) or preload_nm < 0.0:
+		return {"ok": false, "error": "Precarga inválida en preset: " + preset_id}
+	var power_ramp := float(resolved.get("power_ramp_deg", -1.0))
+	var coast_ramp := float(resolved.get("coast_ramp_deg", -1.0))
+	if not is_finite(power_ramp) or not is_finite(coast_ramp):
+		return {"ok": false, "error": "Rampas inválidas en preset: " + preset_id}
+	if power_ramp < 15.0 or power_ramp > 85.0 or coast_ramp < 15.0 or coast_ramp > 85.0:
+		return {"ok": false, "error": "Rampas fuera de 15-85° en preset: " + preset_id}
+	var mu_power := float(resolved.get("friction_mu_power", base_differential_power_ratio))
+	var mu_coast := float(resolved.get("friction_mu_coast", base_differential_coast_ratio))
+	if not is_finite(mu_power) or not is_finite(mu_coast) or mu_power < 0.0 or mu_coast < 0.0:
+		return {"ok": false, "error": "Fricción inválida en preset: " + preset_id}
+	# adjustable_friction_lsd (R-Lock): acoplamiento limitado por fricción,
+	# nunca restricción rígida de spool. El solver ya satura por capacidad.
+	differential_type = dtype
+	differential_preset_id = preset_id
+	differential_preload_nm = preload_nm
+	differential_power_ramp_angle_deg = power_ramp
+	differential_coast_ramp_angle_deg = coast_ramp
+	differential_clutches = float(surfaces)
+	differential_power_ratio = mu_power
+	differential_coast_ratio = mu_coast
+	return {"ok": true, "preset_id": preset_id}
 
 
 func reset_compliance() -> void:
@@ -505,6 +562,9 @@ func solve_rotation(
 	var diff_left := 0 if front_torque_split >= 1.0 else 2
 	var diff_right := diff_left + 1
 	var diff_share := front_torque_split if diff_left == 0 else 1.0 - front_torque_split
+	# B2 revertido temporalmente (decisión v1.6): se mantiene el término de
+	# regularización para validar B1 de forma aislada. No reintroducir otro
+	# término arbitrario sin justificar unidades si este se retira.
 	var lsd_pair_inv := inverse[diff_left] + inverse[diff_right] + h * differential_slip_transition_threshold_rad_s * 0.35
 
 	for iteration in 48:
@@ -574,19 +634,31 @@ func solve_rotation(
 		var ramp_capacity := absf(differential_input) * cot_ramp * maxf(differential_clutches, 1.0) * maxf(
 			friction_mu,
 			0.0,
-		) * 0.16
+		) * maxf(differential_ramp_gain, 0.0)
 		var diff_speed := spins[diff_left] - spins[diff_right]
-		var slip_scale := clampf(
-			absf(diff_speed) / maxf(differential_slip_transition_threshold_rad_s, 0.05),
-			0.25,
-			1.0,
+		var preload_capacity := maxf(
+			differential_preload_nm,
+			0.0
 		)
-		var lsd_capacity := (maxf(differential_preload_nm, 0.0) + ramp_capacity) * slip_scale * h
+		var ramp_lock_capacity := maxf(
+			ramp_capacity,
+			0.0
+		)
+		var lsd_capacity := (
+			preload_capacity + ramp_lock_capacity
+		) * h
 		var next_lsd := clampf(lsd_impulse + diff_speed / lsd_pair_inv, -lsd_capacity, lsd_capacity)
 		var lsd_delta := next_lsd - lsd_impulse
 		spins[diff_left] -= lsd_delta * inverse[diff_left]
 		spins[diff_right] += lsd_delta * inverse[diff_right]
 		lsd_impulse = next_lsd
+		last_diff_speed_rad_s = diff_speed
+		last_lsd_capacity_nm = lsd_capacity / maxf(h, 0.000001)
+		last_lsd_torque_nm = lsd_impulse / maxf(h, 0.000001)
+		if lsd_capacity > 0.0:
+			last_lsd_saturation = clampf(absf(next_lsd) / maxf(lsd_capacity, 0.000001), 0.0, 1.0)
+		else:
+			last_lsd_saturation = 0.0
 
 		for i in 4:
 			var before := spins[i]

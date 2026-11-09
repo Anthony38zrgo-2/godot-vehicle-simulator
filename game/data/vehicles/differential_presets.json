@@ -1,0 +1,692 @@
+{
+  "schema_version": 1,
+  "production_version": 1,
+  "purpose": "Catalogo de produccion v1 normalizado para RallyDifferentialCatalog. Datos de investigacion pendientes de verificacion primaria; simulation_calibration nulos hasta calibracion. simulation_estimate_v1: differential_clutches=active_friction_surfaces, preload=initial_simulation_seed, mu heredada del perfil base.",
+  "critical_rules": [
+    "Nunca utilizar reported_nominal_lock_pct como ecuacion directa del solver.",
+    "bench_preload_nm.initial_simulation_seed es el punto medio si se dio un rango, no una medicion historica confirmada.",
+    "active_friction_surfaces no es numero de engranajes ni igual necesariamente al campo legacy clutches.",
+    "Nunca combinar de forma libre proveedor, rampas, discos y precarga de distintos presets.",
+    "R-Lock no es spool; disponible solo tras calibracion y pruebas."
+  ],
+  "profiles": {
+    "rt-mini-cooper-s": {
+      "default_preset_id": "mini_terra",
+      "presets": [
+        {
+          "id": "mini_terra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Salisbury",
+          "model_reference": "Powr-Lok / BMC ST C-AJJ 3385",
+          "active_friction_surfaces": 2,
+          "physical_disc_count": 4,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 25,
+            "max": 35,
+            "initial_simulation_seed": 30.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 40
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "mini_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Salisbury",
+          "model_reference": "Powr-Lok / BMC ST C-AJJ 3385",
+          "active_friction_surfaces": 2,
+          "physical_disc_count": 4,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 80
+          },
+          "bench_preload_nm": {
+            "min": 25,
+            "max": 35,
+            "initial_simulation_seed": 30.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 10
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-lotus-cortina": {
+      "default_preset_id": "cortina_standard",
+      "presets": [
+        {
+          "id": "cortina_standard",
+          "label": "Estándar",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Hewland",
+          "model_reference": "HG.400 / nucleo Salisbury Powr-Lok",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 45,
+            "max": 60,
+            "initial_simulation_seed": 52.5
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 45
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "cortina_rally",
+          "label": "Rally",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Hewland",
+          "model_reference": "HG.400 / nucleo Salisbury Powr-Lok",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 45,
+            "max": 60,
+            "initial_simulation_seed": 52.5
+          },
+          "reported_nominal_lock_pct": {
+            "power": 60,
+            "coast": 30
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-volvo-amazon": {
+      "default_preset_id": "amazon_standard",
+      "presets": [
+        {
+          "id": "amazon_standard",
+          "label": "Estándar",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Dana/Thornton",
+          "model_reference": "Powr-Lok / Volvo 384479-2",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 45,
+            "max": 45,
+            "initial_simulation_seed": 45.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 35,
+            "coast": 35
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "amazon_rsport",
+          "label": "R-Sport",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Dana/Thornton",
+          "model_reference": "Powr-Lok / Volvo 384479-2",
+          "active_friction_surfaces": 6,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 95,
+            "max": 120,
+            "initial_simulation_seed": 107.5
+          },
+          "reported_nominal_lock_pct": {
+            "power": 70,
+            "coast": 50
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-saab-96-v4": {
+      "default_preset_id": "saab_zf",
+      "presets": [
+        {
+          "id": "saab_zf",
+          "label": "ZF Sport & Rally",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Saab Sport & Rally / ZF / R-Lock",
+          "model_reference": "ZF 22533 o R-Lock (distintos conjuntos)",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 80
+          },
+          "bench_preload_nm": {
+            "min": 35,
+            "max": 60,
+            "initial_simulation_seed": 47.5
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 10
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "saab_r_lock",
+          "label": "R-Lock (pendiente calibración)",
+          "type": "adjustable_friction_lsd",
+          "supplier_or_family": "Saab Sport & Rally / ZF / R-Lock",
+          "model_reference": "ZF 22533 o R-Lock (distintos conjuntos)",
+          "active_friction_surfaces": null,
+          "physical_disc_count": null,
+          "ramp_deg": null,
+          "bench_preload_nm": null,
+          "reported_nominal_lock_pct": null,
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": false,
+          "review_note": "R-Lock NO es spool: LSD con discos de friccion y ajuste exterior. No equiparar 100% a bloqueo rigido; necesita parametros fisicos y pruebas.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "No usar coeficientes ni porcentaje 100% inventados. Mantener disabled hasta que el mecanismo de friccion limitada este implementado y calibrado."
+        }
+      ]
+    },
+    "rt-fiat-abarth-1000": {
+      "default_preset_id": "fiat_rally",
+      "presets": [
+        {
+          "id": "fiat_rally",
+          "label": "Rally",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Colotti / Bacci / ZF",
+          "model_reference": "S-25 (asociacion exacta pendiente)",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 25,
+            "max": 35,
+            "initial_simulation_seed": 30.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 25
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-lancia-fulvia": {
+      "default_preset_id": "fulvia_gr4",
+      "presets": [
+        {
+          "id": "fulvia_gr4",
+          "label": "Grupo 4",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "Lok-O-Matic / Lancia 818.540",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 75
+          },
+          "bench_preload_nm": {
+            "min": 55,
+            "max": 65,
+            "initial_simulation_seed": 60.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 15
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "lancia-fulvia": {
+      "alias_of": "rt-lancia-fulvia"
+    },
+    "rt-opel-kadett": {
+      "default_preset_id": "kadett_40",
+      "presets": [
+        {
+          "id": "kadett_40",
+          "label": "40% (extensión a revisar)",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "Lok-O-Matic S-25",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 40,
+            "max": 40,
+            "initial_simulation_seed": 40.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 40
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "No atribuir combinacion de extensiones FIA especifica hasta comprobar fuente primaria.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "kadett_75",
+          "label": "75% (extensión a revisar)",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "Lok-O-Matic S-25",
+          "active_friction_surfaces": 6,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 75,
+            "max": 75,
+            "initial_simulation_seed": 75.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 75,
+            "coast": 35
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "No atribuir combinacion de extensiones FIA especifica hasta comprobar fuente primaria.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-alfa-giulia-gta": {
+      "default_preset_id": "gta_rally",
+      "presets": [
+        {
+          "id": "gta_rally",
+          "label": "Rally",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF / Autodelta",
+          "model_reference": "Lok-O-Matic S-25",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 65
+          },
+          "bench_preload_nm": {
+            "min": 50,
+            "max": 50,
+            "initial_simulation_seed": 50.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 20
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "gta_circuito",
+          "label": "Circuito",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF / Autodelta",
+          "model_reference": "Lok-O-Matic S-25",
+          "active_friction_surfaces": 6,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 90,
+            "max": 90,
+            "initial_simulation_seed": 90.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 70,
+            "coast": 50
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-escort-rs2000": {
+      "default_preset_id": "escort_tierra",
+      "presets": [
+        {
+          "id": "escort_tierra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Salisbury (English) / ZF (Atlas)",
+          "model_reference": "Asociación variante-piezas no verificada",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 65,
+            "max": 85,
+            "initial_simulation_seed": 75.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 75,
+            "coast": 35
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "La correspondencia entre Salisbury/English, ZF/Atlas y el preset de tierra/asfalto no consta en los datos.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "escort_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Salisbury (English) / ZF (Atlas)",
+          "model_reference": "Asociación variante-piezas no verificada",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 45
+          },
+          "bench_preload_nm": {
+            "min": 65,
+            "max": 85,
+            "initial_simulation_seed": 75.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 50,
+            "coast": 50
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "La correspondencia entre Salisbury/English, ZF/Atlas y el preset de tierra/asfalto no consta en los datos.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "ford-escort-rs2000": {
+      "alias_of": "rt-escort-rs2000"
+    },
+    "rt-alpine-a110": {
+      "default_preset_id": "alpine_tierra",
+      "presets": [
+        {
+          "id": "alpine_tierra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Hewland / ZF",
+          "model_reference": "Caja 364; asociación variante-piezas no verificada",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 65
+          },
+          "bench_preload_nm": {
+            "min": 35,
+            "max": 55,
+            "initial_simulation_seed": 45.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 20
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "La correspondencia Hewland/ZF con las rampas de tierra/asfalto no esta demostrada.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "alpine_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "Hewland / ZF",
+          "model_reference": "Caja 364; asociación variante-piezas no verificada",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 80
+          },
+          "bench_preload_nm": {
+            "min": 35,
+            "max": 55,
+            "initial_simulation_seed": 45.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 40,
+            "coast": 10
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "review_note": "La correspondencia Hewland/ZF con las rampas de tierra/asfalto no esta demostrada.",
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "rt-lancia-stratos": {
+      "default_preset_id": "stratos_asfalto",
+      "presets": [
+        {
+          "id": "stratos_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF / Reparto Corse",
+          "model_reference": "Lok-O-Matic S-40",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 40,
+            "coast": 75
+          },
+          "bench_preload_nm": {
+            "min": 50,
+            "max": 50,
+            "initial_simulation_seed": 50.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 15
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "stratos_tierra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF / Reparto Corse",
+          "model_reference": "Lok-O-Matic S-40",
+          "active_friction_surfaces": 6,
+          "physical_disc_count": null,
+          "ramp_deg": {
+            "power": 30,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 95,
+            "max": 95,
+            "initial_simulation_seed": 95.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 70,
+            "coast": 35
+          },
+          "historical_confidence": "user_research_pending_verification",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    }
+  }
+}

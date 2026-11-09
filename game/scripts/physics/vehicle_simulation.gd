@@ -2,6 +2,8 @@ class_name FordRallyVehicleSimulation
 extends RefCounted
 
 const PROFILE_PATH := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
+# preload directo: no depende de la caché global de clases del editor.
+const RallyDifferentialCatalog = preload("res://scripts/rally/rally_differential_catalog.gd")
 const TIRE_THERMAL_PERIOD := 1.0 / 30.0
 const ENGINE_THERMAL_PERIOD := 1.0 / 20.0
 const FUEL_PERIOD := 1.0 / 10.0
@@ -72,6 +74,17 @@ var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
+# v1 presets de diferencial: perfil activo y preset aplicado.
+# El perfil activo nunca se toma de un payload: solo de configure().
+const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
+const LEGACY_DIFFERENTIAL_PATHS: Array[String] = [
+	"powertrain.differential.preload_nm",
+	"powertrain.differential.power_ramp_angle_deg",
+	"powertrain.differential.coast_ramp_angle_deg",
+	"powertrain.differential.clutches",
+]
+var active_profile_id: String = ""
+var active_differential_preset_id: String = ""
 
 
 func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH) -> Dictionary:
@@ -149,7 +162,10 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 		"anti_lock_brakes": bool(aids.get("abs_available", false)),
 		"automatic_transmission": bool(powertrain_model.automatic_transmission),
 	}
+	active_profile_id = str(loaded.get("profile_id", ""))
+	_apply_default_differential_preset()
 	setup_design_values = RallySetupCatalog.defaults(domains)
+	setup_design_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
 	_capture_setup_design()
 	set_compound(active_compound_id)
 	return {
@@ -235,18 +251,117 @@ func adjust_live_tire_pressure(delta_kpa: float) -> void:
 	pressure["cold_kpa_gauge"] = cold
 
 
+func active_differential_profile() -> String:
+	if not active_profile_id.is_empty():
+		return active_profile_id
+	return str(profile.get("vehicle_identifier", ""))
+
+
+func _base_differential_mu() -> Dictionary:
+	return {
+		"power": float(powertrain_model.base_differential_power_ratio),
+		"coast": float(powertrain_model.base_differential_coast_ratio),
+	}
+
+
+func _sync_differential_to_domains(target_domains: Dictionary, resolved: Dictionary) -> void:
+	var powertrain: Dictionary = (target_domains.get("powertrain", {}) as Dictionary).get("powertrain", {})
+	var differential: Dictionary = powertrain.get("differential", {})
+	differential["preset_id"] = str(resolved.get("preset_id", ""))
+	differential["type"] = str(resolved.get("type", "clutch_lsd"))
+	differential["preload_nm"] = float(resolved.get("preload_nm", 0.0))
+	differential["power_ramp_angle_deg"] = float(resolved.get("power_ramp_deg", 45.0))
+	differential["coast_ramp_angle_deg"] = float(resolved.get("coast_ramp_deg", 45.0))
+	differential["clutches"] = float(resolved.get("active_friction_surfaces", 4))
+	differential["clutch_friction_coefficient"] = float(resolved.get("friction_mu_power", 0.0))
+	differential["coast_friction_coefficient"] = float(resolved.get("friction_mu_coast", 0.0))
+	powertrain["differential"] = differential
+	(target_domains.get("powertrain", {}) as Dictionary)["powertrain"] = powertrain
+
+
+func _apply_default_differential_preset() -> void:
+	var pid := active_differential_profile()
+	if pid.is_empty():
+		return
+	if RallyDifferentialCatalog.list_for_profile(pid).is_empty():
+		return
+	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
+	var differential: Dictionary = powertrain.get("differential", {})
+	var configured_id := str(differential.get("preset_id", ""))
+	var wanted := configured_id
+	if wanted.is_empty() or not RallyDifferentialCatalog.is_allowed(pid, wanted):
+		wanted = RallyDifferentialCatalog.default_for_profile(pid)
+	if wanted.is_empty():
+		return
+	var resolved := RallyDifferentialCatalog.resolve(pid, wanted, _base_differential_mu())
+	if not bool(resolved.get("ok", false)):
+		push_warning("Diferencial por defecto no resoluble: " + str(resolved.get("error", "")))
+		return
+	_sync_differential_to_domains(domains, resolved)
+	var runtime := powertrain_model.apply_differential_preset(resolved)
+	if bool(runtime.get("ok", false)):
+		active_differential_preset_id = wanted
+
+
 func apply_setup_values(values: Dictionary) -> Dictionary:
-	var validation := RallySetupCatalog.validate(values)
+	# Decisión v1.4/5: validar todo antes de mutar; el perfil activo nunca
+	# sale del payload. El preset_id es la única selección editable.
+	var pid := active_differential_profile()
+	var catalog_covers := not RallyDifferentialCatalog.list_for_profile(pid).is_empty()
+	for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
+		if values.has(legacy_path) and catalog_covers:
+			return {
+				"ok": false,
+				"error": "Reglaje de diferencial antiguo incompatible: use el preset " + DIFFERENTIAL_PRESET_PATH + " o restaure fábrica.",
+			}
+	var incoming := values.duplicate(true)
+	var requested_preset: Variant = null
+	if incoming.has(DIFFERENTIAL_PRESET_PATH):
+		requested_preset = incoming[DIFFERENTIAL_PRESET_PATH]
+		incoming.erase(DIFFERENTIAL_PRESET_PATH)
+	var validation := RallySetupCatalog.validate(incoming)
 	if not bool(validation.get("ok", false)):
 		return validation
-	var effective_values: Dictionary = validation.values.duplicate(true)
+	var effective_values: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
 	effective_values["fuel.initial_kg"] = minf(
 		float(effective_values.get("fuel.initial_kg", 0.0)),
 		mass_model.fuel_capacity_kg,
 	)
-	var applied := RallySetupCatalog.apply(domains, effective_values)
+	# Resolver preset (solicitado > activo > defecto) sin mutar estado.
+	var resolved_preset: Dictionary = {}
+	if catalog_covers:
+		var wanted := ""
+		if requested_preset is String and not (requested_preset as String).is_empty():
+			wanted = str(requested_preset)
+		elif not active_differential_preset_id.is_empty():
+			wanted = active_differential_preset_id
+		else:
+			wanted = RallyDifferentialCatalog.default_for_profile(pid)
+		if wanted.is_empty():
+			return {"ok": false, "error": "Sin preset de diferencial por defecto para: " + pid}
+		if requested_preset is String and not (requested_preset as String).is_empty():
+			if not RallyDifferentialCatalog.is_allowed(pid, wanted):
+				return {"ok": false, "error": "Preset no permitido para este vehículo: " + wanted}
+			if not RallyDifferentialCatalog.is_enabled(pid, wanted):
+				return {"ok": false, "error": "Preset deshabilitado pendiente de calibración: " + wanted}
+		resolved_preset = RallyDifferentialCatalog.resolve(pid, wanted, _base_differential_mu())
+		if not bool(resolved_preset.get("ok", false)):
+			return resolved_preset
+	# Staging atómico: aplicar numérico + diferencial sobre copia.
+	var staging := domains.duplicate(true)
+	var applied := RallySetupCatalog.apply(staging, effective_values)
 	if not bool(applied.get("ok", false)):
 		return applied
+	if catalog_covers:
+		_sync_differential_to_domains(staging, resolved_preset)
+	# Commit: a partir de aquí el runtime se sincroniza desde staging.
+	domains = staging
+	if catalog_covers:
+		var runtime := powertrain_model.apply_differential_preset(resolved_preset)
+		if not bool(runtime.get("ok", false)):
+			return runtime
+		active_differential_preset_id = str(resolved_preset.get("preset_id", ""))
+		effective_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
 	var fuel: Dictionary = domains.get("fuel", { }).get("fuel", { })
 	var fuel_kg := clampf(
 		float(fuel.get("initial_kg", mass_model.fuel_initial_kg)),
@@ -334,10 +449,14 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	powertrain_model.differential_preload_nm = float(
 		differential.get("preload_nm", powertrain_model.differential_preload_nm)
 	)
-	powertrain_model.differential_power_ratio = float(
-		differential.get("clutch_friction_coefficient", powertrain_model.differential_power_ratio)
+	powertrain_model.differential_power_ratio = maxf(
+		float(differential.get("clutch_friction_coefficient", powertrain_model.differential_power_ratio)),
+		0.0
 	)
-	powertrain_model.differential_coast_ratio = powertrain_model.differential_power_ratio
+	powertrain_model.differential_coast_ratio = maxf(
+		float(differential.get("coast_friction_coefficient", powertrain_model.differential_power_ratio)),
+		0.0
+	)
 	powertrain_model.differential_power_ramp_angle_deg = float(
 		differential.get("power_ramp_angle_deg", powertrain_model.differential_power_ramp_angle_deg)
 	)
@@ -864,6 +983,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"anti_lock_brakes": abs_enabled,
 		},
 		"aids_available": assistance_available.duplicate(),
+		"differential": {
+			"preset_id": active_differential_preset_id,
+			"profile_id": active_differential_profile(),
+			"type": powertrain_model.differential_type,
+			"diff_speed_rad_s": powertrain_model.last_diff_speed_rad_s,
+			"lsd_capacity_nm": powertrain_model.last_lsd_capacity_nm,
+			"lsd_torque_nm": powertrain_model.last_lsd_torque_nm,
+			"lsd_saturation": powertrain_model.last_lsd_saturation,
+		},
 	}
 
 

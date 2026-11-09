@@ -35,16 +35,22 @@ const FIELDS: Array[Dictionary] = [
 	{"page": 2, "label": "3ª Marcha", "path": "powertrain.gear_ratios.2", "min": 0.90, "max": 1.80, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.25},
 	{"page": 2, "label": "4ª Marcha", "path": "powertrain.gear_ratios.3", "min": 0.70, "max": 1.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.00},
 	{"page": 2, "label": "Marcha atrás (R)", "path": "powertrain.reverse_ratio", "min": 2.20, "max": 4.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 3.32},
-	{"page": 2, "label": "Precarga del diferencial", "path": "powertrain.differential.preload_nm", "min": 0.0, "max": 120.0, "step": 1.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Rampa de aceleración", "path": "powertrain.differential.power_ramp_angle_deg", "min": 5.0, "max": 80.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Rampa de retención", "path": "powertrain.differential.coast_ramp_angle_deg", "min": 5.0, "max": 80.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Paquetes de discos", "path": "powertrain.differential.clutches", "min": 1.0, "max": 8.0, "step": 1.0, "suffix": "", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 0, "label": "Ángulo máximo de dirección", "path": "steering.max_steering_angle", "min": 0.15, "max": 0.70, "step": 0.005, "suffix": "°", "scale": 57.2957795, "digits": 1, "group": "DIRECCIÓN"},
 	{"page": 2, "label": "Velocidad de dirección", "path": "steering.steering_speed", "min": 1.0, "max": 12.0, "step": 0.05, "suffix": " /s", "scale": 1.0, "digits": 2, "group": "DIRECCIÓN"},
 	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 5.0, "max": 45.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA", "default": 25.0},
 ]
 
 const PAGE_TITLES := ["SUSPENSIÓN", "RUEDAS", "MOTOR / TRANSMISIÓN", "ESTRATEGIA / BOXES", "REGLAJES"]
+
+# v1 presets: los 4 números libres del diferencial salen del contrato numérico.
+# El preset se valida/resuelve vía RallyDifferentialCatalog, nunca como float.
+const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
+const LEGACY_DIFFERENTIAL_PATHS: Array[String] = [
+	"powertrain.differential.preload_nm",
+	"powertrain.differential.power_ramp_angle_deg",
+	"powertrain.differential.coast_ramp_angle_deg",
+	"powertrain.differential.clutches",
+]
 
 
 static func defaults(domains: Dictionary) -> Dictionary:
@@ -89,6 +95,8 @@ static func validate(values: Dictionary) -> Dictionary:
 		allowed[field.path] = field
 	var result: Dictionary = {}
 	for key in values:
+		if str(key) in LEGACY_DIFFERENTIAL_PATHS:
+			return {"ok": false, "error": "Reglaje de diferencial antiguo incompatible: use el preset " + DIFFERENTIAL_PRESET_PATH + " o restaure fábrica."}
 		if not allowed.has(str(key)):
 			return {"ok": false, "error": "Campo de reglaje no reconocido: " + str(key)}
 		var value: Variant = values[key]
