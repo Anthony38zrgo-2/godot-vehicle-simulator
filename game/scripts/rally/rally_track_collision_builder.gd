@@ -42,9 +42,13 @@ func build_collision(visual_root: Node = null) -> bool:
 		return false
 	for mesh_instance in mesh_instances:
 		var rel_transform := _get_relative_transform(mesh_instance, collision_source)
-		# Preserve imported per-material road surfaces instead of assigning one
-		# friction category to a mixed road mesh.
-		if mesh_instance.name.to_lower().begins_with("collision_road") and mesh_instance.mesh.get_surface_count() > 1:
+		# Split mixed imported terrain primitives so winter and bare faces do
+		# not inherit one classification from the parent collision node.
+		var node_name := mesh_instance.name.to_lower()
+		var split_surfaces := node_name.begins_with("collision_road") or (
+			collision_scene_path.contains("/sweden_") and node_name.begins_with("collision_terrain_")
+		)
+		if split_surfaces and mesh_instance.mesh != null and mesh_instance.mesh.get_surface_count() > 1:
 			for si in mesh_instance.mesh.get_surface_count():
 				var subset := ArrayMesh.new()
 				subset.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_instance.mesh.surface_get_arrays(si))
@@ -84,6 +88,8 @@ func build_erosion_bank_collision(visual_root: Node) -> void:
 				continue
 			var bank_mesh := ArrayMesh.new()
 			bank_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, source.mesh.surface_get_arrays(surface_index))
+			# Preserve original erosion_snow_* material on generated banks.
+			bank_mesh.surface_set_material(0, material)
 			var bank := MeshInstance3D.new()
 			bank.name = bank_node
 			bank.mesh = bank_mesh
@@ -148,22 +154,45 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	static_body.set_meta("collision_role", role)
 	static_body.set_meta("is_stage_road", source_name.begins_with("collision_road"))
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
+	var winter_layer_id := ""
+	var material_names: Array[String] = []
+	for si in mesh_instance.mesh.get_surface_count():
+		var mat := mesh_instance.mesh.surface_get_material(si)
+		if mat != null:
+			var mat_name := str(mat.resource_name).to_lower()
+			if not mat_name.is_empty():
+				material_names.append(mat_name)
+	# Snow is an overlay, never a wholesale remapping of the Grass body.
+	for mat_name in material_names:
+		if mat_name.begins_with("road_snow_") or mat_name == "road_snow":
+			winter_layer_id = "snow_packed"
+		elif mat_name.begins_with("erosion_snow_"):
+			winter_layer_id = "snow_loose"
+		elif mat_name.begins_with("road_ice_") or mat_name == "road_ice":
+			winter_layer_id = "ice"
 	if source_name.begins_with("collision_road"):
-		var material_names := ""
-		for si in mesh_instance.mesh.get_surface_count():
-			var mat := mesh_instance.mesh.surface_get_material(si)
-			if mat != null:
-				material_names += " " + str(mat.resource_name).to_lower()
-		if "tarmac" in material_names or "asphalt" in material_names or "tunnel" in material_names or "bridgeroad" in material_names:
-			surface_group = "Road"
-		elif "sand" in material_names:
-			surface_group = "Sand"
-		elif "dirt" in material_names or "field" in material_names or "leaves" in material_names:
-			surface_group = "Dirt"
-		else:
+		for mat_name in material_names:
+			if mat_name.begins_with("road_snow_") or mat_name == "road_snow":
+				surface_group = "Gravel"
+				break
+			if "tarmac" in mat_name or "asphalt" in mat_name or "tunnel" in mat_name or "bridgeroad" in mat_name:
+				surface_group = "Road"
+				break
+			if "sand" in mat_name:
+				surface_group = "Sand"
+				break
+			if "dirt" in mat_name or "field" in mat_name or "leaves" in mat_name:
+				surface_group = "Dirt"
+				break
+		if surface_group.is_empty():
 			surface_group = terrain_surface_group
 	if role == "terrain" and surface_group.is_empty():
 		surface_group = terrain_surface_group
+	# Metadata for the future per-contact winter physics; no force changes here.
+	static_body.set_meta("base_surface_id", surface_group)
+	static_body.set_meta("winter_layer_id", winter_layer_id)
+	if not material_names.is_empty():
+		static_body.set_meta("source_material", material_names[0])
 	if not surface_group.is_empty():
 		static_body.add_to_group(surface_group)
 	var physics_material := PhysicsMaterial.new()
