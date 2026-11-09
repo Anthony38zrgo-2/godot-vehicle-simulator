@@ -35,7 +35,6 @@ var weather_schedule: Array = []
 var climate_seed: int = 0
 var initial_weather: String = ""
 var weather_generator_version: int = 1
-var route_hashes: Dictionary = {}
 var surface_continuity: Dictionary = {}
 var confirmed_compound_id: String = "gravel_normal"
 var draft_compound_id: String = "gravel_normal"
@@ -272,7 +271,6 @@ func _generate_weather_schedule() -> bool:
 	weather_schedule = result.get("schedule", [])
 	climate_seed = int(result.get("climate_seed", 0))
 	weather_generator_version = int(result.get("generator_version", 1))
-	route_hashes = result.get("route_hashes", {})
 	surface_continuity = result.get("surface_continuity", {})
 	return true
 
@@ -504,7 +502,6 @@ func save() -> bool:
 		"climate_seed": climate_seed,
 		"initial_weather": initial_weather,
 		"generator_version": weather_generator_version,
-		"route_hashes": route_hashes,
 		"surface_continuity": surface_continuity,
 		"confirmed_compound": confirmed_compound_id,
 		"draft_compound": draft_compound_id,
@@ -568,7 +565,6 @@ func restore() -> bool:
 	climate_seed = int(doc.get("climate_seed", 0))
 	initial_weather = str(doc.get("initial_weather", ""))
 	weather_generator_version = int(doc.get("generator_version", 1))
-	route_hashes = doc.get("route_hashes", {})
 	surface_continuity = doc.get("surface_continuity", {})
 	confirmed_compound_id = str(doc.get("confirmed_compound", "gravel_normal"))
 	draft_compound_id = str(doc.get("draft_compound", confirmed_compound_id))
