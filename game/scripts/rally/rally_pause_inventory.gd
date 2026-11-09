@@ -550,7 +550,7 @@ func abandon_stage() -> void:
 
 func description(tire: Dictionary) -> String:
 	var state: Dictionary = tire.state
-	var compound := "Lluvia" if tire.compound_id == "gravel_wet" else "Normal"
+	var compound := str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.compound_id)).get("short_label", tire.compound_id))
 	var puncture := ""
 	if float(state.get("leak_per_second", 0.0)) > 0.0:
 		puncture = " / pinchado" if float(state.get("pressure_loss_fraction", 0.0)) > 0.85 else " / fuga"
@@ -680,8 +680,9 @@ func show_inventory() -> void:
 
 	# 4. ASISTENCIA DE SERVICIO (PARQUE DE TRABAJO)
 	if session != null and session.has_method("may_service_tires") and session.may_service_tires() and inventory.spares.size() < inventory.capacity:
-		var srv_actions := HBoxContainer.new()
-		srv_actions.add_theme_constant_override("separation", 10)
+		var srv_actions := GridContainer.new()
+		srv_actions.columns = 3
+		srv_actions.add_theme_constant_override("h_separation", 10)
 		content.add_child(srv_actions)
 		var srv_lbl := Label.new()
 		srv_lbl.text = "ASISTENCIA:"
@@ -689,8 +690,11 @@ func show_inventory() -> void:
 		srv_lbl.add_theme_font_size_override("font_size", 10)
 		srv_lbl.add_theme_color_override("font_color", C_RIM)
 		srv_actions.add_child(srv_lbl)
-		button("+ Cargar Grava Normal", func(): load_spare("gravel_normal"), srv_actions)
-		button("+ Cargar Lluvia", func(): load_spare("gravel_wet"), srv_actions)
+		var cat := RallyTireCompound.load_catalog()
+		for entry in RallyTireCompound.compound_ids(cat):
+			var cid := str(entry)
+			var compound_data := RallyTireCompound.get_compound(cat, cid)
+			button("+ " + str(compound_data.get("short_label", cid)), func(): load_spare(cid), srv_actions)
 
 	# 5. BANNER DE AVISOS Y MENSAJES
 	if not notice.is_empty():
@@ -939,7 +943,7 @@ func _update_telemetry_panel() -> void:
 				col = C_GOLD
 
 			var lbl := Label.new()
-			lbl.text = "%s: %s [%s]" % [corners[i], ("Lluv" if tire.get("compound_id") == "gravel_wet" else "Norm"), c_stat]
+			lbl.text = "%s: %s [%s]" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat]
 			lbl.add_theme_font_override("font", DIN_BOLD)
 			lbl.add_theme_font_size_override("font_size", 12)
 			lbl.add_theme_color_override("font_color", col)
@@ -1250,12 +1254,13 @@ class WheelGraphic extends Control:
 		elif wear_fraction >= 0.35:
 			tread_col = Color("#eab308")
 		else:
-			tread_col = Color("#22c55e") if tire_compound == "gravel_normal" else Color("#38bdf8")
+			var details := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_compound)
+			tread_col = Color(str(details.get("visual_tread_color", "#22c55e")))
 
 		draw_arc(center, r_outer - 2.0, 0.0, TAU, 32, tread_col, 4.0, true)
 
 		# Dibujo de la banda / sipes
-		var sipes_count: int = 12 if tire_compound == "gravel_wet" else 8
+		var sipes_count: int = int(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_compound).get("visual_sipes_count", 8))
 		for k in sipes_count:
 			var ang := (TAU / float(sipes_count)) * float(k)
 			var p1 := center + Vector2(cos(ang), sin(ang)) * (r_outer - 4.5)
@@ -1481,12 +1486,13 @@ class WheelSlotControl extends PanelContainer:
 		head_box.add_child(head_sp)
 
 		var state: Dictionary = tire_data.get("state", {})
-		var comp_name := "GRAVA NORMAL" if str(tire_data.get("compound_id", "")) == "gravel_normal" else "LLUVIA INTENSA"
+		var compound_info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire_data.get("compound_id", "")))
+		var comp_name := str(compound_info.get("label", tire_data.get("compound_id", ""))).to_upper()
 		compound_label = Label.new()
 		compound_label.text = comp_name
 		compound_label.add_theme_font_override("font", panel_ref.DIN_BOLD)
 		compound_label.add_theme_font_size_override("font_size", 10)
-		compound_label.add_theme_color_override("font_color", panel_ref.C_GOLD if str(tire_data.get("compound_id", "")) == "gravel_normal" else panel_ref.C_BLUE)
+		compound_label.add_theme_color_override("font_color", Color(str(compound_info.get("visual_tread_color", "#d9d9d9"))))
 		head_box.add_child(compound_label)
 
 		var wear_pct := float(state.get("wear_fraction", 0.0)) * 100.0
