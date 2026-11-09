@@ -1106,7 +1106,8 @@ func _surface_for_collider(collider: Variant) -> String:
 		var surface_meta: Variant = collider.get_meta("surface", "")
 		if tire_model.surfaces.has(str(surface_meta)):
 			return str(surface_meta)
-	return "Gravel" if tire_model.surfaces.has("Gravel") else str(tire_model.surfaces.keys()[0])
+	# Surface errors remain drivable via TireModel's logged safety fallback.
+	return "Unknown"
 
 
 func _flush_fuel_work() -> void:
