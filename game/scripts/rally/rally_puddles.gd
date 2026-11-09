@@ -578,7 +578,7 @@ func sample_contact(position: Vector3) -> Dictionary:
 static func contact_response(
 	depth_mm: float,
 	speed: float,
-	wet_tire: bool,
+	evacuation: Variant,
 	load_n: float,
 	width: float,
 	drag_scale: float,
@@ -598,12 +598,14 @@ static func contact_response(
 		}
 
 	var abs_speed := absf(speed)
-	var evac_speed := 28.0 if wet_tire else 16.0
+	# Numeric evacuation property from the catalog; bool callers remain compatible.
+	var evac_speed := (28.0 if evacuation else 16.0) if evacuation is bool else maxf(float(evacuation), 0.1)
+	var wet_factor := clampf((evac_speed - 16.0) / 12.0, 0.0, 1.0)
 	var risk := smoothstep(evac_speed * 0.60, evac_speed * 1.30, abs_speed) * smoothstep(1.5, 12.0, depth_mm)
 
 	# Differentiated aquaplaning support: lateral cornering grip drops faster than longitudinal braking
-	var support_long := 1.0 - risk * (0.55 if wet_tire else 0.80)
-	var support_lat := 1.0 - risk * (0.75 if wet_tire else 0.94)
+	var support_long := 1.0 - risk * lerpf(0.80, 0.55, wet_factor)
+	var support_lat := 1.0 - risk * lerpf(0.94, 0.75, wet_factor)
 	var support := minf(support_long, support_lat)
 
 	# Continuous hydrodynamic displacement drag + viscous shearing (+25% force scale)
