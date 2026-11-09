@@ -6,10 +6,9 @@ extends Node3D
 @export var collision_layer: int = 1
 @export var body_friction: float = 0.9
 
-# Collision node name (lowercase) -> physics surface group. Nodes not in
-# this table keep the legacy behavior: "terrain" nodes join
-# terrain_surface_group, everything else gets no surface group (the tire
-# model then falls back to its default surface).
+# Material-aware road classification. The stage's terrain_surface_group
+# is used only when the imported mesh has no identifiable road material.
+# Physical snow and ice overlays will be implemented separately.
 const SURFACE_GROUP_BY_NODE := {
 	# NOTE: in this rally blend `road_*` materials are the gravel stage road
 	# (road_gravel_*), so the rally's main "road" is Gravel, not paved. Map
