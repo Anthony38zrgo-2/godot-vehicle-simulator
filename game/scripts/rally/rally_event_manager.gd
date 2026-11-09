@@ -294,16 +294,29 @@ func _assign_rival_compounds() -> void:
 				wet_zones += 1
 		for row in sim.rows if sim != null else []:
 			var pid := str((row as Dictionary).get("id", ""))
-			# Sin multiplicar pérdidas ya incorporadas en tiempos CPU mojados:
-			# el compuesto rival solo matiza dentro del factor ya calibrado.
+			# Keep the original forecast decisions; tire selection is data-driven.
 			var pick_wet := wet_zones >= 2 or (wet_zones >= 1 and rng.randf() < 0.4)
+			var chosen := _rival_compound_for_weather(pick_wet)
 			if rival_compounds.get(sid, {}) is Dictionary:
-				(rival_compounds[sid] as Dictionary)[pid] = "gravel_wet" if pick_wet else "gravel_normal"
+				(rival_compounds[sid] as Dictionary)[pid] = chosen
 			else:
-				rival_compounds[sid] = {pid: ("gravel_wet" if pick_wet else "gravel_normal")}
+				rival_compounds[sid] = {pid: chosen}
 		# El jugador usa el confirmado (no se sortea).
 		if rival_compounds.get(sid, {}) is Dictionary:
 			(rival_compounds[sid] as Dictionary)["player"] = confirmed_compound_id
+
+
+func _rival_compound_for_weather(wet: bool) -> String:
+	var definitions: Dictionary = compound_catalog.get("compounds", {})
+	var chosen := confirmed_compound_id
+	var best := INF
+	for cid in definitions:
+		var model: Dictionary = definitions[cid]
+		var score := float(model.get("water_grip_loss_per_mm", 0.12)) if wet else float(model.get("dry_wear_multiplier", 1.0))
+		if score < best:
+			best = score
+			chosen = str(cid)
+	return chosen
 
 
 func rival_compound_for(pid: String, stage_id: String) -> String:
@@ -712,23 +725,6 @@ func _absolute_minutes(date: String, hm: String) -> float:
 		day_index = int(dparts[2])
 	var hparts := hm.split(":")
 	return float(day_index * 1440 + int(hparts[0]) * 60 + int(hparts[1]))
-
-func _rules_hash() -> String:
-	if not route_hashes.is_empty():
-		return SchedulerScript.rules_hash_for(event_doc, route_hashes)
-	return JSON.stringify({"event": event_doc.get("event_id", ""), "stages": stage_order, "points": event_doc.get("points_profile_id", ""), "policy": event_doc.get("retirement_policy", {}), "weather_rules": event_doc.get("weather_rules", {}), "tire_rules": event_doc.get("tire_rules", {}), "setup_windows": event_doc.get("setup_windows", []), "generator_version": SchedulerScript.GENERATOR_VERSION}).sha256_text()
-
-
-func _rules_hash_for_restore(doc: Dictionary) -> String:
-	# El hash guardado ya incluía rutas y versión del generador.
-	var rh: Dictionary = doc.get("route_hashes", {})
-	if rh.is_empty():
-		return _rules_hash()
-	var current_hashes := {}
-	for sid in stage_order:
-		var path := "res://data/rally/%s_route.json" % sid
-		current_hashes[sid] = FileAccess.get_file_as_string(path).sha256_text()
-	return SchedulerScript.rules_hash_for(event_doc, current_hashes)
 
 func _shift_date(iso: String, delta_days: int) -> String:
 	var parts := iso.split("-")
