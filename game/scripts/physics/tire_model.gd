@@ -39,6 +39,7 @@ var active_compound_id: String = "gravel_normal"
 var active_compound: Dictionary = {}
 var wheel_compounds: Array[Dictionary] = []
 var compound_catalog: Dictionary = {}
+var missing_surface_warnings: Dictionary = {}
 
 
 func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
@@ -284,6 +285,10 @@ func evaluate(
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
 	if axle_surface_set.is_empty():
 		axle_surface_set = surfaces
+	if not axle_surface_set.has(surface_name):
+		if not missing_surface_warnings.has(surface_name):
+			missing_surface_warnings[surface_name] = true
+			push_warning("Tire contact has no surface profile for '%s'; using the original gravel/road fallback." % surface_name)
 	var target_surface: Dictionary = axle_surface_set.get(
 		surface_name,
 		axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", { })))),
