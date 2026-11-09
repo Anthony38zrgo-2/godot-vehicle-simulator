@@ -41,7 +41,7 @@ func restore(data: Dictionary) -> bool:
 	var seen := {}
 	var highest := 0
 	for tire in loaded + carried:
-		if not tire is Dictionary or not tire.get("state", null) is Dictionary or str(tire.get("compound_id", "")) not in ["gravel_normal", "gravel_wet"]:
+		if not tire is Dictionary or not tire.get("state", null) is Dictionary or not RallyTireCompound.is_valid(str(tire.get("compound_id", ""))):
 			return false
 		var id := int(tire.get("id", 0))
 		if id <= 0 or seen.has(id):
