@@ -174,17 +174,22 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	}
 
 
-func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
-	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
-	active_compound_id = cid
-	if not catalog.is_empty():
-		compound_catalog = (catalog as Dictionary).duplicate(true)
-	if compound_catalog.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
-		if parsed is Dictionary:
-			compound_catalog = parsed
-	thermal_model.set_compound(cid, compound_catalog)
-	tire_model.set_compound(cid, compound_catalog)
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
+	var cat: Dictionary = catalog if not catalog.is_empty() else compound_catalog
+	if cat.is_empty():
+		cat = RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
+	if not definitions.has(compound_id):
+		push_warning("Unknown tire compound: " + compound_id)
+		return false
+	# Both physics models receive exactly the same resolved catalog.
+	if not thermal_model.set_compound(compound_id, cat):
+		return false
+	if not tire_model.set_compound(compound_id, cat):
+		return false
+	compound_catalog = cat
+	active_compound_id = compound_id
+	return true
 
 
 func get_compound_catalog() -> Dictionary:
