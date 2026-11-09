@@ -263,10 +263,14 @@ def main(job_path):
         links.new(shader.outputs["BSDF"], output_node.inputs["Surface"])
         links.new(tex.outputs["Color"], shader.inputs["Base Color"])
         shader.inputs["Roughness"].default_value = 0.4
-        alpha = "window" in material.name.lower() or "tire_alpha" in material.name.lower()
+        is_tire_alpha = "tire_alpha" in material.name.lower() or "tire alpha" in material.name.lower()
+        alpha = "window" in material.name.lower() or is_tire_alpha
         if alpha:
             links.new(tex.outputs["Alpha"], shader.inputs["Alpha"])
             shader.inputs["Roughness"].default_value = 0.18
+            if is_tire_alpha:
+                material.blend_method = "CLIP"
+                material.alpha_threshold = 0.5
         is_interior_mat = material.name.lower() in ["windows", "interior_windows", "windshield_interior", "interior_hi", "cockpit", "meters", "rally trophy roof lining"]
         if is_interior_mat:
             material.use_backface_culling = True
