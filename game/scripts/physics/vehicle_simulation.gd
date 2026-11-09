@@ -13,7 +13,6 @@ const WHEEL_KEYS := ["front_left", "front_right", "rear_left", "rear_right"]
 var profile: Dictionary = { }
 var domains: Dictionary = { }
 var asset_manifest: Dictionary = { }
-var domain_hashes: Dictionary = { }
 var mass_model := VehicleMassModel.new()
 var suspension_model := VehicleSuspensionModel.new()
 var unsprung_rig := UnsprungSuspensionRig.new()
@@ -94,7 +93,6 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 		return loaded
 	profile = loaded["manifest"]
 	domains = loaded["domains"]
-	domain_hashes = loaded["domain_hashes"]
 	var mass_result := mass_model.configure(domains, asset_manifest)
 	if not bool(mass_result.get("ok", false)):
 		return mass_result
@@ -170,7 +168,6 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	return {
 		"ok": true,
 		"profile_id": str(loaded.get("profile_id", "")),
-		"domain_hashes": domain_hashes.duplicate(true),
 	}
 
 
