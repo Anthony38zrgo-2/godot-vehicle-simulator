@@ -655,6 +655,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		wheel_contact_points[i] = hit["position"]
 		wheel_contact_normals[i] = (hit["normal"] as Vector3).normalized()
 		wheel_surfaces[i] = _surface_for_collider(hit.get("collider"))
+		var winter_layer_id := ""
+		var contact_collider: Variant = hit.get("collider")
+		if contact_collider is CollisionObject3D:
+			winter_layer_id = str(contact_collider.get_meta("winter_layer_id", ""))
 		contacts.append(
 			{
 				"hit": true,
@@ -663,6 +667,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"distance": ray_distance,
 				"surface": wheel_surfaces[i],
 				"collider": hit.get("collider"),
+				"winter_layer_id": winter_layer_id,
 			}
 		)
 
@@ -808,6 +813,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				local_water,
 				local_snow,
 				local_ground,
+				str(contact.get("winter_layer_id", "")),
 			)
 			var fx := float(tire_result.get("longitudinal_force_n", 0.0))
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
@@ -1178,6 +1184,7 @@ func _solve_contact_wheel(
 	water_mm: float = 0.0,
 	snow_mm: float = 0.0,
 	ground_c: float = 30.0,
+	winter_layer_id: String = "",
 ) -> Dictionary:
 	return tire_model.evaluate(
 		index,
@@ -1195,4 +1202,5 @@ func _solve_contact_wheel(
 		water_mm,
 		snow_mm,
 		ground_c,
+		winter_layer_id,
 	)

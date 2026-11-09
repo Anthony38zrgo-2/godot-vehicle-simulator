@@ -277,6 +277,7 @@ func evaluate(
 	water_mm: float = 0.0,
 	snow_mm: float = 0.0,
 	ground_temperature_c: float = 30.0,
+	winter_layer_id: String = "",
 ) -> Dictionary:
 	var state: Dictionary = states[index]
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
@@ -418,9 +419,29 @@ func evaluate(
 	# curva base y el factor térmico (sin duplicar la reducción mojada).
 	var compound_mult := 1.0
 	var compound_detail := {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
-	if not active_compound.is_empty():
-		compound_detail = compound_water_snow_ground_factor(water_mm, snow_mm, ground_temperature_c, index)
-		compound_mult = float(compound_detail.get("combined", 1.0))
+	var compound: Dictionary = wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
+
+	if not compound.is_empty():
+		match winter_layer_id:
+			"snow_packed":
+				compound_mult = float(compound.get("snow_packed_grip_scale", 1.0))
+			"snow_loose":
+				compound_mult = float(compound.get("snow_loose_grip_scale", 1.0))
+			"ice":
+				compound_mult = float(compound.get("ice_grip_scale", 1.0))
+			_:
+				compound_detail = compound_water_snow_ground_factor(
+					water_mm, snow_mm, ground_temperature_c, index
+				)
+				compound_mult = float(compound_detail.get("combined", 1.0))
+				if str(compound.get("id", "")) == "snow_studded":
+					compound_mult *= float(compound.get("uncovered_grip_scale", 1.0))
+
+		if winter_layer_id in ["snow_packed", "snow_loose", "ice"]:
+			compound_detail["snow"] = compound_mult
+			compound_detail["combined"] = compound_mult
+
+	state["winter_layer_id"] = winter_layer_id
 	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
 	state["compound_snow_factor"] = float(compound_detail.get("snow", 1.0))
 	state["compound_ground_factor"] = float(compound_detail.get("ground", 1.0))

@@ -28,7 +28,7 @@ static func load_profile(manifest_path: String) -> Dictionary:
 			return _failure("vehicle.json is missing required domain: " + domain_name)
 
 	var domains: Dictionary = {}
-		var base_path := manifest_path.get_base_dir()
+	var base_path := manifest_path.get_base_dir()
 	for domain_name in domain_paths:
 		var relative_path := str(domain_paths[domain_name]).replace("\\", "/")
 		if relative_path.is_empty() or relative_path.begins_with("/") or relative_path.contains(".."):

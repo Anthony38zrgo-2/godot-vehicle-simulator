@@ -194,9 +194,10 @@
     "compound_catalog_path": "res://data/tires/rally_compounds.json",
     "allowed_compound_ids": [
       "gravel_normal",
-      "gravel_wet"
+      "gravel_wet",
+      "snow_studded"
     ],
-    "default_compound_id": "gravel_normal",
+    "default_compound_id": "snow_studded",
     "fitment": "same_compound_all_wheels",
     "start_temperature_policy": "selected_compound_optimum"
   },
