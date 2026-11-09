@@ -28,8 +28,7 @@ static func load_profile(manifest_path: String) -> Dictionary:
 			return _failure("vehicle.json is missing required domain: " + domain_name)
 
 	var domains: Dictionary = {}
-	var domain_hashes: Dictionary = {"vehicle.json": manifest_result["sha256"]}
-	var base_path := manifest_path.get_base_dir()
+		var base_path := manifest_path.get_base_dir()
 	for domain_name in domain_paths:
 		var relative_path := str(domain_paths[domain_name]).replace("\\", "/")
 		if relative_path.is_empty() or relative_path.begins_with("/") or relative_path.contains(".."):
@@ -42,7 +41,6 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		if not domain_value is Dictionary:
 			return _failure("Domain '" + str(domain_name) + "' must contain a JSON object.")
 		domains[str(domain_name)] = domain_value
-		domain_hashes[str(domain_name)] = domain_result["sha256"]
 
 	var tires: Dictionary = domains["tires"].get("tires", {})
 	for axle in ["front", "rear"]:
@@ -80,7 +78,6 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		"ok": true,
 		"manifest": manifest,
 		"domains": domains,
-		"domain_hashes": domain_hashes,
 		"resolved_tire_filters": resolved_filters,
 		"profile_id": str(manifest.get("vehicle_identifier", "")),
 	}
@@ -330,10 +327,7 @@ static func _read_json(path: String) -> Dictionary:
 	var error := parser.parse(bytes.get_string_from_utf8())
 	if error != OK:
 		return _failure("Invalid JSON in " + path + ": " + parser.get_error_message())
-	var hash_context := HashingContext.new()
-	hash_context.start(HashingContext.HASH_SHA256)
-	hash_context.update(bytes)
-	return {"ok": true, "value": parser.data, "sha256": hash_context.finish().hex_encode()}
+	return {"ok": true, "value": parser.data}
 
 
 static func _failure(message: String) -> Dictionary:
