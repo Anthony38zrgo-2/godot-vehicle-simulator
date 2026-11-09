@@ -132,7 +132,13 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	var requested_compound := str(choices.get("compound_id", choices.get("compound", "")))
 	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
 	var default_compound := str(tire_rules.get("default_compound_id", "gravel_normal"))
-	draft_compound_id = CompoundScript.validated_id(requested_compound) if requested_compound != "" else default_compound
+	if not CompoundScript.is_valid(default_compound):
+		error = "Compuesto predeterminado inexistente: " + default_compound
+		return false
+	if not requested_compound.is_empty() and not CompoundScript.is_valid(requested_compound):
+		error = "Compuesto solicitado inexistente: " + requested_compound
+		return false
+	draft_compound_id = requested_compound if not requested_compound.is_empty() else default_compound
 	confirmed_compound_id = default_compound
 	compound_catalog = CompoundScript.load_catalog()
 	status = "running"
@@ -473,7 +479,6 @@ func save() -> bool:
 	var doc := {
 		"version": 3,
 		"event_id": event_doc.get("event_id", "russia_rally"),
-		"rules_hash": _rules_hash(),
 		"cursor": cursor,
 		"status": status,
 		"seed": seed_value,
@@ -532,9 +537,6 @@ func restore() -> bool:
 	if ver != 3:
 		return false
 	if str(doc.get("event_id", "")) != str(event_doc.get("event_id", "russia_rally")):
-		return false
-	if str(doc.get("rules_hash", "")) != _rules_hash_for_restore(doc):
-		error = "Guardado incompatible: reglas, rutas o generador distintos"
 		return false
 	cursor = int(doc.get("cursor", 0))
 	status = str(doc.get("status", "running"))
