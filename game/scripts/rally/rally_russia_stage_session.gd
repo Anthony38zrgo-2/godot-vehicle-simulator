@@ -1149,11 +1149,9 @@ func _on_garage_closed(applied: bool) -> void:
 		if not bool(committed.get("ok", false)):
 			call_deferred("_open_setup_window")
 			return
-		var wet_count := 0
-		for tire in vehicle.tire_inventory.mounted:
-			if tire.compound_id == "gravel_wet":
-				wet_count += 1
-		setup = {"compound_id": "gravel_wet" if wet_count >= 2 else "gravel_normal", "values": garage_panel.draft_values}
+		# The four mounted wheel IDs are authoritative; this scalar is legacy.
+		var primary_compound := str(vehicle.tire_inventory.mounted[0].compound_id)
+		setup = {"compound_id": primary_compound, "values": garage_panel.draft_values}
 	else:
 		if setup.has("values") and not (setup.values as Dictionary).is_empty():
 			var committed: Dictionary = vehicle.apply_setup_snapshot(setup.values)
