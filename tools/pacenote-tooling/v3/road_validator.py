@@ -51,6 +51,7 @@ def build_road_geometry(stage_id: str, solved: Dict[str, Any],
         out_sections.append({
             "s_m": round(float(station_s[i]), 2),
             "guide_node": int(guide_nodes[i]),
+            "has_corridor": bool(s.get("has_corridor", False)),
             "center": [round(float(v), 3) for v in center[i]],
             "left_edge": [round(float(v), 3) for v in s["solved_left_edge"]],
             "right_edge": [round(float(v), 3) for v in s["solved_right_edge"]],

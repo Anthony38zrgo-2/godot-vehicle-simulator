@@ -11,20 +11,40 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-# Taxonomía exacta de materiales sobre MATERIALLIST (spec §3.1.B).
+# Taxonomía sobre MATERIALLIST (spec §3.1.B + equivalentes por país).
+# Kenia usa kenya_*/jungle_*, Finlandia fin_* (a menudo con tarmac/cross),
+# Suecia road_snow_*/bridge_snow_*, Suiza road_tarmac_*/road_tunnel_*/bridgeroad*.
 CORE_ROAD_MATERIALS = [
     "road_gravel_1", "road_forest", "road_field_1",
     "road_asphalt_*", "road_tarmac_*", "bridge_*",
+    "kenya_road_*", "kenya_river_road_*", "kenya_road_to_jungle",
+    "jungle_road*", "jungle_river_road*", "kenya_bridge*",
+    "fin_road_*", "fin_bridge*", "fin_path", "fin_tarmac_cracks",
+    "fin_leaves", "fin_leaves_start", "fin_leaves_end",
+    "fin_road_leaves", "fin_road_leaves_start", "fin_road_leaves_end",
+    "road_logging*", "road_forest_to_logging",
+    "road_snow_*", "railroad_snow", "bridge_snow_*",
+    "road_tunnel_*", "bridgeroad*", "bridgemetal*", "metal-bridge*",
 ]
 JUNCTION_ROAD_MATERIALS = [
     "road_crossroad_2", "road_field_1_cross", "road_crossroad_*",
+    "*cross*", "*tcross*", "*ycross*",
 ]
 SHOULDER_MATERIALS = [
     "road_gravel_1_dif1", "road_gravel_1_dif2", "road_*_dif*",
+    "*dif*",
 ]
+
+
+def _is_shoulder(mat_name: str) -> bool:
+    # Los dif de TERRENO (kenya_terrain_grass_*_dif1...) no son arcén:
+    # solo cuentan los dif viales (contienen "road").
+    return any(fnmatch.fnmatchcase(mat_name, p) for p in SHOULDER_MATERIALS) \
+        and "road" in mat_name.lower()
 BARRIER_WALL_MATERIALS = [
     "roadbar1", "string_red", "fence_metal",
     "fence_1_1", "fence_1_2", "fence_rock_1",
+    "*fence*", "fin_puuaita", "wall_*", "tunnel_rockwall_*",
 ]
 
 ROAD_CATEGORIES = {"core", "junction", "shoulder"}
@@ -33,6 +53,10 @@ ROAD_CATEGORIES = {"core", "junction", "shoulder"}
 def classify_material(mat_name: str) -> str:
     """Clasifica un material del BMF en core/junction/shoulder/barrier/ditch/other."""
     m = mat_name.strip()
+    # Los portones (checkpoint/fin) cruzan por encima de la calzada:
+    # nunca son muros de recorte aunque contengan "fence".
+    if "gate" in m.lower() and "fence" in m.lower():
+        return "other"
     for pat in BARRIER_WALL_MATERIALS:
         if fnmatch.fnmatchcase(m, pat):
             return "barrier"
@@ -42,11 +66,10 @@ def classify_material(mat_name: str) -> str:
     for pat in CORE_ROAD_MATERIALS:
         if fnmatch.fnmatchcase(m, pat):
             return "core"
-    for pat in SHOULDER_MATERIALS:
-        if fnmatch.fnmatchcase(m, pat):
-            return "shoulder"
+    if _is_shoulder(m):
+        return "shoulder"
     low = m.lower()
-    if low.startswith("ditch_"):
+    if "ditch_" in low:
         return "ditch"
     return "other"
 

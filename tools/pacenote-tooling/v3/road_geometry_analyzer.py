@@ -13,19 +13,38 @@ MU_BY_MATERIAL = {
     "road_field_1": 0.76,
     "road_crossroad_2": 0.76,
     "road_field_1_cross": 0.76,
+    "kenya_road_gravel_1": 0.85,
+    "fin_path": 0.76,
 }
 DEFAULT_MU = 0.80
 SANDY_MU = 0.60
+SNOW_MU = 0.55
+ASPHALT_MU = 0.95
+DIRT_MU = 0.76
 
 
 def grip_mu(material: str) -> float:
-    """Adherencia base mu según §3.5.5."""
+    """Adherencia base mu según §3.5.5 + equivalentes por país.
+
+    Orden: tabla exacta > nieve/hielo > asfalto > tierra/barro >
+    arena/terreno > grava/carretera genérica.
+    """
     m = (material or "").strip()
     if m in MU_BY_MATERIAL:
         return MU_BY_MATERIAL[m]
     low = m.lower()
-    if low.startswith("sand_erosion_") or low.startswith("terrain_"):
+    if "snow" in low or "ice" in low:
+        return SNOW_MU
+    if "tarmac" in low or ("tunnel" in low and "road" in low):
+        return ASPHALT_MU
+    if "railroad" in low:
+        return 0.70
+    if "jungle" in low or "dirt" in low or "mud" in low or low == "fin_path":
+        return DIRT_MU
+    if low.startswith("sand_erosion_") or low.startswith("terrain_") or "sand" in low:
         return SANDY_MU
+    if "road" in low or "bridge" in low or "crossroad" in low:
+        return 0.85
     return DEFAULT_MU
 
 

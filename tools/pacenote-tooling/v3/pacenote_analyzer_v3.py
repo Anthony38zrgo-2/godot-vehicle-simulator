@@ -190,7 +190,8 @@ def detect_curves(geo: Dict[str, Any], cfg: V3Config) -> List[Dict[str, Any]]:
             if best_len * STEP_M >= cfg.split_valley_len_m:
                 bounds.append(a + best_mid)
         bounds.append(r1)
-        for q0, q1 in zip(bounds[:-1], bounds[1:]):
+        for _q0, _q1 in zip(bounds[:-1], bounds[1:]):
+            q0, q1 = int(_q0), int(_q1)
             ev = _build_curve(s, kc, ko, hd, tho, opt, q0, q1, direction, cfg)
             if ev is not None:
                 if ev["s_start"] < 20.0 and ev["angle_deg"] < 15.0:
@@ -274,13 +275,25 @@ def _build_curve(s, kc, ko, hd, tho, opt, q0, q1, direction, cfg: V3Config) -> O
 # --- Parte B: obstáculos multi-instancia + escenarios de velocidad ---
 
 OBSTACLE_PATTERNS = {
-    "rock": ["rock_big_*", "stone_*", "fence_rock_1"],
-    "ditch": ["ditch_1_*", "sand_erosion_*"],
+    "rock": ["rock_big_*", "stone_*", "fence_rock_1", "rock_snow_*",
+             "stone_snow", "stone_mountain_*", "fin_stone*", "fin_terrain_rocks*"],
+    "ditch": ["*ditch_*", "sand_erosion_*"],
     "gate": ["fence_gate_1", "haybarn_*", "house_2", "house_cowhouse_1"],
-    "post": ["pylon_1", "polyn_1_wire", "power_line_1", "phoneline", "sign_splimit"],
-    "junction": ["roadbar1", "road_crossroad_*", "road_field_1_cross",
+    "post": ["pylon_1", "polyn_1_wire", "power_line_1", "phoneline", "sign_splimit",
+             "sign_wooden*", "fin_pole*", "fin_pylon_1", "swe_pylon"],
+    "junction": ["roadbar1", "road_crossroad_*", "road_field_1_cross", "*cross*",
                  "sign_crossing_*", "sign_hardturn", "sign_turn_right", "sign_stop", "sign_yield"],
 }
+
+# Troncos de arbolado (mobiliario continuo, no postes discretos): solo
+# cuentan si implican dont_cut real; si no, son roadside_furniture.
+TRUNK_PATTERNS = ["russian_tree_trunks", "nul_collision_wood", "kenya_tree_trunks",
+                  "fin_tree_pine*", "fin_tree_birch*", "tree_birch_trunk*",
+                  "sweden_tree_trunks", "mountain_tree_trunks"]
+
+
+def _is_trunk(label: str) -> bool:
+    return any(_fnm.fnmatchcase(label, p) for p in TRUNK_PATTERNS)
 
 import fnmatch as _fnm  # noqa: E402
 
@@ -964,6 +977,19 @@ class _SpeechCfg:
 _V3SPEECH = _SpeechCfg()
 
 
+def _json_default(o):
+    """Serializa escalares numpy (int64 de índices) para json."""
+    if isinstance(o, (np.integer,)):
+        return int(o)
+    if isinstance(o, (np.floating,)):
+        return float(o)
+    if isinstance(o, (np.bool_,)):
+        return bool(o)
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    raise TypeError(f"No serializable: {type(o)}")
+
+
 def export_documents(runtime: List[Dict[str, Any]], candidates: List[Dict[str, Any]],
                      authoring: List[Dict[str, Any]], country: str, stage: str,
                      out_dir: Path) -> Dict[str, Any]:
@@ -976,22 +1002,22 @@ def export_documents(runtime: List[Dict[str, Any]], candidates: List[Dict[str, A
     for w in runtime:
         run_doc["curves"].append({
             "call_word_hex": f"0x{w['word'] & 0xFFFFFFFF:08x}",
-            "call_index": w["call_index"],
+            "call_index": int(w["call_index"]),
             "curve_id": w.get("curve_id", "EVT_%03d" % w["call_index"]),
-            "advisory_gate_node": w["advisory_gate_node"],
+            "advisory_gate_node": int(w["advisory_gate_node"]),
             "route_distance_m": round(float(w["route_distance_m"]), 2),
             "s_start": w.get("s_start"), "s_end": w.get("s_end"),
             "kind_str": w.get("kind_str"), "direction": w.get("direction"),
             "link": w.get("link"),
         })
     (out_dir / f"{country}_{stage}_pacenotes.json").write_text(
-        json.dumps(run_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        json.dumps(run_doc, ensure_ascii=False, indent=2, default=_json_default) + "\n", encoding="utf-8")
     (out_dir / f"{country}_{stage}_pacenotes_authoring.json").write_text(
         json.dumps({"stage": f"{country}_{stage}", "generator": "pacenote_analyzer_v3",
-                    "events": authoring}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                    "events": authoring}, ensure_ascii=False, indent=2, default=_json_default) + "\n", encoding="utf-8")
     (out_dir / f"{country}_{stage}_pacenotes_candidates.json").write_text(
         json.dumps({"stage": f"{country}_{stage}", "generator": "pacenote_analyzer_v3",
-                    "events": candidates}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                    "events": candidates}, ensure_ascii=False, indent=2, default=_json_default) + "\n", encoding="utf-8")
     return run_doc
 
 
@@ -1094,7 +1120,7 @@ def analyze_and_build_pacenotes(route_points, bmf_stage, output_dir,
         c["_hazards"] = []
     for ob in obstacles:
         if ob.get("linked_curve"):
-            is_trunk = "russian_tree_trunks" in str(ob.get("label", ""))
+            is_trunk = _is_trunk(str(ob.get("label", "")))
             if is_trunk and not ob.get("dont_cut"):
                 ob["status"] = "roadside_furniture"
                 ob["review_reasons"] = ["tronco sin dont_cut: no se canta inside/outside"]
@@ -1138,7 +1164,10 @@ def analyze_and_build_pacenotes(route_points, bmf_stage, output_dir,
     # o peligros pegados a la calzada (d_edge <= dont_cut: roca/poste/zanja que
     # invade la trazada aunque no haya curva enlazada). El resto no se canta suelto.
     for ob in standalone:
-        if ob["type"] in ("rock", "post", "ditch") and float(ob.get("d_edge", 99.0)) > cfg.dont_cut_edge_m:
+        if _is_trunk(str(ob.get("label", ""))):
+            ob["status"] = "roadside_furniture"
+            ob["review_reasons"] = ["alineacion continua de troncos: no se canta suelto"]
+        elif ob["type"] in ("rock", "post", "ditch") and float(ob.get("d_edge", 99.0)) > cfg.dont_cut_edge_m:
             ob["status"] = "dropped_low_priority"
             ob["review_reasons"] = ["peligro lateral en recta sin curva: no se canta suelto"]
     seq = build_main_sequence(curves, junctions, verticals,
