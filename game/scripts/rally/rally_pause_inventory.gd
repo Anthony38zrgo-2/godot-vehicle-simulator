@@ -636,7 +636,12 @@ func show_inventory() -> void:
 	trunk_header.add_child(t_sp)
 
 	var t_mass := Label.new()
-	var spare_mass: float = inventory.spares.size() * float(RallyTireCompound.load_catalog().inventory.wheel_mass_kg)
+	var mass_policy: Dictionary = (RallyTireCompound.load_catalog().get("inventory", {}) as Dictionary).duplicate(true)
+	if session != null and session.get("vehicle") != null:
+		var chassis: Dictionary = session.vehicle.simulation.domains.get("chassis", {})
+		var policy: Dictionary = (chassis.get("physical_mass_inventory", {}) as Dictionary).get("spare_policy", {})
+		mass_policy.merge(policy, true)
+	var spare_mass: float = inventory.spares.size() * float(mass_policy.get("wheel_mass_kg", 18.0))
 	t_mass.text = "Capacidad: %d/%d · Carga: %.0f kg" % [inventory.spares.size(), inventory.capacity, spare_mass]
 	t_mass.add_theme_font_override("font", DIN_BOLD)
 	t_mass.add_theme_font_size_override("font_size", 11)
