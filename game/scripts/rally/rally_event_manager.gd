@@ -303,6 +303,8 @@ func _assign_rival_compounds() -> void:
 
 
 func _rival_compound_for_weather(wet: bool) -> String:
+	if str(event_doc.get("event_id", "")) == "sweden_rally":
+		return "snow_studded"
 	var definitions: Dictionary = compound_catalog.get("compounds", {})
 	var chosen := confirmed_compound_id
 	var best := INF

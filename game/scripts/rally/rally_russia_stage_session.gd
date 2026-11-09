@@ -148,6 +148,12 @@ func _ready() -> void:
 			var condition: Dictionary = event_manager.mounted_tire_condition[i]
 			vehicle.simulation.thermal_model.tire_states[i].wear_fraction = clampf(float(condition.get("wear_fraction", 0.0)), 0.0, 1.0)
 			vehicle.simulation.thermal_model.tire_states[i].thermal_damage_fraction = clampf(float(condition.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
+	# Single-stage/práctica en Suecia sin manager: instalar snow_studded
+	# antes de crear el inventario. No toca inventarios existentes
+	# (ensure_tire_inventory no recrea) ni selecciones guardadas.
+	if (practice_mode or session_mode == "single_stage") and event_manager == null and str(session_track_id).begins_with("sweden_"):
+		if vehicle.has_method("set_tire_compound"):
+			vehicle.set_tire_compound("snow_studded")
 	apply_start_pose_from_manifest()
 	vehicle.ensure_tire_inventory()
 	if not practice_mode and event_manager != null and not event_manager.tire_inventory_state.is_empty():
@@ -1099,7 +1105,7 @@ func _open_setup_window() -> void:
 			"compound_change_allowed": true,
 			"confirmation_required": bool(window.get("confirmation_required", true)),
 			"forecast_summary": str(forecast.get("summary", "")),
-			"forecast_advice": str(forecast.get("suggested_compound", "")),
+			"forecast_advice": "Nieve con clavos" if str(session_track_id).begins_with("sweden_") else str(forecast.get("suggested_compound", "")),
 			"window_label": label,
 		})
 		if head_up_display != null:

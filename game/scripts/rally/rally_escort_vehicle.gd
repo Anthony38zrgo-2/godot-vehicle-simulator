@@ -133,7 +133,7 @@ func _ready() -> void:
 	if not body_entered.is_connected(record_impact):
 		body_entered.connect(record_impact)
 	_physics_ready = true
-	print("RALLY_VEHICLE_PROFILE_READY id=", rally_profile.profile_id, " sprung_mass_kg=", mass, " vehicle_mass_kg=", simulation.mass_model.resolve(simulation.mass_model.fuel_initial_kg).vehicle_total_mass_kg, " domains=", simulation.domain_hashes.size(), " contact_type=ShapeCast3D shape_count=4")
+	print("RALLY_VEHICLE_PROFILE_READY id=", rally_profile.profile_id, " sprung_mass_kg=", mass, " vehicle_mass_kg=", simulation.mass_model.resolve(simulation.mass_model.fuel_initial_kg).vehicle_total_mass_kg, " contact_type=ShapeCast3D shape_count=4")
 
 
 func apply_vehicle_properties() -> void:
@@ -828,7 +828,10 @@ func ensure_tire_inventory() -> void:
 	var policy: Dictionary = catalog.get("inventory", {})
 	tire_inventory.capacity = int(policy.get("capacity", 2))
 	for i in 4:
-		tire_inventory.mounted.append(tire_inventory.item(simulation.active_compound_id, tire_state(i)))
+		var cid: String = simulation.active_compound_id
+		tire_inventory.mounted.append(
+			tire_inventory.item(cid, fresh_tire_state(cid, i))
+		)
 	for i in int(policy.get("default_spare_count", 2)):
 		tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
 	apply_tire_inventory()
