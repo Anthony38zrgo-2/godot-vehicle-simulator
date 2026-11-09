@@ -16,6 +16,8 @@
     "gravel_normal": {
       "label": "Grava normal",
       "short_label": "NORMAL",
+      "visual_sipes_count": 8,
+      "visual_tread_color": "#22c55e",
       "for_gravel": true,
       "is_asphalt_tire": false,
       "advantages": "Buen rendimiento en grava seca; ventana equilibrada.",
@@ -62,6 +64,8 @@
     "gravel_wet": {
       "label": "Grava lluvia",
       "short_label": "LLUVIA",
+      "visual_sipes_count": 12,
+      "visual_tread_color": "#38bdf8",
       "for_gravel": true,
       "is_asphalt_tire": false,
       "advantages": "Mejor respuesta sobre grava mojada; trabaja a temperaturas más bajas.",
