@@ -1,0 +1,184 @@
+{
+  "generated_from_run": 42676580665,
+  "source": "GitHub Actions GLB primitive audit; original collision files omit all glTF material indices",
+  "stages": {
+    "sweden_stage1": {
+      "collision_triangles": 166328,
+      "collision_triangles_without_material": 166328,
+      "road_snow_triangles": 37715,
+      "erosion_snow_triangles": 3155,
+      "road_snow_materials": {
+        "road_snow_1": 18810,
+        "road_snow_2": 15851,
+        "road_snow_2_dif1": 1797,
+        "road_snow_1_dif1": 1078,
+        "road_snow_2to1": 90,
+        "road_snow_crossroad": 89
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 2250,
+        "erosion_snow_1_3": 453,
+        "erosion_snow_1_1": 452
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage2": {
+      "collision_triangles": 164120,
+      "collision_triangles_without_material": 164120,
+      "road_snow_triangles": 39945,
+      "erosion_snow_triangles": 8936,
+      "road_snow_materials": {
+        "road_snow_2": 18764,
+        "road_snow_1": 17382,
+        "road_snow_1_dif1": 1446,
+        "road_snow_2_dif1": 1188,
+        "road_snow_2to1": 631,
+        "road_snow_crossroad": 356,
+        "road_snow_1to2": 178
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 6300,
+        "erosion_snow_1_3": 1320,
+        "erosion_snow_1_1": 1316
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage3": {
+      "collision_triangles": 142471,
+      "collision_triangles_without_material": 142471,
+      "road_snow_triangles": 37682,
+      "erosion_snow_triangles": 6305,
+      "road_snow_materials": {
+        "road_snow_1": 24398,
+        "road_snow_2": 8438,
+        "road_snow_1_dif1": 2509,
+        "road_snow_2_dif1": 1168,
+        "road_snow_2to1": 541,
+        "road_snow_1to2": 361,
+        "road_snow_crossroad": 267
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 4410,
+        "erosion_snow_1_3": 949,
+        "erosion_snow_1_1": 946
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage4": {
+      "collision_triangles": 166470,
+      "collision_triangles_without_material": 166470,
+      "road_snow_triangles": 38675,
+      "erosion_snow_triangles": 5877,
+      "road_snow_materials": {
+        "road_snow_1": 20413,
+        "road_snow_2": 15655,
+        "road_snow_1_dif1": 1444,
+        "road_snow_2_dif1": 984,
+        "road_snow_2to1": 90,
+        "road_snow_crossroad": 89
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 4230,
+        "erosion_snow_1_3": 824,
+        "erosion_snow_1_1": 823
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage5": {
+      "collision_triangles": 159195,
+      "collision_triangles_without_material": 159195,
+      "road_snow_triangles": 40323,
+      "erosion_snow_triangles": 1747,
+      "road_snow_materials": {
+        "road_snow_3": 16792,
+        "road_snow_2": 11398,
+        "road_snow_1": 9090,
+        "road_snow_1_dif1": 782,
+        "road_snow_crossroad_3": 768,
+        "road_snow_2_dif1": 718,
+        "road_snow_crossroad_2": 275,
+        "road_snow_crossroad_4": 225,
+        "road_snow_1to2": 96,
+        "road_snow_2to1": 90,
+        "road_snow_crossroad": 89
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 1170,
+        "erosion_snow_1_3": 289,
+        "erosion_snow_1_1": 288
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage6": {
+      "collision_triangles": 230575,
+      "collision_triangles_without_material": 230575,
+      "road_snow_triangles": 49570,
+      "erosion_snow_triangles": 1916,
+      "road_snow_materials": {
+        "road_snow_3": 37456,
+        "road_snow_1": 7748,
+        "road_snow_crossroad_3": 2148,
+        "road_snow_1_dif1": 773,
+        "road_snow_crossroad_2": 760,
+        "road_snow_2": 506,
+        "road_snow_2to1": 90,
+        "road_snow_crossroad": 89
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 1170,
+        "erosion_snow_1_3": 373,
+        "erosion_snow_1_1": 373
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage7": {
+      "collision_triangles": 88085,
+      "collision_triangles_without_material": 88085,
+      "road_snow_triangles": 22080,
+      "erosion_snow_triangles": 0,
+      "road_snow_materials": {
+        "road_snow_3": 15604,
+        "road_snow_1": 2879,
+        "road_snow_2": 1716,
+        "road_snow_crossroad_3": 768,
+        "road_snow_crossroad_2": 282,
+        "road_snow_1_dif1": 242,
+        "road_snow_crossroad_4": 214,
+        "road_snow_2_dif1": 180,
+        "road_snow_3to1": 147,
+        "road_snow_1to2": 48
+      },
+      "erosion_snow_materials": {},
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    },
+    "sweden_stage8": {
+      "collision_triangles": 62670,
+      "collision_triangles_without_material": 62670,
+      "road_snow_triangles": 16549,
+      "erosion_snow_triangles": 1146,
+      "road_snow_materials": {
+        "road_snow_1": 15650,
+        "road_snow_1_dif1": 899
+      },
+      "erosion_snow_materials": {
+        "erosion_snow_1_2": 900,
+        "erosion_snow_1_3": 123,
+        "erosion_snow_1_1": 123
+      },
+      "ice_materials": {},
+      "uncovered_road_materials": {}
+    }
+  },
+  "totals": {
+    "visual_road_snow_triangles": 282539,
+    "visual_erosion_snow_triangles": 29082,
+    "collision_triangles_without_material": 1179914
+  }
+}
