@@ -126,44 +126,23 @@ func engine_torque_factor() -> float:
 	return available_engine_torque_fraction
 
 
-func set_compound(compound_id: String, catalog: Dictionary = {}) -> void:
-	var cid := str(compound_id) if str(compound_id) in ["gravel_normal", "gravel_wet"] else "gravel_normal"
-	active_compound_id = cid
-	if not catalog.is_empty():
-		compound_catalog = (catalog as Dictionary).duplicate(true)
-	if compound_catalog.is_empty() and FileAccess.file_exists("res://data/tires/rally_compounds.json"):
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tires/rally_compounds.json"))
-		if parsed is Dictionary:
-			compound_catalog = parsed
-	active_compound = ((compound_catalog.get("compounds", {}) as Dictionary).get(cid, {}) as Dictionary).duplicate(true) if compound_catalog.has("compounds") else {}
+func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
+	var cat: Dictionary = catalog if not catalog.is_empty() else compound_catalog
+	if cat.is_empty():
+		cat = RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
+	if not definitions.has(compound_id):
+		push_warning("Unknown tire compound: " + compound_id)
+		return false
+	active_compound_id = compound_id
+	compound_catalog = cat
+	active_compound = (definitions[compound_id] as Dictionary).duplicate(true)
 	wheel_compounds.clear()
 	for i in 4:
-		wheel_compounds.append(active_compound.duplicate(true))
-	_apply_compound_to_configs()
-
-
-func _apply_compound_to_configs() -> void:
-	if active_compound.is_empty():
-		return
-	# Ventanas/objetivos térmicos del compuesto elegido (banda y carcasa).
-	for key in ["tire_config", "tire_config_front", "tire_config_rear"]:
-		var cfg: Dictionary = get(key)
-		cfg["optimal_tread_temperature_c"] = float(active_compound.get("tread_optimum_c", cfg.get("optimal_tread_temperature_c", 50.0)))
-		cfg["optimal_tread_window_c"] = float(active_compound.get("tread_window_c", cfg.get("optimal_tread_window_c", 50.0)))
-		cfg["overheat_tread_temperature_c"] = float(active_compound.get("overheat_tread_c", cfg.get("overheat_tread_temperature_c", 100.0)))
-		cfg["optimal_carcass_temperature_c"] = float(active_compound.get("carcass_optimum_c", cfg.get("optimal_carcass_temperature_c", 60.0)))
-		cfg["tread_zone_heat_capacity_j_k"] = float(active_compound.get("tread_zone_heat_capacity_j_k", cfg.get("tread_zone_heat_capacity_j_k", 6300.0)))
-		cfg["carcass_heat_capacity_j_k"] = float(active_compound.get("carcass_heat_capacity_j_k", cfg.get("carcass_heat_capacity_j_k", 18000.0)))
-		cfg["gas_heat_capacity_j_k"] = float(active_compound.get("gas_heat_capacity_j_k", cfg.get("gas_heat_capacity_j_k", 2200.0)))
-		cfg["tread_to_carcass_w_k"] = float(active_compound.get("tread_to_carcass_w_k", cfg.get("tread_to_carcass_w_k", 60.0)))
-		cfg["carcass_to_gas_w_k"] = float(active_compound.get("carcass_to_gas_w_k", cfg.get("carcass_to_gas_w_k", 25.0)))
-		cfg["tread_to_air_w_k"] = float(active_compound.get("tread_to_air_w_k", cfg.get("tread_to_air_w_k", 30.0)))
-		cfg["carcass_to_air_w_k"] = float(active_compound.get("carcass_to_air_w_k", cfg.get("carcass_to_air_w_k", 15.0)))
-		cfg["road_conductance_w_k"] = float(active_compound.get("road_conductance_w_k", cfg.get("road_conductance_w_k", 55.0)))
-		cfg["lateral_tread_conductance_w_k"] = float(active_compound.get("lateral_tread_conductance_w_k", cfg.get("lateral_tread_conductance_w_k", 25.0)))
-		cfg["slip_heat_efficiency"] = float(active_compound.get("slip_heat_efficiency", cfg.get("slip_heat_efficiency", 0.55)))
-		cfg["carcass_hysteresis_efficiency"] = float(active_compound.get("carcass_hysteresis_efficiency", cfg.get("carcass_hysteresis_efficiency", 0.55)))
-		set(key, cfg)
+		var selected := active_compound.duplicate(true)
+		selected["id"] = compound_id
+		wheel_compounds.append(selected)
+	return true
 
 
 func reset_for_stage(domains: Dictionary) -> void:
@@ -180,7 +159,6 @@ func reset_for_stage(domains: Dictionary) -> void:
 	oil_pressure_bar = 0.0
 	oil_healthy_pressure_bar = 0.0
 	fuel_remaining_litres = clampf(remaining_fuel, 0.0, fuel_capacity_litres)
-	_apply_compound_to_configs()
 	fuel_burned_litres = 0.0
 	water_cooling_conductance_w_k = 0.0
 	oil_cooling_conductance_w_k = 0.0
@@ -684,10 +662,21 @@ func _cooling_duct(duct: Dictionary, density: float, speed: float) -> Dictionary
 func compound_for_wheel(index: int) -> Dictionary:
 	return wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
 
-func set_wheel_compound(index: int, compound_id: String) -> void:
+func set_wheel_compound(index: int, compound_id: String) -> bool:
+	if index < 0 or index >= 4:
+		push_warning("Invalid wheel index: " + str(index))
+		return false
+	var definitions: Dictionary = compound_catalog.get("compounds", {})
+	if not definitions.has(compound_id):
+		push_warning("Unknown wheel compound: " + compound_id)
+		return false
 	while wheel_compounds.size() < 4:
 		wheel_compounds.append(active_compound.duplicate(true))
-	wheel_compounds[index] = (compound_catalog.get("compounds", {}).get(compound_id, {}) as Dictionary).duplicate(true)
+	var selected: Dictionary = (definitions[compound_id] as Dictionary).duplicate(true)
+	selected["id"] = compound_id
+	wheel_compounds[index] = selected
+	return true
+
 
 func _axle_tire_config(index: int) -> Dictionary:
 	var base := tire_config_front if index < 2 else tire_config_rear
