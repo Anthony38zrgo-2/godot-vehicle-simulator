@@ -124,7 +124,7 @@ func compute_zones_for_route(route_path: String, rules: Dictionary) -> Dictionar
 			"length_m": zlen2,
 			"blend_length_m": blend,
 		})
-	return {"ok": true, "zones": zones, "total_length_m": total, "node_count": points.size(), "route_hash": FileAccess.get_file_as_string(route_path).sha256_text()}
+	return {"ok": true, "zones": zones, "total_length_m": total, "node_count": points.size()}
 
 
 func _validate_transition(from_idx: int, to_idx: int, allowed: Array) -> bool:
@@ -308,7 +308,6 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 	var adv_w := float(regional.get("within_stage_advance_weight", 0.55))
 	var ret_w := float(regional.get("within_stage_retreat_weight", 0.45))
 	var schedule: Array = []
-	var route_hashes := {}
 	var prev_avg_water := 0.3
 	var prev_avg_ground := 17.0
 	for si in stage_order.size():
@@ -317,7 +316,6 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 		var zone_info := compute_zones_for_route(route_path, rules)
 		if not bool(zone_info.get("ok", false)):
 			return {"ok": false, "error": str(zone_info.get("error", "ruta incompatible"))}
-		route_hashes[stage_id] = str(zone_info.get("route_hash", ""))
 		var sched_entry: Dictionary = (itinerary[si] as Dictionary).duplicate(true) if si < itinerary.size() else {"stage_id": stage_id}
 		var zones_out: Array = []
 		var gap_h := 2.0
@@ -443,7 +441,6 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 			"date": str(sched_entry.get("date", "")),
 			"start": str(sched_entry.get("start", "")),
 			"absolute_minutes": float(sched_entry.get("absolute_minutes", 0.0)),
-			"route_hash": str(route_hashes[stage_id]),
 			"regional_profile": regional_id,
 			"zones": zones_out,
 		})
@@ -452,7 +449,6 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 		"schedule": schedule,
 		"climate_seed": seed,
 		"generator_version": GENERATOR_VERSION,
-		"route_hashes": route_hashes,
 		"surface_continuity": {
 			"policy": "regional_shared_context",
 			"regional_profile": regional_id,
