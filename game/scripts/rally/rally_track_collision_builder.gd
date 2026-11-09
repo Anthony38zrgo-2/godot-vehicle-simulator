@@ -15,7 +15,6 @@ const SURFACE_GROUP_BY_NODE := {
 	# (road_gravel_*), so the rally's main "road" is Gravel, not paved. Map
 	# it to Gravel. The "Road" -> surf_road (asphalt) rule stays available in
 	# the audio policy for genuinely paved tracks only.
-	"collision_road": "Gravel",
 	"collision_terrain_grass": "Grass",
 	"collision_terrain_dirt": "Dirt",
 	"collision_terrain_sand": "Sand",
@@ -44,7 +43,20 @@ func build_collision(visual_root: Node = null) -> bool:
 		return false
 	for mesh_instance in mesh_instances:
 		var rel_transform := _get_relative_transform(mesh_instance, collision_source)
-		build_static_body(mesh_instance, rel_transform)
+		# Preserve imported per-material road surfaces instead of assigning one
+		# friction category to a mixed road mesh.
+		if mesh_instance.name.to_lower().begins_with("collision_road") and mesh_instance.mesh.get_surface_count() > 1:
+			for si in mesh_instance.mesh.get_surface_count():
+				var subset := ArrayMesh.new()
+				subset.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_instance.mesh.surface_get_arrays(si))
+				subset.surface_set_material(0, mesh_instance.mesh.surface_get_material(si))
+				var part := MeshInstance3D.new()
+				part.name = mesh_instance.name
+				part.mesh = subset
+				build_static_body(part, rel_transform)
+				part.free()
+		else:
+			build_static_body(mesh_instance, rel_transform)
 	if visual_root != null:
 		build_erosion_bank_collision(visual_root)
 	collision_source.free()
@@ -137,6 +149,20 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	static_body.set_meta("collision_role", role)
 	static_body.set_meta("is_stage_road", source_name.begins_with("collision_road"))
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
+	if source_name.begins_with("collision_road"):
+		var material_names := ""
+		for si in mesh_instance.mesh.get_surface_count():
+			var mat := mesh_instance.mesh.surface_get_material(si)
+			if mat != null:
+				material_names += " " + str(mat.resource_name).to_lower()
+		if "tarmac" in material_names or "asphalt" in material_names or "tunnel" in material_names or "bridgeroad" in material_names:
+			surface_group = "Road"
+		elif "sand" in material_names:
+			surface_group = "Sand"
+		elif "dirt" in material_names or "field" in material_names or "leaves" in material_names:
+			surface_group = "Dirt"
+		else:
+			surface_group = terrain_surface_group
 	if role == "terrain" and surface_group.is_empty():
 		surface_group = terrain_surface_group
 	if not surface_group.is_empty():
