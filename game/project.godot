@@ -18,6 +18,7 @@ config/features=PackedStringArray("4.7")
 
 InputBindings="*res://scripts/input/input_bindings.gd"
 VehicleAudioBus="*res://scripts/audio/ensure_vehicle_bus.gd"
+RallyMusic="*res://scripts/audio/rally_music_manager.gd"
 
 [editor_plugins]
 

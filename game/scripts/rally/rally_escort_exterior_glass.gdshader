@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, depth_draw_never, cull_back;
+render_mode blend_mix, depth_prepass_alpha, cull_back;
 
 uniform sampler2D glass_texture : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform bool cracked = false;
@@ -119,9 +119,17 @@ void vertex() {
 
 void fragment() {
 	vec4 glass = texture(glass_texture, UV);
+
+	// Distinguish window glass from painted body frames, pillars, and chrome trim.
+	// Glass alpha in original textures is ~0.26 (<= 0.62 at antialiased seam).
+	// Body pillars, painted frames, and chrome trim have alpha >= 0.80 (0.875 - 1.0).
+	float is_frame = smoothstep(0.60, 0.80, glass.a);
+
 	float grazing = pow(1.0 - clamp(dot(normalize(NORMAL), VIEW), 0.0, 1.0), 3.0);
 	vec3 tint = vec3(0.035, 0.046, 0.052);
-	vec3 base_albedo = tint + glass.rgb * (cracked ? 0.20 : 0.07) * glass.a;
+	vec3 glass_albedo = tint + glass.rgb * (cracked ? 0.35 : 0.07) * glass.a;
+	vec3 frame_albedo = glass.rgb;
+	vec3 base_albedo = mix(glass_albedo, frame_albedo, is_frame);
 
 	float coverage = 0.0;
 	vec2 lens_normal = vec2(0.0);
@@ -140,19 +148,21 @@ void fragment() {
 		vec3 s1 = ext_sliding_droplets(win_pos, 42.0, total_scroll, rain_intensity * 0.76, speed_norm, 0.9816, 0.1908, 3.0);
 		vec3 s2 = ext_sliding_droplets(win_pos, 66.0, total_scroll * 1.28, rain_intensity * 0.68, speed_norm, 0.9563, -0.2924, 4.0);
 
-		lens_normal = p1.xy + p2.xy * 0.75 + s1.xy * 0.90 + s2.xy * 0.70;
-		coverage = clamp(max(max(p1.z, p2.z), max(s1.z, s2.z)), 0.0, 1.0);
+		lens_normal = (p1.xy + p2.xy * 0.75 + s1.xy * 0.90 + s2.xy * 0.70) * (1.0 - is_frame);
+		coverage = clamp(max(max(p1.z, p2.z), max(s1.z, s2.z)), 0.0, 1.0) * (1.0 - is_frame);
 
 		float steepness = clamp(length(lens_normal), 0.0, 1.0);
 		float rim_ring = smoothstep(0.40, 0.88, steepness);
 		vec2 n_dir = lens_normal / max(steepness, 0.0001);
 		float sky_catch = clamp(dot(n_dir, normalize(vec2(0.2, 0.98))), 0.0, 1.0);
-		rim_glint = vec3(0.80, 0.90, 1.0) * pow(sky_catch, 5.0) * rim_ring * 0.12 * rain_intensity;
+		rim_glint = vec3(0.80, 0.90, 1.0) * pow(sky_catch, 5.0) * rim_ring * 0.12 * rain_intensity * (1.0 - is_frame);
 	}
 
 	ALBEDO = base_albedo * (1.0 - coverage * 0.05) + rim_glint;
-	ROUGHNESS = mix(0.28, 0.04, coverage * rain_intensity);
-	SPECULAR = mix(0.5, 0.90, coverage * rain_intensity);
+	float glass_roughness = mix(0.28, 0.04, coverage * rain_intensity);
+	ROUGHNESS = mix(glass_roughness, 0.35, is_frame);
+	SPECULAR = mix(mix(0.5, 0.90, coverage * rain_intensity), 0.5, is_frame);
 	NORMAL = normalize(NORMAL + vec3(lens_normal * 0.20 * rain_intensity, 0.0));
-	ALPHA = mix(0.92, 0.98, grazing);
+	float glass_alpha = mix(0.92, 0.98, grazing);
+	ALPHA = mix(glass_alpha, 1.0, is_frame);
 }

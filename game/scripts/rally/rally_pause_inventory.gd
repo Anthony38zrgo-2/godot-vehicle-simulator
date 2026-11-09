@@ -339,6 +339,9 @@ func toggle() -> void:
 		backdrop.hide()
 		pause_button.show()
 		get_tree().paused = false
+		var _pause_out := get_node_or_null("/root/RallyMusic")
+		if _pause_out != null and _pause_out.has_method("on_pause_closed"):
+			_pause_out.call("on_pause_closed")
 		if session != null and session.get("pacenotes") != null:
 			session.pacenotes.on_pause(false)
 		return
@@ -350,6 +353,9 @@ func toggle() -> void:
 	get_tree().paused = true
 	if session != null and session.get("pacenotes") != null:
 		session.pacenotes.on_pause(true)
+	var _pause_in := get_node_or_null("/root/RallyMusic")
+	if _pause_in != null and _pause_in.has_method("on_pause_opened"):
+		_pause_in.call("on_pause_opened")
 	modal.show()
 	backdrop.show()
 	pause_button.hide()
