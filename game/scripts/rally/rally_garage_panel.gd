@@ -1518,13 +1518,14 @@ func _draw_tire_group(rect: Rect2) -> void:
 		)
 		draw_rect(card, C_FIELD)
 		draw_rect(card, BORDER_SUBTLE, false, 1.0)
-		var wet: bool = draft_wheel_compounds.get(codes[i]) == "gravel_wet"
+		var cid := str(draft_wheel_compounds.get(codes[i], ""))
+		var details := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), cid)
 		_text(_box(card.position.x + 10, card.position.y + 6, 60, 20), codes[i], 13, C_TEXT, true)
 		_text(
 			_box(card.position.x, card.position.y + 8, card.size.x - 10, 16),
-			"MOJADO" if wet else "SECO",
+			_compound_label(cid, true),
 			9,
-			Color("#60a5fa") if wet else C_GOLD,
+			Color(str(details.get("visual_tread_color", "#d9d9d9"))),
 			true,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 10
@@ -1532,7 +1533,7 @@ func _draw_tire_group(rect: Rect2) -> void:
 		var bar := Rect2(card.position.x + 10, card.position.y + 32, card.size.x - 20, 10)
 		draw_rect(bar, WB_BG_CONTENT)
 		draw_rect(bar, BORDER_SUBTLE, false, 1.0)
-		var fraction := 0.55 if wet else 0.72
+		var fraction := 0.65
 		draw_rect(
 			Rect2(bar.position + Vector2(1, 1), Vector2((bar.size.x - 2) * fraction, bar.size.y - 2)),
 			C_BLUE,
