@@ -641,8 +641,8 @@ func show_inventory() -> void:
 		var chassis: Dictionary = session.vehicle.simulation.domains.get("chassis", {})
 		var policy: Dictionary = (chassis.get("physical_mass_inventory", {}) as Dictionary).get("spare_policy", {})
 		mass_policy.merge(policy, true)
-	var spare_mass: float = inventory.spares.size() * float(mass_policy.get("wheel_mass_kg", 18.0))
-	t_mass.text = "Capacidad: %d/%d · Carga: %.0f kg" % [inventory.spares.size(), inventory.capacity, spare_mass]
+	var spare_mass: float = float(mass_policy.get("tools_mass_kg", 7.0)) + inventory.spares.size() * float(mass_policy.get("wheel_mass_kg", 18.0))
+	t_mass.text = "Capacidad: %d/%d · Carga con herramientas: %.0f kg" % [inventory.spares.size(), inventory.capacity, spare_mass]
 	t_mass.add_theme_font_override("font", DIN_BOLD)
 	t_mass.add_theme_font_size_override("font_size", 11)
 	t_mass.add_theme_color_override("font_color", C_GOLD)
