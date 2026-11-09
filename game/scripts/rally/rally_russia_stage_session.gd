@@ -951,6 +951,10 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 		terrain_wetness.bind_visual_root(track_visual)
 		if not practice_mode and event_weather.calendar_active and event_manager != null:
 			_assign_wetness_zones(event_manager.weather_entry_for(session_track_id))
+	# Stage metadata is a fallback for road meshes with no material labels.
+	# Individual collision road materials can still override it.
+	var stage_data: Dictionary = resolved.get("stage_config", {})
+	track_collision.terrain_surface_group = "Road" if str(stage_data.get("surface", "")).to_lower() == "asphalt" else "Gravel"
 	track_collision.collision_scene_path = collision_path
 	return await track_collision.build_collision(track_visual)
 
