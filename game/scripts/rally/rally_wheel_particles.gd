@@ -33,6 +33,7 @@ enum Kind {
 	BACKFIRE,
 	GLASS,
 	RAIN_SPLAT,
+	GRAVEL_CHIP,
 }
 
 enum Look {
@@ -250,12 +251,21 @@ const TYPES := {
 	},
 	Kind.ROCK: {
 		"cutout": true,
-		"color": Color(0.63, 0.56, 0.46),
-		"ticks": 15,
-		"size": Vector2(0.10, 0.10),
+		"color": Color(0.78, 0.68, 0.52),
+		"ticks": 12,
+		"size": Vector2(0.022, 0.038),
 		"alpha": 1.0,
-		"gravity": 9.0,
-		"drag": 0.0,
+		"gravity": 9.5,
+		"drag": 2.0,
+	},
+	Kind.GRAVEL_CHIP: {
+		"cutout": true,
+		"color": Color(0.78, 0.68, 0.52),
+		"ticks": 18,
+		"size": Vector2(0.025, 0.045),
+		"alpha": 1.0,
+		"gravity": 10.0,
+		"drag": 0.8,
 	},
 	Kind.MUD: {
 		"cutout": true,
@@ -309,7 +319,7 @@ const CLOUD_KINDS := [
 	Kind.EXHAUST,
 	Kind.SPLASH,
 ]
-const DEBRIS_KINDS := [Kind.ROCK, Kind.MUD, Kind.GLASS, Kind.WATER, Kind.SNOW]
+const DEBRIS_KINDS := [Kind.ROCK, Kind.MUD, Kind.GLASS, Kind.WATER, Kind.SNOW, Kind.GRAVEL_CHIP]
 # Variaciones de brillo plano por partícula (sombreado "cel" barato).
 const SHADES := [0.88, 1.0, 1.12]
 
@@ -407,7 +417,7 @@ func emit_particle(
 		if foliage
 		else (rng.randf_range(-5.0, 5.0) if kind == Kind.GLASS else 0.0)
 	)
-	p.angle = rng.randf_range(-PI, PI) if foliage or kind in [Kind.ROCK, Kind.MUD, Kind.GLASS] else 0.0
+	p.angle = rng.randf_range(-PI, PI) if foliage or kind in [Kind.ROCK, Kind.MUD, Kind.GLASS, Kind.GRAVEL_CHIP] else 0.0
 	p.shade = SHADES[style_rng.randi_range(0, SHADES.size() - 1)]
 	p.bounced = false
 	if not batches.has(texture):
@@ -428,7 +438,7 @@ func step(wind: Vector3) -> void:
 		var height := (p.position - p.floor_point).dot(p.floor_normal)
 		if height >= 0.0:
 			continue
-		if p.kind in [Kind.ROCK, Kind.MUD]:
+		if p.kind in [Kind.ROCK, Kind.MUD, Kind.GRAVEL_CHIP]:
 			p.position -= p.floor_normal * height
 			var vertical := p.velocity.dot(p.floor_normal)
 			if vertical < 0.0:
@@ -629,6 +639,10 @@ static func proc_sprite(kind: String, variant: int = 0) -> Texture2D:
 			img = _proc_soft_dot(128, 1000 + variant)
 		"speck":
 			img = _proc_speck(16, 2000 + variant)
+		"square":
+			img = _proc_square(16, 2100 + variant)
+		"disc":
+			img = _proc_disc(16, 2200 + variant)
 		"leaf":
 			img = _proc_leaf(32, 3000 + variant)
 		_:
@@ -674,6 +688,39 @@ static func _proc_speck(size: int, seed_value: int) -> Image:
 		img.set_pixel(int(px), int(py), col)
 		if int(px) + 1 < size:
 			img.set_pixel(int(px) + 1, int(py), col)
+	return img
+
+
+## Cuadrado duro y macizo (gravilla cuadrada) para sprites con recorte.
+## Relleno opaco total: el QuadMesh ya es cuadrado, la textura solo da borde
+## duro sin suavizado. Variante 1 deja 1 px transparente perimetral.
+static func _proc_square(size: int, seed_value: int) -> Image:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(1.0, 1.0, 1.0, 1.0))
+	if seed_value % 2 == 1:
+		for x in size:
+			img.set_pixel(x, 0, Color(1.0, 1.0, 1.0, 0.0))
+			img.set_pixel(x, size - 1, Color(1.0, 1.0, 1.0, 0.0))
+		for y in size:
+			img.set_pixel(0, y, Color(1.0, 1.0, 1.0, 0.0))
+			img.set_pixel(size - 1, y, Color(1.0, 1.0, 1.0, 0.0))
+	return img
+
+
+## Disco duro y macizo (gravilla redonda) para sprites con recorte.
+## Borde nítido sin suavizado: con cutout da un círculo definido que alterna
+## con el cuadrado 50/50. La variante 1 es 1 px más chica para variedad.
+static func _proc_disc(size: int, seed_value: int) -> Image:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var r := float(size) * 0.5 - (1.0 if seed_value % 2 == 1 else 0.0)
+	var c := (float(size) - 1.0) * 0.5
+	for y in size:
+		for x in size:
+			var dx := float(x) - c
+			var dy := float(y) - c
+			if sqrt(dx * dx + dy * dy) <= r:
+				img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 1.0))
 	return img
 
 

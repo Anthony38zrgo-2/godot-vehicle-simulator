@@ -104,7 +104,25 @@ func verify() -> void:
 			assert(not grass.is_empty(), "Sustained grass contact emits the grass types")
 		else:
 			var burst: int = int(vfx.SURFACES[surface.to_lower()].get("burst", 0))
-			assert(particles.size() == 1 + burst, "Burst por superficie en %s" % surface)
+			if surface == "Gravel":
+				# Polvo trasero (1 + ráfaga 2) + 1 chip cuadrado por rueda.
+				assert(particles.size() == 1 + burst + 1, "Polvo + chip cuadrado en %s" % surface)
+				var chips := particles.filter(func(p): return p.kind == vfx.wheel_particles.Kind.GRAVEL_CHIP)
+				assert(chips.size() == 1, "Grava emite 1 chip cuadrado por rueda")
+				var chip_profile: Dictionary = vfx.wheel_particles.TYPES[vfx.wheel_particles.Kind.GRAVEL_CHIP]
+				assert(chip_profile.size.y <= 0.045, "Chips ligeramente más grandes")
+				assert(int(chip_profile.ticks) == 18, "Chips con más vida")
+				assert(is_equal_approx(float(chip_profile.alpha), 1.0), "Chips opacos desde el inicio")
+				assert(bool(chip_profile.get("cutout", false)), "Chips cuadrados con recorte duro")
+				var rel: Vector3 = (chips[0].velocity as Vector3) - vehicle.linear_velocity * 0.85
+				assert(chips[0].texture in vfx.GRAVEL, "Chip usa textura cuadrada de grava")
+				assert(rel.length() <= 0.8, "Pop propio corto, viaja con la rueda")
+				var n := rel.normalized()
+				assert(n.z > 0.8, "Chip hacia atrás (+Z)")
+				assert(n.x > 0.2, "Chip deriva hacia el centro (+X en rueda izq.)")
+				assert(n.y > 0.2 and n.y < 0.5, "Chip con leve elevación")
+			else:
+				assert(particles.size() == 1 + burst, "Burst por superficie en %s" % surface)
 			var dust = particles[0]
 			assert(dust.texture == vfx.DUST_CORE)
 			var dust_pool = vfx.wheel_particles
@@ -145,11 +163,14 @@ func verify() -> void:
 	sim.wheel_slips[index] = Vector2(0.5, 0.3)
 	vfx.update_wheel(index, 0.0)
 	var rocks := active_wheel_particles(vfx)
-	assert(rocks.size() == 4 and rocks[3].texture in vfx.GRAVEL, "1 polvo + rafaga 2 + 1 roca en grava con derrape")
-	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[3].texture]
+	assert(rocks.size() == 5, "1 polvo + rafaga 2 + 1 chip + 1 roca en grava con derrape")
+	var chip_count := rocks.filter(func(p): return p.kind == vfx.wheel_particles.Kind.GRAVEL_CHIP).size()
+	assert(chip_count == 1, "Derrape en grava mantiene 1 chip cuadrado")
+	assert(rocks[4].texture in vfx.GRAVEL, "La roca extra usa textura cuadrada de grava")
+	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[4].texture]
 	var rock_material := rock_batch.mesh.surface_get_material(0) as ShaderMaterial
 	assert(rock_material.get_shader_parameter("opaque_sprite_mask") == true)
-	var rock = rocks[3]
+	var rock = rocks[4]
 	for i in 14:
 		vfx.wheel_particles.step(Vector3.ZERO)
 	assert(rock.bounced, "Gravel must rebound on the contact plane")

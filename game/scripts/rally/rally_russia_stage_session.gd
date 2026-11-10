@@ -205,10 +205,15 @@ func _ready() -> void:
 	_update_panel_for_stage()
 	# Ventana inicial de reglaje (Neumáticos primero, Aceptar inicia la salida).
 	# Se abre automáticamente en las tres modalidades (Rally, Championship, Single Stage).
+	# Sin ventana vamos directo a pilotar: corte inmediato, nada de menú en tramo.
 	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
 		_open_setup_window()
 	elif practice_mode or session_mode == "single_stage":
 		_open_setup_window()
+	else:
+		var _rm_init := get_node_or_null("/root/RallyMusic")
+		if _rm_init != null and _rm_init.has_method("on_start_rally"):
+			_rm_init.call("on_start_rally")
 	print("RALLY_SESSION_READY scene=%s vehicle=%s spawn=" % [session_track_id, vehicle.rally_profile.get("profile_id", "unknown")], start_position, " heading_radians=", start_heading, " physics_engine=", ProjectSettings.get_setting("physics/3d/physics_engine"))
 
 
@@ -931,8 +936,14 @@ func load_event_stage(next_id: String) -> void:
 	apply_competition_controls()
 	_update_panel_for_stage()
 	# Servicio Stage 5→6: Resultados → Continuar al servicio → Neumáticos → Aceptar → Stage 6.
+	# Sin ventana pendiente vamos directo a pilotar: corte inmediato para que
+	# el tema del menú (resultados/transición) no siga en el tramo.
 	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
 		_open_setup_window()
+	else:
+		var _rm_ready := get_node_or_null("/root/RallyMusic")
+		if _rm_ready != null and _rm_ready.has_method("on_start_rally"):
+			_rm_ready.call("on_start_rally")
 	print("RALLY_STAGE_TRANSITION_READY stage=", next_id)
 
 func _swap_stage_geometry(resolved: Dictionary) -> bool:
@@ -1141,6 +1152,11 @@ func _open_setup_window() -> void:
 
 func _on_garage_closed(applied: bool) -> void:
 	if not awaiting_setup:
+		# Garaje abierto a mitad de tramo: al cerrar volvemos a pilotar,
+		# corte inmediato para que el tema del menú no siga en el tramo.
+		var _rm_mid := get_node_or_null("/root/RallyMusic")
+		if _rm_mid != null and _rm_mid.has_method("on_start_rally"):
+			_rm_mid.call("on_start_rally")
 		return
 	if not applied:
 		call_deferred("_open_setup_window")

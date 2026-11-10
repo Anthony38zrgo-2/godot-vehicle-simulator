@@ -302,7 +302,10 @@ func evaluate(
 		target_surface = dirt_base
 	else:
 		if not axle_surface_set.has(surface_name):
-			if not missing_surface_warnings.has(surface_name):
+			# "Unknown"/vacío es el centinela de contacto sin superficie mapeada
+			# (colisionador sin grupo/meta): fallback silencioso a grava/carretera.
+			# Solo los nombres reales no registrados merecen aviso de contenido.
+			if surface_name != "Unknown" and not surface_name.is_empty() and not missing_surface_warnings.has(surface_name):
 				missing_surface_warnings[surface_name] = true
 				push_warning("Tire contact has no surface profile for '%s'; using the original gravel/road fallback." % surface_name)
 		target_surface = axle_surface_set.get(

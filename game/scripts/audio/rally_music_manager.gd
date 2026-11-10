@@ -5,6 +5,9 @@ extends Node
 ##   misma pista en continuo, sin fade in y sin corte entre ellos (menú <->
 ##   garaje, servicio <-> garaje, resultados <-> garaje). Solo arranca desde 0
 ##   si estaba en silencio (tras rally, o primera entrada).
+##   NUNCA suena en tramo: entrada a rally y llegada directa a pilotar cortan
+##   en inmediato (stop). Transición entre etapas solo continúa si ya sonaba.
+## - Pausa en carrera (garage_theme.mp3 = DM-Tempest2): solo para el menú de
 ## - Pausa en carrera (garage_theme.mp3 = DM-Tempest2.mp3): solo para el menú de
 ##   pausa; cada apertura corta y reinicia desde el inicio, sin fade in.
 ## - Entrada a rally: corte inmediato (stop). Transición entre etapas: el tema
@@ -243,18 +246,19 @@ func on_enter_results() -> void:
 
 
 # Transición entre etapas (misma escena, cambio de geometría): el tema del
-# menú sigue sin cortarse para enlazar resultados -> garaje/servicio.
+# menú SIGUE solo si ya sonaba (resultados -> garaje/servicio). Nunca arranca
+# desde silencio aquí: si estaba en silencio seguimos en silencio para no
+# meter la canción del menú en el tramo. Solo menú/garaje/servicio/resultados.
 func on_begin_stage_transition() -> void:
 	_kill_all_tweens()
 	_stop_immediate(garage_player)
 	_stop_immediate(results_player)
 	if menu_player != null and is_instance_valid(menu_player):
-		if menu_stream == null:
-			_load_streams()
 		if menu_player.playing and menu_player.stream == menu_stream:
 			menu_player.volume_db = DEFAULT_VOLUME_DB
-		elif menu_stream != null:
-			_play_immediate(menu_player, menu_stream, DEFAULT_VOLUME_DB)
+			current_context = "transition"
+			return
+		_stop_immediate(menu_player)
 	current_context = "transition"
 
 

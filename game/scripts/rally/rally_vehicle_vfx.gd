@@ -82,12 +82,13 @@ func _ready() -> void:
 	if vehicle == null:
 		set_physics_process(false)
 		return
-	# Sprites procedurales (sin PNG): el tinte por Kind los colorea igual
-	# que a los PNG en escala de grises. Un solo grano compartido para
-	# gravilla/barro, como el antiguo mud_rd1.png compartido.
+	# Gravilla cuadrada: el índice aleatorio sobre GRAVEL varía el grano.
+	# Mismo barro irregular aparte.
 	DUST_CORE = WHEEL_PARTICLES.proc_sprite("dot")
 	var speck := WHEEL_PARTICLES.proc_sprite("speck")
-	GRAVEL = [speck]
+	var square_a := WHEEL_PARTICLES.proc_sprite("square", 0)
+	var square_b := WHEEL_PARTICLES.proc_sprite("square", 1)
+	GRAVEL = [square_a, square_b]
 	MUD_CLOD = speck
 	DIRT_CHIPS = speck
 	LEAVES = [
@@ -473,12 +474,39 @@ func update_wheel(index: int, wetness: float) -> void:
 				var kind := WHEEL_PARTICLES.Kind.LEAF if entered_grass else (WHEEL_PARTICLES.Kind.GRASS if leaf == 0 else WHEEL_PARTICLES.Kind.GRASS_SHORT)
 				var leaf_velocity := velocity * 0.75 + side * (0.45 + leaf * 0.35) + normal * (1.25 + leaf * 0.25)
 				wheel_particles.emit_particle(kind, texture, source + normal * 0.12 + side * 0.18, leaf_velocity, point, normal)
-		elif surface == "gravel" and wet < 0.35 and slip > 0.76:
-			var rock: Texture2D = GRAVEL[wheel_particles.rng.randi_range(0, GRAVEL.size() - 1)]
-			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.ROCK, rock, source + normal * 0.035, velocity + normal * 0.23, point, normal)
+		elif surface == "gravel" and wet < 0.35:
+			# Gravilla en las 4 ruedas: beige sólido y opaco, vida media,
+			# forma cuadrada. 1 por rueda: nace del centro de
+			# centro de atrás (atrás + deriva a la línea central + leve
+			# elevación). Hereda el 85% de la velocidad de la rueda para viajar
+			# con ella y quedarse cerca: drag bajo + vida contenida.
+			var hub := _wheel_hub_center(index, point, normal)
+			var chip_dir := (rearward * 1.0 - side * 0.35 + normal * 0.35).normalized()
+			var chip: Texture2D = GRAVEL[wheel_particles.rng.randi_range(0, GRAVEL.size() - 1)]
+			var chip_speed := wheel_particles.rng.randf_range(0.3, 0.5)
+			var chip_velocity := chip_dir * chip_speed + corner_speed * 0.85
+			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_CHIP, chip, hub, chip_velocity, point, normal)
+			if slip > 0.76:
+				var rock: Texture2D = GRAVEL[wheel_particles.rng.randi_range(0, GRAVEL.size() - 1)]
+				wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.ROCK, rock, hub, velocity * 0.3 + normal * 0.2 + corner_speed * 0.7, point, normal)
 	var dry_ticks := int(profile.interval)
 	var ticks := roundi(lerpf(float(dry_ticks), 3.0, wet)) if wet >= 0.35 else dry_ticks
 	wheel_cooldowns[index] = ticks * WHEEL_PARTICLES.STEP
+
+
+func _wheel_hub_center(index: int, contact_point: Vector3, contact_normal: Vector3) -> Vector3:
+	# Centro de la rueda en mundo: pivote local + compresión de suspensión.
+	# Si no hay datos del tren, aproxima con el contacto + radio.
+	var sim := vehicle.simulation
+	if sim != null and index >= 0 and index < sim.wheel_positions_local.size():
+		var local: Vector3 = sim.wheel_positions_local[index]
+		var compression := 0.0
+		if sim.suspension_model != null and index < sim.suspension_model.compression.size():
+			compression = float(sim.suspension_model.compression[index])
+		return vehicle.global_transform * (local + Vector3.UP * compression)
+	if sim != null and index >= 0 and index < sim.wheel_radii.size():
+		return contact_point + contact_normal * float(sim.wheel_radii[index])
+	return contact_point
 
 
 func wheel_conditions(index: int) -> Dictionary:
