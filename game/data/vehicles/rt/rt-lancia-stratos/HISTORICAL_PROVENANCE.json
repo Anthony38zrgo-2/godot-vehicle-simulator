@@ -58,22 +58,34 @@
       "fuel_l": {
         "value": 80,
         "source": "fia",
-        "locator": "PDF page 2, base form",
+        "locator": "FIA #640 base form; historical audit 2026-11-10",
         "status": "documented"
+      },
+      "mass_kg": {
+        "value": 980,
+        "source": "fia",
+        "locator": "FIA #640 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       }
     },
-    "variant_note": "1974 Group 4 homologation; game labels 1972. Confirm period-specific tune before calibration.",
+    "variant_note": "1974 Group 4 reference; game-derived tune and earlier model label remain",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
-    ]
+    ],
+    "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+    "calibration_research": {
+      "note": "12-valve Group 4 target 280 CV at 8000 rpm; torque curve and 8500 rpm limiter are estimates",
+      "source": "https://www.stellantisheritage.com/it-it/heritage/storie/lancia-stratos",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -92,8 +104,8 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "5b0474203de890f28883e2b8ba8da789cbf09f42fdf160785d5cc5c1f8f7eb22",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "2d03af897ec3e2f7187063f6a083cab6cff405202e1d6dc78e828ce669440d4a",
-    "powertrain.json": "a3e105c45c0cb2dcd8a84993a0c10814aca9c593f84efa47d05dde232da0e23a",
+    "fuel.json": "6a3776797342e716e9e4e12c150e3e977140665cc57082290415d2423369c5c1",
+    "powertrain.json": "df13e2e5c16d2890d50d40fa903e685b27f4c99997ce80cf6899187b187e3383",
     "steering.json": "3cf0ab6109a231a7bfc429577f8d24530fbc1705e4a2a963e14ff52ec4f70f7a",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",

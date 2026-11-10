@@ -73,8 +73,9 @@
       "mass_kg": {
         "value": 620,
         "source": "fia",
-        "locator": "PDF page 6, base form",
-        "status": "documented"
+        "locator": "FIA #1300 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       },
       "suspension_front": {
         "value": "independent rubber cones",
@@ -107,18 +108,24 @@
         "status": "documented"
       }
     },
-    "variant_note": "Fiche 1964; catalogue output 78 bhp at 5800 rpm, not rally tune.",
+    "variant_note": "1964 Group T; 50 L option selected provisionally; LSD requires a dated extension",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
-    ]
+    ],
+    "selected_fuel_option_l": 50,
+    "runtime_fuel_capacity_note": "50 L option provisionally selected; initial fuel remains independent. Other documented option is 25 L.",
+    "calibration_research": {
+      "note": "FIA extension for limited slip and flywheel dated April 1965; existing LSD parameters are estimates",
+      "source": "https://historicdb.fia.com/car/austin-morris-cooper-s-1275",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -137,7 +144,7 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "6bb0c1f137ddf3de2b4777936185205f7619afb7b30c9ed8dc32da2a168403ce",
+    "fuel.json": "371c48e71bf5034219bfe7d29ec81a1dae05308367a83258dae1a5336375e76b",
     "powertrain.json": "c75c3bc6e08d81bf32a1d4abb05df6e871c2bc655672af083bcb7de2f4e0a5e9",
     "steering.json": "a7b98c70c72e7489b8289dea0db3c0d3370cad9739f49f06642373ac096f5566",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",

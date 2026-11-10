@@ -16,6 +16,11 @@
         "homologation": "1224",
         "group": "T",
         "pdf_sha256": "5fb1f90c0dd976d3303289ffa73b6a6aeb9d376b6a52ca799d70e786785b7962"
+      },
+      "fia_audit_reference": {
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601034301/homologation_form_number_5018_group_1.pdf",
+        "homologation": "5018",
+        "group": "1"
       }
     },
     "facts": {
@@ -56,16 +61,17 @@
         "status": "documented"
       },
       "fuel_l": {
-        "value": 36.35,
-        "source": "fia",
-        "locator": "PDF page 6, base form",
+        "value": 36.4,
+        "source": "fia_audit_reference",
+        "locator": "FIA #5018 base form; historical audit 2026-11-10",
         "status": "documented"
       },
       "mass_kg": {
-        "value": 751,
-        "source": "fia",
-        "locator": "PDF page 6, base form",
-        "status": "documented"
+        "value": 850,
+        "source": "fia_audit_reference",
+        "locator": "FIA #5018 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       },
       "suspension_front": {
         "value": "independent coil",
@@ -80,18 +86,23 @@
         "status": "documented"
       }
     },
-    "variant_note": "Game lists 1598 cc; fiche specifies 1558 cc.",
+    "variant_note": "1966 Group 1 reference for mass and tank; existing 1224 geometry describes earlier A-frame variant, not necessarily this variant",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
-    ]
+    ],
+    "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+    "calibration_research": {
+      "note": "Early A-frame and 1966 leaf-spring cars have different wheelbases and gearing; configuration requires period selection",
+      "source": "https://historicdb.fia.com/sites/default/files/car_attachment/1679331601/fia_lotus_cortina_dimensions.pdf",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -110,7 +121,7 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "8e217ce2307aef16af17bf1eee9604e6f3b1b34f8e6c53b097f6b6bd799aeb5b",
+    "fuel.json": "1a8c2b932ab0e6ec76b1102f94c0c4fa5d20d6097a1990e8df70935001403613",
     "powertrain.json": "8640d354948cc8c9dde58421e98fecbb0985206384cf532e86f68206cb938fa8",
     "steering.json": "608b64b6f3293545c503d018ec1f925986205f10c9e613d0521cddc97b00c49d",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",

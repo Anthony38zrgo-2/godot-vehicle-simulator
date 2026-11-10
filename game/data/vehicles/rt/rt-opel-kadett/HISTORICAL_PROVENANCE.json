@@ -16,6 +16,11 @@
         "homologation": "5362",
         "group": "1",
         "pdf_sha256": "d80cf8f3fdb76826bb4fb0285173b54d1c27421b8ebffb11dd2f5a3994b1f8f2"
+      },
+      "fia_audit_reference": {
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601064901/homologation_form_number_5209_group_1.pdf",
+        "homologation": "5209",
+        "group": "1"
       }
     },
     "facts": {
@@ -50,43 +55,57 @@
         "status": "documented"
       },
       "track_rear_m": {
-        "value": 1.282,
-        "source": "fia",
-        "locator": "PDF page 5, base form",
+        "value": 1.276,
+        "source": "fia_audit_reference",
+        "locator": "FIA #5209 base form; historical audit 2026-11-10",
         "status": "documented"
       },
       "fuel_l": {
         "value": 40,
-        "source": "fia",
-        "locator": "PDF page 5, base form",
+        "source": "fia_audit_reference",
+        "locator": "FIA #5209 base form; historical audit 2026-11-10",
         "status": "documented"
       },
       "mass_kg": {
-        "value": 810,
-        "source": "fia",
-        "locator": "PDF page 5, base form",
-        "status": "documented"
+        "value": 860,
+        "source": "fia_audit_reference",
+        "locator": "FIA #5209 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       },
       "din_curb_mass_kg": {
-        "value": 850,
-        "source": "fia",
-        "locator": "PDF page 5, base form",
+        "value": 890,
+        "source": "fia_audit_reference",
+        "locator": "FIA #5209 base form; historical audit 2026-11-10",
         "status": "documented"
       }
     },
-    "variant_note": "1970 Kadett B 1900 fiche; game labels 1969 and Car.ini header says 1100 SR. Identity requires review.",
+    "variant_note": "1900 reference only; game label 1100 SR conflicts with 1897 cc historical data; actual variant unresolved",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
     ],
-    "reference_scope": "identity_uncertain"
+    "reference_scope": "identity_uncertain",
+    "alternative_reference": {
+      "homologation": "5210",
+      "group": "1",
+      "displacement_cc": 1078,
+      "mass_kg": 750,
+      "fuel_l": 40,
+      "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601064901/homologation_form_number_5210_group_1.pdf"
+    },
+    "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+    "calibration_research": {
+      "note": "1100 SR and 1900 identity unresolved; existing powertrain remains provisional",
+      "source": "https://www.media.stellantis.com/em-en/opel/press/opel-kadett-das-auto-kadett-b-celebrates-debut-60-years-ago",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -105,7 +124,7 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "aa05dd46b1764116967e5e236a49cfb36128efea687e4dbe3b16c1c9f51c9ff0",
+    "fuel.json": "e5fb2cd2975eab59eca7b0c06661362312b3b49fd80fb74449c69ca1974cd4e8",
     "powertrain.json": "aee02f5fd125667b4dcd5ca9bb4bf92833966ef97b3970aa617db66d3498be32",
     "steering.json": "e940782a30a6c96d563947487cf02ee13fff0e07e6181995813de636fe27466b",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",

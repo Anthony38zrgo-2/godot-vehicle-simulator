@@ -53,9 +53,9 @@
     "front_torque_split": 0.0,
     "gear_inertia": 0.025,
     "gear_ratios": [
-      3.07,
-      2.25,
-      1.68,
+      3.61,
+      2.37,
+      1.7,
       1.3,
       1.03
     ],
@@ -66,7 +66,7 @@
     "max_rpm": 7200.0,
     "max_torque": 190.0,
     "motor_moment": 0.1,
-    "reverse_ratio": 3.317,
+    "reverse_ratio": 3.08,
     "shift_time": 0.1,
     "thermal": {
       "engine_block_heat_capacity_joules_per_kelvin": 65000.0,

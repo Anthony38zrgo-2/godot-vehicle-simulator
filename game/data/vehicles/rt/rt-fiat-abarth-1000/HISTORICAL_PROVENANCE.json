@@ -16,6 +16,11 @@
         "homologation": "1182",
         "group": "T",
         "pdf_sha256": "f035ae4e6b5e13788cf0be795098efc6c03335b039e5059d7971b0f9f7903ceb"
+      },
+      "fia_audit_reference": {
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1626170401/homologation_form_number_1486_group_2.pdf",
+        "homologation": "1486",
+        "group": "2"
       }
     },
     "facts": {
@@ -56,9 +61,9 @@
         "status": "documented"
       },
       "fuel_l": {
-        "value": 27,
-        "source": "fia",
-        "locator": "PDF page 3, base form",
+        "value": 31,
+        "source": "fia_audit_reference",
+        "locator": "FIA #1486 base form; historical audit 2026-11-10",
         "status": "documented"
       },
       "engine_layout": {
@@ -66,20 +71,32 @@
         "source": "fia",
         "locator": "PDF page 3, base form",
         "status": "documented"
+      },
+      "mass_kg": {
+        "value": 583,
+        "source": "fia_audit_reference",
+        "locator": "FIA #1486 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       }
     },
-    "variant_note": "FIA Fiat-Abarth 1000 Berlina reference, not generic Fiat 600 specs.",
+    "variant_note": "1967 1000 Berlina; competition specification remains unverified",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
-    ]
+    ],
+    "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+    "calibration_research": {
+      "note": "1967 Berlina Corsa Group 2 target 85 CV at 7600 rpm; torque curve and 8200 rpm limiter are estimates",
+      "source": "https://www.stellantisheritage.com/fr-fr/heritage/histoires/les-transformations-abarth-des-fiat-600",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -98,8 +115,8 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "7a22e8ada7e4fb906d3bc33ecfbd5e2a0ce6c586e8ca6862a432b37f146b6b70",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "dc2b0ad1a45adf44f57c10383fed5d38a048f4576fca283b33676dff039914ab",
-    "powertrain.json": "61a0a8537ea58bba31012ad83a5179f42f32a0e5ac49aee33e0a2ac881b3531c",
+    "fuel.json": "6aaf98443aa4833957779a21f95599ad1d59183fe8a7b5d7650204f340dac693",
+    "powertrain.json": "c3aae5f23ef3af15b73f86f5fbd597ce1d85377bc8ebc41b3262c65fa79f7032",
     "steering.json": "a817e6c6d0aab7d6435524f52049aaffc5c08eadd12010fbc56c7e9a71f34295",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",

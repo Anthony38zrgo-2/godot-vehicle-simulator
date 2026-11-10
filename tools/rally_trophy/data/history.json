@@ -72,8 +72,9 @@
         "mass_kg": {
           "value": 620,
           "source": "fia",
-          "locator": "PDF page 6, base form",
-          "status": "documented"
+          "locator": "FIA #1300 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         },
         "suspension_front": {
           "value": "independent rubber cones",
@@ -106,13 +107,20 @@
           "status": "documented"
         }
       },
-      "variant_note": "Fiche 1964; catalogue output 78 bhp at 5800 rpm, not rally tune.",
+      "variant_note": "1964 Group T; 50 L option selected provisionally; LSD requires a dated extension",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "selected_fuel_option_l": 50,
+      "runtime_fuel_capacity_note": "50 L option provisionally selected; initial fuel remains independent. Other documented option is 25 L.",
+      "calibration_research": {
+        "note": "FIA extension for limited slip and flywheel dated April 1965; existing LSD parameters are estimates",
+        "source": "https://historicdb.fia.com/car/austin-morris-cooper-s-1275",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "lotus-cortina": {
       "name": "Ford Lotus Cortina Mk1",
@@ -127,6 +135,11 @@
           "homologation": "1224",
           "group": "T",
           "pdf_sha256": "5fb1f90c0dd976d3303289ffa73b6a6aeb9d376b6a52ca799d70e786785b7962"
+        },
+        "fia_audit_reference": {
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601034301/homologation_form_number_5018_group_1.pdf",
+          "homologation": "5018",
+          "group": "1"
         }
       },
       "facts": {
@@ -167,16 +180,17 @@
           "status": "documented"
         },
         "fuel_l": {
-          "value": 36.35,
-          "source": "fia",
-          "locator": "PDF page 6, base form",
+          "value": 36.4,
+          "source": "fia_audit_reference",
+          "locator": "FIA #5018 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "mass_kg": {
-          "value": 751,
-          "source": "fia",
-          "locator": "PDF page 6, base form",
-          "status": "documented"
+          "value": 850,
+          "source": "fia_audit_reference",
+          "locator": "FIA #5018 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         },
         "suspension_front": {
           "value": "independent coil",
@@ -191,13 +205,19 @@
           "status": "documented"
         }
       },
-      "variant_note": "Game lists 1598 cc; fiche specifies 1558 cc.",
+      "variant_note": "1966 Group 1 reference for mass and tank; existing 1224 geometry describes earlier A-frame variant, not necessarily this variant",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "Early A-frame and 1966 leaf-spring cars have different wheelbases and gearing; configuration requires period selection",
+        "source": "https://historicdb.fia.com/sites/default/files/car_attachment/1679331601/fia_lotus_cortina_dimensions.pdf",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "volvo-amazon": {
       "name": "Volvo 122 Amazon",
@@ -254,14 +274,15 @@
         "fuel_l": {
           "value": 45,
           "source": "fia",
-          "locator": "PDF page 5, base form",
+          "locator": "FIA #5012 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "mass_kg": {
           "value": 1013,
           "source": "fia",
-          "locator": "PDF page 5, base form",
-          "status": "documented"
+          "locator": "FIA #5012 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         },
         "suspension_front": {
           "value": "independent coil",
@@ -276,13 +297,19 @@
           "status": "documented"
         }
       },
-      "variant_note": "1966 two-door 122 S reference; game labels 1962.",
+      "variant_note": "1966 122S reference; game labels 1962",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "Volvo 122S brochure gearbox and reverse; applicability to 1962-labelled vehicle requires confirmation",
+        "source": "https://volvo1800pictures.com/amazon/bros/158a/158a.pdf",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "saab-96-v4": {
       "name": "Saab 96 V4",
@@ -346,23 +373,30 @@
         "fuel_l": {
           "value": 40,
           "source": "fia",
-          "locator": "PDF page 5, 1498 cc base form",
+          "locator": "FIA #5125 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "mass_kg": {
           "value": 812,
           "source": "fia",
-          "locator": "PDF page 5, 1498 cc base form",
-          "status": "documented"
+          "locator": "FIA #5125 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         }
       },
-      "variant_note": "Group 1 1498 cc homologation dated 1966, matching game displacement and 1967 model period. The separate 1971 Group 2 1698 cc fiche does not establish the game's tune.",
+      "variant_note": "1966 Group 1 1498 cc reference",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "Existing 5.83 final drive and gear ratios match Saab Group 2 Special 2 speeds using 300 mm tire radius; 1972 specification",
+        "source": "https://www.geocities.ws/saab96rally/CompetitionModsV4/Instructions.pdf",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "fiat-abarth-1000": {
       "name": "Fiat 600 Abarth",
@@ -377,6 +411,11 @@
           "homologation": "1182",
           "group": "T",
           "pdf_sha256": "f035ae4e6b5e13788cf0be795098efc6c03335b039e5059d7971b0f9f7903ceb"
+        },
+        "fia_audit_reference": {
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1626170401/homologation_form_number_1486_group_2.pdf",
+          "homologation": "1486",
+          "group": "2"
         }
       },
       "facts": {
@@ -417,9 +456,9 @@
           "status": "documented"
         },
         "fuel_l": {
-          "value": 27,
-          "source": "fia",
-          "locator": "PDF page 3, base form",
+          "value": 31,
+          "source": "fia_audit_reference",
+          "locator": "FIA #1486 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "engine_layout": {
@@ -427,15 +466,28 @@
           "source": "fia",
           "locator": "PDF page 3, base form",
           "status": "documented"
+        },
+        "mass_kg": {
+          "value": 583,
+          "source": "fia_audit_reference",
+          "locator": "FIA #1486 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         }
       },
-      "variant_note": "FIA Fiat-Abarth 1000 Berlina reference, not generic Fiat 600 specs.",
+      "variant_note": "1967 1000 Berlina; competition specification remains unverified",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "1967 Berlina Corsa Group 2 target 85 CV at 7600 rpm; torque curve and 8200 rpm limiter are estimates",
+        "source": "https://www.stellantisheritage.com/fr-fr/heritage/histoires/les-transformations-abarth-des-fiat-600",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "escort-rs2000": {
       "name": "Ford Escort RS2000",
@@ -632,6 +684,11 @@
           "homologation": "5362",
           "group": "1",
           "pdf_sha256": "d80cf8f3fdb76826bb4fb0285173b54d1c27421b8ebffb11dd2f5a3994b1f8f2"
+        },
+        "fia_audit_reference": {
+          "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601064901/homologation_form_number_5209_group_1.pdf",
+          "homologation": "5209",
+          "group": "1"
         }
       },
       "facts": {
@@ -666,38 +723,53 @@
           "status": "documented"
         },
         "track_rear_m": {
-          "value": 1.282,
-          "source": "fia",
-          "locator": "PDF page 5, base form",
+          "value": 1.276,
+          "source": "fia_audit_reference",
+          "locator": "FIA #5209 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "fuel_l": {
           "value": 40,
-          "source": "fia",
-          "locator": "PDF page 5, base form",
+          "source": "fia_audit_reference",
+          "locator": "FIA #5209 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "mass_kg": {
-          "value": 810,
-          "source": "fia",
-          "locator": "PDF page 5, base form",
-          "status": "documented"
+          "value": 860,
+          "source": "fia_audit_reference",
+          "locator": "FIA #5209 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         },
         "din_curb_mass_kg": {
-          "value": 850,
-          "source": "fia",
-          "locator": "PDF page 5, base form",
+          "value": 890,
+          "source": "fia_audit_reference",
+          "locator": "FIA #5209 base form; historical audit 2026-11-10",
           "status": "documented"
         }
       },
-      "variant_note": "1970 Kadett B 1900 fiche; game labels 1969 and Car.ini header says 1100 SR. Identity requires review.",
+      "variant_note": "1900 reference only; game label 1100 SR conflicts with 1897 cc historical data; actual variant unresolved",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
       ],
-      "reference_scope": "identity_uncertain"
+      "reference_scope": "identity_uncertain",
+      "alternative_reference": {
+        "homologation": "5210",
+        "group": "1",
+        "displacement_cc": 1078,
+        "mass_kg": 750,
+        "fuel_l": 40,
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1601064901/homologation_form_number_5210_group_1.pdf"
+      },
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "1100 SR and 1900 identity unresolved; existing powertrain remains provisional",
+        "source": "https://www.media.stellantis.com/em-en/opel/press/opel-kadett-das-auto-kadett-b-celebrates-debut-60-years-ago",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "alfa-giulia-gta": {
       "name": "Alfa Romeo Giulia Sprint GTA",
@@ -748,7 +820,7 @@
         "fuel_l": {
           "value": 46,
           "source": "fia",
-          "locator": "PDF page 3, base form",
+          "locator": "FIA #1395 base form; historical audit 2026-11-10",
           "status": "documented"
         },
         "engine_layout": {
@@ -756,15 +828,28 @@
           "source": "fia",
           "locator": "PDF page 3, base form",
           "status": "documented"
+        },
+        "mass_kg": {
+          "value": 760,
+          "source": "fia",
+          "locator": "FIA #1395 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         }
       },
-      "variant_note": "FIA Group T GTA, not the alternative GT fiche or GTA Junior.",
+      "variant_note": "1965 GTA 105.32",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "Factory reference 115 CV at 6000 rpm for road car and approximately 170 CV at 7800 rpm for prepared cars; current curve is provisional",
+        "source": "https://www.stellantisheritage.com/it-it/heritage/storie/alfa-romeo-giulia-sprint-gta",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "alpine-a110": {
       "name": "Alpine Renault A110 1600",
@@ -821,23 +906,40 @@
         "fuel_l": {
           "value": 30,
           "source": "fia",
-          "locator": "PDF page 2, base form",
+          "locator": "FIA 3035 base form, page 2, item 7",
           "status": "documented"
         },
         "mass_kg": {
           "value": 685,
           "source": "fia",
-          "locator": "PDF page 2, base form",
-          "status": "documented"
+          "locator": "FIA #3035 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         }
       },
-      "variant_note": "1970 base FIA fiche; game lists 1596 cc. Later extensions change displacement. Mass excludes fuel and tools.",
+      "variant_note": "1970 Group 3 reference; game engine remains 1596 cc, not the 1565 cc base form",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "alternative_reference": {
+        "homologation": "624",
+        "group": "4",
+        "mass_kg": 650,
+        "fuel_options_l": [
+          38,
+          78
+        ],
+        "pdf": "https://historicdb.fia.com/sites/default/files/car_attachment/1759327201/homologation_form_number_624_group_4.pdf"
+      },
+      "runtime_fuel_capacity_note": "Base form 30 L; 50 L front tank is mentioned in a later extension describing replacement by a 79 L rear tank.",
+      "calibration_research": {
+        "note": "FIA 3035 base gearbox, five forward ratios and reverse",
+        "source": "https://historicdb.fia.com/sites/default/files/car_attachment/1759327201/homologation_form_number_3035_group_3.pdf",
+        "status": "mixed_documented_and_estimated"
+      }
     },
     "lancia-stratos": {
       "name": "Lancia Stratos HF",
@@ -894,19 +996,31 @@
         "fuel_l": {
           "value": 80,
           "source": "fia",
-          "locator": "PDF page 2, base form",
+          "locator": "FIA #640 base form; historical audit 2026-11-10",
           "status": "documented"
+        },
+        "mass_kg": {
+          "value": 980,
+          "source": "fia",
+          "locator": "FIA #640 base form; historical audit 2026-11-10",
+          "status": "documented",
+          "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
         }
       },
-      "variant_note": "1974 Group 4 homologation; game labels 1972. Confirm period-specific tune before calibration.",
+      "variant_note": "1974 Group 4 reference; game-derived tune and earlier model label remain",
       "review": [
         "period rally mass and weight distribution",
         "competition torque curve and gearing",
         "spring and damper rates",
         "differential setup"
-      ]
+      ],
+      "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+      "calibration_research": {
+        "note": "12-valve Group 4 target 280 CV at 8000 rpm; torque curve and 8500 rpm limiter are estimates",
+        "source": "https://www.stellantisheritage.com/it-it/heritage/storie/lancia-stratos",
+        "status": "mixed_documented_and_estimated"
+      }
     }
-
   },
   "mass_definition": "Base homologation figures, normally with operating fluids and spare, without fuel; confirm tools and equipment definitions in the cited form. DIN curb mass is separate."
 }

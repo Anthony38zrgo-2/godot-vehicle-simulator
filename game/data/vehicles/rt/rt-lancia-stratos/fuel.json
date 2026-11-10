@@ -1,7 +1,7 @@
 {
   "fuel": {
     "brake_specific_consumption_kg_per_kwh": 0.35,
-    "capacity_kg": 29.6,
+    "capacity_kg": 59.2,
     "density_kg_per_litre": 0.74,
     "estimated_lap_consumption_kg": 2.5,
     "idle_consumption_kg_per_hour": 1.5,

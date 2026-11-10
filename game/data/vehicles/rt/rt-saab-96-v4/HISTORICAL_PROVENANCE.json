@@ -65,28 +65,34 @@
       "fuel_l": {
         "value": 40,
         "source": "fia",
-        "locator": "PDF page 5, 1498 cc base form",
+        "locator": "FIA #5125 base form; historical audit 2026-11-10",
         "status": "documented"
       },
       "mass_kg": {
         "value": 812,
         "source": "fia",
-        "locator": "PDF page 5, 1498 cc base form",
-        "status": "documented"
+        "locator": "FIA #5125 base form; historical audit 2026-11-10",
+        "status": "documented",
+        "mass_basis": "homologation form: includes spare and operating fluids; excludes fuel and tools"
       }
     },
-    "variant_note": "Group 1 1498 cc homologation dated 1966, matching game displacement and 1967 model period. The separate 1971 Group 2 1698 cc fiche does not establish the game's tune.",
+    "variant_note": "1966 Group 1 1498 cc reference",
     "review": [
       "period rally mass and weight distribution",
       "competition torque curve and gearing",
       "spring and damper rates",
       "differential setup"
-    ]
+    ],
+    "runtime_fuel_capacity_note": "Capacity based on the stated historical reference; initial fuel is independent. Reference variant and game-derived physics may differ.",
+    "calibration_research": {
+      "note": "Existing 5.83 final drive and gear ratios match Saab Group 2 Special 2 speeds using 300 mm tire radius; 1972 specification",
+      "source": "https://www.geocities.ws/saab96rally/CompetitionModsV4/Instructions.pdf",
+      "status": "mixed_documented_and_estimated"
+    }
   },
   "engineering_estimates": [
     "Mass decomposition, crew, CG and inertia tensor",
     "Equivalent suspension rates and damping; no measured linkage reconstruction",
-    "Fuel capacity unless explicitly overridden",
     "Aero, thermal, damage, tire force and filter template calibration"
   ],
   "game_derived_fields": [
@@ -105,7 +111,7 @@
     "coupled_world.json": "3212b7cb093feb2901a7b9eca1024cedebb7dde8df6ca383f610ead7a2098598",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "4f22520c1dc0d031ad40acbbe982cac837dc2046e79f1875aa9273df049a22eb",
+    "fuel.json": "b9d5722492a3af5f6537d193856be08d9e7a3c88ec1c6efc8e8c44c56ec8fec6",
     "powertrain.json": "ae0ba33b045c136974453d495399e7082eb0970f24c96c6abb2b9a9720205994",
     "steering.json": "914a00ac47cec9549206446081dc599cbec8083c26c2be863d258c3ef7dd6273",
     "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
