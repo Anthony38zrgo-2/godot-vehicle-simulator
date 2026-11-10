@@ -33,11 +33,11 @@ const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader"
 const ADDITIVE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
 const TIRE_TRACKS = preload("res://scripts/rally/rally_tire_tracks.gd")
 const SURFACES := {
-	"gravel": { "dust": 0.60, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DUST },
-	"dirt": { "dust": 0.70, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DIRT_DUST },
-	"sand": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SAND_DUST },
+	"gravel": { "dust": 0.60, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DUST, "burst": 2 },
+	"dirt": { "dust": 0.70, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DIRT_DUST, "burst": 2 },
+	"sand": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SAND_DUST, "burst": 3 },
 	"grass": { "dust": 0.0, "interval": 10 },
-	"snowdeep": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SNOW },
+	"snowdeep": { "dust": 0.85, "interval": 3, "dust_kind": WHEEL_PARTICLES.Kind.SNOW, "burst": 2 },
 	"road": { "dust": 0.0, "interval": 10 },
 	"asphalt": { "dust": 0.0, "interval": 10 },
 	"tarmac": { "dust": 0.0, "interval": 10 },
@@ -425,6 +425,11 @@ func update_wheel(index: int, wetness: float) -> void:
 	var snowy := snow_mm >= SNOW_MIN_MM or surface == "snowdeep" or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]
 	if snowy:
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), source + normal * 0.09, velocity + normal * 1.3, point, normal)
+		if surface == "snowdeep" or winter_layer != "":
+			for i in int(profile.get("burst", 1 if surface == "snowdeep" else 0)):
+				var flake_offset := source + side * wheel_particles.rng.randf_range(-0.22, 0.22) + normal * wheel_particles.rng.randf_range(0.0, 0.12)
+				var flake_velocity := velocity * wheel_particles.rng.randf_range(0.85, 1.1) + normal * wheel_particles.rng.randf_range(1.0, 1.5)
+				wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), flake_offset, flake_velocity, point, normal)
 		if surface == "snowdeep" and wheel_snow_haze[index] <= 0.0:
 			wheel_snow_haze[index] = SNOW_HAZE_TICKS * WHEEL_PARTICLES.STEP
 			var haze_velocity := rearward * 0.8 + normal * 0.6
@@ -456,6 +461,10 @@ func update_wheel(index: int, wetness: float) -> void:
 			if kind == WHEEL_PARTICLES.Kind.DUST and slip > 0.76:
 				kind = WHEEL_PARTICLES.Kind.SLIP_DUST
 			wheel_particles.emit_particle(kind, TIRE_SMOKE if paved else DUST_CORE, source + normal * 0.16, velocity + normal * 0.28, point, normal)
+			for i in int(profile.get("burst", 0)):
+				var puff_offset := source + side * wheel_particles.rng.randf_range(-0.22, 0.22) + normal * wheel_particles.rng.randf_range(0.0, 0.12)
+				var puff_velocity := velocity * wheel_particles.rng.randf_range(0.85, 1.1) + normal * 0.28
+				wheel_particles.emit_particle(kind, TIRE_SMOKE if paved else DUST_CORE, puff_offset, puff_velocity, point, normal)
 	if snow_mm < SNOW_MIN_MM and winter_layer == "" and surface != "snowdeep":
 		var cutting_grass := surface == "grass" and index >= 2 and (slip > 0.55 or corner_speed.length() > 8.0)
 		if entered_grass or cutting_grass:

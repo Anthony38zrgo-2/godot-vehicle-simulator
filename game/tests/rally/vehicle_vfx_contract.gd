@@ -103,7 +103,8 @@ func verify() -> void:
 			var grass := active_wheel_particles(vfx).filter(func(p): return p.kind in [foliage_pool.Kind.GRASS, foliage_pool.Kind.GRASS_SHORT])
 			assert(not grass.is_empty(), "Sustained grass contact emits the grass types")
 		else:
-			assert(particles.size() == 1)
+			var burst: int = int(vfx.SURFACES[surface.to_lower()].get("burst", 0))
+			assert(particles.size() == 1 + burst, "Burst por superficie en %s" % surface)
 			var dust = particles[0]
 			assert(dust.texture == vfx.DUST_CORE)
 			var dust_pool = vfx.wheel_particles
@@ -144,11 +145,11 @@ func verify() -> void:
 	sim.wheel_slips[index] = Vector2(0.5, 0.3)
 	vfx.update_wheel(index, 0.0)
 	var rocks := active_wheel_particles(vfx)
-	assert(rocks.size() == 2 and rocks[1].texture in vfx.GRAVEL)
-	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[1].texture]
+	assert(rocks.size() == 4 and rocks[3].texture in vfx.GRAVEL, "1 polvo + rafaga 2 + 1 roca en grava con derrape")
+	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[3].texture]
 	var rock_material := rock_batch.mesh.surface_get_material(0) as ShaderMaterial
 	assert(rock_material.get_shader_parameter("opaque_sprite_mask") == true)
-	var rock = rocks[1]
+	var rock = rocks[3]
 	for i in 14:
 		vfx.wheel_particles.step(Vector3.ZERO)
 	assert(rock.bounced, "Gravel must rebound on the contact plane")
