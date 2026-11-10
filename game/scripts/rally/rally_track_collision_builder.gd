@@ -164,7 +164,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 				material_names.append(mat_name)
 	# Snow is an overlay, never a wholesale remapping of the body.
 	# Driven road snow (including rail crossings and snow bridges) is packed;
-	# off-track snow mantles (terrain, banks, ditches) are deep; snow-covered
+	# off-track snow (mantles, banks, ditches and the snow-textured roadside
+	# strip, the only non-snow-named terrain in Sweden) is deep; snow-covered
 	# rocks keep their loose tag.
 	var snow_deep := false
 	for mat_name in material_names:
@@ -172,7 +173,7 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 		or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 			winter_layer_id = "snow_packed"
 		elif mat_name.begins_with("erosion_snow_") or mat_name.begins_with("terrain_snow_") \
-		or mat_name.begins_with("ditch_snow_"):
+		or mat_name.begins_with("ditch_snow_") or mat_name == "terrain_road_side":
 			winter_layer_id = "snow_deep"
 			snow_deep = true
 		elif mat_name.begins_with("rock_snow") or mat_name.begins_with("stone_snow"):
