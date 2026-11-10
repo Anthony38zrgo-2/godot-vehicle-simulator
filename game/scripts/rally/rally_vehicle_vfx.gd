@@ -233,7 +233,8 @@ func update_tire_track(index: int) -> void:
 		tire_tracks.break_track(index)
 		return
 	var surface := sim.wheel_surfaces[index].to_lower()
-	var variant: int = tire_tracks.variant_for(surface, float(wheel_conditions(index).get("snow_mm", 0.0)), index)
+	var track_winter := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
+	var variant: int = tire_tracks.variant_for(surface, float(wheel_conditions(index).get("snow_mm", 0.0)), index, track_winter)
 	var offset := sim.wheel_contact_points[index] - vehicle.global_position
 	var velocity := vehicle.linear_velocity + vehicle.angular_velocity.cross(offset)
 	var forward_speed := velocity.dot(-vehicle.global_basis.z)
@@ -411,7 +412,11 @@ func update_wheel(index: int, wetness: float) -> void:
 	var velocity := rearward * clampf(corner_speed.length() * 0.16 + slip, 0.6, 4.0) + side * slip * 0.5
 	var paved := surface in ["road", "asphalt", "tarmac"]
 	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
-	if snow_mm >= SNOW_MIN_MM or surface == "snowdeep":
+	# La capa invernal manda sobre la superficie base: en Suecia la carretera
+	# es Gravel con snow_packed aunque snow_mm meteorologico sea 0.
+	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
+	var snowy := snow_mm >= SNOW_MIN_MM or surface == "snowdeep" or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]
+	if snowy:
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), source + normal * 0.09, velocity + normal * 1.3, point, normal)
 		if surface == "snowdeep" and wheel_snow_haze[index] <= 0.0:
 			wheel_snow_haze[index] = SNOW_HAZE_TICKS * WHEEL_PARTICLES.STEP
@@ -444,7 +449,7 @@ func update_wheel(index: int, wetness: float) -> void:
 			if kind == WHEEL_PARTICLES.Kind.DUST and slip > 0.76:
 				kind = WHEEL_PARTICLES.Kind.SLIP_DUST
 			wheel_particles.emit_particle(kind, TIRE_SMOKE if paved else DUST_CORE, source + normal * 0.16, velocity + normal * 0.28, point, normal)
-	if snow_mm < SNOW_MIN_MM:
+	if snow_mm < SNOW_MIN_MM and winter_layer == "" and surface != "snowdeep":
 		var cutting_grass := surface == "grass" and index >= 2 and (slip > 0.55 or corner_speed.length() > 8.0)
 		if entered_grass or cutting_grass:
 			for leaf in 2:

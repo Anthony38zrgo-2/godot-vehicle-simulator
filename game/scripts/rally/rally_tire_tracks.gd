@@ -48,11 +48,11 @@ func _process(delta: float) -> void:
 		material.set_shader_parameter("track_time", elapsed)
 
 
-func variant_for(surface: String, snow_mm: float, wheel: int) -> int:
-	if snow_mm >= 0.25 or surface == "snow" or surface == "snowdeep":
-		return 2 + wheel % 2
-	if surface == "ice":
+func variant_for(surface: String, snow_mm: float, wheel: int, winter_layer_id: String = "") -> int:
+	if winter_layer_id == "ice" or surface == "ice":
 		return 4
+	if snow_mm >= 0.25 or surface in ["snow", "snowdeep"] or winter_layer_id in ["snow_packed", "snow_loose", "snow_deep"]:
+		return 2 + wheel % 2
 	if surface in ["road", "asphalt", "tarmac", "curb"]:
 		return wheel % 2
 	if surface in ["gravel", "dirt", "sand", "grass", "mud"]:
