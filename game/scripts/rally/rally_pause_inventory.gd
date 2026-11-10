@@ -1,5 +1,8 @@
 extends CanvasLayer
 
+signal results_workshop_closed
+var opened_from_results := false
+
 # =============================================================================
 # CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
 # =============================================================================
@@ -108,7 +111,7 @@ func _process(_delta: float) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	modal.position = (viewport_size - modal.size) * 0.5
 	pause_button.position = Vector2(viewport_size.x - 150, 12)
-	pause_button.visible = not modal.visible
+	pause_button.visible = not modal.visible and allowed()
 
 
 func _ready() -> void:
@@ -315,7 +318,12 @@ func _build_modal_skeleton() -> void:
 func _input(event: InputEvent) -> void:
 	if (event.is_action_pressed("ui_cancel") or event.is_action_pressed(InputBindings.UI_BACK_TO_MENU)) and not event.is_echo():
 		if modal.visible:
-			if current_view != "menu":
+			if current_view == "inventory":
+				for child in content.get_children():
+					if child.has_method("cancel_transfer") and child.cancel_transfer():
+						get_viewport().set_input_as_handled()
+						return
+			if current_view != "menu" and not opened_from_results:
 				show_menu()
 			else:
 				toggle()
@@ -333,7 +341,26 @@ func allowed() -> bool:
 	return session != null and session.session_ready and not session.awaiting_setup and not session.stage_transition_running and not session.competition.complete and (session.garage_panel == null or not session.garage_panel.visible)
 
 
+func open_from_results() -> void:
+	if modal.visible or get_tree().paused:
+		return
+	opened_from_results = true
+	session.vehicle.ensure_tire_inventory()
+	get_tree().paused = true
+	modal.show()
+	backdrop.show()
+	show_inventory()
+
+
 func toggle() -> void:
+	if opened_from_results:
+		opened_from_results = false
+		modal.hide()
+		backdrop.hide()
+		clear()
+		get_tree().paused = false
+		results_workshop_closed.emit()
+		return
 	if modal.visible:
 		modal.hide()
 		backdrop.hide()
@@ -445,11 +472,12 @@ func show_menu() -> void:
 	button("Reanudar", toggle)
 
 	# Submenú 1: Neumáticos e inventario
-	button("Neumáticos · Inventario y cambios", show_inventory)
+	button("Reparaciones · Taller 3D e inventario", show_inventory)
 
 	# Submenú 2: Reparaciones rápidas
 	var has_dmg := has_quick_repairs()
-	button("Reparaciones rápidas" + (" [¡DAÑO DETECTADO!]" if has_dmg else ""), show_quick_repairs)
+	if has_dmg:
+		_add_hint_label("Radiador dañado: disponible en el taller 3D.")
 
 	# Acción de rescate (penalización moderada)
 	button("Pedir rescate", request_rescue)
@@ -465,68 +493,8 @@ func show_menu() -> void:
 # =============================================================================
 
 func show_quick_repairs() -> void:
-	current_view = "repairs"
-	if telemetry_panel != null:
-		telemetry_panel.visible = true
-	clear()
-	_update_header("REPARACIONES RÁPIDAS · RADIADOR", "SERVICIO DE EMERGENCIA Y REPARACIÓN EN TRAMO")
-	_update_telemetry_panel()
-
-	label("DIAGNÓSTICO DEL RADIADOR")
-	var rad_damage := get_radiator_damage()
-	var pct := roundi(rad_damage * 100.0)
-
-	var rad_card := PanelContainer.new()
-	rad_card.add_theme_stylebox_override("panel", _make_card_style())
-	var card_vbox := VBoxContainer.new()
-	card_vbox.add_theme_constant_override("separation", 6)
-	rad_card.add_child(card_vbox)
-
-	var stat_title := Label.new()
-	stat_title.text = "INTEGRIDAD ESTRUCTURAL DEL RADIADOR: %d%%" % [100 - pct]
-	stat_title.add_theme_font_override("font", FONT_TITLE)
-	stat_title.add_theme_font_size_override("font_size", 11)
-	stat_title.add_theme_color_override("font_color", C_GREEN if pct < 5 else (C_GOLD if pct < 70 else C_ROSE))
-	card_vbox.add_child(stat_title)
-
-	var bar := ProgressBar.new()
-	bar.min_value = 0
-	bar.max_value = 100
-	bar.value = 100 - pct
-	bar.custom_minimum_size = Vector2(0, 18)
-	bar.show_percentage = true
-	var bar_fill := StyleBoxFlat.new()
-	bar_fill.bg_color = C_GREEN if pct < 5 else (C_GOLD if pct < 70 else C_ROSE)
-	bar_fill.set_corner_radius_all(3)
-	bar.add_theme_stylebox_override("fill", bar_fill)
-	var bar_bg := StyleBoxFlat.new()
-	bar_bg.bg_color = C_FIELD
-	bar_bg.border_color = Color(C_SHADOW, 0.7)
-	bar_bg.set_border_width_all(1)
-	bar_bg.set_corner_radius_all(3)
-	bar.add_theme_stylebox_override("background", bar_bg)
-	bar.add_theme_font_override("font", DIN_BOLD)
-	bar.add_theme_font_size_override("font_size", 10)
-	bar.add_theme_color_override("font_color", C_TEXT)
-	card_vbox.add_child(bar)
-	content.add_child(rad_card)
-
-	label("Estado del radiador: Daño al %d%% (Salud: %d%%)" % [pct, 100 - pct])
-
-	if rad_damage >= 0.70:
-		button("Reparación de radiador (Daño %d%% → 50%% · +1:00 min y restablecer coche)" % pct, repair_radiator)
-	elif rad_damage >= 0.05:
-		button("Reparación de radiador (Daño %d%% → 0%% · +1:00 min y restablecer coche)" % pct, repair_radiator)
-	else:
-		label("El radiador no presenta daños significativos. No requiere reparación.")
-
-	_add_hint_label("La reparación en tramo requiere detener el coche y añade +1:00 min de penalización fija al tiempo del rally.")
-
-	var nav_box := HBoxContainer.new()
-	nav_box.add_theme_constant_override("separation", 10)
-	content.add_child(nav_box)
-	button("Volver a pausa", show_menu, nav_box)
-	button("Reanudar", toggle, nav_box)
+	show_inventory()
+	content.get_child(0)._category("radiator")
 
 
 func repair_radiator() -> void:
@@ -567,171 +535,35 @@ func description(tire: Dictionary) -> String:
 
 func show_inventory() -> void:
 	current_view = "inventory"
-	if telemetry_panel != null:
-		telemetry_panel.visible = false
+	telemetry_panel.visible = false
 	clear()
-	_update_header("NEUMÁTICOS E INVENTARIO", "")
-
-	if session != null and session.get("vehicle") != null:
-		session.vehicle.sync_tire_inventory()
-	var inventory = session.vehicle.tire_inventory if (session != null and session.get("vehicle") != null) else null
-	if inventory == null:
-		return
-
-	# 1. RUEDAS MONTADAS EN EL VEHÍCULO (DISTRIBUCIÓN ESPACIAL 2x2)
-	# Fila 1: Eje Delantero (FL Izquierda, FR Derecha)
-	var front_row := HBoxContainer.new()
-	front_row.add_theme_constant_override("separation", 12)
-	content.add_child(front_row)
-
-	var fl_slot := WheelSlotControl.new(self, "mounted", 0, inventory.mounted[0])
-	fl_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	front_row.add_child(fl_slot)
-
-	var fr_slot := WheelSlotControl.new(self, "mounted", 1, inventory.mounted[1])
-	fr_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	front_row.add_child(fr_slot)
-
-	# Fila 2: Eje Trasero (RL Izquierda, RR Derecha)
-	var rear_row := HBoxContainer.new()
-	rear_row.add_theme_constant_override("separation", 12)
-	content.add_child(rear_row)
-
-	var rl_slot := WheelSlotControl.new(self, "mounted", 2, inventory.mounted[2])
-	rl_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rear_row.add_child(rl_slot)
-
-	var rr_slot := WheelSlotControl.new(self, "mounted", 3, inventory.mounted[3])
-	rr_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rear_row.add_child(rr_slot)
-
-	# 2. COMPARTIMENTOS INFERIORES: MALETERO Y DESECHO EN RUTA
-	var lower_hbox := HBoxContainer.new()
-	lower_hbox.add_theme_constant_override("separation", 12)
-	content.add_child(lower_hbox)
-
-	# Panel del Maletero (Repuestos)
-	var trunk_panel := PanelContainer.new()
-	trunk_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	trunk_panel.add_theme_stylebox_override("panel", _make_classic_panel_style())
-	lower_hbox.add_child(trunk_panel)
-
-	var trunk_margin := MarginContainer.new()
-	trunk_margin.add_theme_constant_override("margin_left", 12)
-	trunk_margin.add_theme_constant_override("margin_right", 12)
-	trunk_margin.add_theme_constant_override("margin_top", 8)
-	trunk_margin.add_theme_constant_override("margin_bottom", 8)
-	trunk_panel.add_child(trunk_margin)
-
-	var trunk_vbox := VBoxContainer.new()
-	trunk_vbox.add_theme_constant_override("separation", 6)
-	trunk_margin.add_child(trunk_vbox)
-
-	var trunk_header := HBoxContainer.new()
-	trunk_vbox.add_child(trunk_header)
-
-	var t_title := Label.new()
-	t_title.text = "MALETERO · REPUESTOS A BORDO"
-	t_title.add_theme_font_override("font", FONT_TITLE)
-	t_title.add_theme_font_size_override("font_size", 11)
-	t_title.add_theme_color_override("font_color", C_RIM)
-	trunk_header.add_child(t_title)
-
-	var t_sp := Control.new()
-	t_sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	trunk_header.add_child(t_sp)
-
-	var t_mass := Label.new()
-	var mass_policy: Dictionary = (RallyTireCompound.load_catalog().get("inventory", {}) as Dictionary).duplicate(true)
-	if session != null and session.get("vehicle") != null:
-		var chassis: Dictionary = session.vehicle.simulation.domains.get("chassis", {})
-		var policy: Dictionary = (chassis.get("physical_mass_inventory", {}) as Dictionary).get("spare_policy", {})
-		mass_policy.merge(policy, true)
-	var spare_mass: float = float(mass_policy.get("tools_mass_kg", 7.0)) + inventory.spares.size() * float(mass_policy.get("wheel_mass_kg", 18.0))
-	t_mass.text = "Capacidad: %d/%d · Carga con herramientas: %.0f kg" % [inventory.spares.size(), inventory.capacity, spare_mass]
-	t_mass.add_theme_font_override("font", DIN_BOLD)
-	t_mass.add_theme_font_size_override("font_size", 11)
-	t_mass.add_theme_color_override("font_color", C_GOLD)
-	trunk_header.add_child(t_mass)
-
-	var spares_hbox := HBoxContainer.new()
-	spares_hbox.add_theme_constant_override("separation", 10)
-	trunk_vbox.add_child(spares_hbox)
-
-	for k in inventory.capacity:
-		if k < inventory.spares.size():
-			var sp_slot := WheelSlotControl.new(self, "spare", k, inventory.spares[k])
-			sp_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			spares_hbox.add_child(sp_slot)
-		else:
-			var empty_slot := WheelSlotControl.new(self, "spare", k, {}, true)
-			empty_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			spares_hbox.add_child(empty_slot)
-
-	# Cajón de Desecho en Ruta
-	var bin_slot := DiscardBinSlot.new(self)
-	lower_hbox.add_child(bin_slot)
-
-	# 3. CONTROLES OCULTOS DE CONTRATO (para compatibilidad total con tests sin ensuciar la UI)
+	_update_header("REPARACIONES · TALLER 3D", "RUEDAS · RADIADOR · MALETERA")
+	session.vehicle.sync_tire_inventory()
+	var workshop := preload("res://scripts/rally/rally_service_workshop.gd").new()
+	workshop.host = self
+	content.add_child(workshop)
 	keep_removed = CheckButton.new()
 	keep_removed.button_pressed = true
-	keep_removed.visible = false
+	keep_removed.hide()
 	content.add_child(keep_removed)
-
 	spare_picker = OptionButton.new()
-	spare_picker.visible = false
-	for spare in inventory.spares:
+	spare_picker.hide()
+	for spare in session.vehicle.tire_inventory.spares:
 		spare_picker.add_item(description(spare), int(spare.id))
 	content.add_child(spare_picker)
-
-	# 4. ASISTENCIA DE SERVICIO (PARQUE DE TRABAJO)
-	if session != null and session.has_method("may_service_tires") and session.may_service_tires() and inventory.spares.size() < inventory.capacity:
-		var srv_actions := GridContainer.new()
-		srv_actions.columns = 3
-		srv_actions.add_theme_constant_override("h_separation", 10)
-		content.add_child(srv_actions)
-		var srv_lbl := Label.new()
-		srv_lbl.text = "ASISTENCIA:"
-		srv_lbl.add_theme_font_override("font", BOLD)
-		srv_lbl.add_theme_font_size_override("font_size", 10)
-		srv_lbl.add_theme_color_override("font_color", C_RIM)
-		srv_actions.add_child(srv_lbl)
-		var cat := RallyTireCompound.load_catalog()
-		var purchase_allowed: Array = get_session_allowed_compound_ids()
-		for entry in RallyTireCompound.compound_ids(cat):
+	if session.may_service_tires() and session.vehicle.tire_inventory.spares.size() < session.vehicle.tire_inventory.capacity:
+		var row := HBoxContainer.new()
+		content.add_child(row)
+		for entry in (get_session_allowed_compound_ids() if not get_session_allowed_compound_ids().is_empty() else RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())):
 			var cid := str(entry)
-			if not purchase_allowed.is_empty() and not purchase_allowed.has(cid):
-				continue
-			var compound_data := RallyTireCompound.get_compound(cat, cid)
-			button("+ " + str(compound_data.get("short_label", cid)), func(): load_spare(cid), srv_actions)
-
-	# 5. BANNER DE AVISOS Y MENSAJES
-	if not notice.is_empty():
-		var not_panel := PanelContainer.new()
-		not_panel.add_theme_stylebox_override("panel", _make_glass_style(6, C_GLASS_DEEP, Color(C_GOLD, 0.4)))
-		var not_lbl := Label.new()
-		not_lbl.text = notice
-		not_lbl.add_theme_font_override("font", BOLD)
-		not_lbl.add_theme_font_size_override("font_size", 11)
-		not_lbl.add_theme_color_override("font_color", C_GOLD_HI)
-		not_panel.add_child(not_lbl)
-		content.add_child(not_panel)
-
-	# 6. BOTONERA DE ACCIÓN Y NAVEGACIÓN
-	var action_bar := HBoxContainer.new()
-	action_bar.add_theme_constant_override("separation", 10)
-	content.add_child(action_bar)
-
-	button("Volver a pausa", show_menu, action_bar)
-	button("Reanudar", toggle, action_bar)
-
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	action_bar.add_child(sp)
-
-	if not inventory.spares.is_empty():
-		button("Cambiar rueda", exchange, action_bar)
-		button("Descartar repuesto", discard, action_bar)
+			button("+ " + cid, func(): load_spare(cid), row)
+	var nav := HBoxContainer.new()
+	content.add_child(nav)
+	if opened_from_results:
+		button("Volver a resultados", toggle, nav)
+	else:
+		button("Volver a pausa", show_menu, nav)
+		button("Reanudar", toggle, nav)
 
 
 func exchange() -> void:

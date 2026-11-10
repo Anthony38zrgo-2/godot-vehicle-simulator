@@ -3,6 +3,7 @@ extends Control
 signal retire_requested
 signal retry_requested
 signal next_requested
+signal workshop_requested
 signal new_rally_requested
 
 # =============================================================================
@@ -104,6 +105,7 @@ var notice: Label
 
 var retry_button: Button
 var next_button: Button
+var workshop_button: Button
 var restart_button: Button
 var shortcuts_label: Label
 
@@ -375,6 +377,13 @@ func _build_ui() -> void:
 	_style_muted_button(restart_button)
 	restart_button.pressed.connect(func(): new_rally_requested.emit())
 	footer_hbox.add_child(restart_button)
+
+	workshop_button = Button.new()
+	workshop_button.text = "RUEDAS Y REPARACIONES"
+	_style_gold_button(workshop_button)
+	workshop_button.hide()
+	workshop_button.pressed.connect(func(): workshop_requested.emit())
+	footer_hbox.add_child(workshop_button)
 
 	next_button = Button.new()
 	next_button.text = "CONTINUAR A LA SIGUIENTE ESPECIAL ▶"
@@ -751,6 +760,11 @@ func _present_results(state: Dictionary) -> void:
 	var allow_next: bool = bool(state.get("allow_next", true))
 	var is_single_stage: bool = bool(state.get("single_stage_mode", false))
 	var mode_name: String = str(state.get("session_mode", "rally"))
+	var workshop_available := not final_result and bool(state.get("allow_workshop", false))
+	var focus_workshop := workshop_available and not workshop_button.visible
+	workshop_button.visible = workshop_available
+	if focus_workshop:
+		workshop_button.grab_focus()
 	next_button.visible = not final_result and allow_next
 	retry_button.visible = (not state.has("event_stage_id") or is_single_stage) and not final_result
 	if final_result:

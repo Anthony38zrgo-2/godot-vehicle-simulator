@@ -46,6 +46,7 @@ var start_position: Vector3 = FALLBACK_START_POSITION
 var start_heading: float = FALLBACK_START_HEADING
 var elapsed_seconds: float = 0.0
 var session_ready: bool = false
+var pause_inventory: CanvasLayer
 var stage_transition_running: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
@@ -208,7 +209,7 @@ func _ready() -> void:
 	connect_runtime_signals()
 	configure_runtime_paths()
 	_connect_garage_panel()
-	var pause_inventory = preload("res://scripts/rally/rally_pause_inventory.gd").new()
+	pause_inventory = preload("res://scripts/rally/rally_pause_inventory.gd").new()
 	pause_inventory.session = self
 	add_child(pause_inventory)
 	if telemetry_recorder != null:
@@ -218,6 +219,11 @@ func _ready() -> void:
 	panel.retire_requested.connect(retire_competition_player)
 	panel.retry_requested.connect(retry_competition_attempt)
 	panel.next_requested.connect(continue_competition)
+	panel.workshop_requested.connect(_open_between_stage_workshop)
+	pause_inventory.results_workshop_closed.connect(func():
+		_update_panel_for_stage()
+		if panel.workshop_button.is_visible_in_tree():
+			panel.workshop_button.grab_focus())
 	panel.new_rally_requested.connect(start_new_competition)
 	setup_start_audio()
 	setup_pacenotes()
@@ -604,19 +610,28 @@ func on_vehicle_reset_requested() -> void:
 		head_up_display.show_status("COCHE RESTABLECIDO", Color(0.95, 0.72, 0.24), 2.2)
 
 
-func on_quick_repair_radiator_requested() -> bool:
-	if competition.complete or vehicle == null or vehicle.simulation == null or vehicle.simulation.thermal_model == null:
+func on_quick_repair_radiator_requested(heavy: bool = false) -> bool:
+	if (competition.complete and not can_open_between_stage_workshop()) or vehicle == null or vehicle.simulation == null or vehicle.simulation.thermal_model == null:
 		return false
 	var tm: VehicleThermalModel = vehicle.simulation.thermal_model
-	if tm.radiator_damage < 0.05:
+	vehicle.ensure_tire_inventory()
+	var kit_index := 1 if heavy else 0
+	if not vehicle.tire_inventory.repair_kits[kit_index]:
 		return false
-	if not tm.quick_repair_radiator():
+	var recovery := 0.50 if heavy else 0.20
+	if tm.radiator_damage <= 0.0:
 		return false
-	_reposition_vehicle_on_course()
-	competition.add_penalty("player", 60000, "Reparación de radiador")
-	if head_up_display != null:
-		var target_pct := roundi(tm.radiator_damage * 100.0)
-		head_up_display.show_status("REPARACIÓN DE RADIADOR (%d%%) +60 s" % target_pct, Color(0.95, 0.72, 0.24), 3.0)
+	if not tm.quick_repair_radiator(maxf(0.0, tm.radiator_damage - recovery)):
+		return false
+	vehicle.tire_inventory.repair_kits[kit_index] = false
+	var penalty := 60000 if heavy else 30000
+	if competition.complete:
+		var charges: Dictionary = event_manager.service_penalties_ms
+		charges[session_track_id] = int(charges.get(session_track_id, 0)) + penalty
+		_save_mounted_tire_condition()
+		event_manager.save()
+	else:
+		competition.add_penalty("player", penalty, "Herramientas radiador")
 	return true
 
 
@@ -774,7 +789,32 @@ func retry_competition_attempt() -> void:
 	competition.save()
 	reset_competition_car()
 
+func can_open_between_stage_workshop() -> bool:
+	if not session_ready or practice_mode or session_mode == "single_stage" or awaiting_setup or stage_transition_running:
+		return false
+	if not competition.complete or competition.player_retired or event_manager == null:
+		return false
+	if event_manager.status != "running" or event_manager.is_last_stage() or event_manager.current_stage_id() != session_track_id:
+		return false
+	if event_manager.closed_keys.has("closed:" + session_track_id):
+		return false
+	if session_track_id in event_manager.event_doc.get("service", {}).get("after_stage_ids", []):
+		return false
+	var next_id := str(event_manager.stage_order[event_manager.cursor + 1])
+	for window in event_manager.setup_windows():
+		if window.get("after_stage_id") == session_track_id and window.get("before_stage_id") == next_id:
+			return false
+	return true
+
+
+func _open_between_stage_workshop() -> void:
+	if can_open_between_stage_workshop() and pause_inventory != null:
+		pause_inventory.open_from_results()
+
+
 func continue_competition() -> void:
+	if pause_inventory != null and pause_inventory.opened_from_results:
+		return
 	if stage_transition_running or not competition.complete:
 		return
 	if session_mode == "single_stage":
@@ -1304,7 +1344,8 @@ func get_competition_panel_state() -> Dictionary:
 			state["allow_next"] = false
 			state["single_stage_mode"] = true
 		return state
-	var state: Dictionary = competition.readout()
+	var state: Dictionary = competition.readout(int(event_manager.service_penalties_ms.get(session_track_id, 0)))
+	state["allow_workshop"] = can_open_between_stage_workshop()
 	state["event_stage_id"] = session_track_id
 	state["event_cursor"] = event_manager.cursor
 	state["event_total"] = event_manager.stage_order.size()

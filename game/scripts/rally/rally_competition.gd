@@ -450,7 +450,8 @@ func partial_delta_ms() -> Variant:
 	return null if best_rival == null else int(player_splits[split_index]) - int(best_rival)
 
 
-func readout() -> Dictionary:
+func readout(extra_player_penalty_ms: int = 0) -> Dictionary:
+	var total_player_penalty := player_penalty_ms + extra_player_penalty_ms
 	var ordered: Array = []
 	for row: Dictionary in rows:
 		var result := row.duplicate(true)
@@ -461,7 +462,7 @@ func readout() -> Dictionary:
 		result.partial_ms = null if row.splits.is_empty() else row.splits[-1]
 		result.player = false
 		ordered.append(result)
-	ordered.append({"id": "player", "name": "Jugador", "car": "Ford Escort RS2000", "team": "Privado", "stage_ms": null if player_retired else player_ms + player_penalty_ms, "total_ms": null if player_retired else player_previous_ms + player_ms + player_penalty_ms, "retired": player_retired, "status": player_status, "player": true, "penalty_ms": player_penalty_ms, "penalties": player_penalties.duplicate(true), "partial_index": player_splits.size(), "partial_ms": null if player_splits.is_empty() else player_ms + player_penalty_ms, "splits": player_splits.duplicate()})
+	ordered.append({"id": "player", "name": "Jugador", "car": "Ford Escort RS2000", "team": "Privado", "stage_ms": null if player_retired else player_ms + total_player_penalty, "total_ms": null if player_retired else player_previous_ms + player_ms + total_player_penalty, "retired": player_retired, "status": player_status, "player": true, "penalty_ms": total_player_penalty, "penalties": player_penalties.duplicate(true), "partial_index": player_splits.size(), "partial_ms": null if player_splits.is_empty() else player_ms + total_player_penalty, "splits": player_splits.duplicate()})
 	ordered.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a.retired != b.retired:
 			return not a.retired
@@ -485,7 +486,7 @@ func readout() -> Dictionary:
 			row.position = 0
 		if row.player:
 			player_position = int(row.position)
-	return {"rows": ordered, "sector": sector, "sector_count": reference.size(), "complete": complete, "leg": leg, "player_retired": player_retired, "player_position": player_position, "delta_ms": player_previous_ms + player_ms + player_penalty_ms - leader_ms, "confidence": confidence, "fallback": confidence == 0.0, "error": error}
+	return {"rows": ordered, "sector": sector, "sector_count": reference.size(), "complete": complete, "leg": leg, "player_retired": player_retired, "player_position": player_position, "delta_ms": player_previous_ms + player_ms + total_player_penalty - leader_ms, "confidence": confidence, "fallback": confidence == 0.0, "error": error}
 
 func save() -> bool:
 	if save_path.is_empty():
