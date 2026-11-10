@@ -388,8 +388,8 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	state.tread_zones_c = zones
 	state.tread_c = tread
 	state.surface_c = state.tread_c
-	state.carcass_c = clampf(next_carcass, ambient_temperature_c, 180.0)
-	state.gas_c = clampf(next_gas, ambient_temperature_c, 180.0)
+	state.carcass_c = clampf(next_carcass, -60.0, 180.0)
+	state.gas_c = clampf(next_gas, -60.0, 180.0)
 	advance_tire_pressure(index, dt if advance_pressure_leak else 0.0)
 	var pressure_loss := float(state.pressure_loss_fraction)
 	var carcass_failure := float(state.get("carcass_failure", 0.0))
@@ -404,14 +404,14 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	accumulate_tire_damage(state, friction_power_w, dt, compound, local_water)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
-	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s)
+	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s, local_air)
 	var cooling_w := float(losses.cooling_w)
 	var heat_fraction := float(brake_thermal_config.get("braking_heat_fraction", 0.95))
 	state.brake_heating_w = maxf(braking_power_w, 0.0) * clampf(heat_fraction, 0.0, 1.0)
 	state.brake_cooling_w = cooling_w
 	state.brake_convection_w_k = losses.convection_w_k
 	var next_disc_temperature := disc_temperature + (float(state.brake_heating_w) - cooling_w) / heat_capacity * dt
-	state.brake_disc_c = clampf(next_disc_temperature, ambient_temperature_c, 1200.0)
+	state.brake_disc_c = clampf(next_disc_temperature, -60.0, 1200.0)
 	# Actual solver work, not pedal position: holding a stopped wheel causes no wear.
 	var hot_start := float(brake_wear_config.get("overheat_start_c", 550.0))
 	var hot_full := maxf(float(brake_wear_config.get("overheat_full_c", 800.0)), hot_start + 1.0)
@@ -449,12 +449,12 @@ func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: floa
 	state.thermal_damage_fraction = clampf(float(state.get("thermal_damage_fraction", 0.0)) + severity * rate * maxf(dt, 0.0), 0.0, 1.0)
 
 
-func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> Dictionary:
+func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_c: float) -> Dictionary:
 	var rotor: Dictionary = brake_thermal_config.get("front" if index < 2 else "rear", {})
 	var length_m := maxf(float(rotor.get("rotor_outer_diameter_m", 0.245)), 0.01)
 	var area := brake_disc_area_m2[index]
 	var disc_k := temperature_c + 273.15
-	var air_k := ambient_temperature_c + 273.15
+	var air_k := air_c + 273.15
 	var film_k := maxf(0.5 * (disc_k + air_k), 200.0)
 	# Air at one atmosphere, Sutherland viscosity; conductivity approximation.
 	var viscosity := 1.716e-5 * pow(film_k / 273.15, 1.5) * 383.55 / (film_k + 110.4)
@@ -469,9 +469,9 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float) -> D
 	var forced_nusselt := 0.664 * sqrt(reynolds) * pow(prandtl, 1.0 / 3.0)
 	if reynolds > 500000.0:
 		forced_nusselt = (0.037 * pow(reynolds, 0.8) - 871.0) * pow(prandtl, 1.0 / 3.0)
-	var delta_t := maxf(temperature_c - ambient_temperature_c, 0.0)
+	var delta_t := temperature_c - air_c
 	var diffusivity := conductivity / (density * 1005.0)
-	var rayleigh := 9.80665 * delta_t * pow(length_m, 3.0) / (film_k * nu * diffusivity)
+	var rayleigh := 9.80665 * absf(delta_t) * pow(length_m, 3.0) / (film_k * nu * diffusivity)
 	# Churchill-Chu vertical-surface approximation for stationary cooling.
 	var natural_nusselt := pow(0.825 + 0.387 * pow(rayleigh, 1.0 / 6.0) / pow(1.0 + pow(0.492 / prandtl, 9.0 / 16.0), 8.0 / 27.0), 2.0)
 	var conductance := area * conductivity / length_m * maxf(natural_nusselt, forced_nusselt)

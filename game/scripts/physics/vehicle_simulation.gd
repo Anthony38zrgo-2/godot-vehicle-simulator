@@ -196,6 +196,18 @@ func set_weather_controller(controller) -> void:
 	weather_controller = controller
 
 
+func _sync_ambient_air_temperature() -> void:
+	# El reloj climático publica el aire físico en current_blend; el visual es independiente.
+	var fallback := float(thermal_model.tire_config.get("ambient_fallback_c", 25.0))
+	var air_c := fallback
+	if weather_controller != null and bool(weather_controller.get("calendar_active")):
+		var weather: Dictionary = weather_controller.current_blend
+		var candidate: Variant = weather.get("air_c", null)
+		if (candidate is float or candidate is int) and is_finite(float(candidate)):
+			air_c = clampf(float(candidate), -40.0, 60.0)
+	thermal_model.ambient_temperature_c = air_c
+
+
 func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 	if index < 0 or index >= wheel_contact_points.size():
 		return {}
@@ -595,6 +607,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	if dt <= 0.0 or wheel_positions_local.size() != 4 or wheel_contact_casts.size() != 4:
 		return
 	last_step_seconds = dt
+	_sync_ambient_air_temperature()
 	if contact_frequency_samples < 120:
 		contact_frequency_samples += 1
 		contact_frequency_elapsed_s += dt
