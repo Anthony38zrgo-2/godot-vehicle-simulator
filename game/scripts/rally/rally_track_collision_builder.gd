@@ -149,7 +149,9 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	var source_name := str(mesh_instance.name).to_lower()
 	var role := "terrain" if ("terrain" in source_name or "road" in source_name) else ("barrier" if "barrier" in source_name else "obstacle")
 	# Terrain banks are thin meshes: keep chassis contacts from their reverse side too.
-	if role in ["terrain", "barrier"] and shape is ConcavePolygonShape3D:
+	# Kenya trunks include thin/open surfaces: contacts must work from either
+	# side, just like the stage barriers, rather than depend on face winding.
+	if (role in ["terrain", "barrier"] or source_name.begins_with("collision_tree_trunks")) and shape is ConcavePolygonShape3D:
 		(shape as ConcavePolygonShape3D).backface_collision = true
 	static_body.set_meta("collision_role", role)
 	static_body.set_meta("is_stage_road", source_name.begins_with("collision_road"))

@@ -32,8 +32,6 @@ const CUTOUT_MATERIAL_NAMES := [
 	"plane3_wood",
 	"plane_bush",
 	"plane_bush2",
-	"river1_1",
-	"river2_1",
 	"rope",
 	"village_fence",
 	# Finlandia (shader_id == 5)
@@ -119,7 +117,10 @@ func adjust_material(material: BaseMaterial3D) -> void:
 	adjusted_materials[key] = true
 
 	var material_name := material.resource_name.to_lower()
-	var is_cutout := CUTOUT_MATERIAL_NAMES.has(material_name) or material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	# These original Kenya river textures use continuous alpha, even though the
+	# imported GLB marks them as cutouts. Keep their original mesh boundaries.
+	var is_river_water := material_name == "river1_1" or material_name == "river2_1"
+	var is_cutout := not is_river_water and (CUTOUT_MATERIAL_NAMES.has(material_name) or material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
 
 	# Sponsor banners already contain opposing faces with their own UVs.
 	# Drawing both sides of each face makes the coplanar fronts/backs fight.
@@ -151,7 +152,11 @@ func adjust_material(material: BaseMaterial3D) -> void:
 				material.set_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT, true)
 		# Si ya viene en false (CLAMP_TO_EDGE), se deja en false.
 
-	if is_cutout:
+	if is_river_water:
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		material.disable_receive_shadows = true
+	elif is_cutout:
 		# Punch-through alpha de PowerVR2
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 		material.alpha_scissor_threshold = alpha_scissor_threshold

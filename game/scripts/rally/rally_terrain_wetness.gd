@@ -11,12 +11,11 @@ const WETTABLE_NAME_FRAGMENTS := [
 	"tarmac", "tunnel", "crossroad", "fin_path", "railroad", "railway",
 	"bridge", "asphalt",
 	# Tierra/barro: selva, taludes de erosión y suelos de bosque/campo.
-	"jungle", "erosio", "forestground", "dirt", "mud", "field",
+	"jungle", "erosio", "forestground", "dirt", "mud", "field", "ditch",
 	# Sabana africana (Kenia): hierba seca que sí se humedece.
 	"savanna",
-	# NOTA: "snow" se excluye a propósito. La nieve de Suecia no debe
-	# oscurecerse como barro húmedo; sus materiales (snow_*, forest_snow_*)
-	# no contienen otros fragmentos de esta lista y quedan secos.
+	# Do not match "snow" alone: forest snow cards stay unchanged. Snow road,
+	# terrain and ditch surfaces share the same wet-ground response.
 ]
 
 @export var visual_root: Node3D
