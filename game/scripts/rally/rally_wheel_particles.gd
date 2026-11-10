@@ -611,6 +611,95 @@ func _set_optional(material: ShaderMaterial, uniform_name: String, value: Varian
 		material.set_shader_parameter(uniform_name, value)
 
 
+static var _proc_cache: Dictionary = {}
+
+
+## Sprites procedurales blancos: el tinte por Kind (TYPES/RAMPS) pone el
+## color, igual que con los PNG en escala de grises. Sustituyen a los PNG
+## fotograficos de polvo (`dust_01`), gravilla/barro (`mud_rd1`) y hojas
+## (`leaf_01..03`); la nieve ya usaba sprites minimos. Deterministas
+## (RNG local con semilla fija) y sin tocar las secuencias compartidas.
+static func proc_sprite(kind: String, variant: int = 0) -> Texture2D:
+	var key := "%s:%d" % [kind, variant]
+	if _proc_cache.has(key):
+		return _proc_cache[key] as Texture2D
+	var img: Image
+	match kind:
+		"dot":
+			img = _proc_soft_dot(128, 1000 + variant)
+		"speck":
+			img = _proc_speck(16, 2000 + variant)
+		"leaf":
+			img = _proc_leaf(32, 3000 + variant)
+		_:
+			img = _proc_soft_dot(64, 4000 + variant)
+	img.generate_mipmaps()
+	var tex := ImageTexture.create_from_image(img)
+	tex.set_meta("proc_sprite", true)
+	_proc_cache[key] = tex
+	return tex
+
+
+## Mancha radial suave con grano sutil (polvo en suspension).
+static func _proc_soft_dot(size: int, seed_value: int) -> Image:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var r := float(size) * 0.5
+	for y in size:
+		for x in size:
+			var dx := (float(x) + 0.5) / r - 1.0
+			var dy := (float(y) + 0.5) / r - 1.0
+			var d := sqrt(dx * dx + dy * dy)
+			var a := clampf(pow(1.0 - d, 1.6), 0.0, 1.0) * rng.randf_range(0.92, 1.0)
+			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
+	return img
+
+
+## Grano duro e irregular (gravilla, terrones) para sprites con recorte.
+static func _proc_speck(size: int, seed_value: int) -> Image:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var cx := (float(size) - 1.0) * 0.5
+	var cy := (float(size) - 1.0) * 0.5
+	var px := cx
+	var py := cy
+	for i in 72:
+		px = clampf(px + rng.randf_range(-1.6, 1.6), 0.0, float(size) - 1.0)
+		py = clampf(py + rng.randf_range(-1.6, 1.6), 0.0, float(size) - 1.0)
+		var hard := rng.randf() < 0.72
+		var col := Color(1.0, 1.0, 1.0, 1.0 if hard else 0.55)
+		img.set_pixel(int(px), int(py), col)
+		if int(px) + 1 < size:
+			img.set_pixel(int(px) + 1, int(py), col)
+	return img
+
+
+## Hojas pixeladas: trazos cortos diagonales mas motas sueltas.
+## La variante 0 es densa; 1 y 2, dispersas (como leaf_01..03).
+static func _proc_leaf(size: int, seed_value: int) -> Image:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var strokes := 9 if seed_value % 3 == 0 else 4
+	for s in strokes:
+		var x := rng.randf_range(3.0, float(size) - 3.0)
+		var y := rng.randf_range(3.0, float(size) - 3.0)
+		var dx := rng.randf_range(-1.0, 1.0)
+		var dy := rng.randf_range(-1.0, 1.0)
+		var length := rng.randi_range(3, 7)
+		for i in length:
+			var ix := clampi(int(x + dx * float(i)), 0, size - 1)
+			var iy := clampi(int(y + dy * float(i)), 0, size - 1)
+			img.set_pixel(ix, iy, Color(1.0, 1.0, 1.0, 1.0))
+	for m in 12:
+		img.set_pixel(rng.randi_range(0, size - 1), rng.randi_range(0, size - 1), Color(1.0, 1.0, 1.0, 0.85))
+	return img
+
+
 func _make_batch(texture: Texture2D, kind: Kind) -> void:
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
@@ -622,7 +711,7 @@ func _make_batch(texture: Texture2D, kind: Kind) -> void:
 		frames = 8.0
 	elif kind == Kind.BACKFIRE:
 		frames = 4.0
-	if texture.resource_path.begins_with("res://assets/vfx/cmr4/"):
+	if texture.resource_path.begins_with("res://assets/vfx/cmr4/") or bool(texture.get_meta("proc_sprite", false)):
 		frames = 1.0
 	material.set_shader_parameter("sprite_frames", frames)
 	if kind == Kind.RAIN_SPLAT or texture.resource_path.ends_with("splat.png"):

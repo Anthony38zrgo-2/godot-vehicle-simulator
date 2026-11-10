@@ -5,7 +5,7 @@ extends Node3D
 const CMR2_TEXTURES := "res://assets/vfx/cmr2/"
 const CMR4_TEXTURES := "res://assets/vfx/cmr4/"
 const BACKFIRE := preload(CMR2_TEXTURES + "backfire_atlas.png")
-const DUST_CORE := preload(CMR4_TEXTURES + "dust_01.png")
+var DUST_CORE: Texture2D
 const TIRE_SMOKE := preload(CMR4_TEXTURES + "smoke_01.png")
 const RAIN_SPLAT := preload(CMR2_TEXTURES + "splat.png")
 const RADIATOR_STEAM := preload(CMR4_TEXTURES + "smoke_01.png")
@@ -20,16 +20,10 @@ const SNOW_ROLL := [
 ]
 const SMALL_SPARK := preload(CMR4_TEXTURES + "sprk_sml.png")
 const SPARK := preload(CMR4_TEXTURES + "sprk_big.png")
-const GRAVEL := [
-	preload(CMR4_TEXTURES + "mud_rd1.png"),
-]
-const MUD_CLOD := preload(CMR4_TEXTURES + "mud_rd1.png")
-const LEAVES := [
-	preload(CMR4_TEXTURES + "leaf_01.png"),
-	preload(CMR4_TEXTURES + "leaf_02.png"),
-	preload(CMR4_TEXTURES + "leaf_03.png"),
-]
-const DIRT_CHIPS := preload(CMR4_TEXTURES + "mud_rd1.png")
+var GRAVEL: Array = []
+var MUD_CLOD: Texture2D
+var LEAVES: Array = []
+var DIRT_CHIPS: Texture2D
 const SNOW_MIN_MM := 0.25
 # Nieve pesada: el spray SNOW sale a la cadencia del polvo (intervalo 3) y la
 # nube SMOKE, mas lenta, a su propio ritmo para simular polvo en suspension.
@@ -88,6 +82,19 @@ func _ready() -> void:
 	if vehicle == null:
 		set_physics_process(false)
 		return
+	# Sprites procedurales (sin PNG): el tinte por Kind los colorea igual
+	# que a los PNG en escala de grises. Un solo grano compartido para
+	# gravilla/barro, como el antiguo mud_rd1.png compartido.
+	DUST_CORE = WHEEL_PARTICLES.proc_sprite("dot")
+	var speck := WHEEL_PARTICLES.proc_sprite("speck")
+	GRAVEL = [speck]
+	MUD_CLOD = speck
+	DIRT_CHIPS = speck
+	LEAVES = [
+		WHEEL_PARTICLES.proc_sprite("leaf", 0),
+		WHEEL_PARTICLES.proc_sprite("leaf", 1),
+		WHEEL_PARTICLES.proc_sprite("leaf", 2),
+	]
 	tire_tracks = TIRE_TRACKS.new()
 	tire_tracks.name = "TireTracks"
 	add_child(tire_tracks)
