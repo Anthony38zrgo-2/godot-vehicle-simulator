@@ -31,6 +31,9 @@ const LEAVES := [
 ]
 const DIRT_CHIPS := preload(CMR4_TEXTURES + "mud_rd1.png")
 const SNOW_MIN_MM := 0.25
+# Nieve pesada: el spray SNOW sale a la cadencia del polvo (intervalo 3) y la
+# nube SMOKE, mas lenta, a su propio ritmo para simular polvo en suspension.
+const SNOW_HAZE_TICKS := 9
 const WHEEL_PARTICLES := preload("res://scripts/rally/rally_wheel_particles.gd")
 const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
 const ADDITIVE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
@@ -61,6 +64,7 @@ var rain_splat_ticks := 0
 var wheel_previous_point: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var wheel_has_previous_point: Array[bool] = [false, false, false, false]
 var wheel_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var wheel_snow_haze: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var impact_pool: Array[GPUParticles3D] = []
 var impact_busy: Array[float] = []
 var impact_cooldown: float = 0.0
@@ -289,6 +293,7 @@ func advance_wheel_particles(wetness: float) -> void:
 	var wind := Vector3(cos(direction), 0.0, sin(direction)) * float(climate.get("wind_m_s", 0.0))
 	for i in 4:
 		wheel_cooldowns[i] = maxf(0.0, wheel_cooldowns[i] - WHEEL_PARTICLES.STEP)
+		wheel_snow_haze[i] = maxf(0.0, wheel_snow_haze[i] - WHEEL_PARTICLES.STEP)
 	wheel_particles.step(wind)
 	for i in 4:
 		update_wheel(i, wetness)
@@ -408,6 +413,10 @@ func update_wheel(index: int, wetness: float) -> void:
 	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
 	if snow_mm >= SNOW_MIN_MM or surface == "snowdeep":
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), source + normal * 0.09, velocity + normal * 1.3, point, normal)
+		if surface == "snowdeep" and wheel_snow_haze[index] <= 0.0:
+			wheel_snow_haze[index] = SNOW_HAZE_TICKS * WHEEL_PARTICLES.STEP
+			var haze_velocity := rearward * 0.8 + normal * 0.6
+			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SMOKE, TIRE_SMOKE, source + normal * 0.35, haze_velocity, point, normal, clampf(strength * 0.7, 0.0, 1.0))
 	elif wet >= 0.35:
 		var spray := smoothstep(0.35, 1.0, wet)
 		var splash := SPLASH_PAVED if paved else SPLASH_LOOSE
@@ -628,6 +637,7 @@ func clear_wheel_bursts() -> void:
 	exhaust_ticks = 0
 	rain_splat_ticks = 0
 	wheel_cooldowns.fill(0.0)
+	wheel_snow_haze.fill(0.0)
 	wheel_previous_surface.fill("")
 	wheel_was_wet.fill(false)
 	wheel_has_previous_point.fill(false)
