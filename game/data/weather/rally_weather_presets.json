@@ -446,6 +446,8 @@
   "regional_profiles": {
     "russia_summer": {
       "label": "Rusia veraniega (junio, grava/tierra)",
+      "air_offset_c": 0.0,
+      "irradiance_scale": 1.0,
       "initial_state_weights": {
         "sunny": 2.8,
         "clear": 3.0,
@@ -552,6 +554,8 @@
     },
     "kenya_safari": {
       "label": "Safari de Kenia (julio, grava/tierra seca y calurosa)",
+      "air_offset_c": 4.0,
+      "irradiance_scale": 1.1,
       "initial_state_weights": {
         "sunny": 2.8,
         "clear": 3.0,
@@ -577,9 +581,9 @@
       },
       "surface_profiles": {
         "Gravel": {
-          "solar_absorption": 0.62,
+          "solar_absorption": 0.68,
           "thermal_capacity_kj_m2_k": 900.0,
-          "air_exchange_w_m2_k": 9.0,
+          "air_exchange_w_m2_k": 8.0,
           "water_exchange_w_m2_k": 55.0,
           "drainage_mm_h": 6.0,
           "evaporation_mm_h_per_100w": 0.35,
@@ -589,7 +593,7 @@
         "Dirt": {
           "solar_absorption": 0.66,
           "thermal_capacity_kj_m2_k": 1050.0,
-          "air_exchange_w_m2_k": 8.0,
+          "air_exchange_w_m2_k": 7.0,
           "water_exchange_w_m2_k": 50.0,
           "drainage_mm_h": 4.5,
           "evaporation_mm_h_per_100w": 0.32,
@@ -597,9 +601,9 @@
           "snow_grip_response": 1.0
         },
         "Road": {
-          "solar_absorption": 0.78,
+          "solar_absorption": 0.85,
           "thermal_capacity_kj_m2_k": 1400.0,
-          "air_exchange_w_m2_k": 10.0,
+          "air_exchange_w_m2_k": 8.5,
           "water_exchange_w_m2_k": 60.0,
           "drainage_mm_h": 9.0,
           "evaporation_mm_h_per_100w": 0.4,
@@ -609,7 +613,7 @@
         "Grass": {
           "solar_absorption": 0.55,
           "thermal_capacity_kj_m2_k": 700.0,
-          "air_exchange_w_m2_k": 11.0,
+          "air_exchange_w_m2_k": 9.5,
           "water_exchange_w_m2_k": 45.0,
           "drainage_mm_h": 7.0,
           "evaporation_mm_h_per_100w": 0.38,
@@ -619,7 +623,7 @@
         "Sand": {
           "solar_absorption": 0.5,
           "thermal_capacity_kj_m2_k": 750.0,
-          "air_exchange_w_m2_k": 10.0,
+          "air_exchange_w_m2_k": 8.5,
           "water_exchange_w_m2_k": 48.0,
           "drainage_mm_h": 12.0,
           "evaporation_mm_h_per_100w": 0.42,
@@ -642,8 +646,8 @@
           0.0
         ],
         "initial_ground_c": [
-          22.0,
-          32.0
+          28.0,
+          38.0
         ],
         "initial_air_c_follows_preset": true,
         "shared_sections": []
@@ -658,6 +662,8 @@
     },
     "finland_autumn": {
       "label": "Finlandia otoñal (agosto, grava rápida y húmedad)",
+      "air_offset_c": -2.0,
+      "irradiance_scale": 0.95,
       "initial_state_weights": {
         "sunny": 2.8,
         "clear": 3.0,
@@ -764,6 +770,8 @@
     },
     "sweden_winter": {
       "label": "Suecia invernal (febrero, nieve/hielo bajo cero)",
+      "air_offset_c": -12.0,
+      "irradiance_scale": 0.85,
       "initial_state_weights": {
         "sunny": 1.2,
         "clear": 1.6,
@@ -789,9 +797,9 @@
       },
       "surface_profiles": {
         "Gravel": {
-          "solar_absorption": 0.62,
-          "thermal_capacity_kj_m2_k": 900.0,
-          "air_exchange_w_m2_k": 9.0,
+          "solar_absorption": 0.35,
+          "thermal_capacity_kj_m2_k": 720.0,
+          "air_exchange_w_m2_k": 11.0,
           "water_exchange_w_m2_k": 55.0,
           "drainage_mm_h": 6.0,
           "evaporation_mm_h_per_100w": 0.35,
@@ -799,9 +807,9 @@
           "snow_grip_response": 1.0
         },
         "Dirt": {
-          "solar_absorption": 0.66,
-          "thermal_capacity_kj_m2_k": 1050.0,
-          "air_exchange_w_m2_k": 8.0,
+          "solar_absorption": 0.38,
+          "thermal_capacity_kj_m2_k": 840.0,
+          "air_exchange_w_m2_k": 11.0,
           "water_exchange_w_m2_k": 50.0,
           "drainage_mm_h": 4.5,
           "evaporation_mm_h_per_100w": 0.32,
@@ -809,9 +817,9 @@
           "snow_grip_response": 1.0
         },
         "Road": {
-          "solar_absorption": 0.78,
-          "thermal_capacity_kj_m2_k": 1400.0,
-          "air_exchange_w_m2_k": 10.0,
+          "solar_absorption": 0.45,
+          "thermal_capacity_kj_m2_k": 1120.0,
+          "air_exchange_w_m2_k": 12.0,
           "water_exchange_w_m2_k": 60.0,
           "drainage_mm_h": 9.0,
           "evaporation_mm_h_per_100w": 0.4,
@@ -819,9 +827,9 @@
           "snow_grip_response": 0.95
         },
         "Grass": {
-          "solar_absorption": 0.55,
-          "thermal_capacity_kj_m2_k": 700.0,
-          "air_exchange_w_m2_k": 11.0,
+          "solar_absorption": 0.3,
+          "thermal_capacity_kj_m2_k": 560.0,
+          "air_exchange_w_m2_k": 12.0,
           "water_exchange_w_m2_k": 45.0,
           "drainage_mm_h": 7.0,
           "evaporation_mm_h_per_100w": 0.38,
@@ -829,9 +837,9 @@
           "snow_grip_response": 1.0
         },
         "Sand": {
-          "solar_absorption": 0.5,
-          "thermal_capacity_kj_m2_k": 750.0,
-          "air_exchange_w_m2_k": 10.0,
+          "solar_absorption": 0.3,
+          "thermal_capacity_kj_m2_k": 600.0,
+          "air_exchange_w_m2_k": 11.0,
           "water_exchange_w_m2_k": 48.0,
           "drainage_mm_h": 12.0,
           "evaporation_mm_h_per_100w": 0.42,
@@ -870,6 +878,8 @@
     },
     "switzerland_alpine": {
       "label": "Suiza alpina (septiembre, asfalto de montaña)",
+      "air_offset_c": 0.0,
+      "irradiance_scale": 1.0,
       "initial_state_weights": {
         "sunny": 2.8,
         "clear": 3.0,

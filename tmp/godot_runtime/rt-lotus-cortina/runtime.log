@@ -1,0 +1,16 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RALLY_VFX_READY wheel_particle_capacity=400 intensity=0.975
+RALLY_MASS_RECENTER {"cgz":0.51,"fdist":0.52,"shift":[0.0,-0.0116841699928045,-0.0431195870041847]}
+RALLY_SUSPENSION_FREQUENCY {"front":{"c_bump_ns_m":2918.16253089144,"c_rebound_ns_m":3890.88337452192,"hz":1.7,"k_n_m":31170.1050947004,"mass_kg":273.199995021722},"rear":{"c_bump_ns_m":2932.61396657599,"c_rebound_ns_m":3910.15195543466,"hz":1.8,"k_n_m":33167.0825755559,"mass_kg":259.300004978278}}
+RALLY_DRIVELINE_COMPLIANCE {"autoblip_enabled":false,"damping_nms_per_rad":130.0,"enabled":true,"output_inertia_kg_m2":0.2,"stiffness_nm_per_rad":8500.0}
+RALLY_VEHICLE_BLOB_SHADOW_READY
+RALLY_UNSPRUNG_READY {"hub_bodies":4,"hub_masses_kg":[25.0,25.0,25.0,25.0],"sprung_mass_kg":1065.0}
+RALLY_VEHICLE_PROFILE_READY id=rt-lotus-cortina sprung_mass_kg=1065.0 vehicle_mass_kg=1165.0 domains=15 contact_type=ShapeCast3D shape_count=4
+RALLY_PROVING_GROUND_READY physics_engine=Jolt Physics
+RALLY_CONTACT_FREQUENCY {"configured_hz":120,"dt_s":0.00833333376795053,"integration_hz":119.008258256046,"query_type":"ShapeCast3D","wheel_count":4}
+RALLY_UNSPRUNG_STATE {"normal_load_n":[2906.06731985563,3091.46326923639,2609.67536936185,2585.46171991991],"radial_deflection_m":[0.0233627527141843,0.024537677538908,0.0208327340106899,0.0203918756572841],"spring_force_n":[2867.51109279251,2701.55565133074,2526.44856472181,2365.7116968574],"sprung_mass_kg":1065.0,"suspension_compression_m":[0.0230402424931526,0.0235057789832354,-0.0187262613326311,-0.0182853415608406],"vehicle_mass_kg":1164.99807213272}
+RT_VEHICLE_CONTRACT {"failures":[],"passed":true,"rendered":false,"vehicle":"rt-lotus-cortina","visual_review":"pending_human_review"}
+
+WARNING: 60 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

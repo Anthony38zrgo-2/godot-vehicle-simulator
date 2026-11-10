@@ -130,12 +130,20 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	var requested_compound := str(choices.get("compound_id", choices.get("compound", "")))
 	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
 	var default_compound := str(tire_rules.get("default_compound_id", "gravel_normal"))
+	var allowed_compound_ids: Array = get_allowed_compound_ids()
 	if not CompoundScript.is_valid(default_compound):
 		error = "Compuesto predeterminado inexistente: " + default_compound
 		return false
-	if not requested_compound.is_empty() and not CompoundScript.is_valid(requested_compound):
-		error = "Compuesto solicitado inexistente: " + requested_compound
+	if not allowed_compound_ids.is_empty() and not allowed_compound_ids.has(default_compound):
+		error = "Compuesto predeterminado no permitido en este evento: " + default_compound
 		return false
+	if not requested_compound.is_empty():
+		if not CompoundScript.is_valid(requested_compound):
+			error = "Compuesto solicitado inexistente: " + requested_compound
+			return false
+		if not allowed_compound_ids.is_empty() and not allowed_compound_ids.has(requested_compound):
+			error = "Compuesto no permitido en este evento: " + requested_compound
+			return false
 	draft_compound_id = requested_compound if not requested_compound.is_empty() else default_compound
 	confirmed_compound_id = default_compound
 	compound_catalog = CompoundScript.load_catalog()
@@ -146,7 +154,10 @@ func begin_event(choices: Dictionary = {}) -> bool:
 		return false
 	# La selección es borrador hasta confirmación explícita del reglaje.
 	if bool(choices.get("setup_accepted", false)):
-		confirm_setup(draft_compound_id, choices.get("setup_values", {}))
+		var setup_result: Dictionary = confirm_setup(draft_compound_id, choices.get("setup_values", {}))
+		if not bool(setup_result.get("ok", false)):
+			error = str(setup_result.get("error", "Reglaje inicial inválido"))
+			return false
 	else:
 		# Ventana inicial pendiente (antes de Stage 1, pestaña Neumáticos).
 		_update_pending_window()
@@ -197,6 +208,13 @@ func setup_windows() -> Array:
 	return (event_doc.get("setup_windows", []) as Array).duplicate(true)
 
 
+func get_allowed_compound_ids() -> Array:
+	var rules: Dictionary = event_doc.get("tire_rules", {})
+	return (
+		rules.get("allowed_compound_ids", []) as Array
+	).duplicate()
+
+
 func _update_pending_window() -> void:
 	pending_window = {}
 	var current := current_stage_id()
@@ -228,14 +246,33 @@ func is_compound_change_allowed() -> bool:
 	return not pending_window.is_empty()
 
 
-func confirm_setup(compound_id: String, values: Dictionary = {}) -> Dictionary:
-	# Idempotente: doble clic no duplica cambios ni servicio.
-	if setup_confirmed and str(compound_id) == confirmed_compound_id and (values.is_empty() or values == setup_values):
-		return {"ok": true, "already": true, "compound": confirmed_compound_id}
-	var tire_rules: Dictionary = event_doc.get("tire_rules", {})
+func confirm_setup(
+	compound_id: String,
+	values: Dictionary = {},
+	wheel_compounds: Dictionary = {}
+) -> Dictionary:
+	var allowed_ids: Array = get_allowed_compound_ids()
 	if not CompoundScript.is_valid(compound_id):
 		error = "Compuesto desconocido: " + compound_id
 		return {"ok": false, "error": error}
+	if not allowed_ids.is_empty() and not allowed_ids.has(compound_id):
+		error = "Compuesto no permitido en este evento: " + compound_id
+		return {"ok": false, "error": error}
+	if not wheel_compounds.is_empty():
+		for corner in ["FL", "FR", "RL", "RR"]:
+			var wheel_cid := str(wheel_compounds.get(corner, ""))
+			if wheel_cid.is_empty():
+				error = "Compuesto desconocido en rueda " + corner
+				return {"ok": false, "error": error}
+			if not CompoundScript.is_valid(wheel_cid):
+				error = "Compuesto desconocido: " + wheel_cid
+				return {"ok": false, "error": error}
+			if not allowed_ids.is_empty() and not allowed_ids.has(wheel_cid):
+				error = "Compuesto no permitido en este evento: " + wheel_cid
+				return {"ok": false, "error": error}
+	# Idempotente: doble clic no duplica cambios ni servicio.
+	if setup_confirmed and str(compound_id) == confirmed_compound_id and (values.is_empty() or values == setup_values):
+		return {"ok": true, "already": true, "compound": confirmed_compound_id}
 	# El cambio de compuesto solo está habilitado en ventanas JSON; fuera de
 	# ventana se bloquea (el reglaje general sigue sus propias restricciones).
 	if not pending_window.is_empty():
@@ -303,13 +340,29 @@ func _assign_rival_compounds() -> void:
 
 
 func _rival_compound_for_weather(wet: bool) -> String:
+	var allowed: Array = get_allowed_compound_ids()
 	if str(event_doc.get("event_id", "")) == "sweden_rally":
-		return "snow_studded"
+		if allowed.is_empty() or allowed.has("snow_studded"):
+			return "snow_studded"
+	var rules: Dictionary = event_doc.get("tire_rules", {})
+	var preferred := str(rules.get("wet_compound_id" if wet else "dry_compound_id", ""))
+	if not preferred.is_empty() and CompoundScript.is_valid(preferred):
+		if allowed.is_empty() or allowed.has(preferred):
+			return preferred
 	var definitions: Dictionary = compound_catalog.get("compounds", {})
-	var chosen := confirmed_compound_id
-	var best := INF
+	var candidates: Array = []
 	for cid in definitions:
-		var model: Dictionary = definitions[cid]
+		if allowed.is_empty() or allowed.has(cid):
+			candidates.append(str(cid))
+	if candidates.is_empty():
+		for cid in definitions:
+			candidates.append(str(cid))
+	var chosen := confirmed_compound_id
+	if not candidates.has(chosen) and not candidates.is_empty():
+		chosen = str(candidates[0])
+	var best := INF
+	for cid in candidates:
+		var model: Dictionary = definitions.get(cid, {})
 		var score := float(model.get("water_grip_loss_per_mm", 0.12)) if wet else float(model.get("dry_wear_multiplier", 1.0))
 		if score < best:
 			best = score

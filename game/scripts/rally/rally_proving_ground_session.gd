@@ -4,7 +4,7 @@ extends Node3D
 const SPAWN_POSITION := Vector3(0.0, 0.12, 0.0)
 # Altura de spawn medida desde el plano de contacto de las ruedas, no desde el
 # origen del cuerpo: un descenso mayor que el recorrido bump del perfil hace que
-# el coche aterrice sobre los topes de suspension (356B: 100 mm reales).
+# el coche aterrice sobre los topes de suspension.
 const SPAWN_CLEARANCE_METRES := 0.02
 const SPAWN_HEADING := 0.0
 const FALL_RESET_HEIGHT := -25.0

@@ -214,6 +214,13 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	# Deep off-track snow keeps its own contact identity (SnowDeep group);
 	# the original physical group is preserved only as metadata.
 	# The global Grass mapping and the GLB geometry are untouched.
+	# Switzerland: all main road collision meshes are asphalt.
+	# Preserve off-track terrain classifications.
+	if (
+		collision_scene_path.contains("/switzerland_")
+		and source_name.begins_with("collision_road")
+	):
+		surface_group = "Road"
 	var original_group := surface_group
 	if snow_deep:
 		surface_group = "SnowDeep"

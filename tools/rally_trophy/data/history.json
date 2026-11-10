@@ -905,78 +905,8 @@
         "spring and damper rates",
         "differential setup"
       ]
-    },
-    "porsche-356b-2000gs": {
-      "name": "Porsche 356B Carrera 2000 GS",
-      "sources": {
-        "mod": {
-          "file": "Porsche356Carrera2000GS_by_sharbo.zip/Porsche356bT6CoupeFTC_v30.rtp",
-          "sha256": "98aa55c502e9e41fa35f8c5871e834385823b1699ae0bb1c7df7016fc51b5b1d",
-          "note": "sharbo T6 mod: FTC 1966cc 175bhp variant used as game-derived base; std 130bhp variant archived"
-        },
-        "ficha": {
-          "file": "porsche_356b_carrera_2_2000gs_ficha_tecnica.md",
-          "note": "FIA #71 (oct 1962) dossier: GS 130 CV/162 Nm, GS/GT Werk 155-160 CV/176 Nm, ring brakes, Ausgleichfeder"
-        }
-      },
-      "facts": {
-        "displacement_cc": {
-          "value": 1966,
-          "source": "ficha",
-          "locator": "§1.3/§3 Type 587 92x74",
-          "status": "documented"
-        },
-        "drive": {
-          "value": "RWD",
-          "source": "mod_rtp",
-          "locator": "car.ini FrontTraction=0",
-          "status": "documented"
-        },
-        "cylinders": {
-          "value": 4,
-          "source": "ficha",
-          "locator": "§1 Type 587 boxer",
-          "status": "documented"
-        },
-        "wheelbase_m": {
-          "value": 2.1,
-          "source": "ficha",
-          "locator": "§3 tabla FIA #71",
-          "status": "documented"
-        },
-        "track_front_m": {
-          "value": 1.306,
-          "source": "ficha",
-          "locator": "§3 1.306/1.272",
-          "status": "documented"
-        },
-        "track_rear_m": {
-          "value": 1.272,
-          "source": "ficha",
-          "locator": "§3 1.306/1.272",
-          "status": "documented"
-        },
-        "fuel_l": {
-          "value": 55,
-          "source": "ficha",
-          "locator": "§3 masa operativa 55 L",
-          "status": "documented"
-        },
-        "mass_kg": {
-          "value": 890,
-          "source": "ficha",
-          "locator": "§2.3 coupe GT aluminio, vacio",
-          "status": "documented"
-        }
-      },
-      "variant_note": "1962-65 Grupo 3 GT. Game base = FTC mod (1966cc, BBBD-like box). Operating mass 1065 = 890 + 150 crew + tools + 55 L fuel; steel GS 970-1010 heavier.",
-      "review": [
-        "period rally mass and weight distribution",
-        "competition torque curve and gearing",
-        "spring and damper rates",
-        "differential setup"
-      ]
     }
+
   },
   "mass_definition": "Base homologation figures, normally with operating fluids and spare, without fuel; confirm tools and equipment definitions in the cited form. DIN curb mass is separate."
 }

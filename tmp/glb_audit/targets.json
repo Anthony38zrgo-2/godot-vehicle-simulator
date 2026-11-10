@@ -1,0 +1,422 @@
+[
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "damage/escort_damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\damage\\escort_damage.glb"
+  },
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "ford_escort_rs2000_1971_chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\ford_escort_rs2000_1971_chassis.glb"
+  },
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "ford_escort_rs2000_1971_wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\ford_escort_rs2000_1971_wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "ford_escort_rs2000_1971_wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\ford_escort_rs2000_1971_wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\ford_escort_rs2000_1971_wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "ford_escort_rs2000_1971",
+    "rel_path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\ford_escort_rs2000_1971\\ford_escort_rs2000_1971_wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "damage/fulvia_damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\damage\\fulvia_damage.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_chassis.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-escort-rs2000",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-escort-rs2000\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-fiat-abarth-1000",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-fiat-abarth-1000\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lancia-stratos",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-stratos\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-lotus-cortina",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lotus-cortina\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-mini-cooper-s",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-mini-cooper-s\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-opel-kadett",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-opel-kadett\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-porsche-356b-2000gs",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-porsche-356b-2000gs\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-saab-96-v4",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-saab-96-v4\\wheel_rear_right.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\chassis.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\damage\\damage.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "wheel_front_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\wheel_front_left.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "wheel_front_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\wheel_front_right.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "wheel_rear_left.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\wheel_rear_left.glb"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "wheel_rear_right.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\wheel_rear_right.glb"
+  }
+]

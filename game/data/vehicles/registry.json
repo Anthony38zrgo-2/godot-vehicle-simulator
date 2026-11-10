@@ -50,18 +50,6 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Alpine Renault A110 1600"
     },
-    "rt-escort-rs2000": {
-      "Id": "rt-escort-rs2000",
-      "Assets": "rt/rt-escort-rs2000",
-      "Profile": "rt/rt-escort-rs2000",
-      "Scene": "rt/rt-escort-rs2000",
-      "Stage": "rt/rt-escort-rs2000_stage",
-      "Proving": "rt/rt-escort-rs2000_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-escort-rs2000",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Ford Escort RS2000"
-    },
     "rt-fiat-abarth-1000": {
       "Id": "rt-fiat-abarth-1000",
       "Assets": "rt/rt-fiat-abarth-1000",
@@ -73,18 +61,6 @@
       "SoundBank": "rt-fiat-abarth-1000",
       "ValidateSoundHashes": true,
       "DisplayName": "Fiat 600 Abarth"
-    },
-    "rt-lancia-fulvia": {
-      "Id": "rt-lancia-fulvia",
-      "Assets": "rt/rt-lancia-fulvia",
-      "Profile": "rt/rt-lancia-fulvia",
-      "Scene": "rt/rt-lancia-fulvia",
-      "Stage": "rt/rt-lancia-fulvia_stage",
-      "Proving": "rt/rt-lancia-fulvia_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lancia-fulvia",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Lancia Fulvia Coupé HF"
     },
     "rt-lancia-stratos": {
       "Id": "rt-lancia-stratos",
@@ -157,31 +133,6 @@
       "SoundBank": "rt-volvo-amazon",
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
-    },
-    "rt-porsche-356a": {
-      "Id": "rt-porsche-356a",
-      "Assets": "rt/rt-porsche-356a",
-      "Profile": "rt/rt-porsche-356a",
-      "Scene": "rt/rt-porsche-356a",
-      "Stage": "rt/rt-porsche-356a_stage",
-      "Proving": "rt/rt-porsche-356a_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-porsche-356a",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Porsche 356A 1600GS Carrera GT"
-    },
-    "rt-porsche-356b-2000gs": {
-      "Id": "rt-porsche-356b-2000gs",
-      "Assets": "rt/rt-porsche-356b-2000gs",
-      "Profile": "rt/rt-porsche-356b-2000gs",
-      "Scene": "rt/rt-porsche-356b-2000gs",
-      "Stage": "rt/rt-porsche-356b-2000gs_stage",
-      "Proving": "rt/rt-porsche-356b-2000gs_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-porsche-356b-2000gs",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Porsche 356B Carrera 2000 GS",
-      "AssetNote": "own T6 mesh exported from sharbo mod (Blender pipeline); sounds still from rt-porsche-356a"
     }
   }
 }

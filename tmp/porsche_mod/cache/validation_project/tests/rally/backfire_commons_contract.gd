@@ -13,7 +13,7 @@ func _initialize() -> void:
 func run() -> void:
 	print("--- Running Backfire Commons Contract ---")
 	
-	var test_vehicles := ["rt-porsche-356a", "rt-escort-rs2000", "fulvia"]
+	var test_vehicles := ["rt-escort-rs2000", "fulvia"]
 	var registry_file := FileAccess.open("res://data/vehicles/registry.json", FileAccess.READ)
 	var registry: Dictionary = JSON.parse_string(registry_file.get_as_text()).get("vehicles", {})
 	

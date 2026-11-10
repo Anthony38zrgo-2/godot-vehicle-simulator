@@ -75,6 +75,7 @@
       "exhaust_heat_fraction": 0.6,
       "heat_generation_per_mechanical_power": 1.5,
       "idle_heat_generation_watts": 12000.0,
+      "solar_heat_gain_w_per_kw_m2": 80.0,
       "initial_engine_block_temperature_celsius": 85.0,
       "initial_oil_temperature_celsius": 85.0,
       "initial_water_temperature_celsius": 82.0,
@@ -97,12 +98,12 @@
         "warning_ratio": 0.5,
         "warning_pressure_bar": 0.8
       },
-      "oil_sump_cooling_conductance_watts_per_kelvin": 12.0,
+      "oil_sump_cooling_conductance_watts_per_kelvin": 22.0,
       "oil_to_water_conductance_watts_per_kelvin": 250.0,
       "water_cooling_duct": {
         "air_specific_heat_joules_per_kilogram_kelvin": 1005.0,
         "area_response_exponent": 1.0,
-        "base_cooling_conductance_watts_per_kelvin": 70.0,
+        "base_cooling_conductance_watts_per_kelvin": 85.0,
         "discharge_coefficient": 0.72,
         "drag_coefficient": 0.5,
         "heat_exchanger_conductance_watts_per_kelvin": 4000.0,

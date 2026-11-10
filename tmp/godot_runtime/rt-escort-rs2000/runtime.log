@@ -1,0 +1,16 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RALLY_VFX_READY wheel_particle_capacity=400 intensity=0.975
+RALLY_MASS_RECENTER {"cgz":0.485,"fdist":0.52,"shift":[0.0,-0.0129206320270896,-0.0362633727490902]}
+RALLY_SUSPENSION_FREQUENCY {"front":{"c_bump_ns_m":2640.44579349493,"c_rebound_ns_m":3520.59439132657,"hz":1.7,"k_n_m":28203.6973639555,"mass_kg":247.200000000541},"rear":{"c_bump_ns_m":2661.18030499672,"c_rebound_ns_m":3548.2404066623,"hz":1.8,"k_n_m":30097.2401858,"mass_kg":235.299999999459}}
+RALLY_DRIVELINE_COMPLIANCE {"autoblip_enabled":false,"damping_nms_per_rad":130.0,"enabled":true,"output_inertia_kg_m2":0.2,"stiffness_nm_per_rad":8500.0}
+RALLY_VEHICLE_BLOB_SHADOW_READY
+RALLY_UNSPRUNG_READY {"hub_bodies":4,"hub_masses_kg":[25.0,25.0,25.0,25.0],"sprung_mass_kg":965.0}
+RALLY_VEHICLE_PROFILE_READY id=rt-escort-rs2000 sprung_mass_kg=965.0 vehicle_mass_kg=1065.0 domains=15 contact_type=ShapeCast3D shape_count=4
+RALLY_PROVING_GROUND_READY physics_engine=Jolt Physics
+RALLY_CONTACT_FREQUENCY {"configured_hz":120,"dt_s":0.00833333376795053,"integration_hz":119.008258256046,"query_type":"ShapeCast3D","wheel_count":4}
+RALLY_UNSPRUNG_STATE {"normal_load_n":[3128.51907694483,2840.39107524271,2346.59651022946,2071.40833069702],"radial_deflection_m":[0.0246759991464289,0.0226824028879015,0.01919450854616,0.0172331256280177],"spring_force_n":[2832.01208694015,2759.50774783111,1851.3546083127,1783.26647169809],"sprung_mass_kg":964.988952636719,"suspension_compression_m":[0.00532368756830692,0.00403605913743377,-0.00231975223869085,-0.00363959441892803],"vehicle_mass_kg":1064.98386197369}
+RT_VEHICLE_CONTRACT {"failures":[],"passed":true,"rendered":false,"vehicle":"rt-escort-rs2000","visual_review":"pending_human_review"}
+
+WARNING: 60 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

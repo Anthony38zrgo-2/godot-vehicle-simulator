@@ -1,0 +1,16 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RALLY_VFX_READY wheel_particle_capacity=400 intensity=0.975
+RALLY_MASS_RECENTER {"cgz":0.525,"fdist":0.61,"shift":[0.0,-0.0129617806524038,-0.137885421514511]}
+RALLY_SUSPENSION_FREQUENCY {"front":{"c_bump_ns_m":3084.89933834415,"c_rebound_ns_m":4113.19911779221,"hz":1.7,"k_n_m":32951.0901345804,"mass_kg":288.809987434347},"rear":{"c_bump_ns_m":2173.61783365051,"c_rebound_ns_m":2898.15711153401,"hz":1.8,"k_n_m":24583.0385444695,"mass_kg":192.190012565653}}
+RALLY_DRIVELINE_COMPLIANCE {"autoblip_enabled":false,"damping_nms_per_rad":130.0,"enabled":true,"output_inertia_kg_m2":0.2,"stiffness_nm_per_rad":8500.0}
+RALLY_VEHICLE_BLOB_SHADOW_READY
+RALLY_UNSPRUNG_READY {"hub_bodies":4,"hub_masses_kg":[25.0,25.0,25.0,25.0],"sprung_mass_kg":962.0}
+RALLY_VEHICLE_PROFILE_READY id=rt-saab-96-v4 sprung_mass_kg=962.0 vehicle_mass_kg=1062.0 domains=15 contact_type=ShapeCast3D shape_count=4
+RALLY_PROVING_GROUND_READY physics_engine=Jolt Physics
+RALLY_CONTACT_FREQUENCY {"configured_hz":120,"dt_s":0.00833333376795053,"integration_hz":119.999993741513,"query_type":"ShapeCast3D","wheel_count":4}
+RALLY_UNSPRUNG_STATE {"normal_load_n":[4101.55915135061,3971.97923019273,1198.58202179869,1093.7576893157],"radial_deflection_m":[0.035627644503887,0.0347039383279249,0.0119825776265382,0.011114569724397],"spring_force_n":[3783.29942641904,3911.43591121054,814.35515778822,914.638031136278],"sprung_mass_kg":962.0,"suspension_compression_m":[0.018968366086483,0.019892418757081,-0.0246433224529028,-0.0237749889492989],"vehicle_mass_kg":1061.99037126196}
+RT_VEHICLE_CONTRACT {"failures":[],"passed":true,"rendered":false,"vehicle":"rt-saab-96-v4","visual_review":"pending_human_review"}
+
+WARNING: 60 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

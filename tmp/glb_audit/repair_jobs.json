@@ -1,0 +1,6292 @@
+[
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "damage/fulvia_damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\damage\\fulvia_damage.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 6,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "body_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "hood_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk_crash_mesh",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "body_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\fulvia_damage\\body_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1630,
+          "raw_faces": 2288,
+          "welded_vertices": 1190,
+          "welded_faces": 2288,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 44,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1630,
+          "pymeshlab_raw_faces": 2288,
+          "elongated_or_folded_faces": 11,
+          "meshlib_open_boundaries": 52
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(44)"
+        ]
+      },
+      {
+        "node_name": "hood_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\fulvia_damage\\hood_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 144,
+          "raw_faces": 194,
+          "welded_vertices": 95,
+          "welded_faces": 184,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 8,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 144,
+          "pymeshlab_raw_faces": 194,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(8)"
+        ]
+      },
+      {
+        "node_name": "interior_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\fulvia_damage\\interior_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": false
+          },
+          {
+            "name": "windshield_interior",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 621,
+          "raw_faces": 722,
+          "welded_vertices": 349,
+          "welded_faces": 722,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 68,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 621,
+          "pymeshlab_raw_faces": 722,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 38
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(68)"
+        ]
+      },
+      {
+        "node_name": "trunk_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\fulvia_damage\\trunk_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 74,
+          "raw_faces": 84,
+          "welded_vertices": 44,
+          "welded_faces": 84,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 74,
+          "pymeshlab_raw_faces": 84,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "lancia_fulvia",
+    "rel_path": "lancia_fulvia_chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\lancia_fulvia\\lancia_fulvia_chassis.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 12,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "CockpitEye",
+        "type": "EMPTY"
+      },
+      {
+        "name": "DriverArm_left_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "DriverArm_right_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_body",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "body",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface1",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface2",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_co_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "hood",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_rpm",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_speed",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_roof",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_30",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_31",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_32",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_33",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_34",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_35",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_36",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_co_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "steering_wheel_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk",
+        "type": "MESH"
+      },
+      {
+        "name": "wipers",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "DriverArm_left_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\DriverArm_left_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "DriverArm_right_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\DriverArm_right_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low.001",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\Driver_driver_body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 40,
+          "raw_faces": 44,
+          "welded_vertices": 32,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 40,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\Driver_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1631,
+          "raw_faces": 2288,
+          "welded_vertices": 1180,
+          "welded_faces": 2288,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 48,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1631,
+          "pymeshlab_raw_faces": 2288,
+          "elongated_or_folded_faces": 6,
+          "meshlib_open_boundaries": 53
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(48)"
+        ]
+      },
+      {
+        "node_name": "co_Driver_Surface1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\co_Driver_Surface1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 52,
+          "raw_faces": 56,
+          "welded_vertices": 40,
+          "welded_faces": 56,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 52,
+          "pymeshlab_raw_faces": 56,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_Surface2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\co_Driver_Surface2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "hand_hi",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 152,
+          "raw_faces": 192,
+          "welded_vertices": 104,
+          "welded_faces": 192,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 152,
+          "pymeshlab_raw_faces": 192,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 12
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_co_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\co_Driver_co_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "hood",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\hood.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 144,
+          "raw_faces": 194,
+          "welded_vertices": 95,
+          "welded_faces": 184,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 8,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 144,
+          "pymeshlab_raw_faces": 194,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(8)"
+        ]
+      },
+      {
+        "node_name": "indicator_rpm",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\indicator_rpm.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_speed",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\indicator_speed.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\interior_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": false
+          },
+          {
+            "name": "windows",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 621,
+          "raw_faces": 722,
+          "welded_vertices": 349,
+          "welded_faces": 722,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 68,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 621,
+          "pymeshlab_raw_faces": 722,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 38
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(68)"
+        ]
+      },
+      {
+        "node_name": "interior_roof",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\interior_roof.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Fulvia roof lining",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 70,
+          "raw_faces": 80,
+          "welded_vertices": 55,
+          "welded_faces": 80,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 70,
+          "pymeshlab_raw_faces": 80,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_30",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_30.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_31",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_31.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_32",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_32.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_33",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_33.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_34",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_34.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_35",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_35.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_36",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\roll_cage_36.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_co_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\seat_co_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\seat_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "steering_wheel_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\steering_wheel_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 157,
+          "raw_faces": 249,
+          "welded_vertices": 155,
+          "welded_faces": 249,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 157,
+          "pymeshlab_raw_faces": 249,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\trunk.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 74,
+          "raw_faces": 84,
+          "welded_vertices": 44,
+          "welded_faces": 84,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 74,
+          "pymeshlab_raw_faces": 84,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "wipers",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\lancia_fulvia\\lancia_fulvia_chassis\\wipers.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "wipers",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 48,
+          "raw_faces": 80,
+          "welded_vertices": 44,
+          "welded_faces": 80,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 2,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 48,
+          "pymeshlab_raw_faces": 80,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 0
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(2)"
+        ]
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\chassis.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 12,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "CockpitEye",
+        "type": "EMPTY"
+      },
+      {
+        "name": "DriverArm_left_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "DriverArm_right_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_body",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "body",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface1",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface2",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_co_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "hood",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_rpm",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_speed",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_roof",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_1",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_2",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_3",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_4",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_5",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_6",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_7",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_co_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "steering_wheel_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk",
+        "type": "MESH"
+      },
+      {
+        "name": "wipers",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "DriverArm_left_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\DriverArm_left_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "DriverArm_right_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\DriverArm_right_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low.001",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\Driver_driver_body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 40,
+          "raw_faces": 44,
+          "welded_vertices": 32,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 40,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\Driver_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1368,
+          "raw_faces": 1776,
+          "welded_vertices": 885,
+          "welded_faces": 1776,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 2,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 44,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1368,
+          "pymeshlab_raw_faces": 1776,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 53
+        },
+        "status": "FAIL",
+        "reasons": [
+          "zero_area_faces(2)",
+          "single_sided_non_manifold(44)"
+        ]
+      },
+      {
+        "node_name": "co_Driver_Surface1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\co_Driver_Surface1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 52,
+          "raw_faces": 56,
+          "welded_vertices": 40,
+          "welded_faces": 56,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 52,
+          "pymeshlab_raw_faces": 56,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_Surface2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\co_Driver_Surface2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "hand_hi",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 152,
+          "raw_faces": 192,
+          "welded_vertices": 104,
+          "welded_faces": 192,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 152,
+          "pymeshlab_raw_faces": 192,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 12
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_co_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\co_Driver_co_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "hood",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\hood.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 76,
+          "raw_faces": 90,
+          "welded_vertices": 35,
+          "welded_faces": 58,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 32,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 76,
+          "pymeshlab_raw_faces": 90,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 5
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_rpm",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\indicator_rpm.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_speed",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\indicator_speed.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\interior_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windows",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 575,
+          "raw_faces": 711,
+          "welded_vertices": 405,
+          "welded_faces": 711,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 575,
+          "pymeshlab_raw_faces": 711,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 32
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_roof",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\interior_roof.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Rally Trophy roof lining",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 41,
+          "raw_faces": 52,
+          "welded_vertices": 36,
+          "welded_faces": 52,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 41,
+          "pymeshlab_raw_faces": 52,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_3",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_3.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_4",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_4.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_5",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_5.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_6",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_6.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_7",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\roll_cage_7.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_co_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\seat_co_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\seat_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "steering_wheel_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\steering_wheel_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 157,
+          "raw_faces": 249,
+          "welded_vertices": 155,
+          "welded_faces": 249,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 157,
+          "pymeshlab_raw_faces": 249,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\trunk.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 68,
+          "raw_faces": 68,
+          "welded_vertices": 30,
+          "welded_faces": 52,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 16,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 68,
+          "pymeshlab_raw_faces": 68,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "wipers",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\chassis\\wipers.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "wipers",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 48,
+          "raw_faces": 80,
+          "welded_vertices": 44,
+          "welded_faces": 80,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 2,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 48,
+          "pymeshlab_raw_faces": 80,
+          "elongated_or_folded_faces": 3,
+          "meshlib_open_boundaries": 0
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(2)"
+        ]
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-alfa-giulia-gta",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alfa-giulia-gta\\damage\\damage.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 6,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "body_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "hood_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk_crash_mesh",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "body_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\damage\\body_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1369,
+          "raw_faces": 1776,
+          "welded_vertices": 885,
+          "welded_faces": 1776,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 2,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 44,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1369,
+          "pymeshlab_raw_faces": 1776,
+          "elongated_or_folded_faces": 4,
+          "meshlib_open_boundaries": 52
+        },
+        "status": "FAIL",
+        "reasons": [
+          "zero_area_faces(2)",
+          "single_sided_non_manifold(44)"
+        ]
+      },
+      {
+        "node_name": "hood_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\damage\\hood_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 76,
+          "raw_faces": 90,
+          "welded_vertices": 64,
+          "welded_faces": 90,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 76,
+          "pymeshlab_raw_faces": 90,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 5
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\damage\\interior_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windshield_interior",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 575,
+          "raw_faces": 711,
+          "welded_vertices": 405,
+          "welded_faces": 711,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 575,
+          "pymeshlab_raw_faces": 711,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 32
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alfa-giulia-gta\\damage\\trunk_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 68,
+          "raw_faces": 68,
+          "welded_vertices": 46,
+          "welded_faces": 68,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 68,
+          "pymeshlab_raw_faces": 68,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\chassis.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 11,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "CockpitEye",
+        "type": "EMPTY"
+      },
+      {
+        "name": "DriverArm_left_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "DriverArm_right_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_body",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "body",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface1",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface2",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_co_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "hood",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_rpm",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_speed",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_roof",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_1",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_2",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_3",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_4",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_5",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_6",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_7",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_co_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "steering_wheel_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "DriverArm_left_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\DriverArm_left_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "DriverArm_right_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\DriverArm_right_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low.001",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\Driver_driver_body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 40,
+          "raw_faces": 44,
+          "welded_vertices": 32,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 40,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\Driver_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 2032,
+          "raw_faces": 2381,
+          "welded_vertices": 1216,
+          "welded_faces": 2378,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 1,
+          "sliver_faces": 1,
+          "same_winding_duplicates": 3,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 102,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 2032,
+          "pymeshlab_raw_faces": 2381,
+          "elongated_or_folded_faces": 3,
+          "meshlib_open_boundaries": 118
+        },
+        "status": "FAIL",
+        "reasons": [
+          "zero_area_faces(1)",
+          "same_winding_duplicates(3)",
+          "sliver_faces(1)",
+          "single_sided_non_manifold(102)"
+        ]
+      },
+      {
+        "node_name": "co_Driver_Surface1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\co_Driver_Surface1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 52,
+          "raw_faces": 56,
+          "welded_vertices": 40,
+          "welded_faces": 56,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 52,
+          "pymeshlab_raw_faces": 56,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_Surface2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\co_Driver_Surface2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "hand_hi",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 152,
+          "raw_faces": 192,
+          "welded_vertices": 104,
+          "welded_faces": 192,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 152,
+          "pymeshlab_raw_faces": 192,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 12
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_co_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\co_Driver_co_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "hood",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\hood.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 70,
+          "raw_faces": 96,
+          "welded_vertices": 35,
+          "welded_faces": 48,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 48,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 70,
+          "pymeshlab_raw_faces": 96,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_rpm",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\indicator_rpm.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_speed",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\indicator_speed.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\interior_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "windows",
+            "backface_culling": false
+          },
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 586,
+          "raw_faces": 760,
+          "welded_vertices": 395,
+          "welded_faces": 758,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 2,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 8,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 586,
+          "pymeshlab_raw_faces": 760,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 41
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(2)",
+          "single_sided_non_manifold(8)"
+        ]
+      },
+      {
+        "node_name": "interior_roof",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\interior_roof.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Rally Trophy roof lining",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 34,
+          "raw_faces": 45,
+          "welded_vertices": 34,
+          "welded_faces": 45,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 34,
+          "pymeshlab_raw_faces": 45,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_3",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_3.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_4",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_4.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_5",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_5.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_6",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_6.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_7",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\roll_cage_7.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_co_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\seat_co_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\seat_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "steering_wheel_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\steering_wheel_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 157,
+          "raw_faces": 249,
+          "welded_vertices": 155,
+          "welded_faces": 249,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 157,
+          "pymeshlab_raw_faces": 249,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\chassis\\trunk.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 80,
+          "raw_faces": 116,
+          "welded_vertices": 40,
+          "welded_faces": 58,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 58,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 80,
+          "pymeshlab_raw_faces": 116,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-alpine-a110",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-alpine-a110\\damage\\damage.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 6,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "body_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "hood_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk_crash_mesh",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "body_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\damage\\body_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 2033,
+          "raw_faces": 2381,
+          "welded_vertices": 1218,
+          "welded_faces": 2378,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 1,
+          "sliver_faces": 1,
+          "same_winding_duplicates": 3,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 102,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 2033,
+          "pymeshlab_raw_faces": 2381,
+          "elongated_or_folded_faces": 12,
+          "meshlib_open_boundaries": 115
+        },
+        "status": "FAIL",
+        "reasons": [
+          "zero_area_faces(1)",
+          "same_winding_duplicates(3)",
+          "sliver_faces(1)",
+          "single_sided_non_manifold(102)"
+        ]
+      },
+      {
+        "node_name": "hood_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\damage\\hood_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 70,
+          "raw_faces": 96,
+          "welded_vertices": 35,
+          "welded_faces": 48,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 48,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 70,
+          "pymeshlab_raw_faces": 96,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\damage\\interior_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "windshield_interior",
+            "backface_culling": false
+          },
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 586,
+          "raw_faces": 760,
+          "welded_vertices": 395,
+          "welded_faces": 758,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 2,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 8,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 586,
+          "pymeshlab_raw_faces": 760,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 41
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(2)",
+          "single_sided_non_manifold(8)"
+        ]
+      },
+      {
+        "node_name": "trunk_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-alpine-a110\\damage\\trunk_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 80,
+          "raw_faces": 116,
+          "welded_vertices": 40,
+          "welded_faces": 58,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 58,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 80,
+          "pymeshlab_raw_faces": 116,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\chassis.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 12,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "CockpitEye",
+        "type": "EMPTY"
+      },
+      {
+        "name": "DriverArm_left_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "DriverArm_right_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_body",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "body",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface1",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface2",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_co_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "hood",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_rpm",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_speed",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_roof",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_1",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_2",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_3",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_4",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_5",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_6",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_7",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_co_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "steering_wheel_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk",
+        "type": "MESH"
+      },
+      {
+        "name": "wipers",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "DriverArm_left_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\DriverArm_left_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "DriverArm_right_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\DriverArm_right_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low.001",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\Driver_driver_body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 40,
+          "raw_faces": 44,
+          "welded_vertices": 32,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 40,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\Driver_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1631,
+          "raw_faces": 2288,
+          "welded_vertices": 1180,
+          "welded_faces": 2288,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 48,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1631,
+          "pymeshlab_raw_faces": 2288,
+          "elongated_or_folded_faces": 6,
+          "meshlib_open_boundaries": 53
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(48)"
+        ]
+      },
+      {
+        "node_name": "co_Driver_Surface1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\co_Driver_Surface1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 52,
+          "raw_faces": 56,
+          "welded_vertices": 40,
+          "welded_faces": 56,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 52,
+          "pymeshlab_raw_faces": 56,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_Surface2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\co_Driver_Surface2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "hand_hi",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 152,
+          "raw_faces": 192,
+          "welded_vertices": 104,
+          "welded_faces": 192,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 152,
+          "pymeshlab_raw_faces": 192,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 12
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_co_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\co_Driver_co_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "hood",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\hood.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 144,
+          "raw_faces": 194,
+          "welded_vertices": 95,
+          "welded_faces": 184,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 8,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 144,
+          "pymeshlab_raw_faces": 194,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(8)"
+        ]
+      },
+      {
+        "node_name": "indicator_rpm",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\indicator_rpm.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_speed",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\indicator_speed.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\interior_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windows",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 621,
+          "raw_faces": 722,
+          "welded_vertices": 349,
+          "welded_faces": 722,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 68,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 621,
+          "pymeshlab_raw_faces": 722,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 38
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(68)"
+        ]
+      },
+      {
+        "node_name": "interior_roof",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\interior_roof.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Rally Trophy roof lining",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 64,
+          "raw_faces": 72,
+          "welded_vertices": 49,
+          "welded_faces": 72,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 64,
+          "pymeshlab_raw_faces": 72,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_3",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_3.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_4",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_4.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_5",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_5.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_6",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_6.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_7",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\roll_cage_7.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_co_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\seat_co_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\seat_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior_lo",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "steering_wheel_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\steering_wheel_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Steerign wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 157,
+          "raw_faces": 249,
+          "welded_vertices": 155,
+          "welded_faces": 249,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 157,
+          "pymeshlab_raw_faces": 249,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\trunk.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 74,
+          "raw_faces": 84,
+          "welded_vertices": 44,
+          "welded_faces": 84,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 74,
+          "pymeshlab_raw_faces": 84,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "wipers",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\chassis\\wipers.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "wipers",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 48,
+          "raw_faces": 80,
+          "welded_vertices": 44,
+          "welded_faces": 80,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 2,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 48,
+          "pymeshlab_raw_faces": 80,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 0
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(2)"
+        ]
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-lancia-fulvia",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-lancia-fulvia\\damage\\damage.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 6,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "body_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "hood_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk_crash_mesh",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "body_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\damage\\body_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1630,
+          "raw_faces": 2288,
+          "welded_vertices": 1190,
+          "welded_faces": 2288,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 44,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1630,
+          "pymeshlab_raw_faces": 2288,
+          "elongated_or_folded_faces": 11,
+          "meshlib_open_boundaries": 52
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(44)"
+        ]
+      },
+      {
+        "node_name": "hood_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\damage\\hood_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 144,
+          "raw_faces": 194,
+          "welded_vertices": 95,
+          "welded_faces": 184,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 8,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 144,
+          "pymeshlab_raw_faces": 194,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "FAIL",
+        "reasons": [
+          "same_winding_duplicates(8)"
+        ]
+      },
+      {
+        "node_name": "interior_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\damage\\interior_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windshield_interior",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 621,
+          "raw_faces": 722,
+          "welded_vertices": 349,
+          "welded_faces": 722,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 68,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 621,
+          "pymeshlab_raw_faces": 722,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 38
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(68)"
+        ]
+      },
+      {
+        "node_name": "trunk_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-lancia-fulvia\\damage\\trunk_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 74,
+          "raw_faces": 84,
+          "welded_vertices": 44,
+          "welded_faces": 84,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 74,
+          "pymeshlab_raw_faces": 84,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "chassis.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\chassis.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 12,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "CockpitEye",
+        "type": "EMPTY"
+      },
+      {
+        "name": "DriverArm_left_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "DriverArm_right_frame09",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_body",
+        "type": "MESH"
+      },
+      {
+        "name": "Driver_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "body",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface1",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_Surface2",
+        "type": "MESH"
+      },
+      {
+        "name": "co_Driver_co_driver_head",
+        "type": "MESH"
+      },
+      {
+        "name": "hood",
+        "type": "MESH"
+      },
+      {
+        "name": "indicator_rpm",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_roof",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_2",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_3",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_4",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_5",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_6",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_7",
+        "type": "MESH"
+      },
+      {
+        "name": "roll_cage_8",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_co_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "seat_driver",
+        "type": "MESH"
+      },
+      {
+        "name": "steering_wheel_hi",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk",
+        "type": "MESH"
+      },
+      {
+        "name": "wipers",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "DriverArm_left_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\DriverArm_left_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "DriverArm_right_frame09",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\DriverArm_right_frame09.obj",
+        "uv_layers": 1,
+        "shape_keys": 19,
+        "materials": [
+          {
+            "name": "hand_low.001",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 82,
+          "raw_faces": 108,
+          "welded_vertices": 58,
+          "welded_faces": 108,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 82,
+          "pymeshlab_raw_faces": 108,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 6
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\Driver_driver_body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 40,
+          "raw_faces": 44,
+          "welded_vertices": 32,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 40,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "Driver_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\Driver_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "body",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\body.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1405,
+          "raw_faces": 2017,
+          "welded_vertices": 1023,
+          "welded_faces": 2011,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 2,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 6,
+          "single_sided_non_manifold_edges": 48,
+          "inverted_winding_edges": 6
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1405,
+          "pymeshlab_raw_faces": 2017,
+          "elongated_or_folded_faces": 4,
+          "meshlib_open_boundaries": 44
+        },
+        "status": "FAIL",
+        "reasons": [
+          "zero_area_faces(2)",
+          "inverted_winding_edges(6)",
+          "single_sided_non_manifold(48)"
+        ]
+      },
+      {
+        "node_name": "co_Driver_Surface1",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\co_Driver_Surface1.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 52,
+          "raw_faces": 56,
+          "welded_vertices": 40,
+          "welded_faces": 56,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 52,
+          "pymeshlab_raw_faces": 56,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_Surface2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\co_Driver_Surface2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "hand_hi",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 152,
+          "raw_faces": 192,
+          "welded_vertices": 104,
+          "welded_faces": 192,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 152,
+          "pymeshlab_raw_faces": 192,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 12
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "co_Driver_co_driver_head",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\co_Driver_co_driver_head.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "co_driver",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 98,
+          "raw_faces": 168,
+          "welded_vertices": 89,
+          "welded_faces": 168,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 98,
+          "pymeshlab_raw_faces": 168,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "hood",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\hood.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 127,
+          "raw_faces": 200,
+          "welded_vertices": 102,
+          "welded_faces": 198,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 127,
+          "pymeshlab_raw_faces": 200,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 3
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "indicator_rpm",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\indicator_rpm.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "indicators",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 4,
+          "raw_faces": 2,
+          "welded_vertices": 4,
+          "welded_faces": 2,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 4,
+          "pymeshlab_raw_faces": 2,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\interior_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windows",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 816,
+          "raw_faces": 596,
+          "welded_vertices": 330,
+          "welded_faces": 596,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 16,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 816,
+          "pymeshlab_raw_faces": 596,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 147
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(16)"
+        ]
+      },
+      {
+        "node_name": "interior_roof",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\interior_roof.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "Rally Trophy roof lining",
+            "backface_culling": false
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 44,
+          "raw_faces": 64,
+          "welded_vertices": 44,
+          "welded_faces": 64,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 44,
+          "pymeshlab_raw_faces": 64,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_2",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_2.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_3",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_3.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_4",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_4.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_5",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_5.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_6",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_6.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_7",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_7.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "roll_cage_8",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\roll_cage_8.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 12,
+          "raw_faces": 12,
+          "welded_vertices": 12,
+          "welded_faces": 12,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 12,
+          "pymeshlab_raw_faces": 12,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 2
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_co_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\seat_co_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "seat_driver",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\seat_driver.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "interior lo",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 26,
+          "raw_faces": 44,
+          "welded_vertices": 26,
+          "welded_faces": 44,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 26,
+          "pymeshlab_raw_faces": 44,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 1
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "steering_wheel_hi",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\steering_wheel_hi.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "steering wheel",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 157,
+          "raw_faces": 249,
+          "welded_vertices": 155,
+          "welded_faces": 249,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 157,
+          "pymeshlab_raw_faces": 249,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 4
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "trunk",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\trunk.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 131,
+          "raw_faces": 188,
+          "welded_vertices": 103,
+          "welded_faces": 188,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 131,
+          "pymeshlab_raw_faces": 188,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 3
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "wipers",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\chassis\\wipers.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "wipers",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 48,
+          "raw_faces": 80,
+          "welded_vertices": 44,
+          "welded_faces": 80,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 2,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 48,
+          "pymeshlab_raw_faces": 80,
+          "elongated_or_folded_faces": 2,
+          "meshlib_open_boundaries": 0
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(2)"
+        ]
+      }
+    ],
+    "status": "FAIL"
+  },
+  {
+    "vehicle_id": "rt-volvo-amazon",
+    "rel_path": "damage/damage.glb",
+    "abs_path": "D:\\rust-godot-vehicle-simulator\\game\\assets\\rally\\rt\\rt-volvo-amazon\\damage\\damage.glb",
+    "container_valid": true,
+    "container_errors": [],
+    "embedded_images": 6,
+    "external_image_uris": [],
+    "nodes": [
+      {
+        "name": "body_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "hood_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "interior_crash_mesh",
+        "type": "MESH"
+      },
+      {
+        "name": "trunk_crash_mesh",
+        "type": "MESH"
+      }
+    ],
+    "meshes": [
+      {
+        "node_name": "body_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\damage\\body_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 window front",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window leftside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window rightside",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 window back",
+            "backface_culling": false
+          },
+          {
+            "name": "#E1 headlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 headlight_right",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_left",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 rearlight_right",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 1404,
+          "raw_faces": 2017,
+          "welded_vertices": 1043,
+          "welded_faces": 2013,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 4,
+          "single_sided_non_manifold_edges": 42,
+          "inverted_winding_edges": 6
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 1404,
+          "pymeshlab_raw_faces": 2017,
+          "elongated_or_folded_faces": 5,
+          "meshlib_open_boundaries": 43
+        },
+        "status": "FAIL",
+        "reasons": [
+          "inverted_winding_edges(6)",
+          "single_sided_non_manifold(42)"
+        ]
+      },
+      {
+        "node_name": "hood_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\damage\\hood_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 127,
+          "raw_faces": 200,
+          "welded_vertices": 102,
+          "welded_faces": 198,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 2,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 127,
+          "pymeshlab_raw_faces": 200,
+          "elongated_or_folded_faces": 1,
+          "meshlib_open_boundaries": 3
+        },
+        "status": "PASS",
+        "reasons": []
+      },
+      {
+        "node_name": "interior_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\damage\\interior_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "cockpit",
+            "backface_culling": true
+          },
+          {
+            "name": "windshield_interior",
+            "backface_culling": false
+          },
+          {
+            "name": "meters",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 816,
+          "raw_faces": 596,
+          "welded_vertices": 330,
+          "welded_faces": 596,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 16,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 816,
+          "pymeshlab_raw_faces": 596,
+          "elongated_or_folded_faces": 0,
+          "meshlib_open_boundaries": 147
+        },
+        "status": "WARN",
+        "reasons": [
+          "single_sided_non_manifold(16)"
+        ]
+      },
+      {
+        "node_name": "trunk_crash_mesh",
+        "obj_path": "D:\\rust-godot-vehicle-simulator\\tmp\\glb_audit\\meshes\\rt-volvo-amazon\\damage\\trunk_crash_mesh.obj",
+        "uv_layers": 1,
+        "shape_keys": 0,
+        "materials": [
+          {
+            "name": "#E1 body",
+            "backface_culling": true
+          },
+          {
+            "name": "#E1 body dust",
+            "backface_culling": true
+          }
+        ],
+        "unassigned_material_polygons": 0,
+        "bmesh": {
+          "raw_vertices": 131,
+          "raw_faces": 188,
+          "welded_vertices": 103,
+          "welded_faces": 188,
+          "loose_vertices": 0,
+          "loose_edges": 0,
+          "zero_area_faces": 0,
+          "sliver_faces": 0,
+          "same_winding_duplicates": 0,
+          "double_sided_pairs": 0,
+          "single_sided_non_manifold_edges": 0,
+          "inverted_winding_edges": 0
+        },
+        "pymeshlab_meshlib": {
+          "pymeshlab_raw_verts": 131,
+          "pymeshlab_raw_faces": 188,
+          "elongated_or_folded_faces": 1,
+          "meshlib_open_boundaries": 3
+        },
+        "status": "PASS",
+        "reasons": []
+      }
+    ],
+    "status": "FAIL"
+  }
+]

@@ -21,7 +21,7 @@ func _read_document(path: String) -> Dictionary:
 
 func _new_thermal_model() -> VehicleThermalModel:
 	var model := VehicleThermalModel.new()
-	var base := "res://data/vehicles/rt/rt-escort-rs2000/"
+	var base := "res://data/vehicles/ford-escort-rs2000/"
 	var domains := {
 		"powertrain": _read_document(base + "powertrain.json"),
 		"brakes": _read_document(base + "brakes.json"),

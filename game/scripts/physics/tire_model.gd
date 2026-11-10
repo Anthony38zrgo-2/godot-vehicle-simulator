@@ -466,6 +466,17 @@ func evaluate(
 	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
 	state["compound_snow_factor"] = float(compound_detail.get("snow", 1.0))
 	state["compound_ground_factor"] = float(compound_detail.get("ground", 1.0))
+	# Additional compound/surface compatibility.
+	# Do not apply over physical snow or ice overlays.
+	if winter_layer_id.is_empty():
+		if surface_name == "Road":
+			compound_mult *= float(
+				compound.get("road_grip_scale", 1.0)
+			)
+		elif surface_name in ["Gravel", "Dirt", "Sand"]:
+			compound_mult *= float(
+				compound.get("loose_grip_scale", 1.0)
+			)
 	state["compound_mult"] = compound_mult
 	state["local_water_mm"] = water_mm
 	state["local_snow_mm"] = snow_mm

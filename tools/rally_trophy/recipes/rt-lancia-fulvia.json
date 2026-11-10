@@ -1,9 +1,0 @@
-{
-  "id": "rt-lancia-fulvia",
-  "archive": "car_13.bzf",
-  "historical_id": "lancia-fulvia",
-  "display_name": "Lancia Fulvia Coup\u00e9 HF",
-  "engine_layout": "front",
-  "geometry_policy": "native",
-  "physics_policy": "game_derived"
-}

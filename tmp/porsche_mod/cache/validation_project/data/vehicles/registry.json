@@ -157,30 +157,8 @@
       "SoundBank": "rt-volvo-amazon",
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
-    },
-    "rt-porsche-356a": {
-      "Id": "rt-porsche-356a",
-      "Assets": "rt/rt-porsche-356a",
-      "Profile": "rt/rt-porsche-356a",
-      "Scene": "rt/rt-porsche-356a",
-      "Stage": "rt/rt-porsche-356a_stage",
-      "Proving": "rt/rt-porsche-356a_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-porsche-356a",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Porsche 356A 1600GS Carrera GT"
-    },
-    "rt-porsche-356b-2000gs": {
-      "Id": "rt-porsche-356b-2000gs",
-      "Assets": "rt/rt-porsche-356b-2000gs",
-      "Profile": "rt/rt-porsche-356b-2000gs",
-      "Scene": "rt/rt-porsche-356b-2000gs",
-      "Stage": "rt/rt-porsche-356b-2000gs_stage",
-      "Proving": "rt/rt-porsche-356b-2000gs_proving",
-      "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-porsche-356b-2000gs",
-      "ValidateSoundHashes": true,
-      "DisplayName": "Porsche 356B Carrera 2000 GS"
     }
+
+
   }
 }

@@ -11,7 +11,7 @@ ejecutables detectados; puedes fijarlos con `--blender`, `--godot` y `--converte
 python -m tools.rally_trophy doctor --source D:\games\rally-throphy
 python -m tools.rally_trophy scan
 python -m tools.rally_trophy batch --all --jobs 3 --validate
-python -m tools.rally_trophy build --ids rt-lancia-fulvia --render
+python -m tools.rally_trophy build --ids rt-lancia-stratos --render
 python -m tools.rally_trophy batch --ids rt-mini-cooper-s rt-alpine-a110 --validate --publish
 .\scripts\run_rally.ps1 -Vehicle rt-mini-cooper-s
 ```

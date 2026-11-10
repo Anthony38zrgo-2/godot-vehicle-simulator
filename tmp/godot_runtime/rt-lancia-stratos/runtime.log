@@ -1,0 +1,16 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RALLY_VFX_READY wheel_particle_capacity=400 intensity=0.975
+RALLY_MASS_RECENTER {"cgz":0.43,"fdist":0.41,"shift":[0.0,-0.00976470857858658,0.0341764986515045]}
+RALLY_SUSPENSION_FREQUENCY {"front":{"c_bump_ns_m":2249.50595480505,"c_rebound_ns_m":2999.3412730734,"hz":1.7,"k_n_m":24027.9066981949,"mass_kg":210.599995424634},"rear":{"c_bump_ns_m":3499.23161302063,"c_rebound_ns_m":4665.64215069417,"hz":1.8,"k_n_m":39575.3771832292,"mass_kg":309.400004575366}}
+RALLY_DRIVELINE_COMPLIANCE {"autoblip_enabled":false,"damping_nms_per_rad":130.0,"enabled":true,"output_inertia_kg_m2":0.2,"stiffness_nm_per_rad":8500.0}
+RALLY_VEHICLE_BLOB_SHADOW_READY
+RALLY_UNSPRUNG_READY {"hub_bodies":4,"hub_masses_kg":[25.0,25.0,25.0,25.0],"sprung_mass_kg":1040.0}
+RALLY_VEHICLE_PROFILE_READY id=rt-lancia-stratos sprung_mass_kg=1040.0 vehicle_mass_kg=1140.0 domains=15 contact_type=ShapeCast3D shape_count=4
+RALLY_PROVING_GROUND_READY physics_engine=Jolt Physics
+RALLY_CONTACT_FREQUENCY {"configured_hz":120,"dt_s":0.00833333376795053,"integration_hz":119.008258256046,"query_type":"ShapeCast3D","wheel_count":4}
+RALLY_UNSPRUNG_STATE {"normal_load_n":[3592.24891747094,3585.14214683095,2529.89986569984,2245.70601911613],"radial_deflection_m":[0.0342690085051576,0.0340470353199507,0.0185315875182859,0.016733365654536],"spring_force_n":[3387.25762489817,3049.50660452687,2192.13059524717,2129.54332322251],"sprung_mass_kg":1039.98876953125,"suspension_compression_m":[0.0547599233686924,0.0517008639872074,-0.0246434900909662,-0.026124756783247],"vehicle_mass_kg":1139.98444651623}
+RT_VEHICLE_CONTRACT {"failures":[],"passed":true,"rendered":false,"vehicle":"rt-lancia-stratos","visual_review":"pending_human_review"}
+
+WARNING: 60 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

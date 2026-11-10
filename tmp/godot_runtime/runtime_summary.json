@@ -1,0 +1,86 @@
+[
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-alfa-giulia-gta",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-alpine-a110",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-escort-rs2000",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-fiat-abarth-1000",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-lancia-fulvia",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-lancia-stratos",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-lotus-cortina",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-mini-cooper-s",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-opel-kadett",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-porsche-356b-2000gs",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-saab-96-v4",
+    "visual_review": "pending_human_review"
+  },
+  {
+    "failures": [],
+    "passed": true,
+    "rendered": false,
+    "vehicle": "rt-volvo-amazon",
+    "visual_review": "pending_human_review"
+  }
+]

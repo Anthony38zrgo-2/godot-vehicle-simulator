@@ -72,6 +72,7 @@ const PuddleModel = preload("res://scripts/rally/rally_puddles.gd")
 var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
+var _ambient_irradiance_w_m2: float = 0.0
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
 # v1 presets de diferencial: perfil activo y preset aplicado.
 # El perfil activo nunca se toma de un payload: solo de configure().
@@ -196,16 +197,51 @@ func set_weather_controller(controller) -> void:
 	weather_controller = controller
 
 
+# Entorno térmico de Single Stage/práctica: sin calendario no hay proveedor
+# climático, así que la sesión fija aire/suelo/irradiancia/agua/nieve desde
+# el perfil regional (misma fuente que el scheduler de eventos).
+var practice_thermal_override := false
+var practice_air_c := 25.0
+var practice_ground_c := 30.0
+var practice_water_mm := 0.0
+var practice_snow_mm := 0.0
+var practice_irradiance_w_m2 := 0.0
+
+
+func set_practice_thermal_environment(thermal: Dictionary) -> void:
+	if thermal.is_empty():
+		practice_thermal_override = false
+		return
+	practice_air_c = float(thermal.get("air_c", 25.0))
+	practice_ground_c = float(thermal.get("ground_c", 30.0))
+	practice_water_mm = maxf(float(thermal.get("water_mm", 0.0)), 0.0)
+	practice_snow_mm = maxf(float(thermal.get("snow_mm", 0.0)), 0.0)
+	practice_irradiance_w_m2 = maxf(float(thermal.get("irradiance_w_m2", 0.0)), 0.0)
+	practice_thermal_override = true
+
+
+func sync_ambient_conditions() -> void:
+	# Sincroniza aire/irradiancia del clima sin esperar al primer paso de
+	# física (necesario antes de precalentar neumáticos al salir a tramo).
+	_sync_ambient_air_temperature()
+
+
 func _sync_ambient_air_temperature() -> void:
 	# El reloj climático publica el aire físico en current_blend; el visual es independiente.
 	var fallback := float(thermal_model.tire_config.get("ambient_fallback_c", 25.0))
 	var air_c := fallback
+	var irradiance := 0.0
 	if weather_controller != null and bool(weather_controller.get("calendar_active")):
 		var weather: Dictionary = weather_controller.current_blend
 		var candidate: Variant = weather.get("air_c", null)
 		if (candidate is float or candidate is int) and is_finite(float(candidate)):
 			air_c = clampf(float(candidate), -40.0, 60.0)
+		irradiance = maxf(float((weather.get("climate", {}) as Dictionary).get("irradiance_w_m2", 0.0)), 0.0)
+	elif practice_thermal_override:
+		air_c = clampf(practice_air_c, -40.0, 60.0)
+		irradiance = practice_irradiance_w_m2
 	thermal_model.ambient_temperature_c = air_c
+	_ambient_irradiance_w_m2 = irradiance
 
 
 func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
@@ -218,10 +254,17 @@ func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 func _local_conditions_at_contact(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
 		"water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name,
-		"puddle_depth_mm": 0.0, "puddle_drag": 0.0}
+		"puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
 	if weather_controller != null and weather_controller.get("calendar_active"):
 		var weather: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, position) if loaded else weather_controller.current_blend
 		local.merge(weather, true)
+		local["irradiance_w_m2"] = maxf(float((local.get("climate", {}) as Dictionary).get("irradiance_w_m2", 0.0)), 0.0)
+	elif practice_thermal_override:
+		local["air_c"] = practice_air_c
+		local["ground_c"] = practice_ground_c
+		local["water_mm"] = practice_water_mm
+		local["snow_mm"] = practice_snow_mm
+		local["irradiance_w_m2"] = practice_irradiance_w_m2
 	if loaded and is_instance_valid(puddle_system):
 		var puddle: Dictionary = puddle_system.sample_contact(position)
 		local["puddle_depth_mm"] = float(puddle.depth_mm)
@@ -723,6 +766,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_ground: Array[float] = [30.0, 30.0, 30.0, 30.0]
 	var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
+	var thermal_irradiance: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 	for i in 4:
 		var contact: Dictionary = contacts[i]
@@ -736,6 +780,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
 		thermal_ground[i] = float(local.get("ground_c", 30.0))
 		thermal_air[i] = float(local.get("air_c", thermal_model.ambient_temperature_c))
+		thermal_irradiance[i] = float(local.get("irradiance_w_m2", 0.0))
 		if loaded_contact:
 			last_local_conditions[i] = local.duplicate(true)
 		else:
@@ -907,6 +952,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				thermal_cambers[i], average_power.z, thermal_slip_speeds[i], thermal_surfaces[i],
 				maxf(float(normal_loads[i]), 0.0), thermal_fy[i], wheel_spins[i], thermal_vx[i],
 				wheel_radii[i], thermal_water[i], thermal_snow[i], thermal_ground[i], thermal_air[i], false,
+				thermal_irradiance[i],
 			)
 		_wheel_thermal_work.fill(Vector3.ZERO)
 		_tire_thermal_elapsed = 0.0
@@ -925,7 +971,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	_engine_thermal_inputs += Vector4(rpm, torque, velocity.length(), aero_model.air_density_kg_m3) * dt
 	if _engine_thermal_elapsed + 1.0e-6 >= ENGINE_THERMAL_PERIOD:
 		var average := _engine_thermal_inputs / _engine_thermal_elapsed
-		thermal_model.advance_engine(_engine_thermal_elapsed, average.x, average.y, average.z, average.w)
+		thermal_model.advance_engine(_engine_thermal_elapsed, average.x, average.y, average.z, average.w, _ambient_irradiance_w_m2)
 		_engine_thermal_elapsed = 0.0
 		_engine_thermal_inputs = Vector4.ZERO
 

@@ -152,6 +152,8 @@ const STRATEGY_PATHS: Array[String] = ["fuel.initial_kg"]
 var advanced_section := 0
 var mandatory_confirmation := false
 var compound_change_allowed := true
+var allowed_compound_ids: Array = []
+var default_event_compound_id: String = RallyTireCompound.DEFAULT_ID
 var draft_wheel_compounds: Dictionary = { }
 var draft_compound_id: String:
 	get:
@@ -246,10 +248,22 @@ func open_garage_for_event(options: Dictionary = { }) -> void:
 	if options.has("window_label") and not str(options.get("window_label", "")).is_empty():
 		circuit_name = str(options["window_label"])
 	compound_change_allowed = bool(options.get("compound_change_allowed", true))
+	allowed_compound_ids = (
+		options.get("allowed_compound_ids", []) as Array
+	).duplicate()
+	default_event_compound_id = str(
+		options.get(
+			"default_compound_id",
+			RallyTireCompound.DEFAULT_ID
+		)
+	)
 	event_forecast = (
 		str(options.get("forecast_summary", "")) + "  " + str(options.get("forecast_advice", ""))
 	).strip_edges()
 	open_garage()
+	for corner in ["FL", "FR", "RL", "RR"]:
+		if not str(draft_wheel_compounds.get(corner, "")) in _available_compound_ids():
+			draft_wheel_compounds[corner] = default_event_compound_id
 	if str(options.get("initial_tab", "")) in ["tires", "strategy"]:
 		advanced_section = 1
 		_set_page(1)
@@ -327,6 +341,11 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 					var corner := str(k).trim_prefix("strategy.wheel_compound.")
 					draft_wheel_compounds[corner] = str(setup_to_apply[k])
 				setup_to_apply.erase(k)
+		var available_ids := _available_compound_ids()
+		for corner in ["FL", "FR", "RL", "RR"]:
+			if not str(draft_wheel_compounds.get(corner, "")) in available_ids:
+				_show_notice("Compuesto no permitido en este evento.", true)
+				return
 		var applied := vehicle.apply_setup_values(setup_to_apply)
 		if not bool(applied.get("ok", false)):
 			_show_notice(str(applied.get("error", "Error al aplicar.")), true)
@@ -335,6 +354,7 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 		confirmed_setup = {
 			"compound_id": draft_compound_id,
 			"values": draft_values.duplicate(true),
+			"wheel_compounds": draft_wheel_compounds.duplicate(true),
 		}
 	else:
 		vehicle.apply_setup_values(opening_values)
@@ -990,11 +1010,20 @@ func _load_selected_setup() -> void:
 	var to_apply: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
 	if has_stored_preset and vehicle.simulation.is_historic_differential():
 		to_apply[DIFFERENTIAL_PRESET_PATH] = stored_preset
+	var available_ids := _available_compound_ids()
+	for k in to_apply.keys():
+		if str(k).begins_with("strategy.wheel_compound."):
+			if not str(to_apply[k]) in available_ids:
+				_show_notice("Compuesto no permitido en este evento.", true)
+				return
 	# En modo modern el preset guardado se ignora: manda el LSD libre.
 	var applied := vehicle.apply_setup_values(to_apply)
 	if not bool(applied.get("ok", false)):
 		_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 		return
+	for k in to_apply.keys():
+		if str(k).begins_with("strategy.wheel_compound."):
+			draft_wheel_compounds[str(k).trim_prefix("strategy.wheel_compound.")] = str(to_apply[k])
 	draft_values = applied.values
 	active_setup_id = selected_setup_id
 	active_setup_name = str(result.get("name", "REGLAJE"))
@@ -1392,7 +1421,14 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 
 
 func _available_compound_ids() -> Array:
-	return RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())
+	var ids := RallyTireCompound.compound_ids(
+		RallyTireCompound.load_catalog()
+	)
+	if allowed_compound_ids.is_empty():
+		return ids
+	return ids.filter(
+		func(cid): return cid in allowed_compound_ids
+	)
 
 
 func _compound_label(compound_id: String, short: bool = false) -> String:

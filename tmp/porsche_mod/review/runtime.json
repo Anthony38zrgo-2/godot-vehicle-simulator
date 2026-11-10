@@ -1,9 +1,0 @@
-{
-	"failures": [
-		"forward acceleration"
-	],
-	"passed": false,
-	"rendered": false,
-	"vehicle": "rt-porsche-356b-2000gs",
-	"visual_review": "pending_human_review"
-}

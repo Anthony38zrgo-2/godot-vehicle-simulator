@@ -1,0 +1,14 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RALLY_VFX_READY wheel_particle_capacity=400 intensity=0.975
+RALLY_MASS_RECENTER {"cgz":0.445,"fdist":0.4,"shift":[0.0,-0.0161722227931023,0.131622582674026]}
+RALLY_SUSPENSION_FREQUENCY {"front":{"c_bump_ns_m":1701.06059854396,"c_rebound_ns_m":2268.08079805861,"hz":1.7,"k_n_m":18169.734230969,"mass_kg":159.254236915958},"rear":{"c_bump_ns_m":2581.39876506416,"c_rebound_ns_m":3441.86502008555,"hz":1.8,"k_n_m":29194.9322267208,"mass_kg":228.245763084042}}
+RALLY_DRIVELINE_COMPLIANCE {"autoblip_enabled":false,"damping_nms_per_rad":130.0,"enabled":true,"output_inertia_kg_m2":0.2,"stiffness_nm_per_rad":8500.0}
+RALLY_VEHICLE_BLOB_SHADOW_READY
+RALLY_UNSPRUNG_READY {"hub_bodies":4,"hub_masses_kg":[25.0,25.0,25.0,25.0],"sprung_mass_kg":775.0}
+RALLY_VEHICLE_PROFILE_READY id=rt-fiat-abarth-1000 sprung_mass_kg=775.0 vehicle_mass_kg=875.0 domains=15 contact_type=ShapeCast3D shape_count=4
+RALLY_PROVING_GROUND_READY physics_engine=Jolt Physics
+RALLY_CONTACT_FREQUENCY {"configured_hz":120,"dt_s":0.00833333376795053,"integration_hz":119.008258256046,"query_type":"ShapeCast3D","wheel_count":4}
+RALLY_UNSPRUNG_STATE {"normal_load_n":[2057.45862820458,2250.59604960847,2109.96087712137,1890.87445974635],"radial_deflection_m":[0.0145088224252239,0.0155251919919216,0.0144663645835606,0.0131522223724139],"spring_force_n":[1972.40825074746,1866.92966069197,1854.83137946169,1901.55803463584],"sprung_mass_kg":775.0,"suspension_compression_m":[0.0417340360581875,0.0423577912151814,-0.0238484852015972,-0.0225336961448193],"vehicle_mass_kg":874.997633664683}
+RT_VEHICLE_CONTRACT {"failures":[],"passed":true,"rendered":false,"vehicle":"rt-fiat-abarth-1000","visual_review":"pending_human_review"}
+

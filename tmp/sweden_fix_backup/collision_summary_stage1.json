@@ -1,0 +1,35 @@
+{
+  "visual_objects": [
+    "Buildings_And_Structures",
+    "Fences_And_Barriers",
+    "Foliage_And_Vegetation",
+    "Props_And_Markers",
+    "Track_Road_And_Terrain"
+  ],
+  "collision_objects": {
+    "Collision_Road": 42314,
+    "Collision_Terrain_Grass": 83385,
+    "Collision_Terrain_Dirt": 600,
+    "Collision_Barriers": 14734,
+    "Collision_Buildings": 3148,
+    "Collision_Props": 9895,
+    "Collision_Tree_trunks": 19619
+  },
+  "start_pose": {
+    "ground_blender": [
+      0.2555,
+      25.3003,
+      -0.5284
+    ],
+    "ground_godot": [
+      0.2555,
+      -0.5284,
+      -25.3003
+    ],
+    "heading_radians": 0.08421281804058396,
+    "pitch_degrees": -0.7797,
+    "roll_degrees": 2.9519,
+    "spawn_clearance_metres": 0.08,
+    "ground_source": "raycast against Collision_Road at route_points[0]"
+  }
+}

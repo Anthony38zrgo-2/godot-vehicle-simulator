@@ -171,28 +171,3 @@ if fulvia_gen.exists():
         fulvia_gen.write_text(f_code, encoding="utf-8")
         print("Updated tools/audio/rally_trophy_fulvia.py")
 
-# C: tools/rally/import_porsche_356a.py
-porsche_gen = Path("tools/rally/import_porsche_356a.py")
-if porsche_gen.exists():
-    p_code = porsche_gen.read_text(encoding="utf-8")
-    old_p_bf = """        definitions["backfire"].append(base_res + fname)"""
-    # Keep extracted files in samples list for hash checking, but wire backfire and backfire_interior to commons
-    old_p_manifest = """"exhaust_position": [0.0, 0.20, 1.50],
-        "calibration": "Porsche 356A 1600GS Carrera GT Fuhrmann engine & backfire native samples."
-    }"""
-    new_p_manifest = """"exhaust_position": [0.0, 0.20, 1.50],
-        "backfire": [
-            "res://sounds/banks/commons/backfire_ext_1.wav",
-            "res://sounds/banks/commons/backfire_ext_2.wav",
-            "res://sounds/banks/commons/backfire_ext_3.wav",
-            "res://sounds/banks/commons/backfire_ext_4.wav",
-        ],
-        "backfire_interior": [
-            "res://sounds/banks/commons/backfire_5.wav",
-        ],
-        "calibration": "Porsche 356A 1600GS Carrera GT Fuhrmann engine & backfire native samples."
-    }"""
-    if old_p_manifest in p_code:
-        p_code = p_code.replace(old_p_manifest, new_p_manifest)
-        porsche_gen.write_text(p_code, encoding="utf-8")
-        print("Updated tools/rally/import_porsche_356a.py")

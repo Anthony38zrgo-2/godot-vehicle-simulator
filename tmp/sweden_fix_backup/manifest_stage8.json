@@ -1,0 +1,145 @@
+{
+  "contract_version": 1,
+  "track_id": "sweden_stage8",
+  "source": {
+    "repository": "stage_exporter",
+    "blend": "sweden_stage8.blend",
+    "blend_sha256": "e20b1845f8b87ca85bed8fa144a177cfb5c8775e1d28e7d3f2c0d7d99e840a4a",
+    "blender_version": "5.2.0 LTS",
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf"
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0,
+    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation"
+  },
+  "start_pose": {
+    "ground_blender": [
+      0.1842,
+      10.7902,
+      -3.9457
+    ],
+    "ground_godot": [
+      0.1842,
+      -3.9457,
+      -10.7902
+    ],
+    "heading_radians": -0.0006970807720964189,
+    "pitch_degrees": 2.6374,
+    "roll_degrees": 0.23,
+    "spawn_clearance_metres": 0.08,
+    "ground_source": "raycast against Collision_Road at route_points[0]"
+  },
+  "visual": {
+    "path": "sweden_stage8_visual.glb",
+    "sha256": "f35a0e728b8fcfad38a35a0710504c1dd9fca929a2996d8831d6a39aaada7111",
+    "size_bytes": 8382196,
+    "source_objects": [
+      "Track_Road_And_Terrain",
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers"
+    ],
+    "exported_nodes": [
+      "Buildings_And_Structures",
+      "Fences_And_Barriers",
+      "Foliage_And_Vegetation",
+      "Props_And_Markers",
+      "Track_Road_And_Terrain"
+    ]
+  },
+  "collision": {
+    "path": "sweden_stage8_collision.glb",
+    "sha256": "269fc804f8860cba980188358cc2c708d21219d85125c47b5318270c93944e44",
+    "size_bytes": 1650664,
+    "collision_objects": {
+      "Collision_Road": 16549,
+      "Collision_Terrain_Grass": 37803,
+      "Collision_Barriers": 3982,
+      "Collision_Buildings": 1514,
+      "Collision_Props": 766,
+      "Collision_Tree_trunks": 4047
+    },
+    "exported_nodes": [
+      "Collision_Barriers",
+      "Collision_Buildings",
+      "Collision_Props",
+      "Collision_Road",
+      "Collision_Terrain_Grass",
+      "Collision_Tree_trunks"
+    ],
+    "surface_mapping": {
+      "Collision_Road": "Gravel",
+      "Collision_Terrain_Grass": "Grass",
+      "Collision_Terrain_Dirt": "Dirt",
+      "Collision_Terrain_Sand": "Sand"
+    },
+    "material_policy": {
+      "terrain_split": "terrain faces are partitioned by material into Collision_Road (road_*), Collision_Terrain_Grass (terrain_grass_*), Collision_Terrain_Dirt (terrain_field_*, terrain_potatofield_1, ditch_*), Collision_Terrain_Sand (terrain_housesand_1)",
+      "terrain": [
+        "road_*",
+        "terrain_* except terrain_field_1_alpha"
+      ],
+      "barriers": [
+        "fence_*",
+        "roadbar1",
+        "string_red",
+        "gate_finish",
+        "forest_mixed_*"
+      ],
+      "buildings": [
+        "house_*",
+        "building_*",
+        "tent*",
+        "haybarn_*"
+      ],
+      "props": [
+        "pylon_*",
+        "sign_*",
+        "stone_*",
+        "rock_big_*",
+        "power_line_1",
+        "checkpoint"
+      ],
+      "tree_trunks": [
+        "russian_tree_trunks"
+      ],
+      "excluded": [
+        "russian_tree_plane",
+        "bush_4",
+        "grass",
+        "audience_*",
+        "sand_erosion_*",
+        "field_background",
+        "terrain_field_1_alpha",
+        "power_line_cord",
+        "polyn_1_wire"
+      ]
+    }
+  },
+  "sky_policy": "ProceduralSkyMaterial tuned to Stage1.txt ambient, sun and exponential fog; stage1sky.BMF is not decoded",
+  "trigger_policy": "Triggers_And_Startpoints has no collision role in this experiment and is not exported",
+  "provenance": {
+    "game": "Rally Trophy (2001)",
+    "data_bzf_sha256": "980ef88cd11032dbe85095f3321fe06973f800433beaf04a3ea993918bbd3ba6",
+    "models_bzf_sha256": "d10e5cfa3d8ab5bbb198b54fe06d7b5c4e1a7802629ba92a7d151bb01bdd6bae",
+    "textures_bzf_sha256": "f8dc37c7c1e1830743f3655678141b0826d5f98cfdb6d518b4f94d0e07d5fc63",
+    "bmf_filename": "stage8.BMF",
+    "bmf_sha256": "f76a7d8d91795565758f95c09f5746d6e45ddeb5c210a70453c30c625e831484"
+  },
+  "geometry_fixes": {
+    "terrain_normal_welding": "Enabled (boundary vertices smoothed across spatial chunks)",
+    "z_fighting_reduction": "Enabled (eliminated duplicate coplanar backface pairs)",
+    "backface_culling": "Strict default (doubleSided disabled on signs, barns, houses and ground)",
+    "decal_offset_metres": 0.002,
+    "texture_clamping": "glTF samplers patched with CLAMP_TO_EDGE on roads (U) and forest cards (V)",
+    "alpha_bleeding": "Enabled on all cutout textures to prevent mipmap halos",
+    "skybox_excluded": true,
+    "timing_triggers_excluded_from_render": true
+  },
+  "export_duration_seconds": 14.89
+}

@@ -193,10 +193,12 @@
   "tire_rules": {
     "compound_catalog_path": "res://data/tires/rally_compounds.json",
     "allowed_compound_ids": [
-      "gravel_normal",
-      "gravel_wet"
+      "asphalt_dry",
+      "asphalt_wet"
     ],
-    "default_compound_id": "gravel_normal",
+    "default_compound_id": "asphalt_dry",
+    "dry_compound_id": "asphalt_dry",
+    "wet_compound_id": "asphalt_wet",
     "fitment": "same_compound_all_wheels",
     "start_temperature_policy": "selected_compound_optimum"
   },

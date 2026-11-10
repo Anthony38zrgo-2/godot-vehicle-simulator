@@ -41,6 +41,8 @@ var compound_catalog: Dictionary = {}
 var radiator_damage: float = 0.0
 var engine_damage: float = 0.0
 var overheat_exposure_s: float = 0.0
+# Política de temperatura de salida del compuesto (tire_rules del evento).
+var start_temperature_policy: String = "selected_compound_optimum"
 var damage_config: Dictionary = {}
 var oil_pressure_bar: float = 0.0
 var oil_healthy_pressure_bar: float = 0.0
@@ -150,11 +152,22 @@ func reset_for_stage(domains: Dictionary) -> void:
 	var remaining_fuel := fuel_remaining_litres
 	var previous_radiator_damage := radiator_damage
 	var previous_engine_damage := engine_damage
+	var previous_ambient := ambient_temperature_c
 	configure(domains)
+	# El ambiente lo publica el clima (o el fallback de práctica); configure()
+	# no debe pisarlo con el fallback genérico de 25 °C.
+	ambient_temperature_c = previous_ambient
 	# Stage preparation resets temperatures, never repairs permanent damage.
 	radiator_damage = previous_radiator_damage
 	engine_damage = previous_engine_damage
 	_update_torque_derating()
+	# Arranque en frío según ambiente (sistemas de aire): con frío el motor
+	# sale por debajo de su óptimo y cuesta calentarlo; en caliente se
+	# conserva el precalentamiento de serie. Sin país en la física: solo aire.
+	var cold_pull := clampf((20.0 - ambient_temperature_c) * 1.0, 0.0, 40.0)
+	engine_block_temperature_c = maxf(engine_block_temperature_c - cold_pull, ambient_temperature_c)
+	water_temperature_c = maxf(water_temperature_c - cold_pull, ambient_temperature_c)
+	oil_temperature_c = maxf(oil_temperature_c - cold_pull, ambient_temperature_c)
 	overheat_exposure_s = 0.0
 	oil_pressure_bar = 0.0
 	oil_healthy_pressure_bar = 0.0
@@ -164,11 +177,27 @@ func reset_for_stage(domains: Dictionary) -> void:
 	oil_cooling_conductance_w_k = 0.0
 	cooling_drag_force_n = 0.0
 	var brake_target := (float(brake_thermal_config.get("optimal_min_temperature_c", 150.0)) + float(brake_thermal_config.get("optimal_max_temperature_c", 450.0))) * 0.5
+	# Los discos también nacen del ambiente: en frío salen bajos y hay que
+	# meterlos en ventana frenando; en caliente se conserva el precalentado.
+	brake_target = maxf(
+		brake_target - clampf((20.0 - ambient_temperature_c) * 6.0, 0.0, 200.0),
+		ambient_temperature_c
+	)
 	for i in tire_states.size():
 		var cfg := _axle_tire_config(i)
 		var pressure := _axle_pressure_config(i)
 		var tread := float(cfg.get("optimal_tread_temperature_c", 50.0))
 		var carcass := float(cfg.get("optimal_carcass_temperature_c", 60.0))
+		# Prearranque según tire_rules: environment_weighted sale entre el
+		# ambiente de la zona y el óptimo del compuesto (frío en Suecia,
+		# caliente en Kenia); el resto conserva el óptimo del compuesto.
+		var start_compound := compound_for_wheel(i)
+		if not start_compound.is_empty():
+			var start_temps := RallyTireCompound.start_temperatures(
+				start_compound, ambient_temperature_c, start_temperature_policy
+			)
+			tread = float(start_temps.tread_c)
+			carcass = float(start_temps.carcass_c)
 		var state: Dictionary = tire_states[i]
 		if i < mounted_tires.size():
 			state.wear_fraction = float(mounted_tires[i].get("wear_fraction", 0.0))
@@ -248,7 +277,7 @@ func oil_pressure_state() -> String:
 	return "ok"
 
 
-func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float) -> void:
+func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float, irradiance_w_m2: float = 0.0) -> void:
 	# Un solo radiador de agua enfria todo el motor. El aceite solo cede calor
 	# al bloque, al agua (oil_to_water) y, muy poco, al aire por el carter.
 	var water_duct: Dictionary = engine_config.get("water_cooling_duct", {})
@@ -262,6 +291,9 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	var engine_omega := maxf(rpm, 0.0) * TAU / 60.0
 	var mechanical_power := maxf(torque_nm * engine_omega, 0.0)
 	var generated_heat := float(engine_config.get("idle_heat_generation_watts", 0.0)) + mechanical_power * float(engine_config.get("heat_generation_per_mechanical_power", 0.0))
+	# Calor solar del vano motor: pequeño frente al idle, pero sube el techo
+	# en paradas al sol (Kenia) y desaparece con cielo frío/nublado (Suecia).
+	generated_heat += float(engine_config.get("solar_heat_gain_w_per_kw_m2", 0.0)) * maxf(irradiance_w_m2, 0.0) / 1000.0
 	var dt := clampf(delta, 0.001, 0.05)
 	var block_c := engine_block_temperature_c
 	var water_c := water_temperature_c
@@ -296,7 +328,7 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	_update_torque_derating()
 
 
-func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0, advance_pressure_leak: bool = true) -> void:
+func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0, advance_pressure_leak: bool = true, irradiance_w_m2: float = 0.0) -> void:
 	if index < 0 or index >= tire_states.size():
 		return
 	var compound := compound_for_wheel(index)
@@ -359,6 +391,12 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 			deform_gain = float(compound.get("deformation_heating_wet", 1.0))
 	var water_cool_w_k := local_water * 9.0 * water_gain
 	var snow_cool_w_k := local_snow * 7.0 * snow_gain
+	# Carga solar directa sobre la banda (superficie, no aire): el sol
+	# caliente impide bajar la temperatura aunque se vaya rápido; en
+	# climas fríos/nublados aporta casi nada.
+	var solar_w := maxf(float(axle_cfg.get("tread_solar_absorption", 0.0)), 0.0) \
+		* maxf(irradiance_w_m2, 0.0) \
+		* maxf(float(axle_cfg.get("tread_solar_area_m2", 0.0)), 0.0)
 	for zone_index in 3:
 		var zone_temperature := float(zones[zone_index])
 		var lateral_heat := 0.0
@@ -367,7 +405,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 		if zone_index < 2:
 			lateral_heat += lateral_conductance * (float(zones[zone_index + 1]) - zone_temperature)
 		var zone_to_carcass := carcass_conductance * (zone_temperature - carcass)
-		var zone_heat := slip_heat * float(heat_shares[zone_index]) - zone_to_carcass
+		var zone_heat := slip_heat * float(heat_shares[zone_index]) + solar_w - zone_to_carcass
 		zone_heat -= air_conductance * (zone_temperature - local_air)
 		zone_heat -= road_conductance * (zone_temperature - local_ground)
 		zone_heat -= (water_cool_w_k / 3.0) * (zone_temperature - minf(local_ground, local_air))
@@ -404,7 +442,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	accumulate_tire_damage(state, friction_power_w, dt, compound, local_water)
 	var disc_temperature := float(state.brake_disc_c)
 	var heat_capacity := brake_disc_heat_capacity_j_k[index] if index < brake_disc_heat_capacity_j_k.size() else 2500.0
-	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s, local_air)
+	var losses := _brake_heat_losses(index, disc_temperature, speed_m_s, local_air, irradiance_w_m2)
 	var cooling_w := float(losses.cooling_w)
 	var heat_fraction := float(brake_thermal_config.get("braking_heat_fraction", 0.95))
 	state.brake_heating_w = maxf(braking_power_w, 0.0) * clampf(heat_fraction, 0.0, 1.0)
@@ -449,7 +487,7 @@ func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: floa
 	state.thermal_damage_fraction = clampf(float(state.get("thermal_damage_fraction", 0.0)) + severity * rate * maxf(dt, 0.0), 0.0, 1.0)
 
 
-func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_c: float) -> Dictionary:
+func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_c: float, irradiance_w_m2: float = 0.0) -> Dictionary:
 	var rotor: Dictionary = brake_thermal_config.get("front" if index < 2 else "rear", {})
 	var length_m := maxf(float(rotor.get("rotor_outer_diameter_m", 0.245)), 0.01)
 	var area := brake_disc_area_m2[index]
@@ -477,7 +515,12 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_
 	var conductance := area * conductivity / length_m * maxf(natural_nusselt, forced_nusselt)
 	var view_factor := clampf(float(rotor.get("rotor_radiation_ambient_view_factor", 0.4)), 0.0, 1.0)
 	var radiation := brake_disc_emissivity[index] * 5.670374419e-8 * area * view_factor * (pow(disc_k, 4.0) - pow(air_k, 4.0))
-	return {"cooling_w": conductance * delta_t + radiation, "convection_w_k": conductance}
+	# Soak solar del disco: relevante parado o a baja velocidad; con flujo
+	# de aire dominante desaparece. Resta enfriamiento neto (calienta).
+	var speed_gate := 1.0 - smoothstep(3.0, 12.0, absf(speed_m_s))
+	var solar_w := brake_disc_emissivity[index] * view_factor * maxf(irradiance_w_m2, 0.0) \
+		* area * maxf(float(rotor.get("rotor_solar_soak_k", 0.0)), 0.0) * speed_gate
+	return {"cooling_w": conductance * delta_t + radiation - solar_w, "convection_w_k": conductance}
 
 
 func tire_grip_factor(index: int) -> float:

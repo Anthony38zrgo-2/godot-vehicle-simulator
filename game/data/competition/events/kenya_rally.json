@@ -198,7 +198,7 @@
     ],
     "default_compound_id": "gravel_normal",
     "fitment": "same_compound_all_wheels",
-    "start_temperature_policy": "selected_compound_optimum"
+    "start_temperature_policy": "environment_weighted"
   },
   "setup_windows": [
     {

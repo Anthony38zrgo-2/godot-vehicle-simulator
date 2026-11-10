@@ -697,8 +697,11 @@ func show_inventory() -> void:
 		srv_lbl.add_theme_color_override("font_color", C_RIM)
 		srv_actions.add_child(srv_lbl)
 		var cat := RallyTireCompound.load_catalog()
+		var purchase_allowed: Array = get_session_allowed_compound_ids()
 		for entry in RallyTireCompound.compound_ids(cat):
 			var cid := str(entry)
+			if not purchase_allowed.is_empty() and not purchase_allowed.has(cid):
+				continue
 			var compound_data := RallyTireCompound.get_compound(cat, cid)
 			button("+ " + str(compound_data.get("short_label", cid)), func(): load_spare(cid), srv_actions)
 
@@ -735,6 +738,11 @@ func exchange() -> void:
 	if spare_picker == null or spare_picker.item_count == 0:
 		return
 	var id := spare_picker.get_selected_id()
+	var spare_compound := spare_compound_for_id(id)
+	if not spare_compound.is_empty() and not is_compound_allowed_for_session(spare_compound):
+		notice = "Compuesto no permitido en este evento: " + spare_compound
+		show_inventory()
+		return
 	var keep: bool = keep_removed.button_pressed if keep_removed != null else true
 	if session != null and session.get("vehicle") != null and session.vehicle.exchange_tire(selected_wheel, id, keep):
 		notice = "Rueda cambiada. La condición de cada neumático se conserva."
@@ -779,6 +787,11 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 
 	# Caso 1: Arrastrar repuesto a rueda montada (sustitución directa)
 	if src_type == "spare" and target_type == "mounted":
+		var dropped_compound := spare_compound_for_id(src_id)
+		if not dropped_compound.is_empty() and not is_compound_allowed_for_session(dropped_compound):
+			notice = "Compuesto no permitido en este evento: " + dropped_compound
+			show_inventory()
+			return
 		var keep: bool = keep_removed.button_pressed if keep_removed != null else true
 		if vehicle.exchange_tire(target_index, src_id, keep):
 			selected_wheel = target_index
@@ -810,6 +823,11 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 	if src_type == "mounted" and target_type == "spare":
 		if not inventory.spares.is_empty():
 			var spare_to_use: int = int(inventory.spares[clampi(target_index, 0, inventory.spares.size() - 1)].id)
+			var case3_compound := spare_compound_for_id(spare_to_use)
+			if not case3_compound.is_empty() and not is_compound_allowed_for_session(case3_compound):
+				notice = "Compuesto no permitido en este evento: " + case3_compound
+				show_inventory()
+				return
 			if vehicle.exchange_tire(src_idx, spare_to_use, true):
 				selected_wheel = src_idx
 				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
@@ -832,6 +850,11 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 	if src_type == "mounted" and target_type == "bin":
 		if not inventory.spares.is_empty():
 			var spare_to_use: int = int(inventory.spares[0].id)
+			var case5_compound := spare_compound_for_id(spare_to_use)
+			if not case5_compound.is_empty() and not is_compound_allowed_for_session(case5_compound):
+				notice = "Compuesto no permitido en este evento: " + case5_compound
+				show_inventory()
+				return
 			if vehicle.exchange_tire(src_idx, spare_to_use, false):
 				selected_wheel = src_idx
 				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
@@ -843,8 +866,37 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 		return
 
 
+func get_session_allowed_compound_ids() -> Array:
+	if session != null and session.has_method("get_session_allowed_compound_ids"):
+		return session.get_session_allowed_compound_ids()
+	return []
+
+
+func spare_compound_for_id(spare_id: int) -> String:
+	if session == null or session.get("vehicle") == null:
+		return ""
+	var inventory = session.vehicle.tire_inventory
+	if inventory == null:
+		return ""
+	for spare in inventory.spares:
+		if int((spare as Dictionary).get("id", -1)) == spare_id:
+			return str((spare as Dictionary).get("compound_id", ""))
+	return ""
+
+
+func is_compound_allowed_for_session(compound_id: String) -> bool:
+	var allowed := get_session_allowed_compound_ids()
+	if allowed.is_empty():
+		return true
+	return allowed.has(compound_id)
+
+
 func load_spare(compound: String) -> void:
 	if session == null or session.get("vehicle") == null:
+		return
+	if not is_compound_allowed_for_session(compound):
+		notice = "Compuesto no permitido en este evento: " + compound
+		show_inventory()
 		return
 	var vehicle = session.vehicle
 	if session.may_service_tires() and vehicle.tire_inventory.spares.size() < vehicle.tire_inventory.capacity:

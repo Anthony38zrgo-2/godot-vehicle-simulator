@@ -22,6 +22,78 @@ static func rival_seed(rally_seed: int) -> int:
 	return abs(int(("%d/%s" % [rally_seed, RIVAL_PURPOSE]).hash()))
 
 
+## Entorno térmico para Single Stage/práctica (sin calendario): el modo
+## práctica no configura el weather controller, así que sin esto Kenia
+## soleado sería térmicamente idéntico a cualquier otro tramo (25/30/0).
+## Replica la inicialización del scheduler (rangos medios + offset regional).
+static func practice_thermal_for_stage(stage_id: String, weather_choice: String = "", hour: float = 12.0) -> Dictionary:
+	if not FileAccess.file_exists(PRESET_CATALOG_PATH):
+		return {}
+	var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(PRESET_CATALOG_PATH))
+	if not catalog is Dictionary:
+		return {}
+	var country := str(stage_id).split("_stage")[0].to_lower()
+	var regional_id := "russia_summer"
+	var event_path := "res://data/competition/events/%s_rally.json" % country
+	if FileAccess.file_exists(event_path):
+		var event_doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(event_path))
+		if event_doc is Dictionary:
+			regional_id = str(((event_doc as Dictionary).get("weather_rules", {}) as Dictionary).get("regional_profile_id", regional_id))
+	var regional: Dictionary = ((catalog as Dictionary).get("regional_profiles", {}) as Dictionary).get(regional_id, {})
+	if regional.is_empty():
+		regional = ((catalog as Dictionary).get("regional_profiles", {}) as Dictionary).get("russia_summer", {})
+	var presets: Dictionary = (catalog as Dictionary).get("presets", {})
+	var preset_id := "clear"
+	match str(weather_choice).strip_edges().to_lower():
+		"sunny", "soleado":
+			preset_id = "sunny"
+		"clear", "despejado":
+			preset_id = "clear"
+		"partly_cloudy":
+			preset_id = "partly_cloudy"
+		"cloudy", "nublado":
+			preset_id = "cloudy"
+		"overcast", "cubierto":
+			preset_id = "overcast"
+		"mist_fog", "fog", "niebla":
+			preset_id = "mist_fog"
+		"drizzle", "llovizna":
+			preset_id = "drizzle"
+		"light_precipitation", "lluvia", "rain", "light_rain":
+			preset_id = "light_precipitation"
+		"medium_precipitation", "medium_rain":
+			preset_id = "medium_precipitation"
+		"heavy_precipitation", "heavy_rain", "tormenta":
+			preset_id = "heavy_precipitation"
+	var preset: Dictionary = presets.get(preset_id, {})
+	if preset.is_empty():
+		return {}
+	var air_range: Array = preset.get("air_temperature_c", [15.0, 15.0])
+	var irr_range: Array = preset.get("irradiance_w_m2", [100.0, 100.0])
+	var air := (float(air_range[0]) + float(air_range[min(1, air_range.size() - 1)])) * 0.5
+	air += float(regional.get("air_offset_c", 0.0))
+	var solar := 0.0
+	if hour >= 5.0 and hour <= 21.0:
+		solar = clampf(sin((hour - 6.0) / 14.0 * PI), 0.0, 1.0)
+	var irr := (float(irr_range[0]) + float(irr_range[min(1, irr_range.size() - 1)])) * 0.5 \
+		* maxf(float(regional.get("irradiance_scale", 1.0)), 0.0) * solar
+	var antecedent: Dictionary = (regional.get("antecedent_policy", {}) as Dictionary).duplicate(true)
+	var ground_range: Array = antecedent.get("initial_ground_c", [13.0, 21.0])
+	var water_range: Array = antecedent.get("initial_water_mm", [0.0, 1.2])
+	var snow_range: Array = antecedent.get("initial_snow_mm", [0.0, 0.0])
+	var ground := (float(ground_range[0]) + float(ground_range[min(1, ground_range.size() - 1)])) * 0.5
+	ground = clampf(lerpf(ground, air, 0.3), -12.0, 55.0)
+	var water := (float(water_range[0]) + float(water_range[min(1, water_range.size() - 1)])) * 0.5
+	var snow := (float(snow_range[0]) + float(snow_range[min(1, snow_range.size() - 1)])) * 0.5
+	return {
+		"air_c": air,
+		"ground_c": ground,
+		"water_mm": maxf(water, 0.0),
+		"snow_mm": maxf(snow, 0.0),
+		"irradiance_w_m2": maxf(irr, 0.0),
+	}
+
+
 func _read_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		error = "No existe " + path
@@ -152,7 +224,7 @@ func _sample_range(rng: RandomNumberGenerator, lo: float, hi: float) -> float:
 	return rng.randf_range(lo, hi)
 
 
-func _resolve_climate_values(rng: RandomNumberGenerator, preset: Dictionary, prev_climate: Dictionary = {}) -> Dictionary:
+func _resolve_climate_values(rng: RandomNumberGenerator, preset: Dictionary, prev_climate: Dictionary = {}, regional: Dictionary = {}) -> Dictionary:
 	var cumulus_range: Array = preset.get("cumulus_coverage", [0.5, 0.5])
 	var cirrus_range: Array = preset.get("cirrus_coverage", [0.5, 0.5])
 	var irr_range: Array = preset.get("irradiance_w_m2", [100.0, 100.0])
@@ -179,6 +251,12 @@ func _resolve_climate_values(rng: RandomNumberGenerator, preset: Dictionary, pre
 	var precip := lerpf(float(precip_range[0]), float(precip_range[1]), u)
 	var fog := lerpf(float(fog_range[0]), float(fog_range[1]), clampf(u + rng.randf_range(-0.1, 0.1), 0.0, 1.0))
 	var wind_spd := lerpf(float(wind_range[0]), float(wind_range[1]), clampf(u * 0.6 + rng.randf_range(0.0, 0.4), 0.0, 1.0))
+
+	# La región modula magnitudes: el estado aporta la forma (soleado/
+	# nublado), el perfil regional cuánto vale en esa región. Un "soleado"
+	# de Suecia no es un "soleado" de Kenia.
+	air += float(regional.get("air_offset_c", 0.0))
+	irr *= maxf(float(regional.get("irradiance_scale", 1.0)), 0.0)
 
 	return {
 		"cumulus_coverage": cumulus,
@@ -210,7 +288,7 @@ static func simulate_liaison_physical_balance(gap_hours: float, start_abs_minute
 			var t := (hour - 6.0) / 14.0
 			solar = clampf(sin(t * PI), 0.0, 1.0)
 
-		var ambient_air_c := lerpf(8.0, 22.0, solar)
+		var ambient_air_c := lerpf(8.0, 22.0, solar) + float(regional.get("air_offset_c", 0.0))
 		var solar_irradiance := 650.0 * solar
 		var solar_gain := solar_irradiance * 0.65
 
@@ -369,7 +447,7 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 				current = _pick_weighted(rng, opts, opts_w)
 			var state_id := str(ordered[current])
 			var preset: Dictionary = presets[state_id]
-			var climate := _resolve_climate_values(rng, preset, prev_zone_climate)
+			var climate := _resolve_climate_values(rng, preset, prev_zone_climate, regional)
 			prev_zone_climate = climate
 			var precip_rate := float(climate.get("precipitation_mm_h", 0.0))
 			var init_water_lo := float(((antecedent.get("initial_water_mm", [0.0, 1.2]) as Array)[0]))

@@ -42,7 +42,7 @@ func run_catalog_checks() -> void:
 	check(bool(mini.get("ok", false)) and float(mini.get("power_ramp_deg", 0.0)) == 45.0 and float(mini.get("coast_ramp_deg", 0.0)) == 80.0, "mini_asfalto 45/80")
 	var tierra := RallyDifferentialCatalog.resolve("rt-lancia-stratos", "stratos_tierra", {"power": 0.1, "coast": 0.08})
 	check(bool(tierra.get("ok", false)) and int(tierra.get("active_friction_surfaces", 0)) == 6, "stratos_tierra 6 surfaces")
-	var fulvia := RallyDifferentialCatalog.resolve("rt-lancia-fulvia", "fulvia_gr4", {"power": 0.1, "coast": 0.03})
+	var fulvia := RallyDifferentialCatalog.resolve("lancia-fulvia", "fulvia_gr4", {"power": 0.1, "coast": 0.03})
 	check(bool(fulvia.get("ok", false)) and float(fulvia.get("power_ramp_deg", 0.0)) == 45.0 and float(fulvia.get("coast_ramp_deg", 0.0)) == 75.0, "fulvia_gr4 45/75")
 	check(float(fulvia.get("friction_mu_power", 0.0)) != float(fulvia.get("friction_mu_coast", 0.0)), "coast stays distinct from power")
 	var amazon := RallyDifferentialCatalog.resolve("rt-volvo-amazon", "amazon_rsport", {"power": 0.11, "coast": 0.09})

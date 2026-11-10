@@ -42,6 +42,24 @@ static func validated_id(compound_id: String) -> String:
 	return compound_id if is_valid(compound_id) else ""
 
 
+static func event_rules_for_stage(stage_id: String) -> Dictionary:
+	var country := stage_id.split("_stage")[0].to_lower()
+	var path := (
+		"res://data/competition/events/%s_rally.json"
+		% country
+	)
+	if not FileAccess.file_exists(path):
+		return {}
+	var doc: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(path)
+	)
+	if not doc is Dictionary:
+		return {}
+	return (
+		doc.get("tire_rules", {}) as Dictionary
+	).duplicate(true)
+
+
 ## Respuesta de compuesto/agua/nieve/temperatura del suelo (multiplicador
 ## único). No impone «llueve = frío» ni «sol = caliente»: es balance.
 static func grip_response(compound: Dictionary, water_mm: float, snow_mm: float, tread_c: float, ground_c: float) -> Dictionary:
@@ -85,8 +103,18 @@ static func grip_response(compound: Dictionary, water_mm: float, snow_mm: float,
 
 
 ## Objetivos térmicos del compuesto (banda y carcasa) para el reinicio tras
-## montar neumáticos al inicio de cada stage.
-static func start_temperatures(compound: Dictionary) -> Dictionary:
+## montar neumáticos al inicio de cada stage. Con policy
+## "environment_weighted" la goma arranca entre el ambiente de la zona y el
+## óptimo del compuesto: fría en Suecia, caliente en Kenia, sin listar
+## países aquí. Cualquier otra política conserva el óptimo del compuesto.
+static func start_temperatures(
+	compound: Dictionary,
+	environment_c: float = 25.0,
+	policy: String = "selected_compound_optimum",
+) -> Dictionary:
 	var tread := float(compound.get("tread_optimum_c", 50.0))
 	var carcass := float(compound.get("carcass_optimum_c", 60.0))
+	if policy == "environment_weighted":
+		tread = lerpf(environment_c, tread, 0.4)
+		carcass = lerpf(environment_c, carcass, 0.4)
 	return {"tread_c": tread, "carcass_c": carcass, "gas_c": carcass, "surface_c": tread}

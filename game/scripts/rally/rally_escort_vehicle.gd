@@ -21,6 +21,8 @@ var _blob_shadow_decal: Decal = null
 
 var simulation := FordRallyVehicleSimulation.new()
 var tire_inventory = preload("res://scripts/rally/rally_tire_inventory.gd").new()
+# Política de temperatura de salida del compuesto (tire_rules del evento).
+var start_temperature_policy: String = "selected_compound_optimum"
 const TIRE_STATE_KEYS := ["surface_c", "tread_c", "tread_zones_c", "carcass_c", "gas_c", "pressure_bar_gauge", "pressure_reference_bar_gauge", "pressure_reference_temp_c", "wear_fraction", "thermal_damage_fraction", "pressure_loss_fraction", "leak_per_second", "rim_deformation", "carcass_failure"]
 var rally_profile: Dictionary = {}
 var rally_asset_manifest: Dictionary = {}
@@ -669,6 +671,7 @@ func _reset_to_transform(pose: Transform3D) -> void:
 	_wheel_quiet_frames.fill(0)
 
 func prepare_for_stage() -> void:
+	simulation.thermal_model.start_temperature_policy = start_temperature_policy
 	simulation.thermal_model.reset_for_stage(simulation.domains)
 	_sync_mass_from_fuel()
 	if not tire_inventory.mounted.is_empty():
@@ -814,8 +817,13 @@ func fresh_tire_state(compound: String, index: int = 0) -> Dictionary:
 	var state := tire_state(index)
 	var catalog := RallyTireCompound.load_catalog()
 	var data: Dictionary = catalog.compounds[compound]
-	var tread := float(data.tread_optimum_c)
-	var carcass := float(data.carcass_optimum_c)
+	var temps := RallyTireCompound.start_temperatures(
+		data,
+		simulation.thermal_model.ambient_temperature_c,
+		start_temperature_policy
+	)
+	var tread := float(temps.tread_c)
+	var carcass := float(temps.carcass_c)
 	state.merge({"carcass_failure": 0.0, "rim_deformation": 0.0, "pressure_loss_fraction": 0.0, "leak_per_second": 0.0, "wear_fraction": 0.0, "thermal_damage_fraction": 0.0, "tread_c": tread, "surface_c": tread, "tread_zones_c": [tread, tread, tread], "carcass_c": carcass, "gas_c": carcass}, true)
 	var atmosphere := 1.01325
 	state.pressure_bar_gauge = (float(state.pressure_reference_bar_gauge) + atmosphere) * (carcass + 273.15) / (float(state.pressure_reference_temp_c) + 273.15) - atmosphere

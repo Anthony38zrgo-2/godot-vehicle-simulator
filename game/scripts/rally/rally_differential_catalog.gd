@@ -70,7 +70,7 @@ static func _profiles(doc: Dictionary) -> Dictionary:
 	return profiles if profiles is Dictionary else {}
 
 
-## Resuelve alias (lancia-fulvia -> rt-lancia-fulvia, etc.).
+## Resuelve alias (lancia_fulvia_1600_hf -> lancia-fulvia, etc.).
 ## Devuelve {"profile_key":..., "entry":...} o error.
 static func _resolve_profile_entry(doc: Dictionary, profile_id: String) -> Dictionary:
 	var profiles := _profiles(doc)

@@ -141,6 +141,24 @@ func _ready() -> void:
 		event_clock.set_paused(false)
 		if not single_stage_weather.is_empty() and single_stage_weather != "random":
 			_apply_single_stage_weather(single_stage_weather)
+	# Single Stage/práctica: sin calendario no hay proveedor climático; se fija
+	# el entorno térmico desde el perfil regional para que Kenia soleado sea
+	# caliente y Suecia fría también fuera del modo evento.
+	if (practice_mode or session_mode == "single_stage") and event_manager == null:
+		var practice_choice := single_stage_weather if not single_stage_weather.is_empty() else selected_weather
+		var practice_thermal := RallyWeatherScheduler.practice_thermal_for_stage(
+			session_track_id, practice_choice, sky_start_hour
+		)
+		if not practice_thermal.is_empty():
+			vehicle.simulation.set_practice_thermal_environment(practice_thermal)
+	# Política de temperatura de salida (tire_rules): environment_weighted
+	# arranca la goma entre el ambiente de la zona y el óptimo del compuesto
+	# (fría en Suecia, caliente en Kenia). El resto conserva el óptimo.
+	var start_rules: Dictionary = (
+		event_manager.event_doc.get("tire_rules", {}) as Dictionary
+	) if (not practice_mode and event_manager != null) else RallyTireCompound.event_rules_for_stage(session_track_id)
+	vehicle.start_temperature_policy = str(start_rules.get("start_temperature_policy", "selected_compound_optimum"))
+	vehicle.simulation.sync_ambient_conditions()
 	# Compuesto confirmado antes de precalentar (objetivos térmicos por compuesto).
 	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
@@ -148,12 +166,15 @@ func _ready() -> void:
 			var condition: Dictionary = event_manager.mounted_tire_condition[i]
 			vehicle.simulation.thermal_model.tire_states[i].wear_fraction = clampf(float(condition.get("wear_fraction", 0.0)), 0.0, 1.0)
 			vehicle.simulation.thermal_model.tire_states[i].thermal_damage_fraction = clampf(float(condition.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
-	# Single-stage/práctica en Suecia sin manager: instalar snow_studded
-	# antes de crear el inventario. No toca inventarios existentes
-	# (ensure_tire_inventory no recrea) ni selecciones guardadas.
-	if (practice_mode or session_mode == "single_stage") and event_manager == null and str(session_track_id).begins_with("sweden_"):
-		if vehicle.has_method("set_tire_compound"):
-			vehicle.set_tire_compound("snow_studded")
+	# Single-stage/práctica sin manager: instalar el compuesto
+	# predeterminado del evento del país antes de crear el inventario.
+	# No toca inventarios existentes (ensure_tire_inventory no recrea)
+	# ni selecciones guardadas.
+	if (practice_mode or session_mode == "single_stage") and event_manager == null:
+		var initial_rules := RallyTireCompound.event_rules_for_stage(session_track_id)
+		var initial_compound := str(initial_rules.get("default_compound_id", "gravel_normal"))
+		if not initial_compound.is_empty() and vehicle.has_method("set_tire_compound"):
+			vehicle.set_tire_compound(initial_compound)
 	apply_start_pose_from_manifest()
 	vehicle.ensure_tire_inventory()
 	if not practice_mode and event_manager != null and not event_manager.tire_inventory_state.is_empty():
@@ -423,7 +444,7 @@ func place_vehicle_on_stage() -> void:
 	var forward_axis := surface_normal.cross(right_axis).normalized()
 	var start_basis := Basis(right_axis, surface_normal, -forward_axis)
 	# El origen del cuerpo no coincide con el plano de contacto de las ruedas.
-	# Desplazarlo ese tanto evita que coches de recorrido corto (356B: 100 mm)
+	# Desplazarlo ese tanto evita que coches con poco recorrido de rueda
 	# aterricen sobre los topes de suspension al aparecer en el tramo.
 	var lowest := _wheel_lowest_offset()
 	start_position = surface_position + surface_normal * (SPAWN_CLEARANCE_METRES - lowest)
@@ -1118,6 +1139,12 @@ func _open_setup_window() -> void:
 			"forecast_summary": str(forecast.get("summary", "")),
 			"forecast_advice": "Nieve con clavos" if str(session_track_id).begins_with("sweden_") else str(forecast.get("suggested_compound", "")),
 			"window_label": label,
+			"allowed_compound_ids": event_manager.get_allowed_compound_ids(),
+			"default_compound_id": str(
+				event_manager.event_doc.get(
+					"tire_rules", {}
+				).get("default_compound_id", "gravel_normal")
+			),
 		})
 		if head_up_display != null:
 			head_up_display.show_status("REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR", Color(0.95, 0.72, 0.24), 4.0)
@@ -1135,6 +1162,9 @@ func _open_setup_window() -> void:
 		var current_compound: String = "gravel_normal"
 		if vehicle != null and vehicle.tire_inventory != null and not vehicle.tire_inventory.mounted.is_empty():
 			current_compound = vehicle.tire_inventory.mounted[0].compound_id
+		var tire_rules := RallyTireCompound.event_rules_for_stage(
+			session_track_id
+		)
 		garage_panel.call("open_garage_for_event", {
 			"spare_wheels": vehicle.tire_inventory.spares.size(),
 			"wheel_compounds": mounted_wheel_compounds(),
@@ -1145,6 +1175,12 @@ func _open_setup_window() -> void:
 			"forecast_summary": "",
 			"forecast_advice": "",
 			"window_label": label,
+			"allowed_compound_ids": tire_rules.get(
+				"allowed_compound_ids", []
+			),
+			"default_compound_id": tire_rules.get(
+				"default_compound_id", "gravel_normal"
+			),
 		})
 		if head_up_display != null:
 			head_up_display.show_status("REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR", Color(0.95, 0.72, 0.24), 4.0)
@@ -1184,7 +1220,11 @@ func _on_garage_closed(applied: bool) -> void:
 	var cid := str(setup.get("compound_id", "gravel_normal"))
 	if not practice_mode and event_manager != null:
 		cid = str(setup.get("compound_id", event_manager.draft_compound_id))
-		var result: Dictionary = event_manager.confirm_setup(cid, setup.get("values", {}))
+		var result: Dictionary = event_manager.confirm_setup(
+			cid,
+			setup.get("values", {}),
+			setup.get("wheel_compounds", {})
+		)
 		if not bool(result.get("ok", false)):
 			push_warning("Reglaje: " + str(result.get("error", "")))
 			call_deferred("_open_setup_window")
@@ -1232,6 +1272,16 @@ func mounted_wheel_compounds() -> Dictionary:
 	for i in vehicle.tire_inventory.mounted.size():
 		result[["FL", "FR", "RL", "RR"][i]] = vehicle.tire_inventory.mounted[i].compound_id
 	return result
+
+
+func get_session_allowed_compound_ids() -> Array:
+	if event_manager != null:
+		if event_manager.has_method("get_allowed_compound_ids"):
+			return event_manager.get_allowed_compound_ids()
+		return (event_manager.event_doc.get("tire_rules", {}) as Dictionary).get("allowed_compound_ids", [])
+	var rules := RallyTireCompound.event_rules_for_stage(session_track_id)
+	return rules.get("allowed_compound_ids", [])
+
 
 func may_service_tires() -> bool:
 	if not session_ready or competition.complete or course.clock_started:
