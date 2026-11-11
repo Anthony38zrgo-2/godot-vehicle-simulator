@@ -6,6 +6,7 @@ const CMR2_TEXTURES := "res://assets/vfx/cmr2/"
 const CMR4_TEXTURES := "res://assets/vfx/cmr4/"
 const BACKFIRE := preload(CMR2_TEXTURES + "backfire_atlas.png")
 var DUST_CORE: Texture2D
+const GRAVEL_DUST := preload(CMR4_TEXTURES + "dust_01.png")
 const TIRE_SMOKE := preload(CMR4_TEXTURES + "smoke_01.png")
 const RAIN_SPLAT := preload(CMR2_TEXTURES + "splat.png")
 const RADIATOR_STEAM := preload(CMR4_TEXTURES + "smoke_01.png")
@@ -418,6 +419,11 @@ func update_wheel(index: int, wetness: float) -> void:
 	var side := normal.cross(rearward) * (-1.0 if index % 2 == 0 else 1.0)
 	var source := previous.lerp(point, wheel_particles.rng.randf())
 	var velocity := rearward * clampf(corner_speed.length() * 0.16 + slip, 0.6, 4.0) + side * slip * 0.5
+	if RallyEscortVehicle.tire_is_unseated(sim.thermal_model.tire_states[index]):
+		emit_unseated_sparks(index, velocity, point, normal)
+		wheel_cooldowns[index] = int(profile.interval) * WHEEL_PARTICLES.STEP
+		return
+
 	var paved := surface in ["road", "asphalt", "tarmac"]
 	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
 	# La capa invernal manda sobre la superficie base: en Suecia la carretera
@@ -435,6 +441,21 @@ func update_wheel(index: int, wetness: float) -> void:
 			wheel_snow_haze[index] = SNOW_HAZE_TICKS * WHEEL_PARTICLES.STEP
 			var haze_velocity := rearward * 0.8 + normal * 0.6
 			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SMOKE, TIRE_SMOKE, source + normal * 0.35, haze_velocity, point, normal, clampf(strength * 0.7, 0.0, 1.0))
+	elif surface == "gravel" and wet < 0.35:
+		var hub := _wheel_hub_center(index, point, normal)
+		var chip_direction := (rearward - side * 0.35 + normal * 0.35).normalized()
+		var chip_velocity := chip_direction * wheel_particles.rng.randf_range(0.3, 0.5) + corner_speed * 0.85
+		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_SPRAY, snow_texture_variant(index), hub, chip_velocity, point, normal)
+		if slip > 0.76:
+			var rock_velocity := velocity * 0.3 + normal * 0.2 + corner_speed * 0.7
+			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_SPRAY, snow_texture_variant(index), hub, rock_velocity, point, normal)
+		if index >= 2 and float(profile.dust) * strength * (1.0 - wet) > 0.025:
+			var dust_kind := WHEEL_PARTICLES.Kind.SLIP_DUST if slip > 0.76 else WHEEL_PARTICLES.Kind.DUST
+			wheel_particles.emit_particle(dust_kind, GRAVEL_DUST, source + normal * 0.16, velocity + normal * 0.28, point, normal)
+			for i in int(profile.get("burst", 0)):
+				var puff_offset := source + side * wheel_particles.rng.randf_range(-0.22, 0.22) + normal * wheel_particles.rng.randf_range(0.0, 0.12)
+				var puff_velocity := velocity * wheel_particles.rng.randf_range(0.85, 1.1) + normal * 0.28
+				wheel_particles.emit_particle(dust_kind, GRAVEL_DUST, puff_offset, puff_velocity, point, normal)
 	elif wet >= 0.35:
 		var spray := smoothstep(0.35, 1.0, wet)
 		var splash := SPLASH_PAVED if paved else SPLASH_LOOSE
@@ -474,21 +495,7 @@ func update_wheel(index: int, wetness: float) -> void:
 				var kind := WHEEL_PARTICLES.Kind.LEAF if entered_grass else (WHEEL_PARTICLES.Kind.GRASS if leaf == 0 else WHEEL_PARTICLES.Kind.GRASS_SHORT)
 				var leaf_velocity := velocity * 0.75 + side * (0.45 + leaf * 0.35) + normal * (1.25 + leaf * 0.25)
 				wheel_particles.emit_particle(kind, texture, source + normal * 0.12 + side * 0.18, leaf_velocity, point, normal)
-		elif surface == "gravel" and wet < 0.35:
-			# Gravilla en las 4 ruedas: beige sólido y opaco, vida media,
-			# forma cuadrada. 1 por rueda: nace del centro de
-			# centro de atrás (atrás + deriva a la línea central + leve
-			# elevación). Hereda el 85% de la velocidad de la rueda para viajar
-			# con ella y quedarse cerca: drag bajo + vida contenida.
-			var hub := _wheel_hub_center(index, point, normal)
-			var chip_dir := (rearward * 1.0 - side * 0.35 + normal * 0.35).normalized()
-			var chip: Texture2D = GRAVEL[wheel_particles.rng.randi_range(0, GRAVEL.size() - 1)]
-			var chip_speed := wheel_particles.rng.randf_range(0.3, 0.5)
-			var chip_velocity := chip_dir * chip_speed + corner_speed * 0.85
-			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_CHIP, chip, hub, chip_velocity, point, normal)
-			if slip > 0.76:
-				var rock: Texture2D = GRAVEL[wheel_particles.rng.randi_range(0, GRAVEL.size() - 1)]
-				wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.ROCK, rock, hub, velocity * 0.3 + normal * 0.2 + corner_speed * 0.7, point, normal)
+
 	var dry_ticks := int(profile.interval)
 	var ticks := roundi(lerpf(float(dry_ticks), 3.0, wet)) if wet >= 0.35 else dry_ticks
 	wheel_cooldowns[index] = ticks * WHEEL_PARTICLES.STEP
@@ -514,6 +521,13 @@ func wheel_conditions(index: int) -> Dictionary:
 	if index >= 0 and index < conditions.size() and conditions[index] is Dictionary:
 		return conditions[index]
 	return {}
+
+
+func emit_unseated_sparks(index: int, velocity: Vector3, point: Vector3, normal: Vector3) -> void:
+	for kind in [WHEEL_PARTICLES.Kind.BEAD_YELLOW, WHEEL_PARTICLES.Kind.BEAD_ORANGE]:
+		var spark_velocity := velocity.slide(normal) * wheel_particles.rng.randf_range(1.0, 1.5)
+		spark_velocity += normal * wheel_particles.rng.randf_range(0.30, 0.65)
+		wheel_particles.emit_particle(kind, SPARK, point + normal * 0.055, spark_velocity, point, normal)
 
 
 func snow_texture_variant(index: int) -> Texture2D:

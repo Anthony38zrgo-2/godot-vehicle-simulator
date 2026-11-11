@@ -247,6 +247,13 @@ func _ready() -> void:
 func build_environment() -> void:
 	weather_sky_node = TroposphericSky.new()
 	weather_sky_node.name = "RallyTroposphericSky"
+	var sky_date := str(event_clock.event_date)
+	var rally_id := session_track_id.get_slice("_stage", 0)
+	if event_manager != null and not practice_mode:
+		var schedule: Dictionary = event_manager.schedule_for(session_track_id)
+		sky_date = str(schedule.get("date", sky_date))
+		rally_id = str(event_manager.event_doc.get("id", rally_id))
+	weather_sky_node.configure_event(rally_id, session_track_id, sky_date)
 	weather_sky_node.current_time = sky_start_hour
 	weather_sky_node.dreamcast_visual_mode = dreamcast_visual_mode
 	weather_sky_node.exposure = sky_exposure

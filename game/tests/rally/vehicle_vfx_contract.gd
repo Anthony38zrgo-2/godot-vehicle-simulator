@@ -104,36 +104,23 @@ func verify() -> void:
 			assert(not grass.is_empty(), "Sustained grass contact emits the grass types")
 		else:
 			var burst: int = int(vfx.SURFACES[surface.to_lower()].get("burst", 0))
+			assert(particles.size() == (2 + burst if surface == "Gravel" else 1 + burst), "Burst por superficie en %s" % surface)
+			var pool = vfx.wheel_particles
 			if surface == "Gravel":
-				# Polvo trasero (1 + ráfaga 2) + 1 chip cuadrado por rueda.
-				assert(particles.size() == 1 + burst + 1, "Polvo + chip cuadrado en %s" % surface)
-				var chips := particles.filter(func(p): return p.kind == vfx.wheel_particles.Kind.GRAVEL_CHIP)
-				assert(chips.size() == 1, "Grava emite 1 chip cuadrado por rueda")
-				var chip_profile: Dictionary = vfx.wheel_particles.TYPES[vfx.wheel_particles.Kind.GRAVEL_CHIP]
-				assert(chip_profile.size.y <= 0.045, "Chips ligeramente más grandes")
-				assert(int(chip_profile.ticks) == 18, "Chips con más vida")
-				assert(is_equal_approx(float(chip_profile.alpha), 1.0), "Chips opacos desde el inicio")
-				assert(bool(chip_profile.get("cutout", false)), "Chips cuadrados con recorte duro")
-				var rel: Vector3 = (chips[0].velocity as Vector3) - vehicle.linear_velocity * 0.85
-				assert(chips[0].texture in vfx.GRAVEL, "Chip usa textura cuadrada de grava")
-				assert(rel.length() <= 0.8, "Pop propio corto, viaja con la rueda")
-				var n := rel.normalized()
-				assert(n.z > 0.8, "Chip hacia atrás (+Z)")
-				assert(n.x > 0.2, "Chip deriva hacia el centro (+X en rueda izq.)")
-				assert(n.y > 0.2 and n.y < 0.5, "Chip con leve elevación")
+				for particle in particles.slice(0, 1):
+					assert(particle.kind == pool.Kind.GRAVEL_SPRAY and particle.texture in vfx.SNOW_ROLL)
+				for particle in particles.slice(1):
+					assert(particle.kind == pool.Kind.DUST and particle.texture == vfx.GRAVEL_DUST)
 			else:
-				assert(particles.size() == 1 + burst, "Burst por superficie en %s" % surface)
-			var dust = particles[0]
-			assert(dust.texture == vfx.DUST_CORE)
-			var dust_pool = vfx.wheel_particles
-			var expected_kind: int = vfx.SURFACES[surface.to_lower()].dust_kind
-			assert(dust.kind == expected_kind)
-			assert(dust_pool.TYPES[dust.kind].color != Color.WHITE)
-			var frame: int = vfx.wheel_particles.dust_frame(dust)
-			vfx.wheel_particles.step(Vector3.ZERO)
-			assert(vfx.wheel_particles.dust_frame(dust) == frame)
-			vfx.wheel_particles.step(Vector3.ZERO)
-			assert(vfx.wheel_particles.dust_frame(dust) == (frame + 1) % 8)
+				var dust = particles[0]
+				assert(dust.texture == vfx.DUST_CORE)
+				assert(dust.kind == vfx.SURFACES[surface.to_lower()].dust_kind)
+				assert(pool.TYPES[dust.kind].color != Color.WHITE)
+				var frame: int = pool.dust_frame(dust)
+				pool.step(Vector3.ZERO)
+				assert(pool.dust_frame(dust) == frame)
+				pool.step(Vector3.ZERO)
+				assert(pool.dust_frame(dust) == (frame + 1) % 8)
 		var emitted := active_wheel_particles(vfx).size()
 		vfx.update_wheel(index, 0.0)
 		assert(active_wheel_particles(vfx).size() == emitted, "Wheel emission respects its tick countdown")
@@ -162,21 +149,31 @@ func verify() -> void:
 	sim.wheel_surfaces[index] = "Gravel"
 	sim.wheel_slips[index] = Vector2(0.5, 0.3)
 	vfx.update_wheel(index, 0.0)
-	var rocks := active_wheel_particles(vfx)
-	assert(rocks.size() == 5, "1 polvo + rafaga 2 + 1 chip + 1 roca en grava con derrape")
-	var chip_count := rocks.filter(func(p): return p.kind == vfx.wheel_particles.Kind.GRAVEL_CHIP).size()
-	assert(chip_count == 1, "Derrape en grava mantiene 1 chip cuadrado")
-	assert(rocks[4].texture in vfx.GRAVEL, "La roca extra usa textura cuadrada de grava")
-	var rock_batch: MultiMesh = vfx.wheel_particles.batches[rocks[4].texture]
-	var rock_material := rock_batch.mesh.surface_get_material(0) as ShaderMaterial
-	assert(rock_material.get_shader_parameter("opaque_sprite_mask") == true)
-	var rock = rocks[4]
-	for i in 14:
-		vfx.wheel_particles.step(Vector3.ZERO)
-	assert(rock.bounced, "Gravel must rebound on the contact plane")
 	var pool = vfx.wheel_particles
+	var normal_spray := active_wheel_particles(vfx)
+	assert(normal_spray.size() == 5 and normal_spray[0].kind == pool.Kind.GRAVEL_SPRAY)
+	var tire: Dictionary = sim.thermal_model.tire_states[index]
+	tire.pressure_loss_fraction = 1.0
+	tire.carcass_failure = 0.99
+	vfx.clear_wheel_bursts()
+	vfx.update_wheel(index, 0.0)
+	assert(active_wheel_particles(vfx)[0].kind == pool.Kind.GRAVEL_SPRAY)
+	tire.carcass_failure = 1.0
+	for iteration in 2:
+		vfx.clear_wheel_bursts()
+		sim.last_local_conditions[index] = {"snow_mm": 1.0}
+		vfx.update_wheel(index, 1.0)
+		var spray := active_wheel_particles(vfx)
+		assert(spray.size() == 2, "Unseated tire replaces surface spray with a balanced pair")
+		assert(spray[0].kind == pool.Kind.BEAD_YELLOW and spray[1].kind == pool.Kind.BEAD_ORANGE)
+		for particle in spray:
+			assert(particle.texture == vfx.SPARK and particle.ticks == 18)
+		assert(pool.batches[vfx.SPARK].mesh.surface_get_material(0).shader == vfx.ADDITIVE_SHADER)
+	tire.carcass_failure = 0.0
+	tire.pressure_loss_fraction = 0.0
+	sim.last_local_conditions[index] = {"snow_mm": 0.0}
 	for i in 405:
-		pool.emit_particle(pool.Kind.ROCK, rock.texture, contact_point, Vector3.ZERO, contact_point, Vector3.UP)
+		pool.emit_particle(pool.Kind.ROCK, vfx.GRAVEL[0], contact_point, Vector3.ZERO, contact_point, Vector3.UP)
 	assert(active_wheel_particles(vfx).size() == 400, "Capacity is shared and bounded")
 	vfx.clear_wheel_bursts()
 	sim.wheel_loads[index] = 0.0
@@ -229,7 +226,7 @@ func verify() -> void:
 	}
 	var leaf_material := trigger_impact(vfx, leaf_contact, 0.0)
 	var leaf_texture := leaf_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(leaf_texture != null and leaf_texture.resource_path.contains("leaf_"))
+	assert(leaf_texture in vfx.LEAVES)
 	assert(leaf_material.shader.resource_path.ends_with("rally_vehicle_vfx.gdshader"))
 	# A wet hard contact never picks a spark.
 	var wet_hard_material := trigger_impact(vfx, spark_contact, 0.9)

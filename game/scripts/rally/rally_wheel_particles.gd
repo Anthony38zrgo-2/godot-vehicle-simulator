@@ -13,6 +13,7 @@ extends Node3D
 const CAPACITY := 400
 # The original race loop advances particles on the player car's 25 Hz step.
 const STEP := 1.0 / 25.0
+const SPARK_SHADER := preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
 const SHADER := preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
 
 enum Kind {
@@ -34,6 +35,9 @@ enum Kind {
 	GLASS,
 	RAIN_SPLAT,
 	GRAVEL_CHIP,
+	GRAVEL_SPRAY,
+	BEAD_YELLOW,
+	BEAD_ORANGE,
 }
 
 enum Look {
@@ -210,6 +214,9 @@ const TYPES := {
 		"gravity": 2.0,
 		"drag": 0.8,
 	},
+	Kind.GRAVEL_SPRAY: {"color": Color(0.78, 0.68, 0.52), "ticks": 35, "size": Vector2(0.198, 0.572), "alpha": 0.82, "gravity": 10.0, "drag": 0.8},
+	Kind.BEAD_YELLOW: {"color": Color(1.0, 0.94, 0.10), "ticks": 18, "size": Vector2(0.38, 0.28), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
+	Kind.BEAD_ORANGE: {"color": Color(1.0, 0.12, 0.01), "ticks": 18, "size": Vector2(0.38, 0.28), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
 	Kind.LEAF: {
 		"cmr2_ids": [0x10, 0x11],
 		"frames": 5,
@@ -438,7 +445,7 @@ func step(wind: Vector3) -> void:
 		var height := (p.position - p.floor_point).dot(p.floor_normal)
 		if height >= 0.0:
 			continue
-		if p.kind in [Kind.ROCK, Kind.MUD, Kind.GRAVEL_CHIP]:
+		if p.kind in [Kind.ROCK, Kind.MUD, Kind.GRAVEL_CHIP, Kind.GRAVEL_SPRAY]:
 			p.position -= p.floor_normal * height
 			var vertical := p.velocity.dot(p.floor_normal)
 			if vertical < 0.0:
@@ -447,6 +454,9 @@ func step(wind: Vector3) -> void:
 				if rebound > 0.20:
 					p.velocity += p.floor_normal * rebound
 				p.bounced = true
+		elif p.kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE]:
+			p.position -= p.floor_normal * height
+			p.velocity = p.velocity.slide(p.floor_normal)
 		elif bool(profile.get("cutout", false)) or p.kind in [Kind.WATER, Kind.SNOW, Kind.GLASS]:
 			p.ticks = 0
 
@@ -518,13 +528,16 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 		if snap > 0.0:
 			position = position.snapped(Vector3.ONE * snap)
 
+		var bead_spark := p.kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE]
 		# --- Opacidad: desvanecimiento en bandas ---
 		var constant_alpha := (
 			bool(profile.get("cutout", false)) or p.kind == Kind.SLIP_DUST
 			or (retro and p.kind == Kind.BACKFIRE)
 		)
 		var fade := 1.0
-		if not constant_alpha:
+		if bead_spark:
+			fade = 1.0 - smoothstep(0.65, 1.0, progress)
+		elif not constant_alpha:
 			fade = (
 				1.0 - progress
 				if alpha_steps <= 0
@@ -537,9 +550,14 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 		if angle_steps > 0:
 			angle = snappedf(angle, TAU / float(angle_steps))
 
+		var basis := Basis.IDENTITY
+		if bead_spark and p.velocity.length_squared() > 0.001:
+			var direction := p.velocity.normalized()
+			var up := Vector3.RIGHT if absf(direction.y) > 0.95 else Vector3.UP
+			basis = Basis.looking_at(direction, up) * Basis(Vector3.RIGHT, -PI * 0.5)
 		batch.set_instance_transform(
 			slot,
-			Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * size), position),
+			Transform3D(basis.scaled(Vector3.ONE * size), position),
 		)
 		batch.set_instance_color(slot, _particle_color(p, profile, progress, alpha))
 		batch.set_instance_custom_data(slot, Color(angle, float(frame), 0.0, 0.0))
@@ -570,6 +588,8 @@ func _stepped(t: float, steps: int) -> float:
 
 func _particle_color(p: Particle, profile: Dictionary, progress: float, alpha: float) -> Color:
 	var base: Color = profile.color
+	if p.kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE]:
+		return Color(base, alpha)
 	if bool(_cfg.ramps) and RAMPS.has(p.kind):
 		var ramp: Array = RAMPS[p.kind]
 		base = ramp[mini(int(progress * ramp.size()), ramp.size() - 1)]
@@ -749,21 +769,26 @@ static func _proc_leaf(size: int, seed_value: int) -> Image:
 
 func _make_batch(texture: Texture2D, kind: Kind) -> void:
 	var material := ShaderMaterial.new()
-	material.shader = SHADER
+	material.shader = SPARK_SHADER if kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE] else SHADER
 	material.set_shader_parameter("particle_texture", texture)
-	material.set_shader_parameter("manual_particle_state", true)
-	material.set_shader_parameter("opaque_sprite_mask", bool(TYPES[kind].get("cutout", false)))
-	var frames := float(TYPES[kind].get("frames", 1))
-	if kind in DUST_KINDS:
-		frames = 8.0
-	elif kind == Kind.BACKFIRE:
-		frames = 4.0
-	if texture.resource_path.begins_with("res://assets/vfx/cmr4/") or bool(texture.get_meta("proc_sprite", false)):
-		frames = 1.0
-	material.set_shader_parameter("sprite_frames", frames)
-	if kind == Kind.RAIN_SPLAT or texture.resource_path.ends_with("splat.png"):
-		material.set_shader_parameter("body_exclusion_strength", 0.0)
-	_apply_material_style(material, kind)
+	if material.shader == SHADER:
+		material.set_shader_parameter("manual_particle_state", true)
+		material.set_shader_parameter("opaque_sprite_mask", bool(TYPES[kind].get("cutout", false)))
+		var frames := float(TYPES[kind].get("frames", 1))
+		if kind in DUST_KINDS:
+			frames = 8.0
+		elif kind == Kind.BACKFIRE:
+			frames = 4.0
+		if texture.resource_path.begins_with("res://assets/vfx/cmr4/") or bool(texture.get_meta("proc_sprite", false)):
+			frames = 1.0
+		material.set_shader_parameter("sprite_frames", frames)
+		if kind == Kind.RAIN_SPLAT or texture.resource_path.ends_with("splat.png"):
+			material.set_shader_parameter("body_exclusion_strength", 0.0)
+		_apply_material_style(material, kind)
+	else:
+		material.render_priority = 20
+		material.set_shader_parameter("spark_emission", 4.0)
+		material.set_shader_parameter("wheel_spark", true)
 	var mesh := QuadMesh.new()
 	mesh.material = material
 	var batch := MultiMesh.new()

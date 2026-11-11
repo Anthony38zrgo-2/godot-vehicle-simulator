@@ -255,7 +255,23 @@ func get_tire_compound() -> String:
 	return simulation.active_compound_id
 
 
+var wheel_rest_scales: Array[Vector3] = []
+
+
+func _update_unseated_wheel_visuals() -> void:
+	for i in wheel_rest_scales.size():
+		var pivot := simulation.wheel_visual_pivots[i]
+		var rest_scale := wheel_rest_scales[i]
+		if tire_is_unseated(simulation.thermal_model.tire_states[i]):
+			# Compress on the vertical axis after wheel spin, keeping the bottom near the road.
+			pivot.scale = rest_scale * Vector3(1.08, 0.78, 1.0)
+			pivot.position.y -= simulation.wheel_radii[i] * 0.22
+		else:
+			pivot.scale = rest_scale
+
+
 func bind_wheel_visuals() -> void:
+	wheel_rest_scales.clear()
 	var pivots: Array[Node3D] = []
 	var visuals: Array[Node3D] = []
 	for node_name in ["WheelFrontLeft", "WheelFrontRight", "WheelRearLeft", "WheelRearRight"]:
@@ -264,6 +280,7 @@ func bind_wheel_visuals() -> void:
 			push_error("Missing wheel visual pivot: " + node_name)
 			return
 		pivots.append(pivot)
+		wheel_rest_scales.append(pivot.scale)
 		visuals.append(pivot.get_node("WheelVisual") as Node3D)
 		pivot.position = simulation.wheel_positions_local[pivots.size() - 1]
 	simulation.bind_wheel_visuals(pivots, visuals)
@@ -305,6 +322,7 @@ func _physics_process(delta: float) -> void:
 		return
 	simulation.unsprung_rig.sync_freeze()
 	simulation.update_wheel_visuals(steering_amount)
+	_update_unseated_wheel_visuals()
 	_sync_mass_from_fuel()
 	var smoothing_enabled := bool(_input_smoothing.get("enabled", false))
 	throttle_amount = _shape_input(throttle_amount, throttle_input, float(_input_smoothing.get("throttle", 0.0)), delta, smoothing_enabled)
@@ -763,6 +781,10 @@ func _apply_wheel_impacts(contacts: Array[bool], speeds: Array[float], cfg: Dict
 func _impact_severity_increase(speed: float, previous: float, start: float, full: float) -> float:
 	var span := full - start
 	return clampf((speed - start) / span, 0.0, 1.0) - clampf((previous - start) / span, 0.0, 1.0)
+
+
+static func tire_is_unseated(state: Dictionary) -> bool:
+	return float(state.get("carcass_failure", 0.0)) >= 1.0
 
 
 func tire_state(index: int) -> Dictionary:

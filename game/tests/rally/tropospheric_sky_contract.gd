@@ -37,7 +37,7 @@ func run() -> void:
 	sky.update_visuals(0.0)
 	assert(not sky.sun.shadow_enabled)
 	assert(sky.environment.fog_depth_end < clear_fog_end)
-	assert(sky.material.get_shader_parameter("sky_b").resource_path.ends_with("/verycloudy_4.png"))
+	assert(sky.material.get_shader_parameter("sky_b").resource_path.ends_with("/" + sky.variants["verycloudy"] + ".png"))
 
 	scene.event_clock.jump_to("2026-06-13", 86401.0, "test midnight")
 	sky.update_visuals(0.0)

@@ -4,11 +4,14 @@ const SHADER := preload("res://scripts/rally/rally_tropospheric_sky.gdshader")
 const SKY_DIR := "res://assets/weather/tropospheric/"
 const CLEAR := preload("res://assets/weather/tropospheric/day_1.png")
 const PRESETS_PATH := "res://data/weather/rally_weather_presets.json"
-const CLOUDY := "cloudy_1"
-const STORM := "verycloudy_4"
-const DAWN := "day_2"
-const DUSK := "dusk_3"
-const NIGHT := "night_2"
+var variants := {"day": "day_1", "cloudy": "cloudy_1", "verycloudy": "verycloudy_4", "dusk": "dusk_3", "night": "night_2"}
+
+func configure_event(rally_id: String, stage_id: String, date: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(JSON.stringify([rally_id, stage_id, date]))
+	for group: String in ["day", "cloudy", "verycloudy", "dusk"]:
+		variants[group] = "%s_%d" % [group, rng.randi_range(1, 6)]
+
 
 var environment := Environment.new()
 var sun := DirectionalLight3D.new()
@@ -26,7 +29,7 @@ var _elapsed := 0.0
 
 func _ready() -> void:
 	_textures["day_1"] = CLEAR
-	for sky_id: String in [CLOUDY, STORM, DAWN, DUSK, NIGHT]:
+	for sky_id: String in variants.values():
 		var path := SKY_DIR + sky_id + ".png"
 		var texture := load(path) as TextureLayered if ResourceLoader.exists(path) else null
 		if texture == null:
@@ -94,17 +97,17 @@ func update_visuals(delta: float) -> void:
 	var cover := clampf(float(climate.get("cumulus_coverage", 0.2)), 0.0, 1.0)
 	cover = maxf(cover, smoothstep(0.0, 12.0, float(climate.get("precipitation_mm_h", 0.0))) * 0.95)
 	var overcast := smoothstep(0.35, 0.95, cover)
-	var twilight_id := DAWN if morning else DUSK
+	var twilight_id: String = variants["day"] if morning else variants["dusk"]
 	var twilight_yaw := 0.0 if morning else PI
 	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast)
 	var day_mix := smoothstep(0.02, 0.36, altitude)
 	if altitude < 0.02:
-		_bind_sky(NIGHT, twilight_id, NIGHT, smoothstep(-0.25, 0.02, altitude), 1.0,
+		_bind_sky(variants["night"], twilight_id, variants["night"], smoothstep(-0.25, 0.02, altitude), 1.0,
 			0.0, twilight_yaw, Vector3.ONE.lerp(Vector3(0.15, 0.20, 0.28), overcast), twilight_tint, Vector3.ONE)
 	else:
 		var cloudy := cover >= 0.55
 		var blend := smoothstep(0.55, 0.95, cover) if cloudy else smoothstep(0.15, 0.55, cover)
-		_bind_sky(CLOUDY if cloudy else "day_1", STORM if cloudy else CLOUDY, twilight_id,
+		_bind_sky(variants["cloudy"] if cloudy else variants["day"], variants["verycloudy"] if cloudy else variants["cloudy"], twilight_id,
 			blend, day_mix, twilight_yaw, 0.0, Vector3.ONE, Vector3.ONE, twilight_tint)
 	var clear_col: Array = visual.get("fog_color_clear", [0.64, 0.73, 0.82])
 	var storm_col: Array = visual.get("fog_color_overcast", [0.46, 0.50, 0.55])

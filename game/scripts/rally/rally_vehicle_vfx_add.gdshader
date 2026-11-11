@@ -6,6 +6,8 @@ render_mode blend_add, depth_draw_never, cull_disabled, diffuse_lambert;
 // particle shader so impacts remain outside the cabin from every camera.
 
 uniform sampler2D particle_texture : source_color, filter_linear_mipmap;
+uniform float spark_emission = 0.0;
+uniform bool wheel_spark = false;
 uniform mat4 world_to_vehicle;
 uniform float body_exclusion_strength : hint_range(0.0, 1.0) = 1.0;
 varying vec3 particle_world_position;
@@ -32,7 +34,12 @@ void vertex() {
 }
 
 void fragment() {
-	vec4 sample_color = texture(particle_texture, UV) * COLOR;
+	vec4 sprite = texture(particle_texture, UV);
+	if (wheel_spark) {
+		float brightness = max(sprite.r, max(sprite.g, sprite.b));
+		sprite.rgb = vec3(brightness);
+	}
+	vec4 sample_color = sprite * COLOR;
 	if (sample_color.a * near_fade < 0.005) {
 		discard;
 	}
@@ -52,11 +59,12 @@ void fragment() {
 
 	vec2 border = smoothstep(vec2(0.01), vec2(0.10), min(UV, 1.0 - UV));
 	float taper = 1.0 - smoothstep(UV.y * 0.5, UV.y * 0.5 + 0.06, abs(UV.x - 0.5));
-	float final_alpha = sample_color.a * visibility * near_fade * border.x * border.y * taper;
+	float final_alpha = sample_color.a * visibility * near_fade * border.x * border.y * (wheel_spark ? 1.0 : taper);
 	if (final_alpha < 0.005) {
 		discard;
 	}
 
 	ALBEDO = sample_color.rgb;
+	EMISSION = sample_color.rgb * spark_emission;
 	ALPHA = final_alpha;
 }

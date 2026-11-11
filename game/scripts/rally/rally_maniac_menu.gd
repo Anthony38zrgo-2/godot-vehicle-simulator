@@ -403,17 +403,7 @@ func _process(delta: float) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		_center_modal()
 		_update_stage_card_widths()
-
-
-func _center_modal() -> void:
-	if modal_panel != null:
-		modal_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		modal_panel.position = Vector2.ZERO
-		modal_panel.size = get_viewport_rect().size
-	if preview_viewport != null:
-		preview_viewport.size = Vector2i(get_viewport_rect().size)
 
 
 func _unhandled_input(event: InputEvent) -> void:

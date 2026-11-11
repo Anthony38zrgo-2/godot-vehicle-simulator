@@ -287,7 +287,7 @@ func _condition(tire: Dictionary) -> String:
 	var s: Dictionary = tire.state
 	var lines := "#%d · Desgaste %.0f%%" % [tire.id,float(s.get("wear_fraction",0))*100]
 	lines += "\nPinchada" if float(s.get("leak_per_second",0)) > 0 else "\nSin pinchadura"
-	lines += "\nDestalonada" if bool(s.get("bead_unseated",false)) else ""
+	lines += "\nDestalonada" if RallyEscortVehicle.tire_is_unseated(s) else ""
 	lines += "\nRin dañado" if float(s.get("rim_deformation",0)) > .005 else "\nRin sano"
 	return lines
 
