@@ -282,8 +282,29 @@ func bind_wheel_visuals() -> void:
 		pivots.append(pivot)
 		wheel_rest_scales.append(pivot.scale)
 		visuals.append(pivot.get_node("WheelVisual") as Node3D)
+		_make_wheel_matte(visuals.back())
 		pivot.position = simulation.wheel_positions_local[pivots.size() - 1]
 	simulation.bind_wheel_visuals(pivots, visuals)
+
+
+func _make_wheel_matte(node: Node) -> void:
+	if node is MeshInstance3D and node.mesh != null:
+		var wheel_mesh := node as MeshInstance3D
+		for surface in wheel_mesh.mesh.get_surface_count():
+			var source := wheel_mesh.get_active_material(surface) as BaseMaterial3D
+			if source == null and wheel_mesh.get_active_material(surface) != null:
+				continue
+			var matte := source.duplicate() as BaseMaterial3D if source != null else StandardMaterial3D.new()
+			matte.roughness = 1.0
+			matte.metallic = 0.0
+			matte.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+			matte.clearcoat_enabled = false
+			if wheel_mesh.material_override != null:
+				wheel_mesh.material_override = matte
+				break
+			wheel_mesh.set_surface_override_material(surface, matte)
+	for child in node.get_children():
+		_make_wheel_matte(child)
 
 
 func build_collision_shapes(collision_document: Dictionary) -> void:

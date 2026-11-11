@@ -1,0 +1,26 @@
+﻿original,renamed,periodo_aparente,horas_aproximadas,descripcion_visual
+cloudy_1.png,skybox-midday-10to14-scattered-white-cumulus.png,Media mañana / mediodía,10:00–14:00,"Sol bastante alto, cielo azul con cúmulos blancos"
+cloudy_2.png,skybox-golden-hour-17to19-low-sun-scattered-clouds.png,Atardecer / hora dorada,17:00–19:00,Luz dorada baja sobre nubes dispersas
+cloudy_3.png,skybox-midday-11to15-sunny-isolated-cumulus.png,Mediodía / primera tarde,11:00–15:00,Sol alto y cúmulos aislados
+cloudy_4.png,skybox-afternoon-13to17-hazy-sun-soft-cumulus.png,Primera tarde,13:00–17:00,Sol algo lateral velado por calima y nubes
+cloudy_5.png,skybox-daytime-10to16-patchy-high-clouds.png,Día; hora poco definida,10:00–16:00,Nubes altas sin señales claras de amanecer o atardecer
+cloudy_6.png,skybox-late-afternoon-15to18-backlit-cumulus.png,Tarde avanzada,15:00–18:00,Cúmulos a contraluz con resplandor cálido
+day_1.png,skybox-midday-11to14-bright-sun-blue-sky.png,Mediodía,11:00–14:00,Sol alto y cielo mayormente despejado
+day_2.png,skybox-twilight-18to1930-pastel-pink-blue-clouds.png,Crepúsculo (también podría ser amanecer),18:00–19:30,Tonos azules y rosados; no permite distinguir ocaso de alba
+day_3.png,skybox-afternoon-15to17-low-side-sun-wispy-clouds.png,Media tarde,15:00–17:00,Resplandor lateral y nubes finas
+day_4.png,skybox-midday-11to15-bright-sky-sparse-cumulus.png,Mediodía / primera tarde,11:00–15:00,Sol brillante con pequeños cúmulos dispersos
+day_5.png,skybox-midday-10to14-deep-blue-almost-clear.png,Media mañana / mediodía,10:00–14:00,Azul intenso y sol elevado
+day_6.png,skybox-daytime-10to16-pale-blue-high-clouds.png,Día; hora poco definida,10:00–16:00,Cielo claro lechoso con nubes altas difusas
+dusk_1.png,skybox-sunset-17to19-low-golden-sun-cirrus.png,Puesta de sol / hora dorada,17:00–19:00,Sol muy bajo en el horizonte
+dusk_2.png,skybox-blue-hour-18to1930-clear-sky-orange-horizon.png,Hora azul,18:00–19:30,Sol bajo el horizonte; restos de brillo cálido
+dusk_3.png,skybox-sunset-17to19-orange-pink-streaked-clouds.png,Puesta de sol,17:00–19:00,Horizonte naranja y nubes rosadas
+dusk_4.png,skybox-blue-hour-18to1930-dark-low-clouds.png,Crepúsculo / hora azul,18:00–19:30,Atmósfera azul grisácea y nubes bajas
+dusk_5.png,skybox-sunset-17to19-overcast-warm-horizon-glow.png,Atardecer cubierto,17:00–19:00,Nubosidad gris con resplandor cálido a ras del horizonte
+dusk_6.png,skybox-daytime-unknown-hour-dark-layered-overcast.png,Día muy nublado; hora indeterminada,No determinable,La nubosidad oculta señales fiables de la posición solar
+night_2.png,skybox-night-20to04-bright-moon-stars.png,Noche,20:00–04:00,Luna brillante y estrellas; sin hora nocturna concreta
+verycloudy_1.png,skybox-midday-11to15-cirrus-sun-halo.png,Mediodía / primera tarde,11:00–15:00,Sol visible relativamente alto entre cirros
+verycloudy_2.png,skybox-midday-10to15-altocumulus-blue-gaps.png,Media mañana / primera tarde,10:00–15:00,Sol entre altocúmulos con claros azules
+verycloudy_3.png,skybox-daytime-unknown-hour-hazy-gray-overcast.png,Día cubierto; hora indeterminada,No determinable,Sol difuso sin posición horaria fiable
+verycloudy_4.png,skybox-daytime-unknown-hour-bright-complete-overcast.png,Día cubierto; hora indeterminada,No determinable,Cubierta blanca y gris que dificulta inferir la hora
+verycloudy_5.png,skybox-daytime-unknown-hour-dark-textured-overcast.png,Día cubierto; hora indeterminada,No determinable,"Techo bajo y oscuro, luz muy difusa"
+verycloudy_6.png,skybox-late-afternoon-16to19-overcast-horizon-break.png,"Tarde avanzada, estimación débil",16:00–19:00,Luz cálida en una abertura cercana al horizonte

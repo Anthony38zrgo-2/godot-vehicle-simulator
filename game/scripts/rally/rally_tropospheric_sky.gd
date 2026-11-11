@@ -6,11 +6,37 @@ const CLEAR := preload("res://assets/weather/tropospheric/day_1.png")
 const PRESETS_PATH := "res://data/weather/rally_weather_presets.json"
 var variants := {"day": "day_1", "cloudy": "cloudy_1", "verycloudy": "verycloudy_4", "dusk": "dusk_3", "night": "night_2"}
 
+var event_seed := 0
+# Original IDs remain stable; windows come from mapping-time-of-day.csv.
+const WINDOWS := {
+	"day_1": [11.0,14.0], "day_4": [11.0,15.0], "day_5": [10.0,14.0], "day_6": [10.0,16.0], "day_3": [15.0,17.0],
+	"cloudy_1": [10.0,14.0], "cloudy_3": [11.0,15.0], "cloudy_4": [13.0,17.0], "cloudy_5": [10.0,16.0], "cloudy_6": [15.0,18.0], "cloudy_2": [17.0,19.0],
+	"verycloudy_1": [11.0,15.0], "verycloudy_2": [10.0,15.0], "verycloudy_3": [10.0,17.0], "verycloudy_4": [10.0,17.0], "verycloudy_5": [10.0,17.0], "dusk_6": [10.0,17.0], "verycloudy_6": [16.0,19.0],
+	"dusk_1": [17.0,19.0], "dusk_3": [17.0,19.0], "dusk_5": [17.0,19.0], "day_2": [18.0,19.5], "dusk_2": [18.0,19.5], "dusk_4": [18.0,19.5]
+}
+
 func configure_event(rally_id: String, stage_id: String, date: String) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(JSON.stringify([rally_id, stage_id, date]))
-	for group: String in ["day", "cloudy", "verycloudy", "dusk"]:
-		variants[group] = "%s_%d" % [group, rng.randi_range(1, 6)]
+	event_seed = hash(JSON.stringify([rally_id, stage_id, date]))
+
+func _pick(ids: Array, hour: float) -> String:
+	var eligible: Array = []
+	var nearest: String = ids[0]
+	var distance := INF
+	for id: String in ids:
+		var window: Array = WINDOWS[id]
+		var d := maxf(float(window[0]) - hour, maxf(hour - float(window[1]), 0.0))
+		if d < distance:
+			distance = d
+			nearest = id
+		if hour >= float(window[0]) and hour < float(window[1]):
+			eligible.append(id)
+	return nearest if eligible.is_empty() else str(eligible[posmod(event_seed, eligible.size())])
+
+func _select_hour(hour: float) -> void:
+	variants["day"] = _pick(["day_1", "day_4", "day_5", "day_6", "day_3", "dusk_1", "dusk_3"], hour)
+	variants["cloudy"] = _pick(["cloudy_1", "cloudy_3", "cloudy_4", "cloudy_5", "cloudy_6", "cloudy_2"], hour)
+	variants["verycloudy"] = _pick(["verycloudy_1", "verycloudy_2", "verycloudy_3", "verycloudy_4", "verycloudy_5", "dusk_6", "verycloudy_6", "dusk_5"], hour)
+	variants["dusk"] = "dusk_4" if float(climate.get("cumulus_coverage", 0.2)) >= 0.55 else _pick(["day_2", "dusk_2"], hour)
 
 
 var environment := Environment.new()
@@ -29,7 +55,7 @@ var _elapsed := 0.0
 
 func _ready() -> void:
 	_textures["day_1"] = CLEAR
-	for sky_id: String in variants.values():
+	for sky_id: String in WINDOWS.keys() + ["night_2"]:
 		var path := SKY_DIR + sky_id + ".png"
 		var texture := load(path) as TextureLayered if ResourceLoader.exists(path) else null
 		if texture == null:
@@ -89,7 +115,8 @@ func update_visuals(delta: float) -> void:
 	for key: String in _practice_target:
 		var tau := 6.0 if key == "cumulus_coverage" else 4.0
 		climate[key] = lerpf(float(climate[key]), float(_practice_target[key]), 1.0 - exp(-delta / tau))
-	var angle := (current_time - 6.0) * TAU / 24.0
+	_select_hour(current_time)
+	var angle := (current_time - 7.0) * TAU / 24.0
 	var altitude := sin(angle)
 	var morning := cos(angle) >= 0.0
 	var daylight := smoothstep(-0.12, 0.18, altitude)
@@ -97,10 +124,10 @@ func update_visuals(delta: float) -> void:
 	var cover := clampf(float(climate.get("cumulus_coverage", 0.2)), 0.0, 1.0)
 	cover = maxf(cover, smoothstep(0.0, 12.0, float(climate.get("precipitation_mm_h", 0.0))) * 0.95)
 	var overcast := smoothstep(0.35, 0.95, cover)
-	var twilight_id: String = variants["day"] if morning else variants["dusk"]
+	var twilight_id: String = "day_2" if morning else variants["dusk"]
 	var twilight_yaw := 0.0 if morning else PI
 	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast)
-	var day_mix := smoothstep(0.02, 0.36, altitude)
+	var day_mix := smoothstep(6.0, 10.0, current_time) if morning else 1.0 - smoothstep(18.0, 19.5, current_time)
 	if altitude < 0.02:
 		_bind_sky(variants["night"], twilight_id, variants["night"], smoothstep(-0.25, 0.02, altitude), 1.0,
 			0.0, twilight_yaw, Vector3.ONE.lerp(Vector3(0.15, 0.20, 0.28), overcast), twilight_tint, Vector3.ONE)

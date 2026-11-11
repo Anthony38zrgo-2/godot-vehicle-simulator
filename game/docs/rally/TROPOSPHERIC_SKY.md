@@ -29,3 +29,6 @@ godot --path game --resolution 1280x720 --script res://tests/rally/tropospheric_
 ```
 
 El último comando escribe las capturas en `%TEMP%`. Agrega `--normal` después de `--` para el modo normal, o `--no-tca` para probar la inicialización sin TCA.
+
+## Selección por hora
+El catálogo WINDOWS del controlador aplica los rangos de data/weather/mapping-time-of-day.csv conservando los nombres originales. La selección es determinista por evento, tramo y fecha. Cada grupo filtra candidatos por hora; si falta cobertura usa la variante temporalmente más cercana. Amanecer reutiliza day_2 provisionalmente. Los cielos cubiertos sin hora se limitan a 10–17. El crepúsculo de tarde mezcla hacia hora azul entre 18 y 19:30. Se cargan las 25 variantes; esto aumenta memoria respecto al catálogo anterior. Los cambios entre variantes de un grupo son directos y requieren revisión visual; las mezclas por nubosidad y crepúsculo siguen activas.

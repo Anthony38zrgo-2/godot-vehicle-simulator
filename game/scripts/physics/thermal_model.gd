@@ -1,6 +1,9 @@
 class_name VehicleThermalModel
 extends RefCounted
 
+const NATURAL_WEAR_MULTIPLIER := 4.0
+const BRAKE_WEAR_MULTIPLIER := 2.0
+
 var engine_config: Dictionary = {}
 var tire_config: Dictionary = {}
 var tire_config_front: Dictionary = {}
@@ -456,7 +459,7 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	var heat_severity := clampf((0.5 * (disc_temperature + float(state.brake_disc_c)) - hot_start) / (hot_full - hot_start), 0.0, 1.0)
 	var heat_multiplier := lerpf(1.0, maxf(float(brake_wear_config.get("maximum_heat_multiplier", 3.0)), 1.0), heat_severity)
 	var wear_energy := maxf(braking_power_w, 0.0) * dt
-	brake_wear_fraction[index] = clampf(brake_wear_fraction[index] + wear_energy * maxf(float(brake_wear_config.get("wear_per_j", 2.0e-8)), 0.0) * heat_multiplier, 0.0, 1.0)
+	brake_wear_fraction[index] = clampf(brake_wear_fraction[index] + wear_energy * maxf(float(brake_wear_config.get("wear_per_j", 2.0e-8)), 0.0) * heat_multiplier * NATURAL_WEAR_MULTIPLIER * BRAKE_WEAR_MULTIPLIER, 0.0, 1.0)
 	tire_states[index] = state
 
 func advance_tire_pressure(index: int, dt: float) -> void:
@@ -476,7 +479,7 @@ func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: floa
 	# Power * seconds is joules. The legacy key was misnamed but used /J.
 	var wear_rate := maxf(float(compound.get("wear_per_j", compound.get("wear_per_mj", 1.0e-9))), 0.0)
 	var abrasion_multiplier := lerpf(maxf(float(compound.get("dry_wear_multiplier", 1.0)), 0.0), maxf(float(compound.get("wet_wear_multiplier", 1.0)), 0.0), smoothstep(0.1, 1.0, water_mm))
-	state.wear_fraction = clampf(float(state.get("wear_fraction", 0.0)) + maxf(friction_power_w, 0.0) * maxf(dt, 0.0) * wear_rate * abrasion_multiplier, 0.0, 1.0)
+	state.wear_fraction = clampf(float(state.get("wear_fraction", 0.0)) + maxf(friction_power_w, 0.0) * maxf(dt, 0.0) * wear_rate * abrasion_multiplier * NATURAL_WEAR_MULTIPLIER, 0.0, 1.0)
 	var hottest := float(state.tread_c)
 	for temperature in state.get("tread_zones_c", []):
 		hottest = maxf(hottest, float(temperature))
