@@ -59,6 +59,8 @@ const C_SEL := BG_HOVER
 const C_GREEN := STATUS_SUCCESS
 
 const REGISTRY_PATH := "res://data/vehicles/registry.json"
+const DEFAULT_CREATOR_NAME := "DoomerDoge38"
+const DEFAULT_GAME_VERSION := "1.0"
 const StageLoaderScript := preload("res://scripts/rally/rally_stage_loader.gd")
 const EventManagerScript := preload("res://scripts/rally/rally_event_manager.gd")
 
@@ -223,6 +225,16 @@ class StageRoutePreview extends Control:
 # VARIABLES DE ESTADO Y NAVEGACIÓN
 # =============================================================================
 
+@export var creator_name: String = DEFAULT_CREATOR_NAME:
+	set(value):
+		creator_name = value
+		_refresh_footer_labels()
+
+@export var game_version: String = DEFAULT_GAME_VERSION:
+	set(value):
+		game_version = value
+		_refresh_footer_labels()
+
 var selected_mode: String = "championship"
 var selected_stage_id: String = "russia_stage1"
 var selected_country: String = "russia"
@@ -252,10 +264,12 @@ var header_hbox_ref: HBoxContainer
 var header_line_ref: ColorRect
 var header_title: Label
 var header_subtitle: Label
+var header_badge_vbox: VBoxContainer
 var badge_top: Label
 var badge_bottom: Label
 var content_container: MarginContainer
 var footer_hint: Label
+var footer_version: Label
 var main_menu_title: Label
 
 var screen_main_menu: VBoxContainer
@@ -517,6 +531,7 @@ func _build_ui() -> void:
 	badge_vbox.add_theme_constant_override("separation", 1)
 	badge_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	header_hbox.add_child(badge_vbox)
+	header_badge_vbox = badge_vbox
 
 	badge_top = Label.new()
 	badge_top.text = "PANTALLA"
@@ -584,14 +599,61 @@ func _build_ui() -> void:
 	root_vbox.add_child(footer_line)
 
 	var footer_hbox := HBoxContainer.new()
+	footer_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root_vbox.add_child(footer_hbox)
 
 	footer_hint = Label.new()
-	footer_hint.text = "[ W/S / FLECHAS ] NAVEGAR  ·  [ ENTER / CLICK ] CONFIRMAR  ·  [ ESC ] VOLVER"
 	footer_hint.add_theme_font_override("font", FONT_TITLE)
-	footer_hint.add_theme_font_size_override("font_size", 10)
-	footer_hint.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.8))
+	footer_hint.add_theme_font_size_override("font_size", 12)
+	footer_hint.add_theme_color_override("font_color", Color("#f5e6c8", 0.90))
+	footer_hint.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
+	footer_hint.add_theme_constant_override("shadow_offset_x", 1)
+	footer_hint.add_theme_constant_override("shadow_offset_y", 1)
 	footer_hbox.add_child(footer_hint)
+
+	var footer_spacer := Control.new()
+	footer_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer_hbox.add_child(footer_spacer)
+
+	footer_version = Label.new()
+	footer_version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	footer_version.add_theme_font_override("font", FONT_TITLE)
+	footer_version.add_theme_font_size_override("font_size", 12)
+	footer_version.add_theme_color_override("font_color", Color("#f5e6c8", 0.90))
+	footer_version.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
+	footer_version.add_theme_constant_override("shadow_offset_x", 1)
+	footer_version.add_theme_constant_override("shadow_offset_y", 1)
+	footer_hbox.add_child(footer_version)
+
+	_refresh_footer_labels()
+
+
+func set_game_version(version_str: String) -> void:
+	game_version = version_str
+
+
+func _resolve_game_version() -> String:
+	var v := game_version.strip_edges()
+	if v != DEFAULT_GAME_VERSION and not v.is_empty():
+		return v
+	var proj_v := str(ProjectSettings.get_setting("application/config/version", "")).strip_edges()
+	if not proj_v.is_empty():
+		return proj_v
+	return v if not v.is_empty() else DEFAULT_GAME_VERSION
+
+
+func _refresh_footer_labels() -> void:
+	if footer_hint != null:
+		var cname := creator_name.strip_edges()
+		if cname.is_empty():
+			cname = DEFAULT_CREATOR_NAME
+		footer_hint.text = "Creador: %s" % cname
+	if footer_version != null:
+		var ver := _resolve_game_version()
+		if ver.to_lower().begins_with("v"):
+			footer_version.text = ver
+		else:
+			footer_version.text = "Versión %s" % ver
 
 
 # =============================================================================
@@ -613,7 +675,7 @@ func _build_main_menu_screen() -> void:
 	main_menu_title.text = "Rally Maniac"
 	main_menu_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_menu_title.add_theme_font_override("font", _montserrat_bold_italic())
-	main_menu_title.add_theme_font_size_override("font_size", 64)
+	main_menu_title.add_theme_font_size_override("font_size", 67)
 	main_menu_title.add_theme_color_override("font_color", Color("#f5e6c8"))
 	main_menu_title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
 	main_menu_title.add_theme_constant_override("shadow_offset_x", 2)
@@ -631,17 +693,9 @@ func _build_main_menu_screen() -> void:
 	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	screen_main_menu.add_child(spacer_top)
 
-	var subtitle := Label.new()
-	subtitle.text = "SELECCIÓN DE MODO"
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_override("font", FONT_LIBRON_BOLD)
-	subtitle.add_theme_font_size_override("font_size", 13)
-	subtitle.add_theme_color_override("font_color", Color("#e5a93c"))
-	screen_main_menu.add_child(subtitle)
-
 	var buttons_box := VBoxContainer.new()
-	buttons_box.custom_minimum_size = Vector2(380, 0)
-	buttons_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	buttons_box.custom_minimum_size = Vector2(418, 0)
+	buttons_box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	buttons_box.add_theme_constant_override("separation", 10)
 	screen_main_menu.add_child(buttons_box)
 
@@ -686,6 +740,7 @@ func _build_stage_select_screen() -> void:
 	content_container.add_child(screen_stage_select)
 
 	var stage_header := HBoxContainer.new()
+	stage_header.hide()
 	screen_stage_select.add_child(stage_header)
 
 	var stage_title := Label.new()
@@ -712,8 +767,8 @@ func _build_stage_select_screen() -> void:
 		var cbtn := Button.new()
 		cbtn.text = str(COUNTRY_LABELS.get(country, country.capitalize()))
 		cbtn.set_meta("country", country)
-		cbtn.custom_minimum_size = Vector2(150, 34)
-		_style_flat_button(cbtn)
+		cbtn.custom_minimum_size = Vector2(150, 38)
+		cbtn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var target_country := country
 		cbtn.pressed.connect(func(): _on_country_selected(target_country))
 		country_row.add_child(cbtn)
@@ -913,7 +968,7 @@ func _build_stage_select_screen() -> void:
 	carousel_page_label.text = "ETAPAS 1-4 DE %d" % int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
 	carousel_page_label.add_theme_font_override("font", FONT_TITLE)
 	carousel_page_label.add_theme_font_size_override("font_size", 11)
-	carousel_page_label.add_theme_color_override("font_color", C_CHROME_DIM)
+	carousel_page_label.add_theme_color_override("font_color", C_GOLD)
 	bottom_bar.add_child(carousel_page_label)
 
 	_update_carousel_ui()
@@ -959,8 +1014,10 @@ func _on_country_selected(country: String) -> void:
 func _update_country_buttons() -> void:
 	for b in country_buttons:
 		var c := str(b.get_meta("country"))
-		b.disabled = (c == selected_country)
-		b.modulate.a = 0.45 if b.disabled else 1.0
+		var is_sel := (c == selected_country)
+		b.disabled = is_sel
+		b.modulate.a = 1.0
+		_style_beige_gold_button(b, FONT_TITLE, 13, 16, 8, is_sel)
 
 
 func _update_stage_card_widths() -> void:
@@ -1043,6 +1100,7 @@ func _build_car_select_screen() -> void:
 	content_container.add_child(screen_car_select)
 
 	var car_header := HBoxContainer.new()
+	car_header.hide()
 	screen_car_select.add_child(car_header)
 
 	var car_title := Label.new()
@@ -1077,6 +1135,7 @@ func _build_car_select_screen() -> void:
 	list_label.add_theme_font_override("font", FONT_TITLE)
 	list_label.add_theme_font_size_override("font_size", 10)
 	list_label.add_theme_color_override("font_color", C_CHROME_DIM)
+	list_label.hide()
 	list_vbox.add_child(list_label)
 
 	car_scroll = ScrollContainer.new()
@@ -1130,10 +1189,16 @@ func _build_car_select_screen() -> void:
 	right_vbox.add_theme_constant_override("separation", 10)
 	main_split.add_child(right_vbox)
 
-	# 1. Barra de título del vehículo activo
+	# 1. Barra de título del vehículo activo (título centrado horizontalmente)
 	var title_bar := HBoxContainer.new()
+	title_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	title_bar.add_theme_constant_override("separation", 12)
 	right_vbox.add_child(title_bar)
+
+	var title_balance_spacer := Control.new()
+	title_balance_spacer.custom_minimum_size = Vector2(54, 0)
+	title_balance_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_bar.add_child(title_balance_spacer)
 
 	var title_vbox := VBoxContainer.new()
 	title_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1142,6 +1207,8 @@ func _build_car_select_screen() -> void:
 
 	preview_car_title = Label.new()
 	preview_car_title.text = "---"
+	preview_car_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	preview_car_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	preview_car_title.add_theme_font_override("font", FONT_TITLE)
 	preview_car_title.add_theme_font_size_override("font_size", 22)
 	preview_car_title.add_theme_color_override("font_color", C_CHROME_TEXT)
@@ -1152,6 +1219,7 @@ func _build_car_select_screen() -> void:
 	preview_car_category.add_theme_font_override("font", FONT_TITLE)
 	preview_car_category.add_theme_font_size_override("font_size", 10)
 	preview_car_category.add_theme_color_override("font_color", C_CHROME_DIM)
+	preview_car_category.hide()
 	title_vbox.add_child(preview_car_category)
 
 	var badge_box := PanelContainer.new()
@@ -1183,37 +1251,37 @@ func _build_car_select_screen() -> void:
 	# 2. FICHA TÉCNICA INTEGRADA EN NEGATIVO (UNA SOLA FILA HORIZONTAL LIMPIA)
 	var specs_strip := HBoxContainer.new()
 	specs_strip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	specs_strip.add_theme_constant_override("separation", 20)
+	specs_strip.add_theme_constant_override("separation", 12)
 	right_vbox.add_child(specs_strip)
 
 	spec_power_val = Label.new()
 	spec_power_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Potencia", spec_power_val, spec_power_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Potencia", spec_power_val, spec_power_sub, 1.25))
 	specs_strip.add_child(_create_spec_divider())
 
 	spec_gears_val = Label.new()
 	spec_gears_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Marchas", spec_gears_val, spec_gears_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Marchas", spec_gears_val, spec_gears_sub, 1.05))
 	specs_strip.add_child(_create_spec_divider())
 
 	spec_wb_val = Label.new()
 	spec_wb_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Batalla", spec_wb_val, spec_wb_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Batalla", spec_wb_val, spec_wb_sub, 1.05))
 	specs_strip.add_child(_create_spec_divider())
 
 	spec_track_val = Label.new()
 	spec_track_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Trochas", spec_track_val, spec_track_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Trochas", spec_track_val, spec_track_sub, 1.15))
 	specs_strip.add_child(_create_spec_divider())
 
 	spec_mass_val = Label.new()
 	spec_mass_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Peso Mínimo", spec_mass_val, spec_mass_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Peso Mínimo", spec_mass_val, spec_mass_sub, 1.15))
 	specs_strip.add_child(_create_spec_divider())
 
 	spec_layout_val = Label.new()
 	spec_layout_sub = Label.new()
-	specs_strip.add_child(_create_minimal_spec_item("Configuración", spec_layout_val, spec_layout_sub))
+	specs_strip.add_child(_create_minimal_spec_item("Configuración", spec_layout_val, spec_layout_sub, 2.0))
 
 	# Barra inferior
 	var bottom_bar := HBoxContainer.new()
@@ -1222,8 +1290,8 @@ func _build_car_select_screen() -> void:
 
 	btn_car_back = Button.new()
 	btn_car_back.text = "◀ Back"
-	btn_car_back.custom_minimum_size = Vector2(140, 40)
-	_style_flat_button(btn_car_back)
+	btn_car_back.custom_minimum_size = Vector2(140, 42)
+	_style_red_gold_button(btn_car_back, FONT_TITLE, 13, 18, 10)
 	btn_car_back.pressed.connect(show_stage_select)
 	bottom_bar.add_child(btn_car_back)
 
@@ -1233,8 +1301,8 @@ func _build_car_select_screen() -> void:
 
 	btn_car_confirm = Button.new()
 	btn_car_confirm.text = "Seleccionar y Conducir ▶"
-	btn_car_confirm.custom_minimum_size = Vector2(240, 40)
-	_style_gold_button(btn_car_confirm)
+	btn_car_confirm.custom_minimum_size = Vector2(264, 44)
+	_style_gold_button(btn_car_confirm, 15, 24, 11)
 	btn_car_confirm.pressed.connect(func(): _on_car_selected(selected_car_key))
 	bottom_bar.add_child(btn_car_confirm)
 
@@ -1501,6 +1569,10 @@ func show_stage_select() -> void:
 		header_hbox_ref.show()
 	if header_line_ref != null:
 		header_line_ref.show()
+	if header_subtitle != null:
+		header_subtitle.hide()
+	if header_badge_vbox != null:
+		header_badge_vbox.hide()
 	badge_top.text = "MODO: " + selected_mode.to_upper()
 	badge_bottom.text = "SELECT STAGE"
 
@@ -1534,6 +1606,10 @@ func show_car_select() -> void:
 		header_hbox_ref.show()
 	if header_line_ref != null:
 		header_line_ref.show()
+	if header_subtitle != null:
+		header_subtitle.hide()
+	if header_badge_vbox != null:
+		header_badge_vbox.hide()
 	badge_top.text = "TRAMO: " + selected_stage_id.to_upper()
 	badge_bottom.text = "SELECT CAR"
 
@@ -1571,6 +1647,10 @@ func show_weather_select() -> void:
 		header_hbox_ref.show()
 	if header_line_ref != null:
 		header_line_ref.show()
+	if header_subtitle != null:
+		header_subtitle.show()
+	if header_badge_vbox != null:
+		header_badge_vbox.show()
 	badge_top.text = "CONDICIÓN"
 	badge_bottom.text = "SELECT WEATHER"
 
@@ -2154,9 +2234,10 @@ func _setup_3d_preview_scene() -> void:
 	_preview_car(selected_car_key)
 
 
-func _create_minimal_spec_item(title: String, val_label: Label, sub_label: Label) -> VBoxContainer:
+func _create_minimal_spec_item(title: String, val_label: Label, sub_label: Label, stretch: float = 1.0) -> VBoxContainer:
 	var item_vbox := VBoxContainer.new()
 	item_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item_vbox.size_flags_stretch_ratio = stretch
 	item_vbox.add_theme_constant_override("separation", 1)
 
 	var lbl_title := Label.new()
@@ -2166,11 +2247,13 @@ func _create_minimal_spec_item(title: String, val_label: Label, sub_label: Label
 	lbl_title.add_theme_color_override("font_color", C_CHROME_DIM)
 	item_vbox.add_child(lbl_title)
 
+	val_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	val_label.add_theme_font_override("font", FONT_UI_BOLD)
 	val_label.add_theme_font_size_override("font_size", 16)
 	val_label.add_theme_color_override("font_color", C_CHROME_TEXT)
 	item_vbox.add_child(val_label)
 
+	sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sub_label.add_theme_font_override("font", FONT_TITLE)
 	sub_label.add_theme_font_size_override("font_size", 9)
 	sub_label.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.70))
@@ -2315,10 +2398,53 @@ func _style_scroll_container(scroll: ScrollContainer) -> void:
 		h_bar.add_theme_stylebox_override("grabber_pressed", h_grabber_hl)
 
 
+func _make_extruded_box(
+	bg: Color,
+	border: Color,
+	pad_h: int = 18,
+	pad_v: int = 10,
+	is_pressed: bool = false,
+	radius: int = 4,
+	depth: int = 4
+) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_corner_radius_all(radius)
+	if is_pressed:
+		sb.border_width_left = 2
+		sb.border_width_top = 2
+		sb.border_width_right = 2
+		sb.border_width_bottom = 2
+		sb.shadow_color = Color(border.r * 0.45, border.g * 0.45, border.b * 0.45, 0.35 * border.a)
+		sb.shadow_size = 1
+		sb.shadow_offset = Vector2(0, 1)
+		if pad_h >= 0 and pad_v >= 0:
+			sb.content_margin_left = pad_h
+			sb.content_margin_right = pad_h
+			sb.content_margin_top = pad_v + 2
+			sb.content_margin_bottom = pad_v + 1
+	else:
+		sb.border_width_left = 2
+		sb.border_width_top = 1
+		sb.border_width_right = 3
+		sb.border_width_bottom = 1 + depth
+		sb.shadow_color = Color(border.r * 0.45, border.g * 0.45, border.b * 0.45, 0.50 * border.a)
+		sb.shadow_size = 2
+		sb.shadow_offset = Vector2(1, 2)
+		if pad_h >= 0 and pad_v >= 0:
+			sb.content_margin_left = pad_h
+			sb.content_margin_right = pad_h
+			sb.content_margin_top = pad_v
+			sb.content_margin_bottom = pad_v + maxi(depth - 1, 0)
+	return sb
+
+
 func _create_menu_button(text: String, callback: Callable, is_gold: bool = false, is_danger: bool = false) -> Button:
 	var btn := Button.new()
 	btn.text = text
-	btn.custom_minimum_size = Vector2(0, 50)
+	btn.custom_minimum_size = Vector2(0, 55)
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if is_danger:
 		_style_menu_exit_button(btn)
 	else:
@@ -2327,98 +2453,98 @@ func _create_menu_button(text: String, callback: Callable, is_gold: bool = false
 	return btn
 
 
-# Opciones del menú principal: beige claro de fondo, texto marrón, bordes dorados.
-# Complementa al resto de la GUI oscura manteniendo el dorado como acento común.
-func _style_menu_option_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#f5e6c8", 0.96)
-	normal.border_color = Color("#e5a93c")
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 18
-	normal.content_margin_right = 18
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	normal.shadow_size = 0
+func _style_beige_gold_button(
+	btn: Button,
+	font: Font,
+	font_size: int,
+	pad_h: int,
+	pad_v: int,
+	is_selected: bool = false
+) -> void:
+	var col_beige := Color("#f5e6c8", 0.96)
+	var col_beige_focus := Color("#faefd8", 0.98)
+	var col_gold := Color("#e5a93c", 0.98)
+	var col_gold_pressed := Color("#c88e24", 0.98)
+	var col_gold_border := Color("#e5a93c")
+	var col_gold_hi := Color("#f8df9e")
+	var col_brown := Color("#3a2a18")
 
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#fff8e7", 1.0)
-	hover.border_color = Color("#e5a93c")
-	hover.set_border_width_all(2)
+	var normal: StyleBoxFlat
+	var hover: StyleBoxFlat
+	var focus: StyleBoxFlat
+	var pressed := _make_extruded_box(col_gold_pressed, col_gold_hi, pad_h, pad_v, true)
 
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#d9c49a", 0.98)
-	pressed.border_color = Color("#e5a93c")
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", FONT_LIBRON_BOLD)
-	btn.add_theme_font_size_override("font_size", 15)
-	btn.add_theme_color_override("font_color", Color("#3a2a18"))
-	btn.add_theme_color_override("font_hover_color", Color("#3a2a18"))
-	btn.add_theme_color_override("font_pressed_color", Color("#5c3d1e"))
-	btn.add_theme_color_override("font_focus_color", Color("#3a2a18"))
-
-
-# Exit: rojo-guinda de fondo, texto dorado y borde dorado (el rojo queda solo aquí).
-func _style_menu_exit_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#6b0f1a", 0.92)
-	normal.border_color = Color("#e5a93c")
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 18
-	normal.content_margin_right = 18
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#8a1622", 0.96)
-	hover.border_color = Color("#f5e6c8")
-	hover.set_border_width_all(2)
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#4a0a12", 0.96)
-	pressed.border_color = Color("#e5a93c")
+	if is_selected:
+		normal = _make_extruded_box(col_gold, col_gold_hi, pad_h, pad_v, false)
+		hover = _make_extruded_box(col_gold, Color("#fff8e7"), pad_h, pad_v, false)
+		focus = hover.duplicate() as StyleBoxFlat
+		var disabled := _make_extruded_box(col_gold, col_gold_hi, pad_h, pad_v, false)
+		btn.add_theme_stylebox_override("disabled", disabled)
+		btn.add_theme_color_override("font_disabled_color", col_brown)
+	else:
+		normal = _make_extruded_box(col_beige, col_gold_border, pad_h, pad_v, false)
+		hover = _make_extruded_box(col_gold, col_gold_hi, pad_h, pad_v, false)
+		focus = _make_extruded_box(col_beige_focus, col_gold_hi, pad_h, pad_v, false)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", FONT_LIBRON_BOLD)
-	btn.add_theme_font_size_override("font_size", 15)
+	btn.add_theme_stylebox_override("hover_pressed", pressed)
+	btn.add_theme_stylebox_override("focus", focus)
+	btn.add_theme_font_override("font", font)
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.add_theme_color_override("font_color", col_brown)
+	btn.add_theme_color_override("font_hover_color", col_brown)
+	btn.add_theme_color_override("font_pressed_color", col_brown)
+	btn.add_theme_color_override("font_hover_pressed_color", col_brown)
+	btn.add_theme_color_override("font_focus_color", col_brown)
+
+
+func _style_red_gold_button(
+	btn: Button,
+	font: Font,
+	font_size: int,
+	pad_h: int,
+	pad_v: int
+) -> void:
+	var normal := _make_extruded_box(Color("#6b0f1a", 0.94), Color("#e5a93c"), pad_h, pad_v, false)
+	var hover := _make_extruded_box(Color("#8a1622", 0.98), Color("#f8df9e"), pad_h, pad_v, false)
+	var focus := _make_extruded_box(Color("#7c121e", 0.96), Color("#f8df9e"), pad_h, pad_v, false)
+	var pressed := _make_extruded_box(Color("#4a0a12", 0.98), Color("#e5a93c"), pad_h, pad_v, true)
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("hover_pressed", pressed)
+	btn.add_theme_stylebox_override("focus", focus)
+	btn.add_theme_font_override("font", font)
+	btn.add_theme_font_size_override("font_size", font_size)
 	btn.add_theme_color_override("font_color", Color("#f8df9e"))
 	btn.add_theme_color_override("font_hover_color", Color("#fff8e7"))
 	btn.add_theme_color_override("font_pressed_color", Color("#e5a93c"))
-	btn.add_theme_color_override("font_focus_color", Color("#f8df9e"))
+	btn.add_theme_color_override("font_hover_pressed_color", Color("#e5a93c"))
+	btn.add_theme_color_override("font_focus_color", Color("#fff8e7"))
+
+
+# Opciones del menú principal: beige claro de fondo, texto marrón, bordes dorados + hover dorado.
+func _style_menu_option_button(btn: Button) -> void:
+	_style_beige_gold_button(btn, FONT_LIBRON_BOLD, 17, 20, 11, false)
+
+
+# Exit: rojo-guinda de fondo, texto dorado y borde dorado con extrusión 3D.
+func _style_menu_exit_button(btn: Button) -> void:
+	_style_red_gold_button(btn, FONT_LIBRON_BOLD, 17, 20, 11)
 
 
 func _style_flat_button(btn: Button, is_accent: bool = false) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.08, 0.12, 0.16, 0.85)
-	normal.border_color = Color(1.0, 1.0, 1.0, 0.10)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 18
-	normal.content_margin_right = 18
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.14, 0.20, 0.26, 0.95)
-	hover.border_color = C_GOLD if is_accent else Color("#ffffff")
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.05, 0.08, 0.11, 0.95)
-	pressed.border_color = C_GOLD
+	var normal := _make_extruded_box(Color(0.08, 0.12, 0.16, 0.88), Color("#46586b"), 18, 10, false)
+	var hover := _make_extruded_box(Color(0.14, 0.20, 0.26, 0.95), C_GOLD if is_accent else Color("#cbd5e1"), 18, 10, false)
+	var pressed := _make_extruded_box(Color(0.05, 0.08, 0.11, 0.95), C_GOLD, 18, 10, true)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("hover_pressed", pressed)
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", FONT_TITLE)
 	btn.add_theme_font_size_override("font_size", 13)
@@ -2432,32 +2558,18 @@ func _style_chrome_button(btn: Button) -> void:
 	_style_flat_button(btn, false)
 
 
-func _style_gold_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#d49b2f")
-	normal.border_color = C_GOLD_HI
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 22
-	normal.content_margin_right = 22
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#e5aa37")
-	hover.border_color = Color.WHITE
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#b38020")
-	pressed.border_color = C_GOLD
+func _style_gold_button(btn: Button, font_size: int = 13, pad_h: int = 22, pad_v: int = 10) -> void:
+	var normal := _make_extruded_box(Color("#d49b2f"), C_GOLD_HI, pad_h, pad_v, false)
+	var hover := _make_extruded_box(Color("#e5aa37"), Color("#fff8e7"), pad_h, pad_v, false)
+	var pressed := _make_extruded_box(Color("#b38020"), C_GOLD, pad_h, pad_v, true)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("hover_pressed", pressed)
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", FONT_TITLE)
-	btn.add_theme_font_size_override("font_size", 13)
+	btn.add_theme_font_size_override("font_size", font_size)
 	btn.add_theme_color_override("font_color", Color("#0a0e14"))
 	btn.add_theme_color_override("font_hover_color", Color("#000000"))
 	btn.add_theme_color_override("font_pressed_color", Color("#000000"))
@@ -2538,20 +2650,9 @@ func _style_editorial_car_button(btn: Button, is_selected: bool) -> void:
 
 
 func _style_stage_card(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.07, 0.11, 0.15, 0.90)
-	normal.border_color = Color(1.0, 1.0, 1.0, 0.09)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.12, 0.18, 0.24, 0.96)
-	hover.border_color = C_GOLD
-	hover.set_border_width_all(2)
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.05, 0.08, 0.11, 0.98)
+	var normal := _make_extruded_box(Color(0.07, 0.11, 0.15, 0.90), Color("#354659"), -1, -1, false, 4, 4)
+	var hover := _make_extruded_box(Color(0.12, 0.18, 0.24, 0.96), C_GOLD, -1, -1, false, 4, 4)
+	var pressed := _make_extruded_box(Color(0.05, 0.08, 0.11, 0.98), C_GOLD, -1, -1, true, 4, 4)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -2566,20 +2667,13 @@ func _style_stage_card(btn: Button) -> void:
 
 
 func _style_arrow_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.07, 0.11, 0.15, 0.85)
-	normal.border_color = Color(1.0, 1.0, 1.0, 0.10)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.14, 0.20, 0.27, 0.95)
-	hover.border_color = C_GOLD
+	var normal := _make_extruded_box(Color(0.07, 0.11, 0.15, 0.88), Color("#46586b"), -1, -1, false, 4, 4)
+	var hover := _make_extruded_box(Color(0.14, 0.20, 0.27, 0.95), C_GOLD, -1, -1, false, 4, 4)
+	var pressed := _make_extruded_box(Color(0.05, 0.08, 0.11, 0.95), C_GOLD, -1, -1, true, 4, 4)
 
 	btn.add_theme_stylebox_override("normal", normal)
 	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
 	btn.add_theme_stylebox_override("focus", hover)
 	btn.add_theme_font_override("font", FONT_TITLE)
 	btn.add_theme_font_size_override("font_size", 18)
