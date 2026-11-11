@@ -13,6 +13,7 @@ extends Node3D
 const CAPACITY := 400
 # The original race loop advances particles on the player car's 25 Hz step.
 const STEP := 1.0 / 25.0
+const GRAVEL_DUST_PATH := "res://assets/vfx/cmr4/dust_01.png"
 const SPARK_SHADER := preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
 const SHADER := preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
 
@@ -215,8 +216,8 @@ const TYPES := {
 		"drag": 0.8,
 	},
 	Kind.GRAVEL_SPRAY: {"color": Color(0.78, 0.68, 0.52), "ticks": 35, "size": Vector2(0.198, 0.572), "alpha": 0.82, "gravity": 10.0, "drag": 0.8},
-	Kind.BEAD_YELLOW: {"color": Color(1.0, 0.94, 0.10), "ticks": 18, "size": Vector2(0.38, 0.28), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
-	Kind.BEAD_ORANGE: {"color": Color(1.0, 0.12, 0.01), "ticks": 18, "size": Vector2(0.38, 0.28), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
+	Kind.BEAD_YELLOW: {"color": Color(1.0, 0.94, 0.10), "ticks": 18, "size": Vector2(0.15, 0.09), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
+	Kind.BEAD_ORANGE: {"color": Color(1.0, 0.12, 0.01), "ticks": 18, "size": Vector2(0.15, 0.09), "alpha": 0.95, "gravity": 1.8, "drag": 1.6},
 	Kind.LEAF: {
 		"cmr2_ids": [0x10, 0x11],
 		"frames": 5,
@@ -340,6 +341,7 @@ class Particle:
 	var floor_point: Vector3
 	var floor_normal: Vector3
 	var ticks := 0
+	var max_ticks := 0
 	var frame_offset := 0
 	var size_factor := 1.0
 	var spin := 0.0
@@ -396,7 +398,7 @@ func emit_particle(
 		if existing.ticks == 0:
 			slot = candidate
 			break
-		var age := int(TYPES[existing.kind].ticks) - existing.ticks
+		var age := existing.max_ticks - existing.ticks
 		if age > oldest_age:
 			oldest_age = age
 			slot = candidate
@@ -412,7 +414,8 @@ func emit_particle(
 	p.intensity = intensity
 	var profile: Dictionary = TYPES[kind]
 	var foliage := profile.has("frame_delay")
-	p.ticks = int(profile.ticks)
+	p.max_ticks = roundi(float(profile.ticks) * 0.65) if texture.resource_path == GRAVEL_DUST_PATH else int(profile.ticks)
+	p.ticks = p.max_ticks
 	p.frame_offset = 0
 	if foliage:
 		p.frame_offset = rng.randi_range(0, int(profile.frames) - 1)
@@ -462,7 +465,7 @@ func step(wind: Vector3) -> void:
 
 
 func dust_frame(p: Particle) -> int:
-	var age := int(TYPES[p.kind].ticks) - p.ticks
+	var age := p.max_ticks - p.ticks
 	var frame := p.frame_offset + (age >> 1)
 	return mini(frame, 7) if p.kind == Kind.SLIP_DUST else frame % 8
 
@@ -498,19 +501,19 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 		var batch: MultiMesh = batches[p.texture]
 		var slot: int = draw_counts[p.texture]
 		var profile: Dictionary = TYPES[p.kind]
-		var progress := 1.0 - float(p.ticks) / float(profile.ticks)
+		var progress := 1.0 - float(p.ticks) / float(p.max_ticks)
 
 		# --- Frame de sprite ---
 		var frame := dust_frame(p) if p.kind in DUST_KINDS else 0
 		if profile.has("frame_delay"):
-			var age := int(profile.ticks) - p.ticks
+			var age := p.max_ticks - p.ticks
 			var delay := int(profile.frame_delay)
 			if age > delay:
 				frame = (p.frame_offset + int(float(age - delay) / float(profile.frame_ticks))) % int(
 					profile.frames
 				)
 		elif p.kind == Kind.BACKFIRE:
-			frame = int(profile.ticks) - p.ticks
+			frame = p.max_ticks - p.ticks
 
 		# --- Tamaño: crecimiento en escalones + escala retro ---
 		var sizes: Vector2 = profile.size
@@ -543,7 +546,8 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 				if alpha_steps <= 0
 				else 1.0 - floorf(progress * alpha_steps) / float(alpha_steps)
 			)
-		var alpha := clampf(float(profile.alpha) * alpha_boost * fade * lerpf(0.5, 1.0, p.intensity), 0.0, 1.0)
+		var opacity := float(profile.alpha) * (1.6 if p.texture.resource_path == GRAVEL_DUST_PATH else 1.0)
+		var alpha := clampf(opacity * alpha_boost * fade * lerpf(0.5, 1.0, p.intensity), 0.0, 1.0)
 
 		# --- Rotación: ángulos discretos ---
 		var angle := p.angle
@@ -557,7 +561,7 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 			basis = Basis.looking_at(direction, up) * Basis(Vector3.RIGHT, -PI * 0.5)
 		batch.set_instance_transform(
 			slot,
-			Transform3D(basis.scaled(Vector3.ONE * size), position),
+			Transform3D(basis.scaled(Vector3(size * 0.285, size * 1.2375, size * 0.75) if bead_spark else Vector3.ONE * size), position),
 		)
 		batch.set_instance_color(slot, _particle_color(p, profile, progress, alpha))
 		batch.set_instance_custom_data(slot, Color(angle, float(frame), 0.0, 0.0))

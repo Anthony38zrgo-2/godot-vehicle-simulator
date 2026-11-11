@@ -164,11 +164,12 @@ func verify() -> void:
 		sim.last_local_conditions[index] = {"snow_mm": 1.0}
 		vfx.update_wheel(index, 1.0)
 		var spray := active_wheel_particles(vfx)
-		assert(spray.size() == 2, "Unseated tire replaces surface spray with a balanced pair")
-		assert(spray[0].kind == pool.Kind.BEAD_YELLOW and spray[1].kind == pool.Kind.BEAD_ORANGE)
+		assert(spray.size() == 6, "Unseated tire emits balanced sparks")
+		assert(spray.filter(func(p): return p.kind == pool.Kind.BEAD_YELLOW).size() == 3)
+		assert(spray.filter(func(p): return p.kind == pool.Kind.BEAD_ORANGE).size() == 3)
 		for particle in spray:
-			assert(particle.texture == vfx.SPARK and particle.ticks == 18)
-		assert(pool.batches[vfx.SPARK].mesh.surface_get_material(0).shader == vfx.ADDITIVE_SHADER)
+			assert(particle.texture == vfx.SMALL_SPARK and particle.ticks == 18)
+		assert(pool.batches[vfx.SMALL_SPARK].mesh.surface_get_material(0).shader == vfx.ADDITIVE_SHADER)
 	tire.carcass_failure = 0.0
 	tire.pressure_loss_fraction = 0.0
 	sim.last_local_conditions[index] = {"snow_mm": 0.0}

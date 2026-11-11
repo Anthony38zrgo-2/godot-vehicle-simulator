@@ -524,10 +524,16 @@ func wheel_conditions(index: int) -> Dictionary:
 
 
 func emit_unseated_sparks(index: int, velocity: Vector3, point: Vector3, normal: Vector3) -> void:
+	var sideways := normal.cross(velocity.slide(normal)).normalized()
+	if sideways.is_zero_approx():
+		sideways = vehicle.global_basis.x
 	for kind in [WHEEL_PARTICLES.Kind.BEAD_YELLOW, WHEEL_PARTICLES.Kind.BEAD_ORANGE]:
-		var spark_velocity := velocity.slide(normal) * wheel_particles.rng.randf_range(1.0, 1.5)
-		spark_velocity += normal * wheel_particles.rng.randf_range(0.30, 0.65)
-		wheel_particles.emit_particle(kind, SPARK, point + normal * 0.055, spark_velocity, point, normal)
+		for spark in 3:
+			var spark_velocity := velocity.slide(normal) * wheel_particles.rng.randf_range(0.8, 1.5)
+			spark_velocity += sideways * wheel_particles.rng.randf_range(-1.0, 1.0)
+			spark_velocity += normal * wheel_particles.rng.randf_range(0.30, 1.0)
+			var origin := point + normal * 0.055 + sideways * wheel_particles.rng.randf_range(-0.06, 0.06)
+			wheel_particles.emit_particle(kind, SMALL_SPARK, origin, spark_velocity, point, normal)
 
 
 func snow_texture_variant(index: int) -> Texture2D:
