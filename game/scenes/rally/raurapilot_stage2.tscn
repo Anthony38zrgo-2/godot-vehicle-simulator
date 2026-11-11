@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/rally/russia_stage1_ford_escort_rs2000.tscn" id="1_session"]
+
+[node name="RauraPilotStage2" instance=ExtResource("1_session")]
+track_id = "raurapilot_stage2"
+practice_mode = true
+single_stage_weather = "sunny"
+

@@ -1,0 +1,27 @@
+{
+  "dataset": "JAXA ALOS World 3D - 30m (AW3D30) v3.2, distributed by OpenTopography",
+  "doi": "10.5069/G94M92HB",
+  "native_tile": "ALPSMLC30_S011W077_DSM.tif",
+  "url": "https://opentopography.s3.sdsc.edu/raster/AW3D30/AW3D30_global/ALPSMLC30_S011W077_DSM.tif",
+  "crs": "EPSG:32718",
+  "grid_reference": "raura_copernicus_glo30_utm18s.tif",
+  "grid_shape": [
+    334,
+    294
+  ],
+  "resolution_m": [
+    30,
+    30
+  ],
+  "valid_pixels": 98196,
+  "common_valid_pixels": 98196,
+  "vertical_datum": "EGM96 (AW3D30); Copernicus GLO-30 uses EGM2008. No vertical conversion or co-registration performed.",
+  "height_range_m": [
+    4143.31640625,
+    5656.26171875
+  ],
+  "sha256": {
+    "ALPSMLC30_S011W077_DSM.tif": "f524a6f1f40127771be2a7d65ef779f81765a3e5fec9efca3e4bf3e58e0d505b",
+    "raura_aw3d30_utm18s.tif": "e59e1f0e71cff39db98fb6e216d6f45c9815a08d04edb8017d17d1423051e938"
+  }
+}

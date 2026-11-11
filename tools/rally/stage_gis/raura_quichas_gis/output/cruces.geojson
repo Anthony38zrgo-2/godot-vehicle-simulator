@@ -1,0 +1,135 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.7506465,
+          -10.4776973
+        ]
+      },
+      "properties": {
+        "id": "C01",
+        "node": 5396244052,
+        "pk_m": 0,
+        "sentinel": true,
+        "ramales": [
+          {
+            "node": 5396244051,
+            "ways": [
+              {
+                "way": 559501167,
+                "tags": {
+                  "highway": "service",
+                  "surface": "compacted"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "ambiguo",
+        "evidencia": "Empalme de servicio a 14 m de C02, apenas 1,4 pixeles Sentinel."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.7505414,
+          -10.4776412
+        ]
+      },
+      "properties": {
+        "id": "C02",
+        "node": 5396244053,
+        "pk_m": 14.03,
+        "sentinel": true,
+        "ramales": [
+          {
+            "node": 5396255333,
+            "ways": [
+              {
+                "way": 110965416,
+                "tags": {
+                  "highway": "tertiary",
+                  "ref": "LM-599",
+                  "surface": "unpaved"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "visible_parcial",
+        "evidencia": "La traza clara al este coincide con LM-599. El empalme exacto queda ambiguo."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.7486453,
+          -10.5125351
+        ]
+      },
+      "properties": {
+        "id": "C03",
+        "node": 5351308855,
+        "pk_m": 8168.48,
+        "sentinel": true,
+        "ramales": [
+          {
+            "node": 5395035337,
+            "ways": [
+              {
+                "way": 559339131,
+                "tags": {
+                  "highway": "tertiary",
+                  "ref": "LM-599",
+                  "surface": "unpaved"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "ambiguo",
+        "evidencia": "En la cantera, la imagen no separa con claridad LM-599 de las superficies removidas."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.7485907,
+          -10.5115753
+        ]
+      },
+      "properties": {
+        "id": "C04",
+        "node": 5351308851,
+        "pk_m": 8275.72,
+        "sentinel": true,
+        "ramales": [
+          {
+            "node": 5351308850,
+            "ways": [
+              {
+                "way": 554522468,
+                "tags": {
+                  "highway": "service",
+                  "surface": "compacted"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "visible_parcial",
+        "evidencia": "Se distingue un corredor hacia el suroeste. Su union exacta junto a la meta queda ambigua."
+      }
+    }
+  ]
+}

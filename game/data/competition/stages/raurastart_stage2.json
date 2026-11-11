@@ -1,0 +1,27 @@
+{
+  "id": "raurastart_stage2",
+  "name": "Rally Raura — Piloto con relieve",
+  "route_path": "res://data/rally/raurastart_stage2_route.json",
+  "timing_gates_path": "res://data/competition/stages/raurastart_stage2_timing_gates.json",
+  "surface": "gravel_mud",
+  "fallback_path": "res://data/competition/stages/raurastart_stage2_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    23,
+    45,
+    68,
+    90
+  ],
+  "sector_lengths_km": [
+    0.174332398901157,
+    0.17648615942957363,
+    0.18010224325132299,
+    0.17259778108703722
+  ]
+}

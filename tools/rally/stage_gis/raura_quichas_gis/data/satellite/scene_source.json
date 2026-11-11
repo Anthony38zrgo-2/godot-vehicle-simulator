@@ -1,0 +1,15 @@
+{
+  "stac_item_id": "S2A_18LUP_20260807_1_L2A",
+  "datetime": "2026-08-07T15:36:13.348000Z",
+  "tile_cloud_cover_percent": 0.000255,
+  "source": "Earth Search v1 / Sentinel-2 L2A",
+  "resolution_m": 10,
+  "crs": "EPSG:32718",
+  "bbox": [
+    -76.79,
+    -10.54,
+    -76.71,
+    -10.45
+  ],
+  "notice": "Tile cloud % is NOT local AOI cloud%; inspect imagery for shadows, cloud, seasonal snow."
+}

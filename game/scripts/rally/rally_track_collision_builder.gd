@@ -22,6 +22,7 @@ const SURFACE_GROUP_BY_NODE := {
 var generated_body_count: int = 0
 var generated_triangle_count: int = 0
 var generated_shape_count: int = 0
+var minimum_collision_height_m: float = INF
 
 
 func build_collision(visual_root: Node = null) -> bool:
@@ -242,6 +243,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	collision_shape.transform = override_transform if override_transform != Transform3D() else mesh_instance.transform
 	static_body.add_child(collision_shape)
 	add_child(static_body)
+	var world_bounds := collision_shape.global_transform * mesh_instance.mesh.get_aabb()
+	minimum_collision_height_m = minf(minimum_collision_height_m, world_bounds.position.y)
 	generated_body_count += 1
 	generated_shape_count += 1
 	if shape is ConcavePolygonShape3D:
@@ -262,3 +265,4 @@ func clear_collision() -> void:
 	generated_body_count = 0
 	generated_shape_count = 0
 	generated_triangle_count = 0
+	minimum_collision_height_m = INF

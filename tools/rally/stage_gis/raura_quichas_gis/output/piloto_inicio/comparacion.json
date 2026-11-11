@@ -1,0 +1,14 @@
+{
+  "solver": "existing stage profile",
+  "maximum_z_change_m": 0.0,
+  "pk_range_m": [
+    0.0,
+    701.7119125351472
+  ],
+  "xy_max_change_m": 0.0,
+  "side_status_before_fade": {
+    "limite_de_huella": 384,
+    "encuentro_en_franja": 311,
+    "sin_encuentro": 25
+  }
+}

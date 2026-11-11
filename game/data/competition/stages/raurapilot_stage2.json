@@ -1,0 +1,27 @@
+{
+  "id": "raurapilot_stage2",
+  "name": "Rally Raura — Piloto OSQP",
+  "route_path": "res://data/rally/raurapilot_stage2_route.json",
+  "timing_gates_path": "res://data/competition/stages/raurapilot_stage2_timing_gates.json",
+  "surface": "gravel_mud",
+  "fallback_path": "res://data/competition/stages/raurapilot_stage2_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    22,
+    44,
+    67,
+    89
+  ],
+  "sector_lengths_km": [
+    0.17610342376046018,
+    0.17309113954029728,
+    0.17815764601242956,
+    0.17359213131206697
+  ]
+}

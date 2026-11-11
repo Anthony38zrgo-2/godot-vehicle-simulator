@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "seed": 20261111,
+  "undulation_m": 0.022,
+  "max_combined_depression_m": 0.23,
+  "default_profile": "desgastado",
+  "profiles": {
+    "desgastado": {
+      "density_per_100m": 13,
+      "depth_m": [
+        0.06,
+        0.11
+      ],
+      "length_m": [
+        0.8,
+        1.55
+      ],
+      "width_m": [
+        0.8,
+        1.35
+      ],
+      "cluster_probability": 0.25
+    },
+    "muy_desgastado": {
+      "density_per_100m": 29,
+      "depth_m": [
+        0.09,
+        0.16
+      ],
+      "length_m": [
+        0.8,
+        1.55
+      ],
+      "width_m": [
+        0.8,
+        1.35
+      ],
+      "cluster_probability": 0.65,
+      "cluster_size": [
+        4,
+        8
+      ]
+    }
+  },
+  "zones": [
+    {
+      "from_pk_m": 135,
+      "to_pk_m": 220,
+      "profile": "muy_desgastado"
+    },
+    {
+      "from_pk_m": 265,
+      "to_pk_m": 340,
+      "profile": "muy_desgastado"
+    },
+    {
+      "from_pk_m": 415,
+      "to_pk_m": 535,
+      "profile": "muy_desgastado"
+    }
+  ],
+  "manual_features": [
+    {
+      "pk_m": 60,
+      "lateral_fraction": 0.4,
+      "length_m": 2.0,
+      "width_m": 0.7,
+      "depth_m": 0.1
+    },
+    {
+      "pk_m": 90,
+      "lateral_fraction": 0.4,
+      "length_m": 2.0,
+      "width_m": 1.3,
+      "depth_m": 0.1
+    },
+    {
+      "pk_m": 199,
+      "lateral_fraction": 0.44,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.14
+    },
+    {
+      "pk_m": 321,
+      "lateral_fraction": -0.43,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.16
+    },
+    {
+      "pk_m": 468,
+      "lateral_fraction": 0.45,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.18
+    }
+  ],
+  "exclusion_zones": [
+    {
+      "from_pk_m": 52,
+      "to_pk_m": 100,
+      "procedural_only": true
+    },
+    {
+      "from_pk_m": 194,
+      "to_pk_m": 204,
+      "procedural_only": true
+    },
+    {
+      "from_pk_m": 316,
+      "to_pk_m": 326,
+      "procedural_only": true
+    },
+    {
+      "from_pk_m": 463,
+      "to_pk_m": 473,
+      "procedural_only": true
+    }
+  ],
+  "corrugations": [
+    {
+      "start_m": 112,
+      "end_m": 133,
+      "amplitude_m": 0.05,
+      "wavelength_m": 1.4,
+      "lateral_fraction": -0.34,
+      "width_m": 1.1
+    },
+    {
+      "start_m": 240,
+      "end_m": 262,
+      "amplitude_m": 0.06,
+      "wavelength_m": 1.65,
+      "lateral_fraction": 0.42,
+      "width_m": 1.1
+    },
+    {
+      "start_m": 384,
+      "end_m": 409,
+      "amplitude_m": 0.045,
+      "wavelength_m": 1.25,
+      "lateral_fraction": -0.36,
+      "width_m": 1.1
+    },
+    {
+      "start_m": 543,
+      "end_m": 568,
+      "amplitude_m": 0.055,
+      "wavelength_m": 1.55,
+      "lateral_fraction": 0.33,
+      "width_m": 1.1
+    }
+  ],
+  "settlements": [
+    {
+      "center_m": 178,
+      "length_m": 10,
+      "depth_m": 0.1,
+      "lateral_fraction": 0.46,
+      "entry_fraction": 0.32
+    },
+    {
+      "center_m": 297,
+      "length_m": 8,
+      "depth_m": 0.08,
+      "lateral_fraction": -0.42,
+      "entry_fraction": 0.32
+    },
+    {
+      "center_m": 451,
+      "length_m": 12,
+      "depth_m": 0.12,
+      "lateral_fraction": 0.43,
+      "entry_fraction": 0.32
+    },
+    {
+      "center_m": 508,
+      "length_m": 9,
+      "depth_m": 0.095,
+      "lateral_fraction": -0.42,
+      "entry_fraction": 0.32
+    },
+    {
+      "center_m": 620,
+      "length_m": 11,
+      "depth_m": 0.11,
+      "lateral_fraction": 0.42,
+      "entry_fraction": 0.32
+    }
+  ],
+  "crests": [
+    {
+      "center_m": 197.05,
+      "lateral_fraction": 0.44,
+      "length_m": 1.5,
+      "height_m": 0.06
+    },
+    {
+      "center_m": 319.05,
+      "lateral_fraction": -0.43,
+      "length_m": 1.5,
+      "height_m": 0.07
+    },
+    {
+      "center_m": 466.05,
+      "lateral_fraction": 0.45,
+      "length_m": 1.5,
+      "height_m": 0.08
+    }
+  ],
+  "hard_impact": true
+}

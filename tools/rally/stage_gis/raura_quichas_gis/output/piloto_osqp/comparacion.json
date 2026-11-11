@@ -1,0 +1,28 @@
+{
+  "solver": "solved",
+  "max_constraint_violation": 3.4356155073633765e-13,
+  "maximum_z_change_m": 0.446970920902686,
+  "before": {
+    "max_grade_pct": 21.78747222775428,
+    "rms_grade_change_pct_per_10m": 2.6162227366502613,
+    "p95_grade_change_pct_per_10m": 3.8747198919267585,
+    "uphill_m": 5.031005859375
+  },
+  "after": {
+    "max_grade_pct": 17.66510882299741,
+    "rms_grade_change_pct_per_10m": 2.015089632811059,
+    "p95_grade_change_pct_per_10m": 3.5000000000334097,
+    "uphill_m": 5.246411086538757
+  },
+  "pk_range_m": [
+    4456.9399333663,
+    5155.248510376145
+  ],
+  "xy_max_change_m": 0.0,
+  "side_status_before_fade": {
+    "sin_encuentro": 419,
+    "limite_de_huella": 233,
+    "encuentro_en_franja": 56,
+    "encuentro_no_continuo": 4
+  }
+}

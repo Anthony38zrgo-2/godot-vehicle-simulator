@@ -1,0 +1,62 @@
+{
+  "horizontal_crs": "EPSG:32718",
+  "vertical_crs": "EPSG:3855",
+  "shape": [
+    334,
+    294
+  ],
+  "correction_m": {
+    "min": -1.6976417164405575,
+    "median": -1.3927680638321362,
+    "max": -1.1025465075463217
+  },
+  "mask_parameters": {
+    "scl_class": 5,
+    "class_erosion_pixels": 2,
+    "maximum_elevation_m": 4700,
+    "slope_deg": [
+      5,
+      40
+    ],
+    "road_exclusion_m": 60,
+    "block_m": 600,
+    "holdout_buffer_m": 90
+  },
+  "pixels": {
+    "both_dems": 98196,
+    "bare_buffered": 38627,
+    "eligible": 15528,
+    "fit": 10521,
+    "holdout": 3184,
+    "excluded_buffer": 1823,
+    "fit_aspect_octants": [
+      1565,
+      691,
+      533,
+      1896,
+      1293,
+      1194,
+      886,
+      2463
+    ]
+  },
+  "source_urls": {
+    "us_nga_egm96_15.tif": "https://cdn.proj.org/us_nga_egm96_15.tif",
+    "us_nga_egm08_25.tif": "https://cdn.proj.org/us_nga_egm08_25.tif",
+    "raura_sentinel_scl_native.tif": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/L/UP/2026/8/S2A_18LUP_20260807_1_L2A/SCL.tif"
+  },
+  "sha256": {
+    "raura_copernicus_glo30_utm18s.tif": "57577e9302cac990a8e91e60940b34fac1f7fff6d922dfe51a29bb2ce3530701",
+    "raura_aw3d30_utm18s.tif": "e59e1f0e71cff39db98fb6e216d6f45c9815a08d04edb8017d17d1423051e938",
+    "raura_quichas_highways.osm": "fa9aa6b9b7434e50d871447d77971c105c9f8123c7d39e1b656e28a0cd5152c3",
+    "us_nga_egm96_15.tif": "db493027562c9b004d7220fa881f5603adada4e1c5029b933fa7de4547b0e78d",
+    "us_nga_egm08_25.tif": "4191d471eefebf24091b56dbc604353cb3b8cf8cc70e448bb9ae56a272bef17a",
+    "raura_sentinel_scl_native.tif": "306fa05555554a49b87a103dabc4165d57fefee4f26e4b25edda7947bbb55feb",
+    "raura_aw3d30_egm2008_utm18s.tif": "9b3fddef77e71d9d11e85e721968cb97aa0e7d8725be0134ca9d08e54b48c88d",
+    "scl_utm18s.tif": "704cac8b2fb7cb932512f0a3a787aa106bb8c46e2406c571c5ddeb2fa32b641e",
+    "mascara_estable_candidata.tif": "98e89beb8b44e14bae4380dfe55e508a6bfafd1a32068368dfa1d5d56469021b",
+    "mascara_ajuste.tif": "cf4eac3dd3d4215a79f3a55e7869a9679c98799958e99102f97320c296adabbe",
+    "mascara_validacion.tif": "ae8f6ddbf53468f1a7e65b6ef6c1d3f7ca99a2d2189b7a87f0d0dcc3f1da18d6"
+  },
+  "status": "Prepared and verified as inputs; no co-registration fit has been run."
+}

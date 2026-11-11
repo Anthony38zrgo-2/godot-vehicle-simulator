@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.750671875,
+          -10.4777375
+        ]
+      },
+      "properties": {
+        "name": "Nevado Raura (inicio)",
+        "plus_code": "57X5G6CX+WP4",
+        "note": "Centro del Plus Code (no implica carretera OSM cercana)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.748640625,
+          -10.5115125
+        ]
+      },
+      "properties": {
+        "name": "Cantera Quichas (meta)",
+        "plus_code": "57X5F7Q2+9GX",
+        "note": "Centro del Plus Code (no implica carretera OSM cercana)"
+      }
+    }
+  ]
+}

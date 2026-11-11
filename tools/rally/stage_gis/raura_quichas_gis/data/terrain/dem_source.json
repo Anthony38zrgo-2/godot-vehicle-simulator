@@ -1,0 +1,12 @@
+{
+  "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_S11_00_W077_00_DEM/Copernicus_DSM_COG_10_S11_00_W077_00_DEM.tif",
+  "dataset": "Copernicus DEM GLO-30 Public, 2021",
+  "region": [
+    -76.79,
+    -10.54,
+    -76.71,
+    -10.45
+  ],
+  "crs": "EPSG:32718",
+  "note": "DSM 30 m. La interpolación a 30m no añade detalles nuevos."
+}

@@ -5,7 +5,7 @@ const STAGE_MANIFEST_PATH := "res://assets/rally/russia_stage1/manifest.json"
 const FALLBACK_START_POSITION := Vector3(-2.18, -1.7963, -38.388)
 const FALLBACK_START_HEADING := -0.0008558533301677789
 const SPAWN_CLEARANCE_METRES := 0.02
-const MINIMUM_WORLD_HEIGHT_METRES := -50.0
+const FALL_DISTANCE_BELOW_STAGE_METRES := 50.0
 # Sesión genérica del evento de Rusia (Entrega 1): el track activo se
 # resuelve por ID con RallyStageLoader. STAGE_MANIFEST_PATH queda como
 # respaldo legado para la escena Stage 1 existente.
@@ -693,7 +693,9 @@ func _physics_process(delta: float) -> void:
 		if competition.complete:
 			pacenotes.on_retire()
 			apply_competition_controls()
-	if vehicle.global_position.y < MINIMUM_WORLD_HEIGHT_METRES and not competition.complete:
+	# Deep descents can legitimately pass below the world's origin.
+	var collision_floor := minf(0.0, track_collision.minimum_collision_height_m) if track_collision != null else 0.0
+	if vehicle.global_position.y < collision_floor - FALL_DISTANCE_BELOW_STAGE_METRES and not competition.complete:
 		competition.retire_player("Abandono — salida de pista")
 		apply_competition_controls()
 	if vehicle.sleeping:
