@@ -1253,3 +1253,15 @@ func update_tyre_contacts(delta: float) -> void:
 		tyre_contact_filters[i].cutoff_hz = lerpf(900.0, 4800.0, strength)
 		player.play()
 		tyre_contact_cooldowns[i] = 0.12
+
+
+func _exit_tree() -> void:
+	for child in get_children():
+		if child is AudioStreamPlayer3D:
+			var ap := child as AudioStreamPlayer3D
+			ap.stop()
+			ap.stream = null
+		elif child is AudioStreamPlayer:
+			var ap2 := child as AudioStreamPlayer
+			ap2.stop()
+			ap2.stream = null

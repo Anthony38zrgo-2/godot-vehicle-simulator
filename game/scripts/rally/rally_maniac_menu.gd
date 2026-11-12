@@ -699,16 +699,16 @@ func _build_main_menu_screen() -> void:
 	buttons_box.add_theme_constant_override("separation", 10)
 	screen_main_menu.add_child(buttons_box)
 
-	btn_championship = _create_menu_button("Championship", func(): _on_mode_selected("championship"), true)
+	btn_championship = _create_menu_button("Campeonato", func(): _on_mode_selected("championship"), true)
 	buttons_box.add_child(btn_championship)
 
 	btn_rally = _create_menu_button("Rally", func(): _on_mode_selected("rally"), true)
 	buttons_box.add_child(btn_rally)
 
-	btn_single_stage = _create_menu_button("Single Stage", func(): _on_mode_selected("single_stage"))
+	btn_single_stage = _create_menu_button("Tramo Único", func(): _on_mode_selected("single_stage"))
 	buttons_box.add_child(btn_single_stage)
 
-	btn_exit = _create_menu_button("Exit", func(): get_tree().quit(), false, true)
+	btn_exit = _create_menu_button("Salir", func(): get_tree().quit(), false, true)
 	buttons_box.add_child(btn_exit)
 
 	var spacer_bottom := Control.new()
@@ -837,14 +837,9 @@ func _build_stage_select_screen() -> void:
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		_style_stage_card(btn)
 
-		# Conexión directa: click en cualquier punto del botón entra a la selección
+		# Conexión al soltar (pressed) para evitar disparos en mouse-down y permitir cancelar arrastre
 		var target_sid := sid
 		btn.pressed.connect(func(): _on_stage_selected(target_sid))
-		btn.gui_input.connect(func(event: InputEvent):
-			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				_on_stage_selected(target_sid)
-				get_viewport().set_input_as_handled()
-		)
 
 		# Contenedor interior visual
 		var card_inner := MarginContainer.new()
@@ -954,7 +949,7 @@ func _build_stage_select_screen() -> void:
 	screen_stage_select.add_child(bottom_bar)
 
 	btn_stage_back = Button.new()
-	btn_stage_back.text = "◀ Back"
+	btn_stage_back.text = "◀ Volver"
 	btn_stage_back.custom_minimum_size = Vector2(150, 40)
 	_style_flat_button(btn_stage_back)
 	btn_stage_back.pressed.connect(show_main_menu)
@@ -1009,6 +1004,13 @@ func _on_country_selected(country: String) -> void:
 	_update_country_buttons()
 	if screen_stage_select != null:
 		screen_stage_select.show()
+	if not stage_buttons.is_empty() and is_instance_valid(stage_buttons[0]):
+		stage_buttons[0].grab_focus()
+	else:
+		for b in country_buttons:
+			if is_instance_valid(b) and not b.disabled:
+				b.grab_focus()
+				break
 
 
 func _update_country_buttons() -> void:
@@ -1289,9 +1291,9 @@ func _build_car_select_screen() -> void:
 	screen_car_select.add_child(bottom_bar)
 
 	btn_car_back = Button.new()
-	btn_car_back.text = "◀ Back"
+	btn_car_back.text = "◀ Volver"
 	btn_car_back.custom_minimum_size = Vector2(140, 42)
-	_style_red_gold_button(btn_car_back, FONT_TITLE, 13, 18, 10)
+	_style_flat_button(btn_car_back)
 	btn_car_back.pressed.connect(show_stage_select)
 	bottom_bar.add_child(btn_car_back)
 
@@ -1324,7 +1326,7 @@ func _build_weather_select_screen() -> void:
 	screen_weather_select.add_child(weather_header)
 
 	var weather_title := Label.new()
-	weather_title.text = "Select Starting Weather"
+	weather_title.text = "CLIMA INICIAL"
 	weather_title.add_theme_font_override("font", FONT_TITLE)
 	weather_title.add_theme_font_size_override("font_size", 16)
 	weather_title.add_theme_color_override("font_color", C_GOLD)
@@ -1495,7 +1497,7 @@ func _build_weather_select_screen() -> void:
 	screen_weather_select.add_child(bottom_bar)
 
 	btn_weather_back = Button.new()
-	btn_weather_back.text = "◀ Back"
+	btn_weather_back.text = "◀ Volver"
 	btn_weather_back.custom_minimum_size = Vector2(140, 40)
 	_style_flat_button(btn_weather_back)
 	btn_weather_back.pressed.connect(show_car_select)
@@ -1532,6 +1534,7 @@ func show_main_menu() -> void:
 	if screen_weather_select != null:
 		screen_weather_select.hide()
 	screen_main_menu.show()
+	RallyUITheme.transition_control(screen_main_menu, true)
 	_hide_status()
 
 	# La info tachada de la captura (cabecera sup. izq/der) se oculta en el principal;
@@ -1563,6 +1566,7 @@ func show_stage_select() -> void:
 	if screen_weather_select != null:
 		screen_weather_select.hide()
 	screen_stage_select.show()
+	RallyUITheme.transition_control(screen_stage_select, true)
 	_hide_status()
 
 	if header_hbox_ref != null:
@@ -1574,7 +1578,7 @@ func show_stage_select() -> void:
 	if header_badge_vbox != null:
 		header_badge_vbox.hide()
 	badge_top.text = "MODO: " + selected_mode.to_upper()
-	badge_bottom.text = "SELECT STAGE"
+	badge_bottom.text = "SELECCIONAR TRAMO"
 
 	_stop_photo_slideshow()
 	_update_stage_card_widths()
@@ -1600,6 +1604,7 @@ func show_car_select() -> void:
 	if screen_weather_select != null:
 		screen_weather_select.hide()
 	screen_car_select.show()
+	RallyUITheme.transition_control(screen_car_select, true)
 	_hide_status()
 
 	if header_hbox_ref != null:
@@ -1611,7 +1616,7 @@ func show_car_select() -> void:
 	if header_badge_vbox != null:
 		header_badge_vbox.hide()
 	badge_top.text = "TRAMO: " + selected_stage_id.to_upper()
-	badge_bottom.text = "SELECT CAR"
+	badge_bottom.text = "SELECCIONAR COCHE"
 
 	_stop_photo_slideshow()
 	_preview_car(selected_car_key)
@@ -1641,6 +1646,7 @@ func show_weather_select() -> void:
 	screen_car_select.hide()
 	if screen_weather_select != null:
 		screen_weather_select.show()
+		RallyUITheme.transition_control(screen_weather_select, true)
 	_hide_status()
 
 	if header_hbox_ref != null:
@@ -1652,7 +1658,7 @@ func show_weather_select() -> void:
 	if header_badge_vbox != null:
 		header_badge_vbox.show()
 	badge_top.text = "CONDICIÓN"
-	badge_bottom.text = "SELECT WEATHER"
+	badge_bottom.text = "CLIMA INICIAL"
 
 	_stop_photo_slideshow()
 	_update_weather_cards_visuals()
@@ -2537,21 +2543,7 @@ func _style_menu_exit_button(btn: Button) -> void:
 
 
 func _style_flat_button(btn: Button, is_accent: bool = false) -> void:
-	var normal := _make_extruded_box(Color(0.08, 0.12, 0.16, 0.88), Color("#46586b"), 18, 10, false)
-	var hover := _make_extruded_box(Color(0.14, 0.20, 0.26, 0.95), C_GOLD if is_accent else Color("#cbd5e1"), 18, 10, false)
-	var pressed := _make_extruded_box(Color(0.05, 0.08, 0.11, 0.95), C_GOLD, 18, 10, true)
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("hover_pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", FONT_TITLE)
-	btn.add_theme_font_size_override("font_size", 13)
-	btn.add_theme_color_override("font_color", C_CHROME_TEXT)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", C_GOLD)
-	btn.add_theme_color_override("font_focus_color", Color.WHITE)
+	RallyUITheme.style_button(btn, 13, 18, 10, is_accent)
 
 
 func _style_chrome_button(btn: Button) -> void:

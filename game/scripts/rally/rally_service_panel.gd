@@ -282,10 +282,10 @@ func _build_tire_repairs(list: VBoxContainer) -> void:
 	for i in inv.spares.size():
 		var tire: Dictionary = inv.spares[i]
 		_add_tire_row(list, "MALETERA #%d" % (i + 1), tire)
-	# Mostrar parque solo en lectura para decidir (el cambio de rueda se hace en garaje).
+	# Permitir reparar también las ruedas del parque (pinchazo o rin) antes de montarlas en garaje.
 	for i in inv.service_stock.size():
 		var tire: Dictionary = inv.service_stock[i]
-		_add_stock_row(list, "PARQUE #%d" % (i + 1), tire)
+		_add_tire_row(list, "PARQUE #%d" % (i + 1), tire)
 
 func _tire_status(inv: RallyTireInventory, tire: Dictionary) -> String:
 	if inv.is_carcass_destroyed(tire):
@@ -352,18 +352,6 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 		hbox.add_child(cb2)
 		tire_actions.append({"kind": "rim", "tire_id": tire_id, "minutes": cost_rim, "box": cb2})
 		cb2.toggled.connect(func(_on: bool): _refresh())
-
-func _add_stock_row(list: VBoxContainer, slot_label: String, tire: Dictionary) -> void:
-	var inv: RallyTireInventory = vehicle.tire_inventory
-	var cid := str(tire.get("compound_id", "gravel_normal"))
-	var wear := float((tire.get("state", {}) as Dictionary).get("wear_fraction", 0.0)) * 100.0
-	var status := _tire_status(inv, tire)
-	var lbl := Label.new()
-	lbl.text = "🛞 %s (#%d · %s) · %0.0f%% · %s" % [slot_label, int(tire.get("id", 0)), cid.to_upper(), wear, status]
-	lbl.add_theme_font_override("font", FONT_REGULAR)
-	lbl.add_theme_font_size_override("font_size", 11)
-	lbl.add_theme_color_override("font_color", WB_TEXT_LABEL)
-	list.add_child(lbl)
 
 func _add_row(list: VBoxContainer, key: String, title: String, damage: float, full_minutes: float) -> void:
 	if damage <= 0.0001:

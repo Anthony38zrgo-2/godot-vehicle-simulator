@@ -86,10 +86,14 @@ func set_palette(next_palette: RetroHudConfig) -> void:
 
 func _draw() -> void:
 	var factor := minf(size.x / 1920.0, size.y / 1080.0)
+	var safe_factor := maxf(factor, 0.01)
+	var logical_w := size.x / safe_factor
+	var logical_h := size.y / safe_factor
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * factor)
-	var band_y := size.y / maxf(factor, 0.01) - TIRES_H - BAND_MARGIN
-	_draw_timing(TIMING_RECT)
-	_draw_damage(DAMAGE_RECT)
+	var band_y := logical_h - TIRES_H - BAND_MARGIN
+	var right_x := maxf(logical_w - BAND_MARGIN - TIMING_RECT.size.x, 320.0)
+	_draw_timing(Rect2(right_x, TIMING_RECT.position.y, TIMING_RECT.size.x, TIMING_RECT.size.y))
+	_draw_damage(Rect2(right_x, DAMAGE_RECT.position.y, DAMAGE_RECT.size.x, DAMAGE_RECT.size.y))
 	_draw_map(MAP_RECT)
 	_draw_tires(Rect2(24.0, band_y, TIRES_W, TIRES_H))
 	draw_set_transform(Vector2.ZERO)
@@ -312,42 +316,44 @@ func _draw_tires(rect: Rect2) -> void:
 		_bevel(card, false, 2)
 
 		var wheel: Dictionary = wheels[i] if wheels.size() > i else {}
-		_text(Rect2(x + 8, y + 4, 40, 14), codes[i], 8, Color(C_DIM, 0.85), true)
+		_text(Rect2(x + 8, y + 4, 24, 14), codes[i], 8, Color(C_DIM, 0.85), true)
 		_num(
-			Rect2(x + 58, y + 4, 80, 14),
+			Rect2(x + 60, y + 3, cell_w - 66.0, 14),
 			number(wheel.get("pressure_kpa_gauge")) + " kPa",
-			12,
+			11,
 			C_BLUE,
-			HORIZONTAL_ALIGNMENT_CENTER,
-			80
+			HORIZONTAL_ALIGNMENT_RIGHT,
+			cell_w - 66.0
 		)
 
-		if float(wheel.get("alignment_collision_damage", 0.0)) > 0.005:
-			_text(Rect2(x + 24, y + 4, 34, 14), "ALIN.", 8, C_ROSE, true)
-		if float(wheel.get("rim_deformation", 0.0)) > 0.005:
-			_text(Rect2(x + 117, y + 28, 20, 14), "ARO", 8, C_ROSE, true)
-		var center := Vector2(x + 30, y + 42)
+		var has_align := float(wheel.get("alignment_collision_damage", 0.0)) > 0.005
+		var has_rim := float(wheel.get("rim_deformation", 0.0)) > 0.005
+		var is_dest := float(wheel.get("carcass_failure", 0.0)) >= 1.0
+		var has_leak := float(wheel.get("leak_per_second", 0.0)) > 0.0
+		if has_align:
+			_text(Rect2(x + 28, y + 4, 34, 14), "ALIN.", 8, C_ROSE, true)
+		if has_rim:
+			_text(Rect2(x + cell_w - 30.0, y + 20, 24, 12), "ARO", 8, C_ROSE, true)
+		var center := Vector2(x + 28, y + 42)
 		var brake_value: Variant = wheel.get("brake_disc_c")
 		var disc_color := brake_temp_color(brake_value)
 		draw_circle(center, 14.0, Color(0, 0, 0, 0.30))
 		draw_circle(center, 14.0, C_FIELD)
 		draw_arc(center, 14.0, 0.0, TAU, 28, disc_color, 3.0, true)
 		draw_arc(center, 7.5, 0.0, TAU, 20, Color(disc_color, 0.4), 2.0, true)
-		_num(Rect2(x + 8, y + 56, 44, 14), number(brake_value) + "°", 12, disc_color, HORIZONTAL_ALIGNMENT_CENTER, 44)
+		_num(Rect2(x + 6, y + 56, 44, 14), number(brake_value) + "°", 12, disc_color, HORIZONTAL_ALIGNMENT_CENTER, 44)
 
 		if float(wheel.get("brake_collision_loss", 0.0)) > 0.005:
 			_text(Rect2(x + 7, y + 16, 48, 11), "FRENO", 9, C_ROSE, true)
 		else:
 			var brake_remaining := 1.0 - clampf(float(wheel.get("brake_wear_fraction", 0.0)), 0.0, 1.0)
 			_text(Rect2(x + 7, y + 16, 48, 11), "F %d%%" % roundi(brake_remaining * 100.0), 9, C_ROSE if brake_remaining < 0.3 else C_DIM, true)
-		var tire := Rect2(x + 62, y + 18, 54, 36)
-		if float(wheel.get("leak_per_second", 0.0)) > 0.0:
-			var warning := "PINCHADO" if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA"
-			if float(wheel.get("carcass_failure", 0.0)) >= 1.0:
-				warning = "DESTAL."
-			_text(Rect2(x + 62, y + 16, 68, 11), warning, 9, C_ROSE, true)
-			tire.position.y += 9.0
-			tire.size.y -= 9.0
+		var tire := Rect2(x + 56, y + 20, 52, 34)
+		if is_dest or has_leak:
+			var warning := "DESTAL." if is_dest else ("PINCHADO" if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA")
+			_text(Rect2(x + 56, y + 16, cell_w - 84.0, 11), warning, 8, C_ROSE, true)
+			tire.position.y += 10.0
+			tire.size.y -= 10.0
 		draw_rect(Rect2(tire.position + Vector2(2, 3), tire.size), Color(0, 0, 0, 0.35))
 		draw_rect(tire, C_FIELD)
 		_sunken(tire)

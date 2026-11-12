@@ -300,6 +300,7 @@ func _build_ui() -> void:
 	table_header_hbox.add_child(table_legend)
 
 	table = Tree.new()
+	table.focus_mode = Control.FOCUS_NONE
 	table.columns = 6
 	table.hide_root = true
 	table.column_titles_visible = true
@@ -362,7 +363,7 @@ func _build_ui() -> void:
 	footer_hbox.add_child(footer_spacer1)
 
 	shortcuts_label = Label.new()
-	shortcuts_label.text = "ENTER CONTINUAR  ·  R REINTENTAR  ·  ESC SALIR"
+	shortcuts_label.text = "[ ENTER / A ] CONTINUAR  ·  [ R / X ] REINTENTAR  ·  [ ESC / B ] SALIR"
 	shortcuts_label.add_theme_font_override("font", FONT)
 	shortcuts_label.add_theme_font_size_override("font_size", 11)
 	shortcuts_label.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.8))
@@ -401,8 +402,19 @@ func _build_ui() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not results.visible:
 		return
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	var button_has_focus := (
+		focus_owner is BaseButton
+		and not (focus_owner as BaseButton).disabled
+		and (focus_owner as Control).is_visible_in_tree()
+	)
 	if event.is_action_pressed("ui_accept"):
-		if next_button != null and next_button.visible and not next_button.disabled:
+		if button_has_focus:
+			return
+		if workshop_button != null and workshop_button.visible and not workshop_button.disabled:
+			workshop_requested.emit()
+			get_viewport().set_input_as_handled()
+		elif next_button != null and next_button.visible and not next_button.disabled:
 			next_requested.emit()
 			get_viewport().set_input_as_handled()
 		elif restart_button != null and restart_button.visible and not next_button.visible:
@@ -811,7 +823,14 @@ func _present_results(state: Dictionary) -> void:
 	_style_gold_button(next_button)
 	_style_muted_button(restart_button)
 	restart_button.text = "NUEVO RALLY"
-	shortcuts_label.text = ("[ ENTER ] CONTINUAR   ·   " if allow_next else "") + "[ R ] REINTENTAR"
+	var shortcut_parts: Array[String] = []
+	if workshop_available:
+		shortcut_parts.append("[ ENTER / A ] TALLER")
+	if allow_next:
+		shortcut_parts.append("[ CONTINUAR ]")
+	if retry_button.visible:
+		shortcut_parts.append("[ R ] REINTENTAR")
+	shortcuts_label.text = "  ·  ".join(shortcut_parts) if not shortcut_parts.is_empty() else "[ A / ENTER ] CONFIRMAR"
 	notice.text = _event_notice(state)
 
 	# --- Actualizar panel izquierdo (Hero Cards) ---

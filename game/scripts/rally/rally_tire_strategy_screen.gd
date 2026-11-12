@@ -39,13 +39,17 @@ var forecast_stage2 := {}
 
 var _canvas_scale := 1.0
 var _canvas_offset := Vector2.ZERO
+var _focus_id := "mounted:0"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	focus_mode = Control.FOCUS_ALL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_init_data()
 	_resize_canvas()
+	set_process_input(true)
+	grab_focus()
 	queue_redraw()
 
 func _notification(what: int) -> void:
@@ -138,17 +142,18 @@ func _draw_notice_panel(rect: Rect2) -> void:
 
 func _draw_mounted_selection(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "1. MONTADOS (CLIC PARA CAMBIAR COMPUESTO)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
+	draw_string(FONT_TITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "1. MONTADOS (CLIC O ENTER/A PARA CAMBIAR COMPUESTO)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
 	var corners := ["DELANTERA IZQ (FL)", "DELANTERA DER (FR)", "TRASERA IZQ (RL)", "TRASERA DER (RR)"]
 	var w := (rect.size.x - 48.0) / 4.0
 	for i in 4:
 		var slot_rect := Rect2(rect.position.x + 16 + i * w, rect.position.y + 36, w - 12, 64)
-		draw_rect(slot_rect, Color(C_BG, 0.7))
-		draw_rect(slot_rect, C_BORDER, false, 1.0)
-		draw_string(FONT_REGULAR, Vector2(slot_rect.position.x + 10, slot_rect.position.y + 20), corners[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
+		var is_focused := _focus_id == ("mounted:%d" % i)
+		draw_rect(slot_rect, Color(C_BG, 0.85 if is_focused else 0.7))
+		draw_rect(slot_rect, C_GOLD_HI if is_focused else C_BORDER, false, 2.0 if is_focused else 1.0)
+		draw_string(FONT_REGULAR, Vector2(slot_rect.position.x + 10, slot_rect.position.y + 20), corners[i], HORIZONTAL_ALIGNMENT_LEFT, slot_rect.size.x - 16, 10, C_DIM)
 		var cid: String = str(mounted_compounds[i]) if i < mounted_compounds.size() else "gravel_normal"
 		var clabel: String = str(compound_labels.get(cid, cid)).to_upper()
-		draw_string(FONT_TITLE, Vector2(slot_rect.position.x + 10, slot_rect.position.y + 46), clabel, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, C_GOLD_HI)
+		draw_string(FONT_TITLE, Vector2(slot_rect.position.x + 10, slot_rect.position.y + 46), clabel, HORIZONTAL_ALIGNMENT_LEFT, slot_rect.size.x - 16, 13, C_GOLD_HI)
 
 func _draw_trunk_selection(rect: Rect2) -> void:
 	_draw_glass(rect)
@@ -157,17 +162,19 @@ func _draw_trunk_selection(rect: Rect2) -> void:
 	draw_string(FONT_DATA, Vector2(rect.position.x + rect.size.x - 220, rect.position.y + 24), "PESO EXTRA: +%0.0f KG" % mass_kg, HORIZONTAL_ALIGNMENT_RIGHT, 200, 12, C_GOLD if carried_spares_count > 0 else C_DIM)
 	for c in [0, 1, 2]:
 		var sel: bool = carried_spares_count == c
+		var is_focused := _focus_id == ("count:%d" % c)
 		var btn := Rect2(rect.position.x + 16 + c * 86, rect.position.y + 42, 76, 36)
 		draw_rect(btn, C_GOLD if sel else Color(C_BG, 0.7))
-		draw_rect(btn, C_GOLD_HI if sel else C_BORDER, false, 1.0)
+		draw_rect(btn, C_GOLD_HI if (sel or is_focused) else C_BORDER, false, 2.0 if is_focused else 1.0)
 		draw_string(FONT_TITLE, Vector2(btn.position.x + 14, btn.position.y + 24), "%d REP." % c, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_BG if sel else C_TEXT)
 	for i in carried_spares_count:
 		var slot := Rect2(rect.position.x + 310 + i * 280, rect.position.y + 40, 260, 68)
-		draw_rect(slot, Color(C_BG, 0.7))
-		draw_rect(slot, C_BORDER, false, 1.0)
+		var is_focused := _focus_id == ("spare:%d" % i)
+		draw_rect(slot, Color(C_BG, 0.85 if is_focused else 0.7))
+		draw_rect(slot, C_GOLD_HI if is_focused else C_BORDER, false, 2.0 if is_focused else 1.0)
 		draw_string(FONT_REGULAR, Vector2(slot.position.x + 12, slot.position.y + 22), "REPUESTO #%d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
 		var cid: String = str(spare_compounds[i]) if i < spare_compounds.size() else str(allowed_compounds[0])
-		draw_string(FONT_TITLE, Vector2(slot.position.x + 12, slot.position.y + 50), str(compound_labels.get(cid, cid)).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, C_GOLD_HI)
+		draw_string(FONT_TITLE, Vector2(slot.position.x + 12, slot.position.y + 50), str(compound_labels.get(cid, cid)).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, slot.size.x - 20, 13, C_GOLD_HI)
 
 func _draw_stock_selection(rect: Rect2) -> void:
 	_draw_glass(rect)
@@ -178,22 +185,135 @@ func _draw_stock_selection(rect: Rect2) -> void:
 	var w := (rect.size.x - 48.0) / float(stock_count)
 	for i in stock_count:
 		var slot := Rect2(rect.position.x + 16 + i * w, rect.position.y + 40, w - 12, 84)
-		draw_rect(slot, Color(C_BG, 0.7))
-		draw_rect(slot, C_BORDER, false, 1.0)
-		draw_string(FONT_REGULAR, Vector2(slot.position.x + 10, slot.position.y + 24), "STOCK #%d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
+		var is_focused := _focus_id == ("stock:%d" % i)
+		draw_rect(slot, Color(C_BG, 0.85 if is_focused else 0.7))
+		draw_rect(slot, C_GOLD_HI if is_focused else C_BORDER, false, 2.0 if is_focused else 1.0)
+		draw_string(FONT_REGULAR, Vector2(slot.position.x + 10, slot.position.y + 24), "STOCK #%d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, slot.size.x - 16, 10, C_DIM)
 		var cid: String = str(service_extra_compounds[i]) if i < service_extra_compounds.size() else str(allowed_compounds[0])
-		draw_string(FONT_TITLE, Vector2(slot.position.x + 10, slot.position.y + 56), str(compound_labels.get(cid, cid)).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_GOLD_HI)
+		draw_string(FONT_TITLE, Vector2(slot.position.x + 10, slot.position.y + 56), str(compound_labels.get(cid, cid)).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, slot.size.x - 16, 12, C_GOLD_HI)
 
 func _draw_footer(rect: Rect2) -> void:
-	draw_string(FONT_DATA, Vector2(rect.position.x + 10, rect.position.y + 36), "TOTAL POOL: 10 / 10", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_GOLD)
+	draw_string(FONT_DATA, Vector2(rect.position.x + 10, rect.position.y + 24), "TOTAL POOL: 10 / 10", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_GOLD)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 10, rect.position.y + 46), "FLECHAS / D-PAD MOVER · ENTER / A CAMBIAR · R RESTAURAR · Y / F5 EMPEZAR", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
 	var reset_rect := Rect2(rect.position.x + 730, rect.position.y + 6, 170, 48)
-	draw_rect(reset_rect, Color(C_BG, 0.8))
-	draw_rect(reset_rect, C_BORDER, false, 1.0)
+	var reset_focused := _focus_id == "reset"
+	draw_rect(reset_rect, Color(C_BG, 0.9 if reset_focused else 0.8))
+	draw_rect(reset_rect, C_GOLD_HI if reset_focused else C_BORDER, false, 2.0 if reset_focused else 1.0)
 	draw_string(FONT_TITLE, Vector2(reset_rect.position.x + 42, reset_rect.position.y + 30), "RESTAURAR", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_TEXT)
 	var start_rect := Rect2(rect.position.x + 920, rect.position.y + 6, 248, 48)
+	var confirm_focused := _focus_id == "confirm"
 	draw_rect(start_rect, C_GOLD)
-	draw_rect(start_rect, C_GOLD_HI, false, 1.5)
+	draw_rect(start_rect, C_TEXT if confirm_focused else C_GOLD_HI, false, 2.5 if confirm_focused else 1.5)
 	draw_string(FONT_TITLE, Vector2(start_rect.position.x + 58, start_rect.position.y + 30), "EMPEZAR RALLY", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_BG)
+
+func _nav_rows() -> Array:
+	var rows: Array = []
+	rows.append(["mounted:0", "mounted:1", "mounted:2", "mounted:3"])
+	var r1: Array[String] = ["count:0", "count:1", "count:2"]
+	for i in carried_spares_count:
+		r1.append("spare:%d" % i)
+	rows.append(r1)
+	var stock_count := _stock_count()
+	if stock_count > 0:
+		var r2: Array[String] = []
+		for i in stock_count:
+			r2.append("stock:%d" % i)
+		rows.append(r2)
+	rows.append(["reset", "confirm"])
+	return rows
+
+func _move_focus(dx: int, dy: int) -> void:
+	var rows := _nav_rows()
+	var r_idx := 0
+	var c_idx := 0
+	for ri in rows.size():
+		var row: Array = rows[ri]
+		var found := row.find(_focus_id)
+		if found >= 0:
+			r_idx = ri
+			c_idx = found
+			break
+	if dy != 0:
+		var next_r := posmod(r_idx + dy, rows.size())
+		var target_row: Array = rows[next_r]
+		_focus_id = str(target_row[clampi(c_idx, 0, target_row.size() - 1)])
+	elif dx != 0:
+		var cur_row: Array = rows[r_idx]
+		_focus_id = str(cur_row[posmod(c_idx + dx, cur_row.size())])
+	queue_redraw()
+
+func _activate_focused() -> void:
+	if _focus_id.begins_with("mounted:"):
+		_cycle_compound(mounted_compounds, int(_focus_id.trim_prefix("mounted:")))
+	elif _focus_id.begins_with("count:"):
+		carried_spares_count = int(_focus_id.trim_prefix("count:"))
+		_reconcile_pool()
+	elif _focus_id.begins_with("spare:"):
+		_cycle_compound(spare_compounds, int(_focus_id.trim_prefix("spare:")))
+	elif _focus_id.begins_with("stock:"):
+		_cycle_compound(service_extra_compounds, int(_focus_id.trim_prefix("stock:")))
+	elif _focus_id == "reset":
+		_init_data()
+	elif _focus_id == "confirm":
+		_on_confirm()
+	queue_redraw()
+
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		var ke := event as InputEventKey
+		match ke.keycode:
+			KEY_LEFT, KEY_A:
+				_move_focus(-1, 0)
+				get_viewport().set_input_as_handled()
+			KEY_RIGHT, KEY_D:
+				_move_focus(1, 0)
+				get_viewport().set_input_as_handled()
+			KEY_UP, KEY_W:
+				_move_focus(0, -1)
+				get_viewport().set_input_as_handled()
+			KEY_DOWN, KEY_S:
+				_move_focus(0, 1)
+				get_viewport().set_input_as_handled()
+			KEY_TAB:
+				_move_focus(-1 if ke.shift_pressed else 1, 0)
+				get_viewport().set_input_as_handled()
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+				_activate_focused()
+				get_viewport().set_input_as_handled()
+			KEY_R:
+				_init_data()
+				queue_redraw()
+				get_viewport().set_input_as_handled()
+			KEY_F5:
+				_on_confirm()
+				get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and event.pressed:
+		var jb := event as InputEventJoypadButton
+		match jb.button_index:
+			JOY_BUTTON_DPAD_LEFT:
+				_move_focus(-1, 0)
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_DPAD_RIGHT:
+				_move_focus(1, 0)
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_DPAD_UP:
+				_move_focus(0, -1)
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_DPAD_DOWN:
+				_move_focus(0, 1)
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_A:
+				_activate_focused()
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_X:
+				_init_data()
+				queue_redraw()
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_Y:
+				_on_confirm()
+				get_viewport().set_input_as_handled()
 
 func _gui_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
@@ -256,12 +376,15 @@ func _cycle_compound(arr: Array, idx: int) -> void:
 
 func _reconcile_pool() -> void:
 	var def_cid: String = str(allowed_compounds[0]) if not allowed_compounds.is_empty() else "gravel_normal"
-	# Recortar o extender maletera al conteo elegido (sin perder el resto: va al parque).
+	# Recortar o extender maletera moviendo explicitamente desde/hacia el parque.
 	while spare_compounds.size() > carried_spares_count:
 		var extra: String = str(spare_compounds.pop_back())
 		service_extra_compounds.append(extra)
 	while spare_compounds.size() < carried_spares_count:
-		spare_compounds.append(def_cid)
+		if not service_extra_compounds.is_empty():
+			spare_compounds.append(str(service_extra_compounds.pop_back()))
+		else:
+			spare_compounds.append(def_cid)
 	var want_stock := _stock_count()
 	while service_extra_compounds.size() > want_stock:
 		service_extra_compounds.pop_back()

@@ -58,6 +58,17 @@ func _ready() -> void:
 	_load_streams()
 
 
+func _exit_tree() -> void:
+	_kill_all_tweens()
+	for p in [menu_player, garage_player, results_player]:
+		if p != null and is_instance_valid(p):
+			p.stop()
+			p.stream = null
+	menu_stream = null
+	garage_stream = null
+	results_stream = null
+
+
 func _make_player(node_name: String) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.name = node_name

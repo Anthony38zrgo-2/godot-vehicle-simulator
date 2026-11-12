@@ -89,8 +89,14 @@ func _process(_delta: float) -> bool:
 		assert(vehicle.tire_inventory.spares.any(func(t): return t.id == ids[1]))
 		workshop = pause_menu.content.get_child(0)
 		var event := InputEventJoypadButton.new()
-		event.button_index = JOY_BUTTON_DPAD_DOWN
+		event.button_index = JOY_BUTTON_DPAD_RIGHT
 		event.pressed = true
+		workshop._input(event)
+		assert(workshop.selected == 1)
+		event.button_index = JOY_BUTTON_DPAD_DOWN
+		workshop._input(event)
+		assert(workshop.selected == 3)
+		event.button_index = JOY_BUTTON_DPAD_UP
 		workshop._input(event)
 		assert(workshop.selected == 1)
 		event.button_index = JOY_BUTTON_A
@@ -172,6 +178,9 @@ func _process(_delta: float) -> bool:
 		assert(workshop.buttons.size() == 1)
 		assert(not workshop.compatible(7,4) and not workshop.compatible(8,4))
 		pause_menu.show_menu()
+		pause_menu.free()
+		root_node.free()
 		print("SERVICE_WORKSHOP_CONTRACT PASS")
+	elif frame_count == 7:
 		quit(0)
 	return false

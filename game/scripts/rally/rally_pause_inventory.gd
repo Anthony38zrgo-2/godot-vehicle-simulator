@@ -552,12 +552,25 @@ func show_inventory() -> void:
 	for spare in session.vehicle.tire_inventory.spares:
 		spare_picker.add_item(description(spare), int(spare.id))
 	content.add_child(spare_picker)
+	var is_pool: bool = session.vehicle.tire_inventory != null and session.vehicle.tire_inventory.has_method("is_pool_mode") and bool(session.vehicle.tire_inventory.is_pool_mode())
 	if session.may_service_tires() and session.vehicle.tire_inventory.spares.size() < session.vehicle.tire_inventory.capacity:
-		var row := HBoxContainer.new()
-		content.add_child(row)
-		for entry in (get_session_allowed_compound_ids() if not get_session_allowed_compound_ids().is_empty() else RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())):
-			var cid := str(entry)
-			button("+ " + cid, func(): load_spare(cid), row)
+		if is_pool:
+			if not session.vehicle.tire_inventory.service_stock.is_empty():
+				var row := HBoxContainer.new()
+				content.add_child(row)
+				for stock_td in session.vehicle.tire_inventory.service_stock:
+					var sd: Dictionary = stock_td
+					var sid := int(sd.get("id", 0))
+					var scid := str(sd.get("compound_id", ""))
+					if not is_compound_allowed_for_session(scid):
+						continue
+					button("+ #%d %s" % [sid, scid], func(): load_spare_from_stock(sid), row)
+		else:
+			var row := HBoxContainer.new()
+			content.add_child(row)
+			for entry in (get_session_allowed_compound_ids() if not get_session_allowed_compound_ids().is_empty() else RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())):
+				var cid := str(entry)
+				button("+ " + cid, func(): load_spare(cid), row)
 	var nav := HBoxContainer.new()
 	content.add_child(nav)
 	if opened_from_results:
@@ -724,6 +737,27 @@ func is_compound_allowed_for_session(compound_id: String) -> bool:
 	return allowed.has(compound_id)
 
 
+func load_spare_from_stock(tire_id: int) -> void:
+	if session == null or session.get("vehicle") == null:
+		return
+	var vehicle = session.vehicle
+	if vehicle.tire_inventory == null or not session.may_service_tires():
+		return
+	var td: Dictionary = vehicle.tire_inventory.find_tire(tire_id)
+	if td.is_empty():
+		return
+	var scid := str(td.get("compound_id", ""))
+	if not is_compound_allowed_for_session(scid):
+		notice = "Compuesto no permitido en este evento: " + scid
+		show_inventory()
+		return
+	if vehicle.tire_inventory.move_tire(tire_id, "spares"):
+		vehicle.apply_tire_inventory()
+		notice = "Rueda #%d movida del parque al maletero." % tire_id
+		persist()
+	show_inventory()
+
+
 func load_spare(compound: String) -> void:
 	if session == null or session.get("vehicle") == null:
 		return
@@ -823,20 +857,22 @@ func _update_telemetry_panel() -> void:
 		for i in mini(4, mounted.size()):
 			var tire: Dictionary = mounted[i]
 			var st: Dictionary = tire.get("state", {})
-			var wear := float(st.get("wear_fraction", 0.0)) * 100.0
-			var has_leak := float(st.get("leak_per_second", 0.0)) > 0.0
-			var has_rim := float(st.get("rim_deformation", 0.0)) > 0.005
-			var c_stat := "OK"
-			var col := C_GREEN
-			if has_leak:
-				c_stat = "FUGA"
+			var wear := clampf(float(st.get("wear_fraction", 0.0)) * 100.0, 0.0, 100.0)
+			var life := maxf(0.0, 100.0 - wear)
+			var is_dest: bool = (inv.has_method("is_carcass_destroyed") and bool(inv.is_carcass_destroyed(tire))) or float(st.get("carcass_failure", 0.0)) >= 0.99
+			var has_leak: bool = (inv.has_method("is_punctured") and bool(inv.is_punctured(tire))) or float(st.get("leak_per_second", 0.0)) > 0.0
+			var has_rim: bool = (inv.has_method("is_rim_damaged") and bool(inv.is_rim_damaged(tire))) or float(st.get("rim_deformation", 0.0)) > 0.005
+			var c_stat := "VIDA %.0f%%" % life
+			var col := C_GREEN if wear < 30.0 else (C_GOLD if wear < 65.0 else C_ROSE)
+			if is_dest:
+				c_stat = "DESTALONADO · %.0f%%" % life
+				col = C_ROSE
+			elif has_leak:
+				c_stat = "FUGA · %.0f%%" % life
 				col = C_ROSE
 			elif has_rim:
-				c_stat = "ARO"
-				col = C_ROSE
-			elif wear >= 50.0:
-				c_stat = "%.0f%%" % wear
-				col = C_GOLD
+				c_stat = "ARO · %.0f%%" % life
+				col = C_ROSE if wear >= 50.0 else C_GOLD
 
 			var lbl := Label.new()
 			lbl.text = "%s: %s [%s]" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat]

@@ -85,7 +85,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if vehicle == null:
 		return
-	if Input.is_action_just_pressed(action_toggle_garage):
+	if not get_tree().paused and Input.is_action_just_pressed(action_toggle_garage):
 		garage_menu_requested.emit()
 	if not controls_enabled:
 		return

@@ -235,7 +235,7 @@ func _ready() -> void:
 	# Sin ventana vamos directo a pilotar: corte inmediato, nada de menú en tramo.
 	if not practice_mode and event_manager != null and not event_manager.get_pending_window().is_empty():
 		_open_setup_window()
-	elif practice_mode or session_mode == "single_stage":
+	elif session_mode == "single_stage":
 		_open_setup_window()
 	else:
 		var _rm_init := get_node_or_null("/root/RallyMusic")
@@ -886,6 +886,13 @@ func _exit_tree() -> void:
 		competition.save()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		if pacenotes != null and is_instance_valid(pacenotes) and pacenotes.get_parent() == null:
+			pacenotes.free()
+			pacenotes = null
+
+
 func setup_pacenotes() -> void:
 	pacenotes.name = "RallyPacenotes"
 	add_child(pacenotes)
@@ -1331,11 +1338,18 @@ func _on_garage_closed(applied: bool) -> void:
 		var primary_compound := str(vehicle.tire_inventory.mounted[0].compound_id)
 		setup = {"compound_id": primary_compound, "values": garage_panel.draft_values}
 	else:
+		# close_garage(true) ya aplico reglajes fisicos e inventario (apply_pool_plan o service_tire_inventory);
+		# aplicar solo las claves fisicas sin re-ejecutar service_tire_inventory() ni pisar montajes mixtos.
 		if setup.has("values") and not (setup.values as Dictionary).is_empty():
-			var committed: Dictionary = vehicle.apply_setup_snapshot(setup.values)
-			if not bool(committed.get("ok", false)):
-				call_deferred("_open_setup_window")
-				return
+			var physical_only := (setup.values as Dictionary).duplicate(true)
+			for k in physical_only.keys():
+				if str(k).begins_with("strategy."):
+					physical_only.erase(k)
+			if not physical_only.is_empty():
+				var committed: Dictionary = vehicle.apply_setup_values(physical_only)
+				if not bool(committed.get("ok", false)):
+					call_deferred("_open_setup_window")
+					return
 
 	var cid := str(setup.get("compound_id", "gravel_normal"))
 	if not practice_mode and event_manager != null:
@@ -1349,18 +1363,14 @@ func _on_garage_closed(applied: bool) -> void:
 			push_warning("Reglaje: " + str(result.get("error", "")))
 			call_deferred("_open_setup_window")
 			return
-		if vehicle.has_method("set_tire_compound"):
-			vehicle.set_tire_compound(event_manager.confirmed_compound_id)
-			vehicle.apply_tire_inventory()
+		vehicle.apply_tire_inventory()
 		_save_mounted_tire_condition()
 		event_manager.save()
 		start_clock_for_stage(event_manager.schedule_for(session_track_id))
 		_setup_event_weather()
 		_refresh_stage_weather()
 	else:
-		if vehicle.has_method("set_tire_compound"):
-			vehicle.set_tire_compound(cid)
-			vehicle.apply_tire_inventory()
+		vehicle.apply_tire_inventory()
 		event_clock.set_paused(false)
 
 	awaiting_setup = false
@@ -1371,9 +1381,26 @@ func _on_garage_closed(applied: bool) -> void:
 	reset_start_sequence()
 	apply_competition_controls()
 	_update_panel_for_stage()
-	var comp_label: String = event_manager.confirmed_compound_id if (not practice_mode and event_manager != null) else cid
+	var comp_summary := ""
+	if vehicle.tire_inventory != null and vehicle.tire_inventory.mounted.size() >= 4:
+		var cat := RallyTireCompound.load_catalog()
+		var unique_cids: Array[String] = []
+		var short_parts: Array[String] = []
+		for t in vehicle.tire_inventory.mounted:
+			var tcid := str((t as Dictionary).get("compound_id", cid))
+			if not unique_cids.has(tcid):
+				unique_cids.append(tcid)
+			var s_lbl := str(RallyTireCompound.get_compound(cat, tcid).get("short_label", tcid))
+			short_parts.append(s_lbl.to_upper())
+		if unique_cids.size() == 1:
+			comp_summary = "COMPUESTO " + unique_cids[0].to_upper()
+		else:
+			comp_summary = "MIXTO (" + "/".join(short_parts) + ")"
+	else:
+		var comp_label: String = event_manager.confirmed_compound_id if (not practice_mode and event_manager != null) else cid
+		comp_summary = "COMPUESTO " + comp_label.to_upper()
 	if head_up_display != null:
-		head_up_display.show_status("COMPUESTO " + comp_label.to_upper() + " — SALIDA HABILITADA", Color(0.34, 0.82, 0.45), 3.0)
+		head_up_display.show_status(comp_summary + " — SALIDA HABILITADA", Color(0.34, 0.82, 0.45), 3.0)
 
 func _save_mounted_tire_condition() -> void:
 	if practice_mode or event_manager == null or vehicle == null:

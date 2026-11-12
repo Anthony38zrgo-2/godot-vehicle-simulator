@@ -45,7 +45,7 @@ func test_weather_screen_structure_and_options() -> void:
 	check(menu_scene.current_screen == "weather_select", "Pantalla cambia a weather_select antes de iniciar el rally")
 	check(menu_scene.screen_weather_select.visible, "screen_weather_select es visible")
 	check(menu_scene.badge_top.text == "CONDICIÓN", "Badge superior indica CONDICIÓN")
-	check(menu_scene.badge_bottom.text == "SELECT WEATHER", "Badge inferior indica SELECT WEATHER")
+	check(menu_scene.badge_bottom.text == "CLIMA INICIAL", "Badge inferior indica CLIMA INICIAL")
 
 	# Verificar que SOLO ofrece las intermedias: Soleado, Nublado, Lluvia, Aleatorio (exactamente 4 opciones)
 	check(menu_scene.weather_buttons.size() == 4, "Ofrece exactamente 4 opciones intermedias")

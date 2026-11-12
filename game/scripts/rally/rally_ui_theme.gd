@@ -207,3 +207,18 @@ static func make_divider(vertical: bool = false, color: Color = BORDER_SUBTLE) -
 		rect.custom_minimum_size = Vector2(0, 1)
 		rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return rect
+
+
+## Aplica transicion nativa ligera (Tween) con degradado seguro en headless.
+static func transition_control(target: Control, fade_in: bool = true, duration: float = 0.14) -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	if Engine.is_editor_hint() or DisplayServer.get_name() == "headless":
+		target.modulate.a = 1.0 if fade_in else 0.0
+		return
+	var from_a := 0.0 if fade_in else target.modulate.a
+	var to_a := 1.0 if fade_in else 0.0
+	target.modulate.a = from_a
+	var tw := target.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(target, "modulate:a", to_a, clampf(duration, 0.05, 0.25)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

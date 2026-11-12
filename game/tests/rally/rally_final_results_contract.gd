@@ -71,5 +71,10 @@ func run() -> void:
 		check(panel.notice.text.contains("sin participantes clasificados"), "no winner when no classified participants")
 		scene.queue_free()
 		await process_frame
+		await process_frame
+	var music := root.get_node_or_null("RallyMusic")
+	if music != null and music.has_method("stop_menu_music"):
+		music.call("stop_menu_music")
+	await process_frame
 	print("RALLY_FINAL_RESULTS_CONTRACT ", "PASS" if failures.is_empty() else failures)
 	quit(0 if failures.is_empty() else 1)

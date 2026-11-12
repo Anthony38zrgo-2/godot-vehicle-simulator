@@ -36,10 +36,10 @@ func test_menu_structure_and_order() -> void:
 	check(menu_scene.header_title != null and menu_scene.header_title.text == "Rally Maniac", "El título exacto debe ser 'Rally Maniac'")
 	var title_font = menu_scene.header_title.get_theme_font("font")
 	check(title_font != null and title_font.resource_path.ends_with("Montserrat-Bold.ttf"), "El título principal debe usar Montserrat-Bold.ttf")
-	check(menu_scene.btn_championship != null and menu_scene.btn_championship.text == "Championship", "Primer botón debe ser Championship")
+	check(menu_scene.btn_championship != null and menu_scene.btn_championship.text == "Campeonato", "Primer botón debe ser Campeonato")
 	check(menu_scene.btn_rally != null and menu_scene.btn_rally.text == "Rally", "Segundo botón debe ser Rally")
-	check(menu_scene.btn_single_stage != null and menu_scene.btn_single_stage.text == "Single Stage", "Tercer botón debe ser Single Stage")
-	check(menu_scene.btn_exit != null and menu_scene.btn_exit.text == "Exit", "Cuarto botón debe ser Exit")
+	check(menu_scene.btn_single_stage != null and menu_scene.btn_single_stage.text == "Tramo Único", "Tercer botón debe ser Tramo Único")
+	check(menu_scene.btn_exit != null and menu_scene.btn_exit.text == "Salir", "Cuarto botón debe ser Salir")
 
 	# Verificar orden en el contenedor de botones
 	var btn_parent = menu_scene.btn_championship.get_parent()
@@ -331,5 +331,9 @@ func test_menu_to_garage_music_flow() -> void:
 		check(music.current_context == "garage", "El contexto de música debe ser 'garage' al abrir garaje-reglajes")
 
 	session_scene.queue_free()
+	await process_frame
+	if music != null and music.has_method("stop_menu_music"):
+		music.call("stop_menu_music")
+	await process_frame
 	await process_frame
 

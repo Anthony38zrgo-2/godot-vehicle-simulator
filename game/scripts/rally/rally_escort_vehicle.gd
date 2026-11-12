@@ -936,7 +936,9 @@ func apply_setup_snapshot(values: Dictionary) -> Dictionary:
 		return {"ok": false, "error": "En tramo solo se intercambian las ruedas del inventario de pausa."}
 	var result := apply_setup_values(physical)
 	if bool(result.get("ok", false)):
-		service_tire_inventory(compounds, count)
+		var service_result: Dictionary = service_tire_inventory(compounds, count)
+		if not bool(service_result.get("ok", true)):
+			return service_result
 	return result
 
 func fresh_tire_state(compound: String, index: int = 0) -> Dictionary:
@@ -1008,7 +1010,66 @@ func discard_spare(spare_id: int) -> bool:
 	apply_tire_inventory()
 	return true
 
-func service_tire_inventory(wheel_compounds: Dictionary, spare_count: int, replace_all: bool = false) -> void:
+func apply_pool_plan(mounted_ids: Array, spare_ids: Array) -> Dictionary:
+	ensure_tire_inventory()
+	sync_tire_inventory()
+	if not tire_inventory.is_pool_mode():
+		return {"ok": false, "error": "El inventario no esta en modo pool de 10 ruedas."}
+	if mounted_ids.size() != 4:
+		return {"ok": false, "error": "El plan de montaje debe incluir exactamente 4 ruedas."}
+	if spare_ids.size() > tire_inventory.capacity:
+		return {"ok": false, "error": "El maletero admite un maximo de %d repuestos." % tire_inventory.capacity}
+	var all_by_id: Dictionary = {}
+	var ordered_ids: Array[int] = []
+	for col in [tire_inventory.mounted, tire_inventory.spares, tire_inventory.service_stock]:
+		for t in col:
+			if t is Dictionary:
+				var tid := int((t as Dictionary).get("id", -1))
+				if tid > 0 and not all_by_id.has(tid):
+					all_by_id[tid] = t
+					ordered_ids.append(tid)
+	var seen: Dictionary = {}
+	var next_mounted: Array[Dictionary] = []
+	for raw_id in mounted_ids:
+		var tid := int(raw_id)
+		if seen.has(tid) or not all_by_id.has(tid):
+			return {"ok": false, "error": "Rueda #%d invalida o duplicada en el montaje." % tid}
+		var td: Dictionary = all_by_id[tid]
+		if tire_inventory.is_carcass_destroyed(td):
+			return {"ok": false, "error": "La rueda #%d esta destalonada y no puede montarse." % tid}
+		seen[tid] = true
+		next_mounted.append(td)
+	var next_spares: Array[Dictionary] = []
+	for raw_id in spare_ids:
+		var tid := int(raw_id)
+		if seen.has(tid) or not all_by_id.has(tid):
+			return {"ok": false, "error": "Repuesto #%d invalido o duplicado." % tid}
+		seen[tid] = true
+		next_spares.append(all_by_id[tid])
+	var next_stock: Array[Dictionary] = []
+	for tid in ordered_ids:
+		if not seen.has(tid):
+			next_stock.append(all_by_id[tid])
+	var old_mounted_ids: Array[int] = []
+	for t in tire_inventory.mounted:
+		old_mounted_ids.append(int((t as Dictionary).get("id", -1)) if t is Dictionary else -1)
+	tire_inventory.mounted.clear()
+	for td in next_mounted:
+		tire_inventory.mounted.append(td)
+	tire_inventory.spares.clear()
+	for td in next_spares:
+		tire_inventory.spares.append(td)
+	tire_inventory.service_stock.clear()
+	for td in next_stock:
+		tire_inventory.service_stock.append(td)
+	apply_tire_inventory()
+	for i in mini(4, tire_inventory.mounted.size()):
+		if i >= old_mounted_ids.size() or int(tire_inventory.mounted[i].get("id", -1)) != old_mounted_ids[i]:
+			simulation.tire_model.reset_patch(i)
+	return {"ok": true}
+
+
+func service_tire_inventory(wheel_compounds: Dictionary, spare_count: int, replace_all: bool = false) -> Dictionary:
 	ensure_tire_inventory()
 	sync_tire_inventory()
 	# Modo pool (10 ruedas): reutilizar sin crear. Modo legacy: comportamiento previo.
@@ -1022,31 +1083,137 @@ func service_tire_inventory(wheel_compounds: Dictionary, spare_count: int, repla
 			tire_inventory.spares.pop_back()
 		while tire_inventory.spares.size() < count:
 			tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
-	else:
-		for i in 4:
-			var wanted := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
-			if wanted != str(tire_inventory.mounted[i].compound_id):
-				var candidate := _find_best_pool_tire(wanted)
-				if candidate.is_empty():
-					continue # Sin reemplazo posible: se conserva lo montado (riesgo del jugador).
-				# Intercambio directo para no dejar nunca 3 montadas.
-				var idx := _pool_index_of(int(candidate.get("id", 0)))
-				if idx.is_empty():
+		apply_tire_inventory()
+		return {"ok": true}
+	var reserved_ids: Array[int] = []
+	var need_replace: Array[int] = []
+	var planned_ids: Array[int] = [0, 0, 0, 0]
+	for i in 4:
+		var current_td: Dictionary = tire_inventory.mounted[i]
+		var wanted := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], current_td.compound_id))
+		if wanted == str(current_td.compound_id):
+			var cid_id := int(current_td.get("id", 0))
+			planned_ids[i] = cid_id
+			reserved_ids.append(cid_id)
+		else:
+			need_replace.append(i)
+	for i in need_replace:
+		var wanted := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
+		var candidate := _find_best_pool_tire(wanted, reserved_ids)
+		if candidate.is_empty():
+			# Permitir intercambio directo con otra esquina desplazada en el mismo servicio.
+			for j in need_replace:
+				if j == i:
 					continue
-				var src: Array = idx["array"]
-				var other_i := int(idx["index"])
-				var tmp: Dictionary = tire_inventory.mounted[i]
-				tire_inventory.mounted[i] = src[other_i]
-				src[other_i] = tmp
-		var count := clampi(spare_count, 0, tire_inventory.capacity)
-		while tire_inventory.spares.size() > count:
-			var sp: Dictionary = tire_inventory.spares.back()
-			tire_inventory.spares.pop_back()
-			tire_inventory.service_stock.append(sp)
-		while tire_inventory.spares.size() < count and not tire_inventory.service_stock.is_empty():
-			var st: Dictionary = tire_inventory.service_stock.pop_back()
-			tire_inventory.spares.append(st)
+				var displaced: Dictionary = tire_inventory.mounted[j]
+				var did := int(displaced.get("id", 0))
+				if did in reserved_ids or str(displaced.get("compound_id", "")) != wanted:
+					continue
+				if _is_pool_tire_healthy(displaced):
+					candidate = displaced
+					break
+		if candidate.is_empty():
+			return {"ok": false, "error": "Sin neumaticos sanos de %s disponibles en el pool." % wanted}
+		var cand_id := int(candidate.get("id", 0))
+		reserved_ids.append(cand_id)
+		planned_ids[i] = cand_id
+	# Construir el inventario completo manteniendo sanos en maletero y danados/gastados en parque.
+	var old_mounted_ids: Array[int] = []
+	for t in tire_inventory.mounted:
+		old_mounted_ids.append(int((t as Dictionary).get("id", -1)) if t is Dictionary else -1)
+	var pool_by_id: Dictionary = {}
+	for col in [tire_inventory.mounted, tire_inventory.spares, tire_inventory.service_stock]:
+		for t in col:
+			if t is Dictionary:
+				pool_by_id[int((t as Dictionary).get("id", -1))] = t
+	var next_mounted: Array[Dictionary] = []
+	var used_ids: Dictionary = {}
+	for tid in planned_ids:
+		used_ids[tid] = true
+		next_mounted.append(pool_by_id[tid])
+	var target_spares := clampi(spare_count, 0, tire_inventory.capacity)
+	var next_spares: Array[Dictionary] = []
+	var healthy_existing_spares: Array[Dictionary] = []
+	for t in tire_inventory.spares:
+		if not (t is Dictionary):
+			continue
+		var td: Dictionary = t
+		var tid := int(td.get("id", -1))
+		if used_ids.has(tid):
+			continue
+		if _is_pool_tire_healthy(td):
+			healthy_existing_spares.append(td)
+	for td in healthy_existing_spares:
+		if next_spares.size() >= target_spares:
+			break
+		next_spares.append(td)
+		used_ids[int(td.get("id", -1))] = true
+	if next_spares.size() < target_spares:
+		var remaining_candidates: Array[Dictionary] = []
+		for col in [tire_inventory.service_stock, tire_inventory.mounted, tire_inventory.spares]:
+			for t in col:
+				if not (t is Dictionary):
+					continue
+				var td: Dictionary = t
+				var tid := int(td.get("id", -1))
+				if used_ids.has(tid):
+					continue
+				remaining_candidates.append(td)
+		remaining_candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return _pool_tire_health_rank(a) < _pool_tire_health_rank(b)
+		)
+		for td in remaining_candidates:
+			if next_spares.size() >= target_spares:
+				break
+			next_spares.append(td)
+			used_ids[int(td.get("id", -1))] = true
+	var next_stock: Array[Dictionary] = []
+	for col in [tire_inventory.service_stock, tire_inventory.spares, tire_inventory.mounted]:
+		for t in col:
+			if not (t is Dictionary):
+				continue
+			var td: Dictionary = t
+			var tid := int(td.get("id", -1))
+			if used_ids.has(tid):
+				continue
+			used_ids[tid] = true
+			next_stock.append(td)
+	tire_inventory.mounted.clear()
+	for td in next_mounted:
+		tire_inventory.mounted.append(td)
+	tire_inventory.spares.clear()
+	for td in next_spares:
+		tire_inventory.spares.append(td)
+	tire_inventory.service_stock.clear()
+	for td in next_stock:
+		tire_inventory.service_stock.append(td)
 	apply_tire_inventory()
+	for i in mini(4, tire_inventory.mounted.size()):
+		if i >= old_mounted_ids.size() or int(tire_inventory.mounted[i].get("id", -1)) != old_mounted_ids[i]:
+			simulation.tire_model.reset_patch(i)
+	return {"ok": true}
+
+
+func _is_pool_tire_healthy(td: Dictionary) -> bool:
+	if tire_inventory.is_carcass_destroyed(td):
+		return false
+	if tire_inventory.is_punctured(td):
+		return false
+	if tire_inventory.is_rim_damaged(td):
+		return false
+	return true
+
+
+func _pool_tire_health_rank(td: Dictionary) -> float:
+	var penalty := 0.0
+	if tire_inventory.is_carcass_destroyed(td):
+		penalty += 100.0
+	if tire_inventory.is_punctured(td):
+		penalty += 20.0
+	if tire_inventory.is_rim_damaged(td):
+		penalty += 10.0
+	var wear := float((td.get("state", {}) as Dictionary).get("wear_fraction", 0.0))
+	return penalty + wear
 
 
 func _pool_index_of(tire_id: int) -> Dictionary:
@@ -1058,7 +1225,7 @@ func _pool_index_of(tire_id: int) -> Dictionary:
 	return {}
 
 
-func _find_best_pool_tire(compound_id: String) -> Dictionary:
+func _find_best_pool_tire(compound_id: String, exclude_ids: Array[int] = []) -> Dictionary:
 	var best: Dictionary = {}
 	var best_score := 999.0
 	for pool in [tire_inventory.service_stock, tire_inventory.spares]:
@@ -1066,9 +1233,11 @@ func _find_best_pool_tire(compound_id: String) -> Dictionary:
 			if not t is Dictionary:
 				continue
 			var td: Dictionary = t
+			if int(td.get("id", 0)) in exclude_ids:
+				continue
 			if str(td.get("compound_id", "")) != compound_id:
 				continue
-			if tire_inventory.is_carcass_destroyed(td):
+			if not _is_pool_tire_healthy(td):
 				continue
 			var wear := float((td.get("state", {}) as Dictionary).get("wear_fraction", 0.0))
 			if wear < best_score:

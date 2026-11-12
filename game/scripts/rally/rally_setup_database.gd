@@ -60,6 +60,14 @@ func list_setups(context: Dictionary) -> Dictionary:
 
 
 func create_setup(context: Dictionary, name: String, values: Dictionary) -> Dictionary:
+	_query(
+		"INSERT OR IGNORE INTO circuit(id,name,country,length_m) VALUES(?,?,?,?)",
+		[context.circuit_id, str(context.get("circuit_name", context.circuit_id)), str(context.get("circuit_country", "N/A")), float(context.get("circuit_length_m", 0.0))]
+	)
+	_query(
+		"INSERT OR IGNORE INTO team(id,name) VALUES(?,?)",
+		[context.team_id, str(context.get("team_name", context.team_id))]
+	)
 	var result := _query(
 		"INSERT INTO car_setup(name,circuit_id,team_id,car_id,physics_backend,base_profile_sha256,mode,values_json) VALUES(?,?,?,?,?,?,?,?)",
 		[name.strip_edges(), context.circuit_id, context.team_id, context.car_id, context.physics_backend, context.base_profile_sha256, context.mode, JSON.stringify(values)]

@@ -217,11 +217,29 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	b.add_theme_font_size_override("font_size", 12)
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08,0.14,0.20,0.3)
+	style.bg_color = Color(0.08, 0.14, 0.20, 0.35)
 	style.border_color = Color("53677a")
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(16)
-	b.add_theme_stylebox_override("normal",style)
+	var style_hover := style.duplicate() as StyleBoxFlat
+	style_hover.bg_color = Color(0.12, 0.20, 0.28, 0.55)
+	style_hover.border_color = Color("90a8be")
+	var style_focus := style.duplicate() as StyleBoxFlat
+	style_focus.bg_color = Color(0.14, 0.22, 0.31, 0.6)
+	style_focus.border_color = Color("ffd57a")
+	style_focus.set_border_width_all(2)
+	var style_pressed := style.duplicate() as StyleBoxFlat
+	style_pressed.bg_color = Color(0.22, 0.18, 0.10, 0.65)
+	style_pressed.border_color = Color("e5a93c")
+	style_pressed.set_border_width_all(2)
+	var style_disabled := style.duplicate() as StyleBoxFlat
+	style_disabled.bg_color = Color(0.06, 0.09, 0.13, 0.2)
+	style_disabled.border_color = Color("313d49")
+	b.add_theme_stylebox_override("normal", style)
+	b.add_theme_stylebox_override("hover", style_hover)
+	b.add_theme_stylebox_override("focus", style_focus)
+	b.add_theme_stylebox_override("pressed", style_pressed)
+	b.add_theme_stylebox_override("disabled", style_disabled)
 	_place(b,point.x,point.y,Vector2(146,160))
 	if category == "wheels" and index != 9:
 		b.text = ""
@@ -332,10 +350,66 @@ func activate() -> void:
 func cancel_transfer() -> bool:
 	var was := held >= 0
 	held = -1
+	for b in buttons:
+		if is_instance_valid(b):
+			b.modulate = Color.WHITE
 	return was
 
+
+func _move_spatial(dir: Vector2) -> void:
+	if buttons.is_empty():
+		return
+	var cur := buttons[0]
+	for b in buttons:
+		if is_instance_valid(b) and b.index == selected:
+			cur = b
+			break
+	var origin := cur.position + cur.size * 0.5
+	var best: Button = null
+	var best_score := 1e12
+	for b in buttons:
+		if not is_instance_valid(b) or b == cur:
+			continue
+		var delta := (b.position + b.size * 0.5) - origin
+		var proj := delta.dot(dir)
+		if proj <= 4.0:
+			continue
+		var perp := absf(delta.cross(dir))
+		var score := proj + perp * 2.5
+		if score < best_score:
+			best_score = score
+			best = b
+	if best == null:
+		# Wrap around to the farthest button on the opposite side of dir.
+		var worst_proj := 1e12
+		for b in buttons:
+			if not is_instance_valid(b) or b == cur:
+				continue
+			var proj := ((b.position + b.size * 0.5) - origin).dot(dir)
+			if proj < worst_proj:
+				worst_proj = proj
+				best = b
+	if best != null:
+		best.grab_focus()
+
+
 func _input(event: InputEvent) -> void:
-	if not host.modal.visible or host.current_view != "inventory": return
+	if not host.modal.visible or host.current_view != "inventory":
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		match (event as InputEventKey).keycode:
+			KEY_LEFT:
+				_move_spatial(Vector2.LEFT)
+			KEY_RIGHT:
+				_move_spatial(Vector2.RIGHT)
+			KEY_UP:
+				_move_spatial(Vector2.UP)
+			KEY_DOWN:
+				_move_spatial(Vector2.DOWN)
+			_:
+				return
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventJoypadButton and event.pressed:
 		match event.button_index:
 			JOY_BUTTON_LEFT_SHOULDER: _category("wheels")
@@ -343,16 +417,14 @@ func _input(event: InputEvent) -> void:
 			JOY_BUTTON_A:
 				if not buttons.has(get_viewport().gui_get_focus_owner()): return
 				activate()
-			JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_RIGHT:
-				var next := 0
-				for i in buttons.size():
-					if buttons[i].index == selected: next = (i+1)%buttons.size()
-				buttons[next].grab_focus()
-			JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_LEFT:
-				var prev := 0
-				for i in buttons.size():
-					if buttons[i].index == selected: prev = posmod(i-1,buttons.size())
-				buttons[prev].grab_focus()
+			JOY_BUTTON_DPAD_RIGHT:
+				_move_spatial(Vector2.RIGHT)
+			JOY_BUTTON_DPAD_LEFT:
+				_move_spatial(Vector2.LEFT)
+			JOY_BUTTON_DPAD_DOWN:
+				_move_spatial(Vector2.DOWN)
+			JOY_BUTTON_DPAD_UP:
+				_move_spatial(Vector2.UP)
 			JOY_BUTTON_X:
 				if held in [7,8]: selected = 4; activate()
 			_: return

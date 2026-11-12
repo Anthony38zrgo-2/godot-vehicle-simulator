@@ -182,7 +182,8 @@
       "name": "Toggle Garage",
       "deadzone": 0.2,
       "events": [
-        { "type": "physical_key", "physical_keycode": 71 }
+        { "type": "physical_key", "physical_keycode": 71 },
+        { "type": "gamepad_button", "button_index": 4 }
       ]
     },
     {
