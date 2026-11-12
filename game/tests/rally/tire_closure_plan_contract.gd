@@ -27,7 +27,9 @@ extends SceneTree
 ##     finito), 60 vs 120 Hz con mismo subpaso (distancia e impulso < 5%).
 ##  6. Tandem-cam: plano (carga/altura 1%), obstáculo (inicio/duración vs
 ##     apoyos, distancia recorrida), pérdida con ambos en aire, cota/
-##     energía/vehículo repetidos, coste medido, flag off por defecto.
+##     energía/vehículo repetidos, coste medido, flag activado por defecto
+##     (cierre: comparación a nivel de prototipo completada; la vía cableada
+##     por rayos queda cubierta con la opción de comparación legacy).
 
 var failures: Array[String] = []
 var domains: Dictionary = {}
@@ -426,8 +428,28 @@ func _ground_profile(kind: String, x: float) -> Dictionary:
 			return {"height": 0.0, "surface": "Road"}
 
 func test_p6_tandem_cam() -> void:
-	print("\n[P6] Envolvente espacial tandem-cam (prototipo)...")
+	print("\n[P6] Envolvente espacial tandem-cam (activada por defecto)...")
 	check(FordRallyVehicleSimulation.new().tandem_cam_enabled, "P6 tandem-cam activo por defecto")
+	# Opción de comparación: el flag sigue conmutable (false = vía ShapeCast
+	# legacy de un apoyo, true = dos rayos tandem cableados en step()).
+	var sim := FordRallyVehicleSimulation.new()
+	sim.tandem_cam_enabled = false
+	check(not sim.tandem_cam_enabled, "P6 comparación legacy disponible (flag off)")
+	sim.tandem_cam_enabled = true
+	check(sim.tandem_cam_enabled, "P6 comparación tandem disponible (flag on)")
+	# Equivalencia de semántica distance con la vía ShapeCast: a contacto
+	# tangencial en plano (altura = -radio) la consulta tandem devuelve
+	# distance = radio y el rig calcula road_compression = radio - distance
+	# = 0, igual que la vía ShapeCast (radio + travel*f - bump con
+	# travel*f = bump). Penetración delta da compresión delta en ambas vías.
+	var radii := 0.28
+	var h_touch := -radii
+	var env_touch := FordRallyVehicleSimulation.tandem_cam_effective_height(h_touch, true, h_touch, true)
+	var dist_touch := -float(env_touch.height)
+	check(is_equal_approx(radii - dist_touch, 0.0), "P6 tangencial: compresión 0 en ambas vías (dist=%.4f)" % dist_touch)
+	var h_pen := -radii + 0.02
+	var env_pen := FordRallyVehicleSimulation.tandem_cam_effective_height(h_pen, true, h_pen, true)
+	check(is_equal_approx(radii - (-float(env_pen.height)), 0.02), "P6 penetración 20 mm: compresión igual en ambas vías")
 	var patch := 0.20
 	var sup := FordRallyVehicleSimulation.tandem_cam_supports(patch, 1.0)
 	check(is_equal_approx(sup[1] - sup[0], patch), "P6 apoyos separados por huella (%.3f)" % (sup[1] - sup[0]))
@@ -484,7 +506,9 @@ func test_p6_tandem_cam() -> void:
 			return
 		x2 += 0.01
 	check(worst <= 1.001, "P6 bache u_inst<=1.001 (%.4f)" % worst)
-	# Coste: consultas por rueda y tick (prototipo = 2 apoyos vs 1).
+	# Coste: consultas por rueda y tick (2 rayos tandem vs 1 ShapeCast).
+	# Medido aquí a nivel de combinación (~1 us); el coste real de consultas
+	# físicas se mide en escena (contact_query_count publicado por step).
 	var t0 := Time.get_ticks_usec()
 	for i in 20000:
 		FordRallyVehicleSimulation.tandem_cam_effective_height(0.01, true, -0.01, true, "Road", "Road")

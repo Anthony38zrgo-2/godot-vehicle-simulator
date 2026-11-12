@@ -298,15 +298,17 @@ instantánea (en estacionario converge a Fz y no cambia nada).
    distancia 0.73 % e impulso lateral 0.17 % (tolerancia 5 %). La escena
    Jolt completa (rampa/plano/desnivel conocido) queda como procedimiento
    con esta referencia; no se alteró física de escena.
-6. **Tandem-cam (prototipo, flag off).** `tandem_cam_effective_height`:
+6. **Tandem-cam (activada por defecto tras el cierre).** `tandem_cam_effective_height`:
    plano exacto; escalón/bache/cresta/bordillo a dos velocidades y ambos
    sentidos anticipan medio parche e inician/finalizan en obstáculo ±
    media huella (bache ±0.2 → respuesta ±0.295 con huella 0.20); pérdida
    con ambos apoyos en aire; borde usa la superficie del apoyo más alto;
    apoyo único continuo. Carga modulada por bache: finita y u ≤ 1.0000.
-   Coste ~0.7 µs por rueda y tick (2 apoyos). Activación por defecto
-   pendiente: falta el doble-query en escena y medir cuánto filtrado
-   temporal sobra para no duplicar retraso.
+   Coste ~0.7 µs por rueda y tick a nivel de combinación (2 apoyos);
+   el coste de consultas físicas lo publica `contact_query_count` en escena.
+   Activada por defecto al cierre (`tandem_cam_enabled := true`, conmutable
+   a la vía ShapeCast legacy para comparación); pendiente medir en escena
+   cuánto filtrado temporal sobra para no duplicar retraso.
 
 **Diferencias por perfil:** medido solo Escort (referencia del plan). Los
 11 perfiles comparten la calibración trasera v2 (verificada en el contrato
