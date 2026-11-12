@@ -259,6 +259,16 @@ func local_conditions_for_contact(surface_name: String, vehicle_pos: Vector3) ->
 	return st
 
 
+## Lluvia LÍQUIDA en un progreso fijo (solo lectura, para cauces).
+## Consulta el clima EN EL PROGRESO DEL CAUCE, no en la posición del coche.
+## La nieve queda fuera de la escorrentía; el mixto sin fracción líquida se
+## trata explícito (60% líquido, igual que el modelo de superficie).
+func liquid_rain_at_distance(progress_m: float) -> float:
+	if not calendar_active or not surface.valid:
+		return 0.0
+	return RallyRiverChannels._liquid_from_state(surface.blended_state_at_distance(progress_m))
+
+
 ## Temperatura de superficie del corredor de ruta (minimapa): misma
 ## interpolación espacial en límites; al salir de carretera mantiene la
 ## referencia proyectada.

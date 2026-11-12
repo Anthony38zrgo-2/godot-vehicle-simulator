@@ -69,6 +69,7 @@ const TroposphericSky := preload("res://scripts/rally/rally_tropospheric_sky.gd"
 var weather_sky_node: TroposphericSky
 var weather_controller_node: Node = null
 var terrain_wetness: Node = null
+var river_channels = null
 var weather_is_raining: bool = false
 var garage_panel: Control = null
 var event_weather = preload("res://scripts/rally/rally_weather_controller.gd").new()
@@ -203,6 +204,7 @@ func _ready() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	_build_puddles()
+	_build_rivers()
 	_build_stage_grass()
 	place_vehicle_on_stage()
 	_refresh_stage_weather()
@@ -351,6 +353,76 @@ func _build_puddles() -> void:
 	puddles.configure(course.points, hash(session_track_id), event_weather, terrain_wetness)
 	add_child(puddles)
 	vehicle.simulation.puddle_system = puddles
+
+
+func _practice_weather_choice() -> String:
+	return single_stage_weather if not single_stage_weather.is_empty() else selected_weather
+
+
+func _combined_surface_snapshot() -> Dictionary:
+	var snap := event_weather.snapshot()
+	if river_channels != null and is_instance_valid(river_channels):
+		var rsnap: Dictionary = river_channels.snapshot()
+		snap["rivers"] = rsnap.get("channels", {})
+		snap["rivers_version"] = rsnap.get("version", 1)
+	return snap
+
+
+func _build_rivers() -> void:
+	# Al cambiar de etapa, desconectar el proveedor del vehículo antes de
+	# liberar mallas y datos. Sin cauces registrados no se instancia
+	# controlador (tramos ajenos a Kenia).
+	if river_channels != null and is_instance_valid(river_channels):
+		if vehicle != null and vehicle.simulation != null and vehicle.simulation.river_system == river_channels:
+			vehicle.simulation.river_system = null
+		river_channels.unbind()
+		remove_child(river_channels)
+		river_channels.queue_free()
+		river_channels = null
+	var rivers := RallyRiverChannels.new()
+	rivers.name = "RallyRiverChannels"
+	if not rivers.configure(session_track_id, track_visual, event_weather, _practice_weather_choice(), weather_controller_node):
+		push_warning("Rally rivers: " + rivers.error)
+		rivers.queue_free()
+		return
+	if rivers.channels.is_empty():
+		rivers.queue_free()
+		return
+	add_child(rivers)
+	river_channels = rivers
+	vehicle.simulation.river_system = rivers
+	_init_rivers_from_snapshot()
+
+
+func _init_rivers_from_snapshot() -> void:
+	## Inicializa la crecida después de que el clima de la etapa esté
+	## configurado o restaurado, antes de habilitar la conducción. Al
+	## rescatar o recolocar el coche se conserva el estado; en un nuevo
+	## intento se restaura la condición inicial guardada; al reanudar, el
+	## estado guardado para esa especial.
+	if river_channels == null or not is_instance_valid(river_channels):
+		return
+	river_channels.rebind_provider(event_weather, weather_controller_node)
+	var saved: Dictionary = {}
+	if not practice_mode and event_manager != null and event_weather.calendar_active:
+		saved = event_manager.stage_surface_snapshot(session_track_id)
+	if not saved.is_empty() and saved.has("rivers"):
+		river_channels.restore_snapshot({
+			"version": int(saved.get("rivers_version", 0)),
+			"stage_id": session_track_id,
+			"channels": saved.get("rivers", {}),
+		})
+	else:
+		river_channels.practice_choice = _practice_weather_choice()
+		river_channels.initialize_levels()
+	river_channels.store_initial()
+
+
+func _advance_rivers(dt_sim: float) -> void:
+	if river_channels == null or not is_instance_valid(river_channels):
+		return
+	if dt_sim > 0.0:
+		river_channels.advance(dt_sim)
 
 
 func _on_tca_weather_changed(weather) -> void:
@@ -676,6 +748,16 @@ func _physics_process(delta: float) -> void:
 		if _weather_visual_elapsed >= 0.1:
 			_weather_visual_elapsed = fmod(_weather_visual_elapsed, 0.1)
 			event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
+		# Cauces: mismo tiempo simulado y ventana de avance que el ambiente.
+		# La posición del coche no modifica el clima asignado a ningún río.
+		if clock_advancing:
+			_advance_rivers(delta * maxf(event_clock.rate, 0.0))
+	elif river_channels != null and (practice_mode or session_mode == "single_stage"):
+		# Práctica: convierte la selección de clima (incluida la ruta TCA
+		# que corresponda) a mm/h en un único adaptador.
+		if clock_advancing:
+			river_channels.practice_choice = _practice_weather_choice()
+			_advance_rivers(delta)
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
 		for event: String in signal_state.events:
@@ -804,6 +886,8 @@ func retry_competition_attempt() -> void:
 	competition.reset_attempt()
 	competition.save()
 	reset_competition_car()
+	if river_channels != null and is_instance_valid(river_channels):
+		river_channels.restore_initial()
 
 func can_open_between_stage_workshop() -> bool:
 	if not session_ready or practice_mode or session_mode == "single_stage" or awaiting_setup or stage_transition_running:
@@ -880,7 +964,7 @@ func withdraw_event_definitive(reason: String = "Retiro definitivo") -> void:
 func _exit_tree() -> void:
 	_save_mounted_tire_condition()
 	if session_ready and not practice_mode and event_manager != null and event_weather.calendar_active:
-		event_manager.save_stage_surface(session_track_id, event_weather.snapshot())
+		event_manager.save_stage_surface(session_track_id, _combined_surface_snapshot())
 		event_manager.save()
 	if session_ready and competition.started:
 		competition.save()
@@ -947,7 +1031,7 @@ func _close_event_stage(definitive: bool, reason: String) -> void:
 	event_manager.sim = competition
 	# Persistir estados físicos de zonas para continuidad (no se re-sortean).
 	if event_weather.calendar_active:
-		event_manager.save_stage_surface(session_track_id, event_weather.snapshot())
+		event_manager.save_stage_surface(session_track_id, _combined_surface_snapshot())
 	event_manager.close_current_stage(player)
 
 func _advance_event_stage() -> void:
@@ -1003,6 +1087,7 @@ func load_event_stage(next_id: String) -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	_build_puddles()
+	_build_rivers()
 	_build_stage_grass()
 	place_vehicle_on_stage()
 	course.generation = vehicle.simulation.session_generation
@@ -1110,6 +1195,8 @@ func _setup_event_weather() -> void:
 		event_weather.reset_projection()
 	# Máscara espacial por chunk para no oscurecer todo el mapa de golpe.
 	_assign_wetness_zones(entry)
+	if river_channels != null and is_instance_valid(river_channels):
+		_init_rivers_from_snapshot()
 
 
 func _refresh_stage_weather() -> void:
@@ -1118,6 +1205,8 @@ func _refresh_stage_weather() -> void:
 	event_weather.update_vehicle_position(vehicle.global_position)
 	event_weather.tick_visual(2.0)
 	event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
+	if river_channels != null and is_instance_valid(river_channels):
+		river_channels.refresh_render()
 	weather_sky_node.update_visuals(0.0)
 
 

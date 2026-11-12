@@ -1,0 +1,579 @@
+{
+  "format_version": 1,
+  "data_version": 1,
+  "stage_entry": "kenya_stage1",
+  "notes": "Cauces dinámicos de Kenia. Ríos permanentes conservan nivel base en seco; la lluvia líquida eleva el nivel y amplía la zona mojada dentro de la huella verificada; al escampar drenan al nivel base. Primera entrega: piloto kenya_stage1 (kenya_ford_1). Resto de cauces registrados pero inactivos hasta verificar geometría y umbral. Cascadas y decoración excluidas por función visual. river1_2/river2_2 son variantes de animación del motor original: no se usan como contorno.",
+  "surface_policy": {
+    "dynamic_surfaces": [
+      "river1_1",
+      "river2_1"
+    ],
+    "explicitly_dry_by_name": [
+      "kenya_river_dry_1",
+      "kenya_river_dry_2",
+      "kenya_river_dry_crossroad1",
+      "kenya_river_dry_crossroad2"
+    ],
+    "decorative_only": [
+      "waterfall_1",
+      "waterfall_2",
+      "jungle_vaterfall",
+      "jungle_vaterfall_left",
+      "jungle_vaterfall_right"
+    ],
+    "bank_bed_surfaces": [
+      "kenya_river_1",
+      "kenya_river_2",
+      "kenya_river_4",
+      "jungle_river",
+      "jungle_river_road"
+    ]
+  },
+  "stage_inventory": [
+    {
+      "stage_id": "kenya_stage1",
+      "river1_1_triangles": 160,
+      "river2_1_triangles": 634,
+      "dynamic_water": "pilot",
+      "notes": "Piloto kenya_ford_1 activo; resto del río inactivo hasta validación en juego."
+    },
+    {
+      "stage_id": "kenya_stage2",
+      "river1_1_triangles": 0,
+      "river2_1_triangles": 19605,
+      "dynamic_water": "active",
+      "notes": "Dos tramos: kenya_stage2_ford_b (vado 458 mm base, prog 4277.8) + kenya_stage2_reach_a (sin vado, solo visual)."
+    },
+    {
+      "stage_id": "kenya_stage3",
+      "river1_1_triangles": 316,
+      "river2_1_triangles": 0,
+      "dynamic_water": "active",
+      "notes": "Dos vados river1_1: north (157 mm, prog 1068.2) + south (198 mm, prog 3084.6)."
+    },
+    {
+      "stage_id": "kenya_stage4",
+      "river1_1_triangles": 0,
+      "river2_1_triangles": 0,
+      "dynamic_water": "none_confirmed",
+      "notes": "Sin river1_1/river2_1. No autoriza inundar lechos secos por nombre; registrar cauce seco solo con geometría y umbral verificados."
+    },
+    {
+      "stage_id": "kenya_stage5",
+      "river1_1_triangles": 0,
+      "river2_1_triangles": 5837,
+      "dynamic_water": "active",
+      "notes": "Cruce por puente kenya_stage5_bridge (franco 0.60 m, prog 2572.5): sin vado, coche seco."
+    },
+    {
+      "stage_id": "kenya_stage6",
+      "river1_1_triangles": 463,
+      "river2_1_triangles": 7288,
+      "dynamic_water": "active",
+      "notes": "Dos sistemas independientes: kenya_stage6_ford_west (vado 297 mm, prog 1222.7) + kenya_stage6_bridge_jungle (puente sobre river1_1, prog 1901.8)."
+    },
+    {
+      "stage_id": "kenya_stage7",
+      "river1_1_triangles": 0,
+      "river2_1_triangles": 0,
+      "dynamic_water": "none_confirmed",
+      "notes": "Sin river1_1/river2_1. Revisar escena y activos antes de declarar cauce."
+    },
+    {
+      "stage_id": "kenya_stage8",
+      "river1_1_triangles": 0,
+      "river2_1_triangles": 0,
+      "dynamic_water": "none_confirmed",
+      "notes": "Sin river1_1/river2_1. Revisar escena y activos antes de declarar cauce."
+    }
+  ],
+  "channels": [
+    {
+      "id": "kenya_ford_1",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": true,
+      "surfaces": [
+        "river1_1",
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 730.0,
+        "min_z": -1350.0,
+        "max_x": 795.0,
+        "max_z": -1290.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.3806,
+      "climate_progress_m": 1738.3,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "centro del vado B (ruta idx 168)",
+        "route_progress_m": 1738.3,
+        "pos": [
+          761.5,
+          -5.755,
+          -1321.1
+        ],
+        "dir": [
+          -0.86,
+          0.0,
+          -0.51
+        ],
+        "water_y": -5.422,
+        "submersion_base_mm": 333
+      },
+      "edge_check": {
+        "label": "entrada del vado (ruta idx 167: seco en base, mojado en crecida)",
+        "route_progress_m": 1728.2,
+        "water_y": -5.463,
+        "road_y": -5.448
+      },
+      "outside_check": {
+        "label": "fuera del cauce (ruta idx 170, calzada -2.813)",
+        "route_progress_m": 1759.0
+      },
+      "bridge_check": {
+        "label": "puente control kenya_stage5 (tablero -3.933, lámina -4.54/-4.50, franco 0.60 m)",
+        "stage_id": "kenya_stage5",
+        "route_progress_m": 2572.5,
+        "pos": [
+          -1355.3,
+          -3.933,
+          -1856.8
+        ]
+      },
+      "notes": "Vado piloto medido en escena (fase 2): river2_1 plano (y -5.46/-5.17 en todo el tramo), calzada de colisión continua idx 165-172 que desciende a -5.755 bajo la lámina -5.422 (333 mm en base, cruce transitable). Orillas ~-4.2: crecida máxima -4.972 contenida con ~0.5 m de margen. Kenia 1 no tiene puente: control en Kenia 5. Segundo vado candidato (river1_1, prog ~174.5 m, ~170 mm en base) registrado como alternativa; cascadas jungle_vaterfall* excluidas por función visual.",
+      "level_anchor": {
+        "x": 761.5,
+        "y": -5.422,
+        "z": -1321.1
+      }
+    },
+    {
+      "id": "kenya_stage2_ford_b",
+      "stage_id": "kenya_stage2",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 2355.0,
+        "min_z": -1535.0,
+        "max_x": 2415.0,
+        "max_z": -1480.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.6295,
+      "climate_progress_m": 4277.8,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "vado B river2_1 (ruta idx 409)",
+        "route_progress_m": 4277.8,
+        "pos": [
+          2385.2,
+          -2.02,
+          -1507.6
+        ],
+        "water_y": -1.562,
+        "submersion_base_mm": 458
+      },
+      "edge_check": {
+        "label": "entrada (ruta idx 408: seco en base por 35 mm)",
+        "route_progress_m": 4267.5,
+        "water_y": -1.556,
+        "road_y": -1.521
+      },
+      "notes": "Vado medido en escena: calzada -2.02 bajo lámina -1.562 (458 mm en base). Lámina con pendiente local; el plano base autoajustado la conserva.",
+      "level_anchor": {
+        "x": 2385.2,
+        "y": -1.562,
+        "z": -1507.6
+      }
+    },
+    {
+      "id": "kenya_stage2_reach_a",
+      "stage_id": "kenya_stage2",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 710.0,
+        "min_z": -750.0,
+        "max_x": 775.0,
+        "max_z": -690.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.1942,
+      "climate_progress_m": 1319.5,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "sin vado: calzada ~-3.97 un metro sobre lámina -4.99; seco incluso en crecida",
+        "route_progress_m": 1319.5
+      },
+      "notes": "Tramo de proximidad sin vado (ruta idx 124-128): la calzada útil rueda ~1 m sobre la lámina. Solo visual + control seco.",
+      "level_anchor": {
+        "x": 742.2,
+        "y": -4.998,
+        "z": -720.4
+      }
+    },
+    {
+      "id": "kenya_stage3_ford_north",
+      "stage_id": "kenya_stage3",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river1_1"
+      ],
+      "footprint": {
+        "min_x": -42.0,
+        "min_z": -1025.0,
+        "max_x": 18.0,
+        "max_z": -965.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.2525,
+      "climate_progress_m": 1068.2,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "vado norte river1_1 (ruta idx 101)",
+        "route_progress_m": 1068.2,
+        "pos": [
+          -12.4,
+          -7.17,
+          -994.6
+        ],
+        "water_y": -7.013,
+        "submersion_base_mm": 157
+      },
+      "edge_check": {
+        "label": "entrada (ruta idx 100: seco en base por 133 mm)",
+        "route_progress_m": 1056.9,
+        "water_y": -7.012,
+        "road_y": -6.879
+      },
+      "notes": "Vado medido en escena: calzada -7.17 bajo lámina -7.013 (157 mm en base).",
+      "level_anchor": {
+        "x": -12.4,
+        "y": -7.013,
+        "z": -994.6
+      }
+    },
+    {
+      "id": "kenya_stage3_ford_south",
+      "stage_id": "kenya_stage3",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river1_1"
+      ],
+      "footprint": {
+        "min_x": 372.0,
+        "min_z": -2762.0,
+        "max_x": 432.0,
+        "max_z": -2702.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.7291,
+      "climate_progress_m": 3084.6,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "vado sur river1_1 (ruta idx 292)",
+        "route_progress_m": 3084.6,
+        "pos": [
+          402.2,
+          -11.376,
+          -2732.5
+        ],
+        "water_y": -11.178,
+        "submersion_base_mm": 198
+      },
+      "edge_check": {
+        "label": "entrada (ruta idx 291: seco en base)",
+        "route_progress_m": 3074.5,
+        "water_y": -11.043,
+        "road_y": -10.61
+      },
+      "notes": "Vado medido en escena: calzada -11.376 bajo lámina -11.178 (198 mm en base).",
+      "level_anchor": {
+        "x": 402.2,
+        "y": -11.178,
+        "z": -2732.5
+      }
+    },
+    {
+      "id": "kenya_stage5_bridge",
+      "stage_id": "kenya_stage5",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": -1385.0,
+        "min_z": -1885.0,
+        "max_x": -1325.0,
+        "max_z": -1830.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.367,
+      "climate_progress_m": 2572.5,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "cruce por puente, sin vado",
+        "route_progress_m": 2572.5
+      },
+      "bridge_check": {
+        "label": "puente kenya_stage5 (tablero -3.933, lámina -4.54/-4.50, franco 0.60 m)",
+        "route_progress_m": 2572.5,
+        "pos": [
+          -1355.3,
+          -3.933,
+          -1856.8
+        ]
+      },
+      "notes": "Cruce medido en escena: tablero plano -3.933 sobre lámina -4.53. El coche registra seco; la lámina sube bajo el puente.",
+      "level_anchor": {
+        "x": -1355.3,
+        "y": -4.53,
+        "z": -1856.8
+      }
+    },
+    {
+      "id": "kenya_stage6_ford_west",
+      "stage_id": "kenya_stage6",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 605.0,
+        "min_z": -765.0,
+        "max_x": 665.0,
+        "max_z": -710.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.1798,
+      "climate_progress_m": 1222.7,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "vado oeste river2_1 (ruta idx 116)",
+        "route_progress_m": 1222.7,
+        "pos": [
+          635.9,
+          -7.594,
+          -738.6
+        ],
+        "water_y": -7.297,
+        "submersion_base_mm": 297
+      },
+      "edge_check": {
+        "label": "entrada (ruta idx 115: seco en base por 119 mm)",
+        "route_progress_m": 1212.4,
+        "water_y": -7.281,
+        "road_y": -7.162
+      },
+      "notes": "Vado medido en escena: calzada -7.594 bajo lámina -7.297 (297 mm en base). Sistema independiente del river1_1 de la especial.",
+      "level_anchor": {
+        "x": 635.9,
+        "y": -7.297,
+        "z": -738.6
+      }
+    },
+    {
+      "id": "kenya_stage6_bridge_jungle",
+      "stage_id": "kenya_stage6",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river1_1"
+      ],
+      "footprint": {
+        "min_x": 500.0,
+        "min_z": -1290.0,
+        "max_x": 560.0,
+        "max_z": -1230.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.2797,
+      "climate_progress_m": 1901.8,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "ford_check": {
+        "label": "cruce alto por puente sobre river1_1, sin vado",
+        "route_progress_m": 1901.8
+      },
+      "bridge_check": {
+        "label": "puente sobre river1_1 (tablero ~-3.17, lámina ~-7.65, franco ~4.5 m)",
+        "route_progress_m": 1901.8,
+        "pos": [
+          530.8,
+          -3.17,
+          -1260.1
+        ]
+      },
+      "notes": "Cruce medido en escena (ruta idx 180-182): tablero a 0.3 m de la ruta, lámina 4-5 m debajo. El coche registra seco.",
+      "level_anchor": {
+        "x": 530.8,
+        "y": -7.65,
+        "z": -1260.1
+      }
+    }
+  ]
+}

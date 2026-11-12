@@ -139,6 +139,9 @@ func get_wetness() -> float:
 
 
 func collect_materials(node: Node) -> void:
+	# Solo BaseMaterial3D de la malla base: las láminas de cauce usan
+	# ShaderMaterial por instancia (surface override) y no se recolectan,
+	# así el rebindeo nunca pisa sus parámetros.
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
 		var mesh_instance := node as MeshInstance3D
 		var mesh := mesh_instance.mesh

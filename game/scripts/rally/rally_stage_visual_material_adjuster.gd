@@ -95,6 +95,9 @@ func _ready() -> void:
 
 
 func adjust_node(node: Node) -> void:
+	# Las láminas de cauce dinámico (RallyRiverChannels) llevan ShaderMaterial
+	# propio por instancia: solo se tocan BaseMaterial3D, así el shader del
+	# río y sus parámetros (cota, lecho, lluvia) quedan protegidos.
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh:
 		var mesh_instance := node as MeshInstance3D
 		# En Dreamcast los objetos del escenario rara vez proyectaban shadow maps dinamicos

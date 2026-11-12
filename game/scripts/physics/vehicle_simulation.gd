@@ -71,6 +71,7 @@ var assistance_available: Dictionary = { }
 var underfloor_document: Dictionary = { }
 var weather_controller = null
 var puddle_system = null
+var river_system = null
 const PuddleModel = preload("res://scripts/rally/rally_puddles.gd")
 var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
@@ -281,6 +282,19 @@ func _local_conditions_at_contact(surface_name: String, position: Vector3, loade
 		local["puddle_depth_mm"] = float(puddle.depth_mm)
 		local["puddle_drag"] = float(puddle.drag)
 		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), float(puddle.depth_mm))
+	if loaded and is_instance_valid(river_system):
+		# Agua de cauce y parche se combinan tomando el máximo; se propagan
+		# los parámetros del origen elegido. Se conserva el máximo con el
+		# agua climática para los consumidores actuales (neumáticos,
+		# telemetría, VFX leen puddle_depth_mm/puddle_drag).
+		var river: Dictionary = river_system.sample_contact(position)
+		var river_depth := float(river.get("depth_mm", 0.0))
+		if river_depth > float(local.get("puddle_depth_mm", 0.0)):
+			local["puddle_depth_mm"] = river_depth
+			local["puddle_drag"] = float(river.get("drag_scale", 1.25))
+		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), river_depth)
+		local["river_depth_mm"] = river_depth
+		local["river_channel_id"] = str(river.get("channel_id", ""))
 	local["surface_name"] = surface_name
 	return local
 
