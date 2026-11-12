@@ -42,7 +42,9 @@ class RoadRelief:
         self.seed = config["seed"]
         self.features = []
 
-        def add(pk_m, t, length, width, depth, profile):
+        natural = config.get("natural_wear", False)
+        shape_rng = random.Random(f"{self.seed}:shape")
+        def add(pk_m, t, length, width, depth, profile, depth_offset_m=None, micro=False):
             if not pk[0]+12 <= pk_m <= finish-12:
                 return
             if any(z["from_pk_m"] <= pk_m < z["to_pk_m"] and (profile != "manual" or not z.get("procedural_only", False)) for z in config["exclusion_zones"]):
@@ -56,15 +58,25 @@ class RoadRelief:
             half = (Vector(row[2 if t < 0 else 4])-Vector(row[3])).xy.length
             if abs(t)*half + width/2 > half-0.15:
                 return
-            self.pits.append((station,t,length/2,width/2,depth))
+            asymmetry = 0.0
+            if natural:
+                limits = config["profiles"].get(profile, {}).get("depth_asymmetry_offset", [-.15, .15])
+                offset = shape_rng.uniform(*limits) if depth_offset_m is None else depth_offset_m
+                asymmetry = max(-.45, min(.45, offset / (width / 2)))
+            micro_depth = min(.02, depth * .3) if micro else 0.0
+            self.pits.append((station,t,length/2,width/2,depth,asymmetry,micro_depth))
             self.features.append(dict(pk_m=pk_m,lateral_fraction=t,length_m=length,width_m=width,
                                       depth_m=depth,profile=profile))
+            if natural:
+                self.features[-1].update(depth_offset_m=asymmetry * width / 2, micro_depth_m=micro_depth)
 
         for f in config["manual_features"]:
-            add(f["pk_m"],f["lateral_fraction"],f["length_m"],f["width_m"],f["depth_m"],"manual")
+            add(f["pk_m"],f["lateral_fraction"],f["length_m"],f["width_m"],f["depth_m"],"manual",f.get("depth_offset_m"))
         zones = config["zones"]
         edges = sorted({pk[0],finish,*[v for z in zones for v in (z["from_pk_m"],z["to_pk_m"]) if pk[0]<v<finish]})
-        for a,b in zip(edges,edges[1:]):
+        if natural:
+            self._scatter_natural(config, pk[0], finish, add)
+        for a,b in ([] if natural else zip(edges,edges[1:])):
             profile = next((z["profile"] for z in zones if z["from_pk_m"] <= (a+b)/2 < z["to_pk_m"]), config["default_profile"])
             settings = config["profiles"][profile]
             rng = random.Random(f"{self.seed}:{a:.3f}:{b:.3f}:{profile}")
@@ -99,6 +111,28 @@ class RoadRelief:
                         center = max(choices, key=lambda x: min((abs(x-y) for y in existing), default=b-a))
                         add(center,wheel*rng.uniform(.24,.42),rng.uniform(*settings["length_m"]),
                             rng.uniform(*settings["width_m"]),rng.uniform(*settings["depth_m"]),profile)
+        variants = config.get("size_variants", [])
+        if variants:
+            rng = random.Random(f"{self.seed}:pit-size")
+            for i, (pit, feature) in enumerate(zip(self.pits, self.features)):
+                if feature["profile"] == "manual":
+                    continue
+                choice = rng.choices(variants, weights=[v["weight"] for v in variants], k=1)[0]
+                station, t, _, _, depth, asymmetry, micro_depth = pit
+                length = rng.uniform(*choice["length_m"])
+                width = rng.uniform(*choice["width_m"])
+                row = rows[bisect_left(pk, feature["pk_m"]) + 6]
+                half = (Vector(row[2 if t < 0 else 4])-Vector(row[3])).xy.length
+                width = min(width, 2*(half*(1-abs(t))-.15))
+                scale = choice["depth_scale"]
+                depth *= rng.uniform(*scale) if isinstance(scale, list) else scale
+                if natural:
+                    limits = config["profiles"][feature["profile"]]["depth_m"]
+                    depth = max(limits[0], min(limits[1], depth))
+                    feature["depth_offset_m"] = asymmetry * width / 2
+                self.pits[i] = (station,t,length/2,width/2,depth,asymmetry,micro_depth)
+                feature.update(length_m=length,width_m=width,depth_m=depth,size_variant=choice["id"])
+
         self.rocks = []
         if self.hard_impact:
             rng = random.Random(self.seed + 17)
@@ -108,9 +142,49 @@ class RoadRelief:
                 self.rocks.append((stations[i+5]+t*(stations[i+6]-stations[i+5]),
                                    rng.choice((-1,1))*rng.uniform(.20,.57), rng.uniform(.21,.34),
                                    rng.uniform(.23,.34),rng.uniform(.04,.075)))
+        self.features = [feature for _, feature in sorted(zip(self.pits, self.features), key=lambda item: item[0])]
         self.pits.sort()
         self.centers = [pit[0] for pit in self.pits]
         self.longest = max((pit[2] for pit in self.pits), default=0.0)
+
+    def _scatter_natural(self, config, start, finish, add):
+        rng = random.Random(f"{self.seed}:natural")
+        profiles = config["profiles"]
+        default = config["default_profile"]
+        maximum_density = max(p["density_per_100m"][1] for p in profiles.values())
+        transition = 20.0
+        # Independent random blocks vary local density without a fixed quota.
+        for block in range(math.floor(start / 100), math.ceil(finish / 100)):
+            a, b = max(start, block * 100), min(finish, (block + 1) * 100)
+            density = {name: rng.uniform(*p["density_per_100m"]) for name, p in profiles.items()}
+            center = a + rng.expovariate(maximum_density / 100)
+            while center < b:
+                profile = default
+                for zone in config["zones"]:
+                    weight = smoothstep(min(center - zone["from_pk_m"],
+                                            zone["to_pk_m"] - center) / transition)
+                    if weight > 0 and rng.random() < weight:
+                        profile = zone["profile"]
+                        break
+                settings = profiles[profile]
+                chance = settings["cluster_probability"]
+                size = settings.get("cluster_size", [2, 2])
+                expected = 1 + chance * (sum(size) / 2 - 1)
+                if rng.random() < density[profile] / (maximum_density * expected):
+                    count = rng.randint(*size) if rng.random() < chance else 1
+                    track = rng.choice((-1, 1)) * rng.uniform(.24, .48)
+                    for index in range(count):
+                        jitter = rng.uniform(*settings["cluster_jitter_m"]) if index else 0
+                        location = center + index * 1.65 + rng.choice((-1, 1)) * jitter
+                        lateral = track + rng.uniform(-jitter, jitter) / 3
+                        for patch in self.corrugations:
+                            if patch["start_m"] <= location <= patch["end_m"]:
+                                lateral = patch["lateral_fraction"] + rng.uniform(-.08, .08)
+                                break
+                        add(location, lateral, rng.uniform(*settings["length_m"]),
+                            rng.uniform(*settings["width_m"]), rng.uniform(*settings["depth_m"]),
+                            profile, micro=count >= 3 and rng.random() < .45)
+                center += rng.expovariate(maximum_density / 100)
 
     def height(self, station, t, half_width):
         edge = smoothstep((1 - abs(t)) / 0.21)
@@ -128,13 +202,15 @@ class RoadRelief:
         lips = 0.0
         first = bisect_left(self.centers, station - self.longest)
         last = bisect_right(self.centers, station + self.longest)
-        for pk, lateral, length, width, depth in self.pits[first:last]:
+        for pk, lateral, length, width, depth, asymmetry, micro_depth in self.pits[first:last]:
             if abs(station - pk) >= length:
                 continue
             dx = station-pk
             v = (t-lateral)*half_width/width
             run = length*(.60 if self.hard_impact and dx>0 else 1.0)
-            r2 = (dx/run)**2+v*v
+            # Warp the bowl inside its footprint, keeping the rim continuous.
+            shifted = (v - asymmetry) / (1 + asymmetry if v < asymmetry else 1 - asymmetry)
+            r2 = (dx/run)**2+shifted*shifted
             if self.hard_impact and dx > 0:
                 # Compact positive lip starts at zero, then returns to zero.
                 u = (dx - .60*length)/(.39*length)
@@ -142,6 +218,9 @@ class RoadRelief:
                     lips += .22*depth*math.sin(math.pi*u)**2*(1-v*v)**2
             if r2 < 1:
                 depression += depth * (1 - r2) ** (1.35 if self.hard_impact else 2)
+                if micro_depth:
+                    pocket = ((dx / run - .28) / .32)**2 + ((shifted + .22) / .40)**2
+                    depression += micro_depth * max(0, 1 - pocket)**2
         ripple = 0.004 * math.sin(station * 1.24 + t * 2.5) * math.sin(station * 0.53 - t * 4)
         waves = self.waves * (0.55 * math.sin(station * 0.91 + 2*t) +
                               0.30 * math.sin(station * 1.53 - 3*t) +
@@ -175,6 +254,8 @@ class RoadRelief:
                     if r2 < 1:
                         lips += height*(1-r2)**2
             # Compress only large combined depressions, relative to the local surface.
+            if self.max_depth <= .15:
+                return fade * max(-self.max_depth, ripple + waves + lips - depression)
             if depression > .15:
                 room = self.max_depth-.15
                 depression = .15 + room * math.tanh((depression-.15)/room)
@@ -195,12 +276,25 @@ class RoadRelief:
 
 class StartWear(RoadRelief):
     """Replace the first 700 m; blend back to the identical full-stage seed."""
-    def __init__(self, rows, stations, pk, config):
+    def __init__(self, rows, stations, pk, config, pothole_fraction=1.0):
         super().__init__(rows, stations, pk)
         self.start = RoadRelief(rows, stations, pk, config, limit_pk=700)
         i = bisect_left(pk,700)
         self.cutoff = stations[i+5] if pk[i] > 700 else stations[i+6]
         self.base = RoadRelief(rows, stations, pk)
+        if pothole_fraction < 1.0:
+            active = [(relief, i) for relief in (self.start, self.base)
+                      for i, pit in enumerate(relief.pits)
+                      if relief is self.start or pit[0] >= self.cutoff - 20]
+            rng = random.Random(self.seed + 503)
+            removed = set(rng.sample(active, len(active) - round(len(active) * pothole_fraction)))
+            for relief in (self.start, self.base):
+                kept = [(pit, feature) for i, (pit, feature) in enumerate(zip(relief.pits, relief.features))
+                        if (relief, i) not in removed]
+                relief.pits = [pit for pit, _ in kept]
+                relief.features = [feature for _, feature in kept]
+                relief.centers = [pit[0] for pit in relief.pits]
+                relief.longest = max((pit[2] for pit in relief.pits), default=0.0)
         self.features = self.start.features + [f for f in self.base.features if f["pk_m"] >= 680]
         self.pits = sorted(self.start.pits + [p for p in self.base.pits if p[0] >= self.cutoff-20])
         self.centers = [p[0] for p in self.pits]

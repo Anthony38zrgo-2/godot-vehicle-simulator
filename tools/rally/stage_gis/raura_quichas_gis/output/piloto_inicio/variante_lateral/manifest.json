@@ -1,0 +1,56 @@
+{
+  "contract_version": 1,
+  "track_id": "raurastart_stage2",
+  "source": {
+    "blend": "raura_stage2_piloto_relieve.blend",
+    "generator": "generar_stage2.py",
+    "approved_axis": "route_osm_candidate.geojson",
+    "road_width_m": [
+      5.999968349306872,
+      6.0
+    ],
+    "maximum_design_grade": 0.22,
+    "terrain_blend_radius_m": 72.0,
+    "max_grade_adjustment_m": 0.0,
+    "source_pk_m": [
+      0.0,
+      701.7119125351472
+    ],
+    "timed_source_pk_m": [
+      0.0,
+      701.7119125351472
+    ],
+    "rasante": "existing stage profile",
+    "corridor": "section daylight prototype",
+    "relief_seed": 20261111,
+    "pothole_count": 51,
+    "maximum_road_depression_m": 0.23,
+    "surface_texture_pack": "HandPainted/texture-pack-2-ground",
+    "blend_sha256": "6ede3afc2672a252e02627948305756daab1a299a99f35606a6d05e3b0ab2217"
+  },
+  "visual": {
+    "path": "raurastart_stage2_visual.glb",
+    "sha256": "87f91dede89666f3da9eb3389bef2f473c18dba78f9a7668f94c1a7109a98a37",
+    "size_bytes": 21058664
+  },
+  "collision": {
+    "path": "raurastart_stage2_collision.glb",
+    "sha256": "cc38baf271d73f212f538c9738ca0b0973ba8f74dc6def45c8eeb6070bd6c842",
+    "size_bytes": 13779764
+  },
+  "start_pose": {
+    "ground_godot": [
+      0.0,
+      0.0,
+      -0.0
+    ],
+    "heading_radians": -1.144717842533493
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0
+  }
+}

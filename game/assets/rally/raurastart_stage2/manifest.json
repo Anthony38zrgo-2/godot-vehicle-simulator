@@ -4,9 +4,9 @@
   "source": {
     "blend": "raura_stage2_piloto_relieve.blend",
     "generator": "generar_stage2.py",
-    "approved_axis": "route_osm_candidate.geojson",
+    "approved_axis": "earth_salida_sigma5/route_osm_corregido.geojson",
     "road_width_m": [
-      5.999968349306872,
+      5.999972050323556,
       6.0
     ],
     "maximum_design_grade": 0.22,
@@ -14,29 +14,29 @@
     "max_grade_adjustment_m": 0.0,
     "source_pk_m": [
       0.0,
-      701.7119125351472
+      701.0181154451723
     ],
     "timed_source_pk_m": [
       0.0,
-      701.7119125351472
+      701.0181154451723
     ],
     "rasante": "existing stage profile",
     "corridor": "section daylight prototype",
     "relief_seed": 20261111,
     "pothole_count": 51,
     "maximum_road_depression_m": 0.23,
-    "handpainted_texture_pack": "HandPainted/texture-pack-2-ground",
-    "blend_sha256": "8b57ec337247d255acd21429a3681482911037c7d611bd7267444d1c8b764bd0"
+    "surface_texture_pack": "HandPainted/texture-pack-2-ground",
+    "blend_sha256": "6eea872ad0d59528ae4064a40b1a2808f989eb228cf4c7909fca1dd92216e278"
   },
   "visual": {
     "path": "raurastart_stage2_visual.glb",
-    "sha256": "d3bb14ec305b12d1ad0e51f1624e283143c8e1ce811506b82730b752ae812425",
-    "size_bytes": 21058664
+    "sha256": "e6b0c9565c02206f00b8215b5246d027c3604130f03838810d5d227212a408bf",
+    "size_bytes": 20803288
   },
   "collision": {
     "path": "raurastart_stage2_collision.glb",
-    "sha256": "03c89d2f5742c82c7a9cba41b3e48d0659aaa97b24520ab1e35599ebc81acf92",
-    "size_bytes": 13779036
+    "sha256": "d8571a895ffee086c12715f1613d138d3ee243df55c6b1a79507ecc5f51727b2",
+    "size_bytes": 13578588
   },
   "start_pose": {
     "ground_godot": [

@@ -30,3 +30,10 @@ La bajada completa incorpora cunetas redondeadas, peralte gradual y perfiles JSO
 Antes de exportar, generar_stage2.py comparte los segmentos refinados de calzada con la primera banda del arcen. El contorno del terreno usa los mismos bordes y las secciones completas de los extremos. auditar_costuras.py comprueba caras, aristas, vertices sin uso y el emparejamiento dirigido de cada costura visual y fisica. Si falla, informa PK, lado, objeto y coordenadas.
 
 Los primeros 700 m aplican desgaste_inicio_stage2.json. El perfil agrega baches asimétricos, labios continuos, rodadas con bordes y piedras expuestas. En los últimos 20 m del sector vuelve progresivamente al relieve original. El resto de la etapa usa el perfil y la semilla anteriores.
+El perfil inicial tiene variantes ponderadas de tamaño corto, medio y amplio. Una semilla separada varía largo y ancho después de colocar los baches. Mantiene la ubicación y la rodada asignadas, conserva los baches manuales y limita el ancho al espacio disponible.
+
+## Materiales de Grecia y vegetación de Raura
+
+El Stage 2 completo usa g_4a.png de CMR2 Grecia para la calzada gris con rodadas. Los arcenes y las franjas poco inclinadas usan tierra uniforme. La textura argentina_talud.png viene de V-Rally 2 Argentina SS01, road_m225_p02_x000_y080_64x64_sf128_surf.png. Solo se aplica a las caras del talud cuyos dos extremos de sección tienen una pendiente transversal de al menos 15 grados. El criterio usa la malla de diseño, no la pendiente longitudinal de la carretera. La textura de calzada ocupa todo el ancho y repite cada 4 m en sentido longitudinal. La ladera exterior conserva Sentinel-2.
+
+El sistema procedural reutiliza short_aged.glb únicamente. Los rayos de colocación solo admiten el collider exterior a los taludes, que sigue siendo Dirt para la física. La dispersión en parches y los filtros de pendiente de StageGrass siguen activos.

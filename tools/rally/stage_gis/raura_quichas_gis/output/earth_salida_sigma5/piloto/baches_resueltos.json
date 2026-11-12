@@ -1,0 +1,413 @@
+{
+  "seed": 20261111,
+  "features": [
+    {
+      "pk_m": 60,
+      "lateral_fraction": 0.4,
+      "length_m": 2.0,
+      "width_m": 0.7,
+      "depth_m": 0.1,
+      "profile": "manual"
+    },
+    {
+      "pk_m": 90,
+      "lateral_fraction": 0.4,
+      "length_m": 2.0,
+      "width_m": 1.3,
+      "depth_m": 0.1,
+      "profile": "manual"
+    },
+    {
+      "pk_m": 199,
+      "lateral_fraction": 0.44,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.14,
+      "profile": "manual"
+    },
+    {
+      "pk_m": 321,
+      "lateral_fraction": -0.43,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.16,
+      "profile": "manual"
+    },
+    {
+      "pk_m": 468,
+      "lateral_fraction": 0.45,
+      "length_m": 2.9,
+      "width_m": 1.4,
+      "depth_m": 0.18,
+      "profile": "manual"
+    },
+    {
+      "pk_m": 125.96130094097335,
+      "lateral_fraction": 0.5855731182802317,
+      "length_m": 2.06654366309057,
+      "width_m": 0.8110783233158809,
+      "depth_m": 0.0684223653837578,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 113.89830908200551,
+      "lateral_fraction": -0.4418527548023166,
+      "length_m": 1.94407459060699,
+      "width_m": 1.0808145839662464,
+      "depth_m": 0.09889632711678761,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 205.45516837229778,
+      "lateral_fraction": 0.40666969654929175,
+      "length_m": 2.6996735538689336,
+      "width_m": 1.1231709000966292,
+      "depth_m": 0.10024896039684196,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 210.93038018054133,
+      "lateral_fraction": 0.30558912227737856,
+      "length_m": 2.1433228894018237,
+      "width_m": 1.4465359524377759,
+      "depth_m": 0.15165100891833516,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 216.3644818291043,
+      "lateral_fraction": 0.2996940276213302,
+      "length_m": 2.274311817279048,
+      "width_m": 1.1882687017031666,
+      "depth_m": 0.1252252910808627,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 138.04310531658436,
+      "lateral_fraction": -0.43971769127801996,
+      "length_m": 2.9057996022458736,
+      "width_m": 1.1088226487613007,
+      "depth_m": 0.1436959410304249,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 238.76769626730635,
+      "lateral_fraction": -0.45377864503196336,
+      "length_m": 1.6462893964476177,
+      "width_m": 1.0992374449773497,
+      "depth_m": 0.07707785363418698,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 284.73995485984267,
+      "lateral_fraction": -0.34806272802597044,
+      "length_m": 2.9353988145706915,
+      "width_m": 1.2545565393297333,
+      "depth_m": 0.15255656360782183,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 287.3851489791523,
+      "lateral_fraction": -0.3633501994824304,
+      "length_m": 2.215208275846979,
+      "width_m": 1.2527698928101743,
+      "depth_m": 0.12288942012832815,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 292.08439773137974,
+      "lateral_fraction": -0.3016642595052007,
+      "length_m": 2.0266189050812007,
+      "width_m": 1.0974107469058807,
+      "depth_m": 0.1237261132662609,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 297.501088122008,
+      "lateral_fraction": -0.2943119611935509,
+      "length_m": 2.917909937973516,
+      "width_m": 1.3675970200314893,
+      "depth_m": 0.14537386254981513,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 300.4318962714111,
+      "lateral_fraction": -0.3098230906449064,
+      "length_m": 2.6426875826862544,
+      "width_m": 1.4777110532668516,
+      "depth_m": 0.1098078378671337,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 305.5772789356742,
+      "lateral_fraction": -0.576816902077098,
+      "length_m": 2.177095162874201,
+      "width_m": 1.4679893983096763,
+      "depth_m": 0.14399255332145355,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 326.7704968470693,
+      "lateral_fraction": 0.5538580030098342,
+      "length_m": 2.6190907138321844,
+      "width_m": 1.2846908915721573,
+      "depth_m": 0.11945649642343892,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 330.23086568592686,
+      "lateral_fraction": 0.3933032769570032,
+      "length_m": 2.097079893106348,
+      "width_m": 1.2373072884709604,
+      "depth_m": 0.1411595464042943,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 333.0076095297131,
+      "lateral_fraction": 0.4441797876752124,
+      "length_m": 2.425310524250316,
+      "width_m": 1.0970740603061746,
+      "depth_m": 0.13183606462441227,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 335.71417303706966,
+      "lateral_fraction": 0.4654501283996972,
+      "length_m": 2.402741631249822,
+      "width_m": 1.281063030257471,
+      "depth_m": 0.12370195427139277,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 338.9603901020767,
+      "lateral_fraction": 0.4045044718123511,
+      "length_m": 2.1341938677004277,
+      "width_m": 1.3701243916680792,
+      "depth_m": 0.1389745860470779,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 304.73179576804733,
+      "lateral_fraction": 0.2951994070752444,
+      "length_m": 2.1909711112430035,
+      "width_m": 1.250064661158176,
+      "depth_m": 0.11909447179936508,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 301.53179576804735,
+      "lateral_fraction": 0.4361687659164944,
+      "length_m": 2.0516296794560076,
+      "width_m": 1.1726026626978516,
+      "depth_m": 0.1266138819909294,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 374.64743271687416,
+      "lateral_fraction": -0.39009562737384196,
+      "length_m": 1.9154671493053501,
+      "width_m": 0.7213407874110356,
+      "depth_m": 0.09635423305710182,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 410.7693243748922,
+      "lateral_fraction": -0.590493404927133,
+      "length_m": 2.031911824080328,
+      "width_m": 0.8992413607465164,
+      "depth_m": 0.06508158278333974,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 415,
+      "lateral_fraction": -0.4178183229598481,
+      "length_m": 1.8750133181393864,
+      "width_m": 0.8886145342855486,
+      "depth_m": 0.06994124859970108,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 498.5494432499442,
+      "lateral_fraction": -0.5198613073182108,
+      "length_m": 2.230047079703689,
+      "width_m": 1.2243505390715546,
+      "depth_m": 0.1523972077952122,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 502.72981253172605,
+      "lateral_fraction": -0.4541123261850945,
+      "length_m": 2.5453524446605322,
+      "width_m": 1.3750754297743606,
+      "depth_m": 0.15365770924118782,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 506.5904636781506,
+      "lateral_fraction": -0.5298493344285142,
+      "length_m": 2.3274430121308076,
+      "width_m": 1.1387056173514154,
+      "depth_m": 0.11749243411797167,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 510.88383663279325,
+      "lateral_fraction": -0.3199845588760789,
+      "length_m": 2.508271689144809,
+      "width_m": 1.0508922126576834,
+      "depth_m": 0.12326878084893492,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 524.1239369668621,
+      "lateral_fraction": -0.23516711911650143,
+      "length_m": 2.1027884541638815,
+      "width_m": 1.3731841482443128,
+      "depth_m": 0.13644146606546798,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 422.03993994202307,
+      "lateral_fraction": -0.39934029296397366,
+      "length_m": 2.904216301022711,
+      "width_m": 1.231002499232476,
+      "depth_m": 0.1143517684078115,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 426.6406595275614,
+      "lateral_fraction": -0.5337669746781214,
+      "length_m": 2.6987683543141263,
+      "width_m": 1.4538185534747896,
+      "depth_m": 0.13644848214323368,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 430.50536468406983,
+      "lateral_fraction": -0.46017660167945185,
+      "length_m": 2.9100992426860746,
+      "width_m": 1.409982482034068,
+      "depth_m": 0.14978331334909317,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 435.7893717972006,
+      "lateral_fraction": -0.2700031112562993,
+      "length_m": 2.7261662841016494,
+      "width_m": 1.2858416004532842,
+      "depth_m": 0.15829074074292523,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 441.13801059574956,
+      "lateral_fraction": -0.42615430767393936,
+      "length_m": 2.5510739678123064,
+      "width_m": 1.4666553234824926,
+      "depth_m": 0.11795569865806185,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 444.8612222847159,
+      "lateral_fraction": -0.4958927294613107,
+      "length_m": 2.620626871421898,
+      "width_m": 1.4904898178435857,
+      "depth_m": 0.1259552543988795,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 450.2195542301557,
+      "lateral_fraction": -0.35167184748678104,
+      "length_m": 2.6083116396160184,
+      "width_m": 1.0454079729372086,
+      "depth_m": 0.1485786113112874,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 433.289286036207,
+      "lateral_fraction": -0.5378621634141602,
+      "length_m": 2.1794254110608198,
+      "width_m": 1.217962190966852,
+      "depth_m": 0.11982822039272349,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 437.6958624908292,
+      "lateral_fraction": -0.483531121771545,
+      "length_m": 2.4521571235411024,
+      "width_m": 1.1947682818884537,
+      "depth_m": 0.12537984133448885,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 447.89436175216605,
+      "lateral_fraction": -0.33052438171149323,
+      "length_m": 2.812084994263016,
+      "width_m": 1.4715007903819992,
+      "depth_m": 0.11320379928657613,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 443.04963972832,
+      "lateral_fraction": -0.5335327541620306,
+      "length_m": 2.5373559062859936,
+      "width_m": 1.2178179665678135,
+      "depth_m": 0.1398148985743295,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 455.0261262904713,
+      "lateral_fraction": -0.4534080644622892,
+      "length_m": 2.7522666427313953,
+      "width_m": 1.4678902423435787,
+      "depth_m": 0.11755038753133568,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 451.7324663692351,
+      "lateral_fraction": -0.5820737772401393,
+      "length_m": 2.5382013487579007,
+      "width_m": 1.081397572421403,
+      "depth_m": 0.12808530624755352,
+      "profile": "muy_desgastado"
+    },
+    {
+      "pk_m": 602.7432179149004,
+      "lateral_fraction": 0.3246863528732607,
+      "length_m": 2.0250890517426376,
+      "width_m": 0.9567098499773216,
+      "depth_m": 0.06706786560443795,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 657.0888254541537,
+      "lateral_fraction": -0.2848139156376956,
+      "length_m": 1.9826028367311601,
+      "width_m": 0.7767262823157309,
+      "depth_m": 0.06687806364130583,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 537.2921543449478,
+      "lateral_fraction": 0.4208553157529453,
+      "length_m": 1.6907413864175818,
+      "width_m": 0.7936203268690201,
+      "depth_m": 0.06322588052498854,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 541.8192790603887,
+      "lateral_fraction": 0.4834292282276391,
+      "length_m": 1.5592047185667297,
+      "width_m": 0.7670654523475645,
+      "depth_m": 0.07464000311839973,
+      "profile": "desgastado"
+    },
+    {
+      "pk_m": 669.0760567499539,
+      "lateral_fraction": 0.4972412975730711,
+      "length_m": 2.2886158864440937,
+      "width_m": 0.7872188782747205,
+      "depth_m": 0.0920231291608021,
+      "profile": "desgastado"
+    }
+  ]
+}

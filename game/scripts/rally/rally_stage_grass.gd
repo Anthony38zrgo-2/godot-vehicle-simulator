@@ -76,6 +76,10 @@ const MIN_SURFACE_UP := 0.72
 const ALPHA_SCISSOR_THRESHOLD := 0.38
 const BACKLIGHT_COLOR := Color(0.65, 0.65, 0.65)
 
+var aged_only := false
+var custom_variants: Array[PackedScene] = []
+var density_scale := 1.0
+
 var _sample_position := Vector3.ZERO
 var _sample_base := Vector3.ZERO
 var _sample_sector := 0
@@ -101,7 +105,7 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		push_warning("Stage grass needs a route with length")
 		return
 
-	var budget := maxi(1, roundi(total_length * TUFTS_PER_METRE))
+	var budget := maxi(1, roundi(total_length * TUFTS_PER_METRE * density_scale))
 	var max_attempts := maxi(budget, roundi(float(budget) * MAX_ATTEMPT_FACTOR))
 	var bins := _offset_bins()
 	var arc_table := _arc_table(cumulative, total_length)
@@ -134,7 +138,7 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 
 	var count := _commit_batches(buckets, entries)
 	print("RALLY_GRASS_READY instances=", count, " batches=", buckets.size(),
-		" budget=", budget, " attempts=", attempts, " band_m=", OFFSETS[0], "-", OFFSETS[OFFSETS.size() - 1],
+		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", OFFSETS[0], "-", OFFSETS[OFFSETS.size() - 1],
 		" build_ms=", Time.get_ticks_msec() - started_at)
 
 
@@ -250,7 +254,7 @@ func _raycast_ground(space: PhysicsDirectSpaceState3D, collision_mask: int, poin
 	if hit.is_empty():
 		return {}
 	var collider := hit.collider as Node
-	if collider == null or not collider.is_in_group("Grass"):
+	if collider == null or not collider.is_in_group("RauraGrassGround" if aged_only else "Grass"):
 		return {}
 	if collider.get_meta("is_stage_road", false):
 		return {}
@@ -275,10 +279,11 @@ func _scatter_transform(position: Vector3, scale: float, base: Vector3, rng: Ran
 ## fails to load instead of crashing on a null mesh or material.
 func _load_variant_entries() -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
-	for index in VARIANTS.size():
-		var instance := VARIANTS[index].instantiate()
+	var variants := VARIANTS if custom_variants.is_empty() else custom_variants
+	for index in (1 if aged_only and custom_variants.is_empty() else variants.size()):
+		var instance := variants[index].instantiate()
 		if instance == null:
-			push_warning("Stage grass variant failed to instantiate: " + VARIANTS[index].resource_path)
+			push_warning("Stage grass variant failed to instantiate: " + variants[index].resource_path)
 			continue
 		var visual := instance as MeshInstance3D
 		if visual == null:
@@ -286,15 +291,15 @@ func _load_variant_entries() -> Array[Dictionary]:
 			if not found.is_empty():
 				visual = found.front() as MeshInstance3D
 		if visual == null or visual.mesh == null:
-			push_warning("Stage grass variant has no mesh: " + VARIANTS[index].resource_path)
+			push_warning("Stage grass variant has no mesh: " + variants[index].resource_path)
 			instance.free()
 			continue
 		entries.append({
 			"variant": index,
 			"mesh": visual.mesh,
 			"material": _make_material(visual),
-			"scale": VARIANT_SCALE[mini(index, VARIANT_SCALE.size() - 1)],
-			"weight": VARIANT_WEIGHT[mini(index, VARIANT_WEIGHT.size() - 1)],
+			"scale": Vector2(0.85, 1.20) if not custom_variants.is_empty() else (Vector2(1.5, 2.6) if aged_only else VARIANT_SCALE[index]),
+			"weight": VARIANT_WEIGHT[index] if custom_variants.is_empty() else 1.0,
 		})
 		instance.free()
 	return entries

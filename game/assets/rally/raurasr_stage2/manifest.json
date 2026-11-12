@@ -1,0 +1,58 @@
+{
+  "contract_version": 1,
+  "track_id": "raurasr_stage2",
+  "source": {
+    "blend": "raurasr_stage2.blend",
+    "generator": "generar_stage2.py",
+    "approved_axis": "osm_corregido_sr_z_preservado",
+    "road_width_m": [
+      4.6440932433882764,
+      6.0
+    ],
+    "maximum_design_grade": 0.22,
+    "terrain_blend_radius_m": 72.0,
+    "max_grade_adjustment_m": 3.3890228271484375,
+    "source_pk_m": [
+      0.0,
+      8267.2462530074
+    ],
+    "timed_source_pk_m": [
+      0.0,
+      8267.2462530074
+    ],
+    "relief_seed": 20261111,
+    "pothole_count": 672,
+    "maximum_road_depression_m": 0.12,
+    "surface_texture_pack": "CMR2/02_Greece/Stage01/hi",
+    "slope_texture": {
+      "file": "argentina_talud.png",
+      "minimum_cross_slope_degrees": 15
+    },
+    "blend_sha256": "d4e34dc99743216ca161dfe618954fe0b0cc261faf763570f27c23dc88615644"
+  },
+  "visual": {
+    "path": "raurasr_stage2_visual.glb",
+    "sha256": "0128d466b888e3095680be3b14fc88913e0f0a9b9a51bca9c61a715a6b8bb184",
+    "size_bytes": 172550300
+  },
+  "collision": {
+    "path": "raurasr_stage2_collision.glb",
+    "sha256": "46958bbc221cf302ff4872a05faa3e5d1f806fce08125e35251343c02814d3f5",
+    "size_bytes": 135932316
+  },
+  "start_pose": {
+    "ground_godot": [
+      0.0,
+      0.0,
+      -0.0
+    ],
+    "heading_radians": -1.811381923908638
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0
+  }
+}

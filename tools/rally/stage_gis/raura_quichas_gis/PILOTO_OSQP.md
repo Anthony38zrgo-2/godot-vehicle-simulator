@@ -53,3 +53,7 @@ Para comparar con la rasante sin este relieve, usa -PilotOsqp. Regenera la varia
     blender -b --factory-startup --python-exit-code 1 --python tools/rally/stage_gis/raura_quichas_gis/generar_stage2.py -- --pilot-relief
 
 La escena Blender está en output/piloto_osqp/raura_stage2_piloto_relieve.blend. El contrato de Godot con --pilot-relief verificó 450 contactos de calzada y arcén, los baches, el arranque y el cronometraje. Queda por comparar el comportamiento al volante con el mismo reglaje y la misma velocidad.
+
+## Paleta del piloto de salida
+
+Ejecuta .\scripts\run_rally_raura.ps1 -PilotInicio. En esta variante Godot mezcla la calzada g_4a de CMR2 Grecia con grava y tierra de V-Rally 2 Argentina. La roca Argentina y Monte Carlo se mezcla por pendiente transversal. La ladera conserva variación tonal de Sentinel y usa su clasificación SCL de nieve para limitar la textura de Monte Carlo. La hierba short_aged solo aparece sobre el collider exterior. El material experimental se aplica exclusivamente a raurastart_stage2.

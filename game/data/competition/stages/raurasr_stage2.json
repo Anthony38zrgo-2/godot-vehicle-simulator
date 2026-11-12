@@ -1,0 +1,27 @@
+{
+  "id": "raurasr_stage2",
+  "name": "Rally Raura — Stage 2",
+  "route_path": "res://data/rally/raurasr_stage2_route.json",
+  "timing_gates_path": "res://data/competition/stages/raurasr_stage2_timing_gates.json",
+  "surface": "gravel_mud",
+  "fallback_path": "res://data/competition/stages/raurasr_stage2_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    256,
+    515,
+    773,
+    1034
+  ],
+  "sector_lengths_km": [
+    2.031679475203189,
+    2.034968225115345,
+    2.0340651552048166,
+    2.038096403828884
+  ]
+}

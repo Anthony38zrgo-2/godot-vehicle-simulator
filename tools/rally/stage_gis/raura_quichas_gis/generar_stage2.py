@@ -3,6 +3,8 @@ from collections import defaultdict
 import hashlib
 import json
 import math
+import shutil
+import tempfile
 import sys
 import time
 from pathlib import Path
@@ -109,9 +111,14 @@ def godot(point):
 
 
 def main():
+    corrected_stage = "--stage-sr" in sys.argv
+    earth_trial = "--pilot-start-earth" in sys.argv
     start_survey = "--pilot-start-survey" in sys.argv
-    start_pilot = "--pilot-start-relief" in sys.argv
+    lateral_trial = "--pilot-start-lateral" in sys.argv
+    start_pilot = "--pilot-start-relief" in sys.argv or lateral_trial or (earth_trial and not start_survey)
     pilot_dir = OUT / ("piloto_inicio" if start_survey or start_pilot else "piloto_osqp")
+    if earth_trial:
+        pilot_dir = OUT / "earth_salida_sigma5" / "piloto"
     survey_only = "--pilot-survey" in sys.argv or start_survey
     pilot_relief = "--pilot-relief" in sys.argv or start_pilot
     pilot = "--pilot-osqp" in sys.argv or pilot_relief
@@ -122,8 +129,18 @@ def main():
     if relief_enabled:
         sys.path.insert(0, str(BASE))
         import relieve_piloto as detail
-    assets = GAME / "assets/rally" / track if pilot else ASSETS
-    data = json.loads(SOURCE.read_text(encoding="utf8"))
+    if earth_trial:
+        track = "rauraearth_stage2"
+    if corrected_stage:
+        track = "raurasr_stage2"
+    assets = GAME / "assets/rally" / track if pilot or corrected_stage else ASSETS
+    if lateral_trial:
+        assets = pilot_dir / "variante_lateral"
+        assets.mkdir(exist_ok=True)
+    source_path = pilot_dir / "scene_input.json" if earth_trial else SOURCE
+    if corrected_stage:
+        source_path = OUT / "scene_input_sr.json"
+    data = json.loads(source_path.read_text(encoding="utf8"))
     assert all(p is not None for p in data["route"]), "The approved axis contains missing elevations"
     source = [Vector(p) for p in data["route"]]
     distances = [0.0]
@@ -317,10 +334,10 @@ def main():
     scene.collection.children.link(collision)
 
     shoulder_meshes = []
-    visual_gravel = textured_material("road_gravel_raura", "dirt_stones.png")
-    compacted = textured_material("road_gravel_compacted_raura", "dirt.png")
-    scree = textured_material("raura_cascajo", "dirt_stones.png")
-    exposed_rock = textured_material("raura_roca_expuesta", "stone.png")
+    visual_gravel = textured_material("road_gravel_raura", "dirt_stones.png" if pilot else "greece_g_4a.png")
+    compacted = textured_material("road_gravel_compacted_raura", "dirt.png") if pilot else visual_gravel
+    scree = textured_material("raura_cascajo", "dirt_stones.png" if pilot else "dirt.png")
+    exposed_rock = textured_material("raura_roca_expuesta", "stone.png" if pilot else "argentina_talud.png")
     stations = [0.0]
     for a, b in zip(axis, axis[1:]):
         stations.append(stations[-1] + (b - a).length)
@@ -343,7 +360,11 @@ def main():
                 row_index, col = divmod(obj.data.loops[loop_index].vertex_index, width)
                 row = sections[row_index]
                 lateral = (row[col] - row[0]).length
-                uv.data[loop_index].uv = (lateral / period, strip_stations[row_index] / period)
+                if name == "Road" and not pilot:
+                    # The Greece road tile has both wheel tracks across its width.
+                    uv.data[loop_index].uv = (col / (width - 1), strip_stations[row_index] / 4.0)
+                else:
+                    uv.data[loop_index].uv = (lateral / period, strip_stations[row_index] / period)
         return obj, faces
 
     if relief_enabled:
@@ -365,14 +386,18 @@ def main():
         if pilot:
             road_relief = detail.RoadRelief(rows, stations, pk, BASE / "desgaste_inicio.json" if start_pilot else None)
         else:
-            road_relief = detail.StartWear(rows, stations, pk, BASE / "desgaste_inicio_stage2.json")
-        inventory = pilot_dir / "baches_resueltos.json" if pilot else OUT / "baches_stage2_resueltos.json"
+            road_relief = detail.StartWear(rows, stations, pk, BASE / "desgaste_inicio_stage2.json",
+                                           pothole_fraction=0.8 if corrected_stage else 1.0)
+        inventory_dir = assets if lateral_trial else pilot_dir
+        inventory = inventory_dir / "baches_resueltos.json" if pilot else OUT / "baches_stage2_resueltos.json"
+        if corrected_stage:
+            inventory = OUT / "baches_raurasr_resueltos.json"
         write_json(inventory, {"seed":road_relief.seed,"features":road_relief.features})
         road_sections, road_stations, road_originals = detail.densify(rows, stations, road_relief)
         width = len(road_sections[0])
         _, road_faces = visual_strip(
-            "Road", road_sections, (visual_gravel, compacted),
-            lambda _i, k: int(0.35 < abs(2 * (k+0.5) / (width-1) - 1) < 0.63),
+            "Road", road_sections, (visual_gravel, compacted) if pilot else (visual_gravel,),
+            lambda _i, k: int(pilot and 0.35 < abs(2 * (k+0.5) / (width-1) - 1) < 0.63),
             1.0, road_stations,
         )
         mesh("Collision_Road", [p for row in road_sections for p in row], road_faces, gravel, collision)
@@ -391,6 +416,14 @@ def main():
             is_shoulder = k == (8 if side == "Left" else 0) if relief_enabled else k != outer_face
             if is_shoulder:
                 return 0
+            if not pilot:
+                # Classify the generated cross slope, not the raw DEM or grade along the road.
+                threshold = math.tan(math.radians(15))
+                slopes = []
+                for row in detailed[i:i+2]:
+                    delta = row[k+1] - row[k]
+                    slopes.append(abs(delta.z) / max(delta.xy.length, 1e-6))
+                return int(min(slopes) >= threshold)
             slopes = []
             for j in range(max(0, i - 4), min(len(sections), i + 6)):
                 row = sections[j]
@@ -405,6 +438,27 @@ def main():
                 shoulder = row[1]
                 rounded = detail.slope_section(shoulder, row[outer], stations[i], stations[-1],
                                                -1 if side == "Left" else 1)
+                if lateral_trial:
+                    reach = (row[outer] - shoulder).xy.length
+                    pk = stations[i] - stations[6]
+                    weight = max(detail.smoothstep(1 - abs(pk - center) / 35)
+                                 for center in (35, 225, 500))
+                    rise = row[outer].z - shoulder.z
+                    variation = math.sin(pk / 17)
+                    if rise > 0:
+                        foot = min(0.45, reach * 0.25)
+                        crest = max(foot + 0.01, reach * 0.80)
+                    else:
+                        width = 3 + variation
+                        foot = min(width, reach * 0.65)
+                        crest = max(foot + 0.01, reach * 0.95)
+                    for point in rounded:
+                        distance = (point - shoulder).xy.length
+                        fraction = detail.smoothstep((distance - foot) / (crest - foot))
+                        target = shoulder.z + rise * fraction
+                        if rise <= 0:
+                            target += min(0.25, abs(rise) * 0.2) * math.sin(math.pi * min(1, distance / max(foot, 0.01)))
+                        point.z += weight * (target - point.z)
                 detailed.append([row[0], *reversed(rounded), *row[1:]] if side == "Left"
                                 else [*row[:2], *rounded, row[2]])
             side_vertices = [p for row in detailed for p in row]
@@ -572,8 +626,11 @@ def main():
     compact_ground = [ground_vertices[i] for i in active]
     outside = [tuple(compact_index[i] for i in face) for face in outside]
     background = mesh("Ladera DSM", compact_ground, outside, dirt, visual)
-    collision_vertices = list(compact_ground)
-    collision_faces = list(outside)
+    split_exterior = not pilot or start_pilot
+    if split_exterior:
+        mesh("Collision_Terrain_Dirt_Raura_Exterior", compact_ground, outside, dirt, collision)
+    collision_vertices = [] if split_exterior else list(compact_ground)
+    collision_faces = [] if split_exterior else list(outside)
     for strip_vertices, strip_faces in shoulder_meshes:
         index = len(collision_vertices)
         collision_vertices.extend(strip_vertices)
@@ -583,7 +640,8 @@ def main():
     photo.use_nodes = True
     nt = photo.node_tree
     tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = bpy.data.images.load(str(OUT / "sentinel.png"))
+    satellite_texture = "sentinel_raura_fotorrealista.jpg" if corrected_stage else "sentinel.png"
+    tex.image = bpy.data.images.load(str(OUT / satellite_texture))
     tex.image.pack()
     shader = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
     nt.links.new(tex.outputs["Color"], shader.inputs["Base Color"])
@@ -605,7 +663,7 @@ def main():
     assets.mkdir(parents=True, exist_ok=True)
     manifest = {"contract_version":1, "track_id":track,
                 "source":{"blend":"raura_stage2.blend", "generator":Path(__file__).name,
-                          "approved_axis":"route_osm_candidate.geojson",
+                          "approved_axis":"earth_salida_sigma5/route_osm_corregido.geojson" if earth_trial else "route_osm_candidate.geojson",
                           "road_width_m":[min_road_width,6.0],
                           "maximum_design_grade":max_grade,
                           "terrain_blend_radius_m":blend_radius,
@@ -625,7 +683,11 @@ def main():
     if visual_only:
         previous = json.loads((assets / "manifest.json").read_text(encoding="utf8"))
         manifest["collision"] = previous["collision"]
-    manifest["source"]["handpainted_texture_pack"] = "HandPainted/texture-pack-2-ground"
+    manifest["source"]["surface_texture_pack"] = (
+        "HandPainted/texture-pack-2-ground" if pilot else "CMR2/02_Greece/Stage01/hi"
+    )
+    if not pilot:
+        manifest["source"]["slope_texture"] = {"file":"argentina_talud.png","minimum_cross_slope_degrees":15}
     exports = [("visual", visual)] if visual_only else [("visual", visual), ("collision", collision)]
     staged_glbs = []
     for kind, group in exports:
@@ -634,7 +696,13 @@ def main():
             ob.select_set(True)
         path = assets / f"{track}_{kind}.glb"
         staged = path.with_suffix(".pending.glb")
-        bpy.ops.export_scene.gltf(filepath=str(staged), export_format="GLB", use_selection=True)
+        if corrected_stage:
+            with tempfile.TemporaryDirectory(prefix="raura_sr_") as temp_dir:
+                local_export = Path(temp_dir) / path.name
+                bpy.ops.export_scene.gltf(filepath=str(local_export), export_format="GLB", use_selection=True)
+                shutil.copyfile(local_export, staged)
+        else:
+            bpy.ops.export_scene.gltf(filepath=str(staged), export_format="GLB", use_selection=True)
         with staged.open("rb") as stream:
             digest = hashlib.file_digest(stream, "sha256").hexdigest()
         manifest[kind] = {"path":path.name, "sha256":digest, "size_bytes":staged.stat().st_size}
@@ -653,6 +721,12 @@ def main():
     blend = pilot_dir / "raura_stage2_piloto_osqp.blend" if pilot else OUT / "raura_stage2.blend"
     if pilot_relief:
         blend = pilot_dir / "raura_stage2_piloto_relieve.blend"
+    if corrected_stage:
+        blend = (assets if assets.is_junction() else OUT) / "raurasr_stage2.blend"
+        manifest["source"]["blend"] = blend.name
+        manifest["source"]["approved_axis"] = "osm_corregido_sr_z_preservado"
+    if lateral_trial:
+        blend = assets / blend.name
     for screen in bpy.data.screens:
         for area in screen.areas:
             if area.type == "VIEW_3D":

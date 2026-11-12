@@ -13,6 +13,8 @@ from scipy.optimize import brentq
 
 BASE = Path(__file__).resolve().parent
 OUT = BASE / ("output/piloto_inicio" if "--inicio" in sys.argv else "output/piloto_osqp")
+if "--inicio-earth" in sys.argv:
+    OUT = BASE / "output/earth_salida_sigma5/piloto"
 DEM = BASE / "data/terrain"
 
 

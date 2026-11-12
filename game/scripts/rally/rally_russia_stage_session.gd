@@ -329,6 +329,13 @@ func _build_stage_grass() -> void:
 		return
 	var grass := preload("res://scripts/rally/rally_stage_grass.gd").new()
 	grass.name = "StageGrass"
+	grass.aged_only = session_track_id in ["raura_stage2", "raurasr_stage2", "raurastart_stage2", "rauraearth_stage2"]
+	if session_track_id == "raurasr_stage2":
+		grass.density_scale = 0.5
+		for variant in ["hierba-seca-florida", "matorral-bajo-oliva", "pasto-alto-dorado", "planta-hojas-verdes"]:
+			var asset := load("res://assets/rally/raurasr_stage2/vegetacion/%s.glb" % variant) as PackedScene
+			if asset != null:
+				grass.custom_variants.append(asset)
 	add_child(grass)
 	grass.build(course.points, hash(session_track_id), track_collision.collision_layer)
 
@@ -1034,6 +1041,8 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	var adjuster := RallyStageVisualMaterialAdjuster.new()
 	adjuster.adjust_node(track_visual)
 	adjuster.free()
+	if str(resolved.track_id) in ["raurastart_stage2", "rauraearth_stage2"]:
+		preload("res://scripts/rally/raura_pilot_materials.gd").new().apply(track_visual)
 	if terrain_wetness != null:
 		terrain_wetness.bind_visual_root(track_visual)
 		if not practice_mode and event_weather.calendar_active and event_manager != null:

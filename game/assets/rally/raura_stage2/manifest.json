@@ -23,18 +23,22 @@
     "relief_seed": 20261111,
     "pothole_count": 569,
     "maximum_road_depression_m": 0.23,
-    "handpainted_texture_pack": "HandPainted/texture-pack-2-ground",
-    "blend_sha256": "c83b319b6b705e820d7c5fb784722254b7bbfd1549a9c813ad48edae2fa78c80"
+    "surface_texture_pack": "CMR2/02_Greece/Stage01/hi",
+    "blend_sha256": "b3435041c01f296107205e65537efece0ef89d32600509efa3d898595cffad63",
+    "slope_texture": {
+      "file": "argentina_talud.png",
+      "minimum_cross_slope_degrees": 15
+    }
   },
   "visual": {
     "path": "raura_stage2_visual.glb",
-    "sha256": "0497eb342c801e6fbd696bf724f3bc33634ed17a361d38449aa01384d3a79fce",
-    "size_bytes": 146796460
+    "sha256": "c2382126784483926cd74a164b4a9de7efa889b3bfbbd96336ba09cd6c827518",
+    "size_bytes": 145333436
   },
   "collision": {
     "path": "raura_stage2_collision.glb",
-    "sha256": "a45bb5cd871be07671ebad0d20cab919e4232a9f8ba2d0a19e94d64498140256",
-    "size_bytes": 120111892
+    "sha256": "05d3697740ce91db5dab5f4ecab5de3ade15c490e74fbf387ea830d6f407a22c",
+    "size_bytes": 120112628
   },
   "start_pose": {
     "ground_godot": [

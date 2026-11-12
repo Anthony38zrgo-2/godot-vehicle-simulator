@@ -26,8 +26,15 @@ func _verify() -> void:
 	for i in range(45):
 		await physics_frame
 	var builder := session.get_node("TrackCollision") as RallyTrackCollisionBuilder
-	if not _require(builder.generated_body_count == 2, "Expected road and slope collision bodies"):
+	if not _require(builder.generated_body_count == (2 if pilot and not start_pilot else 3), "Unexpected road, slope or exterior collision body count"):
 		return
+	if not pilot or start_pilot:
+		var grass := session.get_node("StageGrass")
+		if not _require(grass.get_child_count() > 0, "Aged grass was not scattered"):
+			return
+		for batch in grass.get_children():
+			if not _require(str(batch.name).ends_with("Variant0"), "Only aged grass is allowed in Raura"):
+				return
 	var course: RallyStageProgress = session.course
 	var space := builder.get_world_3d().direct_space_state
 	var max_error := 0.0

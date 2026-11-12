@@ -16,6 +16,7 @@ const SURFACE_GROUP_BY_NODE := {
 	# the audio policy for genuinely paved tracks only.
 	"collision_terrain_grass": "Grass",
 	"collision_terrain_dirt": "Dirt",
+	"collision_terrain_dirt_raura_exterior": "Dirt",
 	"collision_terrain_sand": "Sand",
 }
 
@@ -233,6 +234,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 		static_body.set_meta("source_material", material_names[0])
 	if not surface_group.is_empty():
 		static_body.add_to_group(surface_group)
+	if source_name == "collision_terrain_dirt_raura_exterior":
+		static_body.add_to_group("RauraGrassGround")
 	var physics_material := PhysicsMaterial.new()
 	physics_material.friction = body_friction
 	physics_material.bounce = 0.0

@@ -5,14 +5,17 @@ param(
     [switch]$PilotOsqp,
     [switch]$PilotRelieve,
     [switch]$PilotInicio,
+    [switch]$PilotEarth,
+    [switch]$StageCompleto,
+    [switch]$StageSr,
     [switch]$Headless,
     [ValidateRange(0, 100000)][int]$QuitAfterFrames = 0
 )
 
 $ErrorActionPreference = 'Stop'
 $gameRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'game'
-if (@($PilotOsqp, $PilotRelieve, $PilotInicio).Where({ $_ }).Count -gt 1) { throw 'Elige una sola variante de piloto.' }
-$track = if ($PilotInicio) { 'raurastart_stage2' } elseif ($PilotRelieve) { 'raurarelief_stage2' } elseif ($PilotOsqp) { 'raurapilot_stage2' } else { 'raura_stage2' }
+if (@($PilotOsqp, $PilotRelieve, $PilotInicio, $PilotEarth, $StageCompleto, $StageSr).Where({ $_ }).Count -gt 1) { throw 'Elige una sola variante de Raura.' }
+$track = if ($StageSr) { 'raurasr_stage2' } elseif ($StageCompleto) { 'raura_stage2' } elseif ($PilotEarth) { 'rauraearth_stage2' } elseif ($PilotRelieve) { 'raurarelief_stage2' } elseif ($PilotOsqp) { 'raurapilot_stage2' } elseif ($PilotInicio) { 'raurastart_stage2' } else { 'raurasr_stage2' }
 $scene = 'res://scenes/rally/' + $track + '.tscn'
 
 if (-not $GodotPath) {

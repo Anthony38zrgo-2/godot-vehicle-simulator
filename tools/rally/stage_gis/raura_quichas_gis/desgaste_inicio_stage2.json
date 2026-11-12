@@ -2,43 +2,92 @@
   "schema_version": 1,
   "seed": 20261111,
   "undulation_m": 0.022,
-  "max_combined_depression_m": 0.23,
+  "max_combined_depression_m": 0.12,
   "default_profile": "desgastado",
   "profiles": {
-    "desgastado": {
-      "density_per_100m": 13,
+    "compactado": {
+      "density_per_100m": [
+        1,
+        4
+      ],
       "depth_m": [
-        0.06,
-        0.11
+        0.01,
+        0.03
       ],
       "length_m": [
-        0.8,
-        1.55
+        0.6,
+        1.5
       ],
       "width_m": [
-        0.8,
-        1.35
+        0.4,
+        1
       ],
-      "cluster_probability": 0.25
+      "cluster_probability": 0.1,
+      "cluster_jitter_m": [
+        0.2,
+        0.8
+      ],
+      "depth_asymmetry_offset": [
+        -0.12,
+        0.12
+      ]
+    },
+    "desgastado": {
+      "density_per_100m": [
+        8,
+        15
+      ],
+      "depth_m": [
+        0.03,
+        0.07
+      ],
+      "length_m": [
+        0.7,
+        2
+      ],
+      "width_m": [
+        0.5,
+        1.2
+      ],
+      "cluster_probability": 0.3,
+      "cluster_jitter_m": [
+        0.3,
+        0.9
+      ],
+      "depth_asymmetry_offset": [
+        -0.15,
+        0.15
+      ]
     },
     "muy_desgastado": {
-      "density_per_100m": 29,
+      "density_per_100m": [
+        15,
+        25
+      ],
       "depth_m": [
-        0.09,
-        0.16
+        0.05,
+        0.1
       ],
       "length_m": [
-        0.8,
-        1.55
+        0.9,
+        2.5
       ],
       "width_m": [
-        0.8,
-        1.35
+        0.6,
+        1.5
       ],
       "cluster_probability": 0.65,
+      "cluster_jitter_m": [
+        0.2,
+        0.7
+      ],
+      "depth_asymmetry_offset": [
+        -0.2,
+        0.2
+      ],
       "cluster_size": [
-        4,
-        8
+        3,
+        7
       ]
     }
   },
@@ -65,35 +114,35 @@
       "lateral_fraction": 0.4,
       "length_m": 2.0,
       "width_m": 0.7,
-      "depth_m": 0.1
+      "depth_m": 0.056
     },
     {
       "pk_m": 90,
       "lateral_fraction": 0.4,
       "length_m": 2.0,
       "width_m": 1.3,
-      "depth_m": 0.1
+      "depth_m": 0.062
     },
     {
       "pk_m": 199,
       "lateral_fraction": 0.44,
       "length_m": 2.9,
       "width_m": 1.4,
-      "depth_m": 0.14
+      "depth_m": 0.078
     },
     {
       "pk_m": 321,
       "lateral_fraction": -0.43,
       "length_m": 2.9,
       "width_m": 1.4,
-      "depth_m": 0.16
+      "depth_m": 0.091
     },
     {
       "pk_m": 468,
       "lateral_fraction": 0.45,
       "length_m": 2.9,
       "width_m": 1.4,
-      "depth_m": 0.18
+      "depth_m": 0.1
     }
   ],
   "exclusion_zones": [
@@ -122,7 +171,7 @@
     {
       "start_m": 112,
       "end_m": 133,
-      "amplitude_m": 0.05,
+      "amplitude_m": 0.03,
       "wavelength_m": 1.4,
       "lateral_fraction": -0.34,
       "width_m": 1.1
@@ -130,7 +179,7 @@
     {
       "start_m": 240,
       "end_m": 262,
-      "amplitude_m": 0.06,
+      "amplitude_m": 0.03,
       "wavelength_m": 1.65,
       "lateral_fraction": 0.42,
       "width_m": 1.1
@@ -138,7 +187,7 @@
     {
       "start_m": 384,
       "end_m": 409,
-      "amplitude_m": 0.045,
+      "amplitude_m": 0.03,
       "wavelength_m": 1.25,
       "lateral_fraction": -0.36,
       "width_m": 1.1
@@ -146,7 +195,7 @@
     {
       "start_m": 543,
       "end_m": 568,
-      "amplitude_m": 0.055,
+      "amplitude_m": 0.03,
       "wavelength_m": 1.55,
       "lateral_fraction": 0.33,
       "width_m": 1.1
@@ -156,35 +205,35 @@
     {
       "center_m": 178,
       "length_m": 10,
-      "depth_m": 0.1,
+      "depth_m": 0.07,
       "lateral_fraction": 0.46,
       "entry_fraction": 0.32
     },
     {
       "center_m": 297,
       "length_m": 8,
-      "depth_m": 0.08,
+      "depth_m": 0.07,
       "lateral_fraction": -0.42,
       "entry_fraction": 0.32
     },
     {
       "center_m": 451,
       "length_m": 12,
-      "depth_m": 0.12,
+      "depth_m": 0.07,
       "lateral_fraction": 0.43,
       "entry_fraction": 0.32
     },
     {
       "center_m": 508,
       "length_m": 9,
-      "depth_m": 0.095,
+      "depth_m": 0.07,
       "lateral_fraction": -0.42,
       "entry_fraction": 0.32
     },
     {
       "center_m": 620,
       "length_m": 11,
-      "depth_m": 0.11,
+      "depth_m": 0.07,
       "lateral_fraction": 0.42,
       "entry_fraction": 0.32
     }
@@ -194,20 +243,87 @@
       "center_m": 197.05,
       "lateral_fraction": 0.44,
       "length_m": 1.5,
-      "height_m": 0.06
+      "height_m": 0.04
     },
     {
       "center_m": 319.05,
       "lateral_fraction": -0.43,
       "length_m": 1.5,
-      "height_m": 0.07
+      "height_m": 0.04
     },
     {
       "center_m": 466.05,
       "lateral_fraction": 0.45,
       "length_m": 1.5,
-      "height_m": 0.08
+      "height_m": 0.04
     }
   ],
-  "hard_impact": true
+  "hard_impact": false,
+  "size_variants": [
+    {
+      "id": "corto",
+      "weight": 4,
+      "length_m": [
+        0.5,
+        1
+      ],
+      "width_m": [
+        0.4,
+        0.9
+      ],
+      "depth_scale": [
+        0.6,
+        0.9
+      ]
+    },
+    {
+      "id": "medio",
+      "weight": 5,
+      "length_m": [
+        0.9,
+        1.8
+      ],
+      "width_m": [
+        0.7,
+        1.3
+      ],
+      "depth_scale": [
+        0.8,
+        1.1
+      ]
+    },
+    {
+      "id": "amplio",
+      "weight": 3,
+      "length_m": [
+        1.5,
+        2.8
+      ],
+      "width_m": [
+        1,
+        1.8
+      ],
+      "depth_scale": [
+        0.7,
+        1
+      ]
+    },
+    {
+      "id": "surco",
+      "weight": 2,
+      "length_m": [
+        2,
+        3.5
+      ],
+      "width_m": [
+        0.4,
+        0.7
+      ],
+      "depth_scale": [
+        0.9,
+        1.2
+      ]
+    }
+  ],
+  "natural_wear": true
 }
