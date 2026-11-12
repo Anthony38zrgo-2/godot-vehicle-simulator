@@ -18,3 +18,10 @@ scratch/
 game/logs/
 __pycache__/
 *.pyc
+
+# Fase 0 refactor: arboles locales que no deben trackearse.
+tmp/
+acl-recovery/
+archive/
+.uv-install*.log
+_tmp_*
