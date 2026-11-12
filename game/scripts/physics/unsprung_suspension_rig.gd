@@ -16,6 +16,20 @@ extends RefCounted
 ## límites duros los resuelven estas juntas.
 
 const JOINT_LIMIT_MARGIN_M := 0.03
+## Alcance efectivo de extensión (§2): el joint permite
+## `droop + JOINT_LIMIT_MARGIN_M` bajo el neutro. Las consultas de contacto
+## (tándem y ShapeCast) deben derivar su alcance de este mismo límite para
+## no recortar 30 mm de droop real. Distancias referidas al centro neutro.
+static func effective_droop_limit_m(droop_m: float) -> float:
+	return maxf(float(droop_m), 0.0) + JOINT_LIMIT_MARGIN_M
+
+
+## Recorrido de consulta desde el neutro: arranque `bump` sobre el neutro
+## más extensión efectiva. Mantiene la distancia referida al centro neutro.
+static func contact_query_travel_m(bump_m: float, droop_m: float, top_margin_m: float = 0.02) -> Dictionary:
+	var bump := maxf(float(bump_m), 0.0) + maxf(float(top_margin_m), 0.0)
+	var droop_eff := effective_droop_limit_m(droop_m)
+	return {"bump": bump, "droop_effective": droop_eff, "travel": bump + droop_eff}
 ## Recorte de diagnóstico del impulso del amortiguador (§5, hallazgo F1).
 ## DESACTIVADO POR DEFECTO: la ruta normal de producción aplica la fuerza de
 ## la curva digresiva sin recortar. Cuando se activa (solo diagnóstico), recorta
@@ -33,6 +47,11 @@ var hubs: Array[RigidBody3D] = []
 var joints: Array[Generic6DOFJoint3D] = []
 var neutral_positions: Array[Vector3] = []
 var radial_deflection_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
+## Recorrido físico del hub sin clampear (H1): desplazamiento real medido
+## hub-vs-chasis antes del clamp a [-droop, +bump]. Se usa SOLO para la
+## deformación radial del neumático; el resto de consumidores del modelo de
+## suspensión siguen leyendo el recorrido limitado (`suspension.compression`).
+var compression_physical_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_dissipation_w: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_states: Array[Dictionary] = [{ }, { }, { }, { }]
 var spring_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -57,6 +76,22 @@ var last_damper_applied_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_damper_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 ## Contador de eventos de recorte por rueda (diagnóstico F1).
 var damper_clip_events: Array[int] = [0, 0, 0, 0]
+
+
+## Deformación radial desde el recorrido FÍSICO del hub (H1): con
+## `road_compression = radio - distancia` (distancia neutro-superficie) y
+## `hub_travel` = desplazamiento real del hub (sin clamp), la penetración es
+## `(road_compression - hub_travel) * cos`, nunca negativa. Ejemplo: droop
+## nominal 180 mm, hub en -210 mm y superficie compatible con centro de rueda
+## en -200 mm → road_compression = -200 mm, hub_travel = -210 mm →
+## deformación 10 mm y carga positiva. Sin penetración (p. ej. distancia que
+## deja road_compression <= hub_travel) la deformación es 0 y la carga 0.
+static func radial_deflection_from_travel(
+	road_compression_m: float,
+	hub_travel_m: float,
+	cos_angle: float
+) -> float:
+	return maxf((float(road_compression_m) - float(hub_travel_m)) * clampf(float(cos_angle), 0.25, 1.0), 0.0)
 
 
 ## Activa/desactiva el recorte de diagnóstico y reinicia contadores.
@@ -159,6 +194,7 @@ func reset_at(pose: Transform3D) -> void:
 			hub_state.linear_velocity = Vector3.ZERO
 			hub_state.angular_velocity = Vector3.ZERO
 		radial_deflection_m[i] = 0.0
+		compression_physical_m[i] = 0.0
 		radial_dissipation_w[i] = 0.0
 		radial_states[i] = { }
 		if i < spring_forces_n.size():
@@ -219,6 +255,7 @@ func solve(
 		var bump_limit := float(suspension.axle_parameters[i].bump_m)
 		var raw_comp := (h_pos - neutral).dot(up)
 		var raw_vel := (h_vel - body_point_velocity).dot(up)
+		compression_physical_m[i] = raw_comp
 		suspension.compression[i] = clampf(raw_comp, droop_limit, bump_limit)
 		suspension.compression_velocity[i] = raw_vel
 		suspension.filtered_arb_travel[i] = suspension.compression[i]
@@ -335,7 +372,11 @@ func solve(
 		var normal: Vector3 = (contacts[i].normal as Vector3).normalized()
 		var cos_angle := clampf(normal.dot(up), 0.25, 1.0)
 		var road_compression := radii[i] - float(contacts[i].distance)
-		var deflection := maxf((road_compression - comp) * cos_angle, 0.0)
+		# H1: la deformación usa el recorrido FÍSICO del hub, no el clamp.
+		# Con hub en -210 mm y superficie en -200 mm (droop 180): 10 mm.
+		var deflection := radial_deflection_from_travel(
+			road_compression, compression_physical_m[i], cos_angle
+		)
 		radial_deflection_m[i] = deflection
 
 		var road_velocity := Vector3.ZERO

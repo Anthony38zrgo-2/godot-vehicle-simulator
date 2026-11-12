@@ -831,6 +831,16 @@ func apply_differential_preset(resolved: Dictionary, axle: String = "") -> Dicti
 	# adjustable_friction_lsd (R-Lock): acoplamiento limitado por fricción,
 	# nunca restricción rígida de spool. El solver ya satura por capacidad.
 	# open: impulso de bloqueo cero (capacidad nula en el solver).
+	# H5: la ganancia de rampa se hereda del estado vigente del eje; debe ser
+	# finita y no negativa, o el preset se rechaza ANTES de mutar nada. Esto
+	# permite probar el rechazo tardío dentro de apply_setup_values() con un
+	# preset que el catálogo resuelve pero el modelo rechaza.
+	var inherited_gain := (
+		front_differential_ramp_gain if target_axle == "front"
+		else rear_differential_ramp_gain
+	)
+	if not is_finite(float(inherited_gain)) or float(inherited_gain) < 0.0:
+		return {"ok": false, "error": "Ganancia de rampa inválida en el eje " + target_axle + " para preset: " + preset_id}
 	var staged := {
 		"type": dtype,
 		"preload": preload_nm,
@@ -839,10 +849,7 @@ func apply_differential_preset(resolved: Dictionary, axle: String = "") -> Dicti
 		"power_ramp": power_ramp,
 		"coast_ramp": coast_ramp,
 		"clutches": float(maxi(surfaces, 0)),
-		"ramp_gain": (
-			front_differential_ramp_gain if target_axle == "front"
-			else rear_differential_ramp_gain
-		),
+		"ramp_gain": float(inherited_gain),
 		"preset_id": preset_id,
 	}
 	_apply_staged_differential(staged, target_axle)

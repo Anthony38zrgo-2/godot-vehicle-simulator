@@ -37,6 +37,9 @@ var wheel_visuals: Array[Node3D] = []
 var wheel_rotation_angles: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var contact_query_count: int = 0
 var wheel_contact_casts: Array[ShapeCast3D] = []
+# Auditoría §3: último contacto por rueda (hit, punto, normal, collider,
+# distancia usada por la ley radial, fracción segura y apoyo seleccionado).
+var last_contacts: Array[Dictionary] = [{}, {}, {}, {}]
 var contact_frequency_samples: int = 0
 var contact_frequency_elapsed_s: float = 0.0
 var mass_state: Dictionary = { }
@@ -291,7 +294,6 @@ func surface_temperature_for_hud() -> Dictionary:
 func adjust_live_tire_pressure(delta_kpa: float) -> void:
 	var pressure: Dictionary = domains.get("tires", { }).get("tires", { }).get("pressure", { })
 	var cold: Dictionary = pressure.get("cold_kpa_gauge", { })
-	var atmosphere := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
 	var reference_temp := float(pressure.get("reference_temperature_c", 25.0))
 	for i in 4:
 		var key: String = ["FL", "FR", "RL", "RR"][i]
@@ -302,16 +304,9 @@ func adjust_live_tire_pressure(delta_kpa: float) -> void:
 			float(field.max),
 		)
 		cold[key] = next_kpa
-		var tire: Dictionary = thermal_model.tire_states[i]
-		tire.pressure_reference_bar_gauge = next_kpa / 100.0
-		tire.pressure_reference_temp_c = reference_temp
-		tire.pressure_bar_gauge = (1.0 - float(tire.get("pressure_loss_fraction", 0.0))) * maxf(
-			(next_kpa / 100.0 + atmosphere) * (float(tire.gas_c) + 273.15)
-			/ maxf(reference_temp + 273.15, 1.0)
-			- atmosphere,
-			0.0,
-		)
-		thermal_model.tire_states[i] = tire
+		# Función común §1: conserva gas, pérdida y fuga; solo cambia la
+		# referencia en frío.
+		thermal_model.set_pressure_reference(i, next_kpa / 100.0, reference_temp)
 	pressure["cold_kpa_gauge"] = cold
 
 
@@ -441,19 +436,23 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		resolved_preset = RallyDifferentialCatalog.resolve(pid, wanted, _base_differential_mu())
 		if not bool(resolved_preset.get("ok", false)):
 			return resolved_preset
-	# Staging atómico: aplicar numérico + diferencial sobre copia.
+	# Staging atómico (§4): aplicar numérico + diferencial sobre copia y
+	# validar el runtime ANTES de publicar domains. apply_differential_preset
+	# valida antes de mutar, así que un rechazo deja domains, preset activo
+	# y solver intactos. Solo tras superar los pasos que devuelven error se
+	# publican domains, ID activo y valores aceptados.
 	var staging := domains.duplicate(true)
 	var applied := RallySetupCatalog.apply(staging, effective_values)
 	if not bool(applied.get("ok", false)):
 		return applied
 	if historic:
 		_sync_differential_to_domains(staging, resolved_preset)
-	# Commit: a partir de aquí el runtime se sincroniza desde staging.
-	domains = staging
-	if historic:
 		var runtime := powertrain_model.apply_differential_preset(resolved_preset)
 		if not bool(runtime.get("ok", false)):
 			return runtime
+	# Commit: a partir de aquí el runtime se sincroniza desde staging.
+	domains = staging
+	if historic:
 		active_differential_preset_id = str(resolved_preset.get("preset_id", ""))
 		effective_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
 	else:
@@ -494,28 +493,35 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 			parameters.rest_compression_offset = current_rest - float(
 				design.get("rest_compression", current_rest)
 			)
+			# Cálculo compartido §6: misma precedencia de frecuencia
+			# declarada y misma masa de referencia ya calibrada que en
+			# configure(). Geometría y joints quedan fuera.
 			var reference_mass := float(parameters.frequency_reference_mass_kg)
 			var frequency := float(trim.get("ride_frequency_hz", parameters.ride_frequency_hz))
-			var derived_k := reference_mass * pow(TAU * frequency, 2.0)
-			var critical_c := 2.0 * sqrt(derived_k * reference_mass)
+			var rates := VehicleSuspensionModel.corner_rates(
+				reference_mass,
+				frequency,
+				float(trim.get("damping_ratio", 0.65)),
+				float(trim.get("bump_damp_multiplier", 1.0)),
+				float(trim.get("rebound_damp_multiplier", 1.0)),
+				bump_stop_mult
+			)
 			parameters.ride_frequency_hz = frequency
-			parameters.spring_rate = derived_k
-			parameters.bump_damping = critical_c * float(trim.get("damping_ratio", 0.65)) * float(
-				trim.get("bump_damp_multiplier", 1.0)
-			)
-			parameters.rebound_damping = critical_c * float(trim.get("damping_ratio", 0.65)) * float(
-				trim.get("rebound_damp_multiplier", 1.0)
-			)
-			parameters.bump_stop_stiffness = derived_k * bump_stop_mult * 8.0
+			parameters.spring_rate = float(rates["spring_rate"])
+			parameters.bump_damping = float(rates["bump_damping"])
+			parameters.rebound_damping = float(rates["rebound_damping"])
+			parameters.bump_stop_stiffness = float(rates["bump_stop_stiffness"])
 			suspension_model.axle_parameters[wheel_index] = parameters
 		var arb: Dictionary = physical.get(axle + "_arb", { })
 		var spring_rate := float(suspension_model.axle_parameters[axle_index * 2].spring_rate)
 		if axle_index == 0:
-			suspension_model.front_arb_stiffness_n_per_m = spring_rate * float(
-				arb.get("ratio", 0.0)
+			suspension_model.front_arb_stiffness_n_per_m = VehicleSuspensionModel.arb_stiffness_n_per_m(
+				spring_rate, float(arb.get("ratio", 0.0))
 			)
 		else:
-			suspension_model.rear_arb_stiffness_n_per_m = spring_rate * float(arb.get("ratio", 0.0))
+			suspension_model.rear_arb_stiffness_n_per_m = VehicleSuspensionModel.arb_stiffness_n_per_m(
+				spring_rate, float(arb.get("ratio", 0.0))
+			)
 	var brakes: Dictionary = domains.get("brakes", { }).get("brakes", { })
 	brake_model.front_brake_bias = clampf(float(brakes.get("front_brake_bias", 0.5)), 0.0, 1.0)
 	brake_model.maximum_brake_torque_nm = float(
@@ -569,20 +575,12 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	var pressure: Dictionary = domains.get("tires", { }).get("tires", { }).get("pressure", { })
 	var cold_pressures: Dictionary = pressure.get("cold_kpa_gauge", { })
 	var temperature_reference := float(pressure.get("reference_temperature_c", 25.0))
-	var atmosphere_bar := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
 	for wheel_index in 4:
 		var wheel_key: String = ["FL", "FR", "RL", "RR"][wheel_index]
-		var state: Dictionary = thermal_model.tire_states[wheel_index]
 		var cold_bar := float(cold_pressures.get(wheel_key, 180.0)) / 100.0
-		state.pressure_reference_bar_gauge = cold_bar
-		state.pressure_reference_temp_c = temperature_reference
-		var reference_kelvin := maxf(temperature_reference + 273.15, 1.0)
-		var gas_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-		state.pressure_bar_gauge = maxf(
-			(cold_bar + atmosphere_bar) * gas_kelvin / reference_kelvin - atmosphere_bar,
-			0.0,
-		)
-		thermal_model.tire_states[wheel_index] = state
+		# Función común §1: actualiza la referencia en frío y refleja la
+		# pérdida existente en la misma llamada; conserva gas y fuga.
+		thermal_model.set_pressure_reference(wheel_index, cold_bar, temperature_reference)
 	return { "ok": true, "values": effective_values }
 
 
@@ -635,6 +633,177 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		for hub in unsprung_rig.hubs:
 			cast.add_exception_rid(hub.get_rid())
 		wheel_contact_casts.append(cast)
+
+
+## Selección del apoyo ShapeCast (§3): el apoyo con máxima alineación con +Y
+## por encima de 0.25. Devuelve punto, normal, collider, índice y alineación,
+## SIN fracción segura: Godot 4.7.1 no expone fracción por colisión (solo
+## `get_closest_collision_safe_fraction()` global), así que la distancia
+## coherente se obtiene aislando este apoyo en una consulta adicional
+## (`_query_shapecast_contact()`). En pendiente no se proyecta el punto como
+## si viniera de un rayo: la altura sale del barrido del cilindro.
+## Devuelve {} sin apoyo válido.
+static func select_shapecast_support(cast: ShapeCast3D, chassis_up: Vector3) -> Dictionary:
+	var best := {}
+	var best_alignment := 0.25
+	for collision_index in cast.get_collision_count():
+		var normal := (cast.get_collision_normal(collision_index) as Vector3).normalized()
+		var alignment := normal.dot(chassis_up)
+		if alignment > best_alignment:
+			best_alignment = alignment
+			best = {
+				"position": cast.get_collision_point(collision_index),
+				"normal": normal,
+				"collider": cast.get_collider(collision_index),
+				"collision_index": collision_index,
+				"alignment": alignment,
+				"collision_count": cast.get_collision_count(),
+			}
+	return best
+
+
+## Barrido cilíndrico coherente (H2), núcleo estático: punto, normal, collider
+## y distancia del MISMO apoyo. Tras seleccionar por alineación, si hay más
+## de una colisión se aísla el apoyo seleccionado excluyendo los demás
+## colliders y se repite el barrido: la fracción leída entonces pertenece
+## por construcción al apoyo seleccionado (se verifica collider, punto y
+## normal). Con una sola colisión no hace falta consulta adicional.
+## `permanent_exceptions` se restauran antes de salir. `sweeps` cuenta los
+## barridos (1 o 2). La coherencia se demuestra por correspondencia, no por
+## el rango [0,1]. Sin llamada a get_collision_safe_fraction(i): no existe
+## en Godot 4.7.1.
+static func shapecast_coherent_result(
+	cast: ShapeCast3D,
+	chassis_up: Vector3,
+	wheel_radius_m: float,
+	travel_m: float,
+	bump_m: float,
+	permanent_exceptions: Array[RID],
+) -> Dictionary:
+	cast.force_shapecast_update()
+	var sweeps := 1
+	var first_count := cast.get_collision_count()
+	if first_count == 0:
+		return {"sweeps": sweeps}
+	var global_safe := cast.get_closest_collision_safe_fraction()
+	var selected := select_shapecast_support(cast, chassis_up)
+	if selected.is_empty():
+		return {"sweeps": sweeps}
+	if first_count == 1:
+		var safe := global_safe
+		return {
+			"position": selected["position"],
+			"normal": selected["normal"],
+			"collider": selected["collider"],
+			"distance": float(wheel_radius_m) + float(travel_m) * float(safe) - float(bump_m),
+			"safe_fraction": float(safe),
+			"global_safe_fraction": float(safe),
+			"collision_index": int(selected["collision_index"]),
+			"collision_count": first_count,
+			"alignment": float(selected["alignment"]),
+			"isolated": false,
+			"coherent": true,
+			"sweeps": sweeps,
+		}
+	# Múltiples apoyos: aislar el seleccionado excluyendo los demás.
+	var selected_collider: Variant = selected.get("collider")
+	var selected_rid := RID()
+	if selected_collider is CollisionObject3D:
+		selected_rid = (selected_collider as CollisionObject3D).get_rid()
+	var exclude_rids: Array[RID] = []
+	for ci in first_count:
+		if ci == int(selected["collision_index"]):
+			continue
+		var other: Variant = cast.get_collider(ci)
+		if other is CollisionObject3D:
+			var orid := (other as CollisionObject3D).get_rid()
+			if orid != selected_rid and not exclude_rids.has(orid):
+				exclude_rids.append(orid)
+	if exclude_rids.is_empty():
+		var safe := global_safe
+		return {
+			"position": selected["position"],
+			"normal": selected["normal"],
+			"collider": selected["collider"],
+			"distance": float(wheel_radius_m) + float(travel_m) * float(safe) - float(bump_m),
+			"safe_fraction": float(safe),
+			"global_safe_fraction": float(global_safe),
+			"collision_index": int(selected["collision_index"]),
+			"collision_count": first_count,
+			"alignment": float(selected["alignment"]),
+			"isolated": false,
+			"coherent": true,
+			"sweeps": sweeps,
+		}
+	for rid in exclude_rids:
+		cast.add_exception_rid(rid)
+	cast.force_shapecast_update()
+	sweeps = 2
+	var isolated_safe := cast.get_closest_collision_safe_fraction()
+	var isolated_count := cast.get_collision_count()
+	var isolated_ok := isolated_count > 0
+	var isolated_collider: Variant = cast.get_collider(0) if isolated_ok else null
+	var isolated_point: Vector3 = cast.get_collision_point(0) if isolated_ok else selected["position"]
+	var isolated_normal: Vector3 = (cast.get_collision_normal(0) as Vector3).normalized() if isolated_ok else selected["normal"]
+	# Restaurar exclusiones permanentes antes de salir.
+	cast.clear_exceptions()
+	for prid in permanent_exceptions:
+		cast.add_exception_rid(prid)
+	if not isolated_ok:
+		return {"sweeps": sweeps}
+	var same_collider: bool = isolated_collider == selected_collider
+	var point_gap := (isolated_point - (selected["position"] as Vector3)).length()
+	var normal_gap := (isolated_normal - (selected["normal"] as Vector3)).length()
+	var coherent: bool = same_collider and point_gap < 0.05 and normal_gap < 0.05
+	return {
+		"position": isolated_point,
+		"normal": isolated_normal,
+		"collider": isolated_collider,
+		"distance": float(wheel_radius_m) + float(travel_m) * float(isolated_safe) - float(bump_m),
+		"safe_fraction": float(isolated_safe),
+		"global_safe_fraction": float(global_safe),
+		"collision_index": int(selected["collision_index"]),
+		"collision_count": first_count,
+		"isolated_collision_count": isolated_count,
+		"alignment": float(selected["alignment"]),
+		"isolated": true,
+		"coherent": coherent,
+		"sweeps": sweeps,
+		"verify": {
+			"same_collider": same_collider,
+			"point_gap_m": point_gap,
+			"normal_gap": normal_gap,
+		},
+	}
+
+
+func _query_shapecast_contact(
+	body: RigidBody3D,
+	index: int,
+	body_transform: Transform3D,
+	chassis_up: Vector3,
+	bump: float,
+	travel: float,
+	steer: float,
+) -> Dictionary:
+	var cast := wheel_contact_casts[index]
+	var orientation := Basis(Vector3.UP, steer) * Basis(
+		Vector3.FORWARD,
+		suspension_model.dynamic_wheel_camber(index),
+	) * Basis(Vector3.BACK, PI * 0.5)
+	cast.global_transform = body_transform * Transform3D(
+		orientation,
+		wheel_positions_local[index] + Vector3.UP * bump,
+	)
+	cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
+	cast.collision_mask = body.collision_mask
+	var permanents: Array[RID] = [body.get_rid()]
+	for hub in unsprung_rig.hubs:
+		permanents.append(hub.get_rid())
+	var hit := shapecast_coherent_result(cast, chassis_up, wheel_radii[index], travel, bump, permanents)
+	contact_query_count += int(hit.get("sweeps", 1))
+	hit.erase("sweeps")
+	return hit
 
 
 func _query_tandem_contact(
@@ -705,8 +874,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	contact_query_count = 0
 	for i in 4:
 		var cast := wheel_contact_casts[i]
-		var bump := float(suspension_model.axle_parameters[i].get("bump_m", 0.22)) + 0.02
-		var travel := bump + float(suspension_model.axle_parameters[i].get("droop_m", 0.18))
+		# Alcance §2: deriva del mismo límite efectivo que usa la junta
+		# (droop + JOINT_LIMIT_MARGIN_M). Distancia referida al centro neutro.
+		var query := UnsprungSuspensionRig.contact_query_travel_m(
+			float(suspension_model.axle_parameters[i].get("bump_m", 0.22)),
+			float(suspension_model.axle_parameters[i].get("droop_m", 0.18))
+		)
+		var bump: float = query["bump"]
+		var travel: float = query["travel"]
 		var steer := _wheel_steer_angle(i, float(inputs.get("steering", 0.0))) + _effective_toe(i)
 		var hit: Dictionary = {}
 		var ray_distance := 0.0
@@ -714,30 +889,11 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			hit = _query_tandem_contact(body, state, i, steer, bump, travel)
 			ray_distance = float(hit.get("distance", 0.0))
 		else:
-			var orientation := Basis(Vector3.UP, steer) * Basis(
-				Vector3.FORWARD,
-				suspension_model.dynamic_wheel_camber(i),
-			) * Basis(Vector3.BACK, PI * 0.5)
-			cast.global_transform = state.transform * Transform3D(
-				orientation,
-				wheel_positions_local[i] + Vector3.UP * bump,
-			)
-			cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
-			cast.collision_mask = body.collision_mask
-			cast.force_shapecast_update()
-			var support := 0.25
-			for collision_index in cast.get_collision_count():
-				var normal := cast.get_collision_normal(collision_index).normalized()
-				var alignment := normal.dot(chassis_up)
-				if alignment > support:
-					support = alignment
-					hit = {
-						"position": cast.get_collision_point(collision_index),
-						"normal": normal,
-						"collider": cast.get_collider(collision_index),
-					}
-			contact_query_count += 1
-			ray_distance = wheel_radii[i] + travel * cast.get_closest_collision_safe_fraction() - bump
+			# Coherencia H2: barrido cilíndrico del MISMO apoyo (aislado si
+			# hay varios). Sin llamada a get_collision_safe_fraction(i):
+			# no existe en Godot 4.7.1.
+			hit = _query_shapecast_contact(body, i, state.transform, chassis_up, bump, travel, steer)
+			ray_distance = float(hit.get("distance", 0.0))
 		if hit.is_empty():
 			# Rama sin impacto (§1): el rig es el escritor único del estado
 			# físico (recorrido/velocidad/contactos) y lo resolverá en
@@ -767,9 +923,20 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"surface": wheel_surfaces[i],
 				"collider": hit.get("collider"),
 				"winter_layer_id": winter_layer_id,
+				"safe_fraction": float(hit.get("safe_fraction", 0.0)),
+				"global_safe_fraction": float(hit.get("global_safe_fraction", hit.get("safe_fraction", 0.0))),
+				"support_index": int(hit.get("collision_index", -1)),
+				"support_alignment": float(hit.get("alignment", 0.0)),
+				"collision_count": int(hit.get("collision_count", 1)),
+				"isolated": bool(hit.get("isolated", false)),
+				"coherent": bool(hit.get("coherent", true)),
+				"verify": hit.get("verify", {}),
+				"query_bump_m": bump,
+				"query_travel_m": travel,
 			}
 		)
 
+	last_contacts = contacts.duplicate(true)
 	var normal_loads := unsprung_rig.solve(
 		state,
 		suspension_model,
@@ -1305,6 +1472,7 @@ func clear_teleport_residual() -> void:
 		wheel_surfaces[i] = "Unknown"
 		last_local_conditions[i] = {}
 		last_puddle_depths_mm[i] = 0.0
+	last_contacts = [{}, {}, {}, {}]
 	contact_query_count = 0
 
 
@@ -1329,6 +1497,7 @@ func sample_suspension_trace() -> Array[Dictionary]:
 		out.append(
 			{
 				"compression_m": suspension_model.compression[i],
+				"hub_travel_m": unsprung_rig.compression_physical_m[i] if i < unsprung_rig.compression_physical_m.size() else suspension_model.compression[i],
 				"compression_velocity_m_s": suspension_model.compression_velocity[i],
 				"geometric_contact": suspension_model.geometric_contact[i],
 				"loaded_contact": suspension_model.contact_active[i],
@@ -1356,6 +1525,48 @@ func sample_tick_trace() -> Array[Dictionary]:
 	return unsprung_rig.last_tick_trace.duplicate(true)
 
 
+## Traza de contacto por rueda §3 (JSON-segura): impacto geométrico, punto,
+## normal, collider (nombre), superficie, distancia usada por la ley radial,
+## fracción segura y apoyo seleccionado, más alcance de consulta. Sirve para
+## capturar plano, pendiente, bordillo y doble superficie y comparar
+## deformación y saltos de carga al cruzar el borde en ambos sentidos.
+func sample_contact_trace() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for i in 4:
+		var c: Dictionary = last_contacts[i] if i < last_contacts.size() else {}
+		var pos: Vector3 = c.get("position", wheel_contact_points[i])
+		var nrm: Vector3 = c.get("normal", wheel_contact_normals[i])
+		var collider_name := ""
+		var collider: Variant = c.get("collider", null)
+		if collider is Node:
+			collider_name = str((collider as Node).name)
+		elif collider != null:
+			collider_name = str(collider)
+		out.append(
+			{
+				"hit": bool(c.get("hit", false)),
+				"position": [pos.x, pos.y, pos.z],
+				"normal": [nrm.x, nrm.y, nrm.z],
+				"collider": collider_name,
+				"surface": str(c.get("surface", wheel_surfaces[i])),
+				"distance_m": float(c.get("distance", 0.0)),
+				"safe_fraction": float(c.get("safe_fraction", 0.0)),
+				"global_safe_fraction": float(c.get("global_safe_fraction", c.get("safe_fraction", 0.0))),
+				"support_index": int(c.get("support_index", -1)),
+				"support_alignment": float(c.get("support_alignment", 0.0)),
+				"collision_count": int(c.get("collision_count", 1)),
+				"isolated": bool(c.get("isolated", false)),
+				"coherent": bool(c.get("coherent", true)),
+				"verify": c.get("verify", {}),
+				"query_bump_m": float(c.get("query_bump_m", 0.0)),
+				"query_travel_m": float(c.get("query_travel_m", 0.0)),
+				"radial_deflection_m": unsprung_rig.radial_deflection_m[i] if i < unsprung_rig.radial_deflection_m.size() else 0.0,
+				"load_n": wheel_loads[i] if i < wheel_loads.size() else 0.0,
+			}
+		)
+	return out
+
+
 ## Reporte de calibración por eje (§3): masa de referencia, frecuencia
 ## efectiva, wheel rate y amortiguamientos vigentes, más precarga estática y
 ## vías delantera/trasera para contrastar suma de cargas y momentos con peso
@@ -1368,6 +1579,7 @@ func suspension_calibration_report() -> Dictionary:
 		axles.append(
 			{
 				"axle": "front" if axle == 0 else "rear",
+				"static_note": "nominal_profile_computed",
 				"reference_mass_kg": float(p.get("frequency_reference_mass_kg", 0.0)),
 				"frequency_hz": float(p.get("ride_frequency_hz", 0.0)),
 				"wheel_rate_n_m": float(p.get("spring_rate", 0.0)),
@@ -1410,6 +1622,7 @@ func reset_dynamics() -> void:
 	wheel_surfaces.fill("Unknown")
 	last_local_conditions = [{}, {}, {}, {}]
 	last_puddle_depths_mm.fill(0.0)
+	last_contacts = [{}, {}, {}, {}]
 	contact_query_count = 0
 	brake_model.smoothed_service_input = 0.0
 	brake_model.smoothed_handbrake_input = 0.0

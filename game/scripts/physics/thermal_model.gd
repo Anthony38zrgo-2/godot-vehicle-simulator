@@ -246,11 +246,9 @@ func reset_for_stage(domains: Dictionary) -> void:
 		var cold: Dictionary = pressure.get("cold_kpa_gauge", {})
 		var cold_bar := float(cold.get(["FL", "FR", "RL", "RR"][i], 180.0)) / 100.0
 		var reference := float(pressure.get("reference_temperature_c", 25.0))
-		var atmosphere := float(pressure.get("atmospheric_pressure_kpa", 101.325)) / 100.0
-		state.pressure_reference_bar_gauge = cold_bar
-		state.pressure_reference_temp_c = reference
-		var healthy_pressure := (cold_bar + atmosphere) * (carcass + 273.15) / (reference + 273.15) - atmosphere
-		state.pressure_bar_gauge = healthy_pressure * (1.0 - float(state.get("pressure_loss_fraction", 0.0)))
+		tire_states[i] = state
+		# Misma función común que el garaje: conserva la pérdida existente.
+		set_pressure_reference(i, cold_bar, reference)
 
 
 func apply_damage(rad_delta: float, eng_delta: float) -> void:
@@ -490,15 +488,66 @@ func advance_tire(index: int, friction_power_w: float, braking_power_w: float, s
 	brake_wear_fraction[index] = clampf(brake_wear_fraction[index] + wear_energy * maxf(float(brake_wear_config.get("wear_per_j", 2.0e-8)), 0.0) * heat_multiplier * NATURAL_WEAR_MULTIPLIER * BRAKE_WEAR_MULTIPLIER, 0.0, 1.0)
 	tire_states[index] = state
 
-func advance_tire_pressure(index: int, dt: float) -> void:
+# Presión manométrica desde referencia en frío (hallazgo 7, §1):
+# única función pura del modelo térmico. Entradas: referencia en frío,
+# temperatura de referencia, temperatura del gas, presión atmosférica y
+# pérdida acumulada. El avance de la fuga va por separado en
+# advance_tire_pressure(); el resto de llamadas (garaje, vivo, reset)
+# solo fijan referencia y recalculan con la pérdida existente.
+static func gauge_pressure_from_reference(
+	cold_bar_gauge: float,
+	reference_temp_c: float,
+	gas_c: float,
+	atmosphere_bar: float,
+	loss_fraction: float
+) -> float:
+	var reference_absolute := float(cold_bar_gauge) + float(atmosphere_bar)
+	var reference_kelvin := maxf(float(reference_temp_c) + 273.15, 1.0)
+	var current_kelvin := maxf(float(gas_c) + 273.15, 1.0)
+	var loss := clampf(float(loss_fraction), 0.0, 1.0)
+	return (1.0 - loss) * clampf(
+		reference_absolute * current_kelvin / reference_kelvin - float(atmosphere_bar),
+		0.0,
+		4.0
+	)
+
+
+# Recalcula la presión manométrica con la referencia, gas y pérdida
+# vigentes, sin avanzar la fuga. Usar tras cambiar referencia o temperatura.
+func recalculate_tire_pressure(index: int) -> void:
+	if index < 0 or index >= tire_states.size():
+		return
 	var state: Dictionary = tire_states[index]
 	var atmosphere_bar := float(_axle_pressure_config(index).get("atmospheric_pressure_kpa", 101.325)) / 100.0
-	var reference_absolute := float(state.pressure_reference_bar_gauge) + atmosphere_bar
-	var reference_kelvin := maxf(float(state.pressure_reference_temp_c) + 273.15, 1.0)
-	var current_kelvin := maxf(float(state.gas_c) + 273.15, 1.0)
-	var pressure_loss := clampf(float(state.get("pressure_loss_fraction", 0.0)) + float(state.get("leak_per_second", 0.0)) * dt, 0.0, 1.0)
+	state.pressure_bar_gauge = gauge_pressure_from_reference(
+		float(state.get("pressure_reference_bar_gauge", 1.8)),
+		float(state.get("pressure_reference_temp_c", 25.0)),
+		float(state.get("gas_c", 25.0)),
+		atmosphere_bar,
+		float(state.get("pressure_loss_fraction", 0.0))
+	)
+	tire_states[index] = state
+
+
+# Fija la referencia en frío y recalcula con la pérdida existente.
+# Conserva gas, fuga acumulada (pressure_loss_fraction) y tasa de fuga
+# (leak_per_second): la rueda montada no pierde ni gana daño por el reglaje.
+func set_pressure_reference(index: int, cold_bar_gauge: float, reference_temp_c: float) -> void:
+	if index < 0 or index >= tire_states.size():
+		return
+	var state: Dictionary = tire_states[index]
+	state.pressure_reference_bar_gauge = float(cold_bar_gauge)
+	state.pressure_reference_temp_c = float(reference_temp_c)
+	tire_states[index] = state
+	recalculate_tire_pressure(index)
+
+
+func advance_tire_pressure(index: int, dt: float) -> void:
+	var state: Dictionary = tire_states[index]
+	var pressure_loss := clampf(float(state.get("pressure_loss_fraction", 0.0)) + float(state.get("leak_per_second", 0.0)) * maxf(dt, 0.0), 0.0, 1.0)
 	state.pressure_loss_fraction = pressure_loss
-	state.pressure_bar_gauge = (1.0 - pressure_loss) * clampf(reference_absolute * current_kelvin / reference_kelvin - atmosphere_bar, 0.0, 4.0)
+	tire_states[index] = state
+	recalculate_tire_pressure(index)
 
 
 func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: float, selected_compound: Dictionary = {}, water_mm: float = 0.0) -> void:

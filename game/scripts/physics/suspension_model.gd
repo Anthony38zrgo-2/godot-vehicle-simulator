@@ -72,13 +72,22 @@ var last_damper_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_bump_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
-## Calibración de muelle y reparto (§3):
+## Calibración de muelle y reparto (§3 + §6):
 ## - `ride_frequency_hz` tiene prioridad cuando se declara en
 ##   `suspension.front/rear`. La rigidez explícita `geometry_physical.*.spring_rate_N_per_m`
 ##   solo actúa como respaldo para derivar la frecuencia por defecto
 ##   (`sqrt(k/m)/TAU`) cuando no hay frecuencia declarada; en ambos casos la
 ##   rigidez vigente es `k = m_ref * (TAU * f)^2` con
 ##   `m_ref = carga_estática_esquina / g`.
+## - Cálculo compartido §6: `corner_rates()` concentra rigidez,
+##   amortiguamiento y tope a partir de (masa de referencia, frecuencia,
+##   factores y multiplicador de tope). `configure()` y el garaje
+##   (`vehicle_simulation.apply_setup_values()`) lo usan con la misma
+##   precedencia de frecuencia declarada; el garaje pasa la masa de
+##   referencia ya calibrada y sus deltas de altura/tope sin recalibrarla.
+##   Geometría y límites de joints quedan fuera de este cálculo; si se editan
+##   bump/droop en vivo, actualizar de forma coordinada parámetros, alcance
+##   de contacto y límites de juntas.
 ## - Por eje se registran (traza RALLY_SUSPENSION_FREQUENCY): masa suspendida
 ##   de referencia, frecuencia efectiva, wheel rate `k` y coeficientes
 ##   `c_bump/c_rebound = 2*sqrt(k*m_ref)*zeta*mult`.
@@ -88,6 +97,70 @@ var last_bump_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 ##   cargas y sus momentos debe contrastarse con peso y COM del vehículo
 ##   completo; si se ajusta precarga, conservar equilibrio total y
 ##   longitudinal y frecuencias vigentes dentro de tolerancia.
+## H3: el llamante debe distinguir ausente (sin clave → respaldo) de
+## declarado (con clave → validación estricta en configure()). Esta ayuda
+## solo resuelve el caso ausente (null sin clave); un valor declarado pero
+## inválido NUNCA debe silenciarse aquí: configure() lo rechaza con error
+## de eje y campo. Se conserva por compatibilidad para llamadas ya
+## discriminadas (los bool se tratan como ausentes por legado, no como 0/1).
+static func resolve_corner_frequency_hz(
+	declared_hz: Variant,
+	fallback_rate_n_per_m: float,
+	reference_mass_kg: float
+) -> float:
+	var ref := maxf(float(reference_mass_kg), 0.001)
+	if (declared_hz is int or declared_hz is float) and not (declared_hz is bool):
+		var f := float(declared_hz)
+		if is_finite(f) and f > 0.0:
+			return f
+	return sqrt(maxf(float(fallback_rate_n_per_m), 0.001) / ref) / TAU
+
+
+static func _describe_value(value: Variant) -> String:
+	if value == null:
+		return "null"
+	if value is bool:
+		return "bool"
+	if value is int:
+		return "int"
+	if value is float:
+		return "float"
+	if value is String:
+		return "string"
+	if value is Array:
+		return "array"
+	if value is Dictionary:
+		return "dictionary"
+	return "object"
+
+
+## Cálculo común §6: rigidez, amortiguamiento crítico y topes.
+## Entradas explícitas; sin leer dominios ni estado global.
+static func corner_rates(
+	reference_mass_kg: float,
+	frequency_hz: float,
+	damping_ratio: float,
+	bump_multiplier: float,
+	rebound_multiplier: float,
+	bump_stop_multiplier: float
+) -> Dictionary:
+	var ref := maxf(float(reference_mass_kg), 0.001)
+	var freq := maxf(float(frequency_hz), 0.01)
+	var zeta := maxf(float(damping_ratio), 0.0)
+	var spring_rate := ref * pow(TAU * freq, 2.0)
+	var critical := 2.0 * sqrt(spring_rate * ref)
+	return {
+		"spring_rate": spring_rate,
+		"critical_damping": critical,
+		"bump_damping": critical * zeta * float(bump_multiplier),
+		"rebound_damping": critical * zeta * float(rebound_multiplier),
+		"bump_stop_stiffness": spring_rate * float(bump_stop_multiplier) * 8.0,
+	}
+
+
+## Barra estabilizadora: rigidez = wheel rate * ratio geométrico.
+static func arb_stiffness_n_per_m(wheel_rate_n_per_m: float, ratio: float) -> float:
+	return maxf(float(wheel_rate_n_per_m), 0.0) * float(ratio)
 func configure(
 	domains: Dictionary,
 	chassis_geometry: Dictionary,
@@ -136,22 +209,39 @@ func configure(
 		var values: Dictionary = axle_docs[i]
 		var axle := "front" if i < 2 else "rear"
 		var corner_tune: Dictionary = suspension_doc.get(axle, { })
-		var spring_rate := float(values.get("spring_rate_N_per_m", 1.0))
-		if spring_rate <= 0.0:
+		var fallback_rate := float(values.get("spring_rate_N_per_m", 1.0))
+		if fallback_rate <= 0.0:
 			return { "ok": false, "error": axle + " suspension spring rate must be positive." }
 		var spring_free_length := float(
 			values.get("spring_free_length_m", corner_tune.get("spring_length", 0.3))
 		)
 		var static_load := total_mass * gravity * float(axle_fractions[i]) * 0.5
 		var reference_mass := static_load / maxf(gravity, 0.001)
-		var frequency := float(
-			corner_tune.get("ride_frequency_hz", sqrt(spring_rate / reference_mass) / TAU)
-		)
+		# H3: distinguir ausente (respaldo) de declarado (validación estricta).
+		# Solo si falta el campo se usa la rigidez de respaldo; declarado
+		# exige número positivo y finito, o error con eje y campo.
+		var frequency := 0.0
+		if not corner_tune.has("ride_frequency_hz"):
+			frequency = sqrt(maxf(fallback_rate, 0.001) / maxf(reference_mass, 0.001)) / TAU
+		else:
+			var declared: Variant = corner_tune.get("ride_frequency_hz")
+			if declared is bool or not (declared is int or declared is float):
+				return { "ok": false, "error": axle + " suspension.ride_frequency_hz must be a positive finite number, got " + _describe_value(declared) + "." }
+			var fval := float(declared)
+			if not is_finite(fval) or fval <= 0.0:
+				return { "ok": false, "error": axle + " suspension.ride_frequency_hz must be a positive finite number." }
+			frequency = fval
 		if not is_finite(frequency) or frequency <= 0.0:
-			return { "ok": false, "error": axle + " ride frequency must be positive and finite." }
-		spring_rate = reference_mass * pow(TAU * frequency, 2.0)
-		var critical_damping := 2.0 * sqrt(spring_rate * reference_mass)
-		var damping_ratio := maxf(float(corner_tune.get("damping_ratio", 0.65)), 0.0)
+			return { "ok": false, "error": axle + " suspension.ride_frequency_hz must be positive and finite." }
+		var rates := corner_rates(
+			reference_mass,
+			frequency,
+			float(corner_tune.get("damping_ratio", 0.65)),
+			float(corner_tune.get("bump_damp_multiplier", 1.0)),
+			float(corner_tune.get("rebound_damp_multiplier", 1.0)),
+			float(values.get("bump_stop_mult", 1.0))
+		)
+		var spring_rate: float = rates["spring_rate"]
 		var unsprung: Array = resolved_mass.get("unsprung_mass_kg", [0.0, 0.0, 0.0, 0.0])
 		static_corner_loads_n[i] = static_load + float(unsprung[i]) * gravity
 		axle_parameters.append(
@@ -164,14 +254,12 @@ func configure(
 				"installed_length": float(
 					values.get("spring_installed_length_m", spring_free_length)
 				),
-				"bump_damping": critical_damping * damping_ratio
-				* float(corner_tune.get("bump_damp_multiplier", 1.0)),
-				"rebound_damping": critical_damping * damping_ratio
-				* float(corner_tune.get("rebound_damp_multiplier", 1.0)),
+				"bump_damping": float(rates["bump_damping"]),
+				"rebound_damping": float(rates["rebound_damping"]),
 				"fast_factor": float(values.get("damper_fast_factor", 1.0)),
 				"knee_speed": float(values.get("damper_knee_m_per_s", INF)),
 				"bump_stop_travel": float(values.get("bump_stop_travel_m", 0.0)),
-				"bump_stop_stiffness": spring_rate * float(values.get("bump_stop_mult", 1.0)) * 8.0,
+				"bump_stop_stiffness": float(rates["bump_stop_stiffness"]),
 				"bump_stop_damping": float(values.get("bump_stop_damper_Ns_per_m", 0.0)),
 				"bump_m": float(values.get("wheel_bump_m", 0.22)),
 				"droop_m": float(values.get("wheel_droop_m", 0.18)),
@@ -186,11 +274,13 @@ func configure(
 				"rest_compression_offset": 0.0,
 			}
 		)
-	front_arb_stiffness_n_per_m = float(axle_parameters[0].spring_rate) * float(
-		front_arb.get("ratio", 0.0)
+	front_arb_stiffness_n_per_m = arb_stiffness_n_per_m(
+		float(axle_parameters[0].spring_rate),
+		float(front_arb.get("ratio", 0.0))
 	)
-	rear_arb_stiffness_n_per_m = float(axle_parameters[2].spring_rate) * float(
-		rear_arb.get("ratio", 0.0)
+	rear_arb_stiffness_n_per_m = arb_stiffness_n_per_m(
+		float(axle_parameters[2].spring_rate),
+		float(rear_arb.get("ratio", 0.0))
 	)
 	print(
 		"RALLY_SUSPENSION_FREQUENCY ",
