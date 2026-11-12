@@ -543,34 +543,14 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		powertrain_model.maximum_forward_gear = powertrain_model.gear_ratios.size()
 	if powertrain.has("reverse_ratio"):
 		powertrain_model.reverse_ratio = -absf(float(powertrain.get("reverse_ratio", powertrain_model.reverse_ratio)))
-	powertrain_model.differential_preload_nm = float(
-		differential.get("preload_nm", powertrain_model.differential_preload_nm)
-	)
-	powertrain_model.differential_power_ratio = maxf(
-		float(differential.get("clutch_friction_coefficient", powertrain_model.differential_power_ratio)),
-		0.0
-	)
-	powertrain_model.differential_coast_ratio = maxf(
-		float(differential.get("coast_friction_coefficient", powertrain_model.differential_power_ratio)),
-		0.0
-	)
-	powertrain_model.differential_power_ramp_angle_deg = float(
-		differential.get("power_ramp_angle_deg", powertrain_model.differential_power_ramp_angle_deg)
-	)
-	powertrain_model.differential_coast_ramp_angle_deg = float(
-		differential.get("coast_ramp_angle_deg", powertrain_model.differential_coast_ramp_angle_deg)
-	)
-	powertrain_model.differential_clutches = float(
-		differential.get("clutches", powertrain_model.differential_clutches)
-	)
-	powertrain_model.differential_slip_transition_threshold_rad_s = maxf(
-		float(
-			differential.get(
-				"slip_transition_threshold_rad_s",
-				powertrain_model.differential_slip_transition_threshold_rad_s,
-			)
-		),
-		0.01,
+	# Sincronía de diferenciales (hallazgo 3): en AWD cada eje se alimenta
+	# de su bloque (differential_front/rear); en FWD/RWD el bloque histórico
+	# alimenta el espejo y el eje motriz. Los bloques llegan validados del
+	# perfil o acotados del garaje; uno inválido conserva los valores en curso.
+	powertrain_model.sync_setup_differentials(
+		differential,
+		powertrain.get("differential_front", null),
+		powertrain.get("differential_rear", null)
 	)
 	powertrain_model.engine_rpm = minf(
 		powertrain_model.engine_rpm,
@@ -1112,6 +1092,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"autoblip_throttle": powertrain_model.autoblip_throttle,
 		"freewheel_active": powertrain_model.freewheel_active,
 		"freewheel_enabled": powertrain_model.freewheel_enabled,
+		"freewheel_throttle": powertrain_model.freewheel_throttle,
+		"freewheel_delta_rad_s": powertrain_model.freewheel_delta_rad_s,
 		"final_drive": powertrain_model.final_drive_ratio,
 		"shift_phase": powertrain_model.shift_phase,
 		"pending_gear": powertrain_model.pending_gear,
@@ -1161,6 +1143,16 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"lsd_capacity_nm": powertrain_model.last_lsd_capacity_nm,
 			"lsd_torque_nm": powertrain_model.last_lsd_torque_nm,
 			"lsd_saturation": powertrain_model.last_lsd_saturation,
+			"front_type": powertrain_model.front_differential_type,
+			"front_diff_speed_rad_s": powertrain_model.last_front_diff_speed_rad_s,
+			"front_lsd_capacity_nm": powertrain_model.last_front_lsd_capacity_nm,
+			"front_lsd_torque_nm": powertrain_model.last_front_lsd_torque_nm,
+			"front_lsd_saturation": powertrain_model.last_front_lsd_saturation,
+			"rear_type": powertrain_model.rear_differential_type,
+			"rear_diff_speed_rad_s": powertrain_model.last_rear_diff_speed_rad_s,
+			"rear_lsd_capacity_nm": powertrain_model.last_rear_lsd_capacity_nm,
+			"rear_lsd_torque_nm": powertrain_model.last_rear_lsd_torque_nm,
+			"rear_lsd_saturation": powertrain_model.last_rear_lsd_saturation,
 		},
 	}
 
@@ -1316,6 +1308,7 @@ func reset_dynamics() -> void:
 	powertrain_model.engine_rpm = powertrain_model.idle_rpm
 	powertrain_model.reset_shift()
 	powertrain_model.engine_torque_nm = 0.0
+	powertrain_model.engine_requested_torque_nm = 0.0
 	powertrain_model.engine_attack_limited_torque_nm = 0.0
 	powertrain_model.clutch_engagement = 0.0
 	powertrain_model.clutch_torque_nm = 0.0

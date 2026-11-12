@@ -64,9 +64,13 @@ static func load_profile(manifest_path: String) -> Dictionary:
 	var inventory: Dictionary = domains["chassis"].get("physical_mass_inventory", {})
 	if not inventory.get("components", []) is Array or inventory.get("components", []).is_empty():
 		return _failure("chassis.physical_mass_inventory.components is required.")
-	var powertrain: Dictionary = domains["powertrain"].get("powertrain", {})
-	if not powertrain.get("gear_ratios", []) is Array or powertrain.get("gear_ratios", []).is_empty():
-		return _failure("powertrain.gear_ratios is required.")
+	# Validación temprana del tren motriz (plan §3): max_torque explícito,
+	# final efectiva, marchas, curva, elasticidad y tipos de diferencial por
+	# eje. Los errores identifican campo e índice; configure() repite la
+	# validación de forma atómica antes de aplicar.
+	var powertrain_check := VehiclePowertrainModel.validate_powertrain_config(domains)
+	if not bool(powertrain_check.get("ok", false)):
+		return _failure(str(powertrain_check.get("error", "invalid powertrain")))
 
 	if domains.has("damage"):
 		var damage_validation := _validate_damage_domain(domains["damage"])
