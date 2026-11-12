@@ -1,2 +1,0 @@
-raura_stage2_visual.glb filter=lfs diff=lfs merge=lfs -text
-raura_stage2_collision.glb filter=lfs diff=lfs merge=lfs -text

@@ -1,5 +1,0 @@
-# These Godot import settings preserve collision precision and texture IDs.
-!raura_stage2_collision.glb.import
-!raura_stage2_visual.glb.import
-!raura_stage2_visual_sentinel.png.import
-!raura_stage2_visual_*.png.import
