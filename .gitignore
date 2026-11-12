@@ -25,3 +25,8 @@ acl-recovery/
 archive/
 .uv-install*.log
 _tmp_*
+
+# Modelos pesados generados localmente (excluidos de Git remoto)
+game/assets/rally/raura_stage2/*.glb
+game/assets/rally/raurasr_stage2/*.glb
+tools/rally/stage_gis/raura_quichas_gis/output/*.blend
