@@ -13,6 +13,7 @@ const BOLD := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const DIN := preload("res://fonts/D-DIN.ttf")
 const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
+const RallyHeldPartPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
 
 # 2.3. Paleta Workbench Motorsport (Ventana Pausa / Inventario)
 const WB_BG_SHELL := Color("#090e15")
@@ -731,6 +732,11 @@ func load_spare(compound: String) -> void:
 		show_inventory()
 		return
 	var vehicle = session.vehicle
+	# Pool de 10: sin reposición, solo mover entre maletera/parque en servicio.
+	if vehicle.tire_inventory != null and vehicle.tire_inventory.has_method("is_pool_mode") and vehicle.tire_inventory.is_pool_mode():
+		notice = "Pool de 10: sin reposición en tramo. Gestiona tus %d ruedas restantes." % vehicle.tire_inventory.total_count()
+		show_inventory()
+		return
 	if session.may_service_tires() and vehicle.tire_inventory.spares.size() < vehicle.tire_inventory.capacity:
 		vehicle.tire_inventory.spares.append(vehicle.tire_inventory.item(compound, vehicle.fresh_tire_state(compound)))
 		vehicle.apply_tire_inventory()
@@ -840,7 +846,10 @@ func _update_telemetry_panel() -> void:
 			grid.add_child(lbl)
 
 		var spares_info := Label.new()
-		spares_info.text = "Repuestos disponibles: %d de %d" % [inv.spares.size(), inv.capacity]
+		if inv.has_method("is_pool_mode") and inv.is_pool_mode():
+			spares_info.text = "Repuestos: %d de %d · Quedan %d / 10 en el rally" % [inv.spares.size(), inv.capacity, inv.total_count()]
+		else:
+			spares_info.text = "Repuestos disponibles: %d de %d" % [inv.spares.size(), inv.capacity]
 		spares_info.add_theme_font_override("font", FONT)
 		spares_info.add_theme_font_size_override("font_size", 11)
 		spares_info.add_theme_color_override("font_color", C_CHROME_DIM)
@@ -1441,6 +1450,9 @@ class WheelSlotControl extends PanelContainer:
 	func _get_drag_data(_at_position: Vector2) -> Variant:
 		if is_empty or tire_data.is_empty():
 			return null
+		var holder := RallyHeldPartPreviewScript.new()
+		holder.custom_minimum_size = Vector2(140, 40)
+		holder.size = Vector2(140, 40)
 		var preview := PanelContainer.new()
 		var p_sb := StyleBoxFlat.new()
 		p_sb.bg_color = Color(panel_ref.C_GLASS, 0.95)
@@ -1455,7 +1467,12 @@ class WheelSlotControl extends PanelContainer:
 		p_lbl.add_theme_font_size_override("font_size", 11)
 		p_lbl.add_theme_color_override("font_color", panel_ref.C_GOLD_HI)
 		preview.add_child(p_lbl)
-		set_drag_preview(preview)
+		preview.custom_minimum_size = Vector2(140, 40)
+		preview.size = Vector2(140, 40)
+		holder.model_view = preview
+		# model_view debe entrar al árbol con el holder para que _ready lo centre.
+		holder.add_child(preview)
+		set_drag_preview(holder)
 		return {"source_type": slot_type, "index": slot_index, "tire": tire_data}
 
 	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:

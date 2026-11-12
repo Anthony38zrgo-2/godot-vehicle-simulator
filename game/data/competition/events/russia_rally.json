@@ -207,7 +207,10 @@
       "gravel_wet"
     ],
     "default_compound_id": "gravel_normal",
-    "fitment": "same_compound_all_wheels",
+    "fitment": "mixed_allowed",
+    "total_pool_size": 10,
+    "forecast_accuracy": 0.8,
+    "service_costs": {"inflate": 2, "rim": 5, "wheel_change": 1},
     "start_temperature_policy": "selected_compound_optimum"
   },
   "setup_windows": [

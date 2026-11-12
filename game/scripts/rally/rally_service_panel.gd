@@ -22,6 +22,7 @@ const WB_TEXT_DATA := Color("#ffffff")
 const ACCENT_RALLY := Color("#e5a93c")
 const STATUS_DANGER := Color("#ef4444")
 const STATUS_SUCCESS := Color("#22c55e")
+const C_BLUE := Color("#60a5fa")
 
 const PARTS := {
 	"engine": ["Motor", 45.0],
@@ -37,11 +38,15 @@ const PARTS := {
 var vehicle
 var manager
 var rows: Array[Dictionary] = []
+var tire_actions: Array[Dictionary] = []
 var summary: Label
+var time_bar: ProgressBar
 var commit: Button
 var limit_minutes := 30.0
 var penalty_per_minute := 10
 var window_key := ""
+var cost_inflate := 2
+var cost_rim := 5
 
 func _load_bg_texture() -> Texture2D:
 	if BG_IMAGE_PATHS.is_empty():
@@ -59,6 +64,13 @@ func _load_bg_texture() -> Texture2D:
 			return ImageTexture.create_from_image(img)
 	return null
 
+func _service_costs(window: Dictionary) -> Dictionary:
+	# Prioridad: ventana JSON > tire_rules del evento > valores del plan (2/5/1).
+	var costs: Dictionary = (window.get("service_costs", {}) as Dictionary).duplicate()
+	if costs.is_empty() and manager != null and (manager as RallyEventManager).event_doc.has("tire_rules"):
+		costs = (((manager as RallyEventManager).event_doc.get("tire_rules", {}) as Dictionary).get("service_costs", {}) as Dictionary).duplicate()
+	return {"inflate": int(costs.get("inflate", 2)), "rim": int(costs.get("rim", 5)), "wheel_change": int(costs.get("wheel_change", 1))}
+
 func open(car, event_manager, window: Dictionary) -> void:
 	var music := get_node_or_null("/root/RallyMusic")
 	if music != null and music.has_method("on_enter_service"):
@@ -72,6 +84,9 @@ func open(car, event_manager, window: Dictionary) -> void:
 	window_key = str(window.get("window_key", ""))
 	limit_minutes = maxf(float(window.get("repair_minutes", 30.0)), 0.0)
 	penalty_per_minute = maxi(int(window.get("repair_penalty_seconds_per_minute", 10)), 0)
+	var costs := _service_costs(window)
+	cost_inflate = int(costs.get("inflate", 2))
+	cost_rim = int(costs.get("rim", 5))
 	layer = 110
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -96,7 +111,7 @@ func open(car, event_manager, window: Dictionary) -> void:
 	modal_card.offset_top = 32
 	modal_card.offset_bottom = -32
 	var card_sb := StyleBoxFlat.new()
-	card_sb.bg_color = Color(WB_BG_CONTENT.r, WB_BG_CONTENT.g, WB_BG_CONTENT.b, 0.65)
+	card_sb.bg_color = Color(WB_BG_CONTENT.r, WB_BG_CONTENT.g, WB_BG_CONTENT.b, 0.92)
 	card_sb.border_color = WB_BORDER_SUBTLE
 	card_sb.set_border_width_all(1)
 	card_sb.set_corner_radius_all(6)
@@ -109,49 +124,100 @@ func open(car, event_manager, window: Dictionary) -> void:
 	shade.add_child(modal_card)
 
 	var panel := VBoxContainer.new()
-	panel.add_theme_constant_override("separation", 12)
+	panel.add_theme_constant_override("separation", 10)
 	modal_card.add_child(panel)
 
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 16)
+	panel.add_child(header)
 	var title := Label.new()
 	title.text = "ÁREA DE SERVICIO · REPARACIONES"
 	title.add_theme_font_override("font", FONT_TITLE)
 	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", WB_TEXT_TITLE)
-	panel.add_child(title)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	var weather_label := Label.new()
+	weather_label.text = _weather_text()
+	weather_label.add_theme_font_override("font", FONT_REGULAR)
+	weather_label.add_theme_font_size_override("font_size", 12)
+	weather_label.add_theme_color_override("font_color", C_BLUE)
+	header.add_child(weather_label)
 
 	var hint := Label.new()
-	hint.text = "Marca las piezas a reparar. Neumáticos y rines se gestionan por separado.\nExceso: %d s de penalización por minuto iniciado." % penalty_per_minute
+	hint.text = "Marca las piezas a reparar. Pinchazo %d min · Rin %d min · Destalonado irreparable.\nExceso: %d s de penalización por minuto iniciado." % [cost_inflate, cost_rim, penalty_per_minute]
 	hint.add_theme_font_override("font", FONT_REGULAR)
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.add_theme_color_override("font_color", WB_TEXT_LABEL)
 	panel.add_child(hint)
 
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(scroll)
+	# Barra gráfica de presupuesto (plan §5).
+	time_bar = ProgressBar.new()
+	time_bar.max_value = maxf(limit_minutes, 1.0)
+	time_bar.value = 0
+	time_bar.show_percentage = false
+	time_bar.custom_minimum_size = Vector2(0, 12)
+	panel.add_child(time_bar)
 
-	var list := VBoxContainer.new()
-	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list.add_theme_constant_override("separation", 6)
-	scroll.add_child(list)
+	var hsplit := HBoxContainer.new()
+	hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hsplit.add_theme_constant_override("separation", 20)
+	panel.add_child(hsplit)
+
+	var tire_box := VBoxContainer.new()
+	tire_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tire_box.add_theme_constant_override("separation", 6)
+	var tire_title := Label.new()
+	tire_title.text = "RUEDAS Y NEUMÁTICOS"
+	tire_title.add_theme_font_override("font", FONT_TITLE)
+	tire_title.add_theme_font_size_override("font_size", 13)
+	tire_title.add_theme_color_override("font_color", ACCENT_RALLY)
+	tire_box.add_child(tire_title)
+	var tire_scroll := ScrollContainer.new()
+	tire_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tire_box.add_child(tire_scroll)
+	var tire_list := VBoxContainer.new()
+	tire_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tire_list.add_theme_constant_override("separation", 6)
+	tire_scroll.add_child(tire_list)
+	hsplit.add_child(tire_box)
+	_build_tire_repairs(tire_list)
+
+	var mech_box := VBoxContainer.new()
+	mech_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mech_box.add_theme_constant_override("separation", 6)
+	var mech_title := Label.new()
+	mech_title.text = "MECÁNICA Y CARROCERÍA"
+	mech_title.add_theme_font_override("font", FONT_TITLE)
+	mech_title.add_theme_font_size_override("font_size", 13)
+	mech_title.add_theme_color_override("font_color", ACCENT_RALLY)
+	mech_box.add_child(mech_title)
+	var mech_scroll := ScrollContainer.new()
+	mech_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mech_box.add_child(mech_scroll)
+	var mech_list := VBoxContainer.new()
+	mech_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mech_list.add_theme_constant_override("separation", 6)
+	mech_scroll.add_child(mech_list)
+	hsplit.add_child(mech_box)
 
 	var damage: Dictionary = vehicle.damage_snapshot()
 	for key in PARTS:
 		var amount := float(damage.get(key, 0.0)) if key in ["engine", "radiator", "transmission"] else (1.0 if bool(damage.get("visual", {}).get(key, false)) else 0.0)
-		_add_row(list, key, str(PARTS[key][0]), amount, float(PARTS[key][1]))
+		_add_row(mech_list, key, str(PARTS[key][0]), amount, float(PARTS[key][1]))
 	for i in 4:
 		var code: String = ["DI", "DD", "TI", "TD"][i]
 		var wear := float(vehicle.simulation.thermal_model.brake_wear_fraction[i])
 		var collision := float(vehicle.simulation.brake_collision_loss[i])
-		_add_row(list, "brake_%d" % i, "Freno " + code, 1.0 - (1.0 - wear) * (1.0 - collision), 15.0)
-		_add_row(list, "alignment_%d" % i, "Alineación / suspensión " + code, float(vehicle.simulation.alignment_collision_damage[i]), 12.0)
-	if rows.is_empty():
+		_add_row(mech_list, "brake_%d" % i, "Freno " + code, 1.0 - (1.0 - wear) * (1.0 - collision), 15.0)
+		_add_row(mech_list, "alignment_%d" % i, "Alineación / suspensión " + code, float(vehicle.simulation.alignment_collision_damage[i]), 12.0)
+	if rows.is_empty() and tire_actions.is_empty():
 		var healthy := Label.new()
 		healthy.text = "No hay componentes que necesiten reparación."
 		healthy.add_theme_font_override("font", FONT_REGULAR)
 		healthy.add_theme_font_size_override("font_size", 12)
 		healthy.add_theme_color_override("font_color", STATUS_SUCCESS)
-		list.add_child(healthy)
+		mech_list.add_child(healthy)
 
 	summary = Label.new()
 	summary.add_theme_font_override("font", FONT_DATA_BOLD)
@@ -180,10 +246,124 @@ func open(car, event_manager, window: Dictionary) -> void:
 	panel.add_child(commit)
 
 	_refresh()
-	if not rows.is_empty():
+	if not tire_actions.is_empty():
+		(tire_actions[0].box as CheckBox).grab_focus()
+	elif not rows.is_empty():
 		(rows[0].box as CheckBox).grab_focus()
 	else:
 		commit.grab_focus()
+
+func _weather_text() -> String:
+	if manager == null or (manager as RallyEventManager).weather_schedule.is_empty():
+		return "CLIMA: —"
+	var em := manager as RallyEventManager
+	var cur := "—"
+	var nxt := "—"
+	if em.cursor >= 0 and em.cursor < em.weather_schedule.size():
+		var cw := RallyWeatherScheduler.get_stage_dominant_weather(em.weather_schedule[em.cursor])
+		cur = "%s %s %0.0f°C" % [str(cw.get("icon", "")), str(cw.get("name", "")), float(cw.get("temp_c", 18.0))]
+	if em.cursor + 1 >= 0 and em.cursor + 1 < em.stage_forecasts.size():
+		var nw: Dictionary = (em.stage_forecasts[em.cursor + 1] as Dictionary).get("weather", {})
+		nxt = "%s %s %0.0f°C (~80%%)" % [str(nw.get("icon", "")), str(nw.get("name", "")), float(nw.get("temp_c", 15.0))]
+	elif em.cursor + 1 >= 0 and em.cursor + 1 < em.weather_schedule.size():
+		var nw2 := RallyWeatherScheduler.get_stage_dominant_weather(em.weather_schedule[em.cursor + 1])
+		nxt = "%s %s %0.0f°C" % [str(nw2.get("icon", "")), str(nw2.get("name", "")), float(nw2.get("temp_c", 15.0))]
+	return "ACTUAL: %s  |  SIGUIENTE: %s" % [cur, nxt]
+
+func _build_tire_repairs(list: VBoxContainer) -> void:
+	if vehicle == null or vehicle.tire_inventory == null:
+		return
+	vehicle.sync_tire_inventory()
+	var inv: RallyTireInventory = vehicle.tire_inventory
+	var wheel_names := ["DELANTERA IZQ (FL)", "DELANTERA DER (FR)", "TRASERA IZQ (RL)", "TRASERA DER (RR)"]
+	for i in mini(inv.mounted.size(), 4):
+		var tire: Dictionary = inv.mounted[i]
+		_add_tire_row(list, wheel_names[i], tire)
+	for i in inv.spares.size():
+		var tire: Dictionary = inv.spares[i]
+		_add_tire_row(list, "MALETERA #%d" % (i + 1), tire)
+	# Mostrar parque solo en lectura para decidir (el cambio de rueda se hace en garaje).
+	for i in inv.service_stock.size():
+		var tire: Dictionary = inv.service_stock[i]
+		_add_stock_row(list, "PARQUE #%d" % (i + 1), tire)
+
+func _tire_status(inv: RallyTireInventory, tire: Dictionary) -> String:
+	if inv.is_carcass_destroyed(tire):
+		return "DESTALONADO (IRREPARABLE)"
+	if inv.is_punctured(tire) and inv.is_rim_damaged(tire):
+		return "PINCHADO + RIN DAÑADO"
+	if inv.is_punctured(tire):
+		return "PINCHADO"
+	if inv.is_rim_damaged(tire):
+		return "RIN DAÑADO"
+	return "OK"
+
+func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) -> void:
+	var inv: RallyTireInventory = vehicle.tire_inventory
+	var tire_id := int(tire.get("id", 0))
+	var cid := str(tire.get("compound_id", "gravel_normal"))
+	var state: Dictionary = tire.get("state", {})
+	var wear := float(state.get("wear_fraction", 0.0)) * 100.0
+	var status := _tire_status(inv, tire)
+	var is_dest := inv.is_carcass_destroyed(tire)
+	var is_punc := inv.is_punctured(tire)
+	var is_rim := inv.is_rim_damaged(tire)
+	var row_box := PanelContainer.new()
+	var rsb := StyleBoxFlat.new()
+	rsb.bg_color = Color(0.08, 0.12, 0.17, 0.7)
+	rsb.set_corner_radius_all(4)
+	rsb.content_margin_left = 10
+	rsb.content_margin_right = 10
+	rsb.content_margin_top = 8
+	rsb.content_margin_bottom = 8
+	row_box.add_theme_stylebox_override("panel", rsb)
+	list.add_child(row_box)
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	row_box.add_child(hbox)
+	var info := Label.new()
+	info.text = "🛞 %s (#%d · %s)\nDesgaste: %0.0f%% | %s" % [slot_label, tire_id, cid.to_upper(), wear, status]
+	info.add_theme_font_override("font", FONT_REGULAR)
+	info.add_theme_font_size_override("font_size", 11)
+	info.add_theme_color_override("font_color", STATUS_DANGER if status != "OK" else WB_TEXT_TITLE)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(info)
+	if is_dest:
+		var dest_lbl := Label.new()
+		dest_lbl.text = "NO REPARABLE"
+		dest_lbl.add_theme_color_override("font_color", STATUS_DANGER)
+		dest_lbl.add_theme_font_override("font", FONT_DATA_BOLD)
+		dest_lbl.add_theme_font_size_override("font_size", 10)
+		hbox.add_child(dest_lbl)
+		return
+	if is_punc:
+		var cb := CheckBox.new()
+		cb.text = "Inflar (%d min)" % cost_inflate
+		cb.add_theme_font_override("font", FONT_REGULAR)
+		cb.add_theme_font_size_override("font_size", 11)
+		hbox.add_child(cb)
+		tire_actions.append({"kind": "inflate", "tire_id": tire_id, "minutes": cost_inflate, "box": cb})
+		cb.toggled.connect(func(_on: bool): _refresh())
+	if is_rim:
+		var cb2 := CheckBox.new()
+		cb2.text = "Rin (%d min)" % cost_rim
+		cb2.add_theme_font_override("font", FONT_REGULAR)
+		cb2.add_theme_font_size_override("font_size", 11)
+		hbox.add_child(cb2)
+		tire_actions.append({"kind": "rim", "tire_id": tire_id, "minutes": cost_rim, "box": cb2})
+		cb2.toggled.connect(func(_on: bool): _refresh())
+
+func _add_stock_row(list: VBoxContainer, slot_label: String, tire: Dictionary) -> void:
+	var inv: RallyTireInventory = vehicle.tire_inventory
+	var cid := str(tire.get("compound_id", "gravel_normal"))
+	var wear := float((tire.get("state", {}) as Dictionary).get("wear_fraction", 0.0)) * 100.0
+	var status := _tire_status(inv, tire)
+	var lbl := Label.new()
+	lbl.text = "🛞 %s (#%d · %s) · %0.0f%% · %s" % [slot_label, int(tire.get("id", 0)), cid.to_upper(), wear, status]
+	lbl.add_theme_font_override("font", FONT_REGULAR)
+	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_color_override("font_color", WB_TEXT_LABEL)
+	list.add_child(lbl)
 
 func _add_row(list: VBoxContainer, key: String, title: String, damage: float, full_minutes: float) -> void:
 	if damage <= 0.0001:
@@ -201,23 +381,44 @@ func _add_row(list: VBoxContainer, key: String, title: String, damage: float, fu
 func _minutes() -> int:
 	var total := 0
 	for row in rows:
-		if row.box.button_pressed:
+		if (row.box as CheckBox).button_pressed:
 			total += int(row.minutes)
+	for tact in tire_actions:
+		if (tact.box as CheckBox).button_pressed:
+			total += int(tact.minutes)
 	return total
 
 func _refresh() -> void:
+	if summary == null:
+		return
 	var total := _minutes()
 	var excess := maxi(0, ceili(float(total) - limit_minutes))
-	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, excess, excess * penalty_per_minute]
+	var remaining := maxi(0, ceili(limit_minutes - float(total)))
+	if time_bar != null:
+		time_bar.max_value = maxf(limit_minutes, 1.0)
+		time_bar.value = mini(total, int(limit_minutes))
+	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Restan: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, remaining, excess, excess * penalty_per_minute]
 	summary.add_theme_color_override("font_color", STATUS_DANGER if excess > 0 else STATUS_SUCCESS)
 
 func _commit() -> void:
 	commit.disabled = true
 	var keys: Array[String] = []
 	for row in rows:
-		if row.box.button_pressed:
+		if (row.box as CheckBox).button_pressed:
 			keys.append(str(row.key))
 	vehicle.repair_service_components(keys)
+	# Reparaciones de goma conservando desgaste; destalonado nunca entra aquí.
+	var inv: RallyTireInventory = vehicle.tire_inventory
+	for tact in tire_actions:
+		if (tact.box as CheckBox).button_pressed:
+			var tire := inv.find_tire(int(tact.tire_id))
+			if tire.is_empty():
+				continue
+			if str(tact.kind) == "inflate":
+				inv.repair_puncture(tire)
+			elif str(tact.kind) == "rim":
+				inv.repair_rim(tire)
+	vehicle.apply_tire_inventory()
 	var excess := maxi(0, ceili(float(_minutes()) - limit_minutes))
 	var stage: String = manager.current_stage_id()
 	manager.service_penalties_ms[stage] = int(manager.service_penalties_ms.get(stage, 0)) + excess * penalty_per_minute * 1000
@@ -228,4 +429,3 @@ func _commit() -> void:
 	manager.save()
 	confirmed.emit()
 	queue_free()
-

@@ -358,34 +358,10 @@ func _input(event: InputEvent) -> void:
 			_: return
 		get_viewport().set_input_as_handled()
 
-class PartDragPreview extends Control:
-	const SPRING_FREQUENCY := 18.0
-	const MAX_LAG := 36.0
-	var model_view: SubViewportContainer
-	var pivot: Node3D
-	var previous_mouse: Vector2
-	var displacement := Vector2.ZERO
-	var velocity := Vector2.ZERO
+const HeldPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
 
-	func _ready() -> void:
-		process_mode = Node.PROCESS_MODE_ALWAYS
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		previous_mouse = get_global_mouse_position()
-		model_view.position = -model_view.size * 0.5
-
-	func _process(delta: float) -> void:
-		var mouse := get_global_mouse_position()
-		displacement = (displacement - (mouse - previous_mouse)).limit_length(MAX_LAG)
-		previous_mouse = mouse
-
-		# Critically damped spring, integrated exactly for the current frame.
-		var decay := exp(-SPRING_FREQUENCY * delta)
-		var slope := velocity + SPRING_FREQUENCY * displacement
-		displacement = (displacement + slope * delta) * decay
-		velocity = (velocity - SPRING_FREQUENCY * slope * delta) * decay
-
-		model_view.position = displacement - model_view.size * 0.5
-		pivot.rotation = Vector3(displacement.y, displacement.x * 0.35, -displacement.x) * 0.009
+class PartDragPreview extends HeldPreviewScript:
+	pass
 
 class ServiceSlot extends Button:
 	var workshop: VBoxContainer

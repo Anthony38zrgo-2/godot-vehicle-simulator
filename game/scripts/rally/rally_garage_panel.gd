@@ -265,8 +265,7 @@ func open_garage_for_event(options: Dictionary = { }) -> void:
 		if not str(draft_wheel_compounds.get(corner, "")) in _available_compound_ids():
 			draft_wheel_compounds[corner] = default_event_compound_id
 	if str(options.get("initial_tab", "")) in ["tires", "strategy"]:
-		advanced_section = 1
-		_set_page(1)
+		_set_page(2)
 
 
 func get_confirmed_setup() -> Dictionary:
@@ -1888,16 +1887,23 @@ func _draw_strategy_page() -> void:
 		var sx := groove.position.x + groove.size.x * (float(segment) / 10.0)
 		draw_rect(Rect2(sx, groove.position.y + 1, 1, groove.size.y - 2), Color(C_DARK, 0.55))
 
-	_group(Rect2(36, 332, 596, 156), "SERVICIO")
+	_group(Rect2(36, 332, 596, 156), "INVENTARIO DE NEUMÁTICOS")
 	var service_rect := Rect2(50, 356, 568, 44)
 	_row_frame(service_rect, false, false, _mouse_over(service_rect))
-	_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 11, C_TEXT)
-	_toggle(
-		Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30),
-		"SÍ" if new_tires_service else "NO",
-		new_tires_service
-	)
-	_hit_regions.append({ "rect": service_rect, "kind": "service" })
+	var _is_pool := is_instance_valid(vehicle) and vehicle.tire_inventory != null and (vehicle.tire_inventory as RallyTireInventory).is_pool_mode()
+	if _is_pool:
+		var inv_count: int = (vehicle.tire_inventory as RallyTireInventory).total_count()
+		var stock_cnt: int = (vehicle.tire_inventory as RallyTireInventory).service_stock.size()
+		_text(_box(service_rect.position.x + 12, service_rect.position.y, 340, 44), "POOL: %d / 10 · PARQUE: %d" % [inv_count, stock_cnt], 11, C_TEXT)
+		_toggle(Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30), "POOL FIJO", false)
+	else:
+		_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 11, C_TEXT)
+		_toggle(
+			Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30),
+			"SÍ" if new_tires_service else "NO",
+			new_tires_service
+		)
+		_hit_regions.append({ "rect": service_rect, "kind": "service" })
 
 	var spare_rect := Rect2(50, 408, 568, 44)
 	_row_frame(spare_rect, false, true, _mouse_over(spare_rect))
@@ -1944,17 +1950,36 @@ func _draw_strategy_page() -> void:
 		draw_rect(card, C_FACE_LO)
 		_sunken(card)
 		var cid := str(draft_wheel_compounds.get(codes[i], ""))
-		_text(_box(card.position.x + 12, card.position.y + 8, 70, 22), codes[i], 15, C_TEXT, true)
+		var tire_info: Dictionary = {}
+		var wear_pct := 0.0
+		var status_tag := "OK"
+		var status_color: Color = C_DIM
+		if is_instance_valid(vehicle) and vehicle.tire_inventory != null and i < (vehicle.tire_inventory as RallyTireInventory).mounted.size():
+			tire_info = (vehicle.tire_inventory as RallyTireInventory).mounted[i]
+			var st: Dictionary = (tire_info as Dictionary).get("state", {})
+			wear_pct = float(st.get("wear_fraction", 0.0)) * 100.0
+			var inv_ref: RallyTireInventory = vehicle.tire_inventory
+			if inv_ref.is_carcass_destroyed(tire_info):
+				status_tag = "DESTALONADO"
+				status_color = C_ROSE
+			elif inv_ref.is_punctured(tire_info):
+				status_tag = "PINCHADO"
+				status_color = C_ROSE
+			elif inv_ref.is_rim_damaged(tire_info):
+				status_tag = "RIN DAÑADO"
+				status_color = C_GOLD
+		var id_str := "#%d · " % int((tire_info as Dictionary).get("id", i + 1)) if not (tire_info as Dictionary).is_empty() else ""
+		_text(_box(card.position.x + 12, card.position.y + 8, 120, 22), id_str + codes[i], 15, C_TEXT, true)
 		_text(
 			_box(card.position.x, card.position.y + 10, card.size.x - 12, 18),
-			names[i],
+			"%s · %s" % [names[i], status_tag],
 			9,
-			C_DIM,
-			false,
+			status_color if status_tag != "OK" else C_DIM,
+			status_tag != "OK",
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 12
 		)
-		_text(_box(card.position.x + 12, card.position.y + 42, 160, 14), "PRESIÓN", 9, C_DIM, true)
+		_text(_box(card.position.x + 12, card.position.y + 42, 200, 14), "PRESIÓN · DESGASTE %0.0f%%" % wear_pct, 9, C_DIM, true)
 		_field_box(
 			Rect2(card.position.x + 12, card.position.y + 56, card.size.x - 24, 30),
 			"%0.0f kPa" % _wheel_pressure(i),

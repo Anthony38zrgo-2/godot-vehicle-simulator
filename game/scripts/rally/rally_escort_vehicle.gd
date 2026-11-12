@@ -928,16 +928,70 @@ func discard_spare(spare_id: int) -> bool:
 func service_tire_inventory(wheel_compounds: Dictionary, spare_count: int, replace_all: bool = false) -> void:
 	ensure_tire_inventory()
 	sync_tire_inventory()
-	for i in 4:
-		var compound := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
-		if replace_all or compound != str(tire_inventory.mounted[i].compound_id):
-			tire_inventory.mounted[i] = tire_inventory.item(compound, fresh_tire_state(compound, i))
-	var count := clampi(spare_count, 0, tire_inventory.capacity)
-	while tire_inventory.spares.size() > count:
-		tire_inventory.spares.pop_back()
-	while tire_inventory.spares.size() < count:
-		tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
+	# Modo pool (10 ruedas): reutilizar sin crear. Modo legacy: comportamiento previo.
+	if not tire_inventory.is_pool_mode():
+		for i in 4:
+			var compound := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
+			if replace_all or compound != str(tire_inventory.mounted[i].compound_id):
+				tire_inventory.mounted[i] = tire_inventory.item(compound, fresh_tire_state(compound, i))
+		var count := clampi(spare_count, 0, tire_inventory.capacity)
+		while tire_inventory.spares.size() > count:
+			tire_inventory.spares.pop_back()
+		while tire_inventory.spares.size() < count:
+			tire_inventory.spares.append(tire_inventory.item(simulation.active_compound_id, fresh_tire_state(simulation.active_compound_id)))
+	else:
+		for i in 4:
+			var wanted := str(wheel_compounds.get(["FL", "FR", "RL", "RR"][i], tire_inventory.mounted[i].compound_id))
+			if wanted != str(tire_inventory.mounted[i].compound_id):
+				var candidate := _find_best_pool_tire(wanted)
+				if candidate.is_empty():
+					continue # Sin reemplazo posible: se conserva lo montado (riesgo del jugador).
+				# Intercambio directo para no dejar nunca 3 montadas.
+				var idx := _pool_index_of(int(candidate.get("id", 0)))
+				if idx.is_empty():
+					continue
+				var src: Array = idx["array"]
+				var other_i := int(idx["index"])
+				var tmp: Dictionary = tire_inventory.mounted[i]
+				tire_inventory.mounted[i] = src[other_i]
+				src[other_i] = tmp
+		var count := clampi(spare_count, 0, tire_inventory.capacity)
+		while tire_inventory.spares.size() > count:
+			var sp: Dictionary = tire_inventory.spares.back()
+			tire_inventory.spares.pop_back()
+			tire_inventory.service_stock.append(sp)
+		while tire_inventory.spares.size() < count and not tire_inventory.service_stock.is_empty():
+			var st: Dictionary = tire_inventory.service_stock.pop_back()
+			tire_inventory.spares.append(st)
 	apply_tire_inventory()
+
+
+func _pool_index_of(tire_id: int) -> Dictionary:
+	for arr in [tire_inventory.service_stock, tire_inventory.spares]:
+		for i in arr.size():
+			var t = arr[i]
+			if t is Dictionary and int((t as Dictionary).get("id", 0)) == tire_id:
+				return {"array": arr, "index": i}
+	return {}
+
+
+func _find_best_pool_tire(compound_id: String) -> Dictionary:
+	var best: Dictionary = {}
+	var best_score := 999.0
+	for pool in [tire_inventory.service_stock, tire_inventory.spares]:
+		for t in pool:
+			if not t is Dictionary:
+				continue
+			var td: Dictionary = t
+			if str(td.get("compound_id", "")) != compound_id:
+				continue
+			if tire_inventory.is_carcass_destroyed(td):
+				continue
+			var wear := float((td.get("state", {}) as Dictionary).get("wear_fraction", 0.0))
+			if wear < best_score:
+				best_score = wear
+				best = td
+	return best
 
 
 func record_impact(_other_body: Node) -> void:

@@ -32,6 +32,7 @@ var itinerary: Array = []
 var sim = null
 var loader = StageLoaderScript.new()
 var weather_schedule: Array = []
+var stage_forecasts: Array = []
 var climate_seed: int = 0
 var initial_weather: String = ""
 var weather_generator_version: int = 1
@@ -116,6 +117,7 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	closed_keys.clear()
 	definitive_withdrawals.clear()
 	weather_schedule.clear()
+	stage_forecasts.clear()
 	stage_surface_states.clear()
 	rival_compounds.clear()
 	windows_attended.clear()
@@ -152,6 +154,7 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	# Generar el itinerario climático de todo el rally una sola vez tras Aceptar.
 	if not _generate_weather_schedule():
 		return false
+	stage_forecasts = SchedulerScript.generate_stage_forecasts(weather_schedule, climate_seed, _forecast_accuracy(), _ordered_weather_states())
 	# La selección es borrador hasta confirmación explícita del reglaje.
 	if bool(choices.get("setup_accepted", false)):
 		var setup_result: Dictionary = confirm_setup(draft_compound_id, choices.get("setup_values", {}))
@@ -213,6 +216,22 @@ func get_allowed_compound_ids() -> Array:
 	return (
 		rules.get("allowed_compound_ids", []) as Array
 	).duplicate()
+
+
+func _forecast_accuracy() -> float:
+	var rules: Dictionary = event_doc.get("tire_rules", {})
+	var acc := float(rules.get("forecast_accuracy", SchedulerScript.FORECAST_DEFAULT_ACCURACY))
+	if acc <= 0.0 or acc >= 1.0:
+		return SchedulerScript.FORECAST_DEFAULT_ACCURACY
+	return acc
+
+
+func _ordered_weather_states() -> Array:
+	var rules: Dictionary = event_doc.get("weather_rules", {})
+	var states: Array = rules.get("ordered_states", [])
+	if states.is_empty():
+		return ["sunny", "clear", "partly_cloudy", "cloudy", "overcast", "mist_fog", "drizzle", "light_precipitation", "medium_precipitation", "heavy_precipitation"]
+	return states.duplicate()
 
 
 func _update_pending_window() -> void:
@@ -554,6 +573,7 @@ func save() -> bool:
 		"definitive_withdrawals": definitive_withdrawals.keys(),
 		"clock": {"rate": ambient_rate},
 		"weather_schedule": weather_schedule,
+		"stage_forecasts": stage_forecasts,
 		"climate_seed": climate_seed,
 		"initial_weather": initial_weather,
 		"generator_version": weather_generator_version,
@@ -617,6 +637,9 @@ func restore() -> bool:
 	ambient_rate = float((doc.get("clock", {}) as Dictionary).get("rate", 1.0))
 	# Clima/compuesto/ventanas: reanudar conserva todo; no se re-sortea.
 	weather_schedule = doc.get("weather_schedule", [])
+	stage_forecasts = doc.get("stage_forecasts", [])
+	if stage_forecasts.is_empty() and not weather_schedule.is_empty():
+		stage_forecasts = SchedulerScript.generate_stage_forecasts(weather_schedule, climate_seed, _forecast_accuracy(), _ordered_weather_states())
 	climate_seed = int(doc.get("climate_seed", 0))
 	initial_weather = str(doc.get("initial_weather", ""))
 	weather_generator_version = int(doc.get("generator_version", 1))

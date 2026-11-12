@@ -594,3 +594,154 @@ static func validate_schedule(schedule: Array, stage_order: Array, rules: Dictio
 					return {"ok": false, "error": "Paso externo inválido hacia %s: %d" % [str(entry.get("stage_id", "")), bstep]}
 		prev_last_idx = int((zones[2] as Dictionary).get("weather_state_index", 0))
 	return {"ok": true}
+
+
+const FORECAST_PURPOSE := "rally_forecast_v1"
+const FORECAST_DEFAULT_ACCURACY := 0.8
+
+static func forecast_seed(climate_seed: int) -> int:
+	return abs(int(("%d/%s" % [climate_seed, FORECAST_PURPOSE]).hash()))
+
+
+## Clima dominante de una especial (zona con más precipitación; desempate: zona central).
+static func get_stage_dominant_weather(stage_entry: Dictionary) -> Dictionary:
+	var zones: Array = stage_entry.get("zones", [])
+	if zones.is_empty():
+		return {"name": "Despejado", "icon": "☀️", "temp_c": 18.0, "rain": false, "precip_mm": 0.0, "preset_id": "clear", "state_index": 1}
+	var selected: Dictionary = zones[mini(1, zones.size() - 1)]
+	var max_mm := -1.0
+	for z in zones:
+		if not z is Dictionary:
+			continue
+		var zd: Dictionary = z
+		var mm := float((zd.get("climate", {}) as Dictionary).get("precipitation_mm_h", 0.0))
+		if mm > max_mm:
+			max_mm = mm
+			selected = zd
+	var climate: Dictionary = selected.get("climate", {})
+	var mm_val := float(climate.get("precipitation_mm_h", 0.0))
+	var temp := float(climate.get("air_temperature_c", 16.0))
+	var kind := str(selected.get("precipitation_kind", "none"))
+	var preset := str(selected.get("weather_state_id", selected.get("preset_id", "")))
+	if preset.is_empty():
+		preset = "clear" if mm_val < 0.3 else ("light_precipitation" if mm_val < 2.5 else "medium_precipitation")
+	var icon := "☀️"
+	var desc := "Seco / Soleado"
+	if kind == "snow" or kind == "mixed":
+		icon = "❄️"
+		desc = "Nieve"
+	elif mm_val >= 4.0:
+		icon = "⛈️"
+		desc = "Lluvia intensa"
+	elif mm_val >= 1.0:
+		icon = "🌧️"
+		desc = "Lluvia"
+	elif mm_val > 0.0:
+		icon = "🌦️"
+		desc = "Llovizna"
+	elif temp < 10.0:
+		icon = "☁️"
+		desc = "Nublado frío"
+	return {
+		"name": desc,
+		"icon": icon,
+		"temp_c": temp,
+		"precip_mm": mm_val,
+		"preset_id": preset,
+		"state_index": int(selected.get("weather_state_index", 1))
+	}
+
+
+static func _forecast_visual(state_id: String, state_index: int) -> Dictionary:
+	# Icono estable derivado de la escala ordenada (soleado<->lluvia), sin inventar climas fuera de escala.
+	match state_id:
+		"sunny":
+			return {"icon": "☀️", "name": "Soleado"}
+		"clear":
+			return {"icon": "☀️", "name": "Despejado"}
+		"partly_cloudy":
+			return {"icon": "⛅", "name": "Intervalos nubosos"}
+		"cloudy":
+			return {"icon": "☁️", "name": "Nublado"}
+		"overcast":
+			return {"icon": "☁️", "name": "Cubierto"}
+		"mist_fog":
+			return {"icon": "🌫️", "name": "Niebla"}
+		"drizzle":
+			return {"icon": "🌦️", "name": "Llovizna"}
+		"light_precipitation":
+			return {"icon": "🌧️", "name": "Lluvia ligera"}
+		"medium_precipitation":
+			return {"icon": "🌧️", "name": "Lluvia"}
+		"heavy_precipitation":
+			return {"icon": "⛈️", "name": "Tormenta"}
+		_:
+			if state_index <= 1:
+				return {"icon": "☀️", "name": "Seco"}
+			if state_index <= 4:
+				return {"icon": "☁️", "name": "Nublado"}
+			if state_index <= 6:
+				return {"icon": "🌦️", "name": "Llovizna"}
+			if state_index <= 8:
+				return {"icon": "🌧️", "name": "Lluvia"}
+			return {"icon": "⛈️", "name": "Tormenta"}
+
+
+## Pronósticos precalculados: 80% verdad, 20% mentira a 1-2 saltos en la escala ordenada.
+## Determinista por climate_seed; no se recalcula en tramo ni al reabrir.
+static func generate_stage_forecasts(schedule: Array, climate_seed: int, accuracy: float = 0.8, ordered_states: Array = []) -> Array:
+	var states: Array = ordered_states.duplicate()
+	if states.is_empty():
+		states = ["sunny", "clear", "partly_cloudy", "cloudy", "overcast", "mist_fog", "drizzle", "light_precipitation", "medium_precipitation", "heavy_precipitation"]
+	var acc := clampf(accuracy, 0.0, 1.0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = forecast_seed(climate_seed)
+	var out: Array = []
+	for i in schedule.size():
+		if not schedule[i] is Dictionary:
+			continue
+		var real_weather := get_stage_dominant_weather(schedule[i])
+		var real_idx := clampi(int(real_weather.get("state_index", 1)), 0, states.size() - 1)
+		# Alinear preset con el índice real si el id no coincide con la escala.
+		var real_id := str(states[real_idx]) if (real_idx >= 0 and real_idx < states.size()) else str(real_weather.get("preset_id", "clear"))
+		if not str(real_weather.get("preset_id", "")).is_empty() and states.has(str(real_weather.get("preset_id", ""))):
+			real_id = str(real_weather.get("preset_id", ""))
+			real_idx = states.find(real_id)
+		var shown_weather := real_weather.duplicate(true)
+		shown_weather["preset_id"] = real_id
+		shown_weather["state_index"] = real_idx
+		var is_truth := true
+		if rng.randf() > acc:
+			var steps := [-2, -1, 1, 2]
+			# Filtrar saltos que salgan de la escala.
+			var valid: Array = []
+			for s in steps:
+				var lied := real_idx + int(s)
+				if lied >= 0 and lied < states.size() and lied != real_idx:
+					valid.append(int(s))
+			if not valid.is_empty():
+				var step: int = valid[rng.randi_range(0, valid.size() - 1)]
+				var lied_idx := real_idx + step
+				var lied_id := str(states[lied_idx])
+				var vis := _forecast_visual(lied_id, lied_idx)
+				shown_weather = real_weather.duplicate(true)
+				shown_weather["preset_id"] = lied_id
+				shown_weather["state_index"] = lied_idx
+				shown_weather["icon"] = str(vis["icon"])
+				shown_weather["name"] = str(vis["name"])
+				# Precipitación coherente con la escala mentida (sin tocar el clima real).
+				if lied_idx <= 4:
+					shown_weather["precip_mm"] = 0.0
+				elif lied_idx == 5:
+					shown_weather["precip_mm"] = 0.2
+				elif lied_idx == 6:
+					shown_weather["precip_mm"] = 0.6
+				elif lied_idx == 7:
+					shown_weather["precip_mm"] = 2.0
+				elif lied_idx == 8:
+					shown_weather["precip_mm"] = 5.0
+				else:
+					shown_weather["precip_mm"] = 9.0
+				is_truth = false
+		out.append({"stage_index": i, "is_truth": is_truth, "weather": shown_weather})
+	return out

@@ -1163,6 +1163,31 @@ func _open_setup_window() -> void:
 		var window: Dictionary = event_manager.get_pending_window()
 		if window.is_empty():
 			return
+		if str(window.get("window_key", "initial")) == "initial" and not event_manager.windows_attended.has("strategy:initial"):
+			# Estrategia inicial: NO pausa el SceneTree (el garaje lo hará después con
+			# _restore_tree_paused=false). Solo congela vehículo + reloj + input.
+			awaiting_setup = true
+			vehicle.freeze = true
+			input_controller.set_controls_enabled(false)
+			event_clock.set_paused(true)
+			var strat_layer := CanvasLayer.new()
+			strat_layer.layer = 115
+			strat_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+			var strat_screen := preload("res://scripts/rally/rally_tire_strategy_screen.gd").new()
+			strat_screen.manager = event_manager
+			if vehicle != null and vehicle.rally_profile.has("display_name"):
+				strat_screen.vehicle_name = str(vehicle.rally_profile.get("display_name", vehicle.name))
+			strat_layer.add_child(strat_screen)
+			add_child(strat_layer)
+			strat_screen.strategy_confirmed.connect(func(initial_data: Dictionary) -> void:
+				_apply_initial_tire_strategy(initial_data)
+				event_manager.windows_attended["strategy:initial"] = true
+				event_manager.tire_inventory_state = vehicle.tire_inventory.snapshot()
+				event_manager.save()
+				strat_layer.queue_free()
+				call_deferred("_open_setup_window")
+			)
+			return
 		if str(window.get("window_key", "initial")) != "initial" and not event_manager.windows_attended.has("repairs:" + str(window.get("window_key", ""))):
 			awaiting_setup = true
 			vehicle.freeze = true
@@ -1242,6 +1267,43 @@ func _open_setup_window() -> void:
 		})
 		if head_up_display != null:
 			head_up_display.show_status("REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR", Color(0.95, 0.72, 0.24), 4.0)
+
+
+func _apply_initial_tire_strategy(data: Dictionary) -> void:
+	# Construye el pool fijo de 10 con ids 1..10: 4 montados + N maletera + resto parque.
+	if vehicle == null or vehicle.tire_inventory == null:
+		return
+	var inv = vehicle.tire_inventory
+	inv.mounted.clear()
+	inv.spares.clear()
+	inv.service_stock.clear()
+	inv.discarded.clear()
+	inv.next_id = 1
+	var mounted_cids: Array = data.get("mounted_compounds", ["gravel_normal", "gravel_normal", "gravel_normal", "gravel_normal"])
+	for i in 4:
+		var cid := str(mounted_cids[i]) if i < mounted_cids.size() else "gravel_normal"
+		if not RallyTireCompound.is_valid(cid):
+			cid = "gravel_normal"
+		inv.mounted.append(inv.item(cid, vehicle.fresh_tire_state(cid, i)))
+	var spares_cids: Array = data.get("spares_compounds", [])
+	for raw in spares_cids:
+		var cid := str(raw)
+		if not RallyTireCompound.is_valid(cid):
+			continue
+		inv.spares.append(inv.item(cid, vehicle.fresh_tire_state(cid)))
+		if inv.spares.size() >= inv.capacity:
+			break
+	var stock_cids: Array = data.get("service_compounds", [])
+	for raw in stock_cids:
+		var cid := str(raw)
+		if not RallyTireCompound.is_valid(cid):
+			continue
+		inv.service_stock.append(inv.item(cid, vehicle.fresh_tire_state(cid)))
+		if inv.total_count() >= RallyTireInventory.TOTAL_POOL_SIZE:
+			break
+	vehicle.apply_tire_inventory()
+	if event_manager != null and not mounted_cids.is_empty():
+		event_manager.draft_compound_id = str(mounted_cids[0])
 
 
 func _on_garage_closed(applied: bool) -> void:
