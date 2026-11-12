@@ -122,6 +122,13 @@ func _ready() -> void:
 	}
 	apply_vehicle_properties()
 	# Lighter unsprung assemblies can require a faster world step than the Ford.
+	# Banco de estabilidad (§5): comparar primero a la frecuencia de producción
+	# de cada perfil y repetir a 60/120/240 Hz como diagnóstico, controlando la
+	# frecuencia efectiva y con parámetros fijos. Medir altura de reposo,
+	# frecuencia y decaimiento de la oscilación, pico de carga y activación de
+	# límites. Exigir mejora medible y repetir casos de producción antes de
+	# cambiar frecuencia o método de integración; abrir un cambio separado por
+	# cada corrección física que justifiquen las mediciones.
 	var world_tune: Dictionary = simulation.domains.get("coupled_world", {}).get("coupled_world", {})
 	Engine.physics_ticks_per_second = maxi(Engine.physics_ticks_per_second, int(world_tune.get("minimum_physics_ticks_per_second", 60)))
 	build_collision_shapes(collision_document)
@@ -401,16 +408,73 @@ var _separation_frames: int = 10
 var _wheel_impact_peak: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _wheel_quiet_frames: Array[int] = [0, 0, 0, 0]
 
+## Traza de teletransporte (§2): último tick previo al reset, callback de
+## rescate y primeros ticks posteriores (poses/velocidades de chasis y hubs,
+## compresión, velocidad relativa del amortiguador, fuerza y carga radial).
+## Comparar la primera muestra válida con un vehículo recién colocado en el
+## mismo destino y estado inicial para separar asentamiento por gravedad o
+## contacto del arrastre de estado previo.
+var _teleport_trace_ticks: int = 0
+
+
+func _log_teleport(stage: String, pose: Transform3D) -> void:
+	# Todo en flotantes/arrays para un JSON robusto (sin Vector3 directos).
+	var hubs_pose: Array = []
+	var hubs_vel: Array = []
+	for hub in simulation.unsprung_rig.hubs:
+		var p: Vector3 = hub.global_transform.origin
+		var v: Vector3 = hub.linear_velocity
+		hubs_pose.append([p.x, p.y, p.z])
+		hubs_vel.append([v.x, v.y, v.z])
+	var cv: Vector3 = state_linear_velocity_safe()
+	print(
+		"RALLY_TELEPORT ",
+		JSON.stringify(
+			{
+				"stage": stage,
+				"generation": simulation.session_generation,
+				"pose_origin": [pose.origin.x, pose.origin.y, pose.origin.z],
+				"pose_yaw": [pose.basis.z.x, pose.basis.z.z],
+				"chassis_vel": [cv.x, cv.y, cv.z],
+				"hubs_pos": hubs_pose,
+				"hubs_vel": hubs_vel,
+				"suspension": simulation.sample_suspension_trace(),
+				"tick": simulation.sample_tick_trace(),
+			}
+		),
+	)
+
+
+func state_linear_velocity_safe() -> Vector3:
+	# Lectura tolerante fuera de _integrate_forces (nodo) para la traza.
+	return linear_velocity
+
+
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	body_contact_vfx.clear()
 	if not _physics_ready or freeze:
 		return
 	if _rescue_pose is Transform3D:
-		state.transform = _rescue_pose
+		var rescue_pose: Transform3D = _rescue_pose
+		_log_teleport("rescue_callback_pre", rescue_pose)
+		state.transform = rescue_pose
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		_rescue_pose = null
+		# Limpieza residual (§2): la primera fuerza de amortiguador tras el
+		# rescate debe corresponder a la velocidad relativa medida, no a
+		# muestras previas. No se llama a reset_dynamics() completo aquí
+		# (ya corrió en _reset_to_transform); se reubican hubs y se limpian
+		# los campos publicados que el rig reescribirá en el primer solve.
+		simulation.suspension_model.clear_transient()
 		simulation.unsprung_rig.reset_at(state.transform)
+		simulation.wheel_loads.fill(0.0)
+		simulation.wheel_slips.fill(Vector2.ZERO)
+		simulation.wheel_contact_points.fill(state.transform.origin)
+		simulation.wheel_contact_normals.fill(Vector3.UP)
+		simulation.wheel_surfaces.fill("Unknown")
+		_log_teleport("rescue_callback_post", state.transform)
+		_teleport_trace_ticks = 3
 		return
 	var contact_count := state.get_contact_count()
 	var landing_speed_ms := 0.0
@@ -593,6 +657,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 					simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
 
 	body_contact_audio = {"count": contact_count, "impulse_ns": impulse_peak, "lateral_impulse_ns": lateral_impulse_peak, "lateral_speed_kph": lateral_speed_ms * 3.6, "lateral_position": lateral_position, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
+	# Primeros ticks tras teletransporte (§2): capturan el asentamiento por
+	# gravedad/contacto sin arrastre previo. Aceptar cuando los hubs estén en
+	# la pose esperada y la primera fuerza de amortiguador corresponda a la
+	# velocidad relativa medida (ver traza del rig en el mismo tick).
+	if _teleport_trace_ticks > 0:
+		_teleport_trace_ticks -= 1
+		_log_teleport("post_tick_%d" % (3 - _teleport_trace_ticks), state.transform)
 
 
 func set_glass_cockpit_view(enabled: bool) -> void:
@@ -679,13 +750,25 @@ func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
 
 
 func _reset_to_transform(pose: Transform3D) -> void:
+	_log_teleport("pre_reset", global_transform)
 	_rescue_pose = null
 	freeze = true
 	simulation.unsprung_rig.sync_freeze()
 	global_transform = pose
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
+	# Sincronía nodo vs cuerpo Jolt (§2): además del nodo, se escribe el estado
+	# servidor del chasis cuando está disponible para que pose/velocidad no
+	# diverjan en el primer solve. No cambia la API de teletransporte: la traza
+	# RALLY_TELEPORT dirá si ambas escrituras coinciden.
+	var chassis_state := PhysicsServer3D.body_get_direct_state(get_rid())
+	if chassis_state != null:
+		chassis_state.transform = pose
+		chassis_state.linear_velocity = Vector3.ZERO
+		chassis_state.angular_velocity = Vector3.ZERO
 	simulation.reset_dynamics()
+	_log_teleport("post_reset", pose)
+	_teleport_trace_ticks = 3
 	throttle_input = 0.0
 	brake_input = 0.0
 	steering_input = 0.0

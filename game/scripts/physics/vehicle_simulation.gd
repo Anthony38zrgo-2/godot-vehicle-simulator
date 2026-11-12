@@ -484,6 +484,10 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 			var parameters: Dictionary = suspension_model.axle_parameters[wheel_index]
 			parameters.camber = float(trim.get("camber", 0.0))
 			parameters.toe = float(trim.get("toe", 0.0))
+			# Precarga (§3): el offset desplaza el neutro sin cambiar la masa
+			# de referencia ni la frecuencia vigente; conserva equilibrio
+			# total y longitudinal. Registrar la decisión antes de cambiar
+			# perfiles o fuerzas y comprobar frecuencias dentro de tolerancia.
 			var current_rest := float(trim.get("spring_length", 0.3)) * float(
 				trim.get("resting_ratio", 0.35)
 			)
@@ -735,7 +739,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			contact_query_count += 1
 			ray_distance = wheel_radii[i] + travel * cast.get_closest_collision_safe_fraction() - bump
 		if hit.is_empty():
-			suspension_model.set_airborne(i)
+			# Rama sin impacto (§1): el rig es el escritor único del estado
+			# físico (recorrido/velocidad/contactos) y lo resolverá en
+			# UnsprungSuspensionRig.solve() desde la medida hub-vs-chasis.
+			# Aquí solo se registra la ausencia de contacto geométrico; no se
+			# llama a set_airborne() (legado) porque sus escrituras quedaban
+			# sobrescritas en el mismo tick. La distinción geométrico vs carga
+			# positiva la resuelve el rig (`geometric_contact` vs
+			# `contact_active = carga > 0`).
 			wheel_loads[i] = 0.0
 			wheel_surfaces[i] = "Unknown"
 			contacts.append({ "hit": false })
@@ -1277,6 +1288,108 @@ static func tandem_cam_supports(patch_length_m: float, scale: float = 1.0) -> Ar
 	return [-half, half]
 
 
+## Limpia el estado residual publicado sin tocar tren motriz ni combustible
+## (§2): misma limpieza de suspensión/hubs/contactos que reset_dynamics() para
+## la rama de rescate en _integrate_forces, donde solo se reubican los cuerpos
+## Jolt y debe garantizarse que la primera fuerza de amortiguador corresponda
+## a la velocidad relativa medida, no a muestras previas.
+func clear_teleport_residual() -> void:
+	unsprung_rig.reset()
+	suspension_model.clear_transient()
+	for i in 4:
+		unsprung_rig.spring_forces_n[i] = 0.0
+		wheel_loads[i] = 0.0
+		wheel_slips[i] = Vector2.ZERO
+		wheel_contact_points[i] = Vector3.ZERO
+		wheel_contact_normals[i] = Vector3.UP
+		wheel_surfaces[i] = "Unknown"
+		last_local_conditions[i] = {}
+		last_puddle_depths_mm[i] = 0.0
+	contact_query_count = 0
+
+
+## Muestra de consumo del vehículo (§1): recorrido, velocidad, carga y fuerza
+## de barra tal como los lee el vehículo tras el tick. Sirve para comparar
+## trazas antes/después en reposo, descarga, vuelo y recontacto, con tándem y
+## con ShapeCast.
+## Activa/desactiva el recorte de diagnóstico del damper (F1). Producción: OFF.
+func set_damper_impulse_limit(enabled: bool) -> void:
+	unsprung_rig.set_damper_impulse_limit(enabled)
+
+
+## Muestra de consumo del vehículo (§1/F3): recorrido, velocidad, carga y fuerza
+## de barra tal como los lee el vehículo tras el tick, más traza comparable por
+## tick Jolt (id, dt, damper solicitado/aplicado, impulso en N·s). Sirve para
+## comparar trazas antes/después en reposo, descarga, vuelo y recontacto, con
+## tándem y con ShapeCast, y el último tick previo al rescate con los primeros
+## posteriores frente a un vehículo recién colocado en la misma pose.
+func sample_suspension_trace() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for i in 4:
+		out.append(
+			{
+				"compression_m": suspension_model.compression[i],
+				"compression_velocity_m_s": suspension_model.compression_velocity[i],
+				"geometric_contact": suspension_model.geometric_contact[i],
+				"loaded_contact": suspension_model.contact_active[i],
+				"load_n": wheel_loads[i],
+				"spring_force_n": unsprung_rig.spring_forces_n[i],
+				"elastic_n": suspension_model.last_elastic_forces_n[i],
+				"damper_n": unsprung_rig.last_damper_applied_n[i],
+				"damper_requested_n": unsprung_rig.last_damper_requested_n[i],
+				"damper_applied_n": unsprung_rig.last_damper_applied_n[i],
+				"damper_impulse_ns": unsprung_rig.last_damper_impulse_ns[i],
+				"damper_clamped": unsprung_rig.last_damper_clamped[i],
+				"damper_clip_events": unsprung_rig.damper_clip_events[i],
+				"tick_id": unsprung_rig.last_tick_trace[i].get("tick_id", 0),
+				"tick_dt_s": unsprung_rig.last_tick_trace[i].get("dt_s", 0.0),
+				"bar_travel_m": suspension_model.filtered_arb_travel[i],
+			}
+		)
+	return out
+
+
+## Traza cruda por tick Jolt del rig (F3): identificador, dt, poses y
+## velocidades leídas por el solver, velocidad relativa en el anclaje, damper
+## solicitado/aplicado e impulso en N·s, potencia en W y trabajo estimado en J.
+func sample_tick_trace() -> Array[Dictionary]:
+	return unsprung_rig.last_tick_trace.duplicate(true)
+
+
+## Reporte de calibración por eje (§3): masa de referencia, frecuencia
+## efectiva, wheel rate y amortiguamientos vigentes, más precarga estática y
+## vías delantera/trasera para contrastar suma de cargas y momentos con peso
+## y COM. La rigidez explícita del perfil figura como respaldo cuando no hay
+## `ride_frequency_hz` declarada.
+func suspension_calibration_report() -> Dictionary:
+	var axles: Array[Dictionary] = []
+	for axle in [0, 2]:
+		var p: Dictionary = suspension_model.axle_parameters[axle]
+		axles.append(
+			{
+				"axle": "front" if axle == 0 else "rear",
+				"reference_mass_kg": float(p.get("frequency_reference_mass_kg", 0.0)),
+				"frequency_hz": float(p.get("ride_frequency_hz", 0.0)),
+				"wheel_rate_n_m": float(p.get("spring_rate", 0.0)),
+				"bump_damping_ns_m": float(p.get("bump_damping", 0.0)),
+				"rebound_damping_ns_m": float(p.get("rebound_damping", 0.0)),
+				"static_load_n": float(p.get("static_load", 0.0)),
+				"static_corner_load_n": suspension_model.static_corner_loads_n[axle],
+			}
+		)
+	var front_track := 0.0
+	var rear_track := 0.0
+	if wheel_positions_local.size() == 4:
+		front_track = absf(wheel_positions_local[0].x - wheel_positions_local[1].x)
+		rear_track = absf(wheel_positions_local[2].x - wheel_positions_local[3].x)
+	return {
+		"axles": axles,
+		"front_track_m": front_track,
+		"rear_track_m": rear_track,
+		"wheelbase_m": wheelbase_m,
+	}
+
+
 func reset_dynamics() -> void:
 	_flush_fuel_work()
 	_tire_thermal_elapsed = 0.0
@@ -1284,6 +1397,7 @@ func reset_dynamics() -> void:
 	_engine_thermal_elapsed = 0.0
 	_engine_thermal_inputs = Vector4.ZERO
 	unsprung_rig.reset()
+	suspension_model.clear_transient()
 	session_generation += 1
 	simulation_time_s = 0.0
 	published_state = { }
@@ -1294,14 +1408,14 @@ func reset_dynamics() -> void:
 	wheel_contact_points.fill(Vector3.ZERO)
 	wheel_contact_normals.fill(Vector3.UP)
 	wheel_surfaces.fill("Unknown")
+	last_local_conditions = [{}, {}, {}, {}]
+	last_puddle_depths_mm.fill(0.0)
+	contact_query_count = 0
 	brake_model.smoothed_service_input = 0.0
 	brake_model.smoothed_handbrake_input = 0.0
 	for i in 4:
 		tire_model.reset_patch(i)
-		suspension_model.compression[i] = 0.0
-		suspension_model.compression_velocity[i] = 0.0
-		suspension_model.contact_active[i] = false
-		suspension_model.previous_samples[i] = false
+		unsprung_rig.spring_forces_n[i] = 0.0
 		if i < wheel_visuals.size():
 			wheel_visuals[i].rotation = Vector3.ZERO
 	powertrain_model.current_gear = 0
