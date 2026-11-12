@@ -39,6 +39,7 @@ const SURFACE_KEYS := {
 	"tarmac": "tarmac",
 	"curb": "rumble",
 	"rumble": "rumble",
+	"wood_bridge": "wood_bridge",
 }
 
 
@@ -62,7 +63,7 @@ static func evaluate(wheels: Array, speed_kph: float, throttle: float, brake: fl
 	var contacts := 0
 	for wheel in wheels:
 		var load_n := maxf(float(wheel.get("load_n", 0.0)), 0.0)
-		var surface := canonical_surface(str(wheel.get("surface", "")))
+		var surface := canonical_surface(str(wheel.get("audio_surface", wheel.get("surface", ""))))
 		var in_contact := load_n >= CONTACT_MIN_LOAD_N and not surface.is_empty()
 		loads.append(load_n if in_contact else 0.0)
 		surfaces.append(surface if in_contact else "")

@@ -55,8 +55,8 @@
   },
   "collision": {
     "path": "kenya_stage2_collision.glb",
-    "sha256": "8c23e7f758ccf95108c0600b8362c902e3e824e990d256b8258258424a1edbf5",
-    "size_bytes": 4652680,
+    "sha256": "7a67cdd9a2a47cde3c3dd88077b32c12c56dc24d7c4aeb60313157cf4f527ba9",
+    "size_bytes": 5273264,
     "collision_objects": {
       "Collision_Road": 51684,
       "Collision_Terrain_Grass": 69067,

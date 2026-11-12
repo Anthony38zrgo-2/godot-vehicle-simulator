@@ -232,6 +232,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	static_body.set_meta("winter_layer_id", winter_layer_id)
 	if not material_names.is_empty():
 		static_body.set_meta("source_material", material_names[0])
+	if source_name.begins_with("collision_road") and material_names.has("kenya_bridge"):
+		static_body.set_meta("audio_surface", "wood_bridge")
 	if not surface_group.is_empty():
 		static_body.add_to_group(surface_group)
 	if source_name == "collision_terrain_dirt_raura_exterior":

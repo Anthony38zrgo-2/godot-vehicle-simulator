@@ -361,6 +361,14 @@ func build_surface_players() -> void:
 	_build_sand_and_rain_impact_players()
 	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SURFACE_BANK + "manifest.json"))
 	surface_map = manifest["runtime_map"]
+	var bridge: Dictionary = manifest["wood_bridge"]
+	var skid_variant := randi_range(0, bridge["exterior"]["skid"].size() - 1)
+	surface_map["wood_bridge"] = {
+		"roll": bridge["exterior"]["roll"],
+		"skid": bridge["exterior"]["skid"][skid_variant],
+		"roll_interior": bridge["interior"]["roll"],
+		"skid_interior": bridge["interior"]["skid"][skid_variant],
+	}
 	for surface in surface_map:
 		for role in surface_map[surface]:
 			var path: String = SURFACE_BANK + str(surface_map[surface][role])
@@ -691,7 +699,7 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 	for key in surface_players:
 		var parts: PackedStringArray = str(key).split(":")
 		var surface := parts[0]
-		var role := parts[1]
+		var role := parts[1].trim_suffix("_interior")
 		var target := 0.0
 		if role == "roll":
 			target = float(state.roll.get(surface, 0.0)) * 0.15 * SURFACE_ROLL_GAIN_SCALE
@@ -706,6 +714,8 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 			if role == selected:
 				target = float(roles.get(strongest, 0.0)) * 0.135
 		target *= SURFACE_GAIN * lerpf(1.0, db_to_linear(-2.0), cockpit_audio_blend)
+		if surface == "wood_bridge":
+			target *= cockpit_audio_blend if parts[1].ends_with("_interior") else 1.0 - cockpit_audio_blend
 		var player: AudioStreamPlayer3D = surface_players[key]
 		player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
 		player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, float(state.roll_pitch if role == "roll" else state.slip_pitch), delta, 0.12)

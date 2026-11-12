@@ -911,9 +911,11 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		wheel_contact_normals[i] = (hit["normal"] as Vector3).normalized()
 		wheel_surfaces[i] = _surface_for_collider(hit.get("collider"))
 		var winter_layer_id := ""
+		var audio_surface := wheel_surfaces[i]
 		var contact_collider: Variant = hit.get("collider")
 		if contact_collider is CollisionObject3D:
 			winter_layer_id = str(contact_collider.get_meta("winter_layer_id", ""))
+			audio_surface = str(contact_collider.get_meta("audio_surface", audio_surface))
 		contacts.append(
 			{
 				"hit": true,
@@ -923,6 +925,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"surface": wheel_surfaces[i],
 				"collider": hit.get("collider"),
 				"winter_layer_id": winter_layer_id,
+				"audio_surface": audio_surface,
 				"safe_fraction": float(hit.get("safe_fraction", 0.0)),
 				"global_safe_fraction": float(hit.get("global_safe_fraction", hit.get("safe_fraction", 0.0))),
 				"support_index": int(hit.get("collision_index", -1)),
@@ -1229,6 +1232,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"brake_demand": clampf(brake_demand[index] / maxf(brake_model.maximum_brake_torque_nm * 0.25, 1.0), 0.0, 1.0),
 				"alignment_collision_damage": alignment_collision_damage[index],
 				"surface": wheel_surfaces[index],
+				"audio_surface": contacts[index].get("audio_surface", wheel_surfaces[index]),
 				"load_n": wheel_loads[index],
 				"spin_rad_s": wheel_spins[index],
 				"slip_ratio": wheel_slips[index].x,

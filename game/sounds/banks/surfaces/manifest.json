@@ -38,6 +38,28 @@
     },
     "length_change": "each loop loses the crossfade length (120 ms); pitch and sample rate are unchanged"
   },
+  "wood_bridge": {
+    "archive": "Colin McRae Rally 2.0 / Sounds/surface.bfl",
+    "group": 29,
+    "interior": {
+      "roll": "cmr2/29/29_i00.wav",
+      "skid": [
+        "cmr2/29/29_ski00.wav",
+        "cmr2/29/29_ski01.wav",
+        "cmr2/29/29_ski02.wav",
+        "cmr2/29/29_ski03.wav"
+      ]
+    },
+    "exterior": {
+      "roll": "cmr2/29/29_o00.wav",
+      "skid": [
+        "cmr2/29/29_sko00.wav",
+        "cmr2/29/29_sko01.wav",
+        "cmr2/29/29_sko02.wav",
+        "cmr2/29/29_sko03.wav"
+      ]
+    }
+  },
   "runtime_map": {
     "gravel": {
       "roll": "artofrally/gravel.wav",
