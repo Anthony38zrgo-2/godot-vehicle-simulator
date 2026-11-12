@@ -74,6 +74,14 @@ var compound_catalog: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
 var _ambient_irradiance_w_m2: float = 0.0
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
+# §closure-6: prototipo de envolvente espacial tandem-cam (comparación).
+# Dos apoyos geométricos longitudinales separados por la longitud de huella.
+# Mantener separados: distancia de detección, radio geométrico y radio
+# efectivo de rodadura. Flag off por defecto hasta completar comparaciones
+# de contacto, manejo y coste. Con geometría activa se revisa cuánto
+# filtrado temporal sigue haciendo falta para evitar retraso duplicado.
+var tandem_cam_enabled := true
+var tandem_cam_patch_scale := 1.0
 # v1 presets de diferencial: perfil activo y preset aplicado.
 # El perfil activo nunca se toma de un payload: solo de configure().
 const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
@@ -645,6 +653,45 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		wheel_contact_casts.append(cast)
 
 
+func _query_tandem_contact(
+	body: RigidBody3D, state: PhysicsDirectBodyState3D, index: int, steer: float,
+	bump: float, travel: float,
+) -> Dictionary:
+	var up := state.transform.basis.y.normalized()
+	var forward := (state.transform.basis * Vector3.FORWARD.rotated(Vector3.UP, steer)).normalized()
+	var center := state.transform * wheel_positions_local[index]
+	var patch := float(tire_model.states[index].get("dynamic_contact_patch_m", tire_model.base_contact_patch_m[index]))
+	var supports := tandem_cam_supports(patch, tandem_cam_patch_scale)
+	var excluded: Array[RID] = [body.get_rid()]
+	for hub in unsprung_rig.hubs:
+		excluded.append(hub.get_rid())
+	var hits: Array[Dictionary] = []
+	for offset in supports:
+		var origin := center + forward * offset + up * bump
+		var query := PhysicsRayQueryParameters3D.create(
+			origin, origin - up * (travel + wheel_radii[index]), body.collision_mask, excluded
+		)
+		var sample := state.get_space_state().intersect_ray(query)
+		contact_query_count += 1
+		if not sample.is_empty() and (sample.normal as Vector3).dot(up) <= 0.25:
+			sample = {}
+		hits.append(sample)
+	var rear := hits[0]
+	var front := hits[1]
+	var front_height := ((front.position as Vector3) - center).dot(up) if not front.is_empty() else 0.0
+	var rear_height := ((rear.position as Vector3) - center).dot(up) if not rear.is_empty() else 0.0
+	var envelope := tandem_cam_effective_height(front_height, not front.is_empty(), rear_height, not rear.is_empty())
+	if not bool(envelope.contact):
+		return {}
+	var dominant := front if rear.is_empty() or (not front.is_empty() and front_height >= rear_height) else rear
+	var normal: Vector3 = dominant.normal
+	var position: Vector3 = dominant.position
+	if bool(envelope.both_contact):
+		normal = ((front.normal as Vector3) + (rear.normal as Vector3)).normalized()
+		position = ((front.position as Vector3) + (rear.position as Vector3)) * 0.5
+	return {"position": position, "normal": normal, "collider": dominant.collider, "distance": -float(envelope.height)}
+
+
 func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary) -> void:
 	var dt := state.step
 	if dt <= 0.0 or wheel_positions_local.size() != 4 or wheel_contact_casts.size() != 4:
@@ -659,7 +706,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"RALLY_CONTACT_FREQUENCY ",
 				JSON.stringify(
 					{
-						"query_type": "ShapeCast3D",
+						"query_type": "tandem_cam" if tandem_cam_enabled else "ShapeCast3D",
 						"wheel_count": wheel_contact_casts.size(),
 						"configured_hz": Engine.physics_ticks_per_second,
 						"integration_hz": contact_frequency_samples / contact_frequency_elapsed_s,
@@ -677,37 +724,42 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var bump := float(suspension_model.axle_parameters[i].get("bump_m", 0.22)) + 0.02
 		var travel := bump + float(suspension_model.axle_parameters[i].get("droop_m", 0.18))
 		var steer := _wheel_steer_angle(i, float(inputs.get("steering", 0.0))) + _effective_toe(i)
-		var orientation := Basis(Vector3.UP, steer) * Basis(
-			Vector3.FORWARD,
-			suspension_model.dynamic_wheel_camber(i),
-		) * Basis(Vector3.BACK, PI * 0.5)
-		cast.global_transform = state.transform * Transform3D(
-			orientation,
-			wheel_positions_local[i] + Vector3.UP * bump,
-		)
-		cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
-		cast.collision_mask = body.collision_mask
-		cast.force_shapecast_update()
-		var hit: Dictionary = { }
-		var support := 0.25
-		for collision_index in cast.get_collision_count():
-			var normal := cast.get_collision_normal(collision_index).normalized()
-			var alignment := normal.dot(chassis_up)
-			if alignment > support:
-				support = alignment
-				hit = {
-					"position": cast.get_collision_point(collision_index),
-					"normal": normal,
-					"collider": cast.get_collider(collision_index),
-				}
-		contact_query_count += 1
+		var hit: Dictionary = {}
+		var ray_distance := 0.0
+		if tandem_cam_enabled:
+			hit = _query_tandem_contact(body, state, i, steer, bump, travel)
+			ray_distance = float(hit.get("distance", 0.0))
+		else:
+			var orientation := Basis(Vector3.UP, steer) * Basis(
+				Vector3.FORWARD,
+				suspension_model.dynamic_wheel_camber(i),
+			) * Basis(Vector3.BACK, PI * 0.5)
+			cast.global_transform = state.transform * Transform3D(
+				orientation,
+				wheel_positions_local[i] + Vector3.UP * bump,
+			)
+			cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
+			cast.collision_mask = body.collision_mask
+			cast.force_shapecast_update()
+			var support := 0.25
+			for collision_index in cast.get_collision_count():
+				var normal := cast.get_collision_normal(collision_index).normalized()
+				var alignment := normal.dot(chassis_up)
+				if alignment > support:
+					support = alignment
+					hit = {
+						"position": cast.get_collision_point(collision_index),
+						"normal": normal,
+						"collider": cast.get_collider(collision_index),
+					}
+			contact_query_count += 1
+			ray_distance = wheel_radii[i] + travel * cast.get_closest_collision_safe_fraction() - bump
 		if hit.is_empty():
 			suspension_model.set_airborne(i)
 			wheel_loads[i] = 0.0
 			wheel_surfaces[i] = "Unknown"
 			contacts.append({ "hit": false })
 			continue
-		var ray_distance: float = wheel_radii[i] + travel * cast.get_closest_collision_safe_fraction() - bump
 		wheel_contact_points[i] = hit["position"]
 		wheel_contact_normals[i] = (hit["normal"] as Vector3).normalized()
 		wheel_surfaces[i] = _surface_for_collider(hit.get("collider"))
@@ -854,7 +906,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var normal_load := maxf(float(normal_loads[i]), 0.0)
 			wheel_loads[i] = normal_load
 			var thermal_state := tire_thermal_states[i]
-			var local_water := thermal_water[i]
+			# Película fina vs charco §4.5: el agua total ya incluye el charco
+			# (max(water, puddle)); el soporte del charco lo aplica
+			# PuddleModel, así que al neumático solo va la película fina
+			# (total - charco) para no aplicar dos veces la misma pérdida.
+			var puddle_here := float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
+			var thin_water := maxf(thermal_water[i] - puddle_here, 0.0)
+			var local_water := thin_water
 			var local_snow := thermal_snow[i]
 			var local_ground := thermal_ground[i]
 			tire_model.rotate_patch_frame(i, forward, right)
@@ -918,11 +976,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
-			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * wheel_radii[i])) * signf(longitudinal_speed)
-			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * wheel_radii[i] + hydro_wheel_torque
+			# Radio efectivo coherente §4.5: la reacción usa el radio
+			# acoplado a deflexión, no el nominal del manifest.
+			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
+			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * eff_radius)) * signf(longitudinal_speed)
+			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
-			thermal_slip_speeds[i] = wheel_spins[i] * wheel_radii[i] - longitudinal_speed
+			thermal_slip_speeds[i] = wheel_spins[i] * eff_radius - longitudinal_speed
 			thermal_surfaces[i] = str(contact["surface"])
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
@@ -951,7 +1012,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				i, average_power.x, average_power.y, thermal_speeds[i], _tire_thermal_elapsed,
 				thermal_cambers[i], average_power.z, thermal_slip_speeds[i], thermal_surfaces[i],
 				maxf(float(normal_loads[i]), 0.0), thermal_fy[i], wheel_spins[i], thermal_vx[i],
-				wheel_radii[i], thermal_water[i], thermal_snow[i], thermal_ground[i], thermal_air[i], false,
+				float(tire_model.states[i].get("effective_radius_m", wheel_radii[i])) if normal_loads[i] > 0.0 else wheel_radii[i],
+				thermal_water[i], thermal_snow[i], thermal_ground[i], thermal_air[i], false,
 				thermal_irradiance[i],
 			)
 		_wheel_thermal_work.fill(Vector3.ZERO)
@@ -1013,12 +1075,21 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"spin_rad_s": wheel_spins[index],
 				"slip_ratio": wheel_slips[index].x,
 				"slip_angle_rad": wheel_slips[index].y,
+				"effective_slip_ratio": float(tire_model.states[index].get("effective_slip_ratio", 0.0)),
+				"effective_slip_angle_rad": float(tire_model.states[index].get("effective_slip_angle", 0.0)),
 				"puddle_depth_mm": float(last_local_conditions[index].get("puddle_depth_mm", 0.0)),
 				"water_mm": float(last_local_conditions[index].get("water_mm", 0.0)),
 				"puddle_support": float(last_local_conditions[index].get("puddle_support", 1.0)),
 				"puddle_drag_n": float(last_local_conditions[index].get("puddle_drag_n", 0.0)),
 				"patch_pos": tire_model.states[index].patch_pos,
 				"patch_energy_j": tire_model.states[index].patch_energy_j,
+				"energy_residue_w": float(tire_model.states[index].get("energy_residue_w", 0.0)),
+				"instant_combined_utilization": float(tire_model.states[index].get("instant_combined_utilization", 0.0)),
+				"contact_power_w": float(tire_model.states[index].get("contact_power_w", 0.0)),
+				"slide_heat_w": float(tire_model.states[index].get("slide_heat_w", 0.0)),
+				"liftoff_discard_j": float(tire_model.states[index].get("liftoff_discard_j", 0.0)),
+				"effective_radius_m": float(tire_model.states[index].get("effective_radius_m", wheel_radii[index])),
+				"enveloped_load_n": float(tire_model.states[index].get("enveloped_load_n", wheel_loads[index])),
 				"unsprung_mass_kg": mass_model.unsprung_mass_kg[index],
 				"radial_deflection_m": unsprung_rig.radial_deflection_m[index],
 				"radial": unsprung_rig.radial_states[index].duplicate(),
@@ -1179,6 +1250,39 @@ func _flush_fuel_work() -> void:
 		thermal_model.advance_fuel(_fuel_work_j / _fuel_elapsed, _fuel_elapsed)
 	_fuel_elapsed = 0.0
 	_fuel_work_j = 0.0
+
+
+## §closure-6: envolvente tandem-cam de dos apoyos.
+## h_front/h_rear: alturas de suelo bajo cada apoyo (marco de rodadura).
+## front_contact/rear_contact: si cada apoyo toca suelo.
+## Devuelve {height, contact, both_contact, surface}: altura efectiva continua
+## (media cuando ambos tocan = puenteo de bache + subida anticipada a bordillo;
+## apoyo único cuando solo uno toca; sin contacto cuando ninguno), flag de
+## contacto y superficie (la del apoyo más alto al cruzar bordes entre
+## superficies; "" si no hay contacto).
+static func tandem_cam_effective_height(
+	h_front: float, front_contact: bool,
+	h_rear: float, rear_contact: bool,
+	front_surface: String = "",
+	rear_surface: String = "",
+) -> Dictionary:
+	if front_contact and rear_contact:
+		var h := (h_front + h_rear) * 0.5
+		var surf := front_surface
+		if front_surface != rear_surface:
+			surf = front_surface if h_front >= h_rear else rear_surface
+		return {"height": h, "contact": true, "both_contact": true, "surface": surf}
+	if front_contact:
+		return {"height": h_front, "contact": true, "both_contact": false, "surface": front_surface}
+	if rear_contact:
+		return {"height": h_rear, "contact": true, "both_contact": false, "surface": rear_surface}
+	return {"height": 0.0, "contact": false, "both_contact": false, "surface": ""}
+
+
+## Separación de apoyos del prototipo: longitud de huella efectiva.
+static func tandem_cam_supports(patch_length_m: float, scale: float = 1.0) -> Array[float]:
+	var half := maxf(patch_length_m, 0.03) * 0.5 * maxf(scale, 0.1)
+	return [-half, half]
 
 
 func reset_dynamics() -> void:

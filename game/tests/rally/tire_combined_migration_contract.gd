@@ -38,6 +38,7 @@ func run_suite() -> void:
 	print("--- TIRE COMBINED MIGRATION V2 CONTRACT ---")
 	test_profile_and_escort_calibration()
 	test_legacy_equivalence()
+	test_legacy_relief_smooth_and_opt_in()
 	test_zero_migration_coefficients()
 	test_ux_zero_lateral_unchanged()
 	test_uy_zero_longitudinal_unchanged()
@@ -114,6 +115,58 @@ func test_legacy_equivalence() -> void:
 	tire.states[2].patch_pos = Vector2(-0.05, 0.02)
 	var res_legacy_brk := tire.evaluate(2, 2500.0, "Gravel", 0.0, 0.0, 0.0, 0.28, 0.0, 1.0, 200.0, 0.0, 60.0)
 	check(is_finite(res_legacy_brk.longitudinal_force_n) and is_finite(res_legacy_brk.lateral_force_n), "Legacy braking forces are finite")
+
+
+func test_legacy_relief_smooth_and_opt_in() -> void:
+	print("\n[2b] Testing legacy relief: opt-in, dedicated key, graduated...")
+	# NOTE: legacy relief scales norm_demand_x, which only feeds the post-peak
+	# decay target (integrated with slip_loss_tau_s). Single delta=0 steps can
+	# never observe it, so these probes use one big-delta step (0.5 s) from a
+	# controlled preset: zero velocities keep patch_pos bit-identical
+	# (transport 0 -> renewal 1, no camber term) while the decay memory snaps
+	# to its target, isolating the relief effect.
+	# Over-peak preset in the transition band (unclamped norm ~ 2.5, theta ~ 0.83):
+	# without relief decay ~ 0.73; with 0.3 relief the longitudinal part
+	# shrinks below the knee (decay 0). Calibrated sweep: at 0.3x the models
+	# still agree, at 0.4x they split ~2.8%, at 0.5x+ the unrelieved side
+	# saturates and the contrast stops growing.
+	var px := 0.08
+	var py := 0.034
+	# OFF by default (no legacy key), v2 disabled.
+	var r_off := _legacy_relief_probe({}, Vector2(px, py))
+	# Old overloaded key alone must NOT trigger relief anymore.
+	var r_old := _legacy_relief_probe({"combined_lateral_peak_migration": 0.3}, Vector2(px, py))
+	check(is_equal_approx(r_old.y, r_off.y) and is_equal_approx(r_old.x, r_off.x),
+		"combined_lateral_peak_migration no longer drives legacy relief")
+	# Opt-in 0.15 / 0.3: graduated grip gift over the peak (higher ceiling).
+	var r_15 := _legacy_relief_probe({"legacy_longitudinal_relief": 0.15}, Vector2(px, py))
+	var r_30 := _legacy_relief_probe({"legacy_longitudinal_relief": 0.3}, Vector2(px, py))
+	check(r_30.y > r_15.y and r_15.y > r_off.y,
+		"Legacy relief raises the over-peak ceiling gradually (Fy ordered by relief)")
+	var ratio := r_30.y / maxf(r_off.y, 1.0e-6)
+	check(ratio > 1.002 and ratio < 1.20, "Relief 0.3 gift is bounded, got ratio %f" % ratio)
+	# Braking mirror: relief_s = 0, exact agreement.
+	var rb_off := _legacy_relief_probe({}, Vector2(-px, py))
+	var rb_30 := _legacy_relief_probe({"legacy_longitudinal_relief": 0.3}, Vector2(-px, py))
+	check(is_equal_approx(rb_30.y, rb_off.y) and is_equal_approx(rb_30.x, rb_off.x),
+		"Legacy relief is zero on the braking side")
+	# No hardcoded rear bias: front axle honors the same opt-in key.
+	var rf_off := _legacy_relief_probe({}, Vector2(px, py), 0)
+	var rf_30 := _legacy_relief_probe({"legacy_longitudinal_relief": 0.3}, Vector2(px, py), 0)
+	check(rf_30.y > rf_off.y, "Legacy relief is per-axle opt-in, no hardcoded rear bias")
+
+
+# One big-delta probe step from a fully controlled state. Zero velocities keep
+# patch_pos bit-identical (transport 0 -> renewal 1, no camber term) while the
+# post-peak decay snaps to its target; returns Vector2(Fx, Fy).
+func _legacy_relief_probe(overrides: Dictionary, patch: Vector2, axle_idx: int = 2) -> Vector2:
+	var base := {"combined_migration_v2_enabled": false}
+	for k in overrides:
+		base[k] = overrides[k]
+	var tire := create_tire_model(base, axle_idx)
+	tire.states[axle_idx].patch_pos = patch
+	var r := tire.evaluate(axle_idx, 2500.0, "Gravel", 0.0, 0.0, 0.0, 0.28, 0.0, 1.0, 200.0, 0.5, 60.0)
+	return Vector2(float(r.longitudinal_force_n), float(r.lateral_force_n))
 
 
 func test_zero_migration_coefficients() -> void:

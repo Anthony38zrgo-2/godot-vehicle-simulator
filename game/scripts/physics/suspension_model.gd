@@ -289,6 +289,12 @@ func suspension_forces() -> Array[float]:
 	return forces
 
 
+## Convenio de camber explícito §4.3:
+## dynamic_camber = AXLE-FRAME (mismo valor FL/FR, positivo = parte alta
+## hacia fuera en espejo). dynamic_wheel_camber = WHEEL-FRAME con espejo
+## (izquierda [0,2] +1, derecha [1,3] -1). TireModel.evaluate espera
+## axle-frame y re-aplica el mismo espejo interno; pasarle dynamic_camber,
+## no dynamic_wheel_camber (doble espejo).
 func dynamic_camber(index: int) -> float:
 	var p: Dictionary = axle_parameters[index]
 	var travel_delta := compression[index] - float(p.get("rest_compression_offset", 0.0))

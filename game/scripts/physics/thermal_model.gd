@@ -131,6 +131,34 @@ func engine_torque_factor() -> float:
 	return available_engine_torque_fraction
 
 
+func _ensure_four_compounds(cat: Dictionary, requested_id: String) -> Array[Dictionary]:
+	# §closure-3: misma precedencia que TireModel. Validar antes de mutar;
+	# al recuperar un catálogo vacío, inicializar faltantes con el activo y
+	# su ID; sin activo, usar como base el primer compuesto válido solicitado;
+	# copiar por rueda y conservar selecciones existentes.
+	var definitions: Dictionary = cat.get("compounds", {})
+	var out: Array[Dictionary] = []
+	var base_def: Dictionary = {}
+	if not active_compound.is_empty() and definitions.has(active_compound_id):
+		base_def = (definitions[active_compound_id] as Dictionary).duplicate(true)
+		base_def["id"] = active_compound_id
+	elif definitions.has(requested_id):
+		base_def = (definitions[requested_id] as Dictionary).duplicate(true)
+		base_def["id"] = requested_id
+	for i in 4:
+		if i < wheel_compounds.size():
+			var cur: Variant = wheel_compounds[i]
+			if cur is Dictionary and not (cur as Dictionary).is_empty():
+				var cur_id := str((cur as Dictionary).get("id", ""))
+				if definitions.has(cur_id):
+					var kept := (definitions[cur_id] as Dictionary).duplicate(true)
+					kept["id"] = cur_id
+					out.append(kept)
+					continue
+		out.append(base_def.duplicate(true))
+	return out
+
+
 func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
 	var cat: Dictionary = catalog if not catalog.is_empty() else compound_catalog
 	if cat.is_empty():
@@ -712,16 +740,25 @@ func set_wheel_compound(index: int, compound_id: String) -> bool:
 	if index < 0 or index >= 4:
 		push_warning("Invalid wheel index: " + str(index))
 		return false
-	var definitions: Dictionary = compound_catalog.get("compounds", {})
+	# Contrato catálogo vacío §4.6: mismo fallback que set_compound.
+	var cat: Dictionary = compound_catalog if not compound_catalog.is_empty() else RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
 	if not definitions.has(compound_id):
 		push_warning("Unknown wheel compound: " + compound_id)
 		return false
-	while wheel_compounds.size() < 4:
-		wheel_compounds.append(active_compound.duplicate(true))
+	compound_catalog = cat
+	wheel_compounds = _ensure_four_compounds(cat, compound_id)
 	var selected: Dictionary = (definitions[compound_id] as Dictionary).duplicate(true)
 	selected["id"] = compound_id
 	wheel_compounds[index] = selected
+	if active_compound.is_empty() or not definitions.has(active_compound_id):
+		active_compound_id = compound_id
+		active_compound = (definitions[compound_id] as Dictionary).duplicate(true)
 	return true
+
+
+func optimal_carcass_temperature(index: int) -> float:
+	return float(_axle_tire_config(index).get("optimal_carcass_temperature_c", 60.0))
 
 
 func _axle_tire_config(index: int) -> Dictionary:

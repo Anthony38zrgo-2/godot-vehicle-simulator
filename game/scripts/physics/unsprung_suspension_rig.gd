@@ -195,6 +195,7 @@ func solve(
 			hub.mass,
 			deflection,
 			compression_speed,
+			thermal.optimal_carcass_temperature(i),
 		)
 		radial_states[i] = radial
 		var tire_force := maxf(float(radial.force_n), 0.0)

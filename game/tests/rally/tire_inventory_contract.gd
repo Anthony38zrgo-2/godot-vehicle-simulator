@@ -116,7 +116,10 @@ func run() -> void:
 	thermal.set_compound("gravel_normal")
 	var state: Dictionary = thermal.tire_states[0]
 	thermal.accumulate_tire_damage(state, 1000.0, 10.0)
-	check(is_equal_approx(state.wear_fraction, 10000.0 * float(thermal.active_compound.wear_per_j) / float(thermal.compound_catalog.durability_life_scale)), "wear uses the configured inverse lifetime scaling")
+	var expected_wear := 10000.0 * float(thermal.active_compound.wear_per_j)
+	expected_wear *= float(thermal.active_compound.get("dry_wear_multiplier", 1.0))
+	expected_wear *= VehicleThermalModel.NATURAL_WEAR_MULTIPLIER / float(thermal.compound_catalog.durability_life_scale)
+	check(is_equal_approx(state.wear_fraction, expected_wear), "wear uses dry abrasion and configured inverse lifetime scaling")
 	scene.queue_free()
 	await process_frame
 	print("TIRE_INVENTORY_CONTRACT ", "PASS" if failures.is_empty() else failures)

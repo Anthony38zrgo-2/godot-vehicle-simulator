@@ -5,6 +5,22 @@ const CONTACT_PATCH_LOAD_GAIN := 0.12
 const CONTACT_PATCH_DEFLECTION_GAIN := 0.20
 const FRONT_CAMBER_THRUST_GAIN := 0.13
 const REAR_CAMBER_THRUST_GAIN := 0.18
+# Low-speed anchored contact: full static hold at/below FULL, fully dynamic
+# at/above FREE, smooth blend between. Transport-based so wheelspin and
+# locked-wheel slides stay on the dynamic branch.
+const STATIC_BLEND_FULL_M_S := 0.25
+const STATIC_BLEND_FREE_M_S := 1.25
+const STATIC_DAMPING_RATIO := 0.5
+# Radio efectivo: acoplado a deflexión (0.92 = aplastamiento tread vs
+# flanco). Coherente en velocidad de llanta y par. §4.5.
+const EFFECTIVE_RADIUS_COMPRESSION_GAIN := 0.92
+const EFFECTIVE_RADIUS_RIM_MARGIN_M := 0.01
+# Envolvente tandem-cam simplificada: la carga normal se filtra con
+# tau = patch / max(planar,1). Suaviza bordes (curbs) a longitud de huella.
+const ENVELOPE_PATCH_TAU_MIN_S := 0.002
+# Rampa de aterrizaje: el contact_blend sube con tau rápido al re-contactar
+# para no patinar con patch cero + blend<1. Despegue usa tau del perfil.
+const CONTACT_LANDING_TAU_S := 0.02
 
 var axle_profiles: Array[Dictionary] = []
 var surfaces: Dictionary = { }
@@ -13,6 +29,7 @@ var surface_transition_tau_s: float = 0.0
 var axle_surface_tau_s: Array[float] = []
 var base_contact_patch_m: Array[float] = []
 var base_relaxation_length_m: Array[float] = []
+var static_deflection_ratio: Array[float] = []
 var static_wheel_load_n: Array[float] = []
 var maximum_tire_deflection_m: Array[float] = []
 var reference_hot_pressure_kpa: Array[float] = []
@@ -42,6 +59,37 @@ var compound_catalog: Dictionary = {}
 var missing_surface_warnings: Dictionary = {}
 
 
+func _ensure_four_compounds(cat: Dictionary, requested_id: String) -> Array[Dictionary]:
+	# §closure-3: validar antes de mutar; al recuperar un catálogo vacío,
+	# inicializar las ruedas faltantes con el compuesto activo y su ID; si
+	# todavía no hay compuesto activo, usar como base el primer compuesto
+	# válido solicitado; copiar por rueda y conservar selecciones existentes.
+	var definitions: Dictionary = cat.get("compounds", {})
+	var out: Array[Dictionary] = []
+	var base_id := ""
+	var base_def: Dictionary = {}
+	if not active_compound.is_empty() and definitions.has(active_compound_id):
+		base_id = active_compound_id
+		base_def = (definitions[active_compound_id] as Dictionary).duplicate(true)
+		base_def["id"] = base_id
+	elif definitions.has(requested_id):
+		base_id = requested_id
+		base_def = (definitions[requested_id] as Dictionary).duplicate(true)
+		base_def["id"] = base_id
+	for i in 4:
+		if i < wheel_compounds.size():
+			var cur: Variant = wheel_compounds[i]
+			if cur is Dictionary and not (cur as Dictionary).is_empty():
+				var cur_id := str((cur as Dictionary).get("id", ""))
+				if definitions.has(cur_id):
+					var kept := (definitions[cur_id] as Dictionary).duplicate(true)
+					kept["id"] = cur_id
+					out.append(kept)
+					continue
+		out.append(base_def.duplicate(true))
+	return out
+
+
 func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
 	var cat: Dictionary = catalog if not catalog.is_empty() else compound_catalog
 	if cat.is_empty():
@@ -65,32 +113,63 @@ func set_wheel_compound(index: int, compound_id: String) -> bool:
 	if index < 0 or index >= 4:
 		push_warning("Invalid wheel index: " + str(index))
 		return false
-	var definitions: Dictionary = compound_catalog.get("compounds", {})
+	# Contrato catálogo vacío §4.6: mismo fallback que set_compound.
+	var cat: Dictionary = compound_catalog if not compound_catalog.is_empty() else RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
 	if not definitions.has(compound_id):
 		push_warning("Unknown wheel compound: " + compound_id)
 		return false
-	while wheel_compounds.size() < 4:
-		wheel_compounds.append(active_compound.duplicate(true))
+	compound_catalog = cat
+	wheel_compounds = _ensure_four_compounds(cat, compound_id)
+	# Conservar selecciones existentes salvo la rueda solicitada.
 	var selected: Dictionary = (definitions[compound_id] as Dictionary).duplicate(true)
 	selected["id"] = compound_id
 	wheel_compounds[index] = selected
+	# Si no había compuesto activo (arranque sin catálogo), el solicitado
+	# se convierte en base activa sin pisar las otras tres ruedas.
+	if active_compound.is_empty() or not definitions.has(active_compound_id):
+		active_compound_id = compound_id
+		active_compound = (definitions[compound_id] as Dictionary).duplicate(true)
 	return true
 
 
-func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float, index: int = -1) -> Dictionary:
+# Inversión de respaldo compartida §closure-2: misma rutina para la
+# referencia estática y el fallback. Bisección monótona con presión y
+# óptima resueltas, seating y tope. Satura en el límite admitido.
+static func fallback_deflection_m(
+	tires: Dictionary, axle: String, pressure_kpa: float, carcass_c: float,
+	load_n: float, optimum_c: float, sidewall_m: float, max_gain: float = 1.5,
+) -> float:
+	var coeffs := TireRadialModel.prepare_coefficients(tires, axle, pressure_kpa, carcass_c, optimum_c)
+	return TireRadialModel.invert_deflection_m(coeffs, load_n, maxf(sidewall_m, 0.03) * max_gain)
+
+
+func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c: float, index: int = -1, planar_speed_m_s: float = 0.0) -> Dictionary:
 	var compound := wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
 	if compound.is_empty():
 		return {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
 	var w := clampf(water_mm, 0.0, 12.0)
 	var s := clampf(snow_mm, 0.0, 8.0)
-	var wf := maxf(1.0 - w * float(compound.get("water_grip_loss_per_mm", 0.12)), float(compound.get("water_grip_floor", 0.6)))
+	var wf_static := maxf(1.0 - w * float(compound.get("water_grip_loss_per_mm", 0.12)), float(compound.get("water_grip_floor", 0.6)))
 	var sf := maxf(1.0 - s * float(compound.get("snow_grip_loss_per_mm", 0.09)), float(compound.get("snow_grip_floor", 0.6)))
+	# Película fina dependiente de velocidad §4.5: a baja velocidad el dibujo
+	# evacua; a velocidad de referencia el 100% de la pérdida estática aplica.
+	# Evita que parado en mojado pierda lo mismo que a 30 m/s (aquaplaning).
+	var evac := maxf(float(compound.get("water_evacuation_reference_speed_m_s", 16.0)), 1.0)
+	var speed_ratio := clampf(planar_speed_m_s / evac, 0.0, 1.0)
+	var speed_gain := 0.35 + 0.65 * speed_ratio * speed_ratio
+	var wf := 1.0 - (1.0 - wf_static) * speed_gain if w > 1.0e-9 else 1.0
 	var gf := 1.0
 	if ground_c < 5.0:
 		gf = lerpf(0.92, 1.0, clampf((ground_c + 5.0) / 10.0, 0.0, 1.0))
 	elif ground_c > 32.0:
 		gf = lerpf(1.0, 0.96, clampf((ground_c - 32.0) / 12.0, 0.0, 1.0))
 	return {"water": wf, "snow": sf, "ground": gf, "combined": clampf(wf * sf * gf, 0.35, 1.0)}
+
+
+static func effective_radius_m(nominal_m: float, deflection_m: float, sidewall_m: float) -> float:
+	var rim := maxf(nominal_m - maxf(sidewall_m, 0.03), 0.05)
+	return maxf(nominal_m - maxf(deflection_m, 0.0) * EFFECTIVE_RADIUS_COMPRESSION_GAIN, rim + EFFECTIVE_RADIUS_RIM_MARGIN_M)
 
 
 func configure(
@@ -205,6 +284,8 @@ func configure(
 	base_contact_patch_m.clear()
 	base_relaxation_length_m.clear()
 	static_wheel_load_n.clear()
+	static_deflection_ratio.clear()
+	missing_surface_warnings.clear()
 	maximum_tire_deflection_m.clear()
 	reference_hot_pressure_kpa.clear()
 	for i in 4:
@@ -222,6 +303,17 @@ func configure(
 		reference_hot_pressure_kpa.append(
 			maxf(float(hot_pressures.get(wheel_keys[i], 225.0)), 20.0)
 		)
+		var sidewall := maximum_tire_deflection_m[i]
+		# §closure-2: misma rutina compartida que el fallback (bisección
+		# monótona con presión caliente ref y óptima resuelta). Coeffs una
+		# vez por solución, sin reevaluar diccionarios en el bucle.
+		var ref_ratio := fallback_deflection_m(
+			radial_tires, "front" if i < 2 else "rear",
+			reference_hot_pressure_kpa[i], axle_optimal_carcass_c[i],
+			static_wheel_load_n[i], axle_optimal_carcass_c[i], sidewall, 1.5,
+		) / sidewall
+		static_deflection_ratio.append(ref_ratio)
+
 	axle_profiles = [
 		resolved_filters.get("front", { }).duplicate(true),
 		resolved_filters.get("front", { }).duplicate(true),
@@ -251,7 +343,21 @@ func configure(
 				"dynamic_contact_patch_m": base_contact_patch_m[i],
 				"relaxation_length_m": base_relaxation_length_m[i],
 				"estimated_carcass_deflection_m": 0.0,
+				"enveloped_load_n": static_wheel_load_n[i],
+				"envelope_valid": false,
+				"effective_radius_m": 0.28,
+				"energy_residue_w": 0.0,
 				"combined_utilization": 0.0,
+				"instant_combined_utilization": 0.0,
+				"contact_power_w": 0.0,
+				"rolling_power_w": 0.0,
+				"elastic_before_j": 0.0,
+				"plastic_loss_j": 0.0,
+				"blend_loss_j": 0.0,
+				"stiffness_loss_j": 0.0,
+				"liftoff_discard_j": 0.0,
+				"contact_work_j": 0.0,
+				"heat_work_j": 0.0,
 				"longitudinal_force": 0.0,
 				"lateral_force": 0.0,
 				"aligning_torque": 0.0,
@@ -261,6 +367,12 @@ func configure(
 		)
 
 
+## Convenio de camber (explícito §4.3):
+## `camber_rad` es AXLE-FRAME (VehicleSuspensionModel.dynamic_camber, mismo
+## valor para FL/FR). Signo interno rueda: signed = +camber en izquierda
+## [0,2], -camber en derecha [1,3], idéntico a dynamic_wheel_camber.
+## Axle positivo = parte alta hacia fuera en ambas ruedas (espejo FL/FR).
+## Se acota tan() a ±0.5 rad tras aplicar camber_thrust_gain por eje.
 func evaluate(
 	index: int,
 	normal_load_n: float,
@@ -345,10 +457,15 @@ func evaluate(
 	var profile: Dictionary = axle_profiles[index]
 	var contact_target := normal_load_n > 1e-4
 	var contact_tau := clampf(float(profile.get("contact_ramp_tau_s", 0.0)), 0.0, 1.0)
-	if contact_tau <= 1e-9:
+	# Rampa §4.6: al re-contactar (blend<1, con carga) subida rápida 20 ms para
+	# no patinar con patch cero; al descargar se respeta el tau del perfil.
+	var effective_contact_tau := contact_tau
+	if contact_target and float(state.contact_blend) < 1.0:
+		effective_contact_tau = minf(contact_tau, CONTACT_LANDING_TAU_S)
+	if effective_contact_tau <= 1e-9:
 		state.contact_blend = 1.0 if contact_target else 0.0
 	else:
-		var contact_alpha := 1.0 - exp(-maxf(delta, 0.0) / contact_tau)
+		var contact_alpha := 1.0 - exp(-maxf(delta, 0.0) / effective_contact_tau)
 		state.contact_blend = clampf(
 			float(state.contact_blend)
 			+ ((1.0 if contact_target else 0.0) - float(state.contact_blend)) * contact_alpha,
@@ -359,7 +476,39 @@ func evaluate(
 		_advance_unloaded(index, delta)
 		return _output(state)
 
-	var radius := maxf(rolling_radius_m, 0.05)
+	# Envolvente §closure-1 + tandem temporal §4.5: la carga que alimenta
+	# mu/capacidad se filtra con tau = huella / planar (mín 2 ms). A carga
+	# constante converge a Fz. Al despegar se invalida; al volver se siembra
+	# con la primera carga válida (sin memoria residual entre aterrizajes).
+	var planar_early := Vector2(longitudinal_speed_m_s, lateral_speed_m_s).length()
+	var envelope_tau := maxf(float(state.get("dynamic_contact_patch_m", base_contact_patch_m[index])) / maxf(planar_early, 1.0), ENVELOPE_PATCH_TAU_MIN_S)
+	if not bool(state.get("envelope_valid", false)):
+		state.enveloped_load_n = maxf(normal_load_n, 0.0)
+		state.envelope_valid = true
+	else:
+		var env_alpha := 1.0 - exp(-maxf(delta, 0.0) / maxf(envelope_tau, 1.0e-4))
+		state.enveloped_load_n = lerpf(float(state.enveloped_load_n), maxf(normal_load_n, 0.0), env_alpha)
+	var enveloped_load := maxf(float(state.enveloped_load_n), 0.0)
+
+	# §closure-2: deflexión ya resuelta ANTES del slip. Prioridad al rig;
+	# fallback por inversión compartida (bisección monótona, satura en tope).
+	# Coeffs una vez por solución.
+	var nominal_radius := maxf(rolling_radius_m, 0.05)
+	var sidewall_max := maximum_tire_deflection_m[index]
+	var estimated_deflection := 0.0
+	var rig_has := state.has("radial_deflection_m") and float(state.get("radial_deflection_m", 0.0)) > 0.0
+	if rig_has:
+		estimated_deflection = clampf(float(state.radial_deflection_m), 0.0, sidewall_max * 1.5)
+	else:
+		estimated_deflection = fallback_deflection_m(
+			radial_tires, "front" if index < 2 else "rear",
+			pressure_kpa_gauge, carcass_temperature_c,
+			maxf(normal_load_n, 0.0), float(axle_optimal_carcass_c[index]),
+			sidewall_max, 1.5,
+		)
+	# Radio efectivo del mismo subpaso con la deflexión ya resuelta.
+	var radius := effective_radius_m(nominal_radius, estimated_deflection, sidewall_max)
+	state.effective_radius_m = radius
 	var rim_speed := wheel_speed_rad_s * radius
 	var speed_reference := maxf(maxf(absf(longitudinal_speed_m_s), absf(rim_speed)), 1.0)
 	var target_ratio := clampf((rim_speed - longitudinal_speed_m_s) / speed_reference, -3.0, 3.0)
@@ -374,19 +523,6 @@ func evaluate(
 	var reference_load := maxf(static_wheel_load_n[index], 100.0)
 	var load_ratio := maxf(maxf(normal_load_n, 0.0) / reference_load, 0.05)
 	var pressure_ratio := maxf(pressure_kpa_gauge / reference_hot_pressure_kpa[index], 0.001)
-	var radial := TireRadialModel.evaluate(
-		radial_tires,
-		"front" if index < 2 else "rear",
-		pressure_kpa_gauge,
-		carcass_temperature_c,
-		1.0,
-		0.0,
-		0.0,
-	)
-	var estimated_deflection := maxf(normal_load_n, 0.0) / maxf(float(radial.stiffness_n_m), 1.0)
-	if state.has("radial_deflection_m"):
-		estimated_deflection = float(state.radial_deflection_m)
-	estimated_deflection = clampf(estimated_deflection, 0.0, maximum_tire_deflection_m[index] * 1.5)
 	var deflection_ratio := clampf(
 		estimated_deflection / maximum_tire_deflection_m[index],
 		0.0,
@@ -394,7 +530,7 @@ func evaluate(
 	)
 	var patch_scale := clampf(
 		1.0 + float(axle_contact_load_gain[index]) * (load_ratio - 1.0)
-		+ float(axle_contact_deflection_gain[index]) * deflection_ratio,
+		+ float(axle_contact_deflection_gain[index]) * (deflection_ratio - static_deflection_ratio[index]),
 		0.70,
 		1.45,
 	)
@@ -409,9 +545,10 @@ func evaluate(
 	state.dynamic_contact_patch_m = dynamic_contact_patch
 	state.relaxation_length_m = relaxation_length
 	state.estimated_carcass_deflection_m = estimated_deflection
+	var min_relaxation_tau := clampf(float(profile.get("min_relaxation_tau_s", 0.0)), 0.0, 0.5)
 	var relaxation_tau := maxf(
 		relaxation_length / maxf(planar_speed, 4.0),
-		clampf(float(profile.get("min_relaxation_tau_s", 0.0)), 0.0, 0.5),
+		min_relaxation_tau,
 	)
 	var recovery_scale := clampf(float(profile.get("relaxation_recovery_scale", 1.0)), 0.1, 5.0)
 	var lat_recovering := absf(float(state.effective_slip_angle)) > absf(target_angle)
@@ -423,7 +560,10 @@ func evaluate(
 	state.effective_slip_angle += (target_angle - float(state.effective_slip_angle)) * lat_alpha
 	state.effective_slip_ratio += (target_ratio - float(state.effective_slip_ratio)) * lon_alpha
 
-	var fz := maxf(normal_load_n, 0.0)
+	# Carga para mu/capacidad: envolvente (suaviza curbs), no el pico instantáneo.
+	# A carga constante converge a Fz. §4.5.
+	var fz := enveloped_load
+	var fz_static := maxf(normal_load_n, 0.0)
 	var pressure_rr := clampf(
 		pow(pressure_ratio, clampf(float(axle_pressure_rolling[index]), -3.0, 3.0)),
 		0.75,
@@ -438,29 +578,39 @@ func evaluate(
 	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
 	# Respuesta de compuesto/agua/nieve/suelo combinada una sola vez con la
 	# curva base y el factor térmico (sin duplicar la reducción mojada).
+	# Película fina con velocidad §4.5; hielo mojado combina y clampea §4.5.
 	var compound_mult := 1.0
 	var compound_detail := {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
 	var compound: Dictionary = wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
 
 	if not compound.is_empty():
-		match winter_layer_id:
-			"snow_packed":
-				compound_mult = float(compound.get("snow_packed_grip_scale", 1.0))
-			"snow_loose", "snow_deep":
-				compound_mult = float(compound.get("snow_loose_grip_scale", 1.0))
-			"ice":
-				compound_mult = float(compound.get("ice_grip_scale", 1.0))
-			_:
-				compound_detail = compound_water_snow_ground_factor(
-					water_mm, snow_mm, ground_temperature_c, index
-				)
-				compound_mult = float(compound_detail.get("combined", 1.0))
-				if str(compound.get("id", "")) == "snow_studded":
-					compound_mult *= float(compound.get("uncovered_grip_scale", 1.0))
-
 		if winter_layer_id in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
-			compound_detail["snow"] = compound_mult
+			var snow_base := 1.0
+			match winter_layer_id:
+				"snow_packed":
+					snow_base = float(compound.get("snow_packed_grip_scale", 1.0))
+				"snow_loose", "snow_deep":
+					snow_base = float(compound.get("snow_loose_grip_scale", 1.0))
+				"ice":
+					snow_base = float(compound.get("ice_grip_scale", 1.0))
+			# Hielo/nieve mojada: la película fina también muerde (antes se
+			# ignoraba el agua). Clamp combinado para no salirse del rango.
+			var wet_detail := compound_water_snow_ground_factor(
+				water_mm, snow_mm, ground_temperature_c, index, planar_speed
+			)
+			var wet_mult := float(wet_detail.get("combined", 1.0))
+			compound_detail = {"water": float(wet_detail.get("water", 1.0)), "snow": snow_base, "ground": float(wet_detail.get("ground", 1.0)), "combined": 1.0}
+			compound_mult = clampf(snow_base * wet_mult, 0.05, 1.0)
 			compound_detail["combined"] = compound_mult
+			if str(compound.get("id", "")) == "snow_studded" and winter_layer_id != "ice":
+				compound_mult = clampf(compound_mult * float(compound.get("uncovered_grip_scale", 1.0)), 0.05, 1.0)
+		else:
+			compound_detail = compound_water_snow_ground_factor(
+				water_mm, snow_mm, ground_temperature_c, index, planar_speed
+			)
+			compound_mult = float(compound_detail.get("combined", 1.0))
+			if str(compound.get("id", "")) == "snow_studded":
+				compound_mult *= float(compound.get("uncovered_grip_scale", 1.0))
 
 	state["winter_layer_id"] = winter_layer_id
 	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
@@ -497,8 +647,19 @@ func evaluate(
 	var fy_capacity := maxf(mu * lateral_bonus * fz, 1e-6)
 	var stiffness_scale := sqrt(clampf(maxf(float(state.surface_stiffness), 0.0) / 5.0, 0.15, 2.5))
 	var rise_gamma := clampf(2.0 * stiffness_scale, 1.2, 4.0)
-	var base_peak_lat := maxf(float(profile.get("lateral_peak_slip_angle_rad", 0.18)), 1e-6)
-	var base_peak_lon := maxf(float(profile.get("longitudinal_peak_slip_ratio", 0.2)), 1e-6)
+	# Pico dependiente de carga + térmico/desgaste §4.5.
+	# peak_load_sensitivity (default 0 = neutro): picos crecen con la carga
+	# como pow(load_ratio, exp). Ventana térmica/desgaste vía thermal_grip:
+	# frío/gastado adelanta el pico (0.85-1.0). Sin claves nuevas el
+	# comportamiento es bit-idéntico al anterior.
+	var peak_load_exp := clampf(float(profile.get("peak_load_sensitivity", 0.0)), -0.5, 0.5)
+	var peak_load_scale := pow(load_ratio, peak_load_exp) if absf(peak_load_exp) > 1.0e-9 else 1.0
+	var peak_thermal_scale := clampf(0.85 + 0.15 * clampf(thermal_grip_factor, 0.0, 1.0), 0.85, 1.0)
+	var base_peak_lat := maxf(float(profile.get("lateral_peak_slip_angle_rad", 0.18)) * peak_load_scale * peak_thermal_scale, 1e-6)
+	var base_peak_lon := maxf(float(profile.get("longitudinal_peak_slip_ratio", 0.2)) * peak_load_scale * peak_thermal_scale, 1e-6)
+	# Rigidez de carcasa por temperatura §4.5: misma ley que el radial
+	# (1 - 0.0015*(T-opt), 0.88-1.12). Frío = más rígido, caliente = blando.
+	var carcass_stiff_scale := clampf(1.0 - 0.0015 * (carcass_temperature_c - float(axle_optimal_carcass_c[index])), 0.88, 1.12)
 	var slide_lat := clampf(
 		float(
 			profile.get("lateral_slide_mu_ratio", profile.get("longitudinal_slide_mu_ratio", 0.94))
@@ -512,24 +673,31 @@ func evaluate(
 	var blend := float(state.contact_blend)
 
 	var patch_before: Vector2 = state.patch_pos
-	var transport_speed := maxf(absf(longitudinal_speed_m_s), absf(rim_speed))
-	var renewal_rate := transport_speed / maxf(relaxation_length, 0.001)
+	# Transport sets the steady deflection. The time constants govern only
+	# how quickly each component approaches it.
+	var transport_speed := maxf(planar_speed, absf(rim_speed))
+	var transport_rate := transport_speed / maxf(relaxation_length, 0.001)
 	var patch_velocity := Vector2(rim_speed - longitudinal_speed_m_s, -lateral_speed_m_s)
-	patch_velocity.y += absf(longitudinal_speed_m_s) * tan(signed_camber * camber_gain)
+	patch_velocity.y += absf(longitudinal_speed_m_s) * tan(clampf(signed_camber * camber_gain, -0.5, 0.5))
 	var patch_dt := maxf(delta, 0.0)
-	var renewal := exp(-renewal_rate * patch_dt)
-	var integrated_time := (1.0 - renewal) / renewal_rate if renewal_rate > 1.0e-6 else patch_dt
-	var patch_pos := patch_before * renewal + patch_velocity * integrated_time
+	var patch_pos := patch_before + patch_velocity * patch_dt
+	if transport_rate > 1.0e-6:
+		var transport_tau := 1.0 / transport_rate
+		var lon_patch_tau := maxf(min_relaxation_tau, transport_tau * (recovery_scale if lon_recovering else 1.0))
+		var lat_patch_tau := maxf(min_relaxation_tau, transport_tau * (recovery_scale if lat_recovering else 1.0))
+		var target_patch := patch_velocity / transport_rate
+		patch_pos.x = lerpf(patch_before.x, target_patch.x, 1.0 - exp(-patch_dt / lon_patch_tau))
+		patch_pos.y = lerpf(patch_before.y, target_patch.y, 1.0 - exp(-patch_dt / lat_patch_tau))
 	# Bidirectional combined-slip reference migration.
 	# Preserve the legacy behavior unless explicitly enabled.
 
 	var length_m := maxf(relaxation_length, 0.001)
 
-	# Original brush stiffness and trial demand.
-	var stiffness_x := fx_capacity * 3.0 / (
+	# Original brush stiffness and trial demand (con escala térmica carcasa).
+	var stiffness_x := fx_capacity * 3.0 * carcass_stiff_scale / (
 		base_peak_lon * length_m
 	)
-	var stiffness_y := fy_capacity * rise_gamma / (
+	var stiffness_y := fy_capacity * rise_gamma * carcass_stiff_scale / (
 		base_peak_lat * length_m
 	)
 
@@ -578,10 +746,10 @@ func evaluate(
 		)
 
 		# Recompute stiffness without modifying force limits.
-		stiffness_x = fx_capacity * 3.0 / (
+		stiffness_x = fx_capacity * 3.0 * carcass_stiff_scale / (
 			peak_lon_eff * length_m
 		)
-		stiffness_y = fy_capacity * rise_gamma / (
+		stiffness_y = fy_capacity * rise_gamma * carcass_stiff_scale / (
 			peak_lat_eff * length_m
 		)
 
@@ -594,14 +762,27 @@ func evaluate(
 	var norm_demand_x := absf(trial.x) / fx_capacity
 	var norm_demand_y := absf(trial.y) / fy_capacity
 
-	# Keep the previous post-peak behavior for legacy profiles.
-	if not migration_v2_enabled and index >= 2 and patch_pos.x > 0.0:
+	# Legacy longitudinal relief (old anti-oversteer hack, now opt-in).
+	# Previously: abrupt step at patch_pos.x = 0, rear axle only, default 0.3,
+	# keyed off the overloaded combined_lateral_peak_migration.
+	# Now: smooth blend centered at 0 with configurable width, per-axle opt-in
+	# via legacy_longitudinal_relief (default 0 = off). No hardcoded axle bias:
+	# each axle's profile decides. Drive side (patch_pos.x > 0) gets relief,
+	# braking side keeps full demand, with a continuous transition.
+	if not migration_v2_enabled:
 		var legacy_relief := clampf(
-			float(profile.get("combined_lateral_peak_migration", 0.3)),
+			float(profile.get("legacy_longitudinal_relief", 0.0)),
 			0.0,
 			0.65
 		)
-		norm_demand_x *= (1.0 - legacy_relief)
+		if legacy_relief > 1.0e-9:
+			var legacy_blend_m := clampf(
+				float(profile.get("legacy_relief_blend_m", 0.01)),
+				0.001,
+				0.10
+			)
+			var relief_s := smoothstep(-legacy_blend_m, legacy_blend_m, patch_pos.x)
+			norm_demand_x *= (1.0 - legacy_relief * relief_s)
 
 	var combined_theta := Vector2(
 		norm_demand_x,
@@ -651,24 +832,58 @@ func evaluate(
 			trial *= recovery_boost
 			norm_length *= recovery_boost
 		var max_elastic_norm := 2.65
+		var plastic_scale_applied := 1.0
 		if norm_length > max_elastic_norm:
-			var plastic_scale := max_elastic_norm / norm_length
-			patch_pos *= plastic_scale
-			trial *= plastic_scale
+			plastic_scale_applied = max_elastic_norm / norm_length
+			patch_pos *= plastic_scale_applied
+			trial *= plastic_scale_applied
+		# §closure-4: pérdida plástica desde el cambio de estado (>= 0).
+		# E_pre (sin proyectar) vs E_post: E_post = E_pre * s^2.
+		var e_pre_plastic := 0.5 * (trial / maxf(plastic_scale_applied, 1.0e-9)).dot(patch_pos / maxf(plastic_scale_applied, 1.0e-9)) * blend if plastic_scale_applied < 1.0 else 0.0
+		var e_post_plastic := 0.5 * trial.dot(patch_pos) * blend if plastic_scale_applied < 1.0 else 0.0
+		state.set("plastic_loss_j", maxf(e_pre_plastic - e_post_plastic, 0.0))
 
 	var brush := _brush_force_elliptical(trial, limit_x, limit_y) * blend
 	var fx := brush.x
 	var fy := brush.y
-	var patch_energy := 0.5 * brush.dot(patch_pos)
+	# Low-speed anchored contact: at tread transports below ~1 m/s the brush
+	# memory is an undamped integrator (renewal -> 0) and the rolling deadzone
+	# lets a parked car chatter instead of holding. Blend toward a
+	# ground-anchored Coulomb spring-damper built from the same patch state:
+	# Kelvin-Voigt force (stiffness * patch + damping * slip velocity, same
+	# sign convention as the brush) hard-capped to the slide-aware friction
+	# ellipse so post-peak memory (incl. legacy relief) still flows through.
+	# Damping is weighted by static_w twice so launches in the blend band do
+	# not bog down; at rest it settles parking rock critically-ish.
+	var static_w := 1.0 - smoothstep(STATIC_BLEND_FULL_M_S, STATIC_BLEND_FREE_M_S, transport_speed)
+	if static_w > 1.0e-6:
+		var anchor_mass := maxf(fz, 100.0) / 9.81
+		var damp_scale := static_w * STATIC_DAMPING_RATIO
+		var static_damp_x := 2.0 * damp_scale * sqrt(maxf(stiffness_x * anchor_mass, 1.0))
+		var static_damp_y := 2.0 * damp_scale * sqrt(maxf(stiffness_y * anchor_mass, 1.0))
+		var f_static := Vector2(
+			stiffness_x * patch_pos.x + static_damp_x * patch_velocity.x,
+			stiffness_y * patch_pos.y + static_damp_y * patch_velocity.y
+		) * blend
+		var cap_norm := Vector2(
+			f_static.x / maxf(limit_x, 1.0e-6),
+			f_static.y / maxf(limit_y, 1.0e-6)
+		).length()
+		if cap_norm > 1.0:
+			f_static /= cap_norm
+		fx = lerpf(fx, f_static.x, static_w)
+		fy = lerpf(fy, f_static.y, static_w)
+	var patch_energy := 0.5 * trial.dot(patch_pos) * blend
 	var previous_patch_energy := float(state.patch_energy_j)
+	var blend_loss_j := maxf(0.5 * trial.dot(patch_pos) * (1.0 - blend), 0.0)
 	state.patch_pos = patch_pos
 	state.patch_energy_j = patch_energy
-	var rolling_force := 0.0
-	if absf(longitudinal_speed_m_s) > 0.05:
-		rolling_force = fz * float(axle_rolling_coefficient[index]) * float(state.surface_rolling) * pressure_rr * signf(
-			longitudinal_speed_m_s
-		)
-		fx -= rolling_force * blend
+	var rolling_spin := clampf(absf(rim_speed) / 0.5, 0.0, 1.0)
+	# Rodadura con carga estática para reacción (no envolvente): el par de
+	# histéresis sostiene el peso real, no el filtrado. §4.5 coherente.
+	var rolling_base := fz_static * float(axle_rolling_coefficient[index]) * float(state.surface_rolling) * pressure_rr
+	var rolling_force := rolling_base * tanh(longitudinal_speed_m_s / 0.3) * rolling_spin * blend
+	fx -= rolling_force
 
 	var bound_x := maxf(limit_x * blend, 1.0e-6)
 	var bound_y := maxf(limit_y * blend, 1.0e-6)
@@ -676,8 +891,21 @@ func evaluate(
 	if budget_norm > 1.0:
 		fx /= budget_norm
 		fy /= budget_norm
+		rolling_force /= budget_norm
+	# §closure-1: segunda elipse con carga normal INSTANTÁNEA + mismas
+	# capacidades direccionales, caída post-pico y rampa de contacto. Mismo
+	# factor sobre Fx neta, Fy y rodadura (reconstrucción de par y calor).
+	var limit_x_inst := mu * longitudinal_ratio * fz_static * slide_scale
+	var limit_y_inst := mu * lateral_bonus * fz_static * slide_scale
+	var bound_x_inst := maxf(limit_x_inst * blend, 1.0e-6)
+	var bound_y_inst := maxf(limit_y_inst * blend, 1.0e-6)
+	var budget_inst := Vector2(fx / bound_x_inst, fy / bound_y_inst).length()
+	if budget_inst > 1.0 and (contact_target):
+		fx /= budget_inst
+		fy /= budget_inst
+		rolling_force /= budget_inst
 	# Include the rolling moment in the wheel reaction, separate from net Fx.
-	state.rolling_force = rolling_force * blend
+	state.rolling_force = rolling_force
 
 	var brush_theta := clampf(
 		Vector2(trial.x / maxf(limit_x, 1.0e-6), trial.y / maxf(limit_y, 1.0e-6)).length() / 3.0,
@@ -685,15 +913,29 @@ func evaluate(
 		1.0,
 	)
 	var lon_theta := clampf(absf(trial.x) / maxf(3.0 * limit_x, 1.0e-6), 0.0, 1.0)
-	var trail := float(axle_pneumatic_trail[index]) * pow(1.0 - brush_theta, 1.35) * (1.0 - 0.75 * lon_theta)
+	var trail := float(axle_pneumatic_trail[index]) * patch_ratio * pow(1.0 - brush_theta, 1.35) * (1.0 - 0.75 * lon_theta)
 	var aligning_torque := -fy * trail
 	var slip_longitudinal_speed := rim_speed - longitudinal_speed_m_s
-	var contact_power := (fx + rolling_force * blend) * slip_longitudinal_speed - fy * lateral_speed_m_s
-	var friction_power := maxf(
-		contact_power - (patch_energy - previous_patch_energy) / maxf(patch_dt, 1.0e-6),
-		0.0,
-	)
-	friction_power += absf(rolling_force * blend * longitudinal_speed_m_s)
+	# §closure-4: trabajo de contacto con Fx reconstruida (neta + rodadura),
+	# slip de llanta con radio efectivo y lateral con signo del marco.
+	var fx_contact := fx + rolling_force
+	var contact_power := fx_contact * slip_longitudinal_speed - fy * lateral_speed_m_s
+	var rolling_power := rolling_force * longitudinal_speed_m_s
+	# Balance energético §4.2: energía elástica con demanda trial (no fuerza
+	# saturada). El residuo con signo se publica para medirlo antes de decidir
+	# si se sustituye el clamp; la proyección plástica y la rigidez variable
+	# aparecen como disipación positiva en el residuo.
+	var energy_residue := contact_power - (patch_energy - previous_patch_energy) / maxf(patch_dt, 1.0e-6)
+	state.energy_residue_w = energy_residue
+	var friction_power := maxf(energy_residue, 0.0)
+	friction_power += absf(rolling_force * longitudinal_speed_m_s)
+	# §closure-4: calor slide independiente (déficit demanda vs brush por
+	# velocidad de deslizamiento), sin cerrar por construcción. Término
+	# separado del momento autoalineante (velocidad angular conjugada no
+	# disponible a nivel de neumático: se publica en 0 y el vehículo lo
+	# integra como Mz*omega_z si lo necesita).
+	var brush_unblended := _brush_force_elliptical(trial, limit_x, limit_y)
+	var slide_heat_w := maxf((trial - brush_unblended).dot(patch_velocity), 0.0) * blend
 	state.longitudinal_force = fx
 	state.lateral_force = fy
 	state.aligning_torque = aligning_torque
@@ -702,8 +944,22 @@ func evaluate(
 		fx / maxf(fx_capacity, 1.0e-6),
 		fy / maxf(fy_capacity, 1.0e-6),
 	).length()
+	state.instant_combined_utilization = Vector2(
+		fx / bound_x_inst,
+		fy / bound_y_inst,
+	).length()
 	state.brush_demand_n = trial.length()
-	states[index] = state
+	# Auditoría acumulada §closure-4 (julios; descarte al despegar separado).
+	state.contact_power_w = contact_power
+	state.rolling_power_w = rolling_power
+	state.elastic_before_j = previous_patch_energy
+	state.blend_loss_j = blend_loss_j
+	state.stiffness_loss_j = 0.0
+	state.aligning_power_w = 0.0
+	var h_step := maxf(patch_dt, 0.0)
+	state.contact_work_j = float(state.get("contact_work_j", 0.0)) + contact_power * h_step
+	state.heat_work_j = float(state.get("heat_work_j", 0.0)) + friction_power * h_step
+	state.slide_heat_w = slide_heat_w
 	return _output(state)
 
 
@@ -725,13 +981,51 @@ func state_for(index: int) -> Dictionary:
 
 
 func reset_patch(index: int) -> void:
-	states[index].patch_pos = Vector2.ZERO
-	states[index].patch_forward = Vector3.ZERO
-	states[index].patch_right = Vector3.ZERO
-	states[index].patch_energy_j = 0.0
+	# Reset completo §4.6 + §closure-1: sin restos (slips, decays, fuerzas,
+	# blend, energía). Invalida carga filtrada y geometría derivada; el
+	# filtro se siembra con la primera carga válida al volver a contacto.
+	# Preserva convenio de rampa y radio nominal sin contacto.
+	var st: Dictionary = states[index]
+	st.patch_pos = Vector2.ZERO
+	st.patch_forward = Vector3.ZERO
+	st.patch_right = Vector3.ZERO
+	st.patch_energy_j = 0.0
+	st.effective_slip_angle = 0.0
+	st.effective_slip_ratio = 0.0
+	st.slip_angle = 0.0
+	st.slip_ratio = 0.0
+	st.post_peak_decay_lat = 0.0
+	st.post_peak_decay_lon = 0.0
+	st.contact_blend = 0.0
+	st.enveloped_load_n = 0.0
+	st.envelope_valid = false
+	st.dynamic_contact_patch_m = base_contact_patch_m[index] if index >= 0 and index < base_contact_patch_m.size() else 0.2
+	st.relaxation_length_m = base_relaxation_length_m[index] if index >= 0 and index < base_relaxation_length_m.size() else 0.3
+	st.estimated_carcass_deflection_m = 0.0
+	st.longitudinal_force = 0.0
+	st.rolling_force = 0.0
+	st.lateral_force = 0.0
+	st.aligning_torque = 0.0
+	st.friction_power = 0.0
+	st.energy_residue_w = 0.0
+	st.combined_utilization = 0.0
+	st.instant_combined_utilization = 0.0
+	st.brush_demand_n = 0.0
+	st.contact_power_w = 0.0
+	st.rolling_power_w = 0.0
+	st.elastic_before_j = 0.0
+	st.set("plastic_loss_j", 0.0)
+	st.blend_loss_j = 0.0
+	st.stiffness_loss_j = 0.0
+	st.liftoff_discard_j = 0.0
+	st.slide_heat_w = 0.0
+	st.aligning_power_w = 0.0
 
 
 func rotate_patch_frame(index: int, forward: Vector3, right: Vector3) -> void:
+	# Punto 1 original descartado: el frame se asigna fuera del guard y el
+	# caller ya pasa vectores ortonormales. Solo hardening defensivo.
+	# Ortonormalización Gram-Schmidt opcional si el caller deriva.
 	var state: Dictionary = states[index]
 	var previous_forward: Vector3 = state.patch_forward
 	if previous_forward.length_squared() > 0.5:
@@ -740,7 +1034,6 @@ func rotate_patch_frame(index: int, forward: Vector3, right: Vector3) -> void:
 		state.patch_pos = Vector2(world_patch.dot(forward), world_patch.dot(right))
 	state.patch_forward = forward
 	state.patch_right = right
-	states[index] = state
 
 
 func _advance_unloaded(index: int, delta: float) -> void:
@@ -750,11 +1043,24 @@ func _advance_unloaded(index: int, delta: float) -> void:
 	var release := 0.0 if recovery_tau <= 1e-6 else exp(-maxf(delta, 0.0) / recovery_tau)
 	state.effective_slip_angle = 0.0
 	# Detached tread cannot keep its ground anchor for the next landing.
+	# La energía elástica remanente se descarta (no se cuenta como calor):
+	# el balance con pérdida de contacto se verifica solo en contacto continuo.
+	# §closure-1/4: invalida envolvente y geometría; descarte separado del calor.
+	var discarded := float(state.get("patch_energy_j", 0.0))
+	state.liftoff_discard_j = float(state.get("liftoff_discard_j", 0.0)) + discarded
 	state.patch_pos = Vector2.ZERO
 	state.patch_forward = Vector3.ZERO
 	state.patch_right = Vector3.ZERO
 	state.patch_energy_j = 0.0
+	state.enveloped_load_n = 0.0
+	state.envelope_valid = false
+	state.dynamic_contact_patch_m = base_contact_patch_m[index] if index >= 0 and index < base_contact_patch_m.size() else 0.2
+	state.relaxation_length_m = base_relaxation_length_m[index] if index >= 0 and index < base_relaxation_length_m.size() else 0.3
+	state.estimated_carcass_deflection_m = 0.0
+	state.effective_slip_angle = 0.0
 	state.effective_slip_ratio = 0.0
+	state.slip_angle = 0.0
+	state.slip_ratio = 0.0
 	state.post_peak_decay_lat *= release
 	state.post_peak_decay_lon *= release
 	state.longitudinal_force = 0.0
@@ -762,9 +1068,17 @@ func _advance_unloaded(index: int, delta: float) -> void:
 	state.lateral_force = 0.0
 	state.aligning_torque = 0.0
 	state.friction_power = 0.0
+	state.energy_residue_w = 0.0
 	state.combined_utilization = 0.0
+	state.instant_combined_utilization = 0.0
 	state.brush_demand_n = 0.0
-	states[index] = state
+	state.contact_power_w = 0.0
+	state.rolling_power_w = 0.0
+	state.elastic_before_j = 0.0
+	state.blend_loss_j = 0.0
+	state.stiffness_loss_j = 0.0
+	state.slide_heat_w = 0.0
+	state.aligning_power_w = 0.0
 
 
 func _advance_memory(current: float, target: float, profile: Dictionary, delta: float) -> float:
@@ -779,6 +1093,11 @@ func _advance_memory(current: float, target: float, profile: Dictionary, delta: 
 	return clampf(current + (target - current) * alpha, 0.0, 1.0)
 
 
+# _pure_curve: referencia estacionaria para validar la curva brush+memoria
+# (§4.5 curva estacionaria vs memoria). No está en el path caliente; los
+# contratos de barrido la comparan contra el estado estable del brush.
+# _brush_force y _combined_budget_scale eliminados §4.6 (código muerto: el
+# path usa _brush_force_elliptical + renormalización directa del budget).
 func _pure_curve(
 	slip: float,
 	peak: float,
@@ -800,40 +1119,6 @@ func _pure_curve(
 	}
 
 
-func _brush_force(demand: Vector2, friction_limit_n: float) -> Vector2:
-	var magnitude := demand.length()
-	if magnitude <= 1.0e-9 or friction_limit_n <= 1.0e-6:
-		return Vector2.ZERO
-	var theta := clampf(magnitude / (3.0 * friction_limit_n), 0.0, 1.0)
-	var force_magnitude := friction_limit_n * (
-		3.0 * theta - 3.0 * theta * theta + theta * theta * theta
-	)
-	return demand * (force_magnitude / magnitude)
-
-
-func _combined_budget_scale(utilization: float, blend_width: float) -> float:
-	var value := maxf(utilization, 0.0)
-	var width := clampf(blend_width, 0.0, 0.5)
-	if width <= 1e-9:
-		return 1.0 / value if value > 1.0 else 1.0
-	var low := 1.0 - width
-	var high := 1.0 + width
-	if value <= low:
-		return 1.0
-	if value >= high:
-		return 1.0 / value
-	var span := high - low
-	var t := (value - low) / span
-	var end_value := 1.0 / high
-	var end_slope := -1.0 / (high * high)
-	var t2 := t * t
-	var t3 := t2 * t
-	var h00 := 2.0 * t3 - 3.0 * t2 + 1.0
-	var h01 := -2.0 * t3 + 3.0 * t2
-	var h11 := t3 - t2
-	return clampf(h00 + h01 * end_value + h11 * span * end_slope, end_value, 1.0)
-
-
 func _output(state: Dictionary) -> Dictionary:
 	return {
 		"longitudinal_force_n": float(state.longitudinal_force),
@@ -841,9 +1126,24 @@ func _output(state: Dictionary) -> Dictionary:
 		"lateral_force_n": float(state.lateral_force),
 		"aligning_torque_nm": float(state.aligning_torque),
 		"friction_power_w": float(state.friction_power),
+		"energy_residue_w": float(state.get("energy_residue_w", 0.0)),
+		"effective_radius_m": float(state.get("effective_radius_m", 0.28)),
+		"enveloped_load_n": float(state.get("enveloped_load_n", 0.0)),
 		"slip_ratio": float(state.slip_ratio),
 		"slip_angle_rad": float(state.slip_angle),
+		"effective_slip_ratio": float(state.get("effective_slip_ratio", 0.0)),
+		"effective_slip_angle_rad": float(state.get("effective_slip_angle", 0.0)),
 		"combined_utilization": float(state.combined_utilization),
+		"instant_combined_utilization": float(state.get("instant_combined_utilization", 0.0)),
+		"contact_power_w": float(state.get("contact_power_w", 0.0)),
+		"rolling_power_w": float(state.get("rolling_power_w", 0.0)),
+		"slide_heat_w": float(state.get("slide_heat_w", 0.0)),
+		"plastic_loss_j": float(state.get("plastic_loss_j", 0.0)),
+		"blend_loss_j": float(state.get("blend_loss_j", 0.0)),
+		"liftoff_discard_j": float(state.get("liftoff_discard_j", 0.0)),
+		"contact_work_j": float(state.get("contact_work_j", 0.0)),
+		"heat_work_j": float(state.get("heat_work_j", 0.0)),
+		"aligning_power_w": float(state.get("aligning_power_w", 0.0)),
 		"surface": str(state.surface),
 		"patch_pos": state.patch_pos,
 		"patch_energy_j": state.patch_energy_j,

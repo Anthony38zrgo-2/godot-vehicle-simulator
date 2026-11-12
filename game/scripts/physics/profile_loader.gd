@@ -96,6 +96,9 @@ const TIRE_FORCE_KEYS := [
 	"longitudinal_slide_mu_ratio",
 	"min_relaxation_tau_s",
 	"relaxation_recovery_scale",
+	"legacy_longitudinal_relief",
+	"legacy_relief_blend_m",
+	"peak_load_sensitivity",
 	"slip_loss_tau_s",
 	"slip_recovery_tau_s",
 ]
