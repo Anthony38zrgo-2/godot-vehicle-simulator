@@ -315,7 +315,7 @@ func test_vfx_and_hud() -> void:
 	# HUD verification
 	var hud_class = load("res://scripts/rally/formula_hud_panels.gd")
 	var hud = hud_class.new()
-	check(hud.DAMAGE_RECT == Rect2(1620, 482, 276, 150), "DAMAGE_RECT coordinates must match specification")
+	check(hud.DAMAGE_RECT == Rect2(88, 444, 226, 114), "DAMAGE_RECT coordinates must match minimalist mid-left CMR2 layout")
 	check(hud._damage_color(0.10) == hud.C_GREEN, "0-25% should be nominal green")
 	check(hud._damage_color(0.35) == hud.C_GOLD, "25-50% should be gold/amber")
 	check(hud._damage_color(0.60) == Color("#f08c35"), "50-75% should be warm orange")

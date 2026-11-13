@@ -435,10 +435,9 @@ func reconfigure_for_event_stage(stage_path: String, carried_health: Array = [])
 	player_previous_ms = keep_player_previous
 	return true
 
-func partial_delta_ms() -> Variant:
-	if player_splits.is_empty():
+func _best_rival_split_ms(split_index: int) -> Variant:
+	if split_index < 0:
 		return null
-	var split_index := player_splits.size() - 1
 	var best_rival: Variant = null
 	for row: Dictionary in rows:
 		var splits: Array = row.get("splits", [])
@@ -447,7 +446,63 @@ func partial_delta_ms() -> Variant:
 		var rival_time := int(splits[split_index])
 		if best_rival == null or rival_time < int(best_rival):
 			best_rival = rival_time
+	return best_rival
+
+
+func partial_delta_ms() -> Variant:
+	if player_splits.is_empty():
+		return null
+	var split_index := player_splits.size() - 1
+	var best_rival: Variant = _best_rival_split_ms(split_index)
 	return null if best_rival == null else int(player_splits[split_index]) - int(best_rival)
+
+
+func _build_sector_deltas_ms() -> Array:
+	var deltas: Array = []
+	for i in player_splits.size():
+		var best_rival: Variant = _best_rival_split_ms(i)
+		deltas.append(null if best_rival == null else int(player_splits[i]) - int(best_rival))
+	return deltas
+
+
+func _build_split_standings_window() -> Array:
+	if player_splits.is_empty():
+		return []
+	var split_index := player_splits.size() - 1
+	var board: Array = []
+	for row: Dictionary in rows:
+		if bool(row.get("retired", false)):
+			continue
+		var splits: Array = row.get("splits", [])
+		if splits.size() <= split_index:
+			continue
+		board.append({
+			"id": str(row.get("id", "")),
+			"name": str(row.get("name", "")),
+			"time_ms": int(splits[split_index]),
+			"player": false,
+		})
+	board.append({
+		"id": "player",
+		"name": "Jugador",
+		"time_ms": int(player_splits[split_index]),
+		"player": true,
+	})
+	board.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a.time_ms) != int(b.time_ms):
+			return int(a.time_ms) < int(b.time_ms)
+		if bool(a.player) != bool(b.player):
+			return bool(a.player)
+		return str(a.id) < str(b.id))
+	var player_idx := 0
+	for i in board.size():
+		board[i]["position"] = i + 1
+		if bool(board[i].player):
+			player_idx = i
+	if board.size() <= 3:
+		return board
+	var start_idx := clampi(player_idx - 1, 0, board.size() - 3)
+	return board.slice(start_idx, start_idx + 3)
 
 
 func readout(extra_player_penalty_ms: int = 0) -> Dictionary:
@@ -455,11 +510,18 @@ func readout(extra_player_penalty_ms: int = 0) -> Dictionary:
 	var ordered: Array = []
 	for row: Dictionary in rows:
 		var result := row.duplicate(true)
-		result.stage_ms = null if row.retired else int(row.time_ms) + int(row.get("penalty_ms", 0))
-		result.total_ms = null if row.retired else int(previous_totals.get(row.id, 0)) + int(row.time_ms) + int(row.get("penalty_ms", 0))
-		result.penalty_ms = int(row.get("penalty_ms", 0))
-		result.partial_index = row.splits.size()
-		result.partial_ms = null if row.splits.is_empty() else row.splits[-1]
+		var row_retired := bool(row.get("retired", false))
+		var row_time_ms := int(row.get("time_ms", 0))
+		var row_penalty_ms := int(row.get("penalty_ms", 0))
+		var row_id := str(row.get("id", ""))
+		var row_splits: Array = row.get("splits", [])
+		result.retired = row_retired
+		result.id = row_id
+		result.stage_ms = null if row_retired else row_time_ms + row_penalty_ms
+		result.total_ms = null if row_retired else int(previous_totals.get(row_id, 0)) + row_time_ms + row_penalty_ms
+		result.penalty_ms = row_penalty_ms
+		result.partial_index = row_splits.size()
+		result.partial_ms = null if row_splits.is_empty() else row_splits[-1]
 		result.player = false
 		ordered.append(result)
 	ordered.append({"id": "player", "name": "Jugador", "car": "Ford Escort RS2000", "team": "Privado", "stage_ms": null if player_retired else player_ms + total_player_penalty, "total_ms": null if player_retired else player_previous_ms + player_ms + total_player_penalty, "retired": player_retired, "status": player_status, "player": true, "penalty_ms": total_player_penalty, "penalties": player_penalties.duplicate(true), "partial_index": player_splits.size(), "partial_ms": null if player_splits.is_empty() else player_ms + total_player_penalty, "splits": player_splits.duplicate()})
@@ -486,7 +548,7 @@ func readout(extra_player_penalty_ms: int = 0) -> Dictionary:
 			row.position = 0
 		if row.player:
 			player_position = int(row.position)
-	return {"rows": ordered, "sector": sector, "sector_count": reference.size(), "complete": complete, "leg": leg, "player_retired": player_retired, "player_position": player_position, "delta_ms": player_previous_ms + player_ms + total_player_penalty - leader_ms, "confidence": confidence, "fallback": confidence == 0.0, "error": error}
+	return {"rows": ordered, "sector": sector, "sector_count": reference.size(), "sector_deltas_ms": _build_sector_deltas_ms(), "split_standings": _build_split_standings_window(), "complete": complete, "leg": leg, "player_retired": player_retired, "player_position": player_position, "delta_ms": player_previous_ms + player_ms + total_player_penalty - leader_ms, "confidence": confidence, "fallback": confidence == 0.0, "error": error}
 
 func save() -> bool:
 	if save_path.is_empty():

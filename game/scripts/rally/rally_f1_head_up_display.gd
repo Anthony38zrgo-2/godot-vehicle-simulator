@@ -2,21 +2,18 @@ class_name RallyF1HeadUpDisplay
 extends Control
 
 const UI_FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const PartialDeltaBannerScript := preload("res://scripts/rally/cmr2_partial_delta_banner.gd")
 
 @export var vehicle_path: NodePath
 @export var retro_hud_path: NodePath = NodePath("RetroHud")
 @export var driving_controls_path: NodePath = NodePath("DrivingControls")
-@export var aid_message_path: NodePath = NodePath("AidMessage")
 
 var vehicle: RallyEscortVehicle
 var retro_hud: RetroHudDisplay
 var driving_controls: Control
-var aid_message: Label
-var partial_message: Label
-var partial_remaining_seconds := 0.0
+var partial_banner: Control
 var telemetry_path: String = ""
 var session_state: Dictionary = {}
-var status_remaining_seconds: float = 0.0
 var formula_panels: Control
 var published: Dictionary = {}
 var start_lights: Control
@@ -31,7 +28,9 @@ func _ready() -> void:
 	retro_hud = get_node_or_null(retro_hud_path) as RetroHudDisplay
 	hud_palette = retro_hud.config if retro_hud != null else RetroHudConfig.new()
 	driving_controls = get_node_or_null(driving_controls_path) as Control
-	aid_message = get_node_or_null(aid_message_path) as Label
+	partial_banner = PartialDeltaBannerScript.new()
+	partial_banner.name = "PartialDeltaBanner"
+	add_child(partial_banner)
 	competition_panel = preload("res://scripts/rally/rally_competition_panel.gd").new()
 	competition_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(competition_panel)
@@ -45,17 +44,6 @@ func _ready() -> void:
 	hud_theme.default_font = UI_FONT
 	hud_theme.default_font_size = 18
 	theme = hud_theme
-	if aid_message != null:
-		aid_message.add_theme_color_override("font_color", hud_palette.digital_color)
-		aid_message.add_theme_color_override("font_outline_color", hud_palette.background_color)
-		aid_message.add_theme_color_override("font_shadow_color", hud_palette.background_color)
-		aid_message.visible = false
-		partial_message = aid_message.duplicate() as Label
-		partial_message.name = "PartialMessage"
-		add_child(partial_message)
-		partial_message.add_theme_color_override("font_color", Color.WHITE)
-		partial_message.anchor_top = 0.25
-		partial_message.anchor_bottom = 0.25
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if retro_hud != null and vehicle != null:
 		retro_hud.set_powertrain_configuration({
@@ -84,44 +72,25 @@ func set_session_state(state: Dictionary) -> void:
 	session_state = state
 
 
-func show_status(message: String, color: Color = Color.WHITE, duration_seconds: float = 2.2) -> void:
-	if aid_message == null:
-		return
-	aid_message.text = message
-	aid_message.modulate = status_color(color)
-	aid_message.visible = true
-	status_remaining_seconds = duration_seconds
+func show_status(_message: String, _color: Color = Color.WHITE, _duration_seconds: float = 2.2) -> void:
+	# Los mensajes centrales de estado fueron reemplazados por el delta centrado estilo CMR2.
+	pass
 
 
 func show_partial(index: int, delta_ms: Variant) -> void:
-	if partial_message == null:
+	if partial_banner == null:
 		return
-	if delta_ms == null:
-		partial_message.text = "Parcial %d,  —" % index
-		partial_message.modulate = hud_palette.digital_color
-	else:
-		var difference := int(delta_ms)
-		partial_message.text = "Parcial %d,  %+.3f" % [index, float(difference) / 1000.0]
-		partial_message.modulate = hud_palette.thermal_optimal_color if difference < 0 else (hud_palette.thermal_hot_color if difference > 0 else hud_palette.digital_color)
-	partial_message.visible = true
-	partial_remaining_seconds = 3.0
+	partial_banner.call("show_delta", index, delta_ms)
 
 
-func _process(delta: float) -> void:
-	if partial_remaining_seconds > 0.0:
-		partial_remaining_seconds = maxf(0.0, partial_remaining_seconds - delta)
-		if partial_remaining_seconds <= 0.0 and partial_message != null:
-			partial_message.visible = false
-	if status_remaining_seconds > 0.0:
-		status_remaining_seconds = maxf(0.0, status_remaining_seconds - delta)
-		if status_remaining_seconds <= 0.0 and aid_message != null:
-			aid_message.visible = false
+func _process(_delta: float) -> void:
 	if vehicle == null and not vehicle_path.is_empty():
 		vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if vehicle == null:
 		return
 	published = vehicle.get_presentation_snapshot()
 	published["course"] = session_state.get("course", {})
+	published["competition"] = session_state.get("competition", {})
 	start_lights.call("present", session_state.get("start_sequence", {}))
 	if competition_panel != null:
 		competition_panel.call("present", session_state.get("competition", {}), size)
@@ -180,6 +149,14 @@ func update_thermal_readout() -> void:
 		elif vehicle.simulation.thermal_model != null:
 			air_c = vehicle.simulation.thermal_model.ambient_temperature_c
 	published["air_temp_c"] = air_c
+	var eng: Dictionary = published.get("engine", {})
+	var oil: Dictionary = eng.get("oil", {})
+	var water: Dictionary = eng.get("water", {})
+	published["hud_indicators"] = {
+		"oil_bar": oil_pressure_bar_for_hud(oil),
+		"oil_color": oil_pressure_color(oil),
+		"water_color": engine_color(water),
+	}
 	if formula_panels != null:
 		formula_panels.call("present", published, tire_config)
 	var factor := minf(size.x / 1920.0, size.y / 1080.0)
@@ -191,6 +168,15 @@ func update_thermal_readout() -> void:
 			retro_hud.size = Vector2(size.x / maxf(factor, 0.01), size.y / maxf(factor, 0.01))
 			if driving_controls != null and driving_controls.visible:
 				driving_controls.visible = false
+		elif retro_hud.has_method("is_cmr2_digital_style") and bool(retro_hud.call("is_cmr2_digital_style")):
+			var dash_size: Vector2 = retro_hud.call("get_cmr2_dash_size")
+			retro_hud.size = dash_size
+			retro_hud.position = Vector2(
+				size.x - dash_size.x * factor - 32.0 * factor,
+				size.y - dash_size.y * factor - 20.0 * factor
+			)
+			if driving_controls != null and not driving_controls.visible:
+				driving_controls.visible = true
 		else:
 			retro_hud.size = Vector2(541.35, 370.0125)
 			retro_hud.position = Vector2(size.x - 541.35 * factor - 16.0 * factor, size.y - (370.0125 + 48.0) * factor)
@@ -253,11 +239,11 @@ func _temperature(value: Variant) -> String:
 func update_driving_controls() -> void:
 	if driving_controls == null or not driving_controls.visible:
 		return
-	var scale_factor := 1.1 * minf(size.x / 1920.0, size.y / 1080.0)
-	driving_controls.scale = Vector2.ONE * scale_factor
+	var factor := minf(size.x / 1920.0, size.y / 1080.0)
+	driving_controls.scale = Vector2.ONE * factor
 	driving_controls.position = Vector2(
-		(size.x - driving_controls.custom_minimum_size.x * scale_factor) * 0.5,
-		size.y - driving_controls.custom_minimum_size.y * scale_factor - 18.0
+		(size.x - driving_controls.custom_minimum_size.x * factor) * 0.5,
+		size.y - driving_controls.custom_minimum_size.y * factor - 20.0 * factor
 	)
 	var steering_fraction := float(published.get("steering", 0.0))
 	driving_controls.call("set_controls", steering_fraction, float(published.get("throttle", 0.0)), float(published.get("brake", 0.0)))

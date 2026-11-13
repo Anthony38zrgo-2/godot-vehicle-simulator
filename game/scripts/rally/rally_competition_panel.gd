@@ -83,6 +83,9 @@ const C_BRONZE := Color("#e29b63")
 
 const BLOCK_RECT := Rect2(1620, 168, 276, 150)
 
+## Live top-right compact standings card is superseded by the top-left CMR2 3-row split standings.
+var show_live_corner_block: bool = false
+
 # =============================================================================
 # NODOS PRINCIPALES DE INTERFAZ (PRESERVANDO CONTRATO PÚBLICO)
 # =============================================================================
@@ -930,7 +933,7 @@ func _update_final_podium(rows: Array, points: Dictionary) -> void:
 # =============================================================================
 
 func _draw() -> void:
-	if state_cache.is_empty() or results.visible:
+	if not show_live_corner_block or state_cache.is_empty() or results.visible:
 		return
 	var factor := minf(size.x / 1920.0, size.y / 1080.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * factor)

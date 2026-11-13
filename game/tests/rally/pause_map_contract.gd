@@ -83,11 +83,8 @@ func run() -> void:
 	check(scene.course.elapsed_s == 12.0, "rescue preserves elapsed stage time")
 	var hud = scene.head_up_display
 	hud.update_thermal_readout()
-	check(hud.formula_panels.snapshot.air_temp_c == scene.vehicle.simulation.thermal_model.ambient_temperature_c, "hud reflects ambient temp")
-	var points: Array = [Vector3.ZERO, Vector3(100, 0, 1), Vector3(200, 0, 2)]
-	var rotation: float = hud.formula_panels.map_rotation(points)
-	var direction := Vector2(200, 2).rotated(rotation)
-	check(direction.y < 0.0 and absf(direction.x) < 0.01, "map rotation aligns start direction up")
+	check(not hud.formula_panels.has_method("map_rotation"), "route map removed from CMR2 HUD")
+	check(hud.formula_panels.snapshot.has("hud_indicators"), "hud publishes simplified engine indicators")
 	if "--pause-map-capture" in OS.get_cmdline_user_args():
 		await capture("rally_vertical_map.png")
 	panel.pause_button.pressed.emit()

@@ -3,12 +3,16 @@ extends Control
 
 const STATE_SCRIPT := preload("res://features/retro_hud/scripts/retro_hud_state.gd")
 const CONFIG_SCRIPT := preload("res://features/retro_hud/scripts/retro_hud_config.gd")
+const Cmr2Style := preload("res://scripts/rally/cmr2_hud_style.gd")
 const LIBRON_REGULAR_FONT: Font = preload("res://fonts/libron/Libron-Regular.ttf")
 const LIBRON_BOLD_FONT: Font = preload("res://fonts/libron/Libron-Bold.ttf")
 const REVOLUTIONS_PER_MINUTE_SEGMENT_TEXTURE := preload("res://features/retro_hud/assets/rpm_segment.svg")
 const FUEL_SEGMENT_TEXTURE := preload("res://features/retro_hud/assets/fuel_segment.svg")
 const FUEL_ICON_TEXTURE := preload("res://features/retro_hud/assets/fuel_icon.svg")
 const DIVIDER_TEXTURE := preload("res://features/retro_hud/assets/divider.svg")
+
+const CMR2_DASH_SIZE := Vector2(460.0, 260.0)
+const CMR2_REV_SEGMENT_COUNT := 26
 
 const DESIGN_SIZE := Vector2(1448.0, 1086.0)
 const REVOLUTIONS_PER_MINUTE_CENTER := Vector2(650.0, 760.0)
@@ -54,6 +58,14 @@ func _ready() -> void:
 
 func is_ribbon_style() -> bool:
 	return config != null and config.style == "competition_cards_ribbon"
+
+
+func is_cmr2_digital_style() -> bool:
+	return config != null and config.style == "cmr2_digital"
+
+
+func get_cmr2_dash_size() -> Vector2:
+	return CMR2_DASH_SIZE
 
 
 func get_ribbon_size() -> Vector2:
@@ -136,6 +148,9 @@ func reload_config() -> void:
 	if is_ribbon_style():
 		custom_minimum_size = get_ribbon_size()
 		size = get_ribbon_size()
+	elif is_cmr2_digital_style():
+		custom_minimum_size = CMR2_DASH_SIZE
+		size = CMR2_DASH_SIZE
 	else:
 		custom_minimum_size = Vector2(390, 292.5)
 	if apply_layout_from_config:
@@ -303,6 +318,10 @@ func _draw() -> void:
 		_draw_cards_ribbon()
 		return
 
+	if is_cmr2_digital_style():
+		_draw_cmr2_digital_dash()
+		return
+
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_rect(Rect2(Vector2.ZERO, size), config.background_color)
 	_design_scale_factor = minf(size.x / DESIGN_SIZE.x, size.y / DESIGN_SIZE.y)
@@ -351,6 +370,138 @@ const CLUSTER_W := 1000.0
 const CLUSTER_H := 160.0
 const FUEL_W := 140.0
 const BAND_MARGIN := 24.0
+
+
+# ==============================================================================
+# TACÓMETRO CURVO DIGITAL Y MARCHA · ESTILO CMR2
+# ==============================================================================
+
+
+func _draw_cmr2_digital_dash() -> void:
+	var scale_factor := minf(size.x / CMR2_DASH_SIZE.x, size.y / CMR2_DASH_SIZE.y)
+	var origin := (size - CMR2_DASH_SIZE * scale_factor) * 0.5
+	draw_set_transform(origin, 0.0, Vector2.ONE * scale_factor)
+
+	var vehicle_max := maxf(get_vehicle_max_rpm(), 3000.0)
+	var scale_min := 500.0
+	var scale_max := maxf(scale_min + 3000.0, ceilf(vehicle_max / 1000.0) * 1000.0)
+	var redline_rpm := clampf(
+		minf(vehicle_max * 0.88, config.urgent_shift_revolutions_per_minute),
+		scale_min + 500.0,
+		vehicle_max
+	)
+
+	_draw_cmr2_rev_curve(scale_min, scale_max, redline_rpm)
+	_draw_cmr2_rev_scale(scale_min, scale_max, redline_rpm)
+	_draw_cmr2_speed_and_gear(redline_rpm, vehicle_max)
+
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _cmr2_curve_slice(t: float) -> Dictionary:
+	var clamped_t := clampf(t, 0.0, 1.0)
+	var x := lerpf(16.0, 446.0, clamped_t)
+	var center_y := 42.0 + 174.0 * pow(maxf(1.0 - clamped_t, 0.0), 2.35)
+	var dy_dt := -174.0 * 2.35 * pow(maxf(1.0 - clamped_t, 0.0), 1.35)
+	var tangent := Vector2(430.0, dy_dt).normalized()
+	var curve_up := Vector2(tangent.y, -tangent.x)
+	var up := Vector2(0.0, -1.0).lerp(curve_up, 0.40).normalized()
+	var half_h := lerpf(13.0, 26.0, pow(clamped_t, 0.70))
+	var center := Vector2(x, center_y)
+	return {
+		"top": center + up * half_h,
+		"bottom": center - up * half_h,
+	}
+
+
+func _draw_cmr2_rev_curve(scale_min: float, scale_max: float, redline_rpm: float) -> void:
+	var rpm := clampf(state.engine_revolutions_per_minute, 0.0, scale_max)
+	var span := maxf(scale_max - scale_min, 1.0)
+	var count := CMR2_REV_SEGMENT_COUNT
+
+	for i in count:
+		var t0 := float(i) / float(count)
+		var t1 := float(i + 1) / float(count)
+		var s0 := _cmr2_curve_slice(t0)
+		var s1 := _cmr2_curve_slice(t1)
+		var quad := PackedVector2Array([s0.top, s1.top, s1.bottom, s0.bottom])
+
+		var seg_start_rpm := scale_min + span * t0
+		var seg_end_rpm := scale_min + span * t1
+		var is_redzone := (seg_start_rpm + seg_end_rpm) * 0.5 >= redline_rpm
+		var lit_color := Cmr2Style.REDLINE_ACCENT if is_redzone else Cmr2Style.CYAN_ACCENT
+		var unlit_color := Color(0.32, 0.08, 0.07, 0.40) if is_redzone else Color(0.15, 0.20, 0.30, 0.38)
+		draw_colored_polygon(quad, unlit_color)
+
+		var lit_frac := clampf((rpm - seg_start_rpm) / maxf(seg_end_rpm - seg_start_rpm, 1.0), 0.0, 1.0)
+		if lit_frac >= 0.999:
+			draw_colored_polygon(quad, Color(lit_color, 0.94))
+			draw_line(s0.top, s1.top, Color(1.0, 1.0, 1.0, 0.55), 1.5, true)
+		elif lit_frac > 0.02:
+			var t_lit := lerpf(t0, t1, lit_frac)
+			var s_lit := _cmr2_curve_slice(t_lit)
+			var partial_quad := PackedVector2Array([s0.top, s_lit.top, s_lit.bottom, s0.bottom])
+			draw_colored_polygon(quad, Color(lit_color, 0.30))
+			draw_colored_polygon(partial_quad, Color(lit_color, 0.94))
+
+		# Dark drop-outline under crisp CMR2 wireframe ribs for snow legibility
+		var rim_color := Color(1.0, 1.0, 1.0, 0.84)
+		var shadow_off := Vector2(1.0, 1.0)
+		draw_line(s0.top + shadow_off, s1.top + shadow_off, Cmr2Style.TEXT_SHADOW, 1.5, true)
+		draw_line(s0.bottom + shadow_off, s1.bottom + shadow_off, Cmr2Style.TEXT_SHADOW, 1.5, true)
+		draw_line(s0.top, s1.top, rim_color, 1.5, true)
+		draw_line(s0.bottom, s1.bottom, rim_color, 1.5, true)
+		draw_line(s0.top, s0.bottom, rim_color, 1.25, true)
+		if i == count - 1:
+			draw_line(s1.top, s1.bottom, rim_color, 1.5, true)
+
+
+func _draw_cmr2_rev_scale(scale_min: float, scale_max: float, redline_rpm: float) -> void:
+	var span := maxf(scale_max - scale_min, 1.0)
+	var min_k := maxi(1, ceili(scale_min / 1000.0))
+	var max_k := roundi(scale_max / 1000.0)
+	var step_k := 1 if (max_k - min_k) <= 10 else 2
+
+	var k := min_k
+	while k <= max_k:
+		var milestone_rpm := float(k) * 1000.0
+		var t := clampf((milestone_rpm - scale_min) / span, 0.0, 1.0)
+		var sl := _cmr2_curve_slice(t)
+		var anchor := Vector2(minf(sl.bottom.x + 2.0, CMR2_DASH_SIZE.x - 14.0), sl.bottom.y + 12.0)
+		Cmr2Style.draw_box_text(self, Rect2(anchor.x - 14.0, anchor.y - 8.0, 28.0, 18.0), str(k), 13, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		k += step_k
+
+
+func _draw_cmr2_speed_and_gear(redline_rpm: float, vehicle_max: float) -> void:
+	var speed_val := clampi(roundi(maxf(state.speed_kilometers_per_hour, 0.0)), 0, 999)
+	var speed_text := "KMH %03d" % speed_val
+	Cmr2Style.draw_box_text(
+		self,
+		Rect2(142.0, 212.0, 186.0, 38.0),
+		speed_text,
+		24,
+		Cmr2Style.TEXT_WHITE,
+		true,
+		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+
+	var rpm := maxf(state.engine_revolutions_per_minute, 0.0)
+	var urgent_rpm := minf(vehicle_max * 0.96, maxf(redline_rpm, vehicle_max * 0.93))
+	var gear_color := Cmr2Style.REDLINE_ACCENT if rpm >= urgent_rpm else Cmr2Style.TEXT_WHITE
+	var gear_rect := Rect2(332.0, 134.0, 118.0, 120.0)
+	var line_h := DIN_BOLD.get_height(98)
+	var baseline := gear_rect.position.y + (gear_rect.size.y + line_h) * 0.5 - DIN_BOLD.get_descent(98)
+	Cmr2Style.draw_shadowed_string(
+		self,
+		DIN_BOLD,
+		Vector2(gear_rect.position.x, baseline),
+		state.gear_label,
+		HORIZONTAL_ALIGNMENT_CENTER,
+		gear_rect.size.x,
+		98,
+		gear_color,
+		Vector2(3.0, 3.0)
+	)
 
 
 func _draw_cards_ribbon() -> void:
