@@ -41,14 +41,21 @@ func test_menu_structure_and_order() -> void:
 	check(menu_scene.btn_single_stage != null and menu_scene.btn_single_stage.text == "Tramo Único", "Tercer botón debe ser Tramo Único")
 	check(menu_scene.btn_exit != null and menu_scene.btn_exit.text == "Salir", "Cuarto botón debe ser Salir")
 
-	# Verificar orden en el contenedor de botones
+	# Verificar orden en el contenedor horizontal de botones (dock inferior)
 	var btn_parent = menu_scene.btn_championship.get_parent()
+	check(btn_parent is HBoxContainer, "El dock de botones principal debe ser HBoxContainer horizontal")
 	var children = btn_parent.get_children()
 	check(children.size() >= 4, "Debe haber al menos 4 botones en el contenedor principal")
 	check(children[0] == menu_scene.btn_championship, "Orden 1: Championship")
 	check(children[1] == menu_scene.btn_rally, "Orden 2: Rally")
 	check(children[2] == menu_scene.btn_single_stage, "Orden 3: Single Stage")
 	check(children[3] == menu_scene.btn_exit, "Orden 4: Exit")
+	check(menu_scene.btn_championship.focus_neighbor_right == menu_scene.btn_championship.get_path_to(menu_scene.btn_rally), "Foco horizontal derecho: Campeonato -> Rally")
+	check(menu_scene.btn_championship.focus_neighbor_left == menu_scene.btn_championship.get_path_to(menu_scene.btn_exit), "Foco horizontal izquierdo cíclico: Campeonato -> Salir")
+	check(menu_scene.btn_exit.focus_neighbor_right == menu_scene.btn_exit.get_path_to(menu_scene.btn_championship), "Foco horizontal derecho cíclico: Salir -> Campeonato")
+	await process_frame
+	check(menu_scene.size.y > 0.0 and btn_parent.global_position.y > menu_scene.size.y * 0.6, "El dock horizontal debe situarse en la zona inferior")
+	check(menu_scene.btn_rally.global_position.x > menu_scene.btn_championship.global_position.x and menu_scene.btn_exit.global_position.x > menu_scene.btn_single_stage.global_position.x, "Los botones deben distribuirse horizontalmente de izquierda a derecha")
 
 	menu_scene.queue_free()
 	await process_frame

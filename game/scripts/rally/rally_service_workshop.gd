@@ -1,6 +1,7 @@
 extends VBoxContainer
 ## Fixed inspection board. Slots are semantic destinations shared by drag and pad input.
-const WHEELS := ["WheelFrontLeft", "WheelFrontRight", "WheelRearLeft", "WheelRearRight"]
+const Tire3DViewScript := preload("res://scripts/rally/rally_tire_3d_view.gd")
+const WHEELS := Tire3DViewScript.WHEELS
 const NAMES := ["DEL. IZQUIERDA", "DEL. DERECHA", "TRAS. IZQUIERDA", "TRAS. DERECHA", "RADIADOR", "MALETERA 1", "MALETERA 2"]
 var host: CanvasLayer
 var selected := 0
@@ -40,9 +41,8 @@ func _build() -> void:
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	board.add_child(backdrop)
-	var car := _view(Vector2(260, 345), false)
+	var car := Tire3DViewScript.create_vehicle_top_view(host.session.vehicle, Vector2(260, 345), false, copies, SubViewport.UPDATE_ONCE)
 	_place(car, 0.50, 0.51, Vector2(260, 345))
-	_copy(host.session.vehicle, host.session.vehicle, car.get_child(0).get_child(0), -1)
 	_caption("MALETERA", 0.10, 0.045)
 	_caption("DESCARTE", 0.92, 0.045)
 	for x in [0.21, 0.82]:
@@ -115,16 +115,17 @@ func _tool_slot(index: int, title: String, point: Vector2, paint: Color) -> void
 	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tile.add_child(text)
 
-func _wheel_view(index: int) -> SubViewportContainer:
-	var view := _view(Vector2(138, 138), true)
-	var world: Node3D = view.get_child(0).get_child(0)
-	var pivot := Node3D.new()
-	pivot.name = "ModelPivot"
-	world.add_child(pivot)
-	var vehicle: Node3D = host.session.vehicle
-	var wheel := vehicle.get_node(NodePath(WHEELS[index if index < 4 else 0]))
-	_copy(wheel, vehicle, pivot, index)
-	return view
+func _wheel_view(index: int, live_update: bool = false) -> SubViewportContainer:
+	var mode := SubViewport.UPDATE_ALWAYS if live_update else SubViewport.UPDATE_ONCE
+	return Tire3DViewScript.create_wheel_view(
+		host.session.vehicle,
+		index,
+		tire_at(index),
+		Vector2(138, 138),
+		Vector3.ZERO,
+		false,
+		mode
+	)
 
 
 func _settle_wheel(index: int) -> void:
@@ -134,12 +135,7 @@ func _settle_wheel(index: int) -> void:
 		var view := button.get_node_or_null("WheelView") as SubViewportContainer
 		if view == null:
 			return
-		var world: Node3D = view.get_child(0).get_child(0)
-		var pivot := world.get_node("ModelPivot") as Node3D
-		pivot.rotation = Vector3(0.16, 0.0, -0.12)
-		var tween := create_tween()
-		tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tween.tween_property(pivot, "rotation", Vector3.ZERO, 0.28)
+		Tire3DViewScript.play_settle_animation(self, view, Vector3.ZERO)
 		return
 
 
@@ -256,50 +252,13 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 	return b
 
 func _view(dimensions: Vector2, wheel: bool) -> SubViewportContainer:
-	var container := SubViewportContainer.new()
-	container.size = dimensions
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.stretch = true
-	var viewport := SubViewport.new()
-	viewport.size = Vector2i(dimensions)
-	viewport.transparent_bg = true
-	viewport.own_world_3d = true
-	container.add_child(viewport)
-	var world := Node3D.new()
-	viewport.add_child(world)
-	var camera := Camera3D.new()
-	world.add_child(camera)
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 0.65 if wheel else 5.2
-	camera.position = Vector3(0,3 if wheel else 8,0)
-	camera.look_at_from_position(camera.position, Vector3.ZERO, Vector3.BACK if wheel else Vector3.FORWARD)
-	var light := DirectionalLight3D.new()
-	light.rotation_degrees = Vector3(-80,20,0)
-	light.light_energy = 2
-	world.add_child(light)
-	return container
-
-func _copy(node: Node, vehicle: Node3D, world: Node3D, index: int) -> void:
-	if node is MeshInstance3D and node.mesh != null and node.is_visible_in_tree():
-		var copy := MeshInstance3D.new()
-		copy.mesh = node.mesh
-		copy.material_override = node.material_override
-		for surface in node.mesh.get_surface_count():
-			copy.set_surface_override_material(surface, node.get_surface_override_material(surface))
-		world.add_child(copy)
-		copy.transform = vehicle.global_transform.affine_inverse()*node.global_transform
-		if index >= 0:
-			var pivot: Node3D = vehicle.get_node(NodePath(WHEELS[index if index < 4 else 0]))
-			copy.transform = Transform3D(Basis(Vector3.FORWARD,PI/2),Vector3.ZERO) * (pivot.global_transform.affine_inverse()*node.global_transform)
-			var state: Dictionary = tire_at(index).state
-			var severity := maxf(float(state.get("wear_fraction", 0)), float(state.get("pressure_loss_fraction", 0)))
-			if severity > 0.05:
-				var damage_material := StandardMaterial3D.new()
-				damage_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				damage_material.albedo_color = Color(1.0, 1.0 - severity, 0.0, 0.22)
-				copy.material_overlay = damage_material
-		if index < 0: copies.append(copy)
-	for child in node.get_children(): _copy(child, vehicle, world, index)
+	return Tire3DViewScript.create_viewport_container(
+		dimensions,
+		0.65 if wheel else 5.2,
+		Vector3(0.0, 3.0 if wheel else 8.0, 0.0),
+		Vector3.BACK if wheel else Vector3.FORWARD,
+		SubViewport.UPDATE_ALWAYS
+	)
 
 func _condition(tire: Dictionary) -> String:
 	var s: Dictionary = tire.state
@@ -444,7 +403,7 @@ class ServiceSlot extends Button:
 		if index in [7, 8]:
 			preview.model_view = workshop._tool_view(Color("eadcc0") if index == 7 else Color("f28b87"))
 		else:
-			preview.model_view = workshop._wheel_view(index)
+			preview.model_view = workshop._wheel_view(index, true)
 		var world: Node3D = preview.model_view.get_child(0).get_child(0)
 		preview.pivot = world.get_node("ModelPivot")
 		preview.add_child(preview.model_view)

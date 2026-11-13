@@ -4,6 +4,7 @@ extends Control
 signal garage_closed(applied: bool)
 
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
+const StrategyBoardScript := preload("res://scripts/rally/rally_garage_strategy_board.gd")
 # 2.2. Estandarización Tipográfica (Sin Serif)
 const FONT_SERIF: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
 const FONT_SERIF_BOLD: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
@@ -148,6 +149,15 @@ const STRATEGY_PATHS: Array[String] = ["fuel.initial_kg", "footer:cancel", "foot
 @export var circuit_length_m: float = 5500.0
 @export var team_id: String = "rally-works"
 @export var team_name: String = "Ford Rally Works"
+@export var stage_route_path: String = ""
+@export var stage_weather_label: String = ""
+
+var _vehicle_registry_cache: Array = []
+var _vehicle_registry_loaded: bool = false
+var _cached_route_path: String = ""
+var _cached_route_points: PackedVector2Array = PackedVector2Array()
+var _cached_route_length_m: float = 0.0
+var _stage_length_explicit: bool = false
 
 var advanced_section := 0
 var mandatory_confirmation := false
@@ -207,12 +217,18 @@ var _restore_controls_enabled: bool = true
 var _hover_point := Vector2(-4000.0, -4000.0)
 var _dragging_path: String = ""
 var _dragging_rect := Rect2()
+var _strategy_board: StrategyBoardScript = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	set_process_input(false)
+	_strategy_board = StrategyBoardScript.new()
+	_strategy_board.name = "StrategyBoard3D"
+	_strategy_board.garage = self
+	_strategy_board.visible = false
+	add_child(_strategy_board)
 	vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle
 	if vehicle == null and get_parent() != null:
 		vehicle = get_parent().find_child("FordEscortRS2000", true, false) as RallyEscortVehicle
@@ -236,6 +252,8 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	if _strategy_board != null and is_instance_valid(_strategy_board):
+		_strategy_board.clear_board()
 	database.close_database()
 
 
@@ -249,13 +267,31 @@ func _resize_canvas() -> void:
 		return
 	_canvas_scale = minf(size.x / LOGICAL_SIZE.x, size.y / LOGICAL_SIZE.y)
 	_canvas_offset = (size - LOGICAL_SIZE * _canvas_scale) * 0.5
+	if _strategy_board != null and is_instance_valid(_strategy_board):
+		_strategy_board.position = _canvas_offset
+		_strategy_board.scale = Vector2.ONE * _canvas_scale
 	queue_redraw()
+
+
+func set_stage_metadata(options: Dictionary) -> void:
+	if options.has("stage_id") and not str(options.get("stage_id", "")).is_empty():
+		circuit_id = str(options["stage_id"])
+	if options.has("stage_country") and not str(options.get("stage_country", "")).is_empty():
+		circuit_country = str(options["stage_country"])
+	if options.has("stage_length_m") and float(options.get("stage_length_m", 0.0)) > 0.0:
+		circuit_length_m = float(options["stage_length_m"])
+		_stage_length_explicit = true
+	if options.has("stage_route_path") and not str(options.get("stage_route_path", "")).is_empty():
+		stage_route_path = str(options["stage_route_path"])
+	if options.has("stage_weather_label") and not str(options.get("stage_weather_label", "")).is_empty():
+		stage_weather_label = str(options["stage_weather_label"])
+	if options.has("window_label") and not str(options.get("window_label", "")).is_empty():
+		circuit_name = str(options["window_label"])
 
 
 func open_garage_for_event(options: Dictionary = { }) -> void:
 	mandatory_confirmation = bool(options.get("confirmation_required", false))
-	if options.has("window_label") and not str(options.get("window_label", "")).is_empty():
-		circuit_name = str(options["window_label"])
+	set_stage_metadata(options)
 	compound_change_allowed = bool(options.get("compound_change_allowed", true))
 	allowed_compound_ids = (
 		options.get("allowed_compound_ids", []) as Array
@@ -275,8 +311,11 @@ func open_garage_for_event(options: Dictionary = { }) -> void:
 	for corner in ["FL", "FR", "RL", "RR"]:
 		if not str(draft_wheel_compounds.get(corner, "")) in _available_compound_ids():
 			draft_wheel_compounds[corner] = default_event_compound_id
-	if str(options.get("initial_tab", "")) in ["tires", "strategy"]:
+	var initial_tab := str(options.get("initial_tab", ""))
+	if initial_tab in ["tires", "strategy"]:
 		_set_page(2)
+	elif initial_tab == "quick":
+		_set_page(0)
 
 
 func get_confirmed_setup() -> Dictionary:
@@ -316,6 +355,7 @@ func open_garage() -> void:
 	advanced_section = 0
 	selected_field_path = ""
 	_set_page(0)
+	_ensure_stage_route_cache()
 	active_setup_id = -1
 	active_setup_name = "BASE"
 	modal_mode = ""
@@ -331,6 +371,7 @@ func open_garage() -> void:
 	if input_controller != null:
 		input_controller.set_controls_enabled(false)
 	get_tree().paused = true
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -342,6 +383,7 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 		return
 	if not apply_changes and _has_unapplied_changes() and not confirmed_discard:
 		modal_mode = "discard"
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if apply_changes:
@@ -398,6 +440,9 @@ func close_garage(apply_changes: bool, confirmed_discard: bool = false) -> void:
 	_dragging_path = ""
 	selected_pool_tire_id = -1
 	_pool_plan_dirty = false
+	if _strategy_board != null and is_instance_valid(_strategy_board):
+		_strategy_board.visible = false
+		_strategy_board.clear_board()
 	get_tree().paused = _restore_tree_paused
 	if input_controller != null:
 		input_controller.set_controls_enabled(_restore_controls_enabled)
@@ -474,6 +519,120 @@ func _tire_capacity() -> int:
 	return 2
 
 
+func _sync_strategy_board() -> void:
+	if _strategy_board == null or not is_instance_valid(_strategy_board):
+		return
+	var show_board := visible and page == 2 and modal_mode == "" and _is_pool_mode()
+	_strategy_board.visible = show_board
+	if show_board:
+		_strategy_board.position = _canvas_offset
+		_strategy_board.scale = Vector2.ONE * _canvas_scale
+		_strategy_board.sync_from_garage()
+
+
+func _draft_pool_tire_id(slot_kind: String, slot_index: int) -> int:
+	match slot_kind:
+		"mounted":
+			if slot_index >= 0 and slot_index < draft_mounted_ids.size():
+				return draft_mounted_ids[slot_index]
+		"spare":
+			if slot_index >= 0 and slot_index < draft_spare_ids.size():
+				return draft_spare_ids[slot_index]
+		"stock":
+			if slot_index >= 0 and slot_index < draft_stock_ids.size():
+				return draft_stock_ids[slot_index]
+	return -1
+
+
+func can_pool_drop_from_id(src_id: int, slot_kind: String, slot_index: int) -> Dictionary:
+	if not _is_pool_mode():
+		return {"ok": false, "error": ""}
+	if not _may_service_tires():
+		return {"ok": false, "error": "Asistencia bloqueada en tramo: intercambia ruedas desde Pausa."}
+	if not compound_change_allowed:
+		return {"ok": false, "error": "Cambio de neumaticos bloqueado en esta parada."}
+	if src_id <= 0:
+		return {"ok": false, "error": ""}
+	var src_loc := _find_draft_pool_loc(src_id)
+	if src_loc.is_empty():
+		return {"ok": false, "error": ""}
+	var target_id := _draft_pool_tire_id(slot_kind, slot_index)
+	if target_id == src_id:
+		return {"ok": false, "error": ""}
+	var src_kind := str(src_loc["kind"])
+	var inv: RallyTireInventory = vehicle.tire_inventory
+	var src_td := inv.find_tire(src_id)
+	var dst_td := inv.find_tire(target_id) if target_id > 0 else {}
+	var allowed_ids := _available_compound_ids()
+
+	if slot_kind == "mounted":
+		if slot_index < 0 or slot_index >= draft_mounted_ids.size():
+			return {"ok": false, "error": ""}
+		if inv.is_carcass_destroyed(src_td):
+			return {"ok": false, "error": "Rueda #%d destalonada: no se puede montar." % src_id}
+		if not str(src_td.get("compound_id", "")) in allowed_ids:
+			return {"ok": false, "error": "Compuesto no permitido en este evento."}
+	elif slot_kind == "spare":
+		var cap := _tire_capacity()
+		if slot_index < 0 or slot_index >= cap:
+			return {"ok": false, "error": ""}
+		if slot_index >= draft_spare_ids.size():
+			if src_kind == "mounted":
+				return {"ok": false, "error": "El coche siempre debe llevar 4 ruedas montadas."}
+		elif src_kind == "mounted" and not dst_td.is_empty():
+			if inv.is_carcass_destroyed(dst_td):
+				return {"ok": false, "error": "Rueda #%d destalonada: no se puede montar." % target_id}
+			if not str(dst_td.get("compound_id", "")) in allowed_ids:
+				return {"ok": false, "error": "Compuesto no permitido en este evento."}
+	elif slot_kind == "stock":
+		if target_id < 0:
+			return {"ok": false, "error": ""}
+		if src_kind == "mounted" and not dst_td.is_empty():
+			if inv.is_carcass_destroyed(dst_td):
+				return {"ok": false, "error": "Rueda #%d destalonada: no se puede montar." % target_id}
+			if not str(dst_td.get("compound_id", "")) in allowed_ids:
+				return {"ok": false, "error": "Compuesto no permitido en este evento."}
+	else:
+		return {"ok": false, "error": ""}
+	return {"ok": true, "error": ""}
+
+
+func perform_pool_drop(src_id: int, slot_kind: String, slot_index: int) -> bool:
+	var verdict := can_pool_drop_from_id(src_id, slot_kind, slot_index)
+	if not bool(verdict.get("ok", false)):
+		var err := str(verdict.get("error", ""))
+		if not err.is_empty():
+			_show_notice(err, true)
+		return false
+	var src_loc := _find_draft_pool_loc(src_id)
+	var src_kind := str(src_loc["kind"])
+	var src_idx := int(src_loc["index"])
+	var target_id := _draft_pool_tire_id(slot_kind, slot_index)
+	if slot_kind == "mounted":
+		var displaced_id := draft_mounted_ids[slot_index]
+		draft_mounted_ids[slot_index] = src_id
+		_assign_draft_pool_loc(src_kind, src_idx, displaced_id)
+	elif slot_kind == "spare":
+		if slot_index >= draft_spare_ids.size():
+			_remove_draft_pool_loc(src_kind, src_idx)
+			draft_spare_ids.append(src_id)
+		else:
+			var prev_spare := draft_spare_ids[slot_index]
+			draft_spare_ids[slot_index] = src_id
+			_assign_draft_pool_loc(src_kind, src_idx, prev_spare)
+	elif slot_kind == "stock" and target_id >= 0:
+		var prev_stock := draft_stock_ids[slot_index]
+		draft_stock_ids[slot_index] = src_id
+		_assign_draft_pool_loc(src_kind, src_idx, prev_stock)
+	_pool_plan_dirty = true
+	selected_pool_tire_id = -1
+	_sync_legacy_summary_from_draft_pool()
+	_refresh_strategy_nav_paths()
+	_sync_strategy_board()
+	queue_redraw()
+	return true
+
+
 func _pool_interact(slot_kind: String, slot_index: int) -> void:
 	if not _is_pool_mode():
 		return
@@ -483,71 +642,25 @@ func _pool_interact(slot_kind: String, slot_index: int) -> void:
 	if not compound_change_allowed:
 		_show_notice("Cambio de neumaticos bloqueado en esta parada.", true)
 		return
-	var inv: RallyTireInventory = vehicle.tire_inventory
-	var target_id := -1
-	match slot_kind:
-		"mounted":
-			if slot_index >= 0 and slot_index < draft_mounted_ids.size():
-				target_id = draft_mounted_ids[slot_index]
-		"spare":
-			if slot_index >= 0 and slot_index < draft_spare_ids.size():
-				target_id = draft_spare_ids[slot_index]
-		"stock":
-			if slot_index >= 0 and slot_index < draft_stock_ids.size():
-				target_id = draft_stock_ids[slot_index]
+	var target_id := _draft_pool_tire_id(slot_kind, slot_index)
 	if selected_pool_tire_id < 0:
 		if target_id < 0:
 			_show_notice("Selecciona primero una rueda del parque o montaje.")
 			return
 		selected_pool_tire_id = target_id
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if target_id == selected_pool_tire_id:
 		selected_pool_tire_id = -1
+		_sync_strategy_board()
 		queue_redraw()
 		return
-	var src_loc := _find_draft_pool_loc(selected_pool_tire_id)
-	if src_loc.is_empty():
+	if _find_draft_pool_loc(selected_pool_tire_id).is_empty():
 		selected_pool_tire_id = -1
+		_sync_strategy_board()
 		return
-	var src_kind := str(src_loc["kind"])
-	var src_idx := int(src_loc["index"])
-	var src_td := inv.find_tire(selected_pool_tire_id)
-	if slot_kind == "mounted":
-		if inv.is_carcass_destroyed(src_td):
-			_show_notice("Rueda #%d destalonada: no se puede montar." % selected_pool_tire_id, true)
-			return
-		if not str(src_td.get("compound_id", "")) in _available_compound_ids():
-			_show_notice("Compuesto no permitido en este evento.", true)
-			return
-		var displaced_id := draft_mounted_ids[slot_index]
-		draft_mounted_ids[slot_index] = selected_pool_tire_id
-		_assign_draft_pool_loc(src_kind, src_idx, displaced_id)
-	elif slot_kind == "spare":
-		var cap := _tire_capacity()
-		if slot_index >= cap:
-			return
-		if slot_index >= draft_spare_ids.size():
-			# Slot de maletero vacio: mover desde stock o intercambiar? Desde montaje dejaria < 4 ruedas!
-			if src_kind == "mounted":
-				_show_notice("El coche siempre debe llevar 4 ruedas montadas.", true)
-				return
-			_remove_draft_pool_loc(src_kind, src_idx)
-			draft_spare_ids.append(selected_pool_tire_id)
-		else:
-			var prev_spare := draft_spare_ids[slot_index]
-			draft_spare_ids[slot_index] = selected_pool_tire_id
-			_assign_draft_pool_loc(src_kind, src_idx, prev_spare)
-	elif slot_kind == "stock":
-		if target_id >= 0:
-			var prev_stock := draft_stock_ids[slot_index]
-			draft_stock_ids[slot_index] = selected_pool_tire_id
-			_assign_draft_pool_loc(src_kind, src_idx, prev_stock)
-	_pool_plan_dirty = true
-	selected_pool_tire_id = -1
-	_sync_legacy_summary_from_draft_pool()
-	_refresh_strategy_nav_paths()
-	queue_redraw()
+	perform_pool_drop(selected_pool_tire_id, slot_kind, slot_index)
 
 
 func _unload_spare_slot(spare_index: int) -> void:
@@ -569,6 +682,7 @@ func _unload_spare_slot(spare_index: int) -> void:
 	_pool_plan_dirty = true
 	_sync_legacy_summary_from_draft_pool()
 	_refresh_strategy_nav_paths()
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -663,6 +777,13 @@ func _input(event: InputEvent) -> void:
 					_dragging_path = ""
 					accept_event()
 				return
+			if (
+				page == 2 and modal_mode == "" and _is_pool_mode()
+				and _strategy_board != null and _strategy_board.visible
+				and _dragging_path == ""
+				and _strategy_board.has_pointer_control(get_global_mouse_position())
+			):
+				return
 			_handle_click(_to_logical(mouse_event.position))
 			accept_event()
 		elif mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -685,6 +806,7 @@ func _handle_key(event: InputEventKey) -> void:
 			modal_text = modal_text.left(maxi(0, modal_text.length() - 1))
 		elif event.unicode > 0 and modal_text.length() < 40:
 			modal_text += String.chr(event.unicode)
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if modal_mode == "delete":
@@ -692,6 +814,7 @@ func _handle_key(event: InputEventKey) -> void:
 			_delete_selected_setup()
 		elif event.keycode == KEY_ESCAPE:
 			modal_mode = ""
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if modal_mode == "discard":
@@ -699,6 +822,7 @@ func _handle_key(event: InputEventKey) -> void:
 			close_garage(false, true)
 		elif event.keycode == KEY_ESCAPE:
 			modal_mode = ""
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
@@ -736,6 +860,7 @@ func _handle_key(event: InputEventKey) -> void:
 		KEY_DELETE:
 			if page == 3:
 				_begin_delete_setup()
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -759,6 +884,7 @@ func _handle_pad_button(event: InputEventJoypadButton) -> void:
 				_commit_new_setup()
 			JOY_BUTTON_B, JOY_BUTTON_START:
 				modal_mode = ""
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if modal_mode == "delete":
@@ -766,6 +892,7 @@ func _handle_pad_button(event: InputEventJoypadButton) -> void:
 			_delete_selected_setup()
 		elif event.button_index in [JOY_BUTTON_B, JOY_BUTTON_START]:
 			modal_mode = ""
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	if modal_mode == "discard":
@@ -773,6 +900,7 @@ func _handle_pad_button(event: InputEventJoypadButton) -> void:
 			close_garage(false, true)
 		elif event.button_index in [JOY_BUTTON_B, JOY_BUTTON_START]:
 			modal_mode = ""
+		_sync_strategy_board()
 		queue_redraw()
 		return
 	match event.button_index:
@@ -799,6 +927,7 @@ func _handle_pad_button(event: InputEventJoypadButton) -> void:
 			_set_page(page - 1)
 		JOY_BUTTON_RIGHT_SHOULDER:
 			_set_page(page + 1)
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -923,6 +1052,7 @@ func _set_page(next_page: int) -> void:
 		selected_field_path = _page_field_paths[0] if not _page_field_paths.is_empty() else ""
 	if page == 3:
 		_refresh_setups()
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -1082,6 +1212,7 @@ func _confirm_selection() -> void:
 		_load_selected_setup()
 	elif selected_field_path.is_empty() and not _page_field_paths.is_empty():
 		selected_field_path = _page_field_paths[0]
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -1185,7 +1316,7 @@ func _run_button(action: String) -> void:
 		"reset":
 			draft_values = vehicle.simulation.setup_design_values.duplicate(true)
 			active_setup_id = -1
-			active_setup_name = "FÁBRICA"
+			active_setup_name = "BASE"
 			vehicle.apply_setup_values(draft_values)
 			_show_notice("Valores restaurados.")
 		"cancel":
@@ -1201,6 +1332,7 @@ func _run_button(action: String) -> void:
 			_load_selected_setup()
 		"delete":
 			_begin_delete_setup()
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -1216,6 +1348,7 @@ func _run_modal(action: String) -> void:
 					close_garage(false, true)
 		"cancel":
 			modal_mode = ""
+	_sync_strategy_board()
 	queue_redraw()
 
 
@@ -1266,7 +1399,7 @@ func _save_selected_setup() -> void:
 		target_id = active_setup_id
 	if target_id < 0:
 		modal_mode = "name"
-		modal_text = active_setup_name if not (active_setup_name in ["BASE", "FÁBRICA"]) else ""
+		modal_text = active_setup_name if not (active_setup_name in ["BASE", "FÁBRICA", "RESTAURAR"]) else ""
 		return
 	var result := database.update_setup(_database_context(), target_id, target_name, _build_savable_setup_values())
 	if bool(result.get("ok", false)):
@@ -1471,14 +1604,69 @@ func _draw_backdrop() -> void:
 
 
 
+func _get_vehicle_registry_entries() -> Array:
+	if _vehicle_registry_loaded:
+		return _vehicle_registry_cache
+	_vehicle_registry_loaded = true
+	const REG_PATH := "res://data/vehicles/registry.json"
+	if not FileAccess.file_exists(REG_PATH):
+		return _vehicle_registry_cache
+	var file := FileAccess.open(REG_PATH, FileAccess.READ)
+	if file == null:
+		return _vehicle_registry_cache
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if parsed is Dictionary:
+		var pd := parsed as Dictionary
+		var lower_v: Variant = pd.get("vehicles")
+		if lower_v is Dictionary:
+			_vehicle_registry_cache = (lower_v as Dictionary).values()
+		elif lower_v is Array:
+			_vehicle_registry_cache = lower_v as Array
+		elif pd.get("Vehicles") is Array:
+			_vehicle_registry_cache = pd.get("Vehicles") as Array
+	elif parsed is Array:
+		_vehicle_registry_cache = parsed as Array
+	return _vehicle_registry_cache
+
+
 func _get_vehicle_display_name() -> String:
 	if vehicle != null:
-		if vehicle.name.to_lower().contains("fulvia") or vehicle.rally_profile_path.to_lower().contains("fulvia"):
+		var manifest_val: Variant = vehicle.get("rally_asset_manifest")
+		if manifest_val is Dictionary:
+			var source_val: Variant = (manifest_val as Dictionary).get("source", {})
+			if source_val is Dictionary:
+				var recipe_val: Variant = (source_val as Dictionary).get("recipe", {})
+				if recipe_val is Dictionary:
+					var recipe_name := str((recipe_val as Dictionary).get("display_name", "")).strip_edges()
+					if not recipe_name.is_empty():
+						return recipe_name.to_upper()
+
+		var profile_id := str(vehicle.rally_profile.get("profile_id", "")).strip_edges().to_lower()
+		var profile_path := str(vehicle.rally_profile_path).strip_edges().to_lower()
+		var node_name := str(vehicle.name).strip_edges().to_lower()
+		for entry in _get_vehicle_registry_entries():
+			if not entry is Dictionary:
+				continue
+			var d := entry as Dictionary
+			var eid := str(d.get("Id", "")).strip_edges().to_lower()
+			var eprof := str(d.get("Profile", "")).strip_edges().to_lower()
+			var disp := str(d.get("DisplayName", "")).strip_edges()
+			if disp.is_empty():
+				continue
+			if (not profile_id.is_empty() and (profile_id == eid or profile_id == eprof or profile_id == eprof.get_file())) \
+					or (not profile_path.is_empty() and not eprof.is_empty() and profile_path.contains("/%s/" % eprof)) \
+					or (not node_name.is_empty() and node_name != "vehicle" and (node_name == eid or (not eprof.is_empty() and node_name.contains(eprof.get_file())))):
+				return disp.to_upper()
+
+		var direct_name := str(vehicle.rally_profile.get("display_name", vehicle.rally_profile.get("profile_name", ""))).strip_edges()
+		if not direct_name.is_empty():
+			return direct_name.to_upper()
+		if node_name.contains("fulvia") or profile_path.contains("fulvia"):
 			return "LANCIA FULVIA HF"
-		if vehicle.name.to_lower().contains("escort") or vehicle.rally_profile_path.to_lower().contains("escort"):
+		if node_name.contains("escort") or profile_path.contains("escort"):
 			return "FORD ESCORT RS2000"
-		if vehicle.rally_profile.has("profile_name"):
-			return str(vehicle.rally_profile.get("profile_name")).to_upper()
+	if not team_name.is_empty() and team_name != "Ford Rally Works":
+		return team_name.to_upper()
 	return "FORD ESCORT RS2000"
 
 
@@ -1488,17 +1676,23 @@ func _get_team_display_name() -> String:
 	if vehicle != null and (vehicle.name.to_lower().contains("fulvia") or vehicle.rally_profile_path.to_lower().contains("fulvia")):
 		return "LANCIA HF"
 	return "FORD RALLY WORKS"
+
+
 func _draw_chrome_header() -> void:
 	_glass_window(Rect2(24, 18, 1232, 76), 10)
 
-	_text_title(_box(46, 22, 0, 34), _get_vehicle_display_name(), 20, C_CHROME_TEXT)
-	_text_serif(_box(46, 54, 260, 26), _get_team_display_name(), 11, C_CHROME_DIM, true)
+	var car_title := _get_vehicle_display_name()
+	var title_size := 20
+	while title_size > 13 and FONT_TITLE.get_string_size(car_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > 272.0:
+		title_size -= 1
+	_text_title(_box(46, 34, 272, 44), car_title, title_size, C_CHROME_TEXT)
 
 	draw_line(Vector2(330, 34), Vector2(330, 78), Color(C_RIM, 0.22), 1.0)
 
+	_ensure_stage_route_cache()
 	_text_title(_box(354, 22, 0, 34), circuit_name.to_upper(), 16, C_CHROME_TEXT)
 	var subtitle := "%s  ·  %0.1f KM  ·  %s" % [
-		circuit_country.to_upper(), circuit_length_m / 1000.0, mode.to_upper()
+		circuit_country.to_upper(), _effective_stage_length_m() / 1000.0, mode.to_upper()
 	]
 	_text_serif(_box(354, 54, 360, 26), subtitle, 11, C_CHROME_DIM)
 
@@ -1517,7 +1711,7 @@ func _draw_chrome_header() -> void:
 func _draw_chrome_footer() -> void:
 	_glass_window(Rect2(24, 692, 1232, 88), 10)
 
-	_chrome_button(Rect2(46, 714, 168, 46), "FÁBRICA", "reset")
+	_chrome_button(Rect2(46, 714, 168, 46), "RESTAURAR", "reset")
 
 	# Franja reservada para el aviso: nunca se dibuja encima del contenido.
 	var lane := Rect2(400, 700, 470, 72)
@@ -1651,7 +1845,7 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 
 
 func _draw_quick_page() -> void:
-	var section := Rect2(36, PAGE_TOP, 816, 356)
+	var section := Rect2(36, PAGE_TOP, 816, PAGE_BOTTOM - PAGE_TOP)
 	_group(section, "AJUSTES RÁPIDOS")
 
 	var rows := [
@@ -1699,9 +1893,7 @@ func _draw_quick_page() -> void:
 			i == rows.size() - 1
 		)
 
-	_draw_compound_group(Rect2(36, 518, 816, 156))
-	_draw_state_group(Rect2(864, PAGE_TOP, 380, 268))
-	_draw_tire_group(Rect2(864, 434, 380, 240))
+	_draw_stage_info_group(Rect2(864, PAGE_TOP, 380, PAGE_BOTTOM - PAGE_TOP))
 
 
 func _balance_text() -> String:
@@ -1717,14 +1909,16 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 	_row_frame(rect, selected, last, _mouse_over(rect))
 	_hit_regions.append({ "rect": rect, "kind": "select", "path": key })
 
-	_text(_box(rect.position.x + 14, rect.position.y + 8, 250, 26), str(data.name), 13, C_TEXT, true)
-	_hint(_box(rect.position.x + 14, rect.position.y + 34, 250, 18), str(data.hint))
+	var mid_y := rect.position.y + rect.size.y * 0.5
+	var title_size := 14 if rect.size.y >= 96.0 else 13
+	_text(_box(rect.position.x + 14, mid_y - 22.0, 250, 24), str(data.name), title_size, C_TEXT, true)
+	_hint(_box(rect.position.x + 14, mid_y + 4.0, 250, 18), str(data.hint))
 
 	var track_x := rect.position.x + 242.0
 	var track_w := 340.0
-	_text(_box(track_x, rect.position.y + 8, 150, 14), str(data.left), 8, C_DIM, true)
+	_text(_box(track_x, mid_y - 22.0, 150, 14), str(data.left), 8, C_DIM, true)
 	_text(
-		_box(track_x + track_w - 150, rect.position.y + 8, 150, 14),
+		_box(track_x + track_w - 150, mid_y - 22.0, 150, 14),
 		str(data.right),
 		8,
 		C_DIM,
@@ -1733,31 +1927,221 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 		150
 	)
 
-	_stepper(Rect2(track_x - 36, rect.position.y + 24, 28, 28), false)
-	_track(Rect2(track_x, rect.position.y + 33, track_w, 11), _get_quick_fraction(key), selected)
-	_stepper(Rect2(track_x + track_w + 6, rect.position.y + 24, 28, 28), true)
+	var stepper_y := mid_y - 3.0
+	var track_y := mid_y + 5.5
+	_stepper(Rect2(track_x - 36, stepper_y, 28, 28), false)
+	_track(Rect2(track_x, track_y, track_w, 11), _get_quick_fraction(key), selected)
+	_stepper(Rect2(track_x + track_w + 6, stepper_y, 28, 28), true)
 
 	_field_box(
-		Rect2(rect.position.x + 624, rect.position.y + 19, 164, 38),
+		Rect2(rect.position.x + 624, mid_y - 19.0, 164, 38),
 		str(data.value),
 		16,
 		C_GOLD if selected else C_TEXT,
 		bool(data.get("numeric", true))
 	)
 
-	var minus := Rect2(track_x - 38, rect.position.y + 20, 32, 36)
-	var plus := Rect2(track_x + track_w + 4, rect.position.y + 20, 32, 36)
+	var minus := Rect2(track_x - 38, stepper_y - 4.0, 32, 36)
+	var plus := Rect2(track_x + track_w + 4, stepper_y - 4.0, 32, 36)
 	_hit_regions.append({ "rect": minus, "kind": "quick", "path": key, "amount": -1.0 })
 	_hit_regions.append({ "rect": plus, "kind": "quick", "path": key, "amount": 1.0 })
 	_hit_regions.append(
 		{
-			"rect": Rect2(track_x, rect.position.y + 20, track_w, 36),
+			"rect": Rect2(track_x, stepper_y - 4.0, track_w, 36),
 			"kind": "quick_slide",
 			"path": key,
-			"track": Rect2(track_x, rect.position.y + 33, track_w, 11),
+			"track": Rect2(track_x, track_y, track_w, 11),
 		}
 	)
-	_hit_regions.append({ "rect": Rect2(track_x - 6, rect.position.y + 27, track_w + 12, 23), "kind": "select", "path": key })
+	_hit_regions.append({ "rect": Rect2(track_x - 6, track_y - 6.0, track_w + 12, 23), "kind": "select", "path": key })
+
+
+func _resolve_stage_route_path() -> String:
+	if not stage_route_path.strip_edges().is_empty():
+		return stage_route_path.strip_edges()
+	var cid := circuit_id.strip_edges().to_lower().replace("-", "_")
+	if cid.is_empty():
+		return ""
+	var regex := RegEx.new()
+	regex.compile("^([a-z_]+)_stage_(\\d+)$")
+	var m := regex.search(cid)
+	if m != null:
+		cid = "%s_stage%s" % [m.get_string(1), m.get_string(2)]
+	var candidate := "res://data/rally/%s_route.json" % cid
+	if FileAccess.file_exists(candidate):
+		return candidate
+	return ""
+
+
+func _compute_vertical_stage_points(raw_points: Array) -> PackedVector2Array:
+	if raw_points.size() < 2:
+		return PackedVector2Array()
+	var pts_2d: Array[Vector2] = []
+	var center := Vector2.ZERO
+	for p in raw_points:
+		if p is Array and (p as Array).size() >= 3:
+			var arr := p as Array
+			var v := Vector2(float(arr[0]), float(arr[2]))
+			pts_2d.append(v)
+			center += v
+	if pts_2d.size() < 2:
+		return PackedVector2Array()
+	center /= float(pts_2d.size())
+
+	var xx := 0.0
+	var yy := 0.0
+	var xy := 0.0
+	for v in pts_2d:
+		var off := v - center
+		xx += off.x * off.x
+		yy += off.y * off.y
+		xy += off.x * off.y
+
+	var angle := -PI * 0.5 - atan2(2.0 * xy, xx - yy) * 0.5
+	var route_dir := pts_2d[-1] - pts_2d[0]
+	if route_dir.rotated(angle).y > 0.0:
+		angle += PI
+
+	var rotated_pts: Array[Vector2] = []
+	var min_v := Vector2(INF, INF)
+	var max_v := Vector2(-INF, -INF)
+	for v in pts_2d:
+		var rot_v := v.rotated(angle)
+		rotated_pts.append(rot_v)
+		min_v = min_v.min(rot_v)
+		max_v = max_v.max(rot_v)
+
+	var extent := max_v - min_v
+	var max_dim := maxf(maxf(extent.x, extent.y), 0.001)
+	var out := PackedVector2Array()
+	for rv in rotated_pts:
+		out.append((rv - min_v) / max_dim)
+	return out
+
+
+func _ensure_stage_route_cache() -> void:
+	var rpath := _resolve_stage_route_path()
+	if rpath == _cached_route_path and not _cached_route_points.is_empty():
+		return
+	_cached_route_path = rpath
+	_cached_route_points = PackedVector2Array()
+	_cached_route_length_m = 0.0
+	if rpath.is_empty() or not FileAccess.file_exists(rpath):
+		return
+	var file := FileAccess.open(rpath, FileAccess.READ)
+	if file == null:
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		return
+	var doc := parsed as Dictionary
+	_cached_route_length_m = float(doc.get("total_route_length_m", 0.0))
+	var raw_pts: Variant = doc.get("points", [])
+	if raw_pts is Array:
+		_cached_route_points = _compute_vertical_stage_points(raw_pts as Array)
+
+
+func _get_stage_weather_text() -> String:
+	var raw := stage_weather_label.strip_edges()
+	if not raw.is_empty():
+		return raw.to_upper()
+	return "SOLEADO"
+
+
+func _effective_stage_length_m() -> float:
+	if (_stage_length_explicit or absf(circuit_length_m - 5500.0) > 1.0) and circuit_length_m > 0.0:
+		return circuit_length_m
+	if _cached_route_length_m > 0.0:
+		return _cached_route_length_m
+	return circuit_length_m
+
+
+func _get_stage_distance_text() -> String:
+	return "%0.1f KM" % (maxf(_effective_stage_length_m(), 0.0) / 1000.0)
+
+
+func _draw_stage_route_preview(rect: Rect2) -> void:
+	draw_rect(rect, C_FIELD)
+	_sunken(rect)
+
+	_ensure_stage_route_cache()
+	if _cached_route_points.size() < 2:
+		_hint(rect, "SIN TRAZADO DISPONIBLE")
+		return
+
+	var pad := 22.0
+	var avail_w := rect.size.x - pad * 2.0
+	var avail_h := rect.size.y - pad * 2.0
+	if avail_w <= 10.0 or avail_h <= 10.0:
+		return
+
+	var min_p := Vector2(INF, INF)
+	var max_p := Vector2(-INF, -INF)
+	for p in _cached_route_points:
+		min_p = min_p.min(p)
+		max_p = max_p.max(p)
+	var extent := max_p - min_p
+	extent.x = maxf(extent.x, 0.001)
+	extent.y = maxf(extent.y, 0.001)
+
+	var fit_scale := minf(avail_w / extent.x, avail_h / extent.y)
+	var draw_size := extent * fit_scale
+	var origin := rect.position + Vector2(pad, pad) + (Vector2(avail_w, avail_h) - draw_size) * 0.5 - min_p * fit_scale
+
+	var screen_pts := PackedVector2Array()
+	for p in _cached_route_points:
+		screen_pts.append(origin + p * fit_scale)
+
+	draw_polyline(screen_pts, Color(C_GOLD, 0.22), 6.0, true)
+	draw_polyline(screen_pts, Color(C_CHROME_TEXT, 0.92), 2.8, true)
+
+	var start_pt := screen_pts[0]
+	var finish_pt := screen_pts[screen_pts.size() - 1]
+	draw_circle(start_pt, 5.0, Color(0.28, 0.85, 0.45))
+	draw_arc(start_pt, 5.0, 0.0, TAU, 16, Color(C_GOLD, 0.85), 1.4, true)
+	draw_circle(finish_pt, 5.0, Color(0.95, 0.34, 0.28))
+	draw_arc(finish_pt, 5.0, 0.0, TAU, 16, Color(C_CHROME_TEXT, 0.85), 1.4, true)
+
+
+func _draw_stage_info_group(rect: Rect2) -> void:
+	_group(rect, "INFORMACIÓN DEL TRAMO")
+	var inner := _group_inner(rect)
+	var info_h := 46.0
+	var gap := 10.0
+	var map_h := inner.size.y - (info_h * 2.0 + gap * 2.0)
+
+	var map_rect := Rect2(inner.position.x, inner.position.y, inner.size.x, map_h)
+	_draw_stage_route_preview(map_rect)
+
+	var val_w := 204.0
+	var weather_row := Rect2(inner.position.x, map_rect.end.y + gap, inner.size.x, info_h)
+	_row_frame(weather_row, false, false, false)
+	_text(_box(weather_row.position.x + 12, weather_row.position.y + 4, 118, weather_row.size.y - 8), "CLIMA", 11, C_DIM, true)
+	var weather_txt := _get_stage_weather_text()
+	var weather_size := 13
+	while weather_size > 10 and maxf(
+			FONT_UI_BOLD.get_string_size(weather_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, weather_size).x,
+			FONT_SERIF_BOLD.get_string_size(weather_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, weather_size).x
+		) > (val_w - 20.0):
+		weather_size -= 1
+	_field_box(
+		Rect2(weather_row.end.x - val_w - 8, weather_row.position.y + 5, val_w, weather_row.size.y - 10),
+		weather_txt,
+		weather_size,
+		C_GOLD,
+		false
+	)
+
+	var dist_row := Rect2(inner.position.x, weather_row.end.y + gap, inner.size.x, info_h)
+	_row_frame(dist_row, false, true, false)
+	_text(_box(dist_row.position.x + 12, dist_row.position.y + 4, 128, dist_row.size.y - 8), "KILÓMETROS", 11, C_DIM, true)
+	_field_box(
+		Rect2(dist_row.end.x - val_w - 8, dist_row.position.y + 5, val_w, dist_row.size.y - 10),
+		_get_stage_distance_text(),
+		14,
+		C_CHROME_TEXT,
+		true
+	)
 
 
 func _available_compound_ids() -> Array:
@@ -2257,8 +2641,8 @@ func _draw_strategy_page() -> void:
 	var can_service := compound_change_allowed and _may_service_tires()
 
 	if _is_pool:
-		_group(Rect2(36, PAGE_TOP, 596, 152), "COMBUSTIBLE")
-		_field_rows(Rect2(36, PAGE_TOP, 596, 86), [{ "p": "fuel.initial_kg", "l": "Combustible inicial" }])
+		_group(Rect2(36, PAGE_TOP, 596, 108), "COMBUSTIBLE")
+		_field_rows(Rect2(36, PAGE_TOP, 596, 70), [{ "p": "fuel.initial_kg", "l": "Combustible inicial" }])
 	else:
 		_group(Rect2(36, PAGE_TOP, 596, 164), "COMBUSTIBLE")
 		_field_rows(Rect2(36, PAGE_TOP, 596, 92), [{ "p": "fuel.initial_kg", "l": "Combustible inicial" }])
@@ -2268,18 +2652,18 @@ func _draw_strategy_page() -> void:
 		capacity = maxf(float(vehicle.simulation.mass_model.fuel_capacity_kg), 0.001)
 	var current := float(draft_values.get("fuel.initial_kg", 0.0))
 	var fraction := clampf(current / capacity, 0.0, 1.0)
-	var dep_y := 254.0 if _is_pool else 246.0
-	var grv_y := 278.0 if _is_pool else 270.0
-	_text(_box(50, dep_y, 200, 20), "DEPÓSITO", 10, C_DIM, true)
+	var dep_y := 216.0 if _is_pool else 246.0
+	var grv_y := 236.0 if _is_pool else 270.0
+	_text(_box(50, dep_y, 200, 18), "DEPÓSITO", 10, C_DIM, true)
 	_num(
-		_box(50, dep_y, 568, 20),
+		_box(50, dep_y, 568, 18),
 		"%0.1f / %0.1f L" % [current / _fuel_density(), capacity / _fuel_density()],
 		11,
 		C_TEXT,
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		568
 	)
-	var groove := Rect2(50, grv_y, 568, 20 if _is_pool else 22)
+	var groove := Rect2(50, grv_y, 568, 16 if _is_pool else 22)
 	draw_rect(groove, C_FIELD)
 	_sunken(groove)
 	var fill := Rect2(
@@ -2297,140 +2681,119 @@ func _draw_strategy_page() -> void:
 		draw_rect(Rect2(sx, groove.position.y + 1, 1, groove.size.y - 2), Color(C_DARK, 0.55))
 
 	if _is_pool:
+		_group(Rect2(36, 272, 596, 58), "METEOROLOGÍA")
+		var memo_pool := Rect2(50, 295, 568, 28)
+		draw_rect(memo_pool, C_FIELD)
+		_sunken(memo_pool)
+		if event_forecast.is_empty():
+			_hint(_box(memo_pool.position.x + 10, memo_pool.position.y + 4, memo_pool.size.x - 20, 20), "SIN PREVISIÓN PARA ESTE EVENTO")
+		else:
+			var f_lines := _wrap_text(event_forecast, 2, 86)
+			for i in f_lines.size():
+				var ly := memo_pool.position.y + (5.0 if f_lines.size() == 1 else 2.0 + float(i) * 12.0)
+				_text(
+					_box(memo_pool.position.x + 10, ly, memo_pool.size.x - 20, 14),
+					f_lines[i],
+					9 if f_lines.size() > 1 else 10,
+					C_TEXT if i == 0 else C_DIM
+				)
+
 		var inv_ref: RallyTireInventory = vehicle.tire_inventory
 		var inv_count: int = inv_ref.total_count()
-		_group(Rect2(36, 326, 596, 236), "INVENTARIO POOL (%d/10)" % inv_count)
-		var mode_note := "SELECCIONA UNA RUEDA Y DESTINO" if selected_pool_tire_id < 0 else "ELIGE DESTINO PARA #%d (ESC/X CANCELA)" % selected_pool_tire_id
-		if not _may_service_tires():
+		_group(Rect2(36, 336, 596, 338), "MALETERO Y PARQUE 3D (%d/10)" % inv_count)
+		var drag_tid := _strategy_board._active_drag_tire_id if _strategy_board != null else -1
+		var mode_note := "ARRASTRA RUEDAS 3D O PULSA ORIGEN -> DESTINO"
+		var note_color := C_DIM
+		if drag_tid > 0:
+			mode_note = "ARRASTRANDO #%d · SUELTA EN COCHE, MALETERO O PARQUE" % drag_tid
+			note_color = C_GOLD
+		elif selected_pool_tire_id >= 0:
+			mode_note = "ELIGE DESTINO PARA #%d (ESC/X CANCELA)" % selected_pool_tire_id
+			note_color = C_GOLD
+		elif not _may_service_tires():
 			mode_note = "BLOQUEADO EN TRAMO — USA PAUSA/INVENTARIO"
+			note_color = C_ROSE
 		elif not compound_change_allowed:
 			mode_note = "BLOQUEADO EN ESTA PARADA"
+			note_color = C_ROSE
 		_text(
-			_box(50, 336, 568, 16),
+			_box(50, 356, 568, 15),
 			"MALETERO %d/%d · PARQUE %d  ·  %s" % [draft_spare_ids.size(), _tire_capacity(), draft_stock_ids.size(), mode_note],
 			9,
-			C_GOLD if selected_pool_tire_id >= 0 else (C_ROSE if not can_service else C_DIM),
+			note_color,
 			true
 		)
-		var slot_cap := _tire_capacity()
-		for s in slot_cap:
-			var s_rect := Rect2(50 + float(s) * 288.0, 356, 280, 44)
-			var is_focused := selected_field_path == ("spare:%d" % s)
-			if s < draft_spare_ids.size():
-				var tid := draft_spare_ids[s]
-				var td := inv_ref.find_tire(tid)
-				var st_info := _tire_status_info(inv_ref, td)
-				var wear_pct := float((td.get("state", {}) as Dictionary).get("wear_fraction", 0.0)) * 100.0
-				var cid_s := str(td.get("compound_id", RallyTireCompound.DEFAULT_ID))
-				_draw_pool_slot_card(
-					s_rect,
-					"MALETERO #%d · %s" % [tid, _compound_label(cid_s, true)],
-					"VIDA %.0f%% · DESGASTE %.0f%%" % [maxf(0.0, 100.0 - wear_pct), wear_pct],
-					str(st_info["tag"]),
-					st_info["color"],
-					is_focused,
-					selected_pool_tire_id == tid,
-					can_service
-				)
-				if can_service:
-					var main_rect := Rect2(s_rect.position.x, s_rect.position.y, s_rect.size.x - 60.0, s_rect.size.y)
-					_hit_regions.append({ "rect": main_rect, "kind": "pool_slot", "slot_kind": "spare", "slot_index": s })
-					var out_btn := Rect2(s_rect.end.x - 56.0, s_rect.position.y + 18.0, 50.0, 20.0)
-					_toggle(out_btn, "SACAR", false)
-					_hit_regions.append({ "rect": out_btn, "kind": "pool_unload_spare", "slot_index": s })
-			else:
-				_draw_pool_slot_card(
-					s_rect,
-					"MALETERO #%d VACÍO" % (s + 1),
-					"GUARDAR #%d AQUÍ" % selected_pool_tire_id if selected_pool_tire_id >= 0 else "PULSA RUEDA DEL PARQUE",
-					"LIBRE",
-					C_DIM,
-					is_focused,
-					false,
-					can_service
-				)
-				if can_service:
-					_hit_regions.append({ "rect": s_rect, "kind": "pool_slot", "slot_kind": "spare", "slot_index": s })
 
-		for k in mini(draft_stock_ids.size(), 6):
-			var col_i := k % 2
-			var row_i := k / 2
-			var st_rect := Rect2(50 + float(col_i) * 288.0, 410 + float(row_i) * 48.0, 280, 42)
-			var tid := draft_stock_ids[k]
-			var td := inv_ref.find_tire(tid)
-			var st_info := _tire_status_info(inv_ref, td)
-			var wear_pct := float((td.get("state", {}) as Dictionary).get("wear_fraction", 0.0)) * 100.0
-			var cid_s := str(td.get("compound_id", RallyTireCompound.DEFAULT_ID))
-			_draw_pool_slot_card(
-				st_rect,
-				"PARQUE #%d · %s" % [tid, _compound_label(cid_s, true)],
-				"VIDA %.0f%% · DESGASTE %.0f%%" % [maxf(0.0, 100.0 - wear_pct), wear_pct],
-				str(st_info["tag"]),
-				st_info["color"],
-				selected_field_path == ("stock:%d" % k),
-				selected_pool_tire_id == tid,
-				can_service
-			)
-			if can_service:
-				_hit_regions.append({ "rect": st_rect, "kind": "pool_slot", "slot_kind": "stock", "slot_index": k })
-
-		_group(Rect2(36, 570, 596, 106), "METEOROLOGÍA")
-		_text(_box(50, 586, 568, 16), "PREVISIÓN DEL EVENTO", 9, C_DIM, true)
-		var memo := Rect2(50, 606, 568, 60)
-		draw_rect(memo, C_FIELD)
-		_sunken(memo)
-		if event_forecast.is_empty():
-			_hint(_box(memo.position.x + 10, memo.position.y + 8, memo.size.x - 20, 18), "SIN PREVISIÓN PARA ESTE EVENTO")
-		else:
-			var lines := _wrap_text(event_forecast, 2, 84)
-			for i in lines.size():
-				_text(
-					_box(memo.position.x + 10, memo.position.y + 8 + float(i) * 20, memo.size.x - 20, 18),
-					lines[i],
-					10,
-					C_TEXT if i == 0 else C_DIM
-				)
-	else:
-		_group(Rect2(36, 332, 596, 156), "INVENTARIO DE NEUMÁTICOS")
-		var service_rect := Rect2(50, 356, 568, 44)
-		_row_frame(service_rect, selected_field_path == "service", false, _mouse_over(service_rect))
-		_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 11, C_TEXT)
-		_toggle(
-			Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30),
-			"SÍ" if new_tires_service else "NO",
-			new_tires_service
+		var telemetry := Rect2(648, PAGE_TOP, 596, 518)
+		_group(telemetry, "MONTAJE 3D EN EL COCHE")
+		_text(
+			_box(662, 177, 568, 15),
+			"ARRASTRA RUEDAS 3D ENTRE COCHE, MALETERO Y PARQUE  ·  CLIC O D-PAD SELECCIONA",
+			9,
+			C_DIM,
+			true
 		)
+		var bay := Rect2(848, 198, 196, 444)
+		draw_rect(bay, C_FIELD)
+		_sunken(bay)
+		var axle_col := Color(C_BLUE, 0.28)
+		draw_line(Vector2(842, 303), Vector2(1050, 303), axle_col, 2.0)
+		draw_line(Vector2(842, 541), Vector2(1050, 541), axle_col, 2.0)
+		draw_line(Vector2(946, 303), Vector2(946, 541), axle_col, 2.0)
+		var p_sum := 0.0
+		for i in 4:
+			p_sum += _wheel_pressure(i)
+		_text(
+			_box(662, 653, 568, 16),
+			"PRESIÓN MEDIA %0.0f kPa  ·  DESLIZA SOBRE MONTAJE PARA INTERCAMBIAR POSICIONES" % (p_sum * 0.25),
+			9,
+			C_DIM,
+			true,
+			HORIZONTAL_ALIGNMENT_CENTER,
+			568
+		)
+		return
+
+	_group(Rect2(36, 332, 596, 156), "INVENTARIO DE NEUMÁTICOS")
+	var service_rect := Rect2(50, 356, 568, 44)
+	_row_frame(service_rect, selected_field_path == "service", false, _mouse_over(service_rect))
+	_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 11, C_TEXT)
+	_toggle(
+		Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30),
+		"SÍ" if new_tires_service else "NO",
+		new_tires_service
+	)
+	if _may_service_tires():
+		_hit_regions.append({ "rect": service_rect, "kind": "service" })
+
+	var spare_rect := Rect2(50, 408, 568, 44)
+	_row_frame(spare_rect, selected_field_path == "spares", true, _mouse_over(spare_rect))
+	_text(_box(spare_rect.position.x + 12, spare_rect.position.y, 300, 44), "RUEDAS DE REPUESTO", 11, C_TEXT)
+	for s in 3:
+		var button := Rect2(spare_rect.end.x - 140 + float(s) * 46, spare_rect.position.y + 8, 42, 28)
+		_toggle(button, str(s), draft_spare_wheels == s)
 		if _may_service_tires():
-			_hit_regions.append({ "rect": service_rect, "kind": "service" })
+			_hit_regions.append({ "rect": button, "kind": "spares", "delta": s - draft_spare_wheels })
 
-		var spare_rect := Rect2(50, 408, 568, 44)
-		_row_frame(spare_rect, selected_field_path == "spares", true, _mouse_over(spare_rect))
-		_text(_box(spare_rect.position.x + 12, spare_rect.position.y, 300, 44), "RUEDAS DE REPUESTO", 11, C_TEXT)
-		for s in 3:
-			var button := Rect2(spare_rect.end.x - 140 + float(s) * 46, spare_rect.position.y + 8, 42, 28)
-			_toggle(button, str(s), draft_spare_wheels == s)
-			if _may_service_tires():
-				_hit_regions.append({ "rect": button, "kind": "spares", "delta": s - draft_spare_wheels })
-
-		_group(Rect2(36, 500, 596, 174), "METEOROLOGÍA")
-		_text(_box(50, 516, 568, 18), "PREVISIÓN DEL EVENTO", 9, C_DIM, true)
-		var memo := Rect2(50, 538, 568, 122)
-		draw_rect(memo, C_FIELD)
-		_sunken(memo)
-		if event_forecast.is_empty():
-			_hint(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "SIN PREVISIÓN PARA ESTE EVENTO")
-		else:
-			var lines := _wrap_text(event_forecast, 4, 84)
-			for i in lines.size():
-				_text(
-					_box(memo.position.x + 10, memo.position.y + 10 + float(i) * 20, memo.size.x - 20, 18),
-					lines[i],
-					10,
-					C_TEXT if i == 0 else C_DIM
-				)
+	_group(Rect2(36, 500, 596, 174), "METEOROLOGÍA")
+	_text(_box(50, 516, 568, 18), "PREVISIÓN DEL EVENTO", 9, C_DIM, true)
+	var memo := Rect2(50, 538, 568, 122)
+	draw_rect(memo, C_FIELD)
+	_sunken(memo)
+	if event_forecast.is_empty():
+		_hint(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "SIN PREVISIÓN PARA ESTE EVENTO")
+	else:
+		var lines := _wrap_text(event_forecast, 4, 84)
+		for i in lines.size():
+			_text(
+				_box(memo.position.x + 10, memo.position.y + 10 + float(i) * 20, memo.size.x - 20, 18),
+				lines[i],
+				10,
+				C_TEXT if i == 0 else C_DIM
+			)
 
 	var telemetry := Rect2(648, PAGE_TOP, 596, 518)
-	_group(telemetry, "MONTAJE Y TELEMETRÍA" if _is_pool else "TELEMETRÍA DE NEUMÁTICOS")
+	_group(telemetry, "TELEMETRÍA DE NEUMÁTICOS")
 	var inner := _group_inner(telemetry)
 	var gap := 12.0
 	var card_w := floorf((inner.size.x - gap) * 0.5)
@@ -2452,12 +2815,10 @@ func _draw_strategy_page() -> void:
 		var tire_info: Dictionary = {}
 		if is_instance_valid(vehicle) and vehicle.tire_inventory != null:
 			var inv_ref: RallyTireInventory = vehicle.tire_inventory
-			if _is_pool and i < draft_mounted_ids.size():
-				tire_info = inv_ref.find_tire(draft_mounted_ids[i])
-			elif i < inv_ref.mounted.size():
+			if i < inv_ref.mounted.size():
 				tire_info = inv_ref.mounted[i]
 		var tid := int(tire_info.get("id", i + 1))
-		var cid := str(tire_info.get("compound_id", draft_wheel_compounds.get(codes[i], ""))) if _is_pool and not tire_info.is_empty() else str(draft_wheel_compounds.get(codes[i], ""))
+		var cid := str(draft_wheel_compounds.get(codes[i], ""))
 		var wear_pct := 0.0
 		var status_tag := "OK"
 		var status_color: Color = C_DIM
@@ -2467,10 +2828,7 @@ func _draw_strategy_page() -> void:
 			var st_info := _tire_status_info(vehicle.tire_inventory, tire_info)
 			status_tag = str(st_info["tag"])
 			status_color = st_info["color"]
-		var is_sel_card := _is_pool and selected_pool_tire_id == tid
-		if is_sel_card:
-			draw_rect(card, C_GOLD, false, 2.0)
-		elif card_focused:
+		if card_focused:
 			draw_rect(card, BORDER_FOCUS, false, 2.0)
 		var id_str := "#%d · " % tid if not tire_info.is_empty() else ""
 		_text(_box(card.position.x + 12, card.position.y + 8, 120, 22), id_str + codes[i], 15, C_TEXT, true)
@@ -2510,19 +2868,9 @@ func _draw_strategy_page() -> void:
 		)
 		var toggle := Rect2(card.position.x + 12, card.end.y - 44, card.size.x - 24, 32)
 		var btn_label := _compound_label(cid, true)
-		if _is_pool:
-			if is_sel_card:
-				btn_label = "SELECCIONADA (#%d)" % tid
-			elif selected_pool_tire_id >= 0 and can_service:
-				btn_label = "MONTAR #%d AQUÍ (%s)" % [selected_pool_tire_id, _compound_label(cid, true)]
-			elif not can_service:
-				btn_label = "%s · BLOQ." % _compound_label(cid, true)
-		_toggle(toggle, btn_label, can_service and (is_sel_card or selected_pool_tire_id >= 0 or true))
+		_toggle(toggle, btn_label, can_service)
 		if can_service:
-			if _is_pool:
-				_hit_regions.append({ "rect": card, "kind": "pool_slot", "slot_kind": "mounted", "slot_index": i })
-			else:
-				_hit_regions.append({ "rect": toggle, "kind": "compound", "corner": codes[i] })
+			_hit_regions.append({ "rect": toggle, "kind": "compound", "corner": codes[i] })
 
 
 # =============================================================================

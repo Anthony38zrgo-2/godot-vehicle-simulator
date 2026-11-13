@@ -241,7 +241,7 @@ func _update_pending_window() -> void:
 	if cursor == 0 and not windows_attended.has("initial"):
 		pending_window = {
 			"before_stage_id": current,
-			"initial_tab": "tires",
+			"initial_tab": "quick",
 			"confirmation_required": true,
 			"window_key": "initial"
 		}

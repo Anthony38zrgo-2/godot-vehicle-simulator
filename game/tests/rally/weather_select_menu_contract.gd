@@ -63,6 +63,20 @@ func test_weather_screen_structure_and_options() -> void:
 		var exp_title: String = expected_options[i]["title"]
 		check(str(btn.get_meta("weather_id", "")) == exp_id, "Opción %d ID es '%s'" % [i + 1, exp_id])
 		check(btn.text == exp_title, "Opción %d Título es '%s'" % [i + 1, exp_title])
+		var card_labels := btn.find_children("*", "Label", true, false)
+		check(card_labels.size() == 5, "Tarjeta %s conserva exactamente 5 etiquetas (sin pie de superficie/grip)" % exp_title)
+		for lbl in card_labels:
+			check(not ("Grip" in (lbl as Label).text), "Tarjeta %s sin texto Grip" % exp_title)
+
+	check(menu_scene.header_subtitle == null or not menu_scene.header_subtitle.visible, "Subtítulo HISTORIC RALLY SIMULATION oculto en selector de clima")
+
+	# Verificar limpieza de cabeceras, barra inferior y tarjetas compactas centradas
+	var weather_header: HBoxContainer = menu_scene.screen_weather_select.get_child(0) as HBoxContainer
+	check(weather_header != null and weather_header.get_child_count() == 1, "Cabecera de clima conserva únicamente el título CLIMA INICIAL")
+	var bottom_bar: HBoxContainer = menu_scene.btn_weather_confirm.get_parent() as HBoxContainer
+	check(bottom_bar != null and bottom_bar.get_child_count() == 3, "Barra inferior sin etiqueta redundante CLIMA SELECCIONADO")
+	var cards_hbox: HBoxContainer = menu_scene.weather_buttons[0].get_parent() as HBoxContainer
+	check(cards_hbox != null and cards_hbox.size.y > 0.0 and cards_hbox.size.y < menu_scene.screen_weather_select.size.y * 0.78, "Tarjetas de clima compactadas verticalmente para dejar respirar el fondo")
 
 	menu_scene.queue_free()
 	await process_frame
@@ -112,22 +126,22 @@ func test_weather_selection_reaction() -> void:
 	# Probar selección de Soleado
 	menu_scene._select_weather("sunny")
 	check(menu_scene.selected_weather == "sunny", "Clima seleccionado es sunny (Soleado)")
-	check("SOLEADO" in menu_scene.weather_selected_desc_label.text, "Etiqueta refleja Soleado")
+	check(menu_scene.weather_indicator_labels.size() == 4 and menu_scene.weather_indicator_labels[0].visible and not menu_scene.weather_indicator_labels[1].visible, "Indicador activo refleja Soleado")
 
 	# Probar selección de Nublado
 	menu_scene._select_weather("cloudy")
 	check(menu_scene.selected_weather == "cloudy", "Clima seleccionado es cloudy (Nublado)")
-	check("NUBLADO" in menu_scene.weather_selected_desc_label.text, "Etiqueta refleja Nublado")
+	check(menu_scene.weather_indicator_labels[1].visible and not menu_scene.weather_indicator_labels[0].visible, "Indicador activo refleja Nublado")
 
 	# Probar selección de Lluvia
 	menu_scene._select_weather("medium_precipitation")
 	check(menu_scene.selected_weather == "medium_precipitation", "Clima seleccionado es medium_precipitation (Lluvia)")
-	check("LLUVIA" in menu_scene.weather_selected_desc_label.text, "Etiqueta refleja Lluvia")
+	check(menu_scene.weather_indicator_labels[2].visible and not menu_scene.weather_indicator_labels[1].visible, "Indicador activo refleja Lluvia")
 
 	# Probar selección de Aleatorio
 	menu_scene._select_weather("random")
 	check(menu_scene.selected_weather == "random", "Clima seleccionado es random (Aleatorio)")
-	check("ALEATORIO" in menu_scene.weather_selected_desc_label.text, "Etiqueta refleja Aleatorio")
+	check(menu_scene.weather_indicator_labels[3].visible and not menu_scene.weather_indicator_labels[2].visible, "Indicador activo refleja Aleatorio")
 
 	check(menu_scene.btn_weather_confirm != null, "Botón de confirmación de inicio de rally presente")
 	check(menu_scene.btn_weather_confirm.text.find("Rally") != -1, "Texto descriptivo de inicio del rally")

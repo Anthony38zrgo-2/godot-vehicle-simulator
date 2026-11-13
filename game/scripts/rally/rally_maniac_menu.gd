@@ -355,7 +355,6 @@ var weather_buttons: Array[Button] = []
 var weather_indicator_labels: Array[Label] = []
 var btn_weather_back: Button
 var btn_weather_confirm: Button
-var weather_selected_desc_label: Label
 
 # Componentes del Showroom 3D y Especificaciones
 var preview_viewport: SubViewport
@@ -521,6 +520,7 @@ func _build_ui() -> void:
 	header_subtitle.add_theme_font_override("font", FONT_TITLE)
 	header_subtitle.add_theme_font_size_override("font_size", 10)
 	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
+	header_subtitle.hide()
 	title_vbox.add_child(header_subtitle)
 
 	var header_spacer := Control.new()
@@ -693,26 +693,38 @@ func _build_main_menu_screen() -> void:
 	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	screen_main_menu.add_child(spacer_top)
 
-	var buttons_box := VBoxContainer.new()
-	buttons_box.custom_minimum_size = Vector2(418, 0)
-	buttons_box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	buttons_box.add_theme_constant_override("separation", 10)
+	var buttons_box := HBoxContainer.new()
+	buttons_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	buttons_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons_box.add_theme_constant_override("separation", 18)
 	screen_main_menu.add_child(buttons_box)
 
 	btn_championship = _create_menu_button("Campeonato", func(): _on_mode_selected("championship"), true)
+	btn_championship.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_championship)
 
 	btn_rally = _create_menu_button("Rally", func(): _on_mode_selected("rally"), true)
+	btn_rally.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_rally)
 
 	btn_single_stage = _create_menu_button("Tramo Único", func(): _on_mode_selected("single_stage"))
+	btn_single_stage.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_single_stage)
 
 	btn_exit = _create_menu_button("Salir", func(): get_tree().quit(), false, true)
+	btn_exit.custom_minimum_size = Vector2(210, 52)
 	buttons_box.add_child(btn_exit)
 
+	var main_btns: Array[Button] = [btn_championship, btn_rally, btn_single_stage, btn_exit]
+	for i in main_btns.size():
+		var prev_btn: Button = main_btns[(i - 1 + main_btns.size()) % main_btns.size()]
+		var next_btn: Button = main_btns[(i + 1) % main_btns.size()]
+		var b: Button = main_btns[i]
+		b.focus_neighbor_left = b.get_path_to(prev_btn)
+		b.focus_neighbor_right = b.get_path_to(next_btn)
+
 	var spacer_bottom := Control.new()
-	spacer_bottom.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer_bottom.custom_minimum_size = Vector2(0, 12)
 	screen_main_menu.add_child(spacer_bottom)
 
 
@@ -1332,18 +1344,17 @@ func _build_weather_select_screen() -> void:
 	weather_title.add_theme_color_override("font_color", C_GOLD)
 	weather_header.add_child(weather_title)
 
-	var weather_sub := Label.new()
-	weather_sub.text = "   · Clima de inicio del evento — Selecciona las condiciones meteorológicas"
-	weather_sub.add_theme_font_override("font", FONT_TITLE)
-	weather_sub.add_theme_font_size_override("font_size", 11)
-	weather_sub.add_theme_color_override("font_color", C_CHROME_DIM)
-	weather_header.add_child(weather_sub)
+	# Espaciador superior para centrar verticalmente las tarjetas y dejar respirar el fondo 3D
+	var cards_top_spacer := Control.new()
+	cards_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards_top_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen_weather_select.add_child(cards_top_spacer)
 
-	# 2. Contenedor horizontal con las 4 tarjetas de clima
+	# 2. Contenedor horizontal con las 4 tarjetas de clima (compactas y centradas)
 	var cards_hbox := HBoxContainer.new()
 	cards_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cards_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cards_hbox.add_theme_constant_override("separation", 16)
+	cards_hbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cards_hbox.add_theme_constant_override("separation", 18)
 	screen_weather_select.add_child(cards_hbox)
 
 	weather_buttons.clear()
@@ -1355,9 +1366,6 @@ func _build_weather_select_screen() -> void:
 		var wtag := str(opt.get("tag", ""))
 		var wicon := str(opt.get("icon", ""))
 		var wsummary := str(opt.get("summary", ""))
-		var wsurface := str(opt.get("surface", ""))
-		var wtemp := str(opt.get("temp", ""))
-		var wgrip := str(opt.get("grip", ""))
 		var waccent: Color = opt.get("accent", C_GOLD)
 
 		var btn := Button.new()
@@ -1381,10 +1389,10 @@ func _build_weather_select_screen() -> void:
 		var card_inner := MarginContainer.new()
 		card_inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		card_inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_inner.add_theme_constant_override("margin_left", 16)
-		card_inner.add_theme_constant_override("margin_right", 16)
-		card_inner.add_theme_constant_override("margin_top", 14)
-		card_inner.add_theme_constant_override("margin_bottom", 14)
+		card_inner.add_theme_constant_override("margin_left", 18)
+		card_inner.add_theme_constant_override("margin_right", 18)
+		card_inner.add_theme_constant_override("margin_top", 16)
+		card_inner.add_theme_constant_override("margin_bottom", 18)
 		btn.add_child(card_inner)
 
 		var card_vbox := VBoxContainer.new()
@@ -1411,7 +1419,7 @@ func _build_weather_select_screen() -> void:
 		var lbl_sel := Label.new()
 		lbl_sel.text = "● ACTIVO"
 		lbl_sel.add_theme_font_override("font", FONT_TITLE)
-		lbl_sel.add_theme_font_size_override("font_size", 9)
+		lbl_sel.add_theme_font_size_override("font_size", 10)
 		lbl_sel.add_theme_color_override("font_color", C_GOLD_HI)
 		lbl_sel.visible = (wid == selected_weather)
 		card_top.add_child(lbl_sel)
@@ -1422,74 +1430,61 @@ func _build_weather_select_screen() -> void:
 		div1.color = Color(1, 1, 1, 0.08)
 		card_vbox.add_child(div1)
 
-		# Icono grande representativo
+		var mid_top_spacer := Control.new()
+		mid_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		card_vbox.add_child(mid_top_spacer)
+
+		# Bloque central (icono, título y descripción centrados verticalmente con mayor escala)
+		var center_block := VBoxContainer.new()
+		center_block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		center_block.add_theme_constant_override("separation", 10)
+		card_vbox.add_child(center_block)
+
 		var lbl_icon := Label.new()
 		lbl_icon.text = wicon
 		lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl_icon.add_theme_font_override("font", FONT_TITLE)
-		lbl_icon.add_theme_font_size_override("font_size", 42)
+		lbl_icon.add_theme_font_size_override("font_size", 52)
 		lbl_icon.add_theme_color_override("font_color", waccent)
-		card_vbox.add_child(lbl_icon)
+		center_block.add_child(lbl_icon)
 
-		# Título del clima
 		var lbl_name := Label.new()
 		lbl_name.text = wtitle
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_name.add_theme_font_override("font", FONT_TITLE)
-		lbl_name.add_theme_font_size_override("font_size", 18)
+		lbl_name.add_theme_font_size_override("font_size", 21)
 		lbl_name.add_theme_color_override("font_color", Color.WHITE)
-		card_vbox.add_child(lbl_name)
+		center_block.add_child(lbl_name)
 
 		var div2 := ColorRect.new()
 		div2.custom_minimum_size = Vector2(0, 1)
-		div2.color = Color(1, 1, 1, 0.06)
-		card_vbox.add_child(div2)
+		div2.color = Color(1, 1, 1, 0.08)
+		center_block.add_child(div2)
 
-		# Resumen descriptivo
 		var lbl_desc := Label.new()
 		lbl_desc.text = wsummary
+		lbl_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl_desc.add_theme_font_override("font", FONT_REGULAR)
-		lbl_desc.add_theme_font_size_override("font_size", 11)
-		lbl_desc.add_theme_color_override("font_color", Color("#94a3b8"))
-		card_vbox.add_child(lbl_desc)
+		lbl_desc.add_theme_font_size_override("font_size", 12)
+		lbl_desc.add_theme_color_override("font_color", Color("#cbd5e1"))
+		center_block.add_child(lbl_desc)
 
-		var exp_spacer := Control.new()
-		exp_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		card_vbox.add_child(exp_spacer)
-
-		var div3 := ColorRect.new()
-		div3.custom_minimum_size = Vector2(0, 1)
-		div3.color = Color(1, 1, 1, 0.08)
-		card_vbox.add_child(div3)
-
-		# Ficha inferior de condiciones (Superficie y Grip)
-		var info_row := HBoxContainer.new()
-		card_vbox.add_child(info_row)
-
-		var lbl_surf := Label.new()
-		lbl_surf.text = wsurface
-		lbl_surf.add_theme_font_override("font", FONT_UI)
-		lbl_surf.add_theme_font_size_override("font_size", 10)
-		lbl_surf.add_theme_color_override("font_color", C_CHROME_DIM)
-		info_row.add_child(lbl_surf)
-
-		var spacer_bot := Control.new()
-		spacer_bot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info_row.add_child(spacer_bot)
-
-		var lbl_grip := Label.new()
-		lbl_grip.text = wgrip
-		lbl_grip.add_theme_font_override("font", FONT_UI_BOLD)
-		lbl_grip.add_theme_font_size_override("font_size", 10)
-		lbl_grip.add_theme_color_override("font_color", C_GOLD_HI)
-		info_row.add_child(lbl_grip)
+		var mid_bot_spacer := Control.new()
+		mid_bot_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		card_vbox.add_child(mid_bot_spacer)
 
 		_set_mouse_filter_recursive(card_inner, Control.MOUSE_FILTER_IGNORE)
 
 		cards_hbox.add_child(btn)
 		weather_buttons.append(btn)
+
+	# Espaciador inferior para centrar verticalmente las tarjetas
+	var cards_bot_spacer := Control.new()
+	cards_bot_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards_bot_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen_weather_select.add_child(cards_bot_spacer)
 
 	# 3. Barra inferior de navegación
 	var bottom_bar := HBoxContainer.new()
@@ -1506,12 +1501,6 @@ func _build_weather_select_screen() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom_bar.add_child(spacer)
-
-	weather_selected_desc_label = Label.new()
-	weather_selected_desc_label.add_theme_font_override("font", FONT_TITLE)
-	weather_selected_desc_label.add_theme_font_size_override("font_size", 12)
-	weather_selected_desc_label.add_theme_color_override("font_color", C_GOLD_HI)
-	bottom_bar.add_child(weather_selected_desc_label)
 
 	btn_weather_confirm = Button.new()
 	btn_weather_confirm.text = "Comenzar Rally ▶"
@@ -1654,7 +1643,7 @@ func show_weather_select() -> void:
 	if header_line_ref != null:
 		header_line_ref.show()
 	if header_subtitle != null:
-		header_subtitle.show()
+		header_subtitle.hide()
 	if header_badge_vbox != null:
 		header_badge_vbox.show()
 	badge_top.text = "CONDICIÓN"
@@ -1680,7 +1669,6 @@ func _select_weather(weather_id: String) -> void:
 
 
 func _update_weather_cards_visuals() -> void:
-	var sel_title := ""
 	for i in weather_buttons.size():
 		var btn: Button = weather_buttons[i]
 		var wid := str(btn.get_meta("weather_id", ""))
@@ -1688,13 +1676,6 @@ func _update_weather_cards_visuals() -> void:
 		_style_weather_card(btn, is_sel)
 		if i < weather_indicator_labels.size():
 			weather_indicator_labels[i].visible = is_sel
-		if is_sel:
-			for opt in WEATHER_OPTIONS:
-				if str(opt.get("id", "")) == wid:
-					sel_title = str(opt.get("title", ""))
-					break
-	if weather_selected_desc_label != null:
-		weather_selected_desc_label.text = "CLIMA SELECCIONADO: " + sel_title.to_upper()
 
 
 func _on_weather_confirmed() -> void:

@@ -441,6 +441,7 @@ func _on_tca_weather_changed(weather) -> void:
 		weather_sky_node.set_practice_weather(maxf(cover, 0.92) if is_precipitating else cover,
 			float(weather.get("fog_density")))
 	print("RALLY_WEATHER_CHANGED ", description, " precipitation=", is_precipitating, " raining=", weather_is_raining)
+	_sync_garage_stage_metadata()
 	if head_up_display != null and session_ready:
 		head_up_display.show_status("WEATHER " + description.to_upper(), Color(0.62, 0.78, 0.95), 2.4)
 
@@ -1099,6 +1100,7 @@ func load_event_stage(next_id: String) -> void:
 		# Los saltos de horario entre stages usan antecedentes ya resueltos
 		# (integración acotada en generación); no se simulan dos horas con un dt.
 		_refresh_stage_weather()
+	_sync_garage_stage_metadata()
 	session_ready = true
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
@@ -1240,6 +1242,98 @@ func _assign_wetness_zones(entry: Dictionary) -> void:
 	terrain_wetness.assign_material_zones(event_weather.route_points, bounds)
 
 
+func _resolve_stage_country() -> String:
+	var place := str(session_track_id)
+	var cut := place.rfind("_stage")
+	if cut > 0:
+		place = place.substr(0, cut)
+	place = place.replace("_", " ").strip_edges()
+	return place.capitalize() if not place.is_empty() else "Russia"
+
+
+func _resolve_stage_route_path_for_garage() -> String:
+	var paths: Variant = resolved_stage.get("paths", {})
+	if paths is Dictionary and (paths as Dictionary).has("route"):
+		var rp := str((paths as Dictionary).get("route", "")).strip_edges()
+		if not rp.is_empty():
+			return rp
+	return stage_loader.route_path(session_track_id)
+
+
+func _resolve_stage_length_m() -> float:
+	if course != null and course.route_distances.size() > 0:
+		var dist := float(course.route_distances[course.route_distances.size() - 1])
+		if dist > 0.0:
+			return dist
+	var rpath := _resolve_stage_route_path_for_garage()
+	if not rpath.is_empty() and FileAccess.file_exists(rpath):
+		var file := FileAccess.open(rpath, FileAccess.READ)
+		if file != null:
+			var parsed: Variant = JSON.parse_string(file.get_as_text())
+			if parsed is Dictionary:
+				var route_len := float((parsed as Dictionary).get("total_route_length_m", 0.0))
+				if route_len > 0.0:
+					return route_len
+	return 5500.0
+
+
+func _resolve_stage_weather_label() -> String:
+	if event_manager != null and not practice_mode:
+		var entry: Dictionary = event_manager.weather_entry_for(session_track_id)
+		if not entry.is_empty():
+			var dom: Dictionary = RallyWeatherScheduler.get_stage_dominant_weather(entry)
+			var dom_name := str(dom.get("name", "")).strip_edges()
+			if not dom_name.is_empty():
+				return dom_name
+	var choice := _practice_weather_choice().strip_edges().to_lower()
+	match choice:
+		"sunny", "soleado":
+			return "Soleado"
+		"clear":
+			return "Despejado"
+		"partly_cloudy":
+			return "Intervalos nubosos"
+		"cloudy", "nublado":
+			return "Nublado"
+		"overcast":
+			return "Cubierto"
+		"mist_fog":
+			return "Niebla"
+		"drizzle":
+			return "Llovizna"
+		"rain", "lluvia", "light_precipitation", "medium_precipitation":
+			return "Lluvia"
+		"heavy_precipitation":
+			return "Lluvia intensa"
+	if weather_is_raining or weather_start_weather == 2:
+		return "Lluvia"
+	if weather_start_weather == 1:
+		return "Nublado"
+	return "Soleado"
+
+
+func _collect_garage_stage_metadata() -> Dictionary:
+	return {
+		"stage_id": session_track_id,
+		"stage_country": _resolve_stage_country(),
+		"stage_length_m": _resolve_stage_length_m(),
+		"stage_route_path": _resolve_stage_route_path_for_garage(),
+		"stage_weather_label": _resolve_stage_weather_label(),
+	}
+
+
+func _sync_garage_stage_metadata() -> void:
+	if garage_panel == null:
+		return
+	var meta := _collect_garage_stage_metadata()
+	if garage_panel.has_method("set_stage_metadata"):
+		garage_panel.call("set_stage_metadata", meta)
+	else:
+		garage_panel.set("circuit_id", meta.get("stage_id", session_track_id))
+		garage_panel.set("circuit_country", meta.get("stage_country", "Russia"))
+		garage_panel.set("circuit_length_m", meta.get("stage_length_m", 5500.0))
+
+
 func _connect_garage_panel() -> void:
 	garage_panel = get_node_or_null(garage_panel_path) as Control
 	if garage_panel == null:
@@ -1248,11 +1342,13 @@ func _connect_garage_panel() -> void:
 		garage_panel.set("vehicle", vehicle)
 	if not garage_panel.get("garage_closed").is_connected(_on_garage_closed):
 		garage_panel.connect("garage_closed", _on_garage_closed)
+	_sync_garage_stage_metadata()
 
 
 func _open_setup_window() -> void:
 	if garage_panel == null:
 		return
+	_sync_garage_stage_metadata()
 	# La música la dispara cada panel (garaje -> on_enter_garage,
 	# servicio -> on_enter_service) para evitar doble reinicio en el mismo frame.
 	if not practice_mode and event_manager != null:
@@ -1271,6 +1367,7 @@ func _open_setup_window() -> void:
 			strat_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 			var strat_screen := preload("res://scripts/rally/rally_tire_strategy_screen.gd").new()
 			strat_screen.manager = event_manager
+			strat_screen.vehicle = vehicle
 			if vehicle != null and vehicle.rally_profile.has("display_name"):
 				strat_screen.vehicle_name = str(vehicle.rally_profile.get("display_name", vehicle.name))
 			strat_layer.add_child(strat_screen)
@@ -1308,10 +1405,11 @@ func _open_setup_window() -> void:
 		elif window.has("before_stage_id"):
 			label = "SERVICIO · " + str(window.get("before_stage_id", "")).to_upper()
 		garage_panel.circuit_name = label
+		var open_tab := str(window.get("initial_tab", "tires"))
 		garage_panel.call("open_garage_for_event", {
 			"spare_wheels": vehicle.tire_inventory.spares.size(),
 			"wheel_compounds": mounted_wheel_compounds(),
-			"initial_tab": str(window.get("initial_tab", "tires")),
+			"initial_tab": open_tab,
 			"compound_id": event_manager.draft_compound_id,
 			"compound_change_allowed": true,
 			"confirmation_required": bool(window.get("confirmation_required", true)),
@@ -1326,7 +1424,8 @@ func _open_setup_window() -> void:
 			),
 		})
 		if head_up_display != null:
-			head_up_display.show_status("REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR", Color(0.95, 0.72, 0.24), 4.0)
+			var hud_msg := "REGLAJE OBLIGATORIO — AJUSTES RÁPIDOS + ACEPTAR" if open_tab == "quick" else "REGLAJE OBLIGATORIO — NEUMÁTICOS + ACEPTAR"
+			head_up_display.show_status(hud_msg, Color(0.95, 0.72, 0.24), 4.0)
 	else:
 		# Modo Single Stage / Championship / práctica
 		awaiting_setup = true
