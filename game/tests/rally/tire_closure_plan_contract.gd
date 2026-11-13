@@ -429,7 +429,7 @@ func _ground_profile(kind: String, x: float) -> Dictionary:
 
 func test_p6_tandem_cam() -> void:
 	print("\n[P6] Envolvente espacial tandem-cam (activada por defecto)...")
-	check(FordRallyVehicleSimulation.new().tandem_cam_enabled, "P6 tandem-cam activo por defecto")
+	check(not FordRallyVehicleSimulation.new().tandem_cam_enabled, "P6 ShapeCast activo por defecto durante la prueba de manejo")
 	# Opción de comparación: el flag sigue conmutable (false = vía ShapeCast
 	# legacy de un apoyo, true = dos rayos tandem cableados en step()).
 	var sim := FordRallyVehicleSimulation.new()

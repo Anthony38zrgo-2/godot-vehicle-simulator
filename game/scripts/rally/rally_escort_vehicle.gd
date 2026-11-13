@@ -21,7 +21,7 @@ var _blob_shadow_decal: Decal = null
 
 var simulation := FordRallyVehicleSimulation.new()
 var tire_inventory = preload("res://scripts/rally/rally_tire_inventory.gd").new()
-# Política de temperatura de salida del compuesto (tire_rules del evento).
+# PolÃ­tica de temperatura de salida del compuesto (tire_rules del evento).
 var start_temperature_policy: String = "selected_compound_optimum"
 const TIRE_STATE_KEYS := ["surface_c", "tread_c", "tread_zones_c", "carcass_c", "gas_c", "pressure_bar_gauge", "pressure_reference_bar_gauge", "pressure_reference_temp_c", "wear_fraction", "thermal_damage_fraction", "pressure_loss_fraction", "leak_per_second", "rim_deformation", "carcass_failure"]
 var rally_profile: Dictionary = {}
@@ -122,15 +122,13 @@ func _ready() -> void:
 	}
 	apply_vehicle_properties()
 	# Lighter unsprung assemblies can require a faster world step than the Ford.
-	# Banco de estabilidad (§5): comparar primero a la frecuencia de producción
-	# de cada perfil y repetir a 60/120/240 Hz como diagnóstico, controlando la
-	# frecuencia efectiva y con parámetros fijos. Medir altura de reposo,
-	# frecuencia y decaimiento de la oscilación, pico de carga y activación de
-	# límites. Exigir mejora medible y repetir casos de producción antes de
-	# cambiar frecuencia o método de integración; abrir un cambio separado por
-	# cada corrección física que justifiquen las mediciones.
-	var world_tune: Dictionary = simulation.domains.get("coupled_world", {}).get("coupled_world", {})
-	Engine.physics_ticks_per_second = maxi(Engine.physics_ticks_per_second, int(world_tune.get("minimum_physics_ticks_per_second", 60)))
+	# Banco de estabilidad (Â§5): comparar primero a la frecuencia de producciÃ³n
+	# de cada perfil y repetir a 60/120/240 Hz como diagnÃ³stico, controlando la
+	# frecuencia efectiva y con parÃ¡metros fijos. Medir altura de reposo,
+	# frecuencia y decaimiento de la oscilaciÃ³n, pico de carga y activaciÃ³n de
+	# lÃ­mites. Exigir mejora medible y repetir casos de producciÃ³n antes de
+	# cambiar frecuencia o mÃ©todo de integraciÃ³n; abrir un cambio separado por
+	# cada correcciÃ³n fÃ­sica que justifiquen las mediciones.
 	build_collision_shapes(collision_document)
 	bind_wheel_visuals()
 	if dreamcast_car_visuals:
@@ -213,7 +211,7 @@ func service_new_tires(compound_id: String = "") -> void:
 	if cid == "":
 		cid = "gravel_normal"
 	set_tire_compound(cid)
-	# Objetivos iniciales específicos del compuesto (no 50/60 fijos para ambos).
+	# Objetivos iniciales especÃ­ficos del compuesto (no 50/60 fijos para ambos).
 	var tread_target := 50.0
 	var carcass_target := 60.0
 	if not simulation.thermal_model.active_compound.is_empty():
@@ -232,7 +230,7 @@ func service_new_tires(compound_id: String = "") -> void:
 		state.gas_c = carcass_target
 		state.wear_fraction = 0.0
 		state.thermal_damage_fraction = 0.0
-		# Presión coherente con gas: conserva el reglaje frío y recalcula.
+		# PresiÃ³n coherente con gas: conserva el reglaje frÃ­o y recalcula.
 		var cold: Dictionary = (simulation.domains.get("tires", {}).get("tires", {}).get("pressure", {}) as Dictionary).get("cold_kpa_gauge", {})
 		var key: String = ["FL", "FR", "RL", "RR"][index]
 		var cold_bar := float(cold.get(key, 180.0)) / 100.0
@@ -407,11 +405,17 @@ var _active_collision_zone: String = ""
 var _separation_frames: int = 10
 var _wheel_impact_peak: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _wheel_quiet_frames: Array[int] = [0, 0, 0, 0]
+## DiagnÃ³stico Q4 (solo sonda, OFF por defecto): impulso vertical de los
+## contactos de carrocerÃ­a (bajos) en el tick. Permite cerrar el balance axial
+## sin atribuir a la suspensiÃ³n lo que aporta el contacto del chasis con el
+## suelo. No altera daÃ±o, audio ni VFX.
+var diagnostic_body_contacts_enabled := false
+var last_body_contact_vertical_impulse_ns := 0.0
 
-## Traza de teletransporte (§2): último tick previo al reset, callback de
+## Traza de teletransporte (Â§2): Ãºltimo tick previo al reset, callback de
 ## rescate y primeros ticks posteriores (poses/velocidades de chasis y hubs,
-## compresión, velocidad relativa del amortiguador, fuerza y carga radial).
-## Comparar la primera muestra válida con un vehículo recién colocado en el
+## compresiÃ³n, velocidad relativa del amortiguador, fuerza y carga radial).
+## Comparar la primera muestra vÃ¡lida con un vehÃ­culo reciÃ©n colocado en el
 ## mismo destino y estado inicial para separar asentamiento por gravedad o
 ## contacto del arrastre de estado previo.
 var _teleport_trace_ticks: int = 0
@@ -461,11 +465,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		_rescue_pose = null
-		# Limpieza residual (§2): la primera fuerza de amortiguador tras el
+		# Limpieza residual (Â§2): la primera fuerza de amortiguador tras el
 		# rescate debe corresponder a la velocidad relativa medida, no a
-		# muestras previas. No se llama a reset_dynamics() completo aquí
-		# (ya corrió en _reset_to_transform); se reubican hubs y se limpian
-		# los campos publicados que el rig reescribirá en el primer solve.
+		# muestras previas. No se llama a reset_dynamics() completo aquÃ­
+		# (ya corriÃ³ en _reset_to_transform); se reubican hubs y se limpian
+		# los campos publicados que el rig reescribirÃ¡ en el primer solve.
 		simulation.suspension_model.clear_transient()
 		simulation.unsprung_rig.reset_at(state.transform)
 		simulation.wheel_loads.fill(0.0)
@@ -477,6 +481,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		_teleport_trace_ticks = 3
 		return
 	var contact_count := state.get_contact_count()
+	var body_vertical_impulse := 0.0
 	var landing_speed_ms := 0.0
 	_prev_body_contact_count = contact_count
 	var impulse_peak := 0.0
@@ -513,8 +518,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var body_contact_locals: Array[Vector3] = []
 
 	for index in contact_count:
-		var impulse := state.get_contact_impulse(index).length()
+		var contact_impulse := state.get_contact_impulse(index)
+		var impulse := contact_impulse.length()
 		impulse_peak = maxf(impulse_peak, impulse)
+		if diagnostic_body_contacts_enabled:
+			body_vertical_impulse += contact_impulse.y
 		var normal := (state.transform.basis * state.get_contact_local_normal(index)).normalized()
 		var velocity := state.get_contact_local_velocity_at_position(index) - state.get_contact_collider_velocity_at_position(index)
 		var closing_speed := maxf(0.0, -velocity.dot(normal))
@@ -593,6 +601,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				scrape_power += force * tangent_speed
 
 	# Resolve single debounced collision event this frame
+	last_body_contact_vertical_impulse_ns = body_vertical_impulse if diagnostic_body_contacts_enabled else 0.0
 	if peak_qualifying_closing_speed > 0.0:
 		if _separation_frames >= 4 or _active_collision_zone.is_empty():
 			var hit_zone := _resolve_impact_zone(peak_qualifying_local_pos, peak_qualifying_normal)
@@ -657,8 +666,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 					simulation.thermal_model.apply_damage(rad_dmg, eng_dmg)
 
 	body_contact_audio = {"count": contact_count, "impulse_ns": impulse_peak, "lateral_impulse_ns": lateral_impulse_peak, "lateral_speed_kph": lateral_speed_ms * 3.6, "lateral_position": lateral_position, "impact_speed_kph": impact_speed_ms * 3.6, "impact_position": impact_position, "landing_speed_ms": landing_speed_ms, "scrape_power_w": scrape_power, "ground_drag_power_w": ground_drag_power, "height_m": state.transform.origin.y}
-	# Primeros ticks tras teletransporte (§2): capturan el asentamiento por
-	# gravedad/contacto sin arrastre previo. Aceptar cuando los hubs estén en
+	# Primeros ticks tras teletransporte (Â§2): capturan el asentamiento por
+	# gravedad/contacto sin arrastre previo. Aceptar cuando los hubs estÃ©n en
 	# la pose esperada y la primera fuerza de amortiguador corresponda a la
 	# velocidad relativa medida (ver traza del rig en el mismo tick).
 	if _teleport_trace_ticks > 0:
@@ -757,10 +766,10 @@ func _reset_to_transform(pose: Transform3D) -> void:
 	global_transform = pose
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
-	# Sincronía nodo vs cuerpo Jolt (§2): además del nodo, se escribe el estado
-	# servidor del chasis cuando está disponible para que pose/velocidad no
+	# SincronÃ­a nodo vs cuerpo Jolt (Â§2): ademÃ¡s del nodo, se escribe el estado
+	# servidor del chasis cuando estÃ¡ disponible para que pose/velocidad no
 	# diverjan en el primer solve. No cambia la API de teletransporte: la traza
-	# RALLY_TELEPORT dirá si ambas escrituras coinciden.
+	# RALLY_TELEPORT dirÃ¡ si ambas escrituras coinciden.
 	var chassis_state := PhysicsServer3D.body_get_direct_state(get_rid())
 	if chassis_state != null:
 		chassis_state.transform = pose

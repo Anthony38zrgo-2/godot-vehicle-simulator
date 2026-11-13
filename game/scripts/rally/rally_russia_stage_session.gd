@@ -1001,6 +1001,7 @@ func setup_start_audio() -> void:
 	start_horn.volume_db = -5.0
 	add_child(start_horn)
 	repair_sound = AudioStreamPlayer.new()
+	repair_sound.volume_db = -5.0
 	repair_sound.stream = preload("res://sounds/rally_service/smallmedkit1.wav")
 	repair_sound.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(repair_sound)

@@ -8,6 +8,7 @@ const REPAIR_SELECTION := preload("res://sounds/ui/Beeps.mactiv63.wav")
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	volume_db = -5.0
 	# Extracted from Unreal Tournament's Activates.uax (ClicksSmall.aclick3).
 	get_tree().node_added.connect(_connect_button)
 	for button in get_tree().root.find_children("*", "BaseButton", true, false):

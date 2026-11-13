@@ -82,6 +82,14 @@ Validación: `escort_audio_contract.gd` pasó (35 hashes/PCM nativos, 22 capas, 
 
 Cambios WRC9: wrc9_shifts contiene 32 PCM16 decodificados del EscortMKII1800.bank con nombres, indices y hashes. gearbox_force01-04 son la capa mecanica general de subida (asignacion local); gear_down01-03 para reduccion. P206 onboard y M3E30R cockpit solo se disparan en camera_mode 2 y se detienen al salir. Los dos eventos F2002 de commons permanecen superpuestos y se mantiene el ajuste previo de ganancia 0.75. Motor, escape y whine conservan CMR4.
 
+## Cámara de persecución
+
+El rig carga [chase_default.json](../../data/rally/camera/chase_default.json) al inicializarse y al cambiar de vehículo. Un `chase_camera.json` junto al `vehicle.json` del coche puede sobrescribir cualquier campo usando las mismas secciones y `"version": 1`. Los campos omitidos heredan el valor base. Los valores inválidos emiten un aviso y conservan el valor heredado.
+
+`framing` define el brazo, el punto de mira, el FOV y el plano cercano. `follow` define cuánto cabeceo y balanceo del chasis hereda la cámara y cuánto tarda cada eje en responder. Los campos `*_response_s` son constantes de tiempo en segundos. Un valor de cero aplica la corrección inmediatamente. `ground` usa por defecto la capa de colisión 1 del terreno y aplica un margen vertical de 1 m. `manual_look` controla el recorrido y la velocidad de la mirada manual en CHASE.
+
+El perfil base conserva el encuadre original del proyecto, con 6.2 m de distancia, 2.45 m de altura y un punto de mira 5 m por delante y 0.8 m por encima del anclaje. La constante de rumbo de 0.68 s aproxima el filtro de OpenCMR2 a 25 Hz con el divisor 14 y una respuesta de superficie de 0.8. El rig calcula el anclaje y actualiza el filtro en cada cuadro de render usando la pose con la que se muestra el coche. La consulta de terreno corre en física y su corrección se suaviza al renderizar.
+
 ## Competición virtual
 
 La sesión Rusia incorpora rivales simulados, parciales, fiabilidad, abandono del jugador, clasificación sobre el mapa y resultados persistentes. Uso, datos originales por especial, límites de calibración y pruebas: [ai_simulation/README.md](ai_simulation/README.md).

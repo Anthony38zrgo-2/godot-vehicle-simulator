@@ -44,6 +44,8 @@ var contact_frequency_samples: int = 0
 var contact_frequency_elapsed_s: float = 0.0
 var mass_state: Dictionary = { }
 var maximum_substep_seconds: float = 0.002
+var configured_substeps_per_tick: int = 0
+var configured_substep_hz: int = 120
 var _tire_thermal_elapsed := 0.0
 # Friction, brake and radial damping work, in joules per wheel.
 var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
@@ -84,7 +86,7 @@ var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
 # efectivo de rodadura. Flag off por defecto hasta completar comparaciones
 # de contacto, manejo y coste. Con geometría activa se revisa cuánto
 # filtrado temporal sigue haciendo falta para evitar retraso duplicado.
-var tandem_cam_enabled := true
+var tandem_cam_enabled := false
 var tandem_cam_patch_scale := 1.0
 # v1 presets de diferencial: perfil activo y preset aplicado.
 # El perfil activo nunca se toma de un payload: solo de configure().
@@ -143,12 +145,25 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	rear_steering_ratio = float(steering.get("rear_steering_ratio", 0.0))
 	ackermann = float(steering.get("ackermann", 0.0))
 	var coupled: Dictionary = domains.get("coupled_world", { }).get("coupled_world", { })
-	maximum_substep_seconds = maxf(float(coupled.get("maximum_substep_seconds", 0.002)), 0.0005)
 	var coupled_suspension: Dictionary = coupled.get("suspension", { })
-	maximum_substep_seconds = maxf(
-		float(coupled_suspension.get("maximum_substep_seconds", maximum_substep_seconds)),
-		0.0005,
-	)
+
+	# 1. Prioridad a enteros directos (subpasos por tick o frecuencia en Hz)
+	configured_substeps_per_tick = int(coupled_suspension.get(
+		"substeps_per_tick",
+		coupled.get("substeps_per_tick", 0)
+	))
+	configured_substep_hz = int(coupled_suspension.get(
+		"substep_frequency_hz",
+		coupled.get("physical_frequency_hertz", 0)
+	))
+
+	# 2. Respaldo legado solo si el JSON viejo no define enteros
+	if configured_substeps_per_tick <= 0 and configured_substep_hz <= 0:
+		maximum_substep_seconds = maxf(float(coupled.get("maximum_substep_seconds", 0.002)), 0.0005)
+		maximum_substep_seconds = maxf(
+			float(coupled_suspension.get("maximum_substep_seconds", maximum_substep_seconds)),
+			0.0005,
+		)
 	var pivot_doc: Dictionary = asset_manifest.get("wheel_pivots", { })
 	wheel_positions_local.clear()
 	wheel_radii.clear()
@@ -974,7 +989,20 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	for i in 4:
 		brake_torques[i] *= (1.0 - brake_collision_loss[i]) * thermal_model.brake_wear_factor(i)
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var count := maxi(1, ceili(dt / maximum_substep_seconds))
+	var rig_n := int(unsprung_rig.coupled_substeps)
+	var target_count := 1
+	if configured_substeps_per_tick > 0:
+		# Modo entero directo: p. ej. 2, 3 o 6 subpasos por tick
+		target_count = configured_substeps_per_tick
+	elif configured_substep_hz > 0:
+		# Modo por frecuencia entera: p. ej. 360 Hz / 60 Hz = 6 subpasos exactos
+		var base_hz := maxi(1, Engine.physics_ticks_per_second)
+		target_count = maxi(1, roundi(float(configured_substep_hz) / float(base_hz)))
+	else:
+		# Fallback legado con margen epsilon (-1e-5) para evitar saltos por error de float en ceili()
+		target_count = maxi(1, ceili((dt - 1.0e-5) / maximum_substep_seconds))
+
+	var count := maxi(rig_n, target_count)
 	var h := dt / float(count)
 	var force_weight := 1.0 / float(count)
 
@@ -1025,7 +1053,17 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var contact: Dictionary = contacts[i]
 			tire_model.states[i].radial_deflection_m = unsprung_rig.radial_deflection_m[i]
 			wheel_loads[i] = normal_loads[i]
-			if not bool(contact.get("hit", false)) or normal_loads[i] <= 0.0:
+			# Subpasos acoplados Q5: alimentar el neumático con la Fz y la
+			# deflexión de ESE subpaso (mapeo rig_N/tire_N). Sin subpasos se
+			# conserva la Fz del tick (comportamiento de producción).
+			var tire_rig_n := int(unsprung_rig.coupled_substeps)
+			var normal_load := maxf(float(normal_loads[i]), 0.0)
+			if tire_rig_n > 1:
+				var rig_k: int = _substep_index * tire_rig_n / count
+				normal_load = maxf(float(unsprung_rig.substep_load(i, rig_k)), 0.0)
+				tire_model.states[i].radial_deflection_m = unsprung_rig.substep_defl(i, rig_k)
+				wheel_loads[i] = normal_load
+			if not bool(contact.get("hit", false)) or normal_load <= 0.0:
 				var free_thermal_state := tire_thermal_states[i]
 				var free_result := tire_model.evaluate(
 					i,
@@ -1078,7 +1116,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 
 			var longitudinal_speed := point_velocity.dot(forward)
 			var lateral_speed := point_velocity.dot(right)
-			var normal_load := maxf(float(normal_loads[i]), 0.0)
+			# (Q5) normal_load ya trae la Fz del subpaso (o del tick sin subpasos).
 			wheel_loads[i] = normal_load
 			var thermal_state := tire_thermal_states[i]
 			# Película fina vs charco §4.5: el agua total ya incluye el charco

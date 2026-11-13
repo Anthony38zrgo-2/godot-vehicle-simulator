@@ -127,6 +127,7 @@ static func evaluate(
 	deflection: float,
 	speed: float,
 	resolved_optimum_c: float = INF,
+	viscous_scale: float = 1.0,
 ) -> Dictionary:
 	var coeffs := prepare_coefficients(tires, axle, pressure_kpa, temperature_c, resolved_optimum_c)
 	var g := geometry(tires.get(axle, { }))
@@ -171,7 +172,10 @@ static func evaluate(
 	var elastic := elastic_force_n(coeffs, delta)
 	var stop_force := elastic - stiffness * (delta - 0.35 * seating_band * (1.0 - exp(-delta / maxf(seating_band, 1.0e-6))))
 	var effective_speed := speed if speed >= 0.0 else speed * 0.45
-	var viscous := damping * clampf(effective_speed, -8.0, 8.0)
+	# Escala de diagnóstico (segunda prueba Fulvia 60 Hz): 1.0 = producción,
+	# bit-idéntico. La sonda la pone a 0.0 en una variante para aislar el
+	# término viscoso conservando elástica, tope y proyección unilateral.
+	var viscous := damping * clampf(effective_speed, -8.0, 8.0) * float(viscous_scale)
 	# Soporte falso eliminado: fuerza radial puede caer a cero en descarga
 	# (maxf(..., 0.0), no 0.15x elástico). §4.3 verificado.
 	# §closure-2: fuerza unilateral cero => disipación radial cero.

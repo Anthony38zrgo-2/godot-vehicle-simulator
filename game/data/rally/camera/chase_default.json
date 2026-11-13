@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "framing": {
+    "distance_m": 6.2,
+    "height_m": 2.45,
+    "look_ahead_m": 5.0,
+    "look_height_m": 0.8,
+    "fov_deg": 68.0,
+    "near_clip_m": 0.25
+  },
+  "follow": {
+    "yaw_response_s": 0.74,
+    "pitch_response_s": 0.68,
+    "roll_response_s": 0.68,
+    "pitch_influence": 0.0,
+    "roll_influence": 0.0,
+    "angular_deadzone_deg": 0.0,
+    "max_yaw_lag_deg": 180.0
+  },
+  "ground": {
+    "enabled": true,
+    "clearance_m": 1.0,
+    "probe_height_m": 8.0,
+    "collision_mask": 1,
+    "rise_response_s": 0.06,
+    "fall_response_s": 0.78,
+    "pitch_compensation": 0.0
+  },
+  "manual_look": {
+    "limit_deg": 160.0,
+    "speed_deg_per_s": 480.0
+  }
+}
