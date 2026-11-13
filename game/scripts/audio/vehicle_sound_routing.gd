@@ -57,7 +57,7 @@ func settings(key: String) -> Dictionary:
 func loop_for(key: String) -> Dictionary:
 	return loops.get(key, {})
 
-func route(player: AudioStreamPlayer3D, key: String) -> void:
+func route(player: AudioStreamPlayer3D, key: String, engine_eq: bool = false) -> void:
 	var sound := settings(key)
 	var bus := bus_prefix + key
 	var index := AudioServer.get_bus_index(bus)
@@ -67,6 +67,13 @@ func route(player: AudioStreamPlayer3D, key: String) -> void:
 		AudioServer.set_bus_name(index, bus)
 		AudioServer.set_bus_send(index, "Vehicle")
 		AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(sound.get("volume", 1.0)), 0.0001)))
+		if engine_eq:
+			var presence := AudioEffectEQ10.new()
+			presence.set_band_gain_db(4, 2.0) # 500 Hz
+			presence.set_band_gain_db(5, 3.0) # 1 kHz
+			presence.set_band_gain_db(6, 4.0) # 2 kHz
+			presence.set_band_gain_db(7, 3.0) # 4 kHz
+			AudioServer.add_bus_effect(index, presence)
 		var eq: Dictionary = sound.get("eq", {})
 		if bool(eq.get("enabled", false)):
 			var effect := AudioEffectEQ10.new()

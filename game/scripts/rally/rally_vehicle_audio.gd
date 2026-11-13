@@ -76,12 +76,15 @@ const DOWNSHIFT_RETRIGGER_SECONDS := 0.10
 const BACKFIRE_RETRIGGER_SECONDS := 1.0
 const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
-const LIMITER_GAIN := 0.1005 # -7.0 dB (0.225 * db_to_linear(-7.0))
+const LIMITER_GAIN := 0.0448917 # -14 dB relative to the original 0.225.
 const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
+const ENGINE_LAYER_TRIM := 1.41253754 # +3 dB for engine and exhaust loops.
+const WHINE_MIX_GAIN := 0.05525919 # 0.62 reduced by 21 dB.
+const CHASE_ENGINE_BOOST := 1.77827941 # +5 dB for engine loops only.
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
 const CHASE_LEVEL_RATIO := 0.89125094 # -1 dB relative to cockpit.
@@ -205,6 +208,7 @@ var cockpit_audio_blend := 0.0
 var cockpit_filter_buses: Dictionary = {}
 var cockpit_surface_reverbs: Dictionary = {}
 var view_engine_gain := 1.0
+var view_whine_gain := 1.0
 var view_exhaust_gain := 1.0
 
 
@@ -290,7 +294,7 @@ func build_sample_layer(
 		var player := AudioStreamPlayer3D.new()
 		player.stream = stream
 		player.position = local_position
-		routing.route(player, path_str.get_file().get_basename())
+		routing.route(player, path_str.get_file().get_basename(), true)
 		player.volume_db = -80.0
 		player.unit_size = unit_size
 		player.max_distance = maximum_distance
@@ -557,7 +561,8 @@ func update_view_balance() -> void:
 		camera_rig = vehicle.get_parent().get_node_or_null("RallyCameraRig")
 	var mode := int(camera_rig.get("camera_mode")) if camera_rig != null else 0
 	mode = clampi(mode, 0, VIEW_ENGINE_GAIN.size() - 1)
-	view_engine_gain = VIEW_ENGINE_GAIN[mode]
+	view_whine_gain = VIEW_ENGINE_GAIN[mode]
+	view_engine_gain = view_whine_gain * (CHASE_ENGINE_BOOST if mode == 0 else 1.0)
 	view_exhaust_gain = VIEW_EXHAUST_GAIN[mode]
 
 
@@ -619,7 +624,7 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 			gain *= 1.0 - smoothstep(voice.reference_rpm, voice.upper_rpm, lookup_rpm)
 		voice.layer_level = lerpf(voice.layer_level, gain, volume_smoothing)
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
-		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST * camera_distance_compensation(voice.player)
+		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST * ENGINE_LAYER_TRIM * camera_distance_compensation(voice.player)
 		voice.player.pitch_scale = clampf(revolutions / voice.reference_rpm, 0.5, 3.5)
 
 
@@ -1106,8 +1111,8 @@ func update_whine_audio(smoothing: float) -> void:
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
 	var torque_stress := absf(float(acoustic.get("load", 0.0)))
 	var load_gain := (0.004 + 0.014 * torque_stress) / 0.018
-	var engine_gain := 0.62 * (ENGINE_VOLUME_BASE + ENGINE_VOLUME_ACCELERATION) * ENGINE_GAIN_BOOST
-	var target := engine_gain * view_engine_gain * load_gain * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
+	var whine_gain := WHINE_MIX_GAIN * (ENGINE_VOLUME_BASE + ENGINE_VOLUME_ACCELERATION) * ENGINE_GAIN_BOOST
+	var target := whine_gain * view_whine_gain * load_gain * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
 	for index in whine_players.size():
 		var player := whine_players[index]
 		player.pitch_scale = clampf(shaft / 30.0, 0.5, 3.5)
