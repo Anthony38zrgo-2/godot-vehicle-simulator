@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-saab-96-v4",
+  "whine": [
+    "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__whine_low.wav",
+    "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/4cyl_01",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1000 RPM.",
+  "samples": [
+    {
+      "file": "4cyl_01_accel_2190.wav",
+      "sha256": "e2f36005bdfc8d8865705dc93155025e8a741af7ed042b3cbf989e6954247138",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.1430666607582851,
+      "gain": 0.8387698389266466
+    },
+    {
+      "file": "4cyl_01_accel_4350.wav",
+      "sha256": "62720a1a29c01edd4a1ccc0ab3f0f8dcf9da06f7891459a19a836b362c00359d",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.24553720748714386,
+      "gain": 0.48872430059824273
+    },
+    {
+      "file": "4cyl_01_accel_6750_phase_cycle.wav",
+      "sha256": "4ec9ff83154c83e2b3b8a86cfcd828f1f8dce8c56490c883d4f40334563ed875",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.068875,
+      "rms": 0.09995879928608199,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.005625416666666667,
+        "end_s": 0.06883375
+      }
+    },
+    {
+      "file": "4cyl_01_decel_2580.wav",
+      "sha256": "e885b7401a11ae0f5e301a0de4bac944bea10b82d24df0a58bd87a2bf9333280",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.20789282748630816,
+      "gain": 0.5772204912067166
+    },
+    {
+      "file": "4cyl_01_decel_4080.wav",
+      "sha256": "483f097d1a7119ce458b27f99f892e750678c50117b04b4ac07df486de173134",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.17217294595758606,
+      "gain": 0.696973611809845
+    },
+    {
+      "file": "4cyl_01_decel_6720.wav",
+      "sha256": "fbdf5805e4a6f5ba18740bf6956a2839223265a619551241df9e6e4bc2ec4006",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.23847251670660954,
+      "gain": 0.5032026401081465
+    },
+    {
+      "file": "rt-saab-96-v4__SE_Idle1.wav",
+      "sha256": "1bfa6f03ddbd2ac9e97b0075070d84e9f7ece02de3b639679eb261420bdd202b",
+      "origin": "native_byte_identical",
+      "source_file": "SE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.231609977324263,
+      "rms": 0.322092246579004,
+      "gain": 0.3725640752751431,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_Idle1.wav"
+    },
+    {
+      "file": "rt-saab-96-v4__SX_Idle1.wav",
+      "sha256": "5a1786f3c4047d97abd591c2b18f3d1bbcfb86f13ae2e8abc6f3bd9ae0b5a5d6",
+      "origin": "native_byte_identical",
+      "source_file": "SX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.8778231292517007,
+      "rms": 0.4946293147529397,
+      "gain": 0.24260592007155557,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_Idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_Idle1.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.3725640752751431
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_2190.wav",
+      "reference": 2190,
+      "lower": 700,
+      "upper": 4000,
+      "mode": "drive",
+      "gain": 0.8387698389266466
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_4350.wav",
+      "reference": 4350,
+      "lower": 2400,
+      "upper": 6300,
+      "mode": "drive",
+      "gain": 0.48872430059824273
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_6750_phase_cycle.wav",
+      "reference": 6750,
+      "lower": 4700,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_2580.wav",
+      "reference": 2580,
+      "lower": 500,
+      "upper": 4200,
+      "mode": "coast",
+      "gain": 0.5772204912067166
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_4080.wav",
+      "reference": 4080,
+      "lower": 2200,
+      "upper": 6200,
+      "mode": "coast",
+      "gain": 0.696973611809845
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_6720.wav",
+      "reference": 6720,
+      "lower": 4600,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.5032026401081465
+    }
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.0,
+    1.0
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_Idle1.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.24260592007155557
+    }
+  ]
+}

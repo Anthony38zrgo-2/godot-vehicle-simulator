@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-mini-cooper-s",
+  "whine": [
+    "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__whine_low.wav",
+    "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    0.5
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    0.9
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_01",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 900 RPM.",
+  "samples": [
+    {
+      "file": "i4_01_accel_1890.wav",
+      "sha256": "61c024fafb49b8b928f78eb643a7e45981e9c054a6b7b1fcb5f51fc80fe5b4e3",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.14911221736575667,
+      "gain": 0.8047630309570982,
+      "path": "res://sounds/banks/i4_01/i4_01_accel_1890.wav"
+    },
+    {
+      "file": "i4_01_accel_4890.wav",
+      "sha256": "78e0403d2a388910452faadf6e9909fbeaadb1d389e47a43f27144094091a6ae",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.20523554957634907,
+      "gain": 0.5846940271688125,
+      "path": "res://sounds/banks/i4_01/i4_01_accel_4890.wav"
+    },
+    {
+      "file": "i4_01_accel_7020_phase_cycle.wav",
+      "sha256": "45065d47e7f4832c1c2deb896670794a6ed2ee0c7a028f3d28d936366d7efcb3",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.057375,
+      "rms": 0.09993404129589886,
+      "gain": 1.2,
+      "path": "res://sounds/banks/i4_01/i4_01_accel_7020_phase_cycle.wav",
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.002750416666666667,
+        "end_s": 0.05733375
+      }
+    },
+    {
+      "file": "i4_01_decel_2880.wav",
+      "sha256": "b4853f0d7c6830593fb884eb72ea82661f08e1f88e048368e8339a42b39c744f",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.08652697709305934,
+      "gain": 1.386850714441816,
+      "path": "res://sounds/banks/i4_01/i4_01_decel_2880.wav"
+    },
+    {
+      "file": "i4_01_decel_4980.wav",
+      "sha256": "fe38485c6bfa9e83fcf4df28d506581d68102f7221bebd244edbbc02dbc58d5e",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.22123087040682138,
+      "gain": 0.5424197797501408,
+      "path": "res://sounds/banks/i4_01/i4_01_decel_4980.wav"
+    },
+    {
+      "file": "i4_01_decel_7170.wav",
+      "sha256": "c39a1cd16895954ed43c501ffb349e3de967205788569eec31d89b9452a25c5b",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.14546108109514275,
+      "gain": 0.8249629323290314,
+      "path": "res://sounds/banks/i4_01/i4_01_decel_7170.wav"
+    },
+    {
+      "file": "rt-mini-cooper-s__ME_Idle1.wav",
+      "sha256": "f9b5e3d4ee97cd41f4ee00b2069958bc4894c555ab0740c573cd6ffb26338d27",
+      "origin": "native_byte_identical",
+      "source_file": "ME_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.9523356009070295,
+      "rms": 0.28270151959612577,
+      "gain": 0.4244759638060485,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__ME_Idle1.wav"
+    },
+    {
+      "file": "rt-mini-cooper-s__MX_Idle1.wav",
+      "sha256": "8844f7e52515e70386004311ab04f2bdce29fa225658b406ca18637d0e55cc6c",
+      "origin": "native_byte_identical",
+      "source_file": "MX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7365079365079366,
+      "rms": 0.3537181540599646,
+      "gain": 0.3392531557191628,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__MX_Idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__ME_Idle1.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.4244759638060485
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_1890.wav",
+      "reference": 1890,
+      "lower": 700,
+      "upper": 3900,
+      "mode": "drive",
+      "gain": 0.8047630309570982
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_4890.wav",
+      "reference": 4890,
+      "lower": 2400,
+      "upper": 6700,
+      "mode": "drive",
+      "gain": 0.5846940271688125
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_7020_phase_cycle.wav",
+      "reference": 7020,
+      "lower": 5100,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_2880.wav",
+      "reference": 2880,
+      "lower": 500,
+      "upper": 4500,
+      "mode": "coast",
+      "gain": 1.386850714441816
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_4980.wav",
+      "reference": 4980,
+      "lower": 2500,
+      "upper": 6700,
+      "mode": "coast",
+      "gain": 0.5424197797501408
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_7170.wav",
+      "reference": 7170,
+      "lower": 5000,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.8249629323290314
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-mini-cooper-s/rt-mini-cooper-s__MX_Idle1.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.3392531557191628
+    }
+  ]
+}

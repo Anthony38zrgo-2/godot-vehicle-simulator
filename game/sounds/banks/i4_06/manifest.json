@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_06",
+  "samples": [
+    {
+      "file": "i4_06_accel_2145.wav",
+      "sha256": "5a21a72963ec6790d830f59c83d4951f603e6012a8e08a98397b866953be24e9",
+      "source_file": "i4_06_accel.wav",
+      "source_sha256": "e816d4550e545a76c6b2b3f80409fd4fd36dadc67c7283a60150b85e5704eef3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.12822819391847576,
+      "gain": 0.9358316321314871
+    },
+    {
+      "file": "i4_06_accel_3990.wav",
+      "sha256": "5882a5c2644737c938515cbc9d2125742da3816d90d600aee25251b618093e95",
+      "source_file": "i4_06_accel.wav",
+      "source_sha256": "e816d4550e545a76c6b2b3f80409fd4fd36dadc67c7283a60150b85e5704eef3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.2081866974478362,
+      "gain": 0.5764057044522142
+    },
+    {
+      "file": "i4_06_accel_5640_phase_cycle.wav",
+      "sha256": "1f9b7ed04c74422b0ba0fc51b5e644dbd3d357772ac589e93d5ba6d3c42d37f6",
+      "source_file": "i4_06_accel.wav",
+      "source_sha256": "e816d4550e545a76c6b2b3f80409fd4fd36dadc67c7283a60150b85e5704eef3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.06870833333333333,
+      "rms": 0.09996291665429291,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.005583749999999999,
+        "end_s": 0.06866708333333334
+      }
+    },
+    {
+      "file": "i4_06_decel_2730.wav",
+      "sha256": "4d03f9ec0ed7ee6d9560f1d41bb3a99865abf0b8f425571847e63c12a4b900b8",
+      "source_file": "i4_06_decel.wav",
+      "source_sha256": "a6ff7715d3416a929cc1006eee13d7b32463755807c2d67ef40c3a70b818f1a2",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.1173947627898295,
+      "gain": 1.0221921076226768
+    },
+    {
+      "file": "i4_06_decel_4320.wav",
+      "sha256": "3fadbb3ae2847b9324e2b1d90367e2caf66353fbc948bfe24d8c4e24b765ef15",
+      "source_file": "i4_06_decel.wav",
+      "source_sha256": "a6ff7715d3416a929cc1006eee13d7b32463755807c2d67ef40c3a70b818f1a2",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.11630987409431143,
+      "gain": 1.03172667784591
+    },
+    {
+      "file": "i4_06_decel_6150.wav",
+      "sha256": "2c22433dea18ca7aa543361b6129c42b2d9535e168b8dbc2ff53d5fd16b4d24c",
+      "source_file": "i4_06_decel.wav",
+      "source_sha256": "a6ff7715d3416a929cc1006eee13d7b32463755807c2d67ef40c3a70b818f1a2",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.21554357995147222,
+      "gain": 0.5567319612442967
+    },
+    {
+      "file": "rt-volvo-amazon__VE_Idle1.wav",
+      "sha256": "99ec10e3ec71fc4b586958440072f0b3e81776d7b958bd732f1f851bfe5dec8a",
+      "origin": "native_byte_identical",
+      "source_file": "VE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9405442176870749,
+      "rms": 0.3619186229242612,
+      "gain": 0.3315662483196186,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VE_Idle1.wav"
+    },
+    {
+      "file": "rt-volvo-amazon__VX_Idle2.wav",
+      "sha256": "108daf27d9ab4ed128a974ca7440537fea482408f37da36f7ae00c287d933bc9",
+      "origin": "native_byte_identical",
+      "source_file": "VX_Idle2.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.6638548752834467,
+      "rms": 0.439468164561885,
+      "gain": 0.27305732172802666,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VX_Idle2.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VE_Idle1.wav",
+      "reference": 800,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.3315662483196186
+    },
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_accel_2145.wav",
+      "reference": 2145,
+      "lower": 500,
+      "upper": 3700,
+      "mode": "drive",
+      "gain": 0.9358316321314871
+    },
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_accel_3990.wav",
+      "reference": 3990,
+      "lower": 2350,
+      "upper": 5500,
+      "mode": "drive",
+      "gain": 0.5764057044522142
+    },
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_accel_5640_phase_cycle.wav",
+      "reference": 5640,
+      "lower": 4100,
+      "upper": 8500,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_decel_2730.wav",
+      "reference": 2730,
+      "lower": 400,
+      "upper": 4200,
+      "mode": "coast",
+      "gain": 1.0221921076226768
+    },
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_decel_4320.wav",
+      "reference": 4320,
+      "lower": 2200,
+      "upper": 5500,
+      "mode": "coast",
+      "gain": 1.03172667784591
+    },
+    {
+      "path": "res://sounds/banks/i4_06/i4_06_decel_6150.wav",
+      "reference": 6150,
+      "lower": 4100,
+      "upper": 8500,
+      "mode": "coast",
+      "gain": 0.5567319612442967
+    }
+  ],
+  "vehicle_id": "rt-volvo-amazon",
+  "whine": [
+    "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__whine_low.wav",
+    "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ],
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 800 RPM.",
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VX_Idle2.wav",
+      "reference": 800,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.27305732172802666
+    }
+  ]
+}

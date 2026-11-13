@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-lancia-stratos",
+  "whine": [
+    "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__whine_low.wav",
+    "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    0.5
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/v6_02",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1000 RPM.",
+  "samples": [
+    {
+      "file": "v6_02_accel_3480.wav",
+      "sha256": "1177dd32d202835a76ddb5ceed8aa73d8b79ec2dd7c7b314cc3a149a8a6df437",
+      "source_file": "v6_02_Accel.wav",
+      "source_sha256": "8f8a5a9966ca0eeb44654a25dfa24bc3c8e09e84918dc873687ada2915e061f8",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.07346960734508454,
+      "gain": 1.633328451537295
+    },
+    {
+      "file": "v6_02_accel_5720.wav",
+      "sha256": "4ad2e774196518f6900ddff71fb71c73edfe293bc57ea5eb3a1aa2bad3952568",
+      "source_file": "v6_02_Accel.wav",
+      "source_sha256": "8f8a5a9966ca0eeb44654a25dfa24bc3c8e09e84918dc873687ada2915e061f8",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.21578987733559868,
+      "gain": 0.5560965207528004
+    },
+    {
+      "file": "v6_02_accel_8580_phase_cycle.wav",
+      "sha256": "7764090175902ab71d71c90ba9a247f66e156f07758fd35c3075738bc6c369c2",
+      "source_file": "v6_02_Accel.wav",
+      "source_sha256": "8f8a5a9966ca0eeb44654a25dfa24bc3c8e09e84918dc873687ada2915e061f8",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.05566666666666667,
+      "rms": 0.09999708757767409,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.00695875,
+        "end_s": 0.05562541666666666
+      }
+    },
+    {
+      "file": "v6_02_decel_2240.wav",
+      "sha256": "7f92d656609e0f5275fc66294f7e033c0b82c162e421bb59db75091f11e953f3",
+      "source_file": "v6_02_Decel.wav",
+      "source_sha256": "0a1814e871dd02acf0ff8ba7b4b1a9e538de16b8847f5bc8c89c7f9784cce064",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.07540691255761107,
+      "gain": 1.5913660423150158
+    },
+    {
+      "file": "v6_02_decel_4400.wav",
+      "sha256": "464e212dec6ae90234f11e9988f3bac1fe4ae82ff45e37689363638e37f9077d",
+      "source_file": "v6_02_Decel.wav",
+      "source_sha256": "0a1814e871dd02acf0ff8ba7b4b1a9e538de16b8847f5bc8c89c7f9784cce064",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.2426665702036392,
+      "gain": 0.49450569107767606
+    },
+    {
+      "file": "v6_02_decel_8600.wav",
+      "sha256": "ef9ebedd7389fec714e6a003c8687addbbbceb92166aa43363dc4e9b9ab92357",
+      "source_file": "v6_02_Decel.wav",
+      "source_sha256": "0a1814e871dd02acf0ff8ba7b4b1a9e538de16b8847f5bc8c89c7f9784cce064",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.31672856216701284,
+      "gain": 0.3788733140420828
+    },
+    {
+      "file": "rt-lancia-stratos__LE_Idle1.wav",
+      "sha256": "b459af9b4f19d3361cc67d1be56da5133b21e162d40bf0c679457eca96c97dba",
+      "origin": "native_byte_identical",
+      "source_file": "LE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7897959183673469,
+      "rms": 0.13118672114131186,
+      "gain": 0.9147267265772903,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__LE_Idle1.wav"
+    },
+    {
+      "file": "rt-lancia-stratos__LX_Idle1.wav",
+      "sha256": "ce729ab06003049684db4ecd33342b5053f769f81eee69f7ea8436866ca4dd8c",
+      "origin": "native_byte_identical",
+      "source_file": "LX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.3282539682539682,
+      "rms": 0.13878278272254793,
+      "gain": 0.864660569891453,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__LX_Idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__LE_Idle1.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2700.0,
+      "mode": "idle",
+      "gain": 0.9147267265772903
+    },
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_accel_3480.wav",
+      "reference": 3480,
+      "lower": 700,
+      "upper": 5200,
+      "mode": "drive",
+      "gain": 1.633328451537295
+    },
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_accel_5720.wav",
+      "reference": 5720,
+      "lower": 3000,
+      "upper": 7700,
+      "mode": "drive",
+      "gain": 0.5560965207528004
+    },
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_accel_8580_phase_cycle.wav",
+      "reference": 8580,
+      "lower": 5400,
+      "upper": 11500,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_decel_2240.wav",
+      "reference": 2240,
+      "lower": 500,
+      "upper": 4200,
+      "mode": "coast",
+      "gain": 1.5913660423150158
+    },
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_decel_4400.wav",
+      "reference": 4400,
+      "lower": 2100,
+      "upper": 6800,
+      "mode": "coast",
+      "gain": 0.49450569107767606
+    },
+    {
+      "path": "res://sounds/banks/v6_02/v6_02_decel_8600.wav",
+      "reference": 8600,
+      "lower": 4100,
+      "upper": 11500,
+      "mode": "coast",
+      "gain": 0.3788733140420828
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-lancia-stratos/rt-lancia-stratos__LX_Idle1.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2700.0,
+      "mode": "idle",
+      "gain": 0.864660569891453
+    }
+  ]
+}

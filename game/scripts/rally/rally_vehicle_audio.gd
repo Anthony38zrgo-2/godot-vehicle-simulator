@@ -84,8 +84,9 @@ const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
-const VIEW_ENGINE_GAIN := [1.0, 0.6]
-const VIEW_EXHAUST_GAIN := [1.1, 0.8]
+const CHASE_LEVEL_RATIO := 0.89125094 # -1 dB relative to cockpit.
+const VIEW_ENGINE_GAIN := [0.6 * CHASE_LEVEL_RATIO, 0.6, 0.6]
+const VIEW_EXHAUST_GAIN := [0.8 * CHASE_LEVEL_RATIO, 0.8, 0.8]
 
 const IMPACT_SMALL_PATHS := [
 	"res://sounds/banks/commons/impact_small_1.wav",
@@ -193,6 +194,7 @@ var surface_players: Dictionary = { }
 var scrape_player: AudioStreamPlayer3D
 var limiter_player: AudioStreamPlayer3D
 var whine_players: Array[AudioStreamPlayer3D] = []
+var whine_level_gains: Array[float] = []
 var coast_engine_voices: Array[SampleVoice] = []
 var coast_exhaust_voices: Array[SampleVoice] = []
 var impact_index: int = 0
@@ -310,11 +312,11 @@ func build_sample_layer(
 
 
 func load_looping_stream(path: String) -> AudioStream:
-	if not ResourceLoader.exists(path):
-		return null
 	var seamless := SeamlessVehicleLoop.load_pcm(path, true, {}, routing.loop_for(path.get_file().get_basename()))
 	if seamless != null:
 		return seamless
+	if not ResourceLoader.exists(path):
+		return null
 	push_warning("Unsupported PCM loop format: " + path)
 	return load(path)
 
@@ -554,9 +556,17 @@ func update_view_balance() -> void:
 	if camera_rig == null and vehicle != null and vehicle.get_parent() != null:
 		camera_rig = vehicle.get_parent().get_node_or_null("RallyCameraRig")
 	var mode := int(camera_rig.get("camera_mode")) if camera_rig != null else 0
-	mode = clampi(mode, 0, 1)
+	mode = clampi(mode, 0, VIEW_ENGINE_GAIN.size() - 1)
 	view_engine_gain = VIEW_ENGINE_GAIN[mode]
 	view_exhaust_gain = VIEW_EXHAUST_GAIN[mode]
+
+
+func camera_distance_compensation(player: AudioStreamPlayer3D) -> float:
+	var listener := get_viewport().get_camera_3d()
+	if listener == null or camera_rig == null:
+		return 1.0
+	var distance_ratio := listener.global_position.distance_to(player.global_position) / player.unit_size
+	return maxf(db_to_linear(-player.max_db), distance_ratio)
 
 
 func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothing: float) -> void:
@@ -605,9 +615,11 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 			gain *= sqrt(1.0 - throttle) * smoothstep(packet_rpm_idle, packet_rpm_idle * 1.7, revolutions)
 		elif voice.mode == "drive":
 			gain *= sqrt(throttle)
+		elif voice.mode == "idle" and voice.is_exhaust and voices.size() == 1:
+			gain *= 1.0 - smoothstep(voice.reference_rpm, voice.upper_rpm, lookup_rpm)
 		voice.layer_level = lerpf(voice.layer_level, gain, volume_smoothing)
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
-		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST
+		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST * camera_distance_compensation(voice.player)
 		voice.player.pitch_scale = clampf(revolutions / voice.reference_rpm, 0.5, 3.5)
 
 
@@ -1059,7 +1071,7 @@ func build_whine_voices() -> void:
 	for path in whine_paths:
 		defs.append([path, SHIFT_EVENT_POSITION])
 	for entry in defs:
-		var stream := load_looping_stream(str(entry[0]))
+		var stream := load_looping_stream(str(entry[0])) as AudioStreamWAV
 		if stream == null:
 			continue
 		var player := AudioStreamPlayer3D.new()
@@ -1069,10 +1081,18 @@ func build_whine_voices() -> void:
 		player.volume_linear = 0.0
 		player.unit_size = 12.0
 		player.max_distance = 80.0
+		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 		player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
 		add_child(player)
 		player.play()
 		whine_players.append(player)
+		var pcm := stream.data
+		var sample_count := pcm.size() / 2
+		var energy := 0.0
+		for sample in sample_count:
+			var value := float(pcm.decode_s16(sample * 2)) / 32768.0
+			energy += value * value
+		whine_level_gains.append(0.12 / maxf(sqrt(energy / maxf(sample_count, 1)), 0.001))
 
 
 func update_whine_audio(smoothing: float) -> void:
@@ -1085,13 +1105,15 @@ func update_whine_audio(smoothing: float) -> void:
 	# y cae a un leve arrastre inercial cuando se pisa el embrague (clutch_open == true)
 	var clutch_coupling := 0.12 if bool(acoustic.get("clutch_open", false)) else 1.0
 	var torque_stress := absf(float(acoustic.get("load", 0.0)))
-	var target := 0.75 * (0.004 + 0.014 * torque_stress) * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
+	var load_gain := (0.004 + 0.014 * torque_stress) / 0.018
+	var engine_gain := 0.62 * (ENGINE_VOLUME_BASE + ENGINE_VOLUME_ACCELERATION) * ENGINE_GAIN_BOOST
+	var target := engine_gain * view_engine_gain * load_gain * clampf(shaft / 10.0, 0.0, 1.0) * clutch_coupling
 	for index in whine_players.size():
 		var player := whine_players[index]
 		player.pitch_scale = clampf(shaft / 30.0, 0.5, 3.5)
 		var high_weight := smoothstep(20.0, 70.0, shaft)
 		var band_weight := sqrt(1.0 - high_weight) if index == 0 else sqrt(high_weight)
-		player.volume_linear = lerpf(player.volume_linear, target * band_weight, smoothing)
+		player.volume_linear = lerpf(player.volume_linear, target * band_weight * whine_level_gains[index] * camera_distance_compensation(player), smoothing)
 		player.stream_paused = player.volume_linear < 0.00001
 
 

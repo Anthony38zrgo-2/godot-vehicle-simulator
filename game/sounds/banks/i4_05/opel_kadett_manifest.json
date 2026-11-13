@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-opel-kadett",
+  "whine": [
+    "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__whine_low.wav",
+    "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.2,
+    1.0
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_05",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 900 RPM.",
+  "samples": [
+    {
+      "file": "i4_05_accel_2370.wav",
+      "sha256": "7bbdc658ba94770293da91d2807f9164114e6ee68d46e3ff2c95f3244475a935",
+      "source_file": "i4_05_accel.wav",
+      "source_sha256": "6ff78d72dad92708ad7a482610d6b863c7ed796e2c3ba9f901df6b3bcd750418",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.17370458618523574,
+      "gain": 0.6908280468313828
+    },
+    {
+      "file": "i4_05_accel_4440.wav",
+      "sha256": "20dcd6609c68d0caeca7fea50c85b34c6979ca1e4e493a5aa42f15d696d8bbd3",
+      "source_file": "i4_05_accel.wav",
+      "source_sha256": "6ff78d72dad92708ad7a482610d6b863c7ed796e2c3ba9f901df6b3bcd750418",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.1989127956591872,
+      "gain": 0.6032794401301631
+    },
+    {
+      "file": "i4_05_accel_6960_phase_cycle.wav",
+      "sha256": "12b5b635ee46ba8c825144cf5aed9e6f26810a53aaddf0fe92f563857e141774",
+      "source_file": "i4_05_accel.wav",
+      "source_sha256": "6ff78d72dad92708ad7a482610d6b863c7ed796e2c3ba9f901df6b3bcd750418",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.06220833333333333,
+      "rms": 0.10001670792988017,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.0039587500000000005,
+        "end_s": 0.06216708333333333
+      }
+    },
+    {
+      "file": "i4_05_decel_2730.wav",
+      "sha256": "425cc3eba79bc5aa8a47b26773022eb7694cffc881e84bb29801db57fce0af4c",
+      "source_file": "i4_05_decel.wav",
+      "source_sha256": "a56237c03dc3c76d4ed8dcf6d8038117c7379e6b36b87a05002d78a600ab3094",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.08736759141879347,
+      "gain": 1.3735070184639089
+    },
+    {
+      "file": "i4_05_decel_5040.wav",
+      "sha256": "37f7d2ac46713898078d89e6249b4c3d5bc211e61ae5717b1c987de686353c93",
+      "source_file": "i4_05_decel.wav",
+      "source_sha256": "a56237c03dc3c76d4ed8dcf6d8038117c7379e6b36b87a05002d78a600ab3094",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.1203887487873704,
+      "gain": 0.9967708877176138
+    },
+    {
+      "file": "i4_05_decel_7320.wav",
+      "sha256": "446e67b26ca2d746cbd35588107d2346251c2a7292a9c5bf7d409294d7892c53",
+      "source_file": "i4_05_decel.wav",
+      "source_sha256": "a56237c03dc3c76d4ed8dcf6d8038117c7379e6b36b87a05002d78a600ab3094",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.2613395458300784,
+      "gain": 0.4591727578727154
+    },
+    {
+      "file": "rt-opel-kadett__EE_Idle3.wav",
+      "sha256": "2a66d642da5803932722e98b9273c782b9aa36d8af4338ebf4e5bb0bfc53df10",
+      "origin": "native_byte_identical",
+      "source_file": "EE_Idle3.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7161904761904763,
+      "rms": 0.16053137487073377,
+      "gain": 0.7475174251552306,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EE_Idle3.wav"
+    },
+    {
+      "file": "rt-opel-kadett__EX_Idle1.wav",
+      "sha256": "0800dcecd76edb6e588056eb5a8f11f1f401d10dcdfde74f2870fdd7176d0ea3",
+      "origin": "native_byte_identical",
+      "source_file": "EX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9515192743764171,
+      "rms": 0.280878874093348,
+      "gain": 0.4272304223211849,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EX_Idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EE_Idle3.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.7475174251552306
+    },
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_accel_2370.wav",
+      "reference": 2370,
+      "lower": 700,
+      "upper": 3900,
+      "mode": "drive",
+      "gain": 0.6908280468313828
+    },
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_accel_4440.wav",
+      "reference": 4440,
+      "lower": 2700,
+      "upper": 6200,
+      "mode": "drive",
+      "gain": 0.6032794401301631
+    },
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_accel_6960_phase_cycle.wav",
+      "reference": 6960,
+      "lower": 4800,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_decel_2730.wav",
+      "reference": 2730,
+      "lower": 500,
+      "upper": 4500,
+      "mode": "coast",
+      "gain": 1.3735070184639089
+    },
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_decel_5040.wav",
+      "reference": 5040,
+      "lower": 2800,
+      "upper": 6700,
+      "mode": "coast",
+      "gain": 0.9967708877176138
+    },
+    {
+      "path": "res://sounds/banks/i4_05/i4_05_decel_7320.wav",
+      "reference": 7320,
+      "lower": 5100,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.4591727578727154
+    }
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EX_Idle1.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.4272304223211849
+    }
+  ]
+}

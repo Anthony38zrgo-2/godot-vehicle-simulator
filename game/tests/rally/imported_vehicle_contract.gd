@@ -102,9 +102,36 @@ func run() -> void:
 	damage.repair_parts(repair)
 	damage._process(0)
 	var audio = car.get_node("VehicleAudio")
-	check(audio.engine_bank_manifest_path.contains(identifier), "own sound bank")
-	check(not audio.engine_voices.is_empty() and not audio.exhaust_voices.is_empty(), "engine and exhaust loaded")
-	check(not audio.coast_engine_voices.is_empty() and not audio.coast_exhaust_voices.is_empty(), "coast layers loaded")
+	if identifier == "rt-alfa-giulia-gta":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/i4_01/manifest.json", "Giulia RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Giulia idle, drive and coast layers loaded")
+	elif identifier == "rt-alpine-a110":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/i4_05/manifest.json", "Alpine RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Alpine idle, drive and coast layers loaded")
+	elif identifier == "rt-fiat-abarth-1000":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/i4_02/manifest.json", "Fiat RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Fiat idle, drive and coast layers loaded")
+	elif identifier == "rt-lancia-stratos":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/v6_02/manifest.json", "Stratos RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Stratos idle, drive and coast layers loaded")
+	elif identifier == "rt-lotus-cortina":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/i4_01/lotus_cortina_manifest.json", "Cortina RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Cortina idle, drive and coast layers loaded")
+	elif identifier == "rt-mini-cooper-s":
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/i4_01/mini_cooper_s_manifest.json", "Mini RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Mini idle, drive and coast layers loaded")
+	elif identifier in ["rt-opel-kadett", "rt-volvo-amazon", "rt-saab-96-v4"]:
+		var rr3_banks := {
+			"rt-opel-kadett": "i4_05/opel_kadett_manifest.json",
+			"rt-volvo-amazon": "i4_06/manifest.json",
+			"rt-saab-96-v4": "4cyl_01/saab_96_v4_manifest.json",
+		}
+		check(audio.engine_bank_manifest_path == "res://sounds/banks/" + rr3_banks[identifier], "RR3 bank selected")
+		check(audio.engine_voices.size() == 4 and audio.coast_engine_voices.size() == 3, "Idle, drive and coast layers loaded")
+	else:
+		check(audio.engine_bank_manifest_path.contains(identifier), "own sound bank")
+		check(not audio.engine_voices.is_empty() and not audio.exhaust_voices.is_empty(), "engine and exhaust loaded")
+		check(not audio.coast_engine_voices.is_empty() and not audio.coast_exhaust_voices.is_empty(), "coast layers loaded")
 	audio.set_physics_process(false)
 	audio.update_view_balance()
 	for throttle in [0.0, 0.5, 1.0]:

@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "ford_escort_rs2000",
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_03",
+  "rpm_mapping": "Estimated from local engine harmonics. Idle mapped to 1050 RPM.",
+  "whine": [
+    "res://sounds/banks/EscortRS1600/whinelo.wav",
+    "res://sounds/banks/EscortRS1600/whinehi.wav"
+  ],
+  "samples": [
+    {
+      "file": "i4_03_idle_1050.wav",
+      "sha256": "2554ba964985245526661ac17b25c1d79bde497d3522d90dce514e06130730e9",
+      "source_file": "i4_03_idle.wav",
+      "source_sha256": "f71cdec99679f95d76c36f8589d09fbbb19421ce4df4389447e4735aa1a89d90",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.72,
+      "rms": 0.06986058527333958,
+      "gain": 1.717706765989474
+    },
+    {
+      "file": "i4_03_accel_1980.wav",
+      "sha256": "7293e39176b80ad36dc6d1e262c5453077dae520109d76e8558738eec85c709f",
+      "source_file": "i4_03_accel.wav",
+      "source_sha256": "bc1ad01dda9af0c97b3aea2350417fa06dd194fe44d1ec0eea679eeb68d877d3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.16536095476048798,
+      "gain": 0.7256852149518024
+    },
+    {
+      "file": "i4_03_accel_4350.wav",
+      "sha256": "3d00266a803eefb2a7f86970f61d8a47ee672243680e57c6dde3502c0374d3d7",
+      "source_file": "i4_03_accel.wav",
+      "source_sha256": "bc1ad01dda9af0c97b3aea2350417fa06dd194fe44d1ec0eea679eeb68d877d3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.23903124871023876,
+      "gain": 0.5020264113897
+    },
+    {
+      "file": "i4_03_accel_6630_phase_cycle.wav",
+      "sha256": "bc41a8ae6717298f2c240a4b6a911385a7954cdd6551f41a59a8fe4f30d1b44d",
+      "source_file": "i4_03_accel.wav",
+      "source_sha256": "bc1ad01dda9af0c97b3aea2350417fa06dd194fe44d1ec0eea679eeb68d877d3",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.06870833333333333,
+      "rms": 0.09999209271855354,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.005583749999999999,
+        "end_s": 0.06866708333333334
+      }
+    },
+    {
+      "file": "i4_03_decel_2520.wav",
+      "sha256": "5e1575405098aa840ee9375d17df7cad2bcd12659df6de9cbb39f200caad8fb3",
+      "source_file": "i4_03_decel.wav",
+      "source_sha256": "5200de7c9ad434c402841649a2aee3a59cd438a35d2ab9d2555b5c9613a1e94a",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.16216365704422286,
+      "gain": 0.7399931784177474
+    },
+    {
+      "file": "i4_03_decel_3960.wav",
+      "sha256": "1c8fe12922ebe589e352a3b2b655e6abd5d735e31802be5b3d1ff1988d06edb4",
+      "source_file": "i4_03_decel.wav",
+      "source_sha256": "5200de7c9ad434c402841649a2aee3a59cd438a35d2ab9d2555b5c9613a1e94a",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.24715637120581657,
+      "gain": 0.485522584000359
+    },
+    {
+      "file": "i4_03_decel_5520.wav",
+      "sha256": "b519e03c5544008c9d593bf6ff7fe56fa4ae37df49c20f64f0b08a666d7b6daa",
+      "source_file": "i4_03_decel.wav",
+      "source_sha256": "5200de7c9ad434c402841649a2aee3a59cd438a35d2ab9d2555b5c9613a1e94a",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.2851217355048915,
+      "gain": 0.42087285905266
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_idle_1050.wav",
+      "reference": 1050,
+      "lower": 0,
+      "upper": 2200,
+      "mode": "idle",
+      "gain": 1.717706765989474
+    },
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_accel_1980.wav",
+      "reference": 1980,
+      "lower": 700,
+      "upper": 3600,
+      "mode": "drive",
+      "gain": 0.7256852149518024
+    },
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_accel_4350.wav",
+      "reference": 4350,
+      "lower": 2700,
+      "upper": 6300,
+      "mode": "drive",
+      "gain": 0.5020264113897
+    },
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_accel_6630_phase_cycle.wav",
+      "reference": 6630,
+      "lower": 4700,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_decel_2520.wav",
+      "reference": 2520,
+      "lower": 500,
+      "upper": 4000,
+      "mode": "coast",
+      "gain": 0.7399931784177474
+    },
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_decel_3960.wav",
+      "reference": 3960,
+      "lower": 2200,
+      "upper": 5700,
+      "mode": "coast",
+      "gain": 0.485522584000359
+    },
+    {
+      "path": "res://sounds/banks/i4_03/i4_03_decel_5520.wav",
+      "reference": 5520,
+      "lower": 4300,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.42087285905266
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "lancia_fulvia_1600_hf",
+  "whine": [
+    "res://sounds/banks/FulviaHF/fulvia_whine_low.wav",
+    "res://sounds/banks/FulviaHF/fulvia_whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "backfire_interior": [
+    "res://sounds/banks/commons/backfire_5.wav"
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/4cyl_01",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1100 RPM.",
+  "samples": [
+    {
+      "file": "4cyl_01_accel_2190.wav",
+      "sha256": "e2f36005bdfc8d8865705dc93155025e8a741af7ed042b3cbf989e6954247138",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.1430666607582851,
+      "gain": 0.8387698389266466
+    },
+    {
+      "file": "4cyl_01_accel_4350.wav",
+      "sha256": "62720a1a29c01edd4a1ccc0ab3f0f8dcf9da06f7891459a19a836b362c00359d",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.24553720748714386,
+      "gain": 0.48872430059824273
+    },
+    {
+      "file": "4cyl_01_accel_6750_phase_cycle.wav",
+      "sha256": "4ec9ff83154c83e2b3b8a86cfcd828f1f8dce8c56490c883d4f40334563ed875",
+      "source_file": "4cyl_01_accel.wav",
+      "source_sha256": "df4847673c2e561487497d8f6c39343968e8e0028716ec01fa7b4fefa98b9194",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.068875,
+      "rms": 0.09995879928608199,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.005625416666666667,
+        "end_s": 0.06883375
+      }
+    },
+    {
+      "file": "4cyl_01_decel_2580.wav",
+      "sha256": "e885b7401a11ae0f5e301a0de4bac944bea10b82d24df0a58bd87a2bf9333280",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.20789282748630816,
+      "gain": 0.5772204912067166
+    },
+    {
+      "file": "4cyl_01_decel_4080.wav",
+      "sha256": "483f097d1a7119ce458b27f99f892e750678c50117b04b4ac07df486de173134",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.17217294595758606,
+      "gain": 0.696973611809845
+    },
+    {
+      "file": "4cyl_01_decel_6720.wav",
+      "sha256": "fbdf5805e4a6f5ba18740bf6956a2839223265a619551241df9e6e4bc2ec4006",
+      "source_file": "4cyl_01_decel.wav",
+      "source_sha256": "41a46d3696819ca5a8936ab070585c30cae9c36a7572dd80ec5862831af4fc2d",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.245,
+      "rms": 0.23847251670660954,
+      "gain": 0.5032026401081465
+    },
+    {
+      "file": "EE_Idle5.wav",
+      "sha256": "47b1bcd7e149ebac4ca19efd936f7dc86ea1e0e690baf8b4a0d88f0d613cde8c",
+      "origin": "native_byte_identical",
+      "source_file": "EE_Idle5.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7705215419501135,
+      "rms": 0.22425895174512184,
+      "gain": 0.5350956965873283,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/FulviaHF/EE_Idle5.wav"
+    },
+    {
+      "file": "EX_Idle1.wav",
+      "sha256": "f6692ee784f2822f6032924b5d56d4ca37042916ab98af826111b98958794469",
+      "origin": "native_byte_identical",
+      "source_file": "EX_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.9515192743764171,
+      "rms": 0.3815620718570728,
+      "gain": 0.31449666738613924,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/FulviaHF/EX_Idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EE_Idle5.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.5350956965873283
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_2190.wav",
+      "reference": 2190,
+      "lower": 700,
+      "upper": 4000,
+      "mode": "drive",
+      "gain": 0.8387698389266466
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_4350.wav",
+      "reference": 4350,
+      "lower": 2400,
+      "upper": 6300,
+      "mode": "drive",
+      "gain": 0.48872430059824273
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_6750_phase_cycle.wav",
+      "reference": 6750,
+      "lower": 4700,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_2580.wav",
+      "reference": 2580,
+      "lower": 500,
+      "upper": 4200,
+      "mode": "coast",
+      "gain": 0.5772204912067166
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_4080.wav",
+      "reference": 4080,
+      "lower": 2200,
+      "upper": 6200,
+      "mode": "coast",
+      "gain": 0.696973611809845
+    },
+    {
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_decel_6720.wav",
+      "reference": 6720,
+      "lower": 4600,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.5032026401081465
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/FulviaHF/EX_Idle1.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.31449666738613924
+    }
+  ]
+}

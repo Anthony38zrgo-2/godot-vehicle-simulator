@@ -84,4 +84,5 @@ script = ExtResource("9_vfx")
 
 [node name="VehicleAudio" type="Node3D" parent="."]
 script = ExtResource("7_audio")
+engine_bank_manifest_path = "res://sounds/banks/i4_03/manifest.json"
 vehicle_path = NodePath("..")

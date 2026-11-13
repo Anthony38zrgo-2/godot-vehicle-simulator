@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-alfa-giulia-gta",
+  "whine": [
+    "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__whine_low.wav",
+    "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_01",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1200 RPM.",
+  "samples": [
+    {
+      "file": "i4_01_accel_1890.wav",
+      "sha256": "61c024fafb49b8b928f78eb643a7e45981e9c054a6b7b1fcb5f51fc80fe5b4e3",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.14911221736575667,
+      "gain": 0.8047630309570982
+    },
+    {
+      "file": "i4_01_accel_4890.wav",
+      "sha256": "78e0403d2a388910452faadf6e9909fbeaadb1d389e47a43f27144094091a6ae",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.20523554957634907,
+      "gain": 0.5846940271688125
+    },
+    {
+      "file": "i4_01_accel_7020_phase_cycle.wav",
+      "sha256": "45065d47e7f4832c1c2deb896670794a6ed2ee0c7a028f3d28d936366d7efcb3",
+      "source_file": "i4_01_accel.wav",
+      "source_sha256": "775e73aacd72c4355f3133953baa085f0cc188d093a46ba5c342e80562293380",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.057375,
+      "rms": 0.09993404129589886,
+      "gain": 1.2,
+      "processing": "High-RPM phase-aligned cycle average, version C.",
+      "loop": {
+        "start_s": 0.002750416666666667,
+        "end_s": 0.05733375
+      }
+    },
+    {
+      "file": "i4_01_decel_2880.wav",
+      "sha256": "b4853f0d7c6830593fb884eb72ea82661f08e1f88e048368e8339a42b39c744f",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.08652697709305934,
+      "gain": 1.386850714441816
+    },
+    {
+      "file": "i4_01_decel_4980.wav",
+      "sha256": "fe38485c6bfa9e83fcf4df28d506581d68102f7221bebd244edbbc02dbc58d5e",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.22123087040682138,
+      "gain": 0.5424197797501408
+    },
+    {
+      "file": "i4_01_decel_7170.wav",
+      "sha256": "c39a1cd16895954ed43c501ffb349e3de967205788569eec31d89b9452a25c5b",
+      "source_file": "i4_01_decel.wav",
+      "source_sha256": "a5c89078b10622dc8b573892168c4871929e06776e3abd6cdfc01e904049c32b",
+      "rate_hz": 24000,
+      "channels": 1,
+      "seconds": 0.28,
+      "rms": 0.14546108109514275,
+      "gain": 0.8249629323290314
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PE_Idle1.wav",
+      "sha256": "7595a1aff70c2ee21488c6400eca0a52c29cc1322f324a0db82481aa0625fcb3",
+      "origin": "native_byte_identical",
+      "source_file": "PE_Idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.065578231292517,
+      "rms": 0.1587017454153617,
+      "gain": 0.7561353511640992,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_Idle1.wav"
+    },
+    {
+      "file": "rt-alfa-giulia-gta__PX_idle1.wav",
+      "sha256": "b550b15b3c2d0da766fc44988f6eb63d9318bf9da214704557bc43c16a88c1a9",
+      "origin": "native_byte_identical",
+      "source_file": "PX_idle1.wav",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 2.1130158730158732,
+      "rms": 0.4911355990124388,
+      "gain": 0.24433170847581098,
+      "space": {
+        "eq": {
+          "enabled": false
+        }
+      },
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_Idle1.wav",
+      "reference": 1200,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.7561353511640992
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_1890.wav",
+      "reference": 1890,
+      "lower": 700,
+      "upper": 3900,
+      "mode": "drive",
+      "gain": 0.8047630309570982
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_4890.wav",
+      "reference": 4890,
+      "lower": 2400,
+      "upper": 6700,
+      "mode": "drive",
+      "gain": 0.5846940271688125
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_accel_7020_phase_cycle.wav",
+      "reference": 7020,
+      "lower": 5100,
+      "upper": 11000,
+      "mode": "drive",
+      "gain": 1.2
+    }
+  ],
+  "coast_engine": [
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_2880.wav",
+      "reference": 2880,
+      "lower": 500,
+      "upper": 4500,
+      "mode": "coast",
+      "gain": 1.386850714441816
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_4980.wav",
+      "reference": 4980,
+      "lower": 2500,
+      "upper": 6700,
+      "mode": "coast",
+      "gain": 0.5424197797501408
+    },
+    {
+      "path": "res://sounds/banks/i4_01/i4_01_decel_7170.wav",
+      "reference": 7170,
+      "lower": 5000,
+      "upper": 11000,
+      "mode": "coast",
+      "gain": 0.8249629323290314
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav",
+      "reference": 1200,
+      "lower": 0,
+      "upper": 2160.0,
+      "mode": "idle",
+      "gain": 0.24433170847581098
+    }
+  ]
+}

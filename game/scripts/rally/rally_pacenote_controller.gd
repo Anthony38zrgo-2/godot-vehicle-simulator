@@ -95,6 +95,7 @@ func _setup_audio() -> void:
 	if audio_player == null:
 		audio_player = AudioStreamPlayer.new()
 		audio_player.name = "Cmr2CopilotVoice"
+		audio_player.volume_db = -2.0
 		var bus_idx := AudioServer.get_bus_index("Copilot")
 		if bus_idx == -1:
 			AudioServer.add_bus()

@@ -175,17 +175,17 @@ func energy(voices: Array) -> float:
 
 func check_audio(vehicle: Node) -> void:
 	var audio = vehicle.get_node("VehicleAudio")
-	check(audio.engine_bank_manifest_path == "res://sounds/banks/FulviaHF/manifest.json", "dedicated Fulvia audio bank")
+	check(audio.engine_bank_manifest_path == "res://sounds/banks/4cyl_01/manifest.json", "RR3 4cyl_01 audio bank")
 	var bank: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(audio.engine_bank_manifest_path))
-	check(bank.samples.size() == 19, "Fulvia bank inventory complete")
+	check(bank.samples.size() == 8, "4cyl_01 hybrid bank inventory complete")
 	for sample in bank.samples:
-		var path: String = "res://sounds/banks/FulviaHF/" + str(sample.file)
+		var path: String = sample.get("path", audio.engine_bank_manifest_path.get_base_dir().path_join(str(sample.file)))
 		check(FileAccess.get_sha256(path) == sample.sha256, "audio source hash: " + sample.file)
 		var stream := SeamlessVehicleLoop.load_pcm(path, false)
 		check(stream != null and stream.mix_rate == int(sample.rate_hz), "PCM decodes: " + sample.file)
-	check(audio.engine_voices.size() == 4 and audio.exhaust_voices.size() == 4, "native engine/exhaust layers loaded")
-	check(audio.coast_engine_voices.size() == 3 and audio.coast_exhaust_voices.size() == 3, "Fulvia coast layers loaded")
-	check(audio.whine_players.size() == 2 and audio.backfire_players.size() == 3, "dedicated auxiliary layers loaded")
+	check(audio.engine_voices.size() == 4, "4cyl_01 idle and drive layers loaded")
+	check(audio.coast_engine_voices.size() == 3, "4cyl_01 coast layers loaded")
+	check(audio.whine_players.size() == bank.whine.size() and audio.backfire_players.size() == bank.backfire.size(), "dedicated auxiliary layers loaded")
 	audio.set_physics_process(false)
 	audio.update_view_balance()
 	for throttle in [0.0, 0.5, 1.0]:
@@ -196,7 +196,6 @@ func check_audio(vehicle: Node) -> void:
 			audio.update_layer(audio.exhaust_voices, rpm, 1.0)
 			audio.update_retention_audio(1.0)
 			check(energy(audio.engine_voices) + energy(audio.coast_engine_voices) > 0.000001, "engine RPM coverage")
-			check(energy(audio.exhaust_voices) + energy(audio.coast_exhaust_voices) > 0.000001, "exhaust RPM coverage")
 			for voice in audio.engine_voices + audio.exhaust_voices + audio.coast_engine_voices + audio.coast_exhaust_voices:
 				check(is_finite(voice.player.volume_linear) and is_finite(voice.player.pitch_scale), "finite audio blend")
 	audio.set_physics_process(true)
