@@ -22,7 +22,7 @@
     1.0
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_02",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1100 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 1100 RPM.",
   "samples": [
     {
       "file": "i4_02_accel_1860.wav",
@@ -96,48 +96,25 @@
       "gain": 0.4706426863899201
     },
     {
-      "file": "rt-fiat-abarth-1000__FE_Idle1.wav",
-      "sha256": "bc7642bfc936b30f99ed05fa79b7b379afb44b75b0f587adb362df9ff6ad76cf",
-      "origin": "native_byte_identical",
-      "source_file": "FE_Idle1.wav",
-      "rate_hz": 22050,
+      "file": "i4_02_idle_1100.wav",
+      "sha256": "18b7997f7aed42611c89162f71a958427d4bfbf2ca0345933b054b5ef9d48989",
+      "source_file": "i4_02_idle.wav",
+      "source_sha256": "3c4a43993e00a55c2437009107f13b863a656317c0127aea1a244c5008a3d655",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.700997732426304,
-      "rms": 0.5480686653951208,
-      "gain": 0.2189506672735761,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-fiat-abarth-1000/rt-fiat-abarth-1000__FE_Idle1.wav"
-    },
-    {
-      "file": "rt-fiat-abarth-1000__FX_Idle1.wav",
-      "sha256": "e7efa6781da746f5cdf8ce941a58532e378bf5768dab1c68a60f3abc3c5839e0",
-      "origin": "native_byte_identical",
-      "source_file": "FX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 1.4769160997732427,
-      "rms": 0.471036978355398,
-      "gain": 0.2547570690075628,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-fiat-abarth-1000/rt-fiat-abarth-1000__FX_Idle1.wav"
+      "seconds": 0.72,
+      "rms": 0.07057477868424056,
+      "gain": 1.7003241418140806
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-fiat-abarth-1000/rt-fiat-abarth-1000__FE_Idle1.wav",
+      "path": "res://sounds/banks/i4_02/i4_02_idle_1100.wav",
       "reference": 1100,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.2189506672735761
+      "gain": 1.7003241418140806
     },
     {
       "path": "res://sounds/banks/i4_02/i4_02_accel_1860.wav",
@@ -188,16 +165,6 @@
       "upper": 11000,
       "mode": "coast",
       "gain": 0.4706426863899201
-    }
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-fiat-abarth-1000/rt-fiat-abarth-1000__FX_Idle1.wav",
-      "reference": 1100,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.2547570690075628
     }
   ]
 }

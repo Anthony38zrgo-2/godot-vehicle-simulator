@@ -15,7 +15,7 @@
     "res://sounds/banks/commons/backfire_5.wav"
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/4cyl_01",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1000 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 1000 RPM.",
   "samples": [
     {
       "file": "4cyl_01_accel_2190.wav",
@@ -89,48 +89,25 @@
       "gain": 0.5032026401081465
     },
     {
-      "file": "rt-saab-96-v4__SE_Idle1.wav",
-      "sha256": "1bfa6f03ddbd2ac9e97b0075070d84e9f7ece02de3b639679eb261420bdd202b",
-      "origin": "native_byte_identical",
-      "source_file": "SE_Idle1.wav",
-      "rate_hz": 22050,
+      "file": "4cyl_01_idle_1100.wav",
+      "sha256": "f3214bfcf84c1a32f5b885d06c21f9eaeecd43d261bd71a561e35ecb9d8a22cd",
+      "source_file": "4cyl_01_idle.wav",
+      "source_sha256": "6fa218c8105ae3eb5a34c6509fcd7499fb2c2c0b2d514e6fc998aed98ad680f1",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 2.231609977324263,
-      "rms": 0.322092246579004,
-      "gain": 0.3725640752751431,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_Idle1.wav"
-    },
-    {
-      "file": "rt-saab-96-v4__SX_Idle1.wav",
-      "sha256": "5a1786f3c4047d97abd591c2b18f3d1bbcfb86f13ae2e8abc6f3bd9ae0b5a5d6",
-      "origin": "native_byte_identical",
-      "source_file": "SX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 1.8778231292517007,
-      "rms": 0.4946293147529397,
-      "gain": 0.24260592007155557,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_Idle1.wav"
+      "seconds": 0.685,
+      "rms": 0.08687306561220207,
+      "gain": 1.3813257210891492
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SE_Idle1.wav",
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_idle_1100.wav",
       "reference": 1000,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.3725640752751431
+      "gain": 1.3813257210891492
     },
     {
       "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_2190.wav",
@@ -192,15 +169,5 @@
     0.0,
     0.0,
     1.0
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-saab-96-v4/rt-saab-96-v4__SX_Idle1.wav",
-      "reference": 1000,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.24260592007155557
-    }
   ]
 }

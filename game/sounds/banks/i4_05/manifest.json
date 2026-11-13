@@ -22,7 +22,7 @@
     1.0
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_05",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1000 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 1000 RPM.",
   "samples": [
     {
       "file": "i4_05_accel_2370.wav",
@@ -96,48 +96,25 @@
       "gain": 0.4591727578727154
     },
     {
-      "file": "rt-alpine-a110__AE_Idle1.wav",
-      "sha256": "995fefa5b736576e36f553fed2b289e040d76a1bd825950a49ef0654661a53b9",
-      "origin": "native_byte_identical",
-      "source_file": "AE_Idle1.wav",
-      "rate_hz": 22050,
+      "file": "i4_05_idle_1000.wav",
+      "sha256": "88968c9ed8c30fd153ad86398478e3cbd509a309ced28b2327ed47a37098e9e1",
+      "source_file": "i4_05_idle.wav",
+      "source_sha256": "f875ef67be58db6ab4a37367112766b0435fae7fe7c964e9e31f361c0a840b30",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.814467120181406,
-      "rms": 0.40652974232738515,
-      "gain": 0.2951813545375531,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-alpine-a110/rt-alpine-a110__AE_Idle1.wav"
-    },
-    {
-      "file": "rt-alpine-a110__AX_Idle1.wav",
-      "sha256": "2c5ba513f43b16911cb69472da1becfb6e01ff77d9b4fbd0ceeda29538824842",
-      "origin": "native_byte_identical",
-      "source_file": "AX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 2.01687074829932,
-      "rms": 0.29496670907522277,
-      "gain": 0.40682557152372556,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-alpine-a110/rt-alpine-a110__AX_Idle1.wav"
+      "seconds": 0.72,
+      "rms": 0.06932963229920457,
+      "gain": 1.7308616246819006
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-alpine-a110/rt-alpine-a110__AE_Idle1.wav",
+      "path": "res://sounds/banks/i4_05/i4_05_idle_1000.wav",
       "reference": 1000,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.2951813545375531
+      "gain": 1.7308616246819006
     },
     {
       "path": "res://sounds/banks/i4_05/i4_05_accel_2370.wav",
@@ -188,16 +165,6 @@
       "upper": 11000,
       "mode": "coast",
       "gain": 0.4591727578727154
-    }
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-alpine-a110/rt-alpine-a110__AX_Idle1.wav",
-      "reference": 1000,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.40682557152372556
     }
   ]
 }

@@ -22,7 +22,7 @@
     1.0
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_05",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 900 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 900 RPM.",
   "samples": [
     {
       "file": "i4_05_accel_2370.wav",
@@ -96,48 +96,25 @@
       "gain": 0.4591727578727154
     },
     {
-      "file": "rt-opel-kadett__EE_Idle3.wav",
-      "sha256": "2a66d642da5803932722e98b9273c782b9aa36d8af4338ebf4e5bb0bfc53df10",
-      "origin": "native_byte_identical",
-      "source_file": "EE_Idle3.wav",
-      "rate_hz": 22050,
+      "file": "i4_05_idle_1000.wav",
+      "sha256": "88968c9ed8c30fd153ad86398478e3cbd509a309ced28b2327ed47a37098e9e1",
+      "source_file": "i4_05_idle.wav",
+      "source_sha256": "f875ef67be58db6ab4a37367112766b0435fae7fe7c964e9e31f361c0a840b30",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.7161904761904763,
-      "rms": 0.16053137487073377,
-      "gain": 0.7475174251552306,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EE_Idle3.wav"
-    },
-    {
-      "file": "rt-opel-kadett__EX_Idle1.wav",
-      "sha256": "0800dcecd76edb6e588056eb5a8f11f1f401d10dcdfde74f2870fdd7176d0ea3",
-      "origin": "native_byte_identical",
-      "source_file": "EX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 1.9515192743764171,
-      "rms": 0.280878874093348,
-      "gain": 0.4272304223211849,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EX_Idle1.wav"
+      "seconds": 0.72,
+      "rms": 0.06932963229920457,
+      "gain": 1.7308616246819006
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EE_Idle3.wav",
+      "path": "res://sounds/banks/i4_05/i4_05_idle_1000.wav",
       "reference": 900,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.7475174251552306
+      "gain": 1.7308616246819006
     },
     {
       "path": "res://sounds/banks/i4_05/i4_05_accel_2370.wav",
@@ -192,15 +169,5 @@
   ],
   "backfire_interior": [
     "res://sounds/banks/commons/backfire_5.wav"
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-opel-kadett/rt-opel-kadett__EX_Idle1.wav",
-      "reference": 900,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.4272304223211849
-    }
   ]
 }

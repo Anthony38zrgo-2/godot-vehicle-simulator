@@ -22,7 +22,7 @@
     1.0
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_01",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 900 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 900 RPM.",
   "samples": [
     {
       "file": "i4_01_accel_1890.wav",
@@ -102,48 +102,25 @@
       "path": "res://sounds/banks/i4_01/i4_01_decel_7170.wav"
     },
     {
-      "file": "rt-lotus-cortina__CE_Idle2.wav",
-      "sha256": "24378bb85aecb421723ff86b525e7cfacbb5dfc934c8596788474dcfe84ef6d6",
-      "origin": "native_byte_identical",
-      "source_file": "CE_Idle2.wav",
-      "rate_hz": 22050,
+      "file": "i4_01_idle_1200.wav",
+      "sha256": "c9cf4d465e0e05de964ec1b9f0aa5b078147d52c2229eb589df37396ce46f854",
+      "source_file": "i4_01_idle.wav",
+      "source_sha256": "64eaece051b3675c8bcfb377b77468952da613937fcf4008bb05ed5412a4059e",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.7921995464852607,
-      "rms": 0.29956317186773085,
-      "gain": 0.400583286830014,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_Idle2.wav"
-    },
-    {
-      "file": "rt-lotus-cortina__CX_Idle1.wav",
-      "sha256": "455a27f7ec4e4413a0cca6b7e3ed84543400423294af2cf93db84a4f61593c35",
-      "origin": "native_byte_identical",
-      "source_file": "CX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 1.6406802721088436,
-      "rms": 0.31208152120204613,
-      "gain": 0.38451491628788315,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_Idle1.wav"
+      "seconds": 0.72,
+      "rms": 0.08255684699024869,
+      "gain": 1.4535438836971808
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CE_Idle2.wav",
+      "path": "res://sounds/banks/i4_01/i4_01_idle_1200.wav",
       "reference": 900,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.400583286830014
+      "gain": 1.4535438836971808
     },
     {
       "path": "res://sounds/banks/i4_01/i4_01_accel_1890.wav",
@@ -194,16 +171,6 @@
       "upper": 11000,
       "mode": "coast",
       "gain": 0.8249629323290314
-    }
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-lotus-cortina/rt-lotus-cortina__CX_Idle1.wav",
-      "reference": 900,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.38451491628788315
     }
   ]
 }

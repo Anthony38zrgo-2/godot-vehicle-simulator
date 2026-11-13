@@ -15,7 +15,7 @@
     "res://sounds/banks/commons/backfire_5.wav"
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/4cyl_01",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1100 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 1100 RPM.",
   "samples": [
     {
       "file": "4cyl_01_accel_2190.wav",
@@ -89,48 +89,25 @@
       "gain": 0.5032026401081465
     },
     {
-      "file": "EE_Idle5.wav",
-      "sha256": "47b1bcd7e149ebac4ca19efd936f7dc86ea1e0e690baf8b4a0d88f0d613cde8c",
-      "origin": "native_byte_identical",
-      "source_file": "EE_Idle5.wav",
-      "rate_hz": 22050,
+      "file": "4cyl_01_idle_1100.wav",
+      "sha256": "f3214bfcf84c1a32f5b885d06c21f9eaeecd43d261bd71a561e35ecb9d8a22cd",
+      "source_file": "4cyl_01_idle.wav",
+      "source_sha256": "6fa218c8105ae3eb5a34c6509fcd7499fb2c2c0b2d514e6fc998aed98ad680f1",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.7705215419501135,
-      "rms": 0.22425895174512184,
-      "gain": 0.5350956965873283,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/FulviaHF/EE_Idle5.wav"
-    },
-    {
-      "file": "EX_Idle1.wav",
-      "sha256": "f6692ee784f2822f6032924b5d56d4ca37042916ab98af826111b98958794469",
-      "origin": "native_byte_identical",
-      "source_file": "EX_Idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 1.9515192743764171,
-      "rms": 0.3815620718570728,
-      "gain": 0.31449666738613924,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/FulviaHF/EX_Idle1.wav"
+      "seconds": 0.685,
+      "rms": 0.08687306561220207,
+      "gain": 1.3813257210891492
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/FulviaHF/EE_Idle5.wav",
+      "path": "res://sounds/banks/4cyl_01/4cyl_01_idle_1100.wav",
       "reference": 1100,
       "lower": 0,
       "upper": 2000,
       "mode": "idle",
-      "gain": 0.5350956965873283
+      "gain": 1.3813257210891492
     },
     {
       "path": "res://sounds/banks/4cyl_01/4cyl_01_accel_2190.wav",
@@ -181,16 +158,6 @@
       "upper": 11000,
       "mode": "coast",
       "gain": 0.5032026401081465
-    }
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/FulviaHF/EX_Idle1.wav",
-      "reference": 1100,
-      "lower": 0,
-      "upper": 2000,
-      "mode": "idle",
-      "gain": 0.31449666738613924
     }
   ]
 }

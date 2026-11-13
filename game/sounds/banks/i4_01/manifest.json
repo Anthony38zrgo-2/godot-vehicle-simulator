@@ -22,7 +22,7 @@
     1.0
   ],
   "source_archive": "Real Racing 3 / RR3_Misc.zip / audio.7z / audio/Vehicles/i4_01",
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 1200 RPM.",
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 1200 RPM.",
   "samples": [
     {
       "file": "i4_01_accel_1890.wav",
@@ -96,48 +96,25 @@
       "gain": 0.8249629323290314
     },
     {
-      "file": "rt-alfa-giulia-gta__PE_Idle1.wav",
-      "sha256": "7595a1aff70c2ee21488c6400eca0a52c29cc1322f324a0db82481aa0625fcb3",
-      "origin": "native_byte_identical",
-      "source_file": "PE_Idle1.wav",
-      "rate_hz": 22050,
+      "file": "i4_01_idle_1200.wav",
+      "sha256": "c9cf4d465e0e05de964ec1b9f0aa5b078147d52c2229eb589df37396ce46f854",
+      "source_file": "i4_01_idle.wav",
+      "source_sha256": "64eaece051b3675c8bcfb377b77468952da613937fcf4008bb05ed5412a4059e",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 2.065578231292517,
-      "rms": 0.1587017454153617,
-      "gain": 0.7561353511640992,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_Idle1.wav"
-    },
-    {
-      "file": "rt-alfa-giulia-gta__PX_idle1.wav",
-      "sha256": "b550b15b3c2d0da766fc44988f6eb63d9318bf9da214704557bc43c16a88c1a9",
-      "origin": "native_byte_identical",
-      "source_file": "PX_idle1.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 2.1130158730158732,
-      "rms": 0.4911355990124388,
-      "gain": 0.24433170847581098,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav"
+      "seconds": 0.72,
+      "rms": 0.08255684699024869,
+      "gain": 1.4535438836971808
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PE_Idle1.wav",
+      "path": "res://sounds/banks/i4_01/i4_01_idle_1200.wav",
       "reference": 1200,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.7561353511640992
+      "gain": 1.4535438836971808
     },
     {
       "path": "res://sounds/banks/i4_01/i4_01_accel_1890.wav",
@@ -188,16 +165,6 @@
       "upper": 11000,
       "mode": "coast",
       "gain": 0.8249629323290314
-    }
-  ],
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-alfa-giulia-gta/rt-alfa-giulia-gta__PX_idle1.wav",
-      "reference": 1200,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.24433170847581098
     }
   ]
 }

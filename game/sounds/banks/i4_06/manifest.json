@@ -74,48 +74,25 @@
       "gain": 0.5567319612442967
     },
     {
-      "file": "rt-volvo-amazon__VE_Idle1.wav",
-      "sha256": "99ec10e3ec71fc4b586958440072f0b3e81776d7b958bd732f1f851bfe5dec8a",
-      "origin": "native_byte_identical",
-      "source_file": "VE_Idle1.wav",
-      "rate_hz": 22050,
+      "file": "i4_06_idle_800.wav",
+      "sha256": "b20ca8666ce7f896a6037bf8c051216e3b3bf59a718977bed4ed3977f714f5ec",
+      "source_file": "i4_06_idle.wav",
+      "source_sha256": "eb488e1cb125f2aa3303066564155f30ce74d635b6f629c3a2dbf7c80ba2d9c0",
+      "rate_hz": 24000,
       "channels": 1,
-      "seconds": 1.9405442176870749,
-      "rms": 0.3619186229242612,
-      "gain": 0.3315662483196186,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VE_Idle1.wav"
-    },
-    {
-      "file": "rt-volvo-amazon__VX_Idle2.wav",
-      "sha256": "108daf27d9ab4ed128a974ca7440537fea482408f37da36f7ae00c287d933bc9",
-      "origin": "native_byte_identical",
-      "source_file": "VX_Idle2.wav",
-      "rate_hz": 22050,
-      "channels": 1,
-      "seconds": 0.6638548752834467,
-      "rms": 0.439468164561885,
-      "gain": 0.27305732172802666,
-      "space": {
-        "eq": {
-          "enabled": false
-        }
-      },
-      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VX_Idle2.wav"
+      "seconds": 0.72,
+      "rms": 0.10385248813635034,
+      "gain": 1.1554850745843395
     }
   ],
   "engine": [
     {
-      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VE_Idle1.wav",
+      "path": "res://sounds/banks/i4_06/i4_06_idle_800.wav",
       "reference": 800,
       "lower": 0,
       "upper": 2160.0,
       "mode": "idle",
-      "gain": 0.3315662483196186
+      "gain": 1.1554850745843395
     },
     {
       "path": "res://sounds/banks/i4_06/i4_06_accel_2145.wav",
@@ -192,15 +169,5 @@
   "backfire_interior": [
     "res://sounds/banks/commons/backfire_5.wav"
   ],
-  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. Original Rally Trophy idle layers mapped to 800 RPM.",
-  "exhaust": [
-    {
-      "path": "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__VX_Idle2.wav",
-      "reference": 800,
-      "lower": 0,
-      "upper": 2160.0,
-      "mode": "idle",
-      "gain": 0.27305732172802666
-    }
-  ]
+  "rpm_mapping": "RR3 drive/coast RPM estimated from local engine harmonics. RR3 idle mapped to 800 RPM."
 }
