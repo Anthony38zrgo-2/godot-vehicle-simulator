@@ -53,8 +53,8 @@ func _build() -> void:
 	var tabs := VBoxContainer.new()
 	tabs.custom_minimum_size.x = 150
 	row.add_child(tabs)
-	host.button("RUEDAS", func(): _category("wheels"), tabs)
-	host.button("RADIADOR", func(): _category("radiator"), tabs)
+	host.button("RUEDAS", func(): _category("wheels"), tabs, true)
+	host.button("RADIADOR", func(): _category("radiator"), tabs, true)
 	if category == "wheels":
 		var coords := [Vector2(.31,.27),Vector2(.69,.27),Vector2(.31,.74),Vector2(.69,.74),Vector2.ZERO,Vector2(.10,.27),Vector2(.10,.74)]
 		for index in [0,1,2,3,5,6]:
@@ -180,7 +180,9 @@ func _tool_view(paint: Color) -> SubViewportContainer:
 	camera.look_at_from_position(camera.position, Vector3.ZERO)
 	return view
 
-func _category(value: String) -> void:
+func _category(value: String, play_sound: bool = true) -> void:
+	if play_sound and category != value:
+		get_node("/root/UIButtonAudio").play_tab_click()
 	category = value
 	held = -1
 	_build()

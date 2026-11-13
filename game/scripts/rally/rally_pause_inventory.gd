@@ -115,9 +115,16 @@ func _process(_delta: float) -> void:
 	pause_button.visible = not modal.visible and allowed()
 
 
+var wheel_action_sound: AudioStreamPlayer
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 100
+
+	wheel_action_sound = AudioStreamPlayer.new()
+	wheel_action_sound.stream = preload("res://sounds/rally_service/ClicksSmall.mclick2.wav")
+	add_child(wheel_action_sound)
 
 	screen = Control.new()
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -148,6 +155,12 @@ func _ready() -> void:
 	modal.custom_minimum_size = Vector2(1080, 620)
 	modal.add_theme_stylebox_override("panel", _make_glass_style(10, Color(C_GLASS, 0.98), Color(C_RIM, 0.45)))
 	modal.hide()
+	var pause_sound := AudioStreamPlayer.new()
+	add_child(pause_sound)
+	modal.visibility_changed.connect(func() -> void:
+		pause_sound.stream = preload("res://sounds/rally_service/WindowOpen.wav") if modal.visible else preload("res://sounds/rally_service/WindowClose.wav")
+		pause_sound.play()
+	)
 
 	_build_modal_skeleton()
 
@@ -411,8 +424,10 @@ func label(text: String) -> void:
 	content.add_child(node)
 
 
-func button(text: String, callback: Callable, parent: Node = null) -> void:
+func button(text: String, callback: Callable, parent: Node = null, custom_sound: bool = false) -> void:
 	var node := Button.new()
+	if custom_sound:
+		node.set_meta("custom_button_sound", true)
 	node.text = text
 	node.pressed.connect(callback)
 	node.custom_minimum_size = Vector2(0, 36)
@@ -495,7 +510,7 @@ func show_menu() -> void:
 
 func show_quick_repairs() -> void:
 	show_inventory()
-	content.get_child(0)._category("radiator")
+	content.get_child(0)._category("radiator", false)
 
 
 func repair_radiator() -> void:
@@ -592,7 +607,7 @@ func exchange() -> void:
 	var keep: bool = keep_removed.button_pressed if keep_removed != null else true
 	if session != null and session.get("vehicle") != null and session.vehicle.exchange_tire(selected_wheel, id, keep):
 		notice = "Rueda cambiada. La condición de cada neumático se conserva."
-		persist()
+		_finish_wheel_action()
 	show_inventory()
 
 
@@ -602,7 +617,7 @@ func discard() -> void:
 	var id := spare_picker.get_selected_id()
 	if session != null and session.get("vehicle") != null and session.vehicle.discard_spare(id):
 		notice = "Repuesto descartado: se ha actualizado la masa del coche."
-		persist()
+		_finish_wheel_action()
 	show_inventory()
 
 
@@ -643,7 +658,7 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 			selected_wheel = target_index
 			var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 			notice = "Rueda %s sustituida con éxito por el repuesto #%d." % [wheel_names[target_index], src_id]
-			persist()
+			_finish_wheel_action()
 		show_inventory()
 		return
 
@@ -661,7 +676,7 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 			selected_wheel = target_index
 			var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 			notice = "Neumáticos rotados: %s ⇄ %s." % [wheel_names[src_idx], wheel_names[target_index]]
-			persist()
+			_finish_wheel_action()
 		show_inventory()
 		return
 
@@ -678,7 +693,7 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 				selected_wheel = src_idx
 				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 				notice = "Rueda %s guardada en el maletero y sustituida por repuesto #%d." % [wheel_names[src_idx], spare_to_use]
-				persist()
+				_finish_wheel_action()
 		else:
 			notice = "No hay repuestos en el maletero para montar en su lugar."
 		show_inventory()
@@ -688,7 +703,7 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 	if src_type == "spare" and target_type == "bin":
 		if vehicle.discard_spare(src_id):
 			notice = "Repuesto #%d descartado en ruta (-18 kg). Se ha actualizado la masa." % src_id
-			persist()
+			_finish_wheel_action()
 		show_inventory()
 		return
 
@@ -705,11 +720,17 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 				selected_wheel = src_idx
 				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 				notice = "Rueda %s dañada descartada en ruta (-18 kg). Repuesto #%d montado." % [wheel_names[src_idx], spare_to_use]
-				persist()
+				_finish_wheel_action()
 		else:
 			notice = "¡No puedes descartar una rueda en uso sin un repuesto disponible en el maletero!"
 		show_inventory()
 		return
+
+
+func _finish_wheel_action() -> void:
+	persist()
+	if modal.visible and not opened_from_results:
+		wheel_action_sound.play()
 
 
 func get_session_allowed_compound_ids() -> Array:

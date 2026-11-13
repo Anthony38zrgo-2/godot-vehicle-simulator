@@ -337,34 +337,38 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 		hbox.add_child(dest_lbl)
 		return
 	if is_punc:
-		var cb := CheckBox.new()
+		var cb := _make_repair_checkbox()
 		cb.text = "Inflar (%d min)" % cost_inflate
 		cb.add_theme_font_override("font", FONT_REGULAR)
 		cb.add_theme_font_size_override("font_size", 11)
 		hbox.add_child(cb)
 		tire_actions.append({"kind": "inflate", "tire_id": tire_id, "minutes": cost_inflate, "box": cb})
-		cb.toggled.connect(func(_on: bool): _refresh())
 	if is_rim:
-		var cb2 := CheckBox.new()
+		var cb2 := _make_repair_checkbox()
 		cb2.text = "Rin (%d min)" % cost_rim
 		cb2.add_theme_font_override("font", FONT_REGULAR)
 		cb2.add_theme_font_size_override("font_size", 11)
 		hbox.add_child(cb2)
 		tire_actions.append({"kind": "rim", "tire_id": tire_id, "minutes": cost_rim, "box": cb2})
-		cb2.toggled.connect(func(_on: bool): _refresh())
 
 func _add_row(list: VBoxContainer, key: String, title: String, damage: float, full_minutes: float) -> void:
 	if damage <= 0.0001:
 		return
 	var minutes := maxi(1, ceili(clampf(damage, 0.0, 1.0) * full_minutes))
-	var box := CheckBox.new()
+	var box := _make_repair_checkbox()
 	box.text = "%s  ·  daño %.1f%%  ·  %d min" % [title, damage * 100.0, minutes]
 	box.add_theme_font_override("font", FONT_REGULAR)
 	box.add_theme_font_size_override("font_size", 12)
 	box.add_theme_color_override("font_color", WB_TEXT_TITLE)
 	list.add_child(box)
 	rows.append({"key": key, "minutes": minutes, "box": box})
+
+func _make_repair_checkbox() -> CheckBox:
+	var box := CheckBox.new()
+	box.set_meta("custom_button_sound", true)
 	box.toggled.connect(func(_on: bool): _refresh())
+	box.pressed.connect(func(): get_node("/root/UIButtonAudio").play_repair_selection())
+	return box
 
 func _minutes() -> int:
 	var total := 0

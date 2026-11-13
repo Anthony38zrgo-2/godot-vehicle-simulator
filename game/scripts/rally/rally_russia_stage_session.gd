@@ -53,6 +53,7 @@ var run_identifier: String = ""
 var start_sequence = preload("res://scripts/rally/rally_start_sequence.gd").new()
 var start_click: AudioStreamPlayer
 var start_horn: AudioStreamPlayer
+var repair_sound: AudioStreamPlayer
 var course := RallyStageProgress.new()
 var competition = preload("res://scripts/rally/rally_competition.gd").new()
 var pacenotes = preload("res://scripts/rally/rally_pacenote_controller.gd").new()
@@ -719,6 +720,8 @@ func on_quick_repair_radiator_requested(heavy: bool = false) -> bool:
 		event_manager.save()
 	else:
 		competition.add_penalty("player", penalty, "Herramientas radiador")
+	if repair_sound != null:
+		repair_sound.play()
 	return true
 
 
@@ -997,6 +1000,10 @@ func setup_start_audio() -> void:
 	start_horn.stream = preload("res://scripts/audio/seamless_vehicle_loop.gd").load_pcm("res://sounds/rally_start/go_horn.wav", false)
 	start_horn.volume_db = -5.0
 	add_child(start_horn)
+	repair_sound = AudioStreamPlayer.new()
+	repair_sound.stream = preload("res://sounds/rally_service/smallmedkit1.wav")
+	repair_sound.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(repair_sound)
 
 func reset_start_sequence() -> void:
 	course.external_start = true

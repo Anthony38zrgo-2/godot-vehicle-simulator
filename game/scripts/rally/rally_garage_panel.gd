@@ -313,9 +313,9 @@ func open_garage_for_event(options: Dictionary = { }) -> void:
 			draft_wheel_compounds[corner] = default_event_compound_id
 	var initial_tab := str(options.get("initial_tab", ""))
 	if initial_tab in ["tires", "strategy"]:
-		_set_page(2)
+		_set_page(2, false)
 	elif initial_tab == "quick":
-		_set_page(0)
+		_set_page(0, false)
 
 
 func get_confirmed_setup() -> Dictionary:
@@ -354,7 +354,7 @@ func open_garage() -> void:
 	page = 0
 	advanced_section = 0
 	selected_field_path = ""
-	_set_page(0)
+	_set_page(0, false)
 	_ensure_stage_route_cache()
 	active_setup_id = -1
 	active_setup_name = "BASE"
@@ -1022,8 +1022,11 @@ func _drag_to(point: Vector2) -> void:
 		_set_from_slider(_dragging_path, point.x, _dragging_rect)
 
 
-func _set_page(next_page: int) -> void:
+func _set_page(next_page: int, play_sound: bool = true) -> void:
+	var previous_page := page
 	page = posmod(next_page, 4)
+	if play_sound and page != previous_page:
+		get_node("/root/UIButtonAudio").play_tab_click()
 	_page_field_paths.clear()
 	var source: Array[String] = []
 	match page:
