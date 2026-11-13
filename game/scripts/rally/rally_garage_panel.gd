@@ -5,48 +5,48 @@ signal garage_closed(applied: bool)
 
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
 const StrategyBoardScript := preload("res://scripts/rally/rally_garage_strategy_board.gd")
-# 2.2. Estandarización Tipográfica (Sin Serif)
-const FONT_SERIF: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
-const FONT_SERIF_BOLD: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const FONT_UI: Font = preload("res://fonts/D-DIN.ttf")
-const FONT_UI_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
-const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
+# 2.2. Estandarización Tipográfica (fuente única: RallyUITheme)
+const FONT_SERIF: Font = RallyUITheme.FONT_REGULAR
+const FONT_SERIF_BOLD: Font = RallyUITheme.FONT_TITLE
+const FONT_UI: Font = RallyUITheme.FONT_DATA
+const FONT_UI_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
 
-# 2.1. Paleta de Colores Funcional Unificada
-const BG_BASE := Color("#0a0e14")         # Negro carbón mate
-const BG_SURFACE := Color("#121820")      # Superficie de tarjetas y paneles
-const BG_HOVER := Color("#1c2430")        # Interacción y hover
-const BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.08) # 1 px sutil sin biseles
-const BORDER_FOCUS := Color("#ffffff")              # Blanco puro para foco
-const TEXT_PRIMARY := Color("#f0f4f8")    # Blanco suave, contraste óptimo
-const TEXT_MUTED := Color("#6b7a8d")      # Gris medio para etiquetas
-const ACCENT_RALLY := Color("#e5a93c")    # Dorado histórico sobrio
-const ACCENT_ALERT := Color("#f59e0b")    # Ámbar rally alertas
-const STATUS_DANGER := Color("#ef4444")   # Pinchazos, abandonos, errores
-const STATUS_SUCCESS := Color("#22c55e")  # Tiempos récord, verde de salida
+# 2.1. Paleta de Colores Funcional Unificada (Dark Carbon + Brass Gold)
+const BG_BASE := RallyUITheme.BG_BASE
+const BG_SURFACE := RallyUITheme.BG_SURFACE
+const BG_HOVER := RallyUITheme.BG_HOVER
+const BORDER_SUBTLE := RallyUITheme.BORDER_SUBTLE
+const BORDER_FOCUS := RallyUITheme.BORDER_FOCUS
+const TEXT_PRIMARY := RallyUITheme.TEXT_PRIMARY
+const TEXT_MUTED := RallyUITheme.TEXT_MUTED
+const ACCENT_RALLY := RallyUITheme.ACCENT_RALLY
+const ACCENT_ALERT := RallyUITheme.ACCENT_ALERT
+const STATUS_DANGER := RallyUITheme.STATUS_DANGER
+const STATUS_SUCCESS := RallyUITheme.STATUS_SUCCESS
 
-# 2.3. Paleta Workbench Motorsport (Ventanas y Paneles Técnicos)
-const WB_BG_SHELL := Color("#090e15")
-const WB_BG_HEADER := Color("#0d141e")
-const WB_BG_FOOTER := Color("#0d141e")
-const WB_BG_TAB_INACTIVE := Color("#111822")
-const WB_BG_TAB_ACTIVE := Color("#1a2636")
-const WB_BG_CONTENT := Color("#1a2636")
-const WB_BG_CARD := Color("#223246")
-const WB_BG_CARD_HOVER := Color("#2a3d54")
-const WB_BG_WELL := Color("#0c141e")
-const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
-const WB_BORDER_HOVER := Color(1.0, 1.0, 1.0, 0.20)
-const WB_BORDER_FOCUS := Color("#ffffff")
-const WB_BORDER_ACCENT := Color("#e5a93c")
-const WB_SLIDER_TRACK := Color("#0c141e")
-const WB_SLIDER_FILL := Color("#4a7bb0")
-const WB_SLIDER_THUMB := Color("#eaf2fa")
-const WB_SLIDER_STEPPER := Color("#25364b")
-const WB_TEXT_TITLE := Color("#f0f5fa")
-const WB_TEXT_LABEL := Color("#9ab0c7")
-const WB_TEXT_DATA := Color("#ffffff")
-const WB_TEXT_ACCENT := Color("#e5a93c")
+# 2.3. Aliases Workbench consolidados
+const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
+const WB_BG_HEADER := RallyUITheme.WB_BG_HEADER
+const WB_BG_FOOTER := RallyUITheme.WB_BG_FOOTER
+const WB_BG_TAB_INACTIVE := RallyUITheme.WB_BG_TAB_INACTIVE
+const WB_BG_TAB_ACTIVE := RallyUITheme.WB_BG_TAB_ACTIVE
+const WB_BG_CONTENT := RallyUITheme.WB_BG_CONTENT
+const WB_BG_CARD := RallyUITheme.WB_BG_CARD
+const WB_BG_CARD_HOVER := RallyUITheme.WB_BG_CARD_HOVER
+const WB_BG_WELL := RallyUITheme.WB_BG_WELL
+const WB_BORDER_SUBTLE := RallyUITheme.WB_BORDER_SUBTLE
+const WB_BORDER_HOVER := RallyUITheme.WB_BORDER_HOVER
+const WB_BORDER_FOCUS := RallyUITheme.WB_BORDER_FOCUS
+const WB_BORDER_ACCENT := RallyUITheme.WB_BORDER_ACCENT
+const WB_SLIDER_TRACK := RallyUITheme.WB_SLIDER_TRACK
+const WB_SLIDER_FILL := RallyUITheme.WB_SLIDER_FILL
+const WB_SLIDER_THUMB := RallyUITheme.WB_SLIDER_THUMB
+const WB_SLIDER_STEPPER := RallyUITheme.WB_SLIDER_STEPPER
+const WB_TEXT_TITLE := RallyUITheme.WB_TEXT_TITLE
+const WB_TEXT_LABEL := RallyUITheme.WB_TEXT_LABEL
+const WB_TEXT_DATA := RallyUITheme.WB_TEXT_DATA
+const WB_TEXT_ACCENT := RallyUITheme.WB_TEXT_ACCENT
 
 const C_BACK := WB_BG_SHELL
 const C_GLASS := WB_BG_HEADER
@@ -55,7 +55,7 @@ const C_RIM := WB_BORDER_SUBTLE
 const C_CHROME_TEXT := WB_TEXT_TITLE
 const C_CHROME_DIM := WB_TEXT_LABEL
 const C_BLUE := WB_SLIDER_FILL
-const C_BLUE_DEEP := Color("#16283b")
+const C_BLUE_DEEP := Color("#2a2010")
 
 const C_FACE := WB_BG_CONTENT
 const C_FACE_HI := WB_BG_CARD_HOVER
@@ -68,9 +68,9 @@ const C_DARK := Color("#060a0f")
 const C_TEXT := WB_TEXT_TITLE
 const C_DIM := WB_TEXT_LABEL
 const C_GOLD := ACCENT_RALLY
-const C_GOLD_HI := Color("#f8df9e")
+const C_GOLD_HI := RallyUITheme.TEXT_GOLD_SOFT
 const C_ROSE := STATUS_DANGER
-const C_SEL := WB_BG_CARD_HOVER
+const C_SEL := RallyUITheme.BG_ELEVATED
 
 const PAD_NAME_CHARACTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
 
@@ -1598,12 +1598,6 @@ func _draw() -> void:
 
 func _draw_backdrop() -> void:
 	draw_rect(Rect2(0, 0, LOGICAL_SIZE.x, LOGICAL_SIZE.y), C_BACK)
-	for i in 48:
-		var t := float(i) / 48.0
-		draw_rect(
-			Rect2(0, t * 470.0, LOGICAL_SIZE.x, 470.0 / 48.0 + 1.0),
-			Color(0.30, 0.52, 0.72, pow(1.0 - t, 2.0) * 0.20)
-		)
 
 
 
@@ -1682,7 +1676,7 @@ func _get_team_display_name() -> String:
 
 
 func _draw_chrome_header() -> void:
-	_glass_window(Rect2(24, 18, 1232, 76), 10)
+	_glass_window(Rect2(24, 18, 1232, 76), RallyUITheme.CORNER_RADIUS)
 
 	var car_title := _get_vehicle_display_name()
 	var title_size := 20
@@ -1690,7 +1684,7 @@ func _draw_chrome_header() -> void:
 		title_size -= 1
 	_text_title(_box(46, 34, 272, 44), car_title, title_size, C_CHROME_TEXT)
 
-	draw_line(Vector2(330, 34), Vector2(330, 78), Color(C_RIM, 0.22), 1.0)
+	draw_line(Vector2(330, 34), Vector2(330, 78), BORDER_SUBTLE, 1.0)
 
 	_ensure_stage_route_cache()
 	_text_title(_box(354, 22, 0, 34), circuit_name.to_upper(), 16, C_CHROME_TEXT)
@@ -1699,20 +1693,20 @@ func _draw_chrome_header() -> void:
 	]
 	_text_serif(_box(354, 54, 360, 26), subtitle, 11, C_CHROME_DIM)
 
-	_glass_box(Rect2(986, 30, 250, 52), 7, C_GLASS_DEEP, Color(C_RIM, 0.34), 0.06)
+	_glass_box(Rect2(986, 30, 250, 52), RallyUITheme.CORNER_RADIUS, C_GLASS_DEEP, RallyUITheme.BORDER_CARD, 0.0)
 	_text_title(_box(1002, 36, 218, 20), "REGLAJE ACTIVO", 9, C_CHROME_DIM)
 	_text_title(
 		_box(1002, 54, 218, 24),
 		active_setup_name.to_upper(),
 		15,
-		C_BLUE,
+		C_GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		218
 	)
 
 
 func _draw_chrome_footer() -> void:
-	_glass_window(Rect2(24, 692, 1232, 88), 10)
+	_glass_window(Rect2(24, 692, 1232, 88), RallyUITheme.CORNER_RADIUS)
 
 	_chrome_button(Rect2(46, 714, 168, 46), "RESTAURAR", "reset")
 
@@ -1720,7 +1714,7 @@ func _draw_chrome_footer() -> void:
 	var lane := Rect2(400, 700, 470, 72)
 	if notice_time > 0.0 and not notice.is_empty():
 		var tone := C_ROSE if _notice_is_error() else C_GOLD
-		_glass_box(lane, 7, Color(C_GLASS_DEEP, 0.85), Color(tone, 0.55), 0.05)
+		_glass_box(lane, RallyUITheme.CORNER_RADIUS, Color(C_GLASS_DEEP, 0.92), Color(tone, 0.55), 0.0)
 		_text_serif(
 			_box(lane.position.x + 12, lane.position.y, lane.size.x - 24, lane.size.y),
 			notice.to_upper(),
@@ -1734,7 +1728,7 @@ func _draw_chrome_footer() -> void:
 			_box(lane.position.x, lane.position.y, lane.size.x, lane.size.y),
 			"A / ENTER SELECCIONA · W/S NAVEGA · Y / F5 APLICA · B / START / ESC SALIR",
 			10,
-			Color(C_CHROME_DIM, 0.72),
+			Color(C_CHROME_DIM, 0.80),
 			false,
 			HORIZONTAL_ALIGNMENT_CENTER
 		)
@@ -1746,7 +1740,7 @@ func _draw_chrome_footer() -> void:
 	if selected_field_path == "footer:cancel":
 		draw_rect(cancel_rect.grow(2), BORDER_FOCUS, false, 2.0)
 	elif selected_field_path == "footer:apply":
-		draw_rect(apply_rect.grow(2), C_GOLD, false, 2.0)
+		draw_rect(apply_rect.grow(2), BORDER_FOCUS, false, 2.0)
 
 
 func _notice_is_error() -> bool:
@@ -1754,8 +1748,7 @@ func _notice_is_error() -> bool:
 
 
 func _draw_classic_panel() -> void:
-	draw_rect(PANEL, C_FACE)
-	draw_rect(PANEL, BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(C_FACE, RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS), PANEL)
 	draw_line(Vector2(PANEL.position.x, 144), Vector2(PANEL.end.x, 144), BORDER_SUBTLE, 1.0)
 
 
@@ -1775,9 +1768,8 @@ func _draw_tabs() -> void:
 		var banner := "%d CAMBIO%s SIN APLICAR" % [changed, "" if changed == 1 else "S"]
 		var banner_w := _serif_width(banner, 10, true)
 		var banner_x := 1244.0 - banner_w
-		draw_circle(Vector2(banner_x - 14.0, 122.0), 3.5, C_BLUE)
-		draw_circle(Vector2(banner_x - 14.0, 122.0), 7.0, Color(C_BLUE, 0.16))
-		_text(_box(banner_x, 104, banner_w + 2, 36), banner, 10, C_BLUE, true)
+		draw_circle(Vector2(banner_x - 14.0, 122.0), 3.5, C_GOLD)
+		_text(_box(banner_x, 104, banner_w + 2, 36), banner, 10, C_GOLD, true)
 
 
 func _dirty_field_count() -> int:
@@ -1800,44 +1792,30 @@ func _dirty_field_count() -> int:
 
 
 func _tab(rect: Rect2, label: String, active: bool) -> void:
-	var bottom := rect.end.y + 3.0 if active else rect.end.y
-	var top := rect.position.y if active else rect.position.y + 5.0
-	var cut := 9.0
-	var pts := PackedVector2Array(
-		[
-			Vector2(rect.position.x, bottom),
-			Vector2(rect.position.x, top + cut),
-			Vector2(rect.position.x + cut, top),
-			Vector2(rect.end.x - cut, top),
-			Vector2(rect.end.x, top + cut),
-			Vector2(rect.end.x, bottom),
-		]
-	)
-	var faced := WB_BG_CONTENT if active else WB_BG_TAB_INACTIVE
+	var bottom := rect.end.y + 1.0 if active else rect.end.y
+	var top := rect.position.y + 4.0 if active else rect.position.y + 8.0
+	var tab_rect := Rect2(rect.position.x, top, rect.size.x, bottom - top)
+	var faced := WB_BG_CONTENT if active else RallyUITheme.BG_SHELL
 	if not active and _mouse_over(rect):
 		faced = WB_BG_CARD
-	draw_colored_polygon(pts, faced)
-
-	var top_path := PackedVector2Array(
-		[
-			Vector2(rect.position.x + 0.5, bottom),
-			Vector2(rect.position.x + 0.5, top + cut),
-			Vector2(rect.position.x + cut, top + 0.5),
-			Vector2(rect.end.x - cut, top + 0.5),
-			Vector2(rect.end.x - 0.5, top + cut),
-			Vector2(rect.end.x - 0.5, bottom),
-		]
-	)
-	draw_polyline(top_path, BORDER_FOCUS if active else BORDER_SUBTLE, 1.0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = faced
+	sb.border_color = RallyUITheme.BORDER_CARD if active else BORDER_SUBTLE
+	sb.border_width_left = 1
+	sb.border_width_top = 2 if active else 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 0 if active else 1
+	sb.corner_radius_top_left = RallyUITheme.CORNER_RADIUS
+	sb.corner_radius_top_right = RallyUITheme.CORNER_RADIUS
+	draw_style_box(sb, tab_rect)
 	if active:
-		# La pestaña activa se fusiona directamente sobre el área de contenido
-		draw_rect(Rect2(rect.position.x + 1, 143, rect.size.x - 2, 4), C_FACE)
+		draw_rect(Rect2(tab_rect.position.x + 1, tab_rect.position.y, tab_rect.size.x - 2, 2), C_GOLD)
 
 	_text_title(
-		_box(rect.position.x, top + 5.0, rect.size.x, bottom - top - 9.0),
+		_box(tab_rect.position.x, tab_rect.position.y + 2.0, tab_rect.size.x, tab_rect.size.y - 4.0),
 		label,
 		11,
-		C_TEXT if active else C_DIM,
+		C_GOLD_HI if active else C_DIM,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
@@ -2581,14 +2559,12 @@ func _draw_gear_chart(rect: Rect2) -> void:
 		var bar := Rect2(box.position.x + 8, box.end.y - 16, box.size.x - 16, 8)
 		draw_rect(bar, C_FIELD)
 		_sunken(bar)
-		draw_rect(
-			Rect2(
-				bar.position + Vector2(1, 1),
-				Vector2((bar.size.x - 2) * (float(gears[i].value) / max_value), bar.size.y - 2)
-			),
-			Color(C_BLUE_DEEP, 0.9),
-			false
+		var ratio_fill := Rect2(
+			bar.position + Vector2(1, 1),
+			Vector2((bar.size.x - 2) * (float(gears[i].value) / max_value), bar.size.y - 2)
 		)
+		draw_rect(ratio_fill, Color(C_GOLD, 0.42), true)
+		draw_rect(ratio_fill, Color(C_GOLD, 0.85), false)
 
 
 # =============================================================================
@@ -2957,19 +2933,19 @@ func _draw_setups_page() -> void:
 
 
 func _draw_modal() -> void:
-	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), Color(0, 0, 0, 0.72))
+	draw_rect(Rect2(Vector2.ZERO, LOGICAL_SIZE), RallyUITheme.BG_OVERLAY)
 	var rect := Rect2(390, 262, 500, 250)
-	_glass_window(rect, 10)
+	_glass_window(rect, RallyUITheme.CORNER_RADIUS)
 	_text_title(
 		_box(rect.position.x + 18, rect.position.y + 8, rect.size.x - 36, 32),
 		"PERFIL" if modal_mode == "name" else "CONFIRMACIÓN",
 		11,
-		C_BLUE
+		C_GOLD
 	)
 	draw_line(
 		Vector2(rect.position.x + 1, rect.position.y + 44),
 		Vector2(rect.end.x - 1, rect.position.y + 44),
-		Color(C_RIM, 0.28),
+		BORDER_SUBTLE,
 		1.0
 	)
 
@@ -3019,14 +2995,13 @@ func _draw_modal() -> void:
 
 
 func _group(rect: Rect2, caption: String) -> void:
-	draw_rect(rect, C_FACE_LO)
-	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(C_FACE_LO, BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	var cap_w := _title_width(caption, 10) + 14.0
 	_text_title(_box(rect.position.x + 14, rect.position.y + 4, cap_w, 14), caption, 10, C_TEXT)
 	draw_line(
 		Vector2(rect.position.x + 14, rect.position.y + 19),
 		Vector2(rect.end.x - 14, rect.position.y + 19),
-		Color(BORDER_SUBTLE.r, BORDER_SUBTLE.g, BORDER_SUBTLE.b, 0.12),
+		BORDER_SUBTLE,
 		1.0
 	)
 
@@ -3065,8 +3040,7 @@ func _sunken(rect: Rect2) -> void:
 
 
 func _field_box(rect: Rect2, text: String, size: int, color: Color, numeric: bool = true) -> void:
-	draw_rect(rect, C_FIELD)
-	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	var inner := _box(rect.position.x + 6, rect.position.y, rect.size.x - 12, rect.size.y)
 	if numeric:
 		_num(inner, text, size, color, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x - 12)
@@ -3076,8 +3050,7 @@ func _field_box(rect: Rect2, text: String, size: int, color: Color, numeric: boo
 
 func _stepper(rect: Rect2, plus: bool) -> void:
 	var hovered := _mouse_over(rect)
-	draw_rect(rect, WB_SLIDER_STEPPER if not hovered else C_FACE_HI)
-	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(C_FACE_HI if hovered else WB_SLIDER_STEPPER, RallyUITheme.BORDER_HOVER if hovered else BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	var cx: float = round(rect.get_center().x)
 	var cy: float = round(rect.get_center().y)
 	var glyph: Color = C_TEXT if hovered else C_DIM
@@ -3120,27 +3093,25 @@ func _radio(rect: Rect2, label: String, on: bool) -> void:
 
 
 func _toggle(rect: Rect2, label: String, on: bool) -> void:
-	var fill := C_BLUE if on else C_FIELD
-	draw_rect(rect, fill)
-	draw_rect(rect, C_GOLD if on else BORDER_SUBTLE, false, 1.0)
+	var fill := C_BLUE_DEEP if on else C_FIELD
+	draw_style_box(RallyUITheme.make_flat_panel(fill, C_GOLD if on else BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	_text(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
 		10,
-		WB_TEXT_TITLE if on else C_DIM,
+		C_GOLD_HI if on else C_DIM,
 		on,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
 
 func _segment_button(rect: Rect2, label: String, active: bool) -> void:
-	var fill := WB_BG_TAB_ACTIVE if active else WB_BG_TAB_INACTIVE
+	var fill := WB_BG_TAB_ACTIVE if active else RallyUITheme.BG_SHELL
 	if not active and _mouse_over(rect):
-		fill = WB_BG_CARD
-	draw_rect(rect, fill)
-	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
+		fill = WB_BG_CARD_HOVER
+	draw_style_box(RallyUITheme.make_flat_panel(fill, C_GOLD if active else BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	if active:
-		draw_rect(Rect2(rect.position.x + 3, rect.end.y - 3, rect.size.x - 6, 3), C_BLUE)
+		draw_rect(Rect2(rect.position.x + 2, rect.end.y - 2, rect.size.x - 4, 2), C_GOLD)
 	_text_title(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
@@ -3153,8 +3124,7 @@ func _segment_button(rect: Rect2, label: String, active: bool) -> void:
 func _classic_button(rect: Rect2, label: String, action: String, modal: bool = false) -> void:
 	var hovered := _mouse_over(rect)
 	var fill := C_FACE_HI if hovered else C_FACE_LO
-	draw_rect(rect, fill)
-	draw_rect(rect, BORDER_FOCUS if hovered else BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(fill, BORDER_FOCUS if hovered else RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS), rect)
 	_text(
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
@@ -3239,79 +3209,36 @@ func _field_fraction(field: Dictionary, path: String) -> float:
 
 
 # =============================================================================
-# PRIMITIVAS AERO
+# PRIMITIVAS PLANAS MOTORSPORT (2 PX CHAMFER)
 # =============================================================================
 
 
 func _glass_window(rect: Rect2, radius: int) -> void:
-	_glass_box(rect, radius, BG_SURFACE, BORDER_SUBTLE, 0.0)
+	_glass_box(rect, mini(radius, RallyUITheme.CORNER_RADIUS), BG_SURFACE, RallyUITheme.BORDER_CARD, 0.0)
 
 
 func _glass_box(rect: Rect2, radius: int, fill: Color, rim: Color, _gloss_alpha: float) -> void:
-	var base := StyleBoxFlat.new()
-	base.bg_color = fill
-	base.border_color = rim
-	base.set_border_width_all(1)
-	base.set_corner_radius_all(radius)
-	base.shadow_size = 0
-	draw_style_box(base, rect)
+	draw_style_box(RallyUITheme.make_flat_panel(fill, rim, 1, mini(radius, RallyUITheme.CORNER_RADIUS)), rect)
 
 
-# Degradado vertical recortado a las esquinas: separa el cristal de una banda
-# blanca plana, que era lo que aplanaba la jerarquía en la versión anterior.
-func _gloss(rect: Rect2, radius: int, height: float, alpha: float) -> void:
-	var top_y := rect.position.y
-	var bottom := top_y + height
-	var r: float = minf(float(radius), minf(rect.size.x * 0.5, height))
-	var points := PackedVector2Array()
-	var colors := PackedColorArray()
-
-	points.append(Vector2(rect.position.x + 1.0, bottom))
-	colors.append(Color(1, 1, 1, 0.0))
-	points.append(Vector2(rect.position.x + 1.0, top_y + r))
-	colors.append(Color(1, 1, 1, alpha))
-	for i in 8:
-		var angle: float = PI + PI * 0.5 * (float(i) / 7.0)
-		var point := Vector2(rect.position.x + r + cos(angle) * r, top_y + r + sin(angle) * r)
-		points.append(point)
-		colors.append(
-			Color(1, 1, 1, alpha * (1.0 - clampf((point.y - top_y) / maxf(height, 1.0), 0.0, 1.0)))
-		)
-	for i in 8:
-		var angle: float = -PI * 0.5 + PI * 0.5 * (float(i) / 7.0)
-		var point := Vector2(rect.end.x - r + cos(angle) * r, top_y + r + sin(angle) * r)
-		points.append(point)
-		colors.append(
-			Color(1, 1, 1, alpha * (1.0 - clampf((point.y - top_y) / maxf(height, 1.0), 0.0, 1.0)))
-		)
-	points.append(Vector2(rect.end.x - 1.0, top_y + r))
-	colors.append(Color(1, 1, 1, alpha))
-	points.append(Vector2(rect.end.x - 1.0, bottom))
-	colors.append(Color(1, 1, 1, 0.0))
-	draw_polygon(points, colors)
+func _gloss(_rect: Rect2, _radius: int, _height: float, _alpha: float) -> void:
+	pass
 
 
-func _glow(rect: Rect2, radius: int, color: Color) -> void:
-	for i in 3:
-		var ring := StyleBoxFlat.new()
-		ring.bg_color = Color(0, 0, 0, 0)
-		ring.border_color = Color(color.r, color.g, color.b, color.a * (0.55 - float(i) * 0.16))
-		ring.set_border_width_all(2)
-		ring.set_corner_radius_all(radius + i * 2 + 1)
-		draw_style_box(ring, rect.grow(float(i) * 2.0 + 1.0))
+func _glow(rect: Rect2, _radius: int, color: Color) -> void:
+	draw_rect(rect.grow(1.5), Color(color.r, color.g, color.b, clampf(color.a, 0.35, 1.0)), false, 1.5)
 
 
 func _chrome_button(rect: Rect2, label: String, action: String) -> void:
 	var hovered := _mouse_over(rect)
 	var fill := WB_BG_CARD_HOVER if hovered else WB_BG_CARD
-	draw_rect(rect, fill)
-	draw_rect(rect, BORDER_FOCUS if hovered else BORDER_SUBTLE, false, 1.0)
+	draw_style_box(RallyUITheme.make_flat_panel(fill, BORDER_FOCUS if hovered else RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS), rect)
 	_text_serif(
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
 		12,
 		C_CHROME_TEXT,
-		false,
+		true,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 	_hit_regions.append({ "rect": rect, "kind": "button", "action": action })
@@ -3319,14 +3246,13 @@ func _chrome_button(rect: Rect2, label: String, action: String) -> void:
 
 func _gold_button(rect: Rect2, label: String, action: String, modal: bool = false) -> void:
 	var hovered := _mouse_over(rect)
-	var fill := Color("#f5b74c") if hovered else ACCENT_RALLY
-	draw_rect(rect, fill)
-	draw_rect(rect, Color("#fff3c4"), false, 1.0)
+	var fill := Color("#f2bb54") if hovered else ACCENT_RALLY
+	draw_style_box(RallyUITheme.make_flat_panel(fill, Color("#f6c96e"), 1, RallyUITheme.CORNER_RADIUS), rect)
 	_text_serif(
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
 		12,
-		Color("#090e15"),
+		BG_BASE,
 		true,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)

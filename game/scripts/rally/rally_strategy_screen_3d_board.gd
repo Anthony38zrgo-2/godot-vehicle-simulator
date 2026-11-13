@@ -22,9 +22,9 @@ const SPARE_STEP2_RECTS: Array[Rect2] = [
 ]
 const RESERVA_DROP_ZONE_RECT := Rect2(634.0, 276.0, 580.0, 386.0)
 
-const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const FONT_BODY: Font = preload("res://fonts/D-DIN.ttf")
-const FONT_NUM: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_BODY: Font = RallyUITheme.FONT_DATA
+const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD
 
 var screen: Control = null
 var _built_for_vehicle: Node3D = null
@@ -477,7 +477,7 @@ class CompoundBrushCard3D extends Control:
 		hint_lbl.add_theme_font_override("font", FONT_BODY)
 		hint_lbl.add_theme_font_size_override("font_size", 10 if compact else 11)
 		hint_lbl.text = "Arrastra al stock o maletero" if compact else "Arrastra a una rueda o al coche"
-		hint_lbl.add_theme_color_override("font_color", Color("#9ab0c7"))
+		hint_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 		hint_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(hint_lbl)
 
@@ -498,9 +498,9 @@ class CompoundBrushCard3D extends Control:
 			return
 		var ring_col := Tire3DViewScript.compound_ring_color(compound_id)
 		var is_dragging_me := board != null and board._drag_type == "strategy_compound_brush" and board._drag_compound_id == compound_id
-		var bg := Color("#212f42") if (_hovered or is_dragging_me) else Color("#151f2d")
+		var bg := RallyUITheme.BG_HOVER if (_hovered or is_dragging_me) else RallyUITheme.BG_CARD
 		var border := ring_col if (_hovered or is_dragging_me) else Color(ring_col, 0.45)
-		panel_bg.add_theme_stylebox_override("panel", Tire3DViewScript.make_slot_style(bg, border, 2 if (_hovered or is_dragging_me) else 1, 8))
+		panel_bg.add_theme_stylebox_override("panel", Tire3DViewScript.make_slot_style(bg, border, 2 if (_hovered or is_dragging_me) else 1, RallyUITheme.CORNER_RADIUS))
 
 	func _get_drag_data(_pos: Vector2) -> Variant:
 		if not visible or board == null or not is_instance_valid(board.screen):
@@ -654,8 +654,7 @@ class StrategySlot3D extends Control:
 			action_btn.position = Vector2(tx, size.y - 40.0)
 			action_btn.size = Vector2(174.0, 28.0)
 			action_btn.focus_mode = Control.FOCUS_NONE
-			action_btn.add_theme_font_override("font", FONT_NUM)
-			action_btn.add_theme_font_size_override("font_size", 10)
+			RallyUITheme.style_tone_button(action_btn, "chrome", 10, 8, 4, RallyUITheme.CORNER_RADIUS, FONT_NUM)
 			action_btn.pressed.connect(_on_action_btn_pressed)
 			add_child(action_btn)
 		else:
@@ -683,11 +682,11 @@ class StrategySlot3D extends Control:
 			if badge_dot != null:
 				badge_dot.visible = false
 			title_lbl.text = "MALETERO #%d (LIBRE)" % (slot_index + 1)
-			title_lbl.add_theme_color_override("font_color", Color("#7b8fa6"))
+			title_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 			compound_lbl.text = "SIN RUEDA CARGADA"
-			compound_lbl.add_theme_color_override("font_color", Color("#6b7a8d"))
+			compound_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_DIM)
 			sub_lbl.text = "Arrastra desde Reserva aquí para llevar repuesto (+18 kg)"
-			sub_lbl.add_theme_color_override("font_color", Color("#6b7a8d"))
+			sub_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_DIM)
 			if action_btn != null:
 				action_btn.text = "CARGAR DESDE RESERVA (+18 KG)"
 				action_btn.visible = true
@@ -723,10 +722,10 @@ class StrategySlot3D extends Control:
 			title_lbl.text = "RESERVA #%d" % (slot_index + 1)
 			sub_lbl.text = "Clic cambia · Arrastra al Maletero"
 
-		title_lbl.add_theme_color_override("font_color", Color("#9ab0c7"))
+		title_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 		compound_lbl.text = board._compound_short_label(compound_id)
 		compound_lbl.add_theme_color_override("font_color", ring_col)
-		sub_lbl.add_theme_color_override("font_color", Color("#7b8fa6"))
+		sub_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 		refresh_visual_style()
 
 	func refresh_visual_style() -> void:
@@ -735,42 +734,42 @@ class StrategySlot3D extends Control:
 		var focus_id := str(board.screen.get("_focus_id"))
 		var is_focused := focus_id == ("%s:%d" % [slot_kind, slot_index])
 
-		var bg := Color("#151f2d") if slot_active else Color("#0f1720", 0.78)
-		var border := Color(1.0, 1.0, 1.0, 0.14) if slot_active else Color(1.0, 1.0, 1.0, 0.08)
+		var bg := RallyUITheme.BG_CARD if slot_active else Color(RallyUITheme.BG_SURFACE, 0.80)
+		var border := RallyUITheme.BORDER_CARD if slot_active else RallyUITheme.BORDER_SUBTLE
 		var width := 1
 
 		if board._drag_type == "strategy_compound_brush":
 			if slot_active and compound_id != board._drag_compound_id:
-				bg = Color("#1b3329") if _hovered else Color("#182c25")
-				border = Color("#22c55e")
+				bg = Color("#193627") if _hovered else Color("#13281d")
+				border = RallyUITheme.STATUS_SUCCESS
 				width = 2
 			else:
-				border = Color("#6b7a8d", 0.35)
+				border = Color(RallyUITheme.TEXT_DIM, 0.35)
 		elif board._drag_type == "strategy_pool_slot":
 			if board._drag_src_kind == slot_kind and board._drag_src_index == slot_index:
-				bg = Color("#2a2417")
-				border = Color("#e5a93c")
+				bg = Color("#2a2010")
+				border = RallyUITheme.ACCENT_RALLY
 				width = 2
 			elif not slot_active and slot_kind == "spare" and board._drag_src_kind == "stock":
-				bg = Color("#1b3329") if _hovered else Color("#182c25")
-				border = Color("#22c55e")
+				bg = Color("#193627") if _hovered else Color("#13281d")
+				border = RallyUITheme.STATUS_SUCCESS
 				width = 2
 			elif slot_active:
-				bg = Color("#1b3329") if _hovered else Color("#182c25")
-				border = Color("#22c55e")
+				bg = Color("#193627") if _hovered else Color("#13281d")
+				border = RallyUITheme.STATUS_SUCCESS
 				width = 2
 			else:
-				border = Color("#6b7a8d", 0.35)
+				border = Color(RallyUITheme.TEXT_DIM, 0.35)
 		elif is_focused:
-			bg = Color("#212c3c")
-			border = Color("#ffd57a")
+			bg = RallyUITheme.BG_HOVER
+			border = RallyUITheme.BORDER_FOCUS
 			width = 2
 		elif _hovered and slot_active:
-			bg = Color("#1f2b3b")
-			border = Color("#ffd57a", 0.75)
+			bg = RallyUITheme.BG_ELEVATED
+			border = Color(RallyUITheme.ACCENT_RALLY, 0.78)
 			width = 1
 
-		panel_bg.add_theme_stylebox_override("panel", Tire3DViewScript.make_slot_style(bg, border, width, 8))
+		panel_bg.add_theme_stylebox_override("panel", Tire3DViewScript.make_slot_style(bg, border, width, RallyUITheme.CORNER_RADIUS))
 
 	func _gui_input(event: InputEvent) -> void:
 		if not visible or board == null or not is_instance_valid(board.screen):

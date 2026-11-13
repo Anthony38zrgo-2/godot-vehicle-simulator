@@ -18,9 +18,9 @@ const SPARE_RECTS: Array[Rect2] = [
 	Rect2(338.0, 372.0, 280.0, 92.0),
 ]
 const STOCK_ZONE_RECT := Rect2(44.0, 470.0, 580.0, 196.0)
-const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const FONT_BODY: Font = preload("res://fonts/D-DIN.ttf")
-const FONT_NUM: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_BODY: Font = RallyUITheme.FONT_DATA
+const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD
 
 var garage: Control = null
 var _built_for_vehicle: Node3D = null
@@ -376,8 +376,7 @@ class GarageTireSlot3D extends Control:
 			unload_btn.position = Vector2(size.x - 62.0, size.y - 34.0)
 			unload_btn.size = Vector2(54.0, 24.0)
 			unload_btn.focus_mode = Control.FOCUS_NONE
-			unload_btn.add_theme_font_override("font", FONT_NUM)
-			unload_btn.add_theme_font_size_override("font_size", 10)
+			RallyUITheme.style_tone_button(unload_btn, "chrome", 10, 8, 3, RallyUITheme.CORNER_RADIUS, FONT_NUM)
 			unload_btn.pressed.connect(func():
 				if board != null and is_instance_valid(board.garage):
 					board.garage.call("_unload_spare_slot", slot_index)
@@ -420,11 +419,11 @@ class GarageTireSlot3D extends Control:
 			life_bar.visible = false
 			title_lbl.text = "LIBRE #%d" % (slot_index + 1)
 			compound_lbl.text = "MALETERO VACÍO"
-			compound_lbl.add_theme_color_override("font_color", Color("#9ab0c7"))
+			compound_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 			sub_lbl.text = "Arrastra rueda del parque"
-			sub_lbl.add_theme_color_override("font_color", Color("#6b7a8d"))
+			sub_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_DIM)
 			status_lbl.text = "LIBRE"
-			status_lbl.add_theme_color_override("font_color", Color("#6b7a8d"))
+			status_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_DIM)
 			_rendered_signature = "empty"
 			refresh_visual_style()
 			return
@@ -458,19 +457,16 @@ class GarageTireSlot3D extends Control:
 		var short_lbl := str(g.call("_compound_label", cid, true)) if is_instance_valid(g) else cid.to_upper()
 		compound_lbl.text = short_lbl
 		compound_lbl.add_theme_color_override("font_color", Tire3DViewScript.compound_ring_color(cid, false))
-		sub_lbl.add_theme_color_override("font_color", Color("#9ab0c7"))
+		sub_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 
-		var st_info: Dictionary = g.call("_tire_status_info", inv, td) if inv != null else {"tag": "OK", "color": Color("#9ab0c7")}
+		var st_info: Dictionary = g.call("_tire_status_info", inv, td) if inv != null else {"tag": "OK", "color": RallyUITheme.TEXT_MUTED}
 		status_lbl.text = str(st_info.get("tag", "OK"))
-		status_lbl.add_theme_color_override("font_color", st_info.get("color", Color("#9ab0c7")))
+		status_lbl.add_theme_color_override("font_color", st_info.get("color", RallyUITheme.TEXT_MUTED))
 
 		life_bar.value = life_pct
-		var fill_box := StyleBoxFlat.new()
-		fill_box.bg_color = Color("#ef4444") if (dead or leak or life_pct < 35.0) else (Color("#e5a93c") if (rim or life_pct < 70.0) else Color("#22c55e"))
-		fill_box.set_corner_radius_all(2)
-		var bg_box := StyleBoxFlat.new()
-		bg_box.bg_color = Color("#0c141e")
-		bg_box.set_corner_radius_all(2)
+		var bar_col := RallyUITheme.STATUS_DANGER if (dead or leak or life_pct < 35.0) else (RallyUITheme.ACCENT_RALLY if (rim or life_pct < 70.0) else RallyUITheme.STATUS_SUCCESS)
+		var fill_box := RallyUITheme.make_flat_panel(bar_col, Color(0, 0, 0, 0), 0, 1)
+		var bg_box := RallyUITheme.make_flat_panel(RallyUITheme.BG_WELL, Color(0, 0, 0, 0), 0, 1)
 		life_bar.add_theme_stylebox_override("fill", fill_box)
 		life_bar.add_theme_stylebox_override("background", bg_box)
 
@@ -486,37 +482,38 @@ class GarageTireSlot3D extends Control:
 		var is_selected := sel_id > 0 and tire_id == sel_id
 		var is_focused := focus_path == my_path
 
-		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(8)
-		sb.bg_color = Color("#24364b") if (_hovered or is_selected) else Color("#182534")
-		sb.border_color = Color(1.0, 1.0, 1.0, 0.14)
-		sb.set_border_width_all(1)
+		var sb := RallyUITheme.make_flat_panel(
+			RallyUITheme.BG_HOVER if (_hovered or is_selected) else RallyUITheme.BG_CARD,
+			RallyUITheme.BORDER_CARD,
+			1,
+			RallyUITheme.CORNER_RADIUS
+		)
 
 		var drag_id := board._active_drag_tire_id
 		if drag_id > 0:
 			if drag_id == tire_id:
-				sb.bg_color = Color("#2a2417")
-				sb.border_color = Color("#e5a93c")
+				sb.bg_color = Color("#2a2010")
+				sb.border_color = RallyUITheme.ACCENT_RALLY
 				sb.set_border_width_all(2)
 			else:
 				var check_res: Dictionary = g.call("can_pool_drop_from_id", drag_id, slot_kind, slot_index)
 				if bool(check_res.get("ok", false)):
-					sb.bg_color = Color("#1b3329") if _hovered else Color("#182c25")
-					sb.border_color = Color("#22c55e")
+					sb.bg_color = Color("#193627") if _hovered else Color("#13281d")
+					sb.border_color = RallyUITheme.STATUS_SUCCESS
 					sb.set_border_width_all(2)
 				else:
-					sb.bg_color = Color("#1a151c")
-					sb.border_color = Color("#ef4444", 0.55)
+					sb.bg_color = Color("#241216")
+					sb.border_color = Color(RallyUITheme.STATUS_DANGER, 0.55)
 					sb.set_border_width_all(1)
 		elif is_selected:
-			sb.bg_color = Color("#2b2619")
-			sb.border_color = Color("#e5a93c")
+			sb.bg_color = Color("#2a2010")
+			sb.border_color = RallyUITheme.ACCENT_RALLY
 			sb.set_border_width_all(2)
 		elif is_focused:
-			sb.border_color = Color("#ffffff")
+			sb.border_color = RallyUITheme.BORDER_FOCUS
 			sb.set_border_width_all(2)
 		elif _hovered:
-			sb.border_color = Color("#ffd57a", 0.75)
+			sb.border_color = RallyUITheme.BORDER_HOVER
 
 		panel_bg.add_theme_stylebox_override("panel", sb)
 

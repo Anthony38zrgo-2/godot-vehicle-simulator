@@ -16,6 +16,7 @@ var pad := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	theme = RallyUITheme.build_menu_theme()
 	_build()
 
 func tire_at(index: int) -> Dictionary:
@@ -37,7 +38,7 @@ func _build() -> void:
 	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(board)
 	var backdrop := ColorRect.new()
-	backdrop.color = Color("101b29")
+	backdrop.color = RallyUITheme.BG_WELL
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	board.add_child(backdrop)
@@ -47,11 +48,12 @@ func _build() -> void:
 	_caption("DESCARTE", 0.92, 0.045)
 	for x in [0.21, 0.82]:
 		var line := ColorRect.new()
-		line.color = Color("344457")
+		line.color = RallyUITheme.BORDER_SUBTLE
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_place(line, x, 0.50, Vector2(2, 360))
+		_place(line, x, 0.50, Vector2(1, 360))
 	var tabs := VBoxContainer.new()
 	tabs.custom_minimum_size.x = 150
+	tabs.add_theme_constant_override("separation", 6)
 	row.add_child(tabs)
 	host.button("RUEDAS", func(): _category("wheels"), tabs, true)
 	host.button("RADIADOR", func(): _category("radiator"), tabs, true)
@@ -63,17 +65,23 @@ func _build() -> void:
 			if not tire.is_empty():
 				var view := _wheel_view(index)
 				view.name = "WheelView"
-				view.position = Vector2(4, 22)
+				view.position = Vector2(4, 14)
 				tile.add_child(view)
 				var text := Label.new()
 				text.text = _condition(tire)
 				text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				text.add_theme_font_size_override("font_size", 12)
-				text.add_theme_color_override("font_shadow_color", Color.BLACK)
-				text.add_theme_constant_override("shadow_offset_x", 2)
-				text.add_theme_constant_override("shadow_offset_y", 2)
-				text.position = Vector2(2, 50)
-				text.size = Vector2(142,90)
+				RallyUITheme.style_label(text, "white", 10, true, false)
+				var scrim_sb := RallyUITheme.make_flat_panel(
+					Color(0.03, 0.045, 0.07, 0.90),
+					RallyUITheme.BORDER_SUBTLE,
+					1,
+					RallyUITheme.CORNER_RADIUS,
+					4,
+					3
+				)
+				text.add_theme_stylebox_override("normal", scrim_sb)
+				text.position = Vector2(4, 88)
+				text.size = Vector2(138, 68)
 				text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				tile.add_child(text)
 		var bin := _slot(9, "DESCARTAR\n(solicita confirmación)", Vector2(.92,.50))
@@ -87,14 +95,12 @@ func _build() -> void:
 			_tool_slot(8, "GRAVE · 1 USO\n+50 salud · 60 s", Vector2(.10,.74), Color("f28b87"))
 		else:
 			_caption("Grave: agotada", .10, .74)
-		var radiator := _slot(4, "RADIADOR\nSalud %d%%" % roundi((1-host.get_radiator_damage())*100), Vector2(.50,.20))
-		radiator.offset_top = -35
-		radiator.offset_bottom = 35
-		var transparent := StyleBoxEmpty.new()
-		for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-			radiator.add_theme_stylebox_override(state, transparent)
+		var radiator := _slot(4, "RADIADOR\nSalud %d%%" % roundi((1-host.get_radiator_damage())*100), Vector2(.50,.14))
+		radiator.offset_top = -28
+		radiator.offset_bottom = 28
+		radiator.add_theme_color_override("font_color", RallyUITheme.ACCENT_RALLY)
 		var tm = host.session.vehicle.simulation.thermal_model
-		_caption("Agua %.0f °C · Aceite %.0f °C\nMotor %.0f °C" % [tm.water_temperature_c, tm.oil_temperature_c, tm.engine_block_temperature_c], .50,.35)
+		_caption("Agua %.0f °C · Aceite %.0f °C\nMotor %.0f °C" % [tm.water_temperature_c, tm.oil_temperature_c, tm.engine_block_temperature_c], .50, .86)
 	info = Label.new()
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.text = "Arrastra o selecciona origen y destino · A tomar/colocar · B cancelar · LB/RB categoría · X aplicar herramienta"
@@ -202,9 +208,14 @@ func _caption(text: String, x: float, y: float) -> void:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 12)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	RallyUITheme.style_label(label, "primary", 11, true, true)
+	label.add_theme_stylebox_override(
+		"normal",
+		RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_WELL, 0.94), RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS, 12, 6)
+	)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_place(label,x,y,Vector2(260,32))
+	_place(label, x, y, Vector2(280, 42))
 
 func _slot(index: int, title: String, point: Vector2) -> Button:
 	var b := ServiceSlot.new()
@@ -213,26 +224,16 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 	b.text = title
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.add_theme_font_size_override("font_size", 12)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.14, 0.20, 0.35)
-	style.border_color = Color("53677a")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(16)
-	var style_hover := style.duplicate() as StyleBoxFlat
-	style_hover.bg_color = Color(0.12, 0.20, 0.28, 0.55)
-	style_hover.border_color = Color("90a8be")
-	var style_focus := style.duplicate() as StyleBoxFlat
-	style_focus.bg_color = Color(0.14, 0.22, 0.31, 0.6)
-	style_focus.border_color = Color("ffd57a")
-	style_focus.set_border_width_all(2)
-	var style_pressed := style.duplicate() as StyleBoxFlat
-	style_pressed.bg_color = Color(0.22, 0.18, 0.10, 0.65)
-	style_pressed.border_color = Color("e5a93c")
-	style_pressed.set_border_width_all(2)
-	var style_disabled := style.duplicate() as StyleBoxFlat
-	style_disabled.bg_color = Color(0.06, 0.09, 0.13, 0.2)
-	style_disabled.border_color = Color("313d49")
+	b.add_theme_font_override("font", RallyUITheme.FONT_TITLE)
+	b.add_theme_font_size_override("font_size", 11)
+	b.add_theme_color_override("font_color", RallyUITheme.TEXT_PRIMARY)
+	b.add_theme_color_override("font_hover_color", RallyUITheme.TEXT_WHITE)
+	b.add_theme_color_override("font_focus_color", RallyUITheme.TEXT_WHITE)
+	var style := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_CARD, 0.92), RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
+	var style_hover := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_HOVER, 0.96), RallyUITheme.BORDER_HOVER, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
+	var style_focus := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_ELEVATED, 0.98), RallyUITheme.BORDER_FOCUS, 2, RallyUITheme.CORNER_RADIUS, 8, 8)
+	var style_pressed := RallyUITheme.make_flat_panel(Color("#2a2010", 0.96), RallyUITheme.ACCENT_RALLY, 2, RallyUITheme.CORNER_RADIUS, 8, 8)
+	var style_disabled := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_SURFACE, 0.45), RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
 	b.add_theme_stylebox_override("normal", style)
 	b.add_theme_stylebox_override("hover", style_hover)
 	b.add_theme_stylebox_override("focus", style_focus)
@@ -245,7 +246,7 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 		name_label.text = title
 		name_label.size = Vector2(146,20)
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size",11)
+		RallyUITheme.style_label(name_label, "muted", 10, false, true)
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(name_label)
 	b.focus_entered.connect(func(): selected = index)

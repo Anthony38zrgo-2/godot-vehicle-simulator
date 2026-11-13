@@ -1,28 +1,28 @@
 extends CanvasLayer
 signal confirmed
 
-const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const FONT_REGULAR: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
-const FONT_DATA: Font = preload("res://fonts/D-DIN.ttf")
-const FONT_DATA_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_REGULAR: Font = RallyUITheme.FONT_REGULAR
+const FONT_DATA: Font = RallyUITheme.FONT_DATA
+const FONT_DATA_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
 const BG_IMAGE_PATHS: Array[String] = [
 	"res://assets/rally/garage/service_repairs_bg.jpg",
 	"res://assets/rally/garage/service_repairs_bg_2.jpg"
 ]
 
-const WB_BG_SHELL := Color("#090e15")
-const WB_BG_CONTENT := Color("#1a2636")
-const WB_BG_CARD := Color("#223246")
-const WB_BG_WELL := Color("#0c141e")
-const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
-const WB_BORDER_FOCUS := Color("#ffffff")
-const WB_TEXT_TITLE := Color("#f0f5fa")
-const WB_TEXT_LABEL := Color("#9ab0c7")
-const WB_TEXT_DATA := Color("#ffffff")
-const ACCENT_RALLY := Color("#e5a93c")
-const STATUS_DANGER := Color("#ef4444")
-const STATUS_SUCCESS := Color("#22c55e")
-const C_BLUE := Color("#60a5fa")
+const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
+const WB_BG_CONTENT := RallyUITheme.WB_BG_CONTENT
+const WB_BG_CARD := RallyUITheme.WB_BG_CARD
+const WB_BG_WELL := RallyUITheme.WB_BG_WELL
+const WB_BORDER_SUBTLE := RallyUITheme.BORDER_CARD
+const WB_BORDER_FOCUS := RallyUITheme.BORDER_FOCUS
+const WB_TEXT_TITLE := RallyUITheme.TEXT_PRIMARY
+const WB_TEXT_LABEL := RallyUITheme.TEXT_MUTED
+const WB_TEXT_DATA := RallyUITheme.TEXT_WHITE
+const ACCENT_RALLY := RallyUITheme.ACCENT_RALLY
+const STATUS_DANGER := RallyUITheme.STATUS_DANGER
+const STATUS_SUCCESS := RallyUITheme.STATUS_SUCCESS
+const C_BLUE := RallyUITheme.STATUS_INFO
 
 const PARTS := {
 	"engine": ["Motor", 45.0],
@@ -100,26 +100,18 @@ func open(car, event_manager, window: Dictionary) -> void:
 	add_child(bg_rect)
 
 	var shade := ColorRect.new()
-	shade.color = Color(0.04, 0.06, 0.09, 0.48)
+	shade.color = Color(0.02, 0.04, 0.06, 0.72)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 
 	var modal_card := PanelContainer.new()
+	modal_card.theme = RallyUITheme.build_menu_theme()
 	modal_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	modal_card.offset_left = 60
 	modal_card.offset_right = -60
 	modal_card.offset_top = 32
 	modal_card.offset_bottom = -32
-	var card_sb := StyleBoxFlat.new()
-	card_sb.bg_color = Color(WB_BG_CONTENT.r, WB_BG_CONTENT.g, WB_BG_CONTENT.b, 0.92)
-	card_sb.border_color = WB_BORDER_SUBTLE
-	card_sb.set_border_width_all(1)
-	card_sb.set_corner_radius_all(6)
-	card_sb.shadow_size = 0
-	card_sb.content_margin_left = 24
-	card_sb.content_margin_right = 24
-	card_sb.content_margin_top = 20
-	card_sb.content_margin_bottom = 20
+	var card_sb := RallyUITheme.make_flat_panel(Color(WB_BG_CONTENT, 0.94), WB_BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 24, 20)
 	modal_card.add_theme_stylebox_override("panel", card_sb)
 	shade.add_child(modal_card)
 
@@ -226,22 +218,7 @@ func open(car, event_manager, window: Dictionary) -> void:
 
 	commit = Button.new()
 	commit.text = "CONFIRMAR REPARACIONES Y CONTINUAR"
-	var btn_normal := StyleBoxFlat.new()
-	btn_normal.bg_color = ACCENT_RALLY
-	btn_normal.border_color = Color("#fff3c4")
-	btn_normal.set_border_width_all(1)
-	btn_normal.set_corner_radius_all(2)
-	btn_normal.content_margin_top = 10
-	btn_normal.content_margin_bottom = 10
-	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
-	btn_hover.bg_color = Color("#f5b74c")
-	commit.add_theme_stylebox_override("normal", btn_normal)
-	commit.add_theme_stylebox_override("hover", btn_hover)
-	commit.add_theme_stylebox_override("pressed", btn_hover)
-	commit.add_theme_font_override("font", FONT_TITLE)
-	commit.add_theme_font_size_override("font_size", 13)
-	commit.add_theme_color_override("font_color", Color("#090e15"))
-	commit.add_theme_color_override("font_hover_color", Color("#000000"))
+	RallyUITheme.style_gold_button(commit, 13, 20, 10)
 	commit.pressed.connect(_commit)
 	panel.add_child(commit)
 
@@ -309,13 +286,7 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 	var is_punc := inv.is_punctured(tire)
 	var is_rim := inv.is_rim_damaged(tire)
 	var row_box := PanelContainer.new()
-	var rsb := StyleBoxFlat.new()
-	rsb.bg_color = Color(0.08, 0.12, 0.17, 0.7)
-	rsb.set_corner_radius_all(4)
-	rsb.content_margin_left = 10
-	rsb.content_margin_right = 10
-	rsb.content_margin_top = 8
-	rsb.content_margin_bottom = 8
+	var rsb := RallyUITheme.make_flat_panel(RallyUITheme.BG_WELL, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 10, 8)
 	row_box.add_theme_stylebox_override("panel", rsb)
 	list.add_child(row_box)
 	var hbox := HBoxContainer.new()

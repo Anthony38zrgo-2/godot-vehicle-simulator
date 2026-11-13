@@ -166,14 +166,9 @@ static func make_slot_style(
 	bg_color: Color,
 	border_color: Color,
 	border_width: int = 1,
-	corner_radius: int = 8
+	corner_radius: int = RallyUITheme.CORNER_RADIUS
 ) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.set_corner_radius_all(corner_radius)
-	sb.bg_color = bg_color
-	sb.border_color = border_color
-	sb.set_border_width_all(border_width)
-	return sb
+	return RallyUITheme.make_flat_panel(bg_color, border_color, border_width, corner_radius)
 
 
 static func create_drag_preview(

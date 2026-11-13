@@ -15,30 +15,30 @@ const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
 const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
 const RallyHeldPartPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
 
-# 2.3. Paleta Workbench Motorsport (Ventana Pausa / Inventario)
-const WB_BG_SHELL := Color("#090e15")
-const WB_BG_HEADER := Color("#0d141e")
-const WB_BG_FOOTER := Color("#0d141e")
-const WB_BG_TAB_INACTIVE := Color("#111822")
-const WB_BG_TAB_ACTIVE := Color("#1a2636")
-const WB_BG_CONTENT := Color("#1a2636")
-const WB_BG_CARD := Color("#223246")
-const WB_BG_CARD_HOVER := Color("#2a3d54")
-const WB_BG_WELL := Color("#0c141e")
-const WB_BORDER_SUBTLE := Color(1.0, 1.0, 1.0, 0.10)
-const WB_BORDER_HOVER := Color(1.0, 1.0, 1.0, 0.20)
-const WB_BORDER_FOCUS := Color("#ffffff")
-const WB_BORDER_ACCENT := Color("#e5a93c")
-const WB_SLIDER_TRACK := Color("#0c141e")
-const WB_SLIDER_FILL := Color("#4a7bb0")
-const WB_SLIDER_THUMB := Color("#eaf2fa")
-const WB_SLIDER_STEPPER := Color("#25364b")
-const WB_TEXT_TITLE := Color("#f0f5fa")
-const WB_TEXT_LABEL := Color("#9ab0c7")
-const WB_TEXT_DATA := Color("#ffffff")
-const WB_TEXT_ACCENT := Color("#e5a93c")
+# 2.3. Paleta Unificada Dark Carbon + Brass Gold (fuente única: RallyUITheme)
+const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
+const WB_BG_HEADER := RallyUITheme.WB_BG_HEADER
+const WB_BG_FOOTER := RallyUITheme.WB_BG_FOOTER
+const WB_BG_TAB_INACTIVE := RallyUITheme.WB_BG_TAB_INACTIVE
+const WB_BG_TAB_ACTIVE := RallyUITheme.WB_BG_TAB_ACTIVE
+const WB_BG_CONTENT := RallyUITheme.WB_BG_CONTENT
+const WB_BG_CARD := RallyUITheme.WB_BG_CARD
+const WB_BG_CARD_HOVER := RallyUITheme.WB_BG_CARD_HOVER
+const WB_BG_WELL := RallyUITheme.WB_BG_WELL
+const WB_BORDER_SUBTLE := RallyUITheme.WB_BORDER_SUBTLE
+const WB_BORDER_HOVER := RallyUITheme.WB_BORDER_HOVER
+const WB_BORDER_FOCUS := RallyUITheme.WB_BORDER_FOCUS
+const WB_BORDER_ACCENT := RallyUITheme.WB_BORDER_ACCENT
+const WB_SLIDER_TRACK := RallyUITheme.WB_SLIDER_TRACK
+const WB_SLIDER_FILL := RallyUITheme.WB_SLIDER_FILL
+const WB_SLIDER_THUMB := RallyUITheme.WB_SLIDER_THUMB
+const WB_SLIDER_STEPPER := RallyUITheme.WB_SLIDER_STEPPER
+const WB_TEXT_TITLE := RallyUITheme.WB_TEXT_TITLE
+const WB_TEXT_LABEL := RallyUITheme.WB_TEXT_LABEL
+const WB_TEXT_DATA := RallyUITheme.WB_TEXT_DATA
+const WB_TEXT_ACCENT := RallyUITheme.WB_TEXT_ACCENT
 
-const BG_BASE := WB_BG_SHELL
+const BG_BASE := RallyUITheme.BG_BASE
 const BG_SURFACE := WB_BG_CONTENT
 const BG_HOVER := WB_BG_CARD_HOVER
 const BG_CARD := WB_BG_CARD
@@ -47,9 +47,9 @@ const BORDER_FOCUS := WB_BORDER_FOCUS
 const TEXT_PRIMARY := WB_TEXT_TITLE
 const TEXT_MUTED := WB_TEXT_LABEL
 const ACCENT_RALLY := WB_BORDER_ACCENT
-const ACCENT_ALERT := Color("#f59e0b")
-const STATUS_DANGER := Color("#ef4444")
-const STATUS_SUCCESS := Color("#22c55e")
+const ACCENT_ALERT := RallyUITheme.ACCENT_ALERT
+const STATUS_DANGER := RallyUITheme.STATUS_DANGER
+const STATUS_SUCCESS := RallyUITheme.STATUS_SUCCESS
 
 # Aliases de compatibilidad interna
 const C_BACK := WB_BG_SHELL
@@ -59,7 +59,7 @@ const C_RIM := WB_BORDER_SUBTLE
 const C_CHROME_TEXT := WB_TEXT_TITLE
 const C_CHROME_DIM := WB_TEXT_LABEL
 const C_BLUE := WB_SLIDER_FILL
-const C_BLUE_DEEP := Color("#16283b")
+const C_BLUE_DEEP := Color("#2a2010")
 
 const C_FACE := WB_BG_CONTENT
 const C_FACE_HI := WB_BG_CARD_HOVER
@@ -72,9 +72,9 @@ const C_DARK := Color("#060a0f")
 const C_TEXT := WB_TEXT_TITLE
 const C_DIM := WB_TEXT_LABEL
 const C_GOLD := ACCENT_RALLY
-const C_GOLD_HI := Color("#f8df9e")
+const C_GOLD_HI := RallyUITheme.TEXT_GOLD_SOFT
 const C_ROSE := STATUS_DANGER
-const C_SEL := WB_BG_CARD_HOVER
+const C_SEL := RallyUITheme.BG_ELEVATED
 const C_GREEN := STATUS_SUCCESS
 
 # =============================================================================
@@ -123,6 +123,7 @@ func _ready() -> void:
 	layer = 100
 
 	wheel_action_sound = AudioStreamPlayer.new()
+	wheel_action_sound.volume_db = -5.0
 	wheel_action_sound.stream = preload("res://sounds/rally_service/ClicksSmall.mclick2.wav")
 	add_child(wheel_action_sound)
 
@@ -132,14 +133,15 @@ func _ready() -> void:
 	add_child(screen)
 
 	# Velo oscuro atmosférico para ocluir interferencias de la HUD durante la pausa
+	screen.theme = RallyUITheme.build_menu_theme()
 	backdrop = ColorRect.new()
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	backdrop.color = Color(0.04, 0.06, 0.08, 0.88)
+	backdrop.color = RallyUITheme.BG_OVERLAY
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	backdrop.visible = false
 	screen.add_child(backdrop)
 
-	# Botón de pausa en la esquina superior derecha de la HUD (estilo Aero Glass)
+	# Botón de pausa en la esquina superior derecha
 	pause_button = Button.new()
 	pause_button.text = "PAUSA · ESC"
 	_style_chrome_button(pause_button)
@@ -148,14 +150,15 @@ func _ready() -> void:
 	pause_button.pressed.connect(toggle)
 	screen.add_child(pause_button)
 
-	# Ventana modal central en estilo Aero Glass + Motorsport
+	# Ventana modal central unificada (Dark Carbon · 2 px chamfer)
 	modal = PanelContainer.new()
 	screen.add_child(modal)
 	modal.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	modal.custom_minimum_size = Vector2(1080, 620)
-	modal.add_theme_stylebox_override("panel", _make_glass_style(10, Color(C_GLASS, 0.98), Color(C_RIM, 0.45)))
+	modal.add_theme_stylebox_override("panel", RallyUITheme.make_window_panel(WB_BG_SHELL, RallyUITheme.BORDER_CARD))
 	modal.hide()
 	var pause_sound := AudioStreamPlayer.new()
+	pause_sound.volume_db = -5.0
 	add_child(pause_sound)
 	modal.visibility_changed.connect(func() -> void:
 		pause_sound.stream = preload("res://sounds/rally_service/WindowOpen.wav") if modal.visible else preload("res://sounds/rally_service/WindowClose.wav")
@@ -181,9 +184,9 @@ func _build_modal_skeleton() -> void:
 	root_vbox.add_theme_constant_override("separation", 10)
 	root_margin.add_child(root_vbox)
 
-	# 1. Cabecera Aero Glass
+	# 1. Cabecera plana Motorsport
 	var header_panel := PanelContainer.new()
-	header_panel.add_theme_stylebox_override("panel", _make_glass_style(8, Color(C_GLASS, 0.95), Color(C_RIM, 0.35)))
+	header_panel.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS, RallyUITheme.BORDER_CARD))
 	root_vbox.add_child(header_panel)
 
 	var header_margin := MarginContainer.new()
@@ -219,7 +222,7 @@ func _build_modal_skeleton() -> void:
 	header_hbox.add_child(spacer)
 
 	var badge_box := PanelContainer.new()
-	badge_box.add_theme_stylebox_override("panel", _make_glass_style(6, C_GLASS_DEEP, Color(C_RIM, 0.30)))
+	badge_box.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS_DEEP, RallyUITheme.BORDER_CARD))
 	header_hbox.add_child(badge_box)
 
 	var badge_margin := MarginContainer.new()
@@ -302,9 +305,9 @@ func _build_modal_skeleton() -> void:
 	content.add_theme_constant_override("separation", 6)
 	content_scroll.add_child(content)
 
-	# 3. Pie de página Aero Glass
+	# 3. Pie de página plano Motorsport
 	var footer_panel := PanelContainer.new()
-	footer_panel.add_theme_stylebox_override("panel", _make_glass_style(8, Color(C_GLASS, 0.95), Color(C_RIM, 0.35)))
+	footer_panel.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS, RallyUITheme.BORDER_CARD))
 	root_vbox.add_child(footer_panel)
 
 	var footer_margin := MarginContainer.new()
@@ -962,209 +965,39 @@ func _create_telemetry_card(title_text: String, prim_text: String, sub_text: Str
 # =============================================================================
 
 func _make_glass_style(radius: int, fill: Color, rim: Color) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = fill
-	s.border_color = rim
-	s.set_border_width_all(1)
-	s.set_corner_radius_all(radius)
-	s.shadow_size = 0
-	return s
+	return RallyUITheme.make_flat_panel(fill, rim, 1, mini(radius, RallyUITheme.CORNER_RADIUS))
 
 
 func _make_classic_panel_style() -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = BG_SURFACE
-	s.border_color = BORDER_SUBTLE
-	s.set_border_width_all(1)
-	s.shadow_size = 0
-	return s
+	return RallyUITheme.make_window_panel()
 
 
 func _make_card_style() -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = BG_CARD
-	s.border_color = BORDER_SUBTLE
-	s.set_border_width_all(1)
-	s.set_corner_radius_all(2)
-	s.content_margin_left = 10
-	s.content_margin_right = 10
-	s.content_margin_top = 6
-	s.content_margin_bottom = 6
-	s.shadow_size = 0
-	return s
+	return RallyUITheme.make_card_panel(BG_CARD, BORDER_SUBTLE, 10, 6)
 
 
 func _style_gold_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#d49b2f")
-	normal.border_color = C_GOLD_HI
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 20
-	normal.content_margin_right = 20
-	normal.content_margin_top = 8
-	normal.content_margin_bottom = 8
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#e5aa37")
-	hover.border_color = Color.WHITE
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#b38020")
-	pressed.border_color = C_GOLD
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", BOLD)
-	btn.add_theme_font_size_override("font_size", 13)
-	btn.add_theme_color_override("font_color", Color("#0a0e14"))
-	btn.add_theme_color_override("font_hover_color", Color("#000000"))
-	btn.add_theme_color_override("font_pressed_color", Color("#000000"))
-	btn.add_theme_color_override("font_focus_color", Color("#0a0e14"))
+	RallyUITheme.style_gold_button(btn, 13, 20, 8)
 
 
 func _style_chrome_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = BG_CARD
-	normal.border_color = BORDER_SUBTLE
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 16
-	normal.content_margin_right = 16
-	normal.content_margin_top = 8
-	normal.content_margin_bottom = 8
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = BG_HOVER
-	hover.border_color = BORDER_FOCUS
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = BG_BASE
-	pressed.border_color = ACCENT_RALLY
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", BOLD)
-	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", ACCENT_RALLY)
-	btn.add_theme_color_override("font_focus_color", Color.WHITE)
+	RallyUITheme.style_chrome_button(btn, 12, 16, 8)
 
 
 func _style_caution_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.14, 0.11, 0.06, 0.90)
-	normal.border_color = Color(ACCENT_ALERT, 0.40)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 16
-	normal.content_margin_right = 16
-	normal.content_margin_top = 8
-	normal.content_margin_bottom = 8
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.20, 0.15, 0.08, 0.95)
-	hover.border_color = ACCENT_ALERT
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.08, 0.06, 0.03, 0.95)
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", BOLD)
-	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", ACCENT_ALERT)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", ACCENT_ALERT)
-	btn.add_theme_color_override("font_focus_color", ACCENT_ALERT)
+	RallyUITheme.style_caution_button(btn, 12, 16, 8)
 
 
 func _style_danger_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.14, 0.06, 0.08, 0.85)
-	normal.border_color = Color(STATUS_DANGER, 0.40)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 16
-	normal.content_margin_right = 16
-	normal.content_margin_top = 8
-	normal.content_margin_bottom = 8
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.22, 0.08, 0.10, 0.95)
-	hover.border_color = Color("#ff857d")
-
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.08, 0.04, 0.05, 0.95)
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", BOLD)
-	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", Color("#ff9e97"))
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", STATUS_DANGER)
-	btn.add_theme_color_override("font_focus_color", Color("#ff9e97"))
+	RallyUITheme.style_danger_button(btn, 12, 16, 8)
 
 
 func _style_selected_wheel_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = BG_HOVER
-	normal.border_color = ACCENT_RALLY
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 16
-	normal.content_margin_right = 16
-	normal.content_margin_top = 8
-	normal.content_margin_bottom = 8
-	normal.shadow_size = 0
-
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.18, 0.24, 0.32, 0.95)
-	hover.border_color = BORDER_FOCUS
-
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", normal)
-	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", BOLD)
-	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_color_override("font_color", ACCENT_RALLY)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", ACCENT_RALLY)
-	btn.add_theme_color_override("font_focus_color", ACCENT_RALLY)
+	RallyUITheme.style_tone_button(btn, "accent", 12, 16, 8)
 
 
 func _style_option_button(opt: OptionButton) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = C_FIELD
-	normal.border_color = Color(C_RIM, 0.40)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
-	normal.content_margin_left = 14
-	normal.content_margin_right = 14
-	normal.content_margin_top = 6
-	normal.content_margin_bottom = 6
-
-	opt.add_theme_stylebox_override("normal", normal)
-	opt.add_theme_stylebox_override("hover", normal)
-	opt.add_theme_stylebox_override("pressed", normal)
-	opt.add_theme_font_override("font", FONT)
-	opt.add_theme_font_size_override("font_size", 12)
-	opt.add_theme_color_override("font_color", C_CHROME_TEXT)
+	RallyUITheme.style_option_button(opt, 12, 14, 6)
 
 
 # =============================================================================
@@ -1296,12 +1129,7 @@ class ChassisDiagram extends PanelContainer:
 		vbox.add_child(front_lbl)
 
 		var car_box := PanelContainer.new()
-		var c_sb := StyleBoxFlat.new()
-		c_sb.bg_color = Color(panel_ref.C_GLASS_DEEP, 0.95)
-		c_sb.border_color = Color(panel_ref.C_RIM, 0.45)
-		c_sb.set_border_width_all(1)
-		c_sb.set_corner_radius_all(8)
-		car_box.add_theme_stylebox_override("panel", c_sb)
+		car_box.add_theme_stylebox_override("panel", RallyUITheme.make_well_panel(RallyUITheme.BORDER_CARD, 0, 0))
 		car_box.custom_minimum_size = Vector2(165, 134)
 		vbox.add_child(car_box)
 
@@ -1481,7 +1309,8 @@ class WheelSlotControl extends PanelContainer:
 
 	func _update_style(selected: bool, hover_drop: bool) -> void:
 		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(5)
+		sb.set_corner_radius_all(RallyUITheme.CORNER_RADIUS)
+		sb.shadow_size = 0
 		if hover_drop:
 			sb.bg_color = Color(panel_ref.C_SEL, 0.95)
 			sb.border_color = panel_ref.C_GOLD_HI
@@ -1511,11 +1340,7 @@ class WheelSlotControl extends PanelContainer:
 		holder.custom_minimum_size = Vector2(140, 40)
 		holder.size = Vector2(140, 40)
 		var preview := PanelContainer.new()
-		var p_sb := StyleBoxFlat.new()
-		p_sb.bg_color = Color(panel_ref.C_GLASS, 0.95)
-		p_sb.border_color = panel_ref.C_GOLD
-		p_sb.set_border_width_all(2)
-		p_sb.set_corner_radius_all(6)
+		var p_sb := RallyUITheme.make_flat_panel(Color(panel_ref.C_GLASS, 0.96), panel_ref.C_GOLD, 2, RallyUITheme.CORNER_RADIUS)
 		preview.add_theme_stylebox_override("panel", p_sb)
 		var p_lbl := Label.new()
 		var prefix := "🛞 " + ("DELANT. " if slot_index < 2 else "TRAS. ") if slot_type == "mounted" else "🛞 REPUESTO "
@@ -1596,11 +1421,12 @@ class DiscardBinSlot extends PanelContainer:
 		vbox.add_child(hint)
 
 	func _update_style(hover: bool) -> void:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.18, 0.08, 0.10, 0.90) if hover else Color(0.12, 0.05, 0.07, 0.75)
-		sb.border_color = panel_ref.C_ROSE if hover else Color(panel_ref.C_ROSE, 0.5)
-		sb.set_border_width_all(2 if hover else 1)
-		sb.set_corner_radius_all(6)
+		var sb := RallyUITheme.make_flat_panel(
+			Color("#3c1a1f") if hover else Color("#2b1316"),
+			panel_ref.C_ROSE if hover else Color(panel_ref.C_ROSE, 0.60),
+			2 if hover else 1,
+			RallyUITheme.CORNER_RADIUS
+		)
 		add_theme_stylebox_override("panel", sb)
 
 	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
