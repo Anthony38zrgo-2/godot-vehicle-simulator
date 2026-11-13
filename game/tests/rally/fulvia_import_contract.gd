@@ -175,16 +175,16 @@ func energy(voices: Array) -> float:
 
 func check_audio(vehicle: Node) -> void:
 	var audio = vehicle.get_node("VehicleAudio")
-	check(audio.engine_bank_manifest_path == "res://sounds/banks/4cyl_01/manifest.json", "RR3 4cyl_01 audio bank")
+	check(audio.engine_bank_manifest_path == "res://sounds/banks/gt3-bank/trueno-gt-apex/manifest.json", "RR3 Trueno GT3 audio bank")
 	var bank: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(audio.engine_bank_manifest_path))
-	check(bank.samples.size() == 8, "4cyl_01 hybrid bank inventory complete")
+	check(bank.samples.size() == 39, "Trueno GT3 bank inventory complete")
 	for sample in bank.samples:
 		var path: String = sample.get("path", audio.engine_bank_manifest_path.get_base_dir().path_join(str(sample.file)))
 		check(FileAccess.get_sha256(path) == sample.sha256, "audio source hash: " + sample.file)
 		var stream := SeamlessVehicleLoop.load_pcm(path, false)
 		check(stream != null and stream.mix_rate == int(sample.rate_hz), "PCM decodes: " + sample.file)
-	check(audio.engine_voices.size() == 4, "4cyl_01 idle and drive layers loaded")
-	check(audio.coast_engine_voices.size() == 3, "4cyl_01 coast layers loaded")
+	check(audio.engine_voices.size() == 7 and audio.exhaust_voices.size() == 5, "Trueno engine and exhaust layers loaded")
+	check(audio.coast_engine_voices.is_empty() and audio.coast_exhaust_voices.is_empty(), "Trueno uses continuous layers on coast")
 	check(audio.whine_players.size() == bank.whine.size() and audio.backfire_players.size() == bank.backfire.size(), "dedicated auxiliary layers loaded")
 	audio.set_physics_process(false)
 	audio.update_view_balance()

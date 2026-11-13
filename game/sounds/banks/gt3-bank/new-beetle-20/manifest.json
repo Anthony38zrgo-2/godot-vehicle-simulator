@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-volvo-amazon",
+  "whine": [
+    "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__whine_low.wav",
+    "res://sounds/banks/rt-volvo-amazon/rt-volvo-amazon__whine_high.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.5,
+    -1.0
+  ],
+  "exhaust_position": [
+    0.0,
+    0.1,
+    1.0
+  ],
+  "source": "Gran Turismo 3: A-Spec USA v1.10",
+  "sound_id": 20901,
+  "samples": [
+    {
+      "file": "engine/engine_layer00_01000rpm.wav",
+      "sha256": "da6ad4a3262f743abe171041e19f8fb4237cf37a0f1b89496fba90c8387f31c2",
+      "rate_hz": 22050,
+      "base_rpm": 1000,
+      "loop": {
+        "start_s": 0.0025397278911564623,
+        "end_s": 0.8152381405895691
+      }
+    },
+    {
+      "file": "engine/engine_layer01_02000rpm.wav",
+      "sha256": "7055db0f6f1878fea8cc55d317942e2ea6431b3cab63de5df33b737000506404",
+      "rate_hz": 22728,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0024639651531151003,
+        "end_s": 0.887011659626892
+      }
+    },
+    {
+      "file": "engine/engine_layer02_03000rpm.wav",
+      "sha256": "e4774ee651d946f1ad0ddcceb98ae107815b0a63eb9d574e4f2451935f21631d",
+      "rate_hz": 22233,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.002518823370665227,
+        "end_s": 0.9936581208114065
+      }
+    },
+    {
+      "file": "engine/engine_layer03_04000rpm.wav",
+      "sha256": "856a80820ab0efd0e1bcab6a300158c2545cac986cc08ebe883c14b5976cb985",
+      "rate_hz": 22061,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0025384615384615385,
+        "end_s": 1.0090204886451204
+      }
+    },
+    {
+      "file": "engine/engine_layer04_05000rpm.wav",
+      "sha256": "c8c6b01fff624cbc2d588d511ce4f70d9343f012e546ee8ea5ec4f8a28d63460",
+      "rate_hz": 22082,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.002536047459469251,
+        "end_s": 0.968752875645322
+      }
+    },
+    {
+      "file": "engine/engine_layer05_06000rpm.wav",
+      "sha256": "321a03d2dcd429bbf7bfd1770033b5d9f22bf4256e793f2b8d826b3d43682ed4",
+      "rate_hz": 22039,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0025409955079631562,
+        "end_s": 0.9782658469077544
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer00_01000rpm.wav",
+      "sha256": "c090161e457ecdce702a504753bd2b105f5eae063db81de5325c1c627115df40",
+      "rate_hz": 22050,
+      "base_rpm": 1000,
+      "loop": {
+        "start_s": 0.0025397278911564623,
+        "end_s": 0.6323809977324263
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer01_02000rpm.wav",
+      "sha256": "419b2bef96cf16daf3d39a12f622d2f0ce96d9ab15438fc81969add809db8aea",
+      "rate_hz": 22728,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0024639651531151003,
+        "end_s": 0.7933826557550159
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer02_03000rpm.wav",
+      "sha256": "bfec12437f80bae3a7118d09587ad6eb31be0e1c3bad38e20e855b2e85124a1c",
+      "rate_hz": 22201,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.002522453943516058,
+        "end_s": 0.9749110850862573
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer03_04000rpm.wav",
+      "sha256": "13780ec681e524a82b275cf2c02b86750df145b87dfeb90d0dc01605507b0dfa",
+      "rate_hz": 22115,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.002532263169794257,
+        "end_s": 0.9774361745421659
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer04_05000rpm.wav",
+      "sha256": "3032d11164aedbb6c0d307005e853b1f688ac38fd2d41c1f9ccd0fdd868a3041",
+      "rate_hz": 22211,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0025213182657241907,
+        "end_s": 1.0148125253252893
+      }
+    },
+    {
+      "file": "exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer05_06000rpm.wav",
+      "sha256": "a4ccdaf1356d5f4e1f77ef3341b4dca4632a11dcdf81ee38083d55643d2055bc",
+      "rate_hz": 22050,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0025397278911564623,
+        "end_s": 0.6425397278911564
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer00_01000rpm.wav",
+      "sha256": "0e6c15e1161787bceb056e59c9a16ad8e96cf88050c79b3e42c9e444c75be6fc",
+      "rate_hz": 18336,
+      "base_rpm": 1000,
+      "loop": {
+        "start_s": 0.0030541557591623036,
+        "end_s": 0.9284468259162304
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer01_02000rpm.wav",
+      "sha256": "860fdad0b4ef4a4233a6cff796f75f4aef4813a7962a497d6543cae621be257a",
+      "rate_hz": 20607,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.002717571698937254,
+        "end_s": 0.6413355170573106
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer02_03000rpm.wav",
+      "sha256": "8bb7fa55fb9ca628bb23f1d2c72962f2ad39e70b46dbbe65d4b76b6f5e27f69e",
+      "rate_hz": 22631,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0024745260925279483,
+        "end_s": 0.7472935796031992
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer03_04000rpm.wav",
+      "sha256": "1ab5e782d3104a0d40cb462643a59254c8ea9a5343a6bcd410170d627fbd2fa2",
+      "rate_hz": 20833,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0026880910094561512,
+        "end_s": 0.7244276388422215
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer04_05000rpm.wav",
+      "sha256": "677518872d35c53b352459c8ff03f2e414214116d611e6428d71c0aed052cc57",
+      "rate_hz": 19767,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0028330550918196995,
+        "end_s": 0.6728386199220924
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer05_06000rpm.wav",
+      "sha256": "3dbf30a2e4889b6f119c85cad375c0c7b26837ffb358bbb16beda2dee5c5bf03",
+      "rate_hz": 18831,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.002973872869205034,
+        "end_s": 0.8088790292602623
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer06_07000rpm.wav",
+      "sha256": "be34e68a8f40edfe0732f2613fad138f08fd5152e5cca97fabd529eaf9e88f66",
+      "rate_hz": 18852,
+      "base_rpm": 7000,
+      "loop": {
+        "start_s": 0.002970560152768937,
+        "end_s": 0.6995544769785699
+      }
+    },
+    {
+      "file": "exhaust_normal1_turbo1/exhaust_normal1_turbo1_layer07_08000rpm.wav",
+      "sha256": "f73755388106caa4a90aaf19db746fc0824969f9c5f59a48aac5758247d997c4",
+      "rate_hz": 18389,
+      "base_rpm": 8000,
+      "loop": {
+        "start_s": 0.0030453532002827776,
+        "end_s": 0.7460982652672794
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer00_00800rpm.wav",
+      "sha256": "5f807e7722fe7570ab6afb4024617cf8d16c10c313896411a91c50193af417f4",
+      "rate_hz": 21038,
+      "base_rpm": 800,
+      "loop": {
+        "start_s": 0.002661897518775549,
+        "end_s": 0.6601388439965776
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer01_01500rpm.wav",
+      "sha256": "5945820eb2c9de1e32f05f3999f73afaff540e971850f2574956adf37f1b11a4",
+      "rate_hz": 17819,
+      "base_rpm": 1500,
+      "loop": {
+        "start_s": 0.0031427689544867837,
+        "end_s": 0.6866828104831921
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer02_02000rpm.wav",
+      "sha256": "282b20d7a6c35e40e68ebc8da33d33aeefd74698268bda281174ff8afc274e34",
+      "rate_hz": 24537,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.002282308350654114,
+        "end_s": 0.7269022700411624
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer03_03000rpm.wav",
+      "sha256": "8c9e2cbab41d358411d454638ff22472fe74a8bd534a17244e14841d9faab020",
+      "rate_hz": 27240,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.002055837004405286,
+        "end_s": 0.5972100220264317
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer04_03976rpm.wav",
+      "sha256": "4217bfa01de06227a7c123bfb72ecfb864cbb49cd00a8d0091e5670c43d88204",
+      "rate_hz": 24979,
+      "base_rpm": 3976,
+      "loop": {
+        "start_s": 0.002241923215501021,
+        "end_s": 0.7812963289162896
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer05_04984rpm.wav",
+      "sha256": "9890ecdf3f72a0b49972c47417e38d14e37f3432e73a616ab82d88d0b4ac1872",
+      "rate_hz": 23600,
+      "base_rpm": 4984,
+      "loop": {
+        "start_s": 0.004745805084745763,
+        "end_s": 0.6774576694915254
+      }
+    },
+    {
+      "file": "exhaust_normal2_turbo2/exhaust_normal2_turbo2_layer06_06000rpm.wav",
+      "sha256": "796b0dd02a781013e103c7440ddd173651a688c3826ad4f1b23c8c8185a36048",
+      "rate_hz": 23525,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0023804888416578108,
+        "end_s": 0.5391711370882041
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer00_00850rpm.wav",
+      "sha256": "3f2872e5955d94e9b2b040a42d7ac056f8ef357edcc3fcb0d38ef5aaee14a1f6",
+      "rate_hz": 25937,
+      "base_rpm": 850,
+      "loop": {
+        "start_s": 0.01619312179511894,
+        "end_s": 0.49119023017311175
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer01_02000rpm.wav",
+      "sha256": "e97b2966885dba28d278721b715cea85bde3690e0eddec79057c9781c27b1a27",
+      "rate_hz": 21027,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.03195895753079374,
+        "end_s": 0.9387930280116041
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer02_03000rpm.wav",
+      "sha256": "b1c854485e930f2a4a99b977fc392feb70c5db66b29da2420c6990e82ef942c4",
+      "rate_hz": 21307,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.04073783263716149,
+        "end_s": 0.5072511850565542
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer03_04000rpm.wav",
+      "sha256": "140de63b1f60597b37c3a567387ae60a8886e0d0e612c3d917507883067793d4",
+      "rate_hz": 22330,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.010031392745185849,
+        "end_s": 0.49404393193013885
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer04_05000rpm.wav",
+      "sha256": "7f61b708eed0d555a71b7714aa6e73ffec4e4bb66c1640c87e2f804382f4f266",
+      "rate_hz": 21253,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.015809579824024842,
+        "end_s": 0.5309368559732743
+      }
+    },
+    {
+      "file": "exhaust_normal3_turbo3/exhaust_normal3_turbo3_layer05_06000rpm.wav",
+      "sha256": "ababda34bfd7694e0885f691ab1d88da2c60289a9eb11a52bf2d7492482ae3ac",
+      "rate_hz": 21135,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.018547480482611782,
+        "end_s": 0.8174119233498935
+      }
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer00_01000rpm.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.10343695547867368
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer01_02000rpm.wav",
+      "reference": 2000,
+      "lower": 1000,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.12858775318853258
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer02_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.20513567656164636
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer03_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.264258470443119
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer04_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.1990135622180563
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/engine/engine_layer05_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.19894118218466172
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer00_01000rpm.wav",
+      "reference": 1000,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.30137637250198124
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer01_02000rpm.wav",
+      "reference": 2000,
+      "lower": 1000,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.22728000485522468
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer02_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.36067384193735974
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer03_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.3714697871882147
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer04_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.4432195910417378
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/new-beetle-20/exhaust_normal0_turbo0/exhaust_normal0_turbo0_layer05_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.2414837751246213
+    }
+  ]
+}

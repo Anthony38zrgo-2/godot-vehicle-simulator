@@ -99,5 +99,5 @@ script = ExtResource("9_vfx")
 
 [node name="VehicleAudio" type="Node3D" parent="."]
 script = ExtResource("7_audio")
-engine_bank_manifest_path = "res://sounds/banks/4cyl_01/manifest.json"
+engine_bank_manifest_path = "res://sounds/banks/gt3-bank/trueno-gt-apex/manifest.json"
 vehicle_path = NodePath("..")
