@@ -70,7 +70,8 @@ func _build() -> void:
 				var text := Label.new()
 				text.text = _condition(tire)
 				text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				RallyUITheme.style_label(text, "white", 10, true, false)
+				RallyUITheme.style_label(text, "white", 9, true, false)
+				text.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM_TIGHT)
 				var scrim_sb := RallyUITheme.make_flat_panel(
 					Color(0.03, 0.045, 0.07, 0.90),
 					RallyUITheme.BORDER_SUBTLE,
@@ -104,6 +105,8 @@ func _build() -> void:
 	info = Label.new()
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.text = "Arrastra o selecciona origen y destino · A tomar/colocar · B cancelar · LB/RB categoría · X aplicar herramienta"
+	info.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+	info.add_theme_font_size_override("font_size", 10)
 	add_child(info)
 	if not host.notice.is_empty(): info.text += "\n" + host.notice
 	if not buttons.is_empty(): buttons[0].grab_focus()
@@ -115,7 +118,8 @@ func _tool_slot(index: int, title: String, point: Vector2, paint: Color) -> void
 	var text := Label.new()
 	text.text = title
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	text.add_theme_font_size_override("font_size", 12)
+	text.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM_TIGHT)
+	text.add_theme_font_size_override("font_size", 9)
 	text.position = Vector2(0, 122)
 	text.size = Vector2(146, 36)
 	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -209,7 +213,8 @@ func _caption(text: String, x: float, y: float) -> void:
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	RallyUITheme.style_label(label, "primary", 11, true, true)
+	RallyUITheme.style_label(label, "primary", 10, true, true)
+	label.add_theme_font_override("font", RallyUITheme.FONT_DATA_BOLD_TIGHT)
 	label.add_theme_stylebox_override(
 		"normal",
 		RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_WELL, 0.94), RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS, 12, 6)
@@ -224,8 +229,8 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 	b.text = title
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.add_theme_font_override("font", RallyUITheme.FONT_TITLE)
-	b.add_theme_font_size_override("font_size", 11)
+	b.add_theme_font_override("font", RallyUITheme.FONT_BUTTON)
+	b.add_theme_font_size_override("font_size", 13)
 	b.add_theme_color_override("font_color", RallyUITheme.TEXT_PRIMARY)
 	b.add_theme_color_override("font_hover_color", RallyUITheme.TEXT_WHITE)
 	b.add_theme_color_override("font_focus_color", RallyUITheme.TEXT_WHITE)
@@ -246,7 +251,7 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 		name_label.text = title
 		name_label.size = Vector2(146,20)
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		RallyUITheme.style_label(name_label, "muted", 10, false, true)
+		RallyUITheme.style_label(name_label, "muted", 12, false, true)
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(name_label)
 	b.focus_entered.connect(func(): selected = index)

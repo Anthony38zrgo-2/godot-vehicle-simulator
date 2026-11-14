@@ -22,9 +22,10 @@ const SPARE_STEP2_RECTS: Array[Rect2] = [
 ]
 const RESERVA_DROP_ZONE_RECT := Rect2(634.0, 276.0, 580.0, 386.0)
 
-const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
-const FONT_BODY: Font = RallyUITheme.FONT_DATA
-const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD
+const FONT_TITLE: Font = RallyUITheme.FONT_SUBTITLE
+const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
+const FONT_BODY: Font = RallyUITheme.FONT_MEDIUM_TIGHT
+const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 
 var screen: Control = null
 var _built_for_vehicle: Node3D = null
@@ -379,7 +380,7 @@ class BulkDropZone extends Control:
 				"SOLTAR: APLICAR A LOS 4 MONTADOS",
 				HORIZONTAL_ALIGNMENT_CENTER,
 				size.x - 16.0,
-				10,
+				12,
 				Color("#f0f4f8")
 			)
 		elif mode == "reserva_zone":
@@ -394,7 +395,7 @@ class BulkDropZone extends Control:
 			draw_rect(r, Color(border_col, 0.9 if _hovered_drag else 0.65), false, 2.0)
 			var msg := "SOLTAR EN ZONA LIBRE → MOVER DE MALETERO A RESERVA (-18 KG)" if spare_drag else ("SOLTAR AQUÍ → APLICAR %s A TODA LA RESERVA" % board._compound_short_label(board._drag_compound_id))
 			var text_col := Color("#86efac") if spare_drag else Color("#f0f4f8")
-			draw_string(FONT_TITLE, Vector2(10.0, size.y - 10.0), msg, HORIZONTAL_ALIGNMENT_CENTER, size.x - 20.0, 10, text_col)
+			draw_string(FONT_TITLE, Vector2(10.0, size.y - 10.0), msg, HORIZONTAL_ALIGNMENT_CENTER, size.x - 20.0, 12, text_col)
 
 
 class CompoundBrushCard3D extends Control:
@@ -465,7 +466,7 @@ class CompoundBrushCard3D extends Control:
 		name_lbl.position = Vector2(text_x, roundf(size.y * 0.5 - 20.0) if compact else roundf(size.y * 0.5 - 24.0))
 		name_lbl.size = Vector2(size.x - text_x - 8.0, 24.0)
 		name_lbl.add_theme_font_override("font", FONT_TITLE)
-		name_lbl.add_theme_font_size_override("font_size", 11 if compact else 14)
+		name_lbl.add_theme_font_size_override("font_size", 14 if compact else 17)
 		name_lbl.text = board._compound_short_label(compound_id)
 		name_lbl.add_theme_color_override("font_color", Tire3DViewScript.compound_ring_color(compound_id))
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -475,7 +476,7 @@ class CompoundBrushCard3D extends Control:
 		hint_lbl.position = Vector2(text_x, roundf(size.y * 0.5 + 2.0) if compact else roundf(size.y * 0.5 + 4.0))
 		hint_lbl.size = Vector2(size.x - text_x - 8.0, 26.0)
 		hint_lbl.add_theme_font_override("font", FONT_BODY)
-		hint_lbl.add_theme_font_size_override("font_size", 10 if compact else 11)
+		hint_lbl.add_theme_font_size_override("font_size", 9 if compact else 10)
 		hint_lbl.text = "Arrastra al stock o maletero" if compact else "Arrastra a una rueda o al coche"
 		hint_lbl.add_theme_color_override("font_color", RallyUITheme.TEXT_MUTED)
 		hint_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -625,51 +626,51 @@ class StrategySlot3D extends Control:
 			title_lbl.position = Vector2(10.0, 14.0)
 			title_lbl.size = Vector2(size.x - 20.0, 20.0)
 			title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			title_lbl.add_theme_font_size_override("font_size", 13)
+			title_lbl.add_theme_font_size_override("font_size", 15)
 
 			compound_lbl.position = Vector2(10.0, 160.0)
 			compound_lbl.size = Vector2(size.x - 20.0, 24.0)
 			compound_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			compound_lbl.add_theme_font_size_override("font_size", 14)
+			compound_lbl.add_theme_font_size_override("font_size", 11)
 
 			sub_lbl.position = Vector2(10.0, 188.0)
 			sub_lbl.size = Vector2(size.x - 20.0, 20.0)
 			sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			sub_lbl.add_theme_font_size_override("font_size", 10)
+			sub_lbl.add_theme_font_size_override("font_size", 9)
 		elif slot_kind == "spare":
 			var tx := 130.0 if has_vehicle else 58.0
 			title_lbl.position = Vector2(tx, 16.0)
 			title_lbl.size = Vector2(size.x - tx - 16.0, 20.0)
-			title_lbl.add_theme_font_size_override("font_size", 12)
+			title_lbl.add_theme_font_size_override("font_size", 14)
 
 			compound_lbl.position = Vector2(tx, 44.0)
 			compound_lbl.size = Vector2(size.x - tx - 16.0, 24.0)
-			compound_lbl.add_theme_font_size_override("font_size", 15)
+			compound_lbl.add_theme_font_size_override("font_size", 12)
 
 			sub_lbl.position = Vector2(tx, 74.0)
 			sub_lbl.size = Vector2(size.x - tx - 16.0, 34.0)
-			sub_lbl.add_theme_font_size_override("font_size", 11)
+			sub_lbl.add_theme_font_size_override("font_size", 10)
 
 			action_btn = Button.new()
 			action_btn.position = Vector2(tx, size.y - 40.0)
 			action_btn.size = Vector2(174.0, 28.0)
 			action_btn.focus_mode = Control.FOCUS_NONE
-			RallyUITheme.style_tone_button(action_btn, "chrome", 10, 8, 4, RallyUITheme.CORNER_RADIUS, FONT_NUM)
+			RallyUITheme.style_tone_button(action_btn, "chrome", 13, 8, 4, RallyUITheme.CORNER_RADIUS, FONT_BUTTON)
 			action_btn.pressed.connect(_on_action_btn_pressed)
 			add_child(action_btn)
 		else:
 			var sx := 100.0 if has_vehicle else 58.0
 			title_lbl.position = Vector2(sx, 16.0)
 			title_lbl.size = Vector2(size.x - sx - 10.0, 20.0)
-			title_lbl.add_theme_font_size_override("font_size", 12)
+			title_lbl.add_theme_font_size_override("font_size", 14)
 
 			compound_lbl.position = Vector2(sx, 44.0)
 			compound_lbl.size = Vector2(size.x - sx - 10.0, 24.0)
-			compound_lbl.add_theme_font_size_override("font_size", 14)
+			compound_lbl.add_theme_font_size_override("font_size", 11)
 
 			sub_lbl.position = Vector2(sx, 74.0)
 			sub_lbl.size = Vector2(size.x - sx - 10.0, 22.0)
-			sub_lbl.add_theme_font_size_override("font_size", 10)
+			sub_lbl.add_theme_font_size_override("font_size", 9)
 
 	func update_slot(next_compound_id: String, active: bool, wheel_idx_hint: int) -> void:
 		compound_id = next_compound_id

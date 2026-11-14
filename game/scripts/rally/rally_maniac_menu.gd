@@ -5,14 +5,17 @@ extends Control
 # CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
 # =============================================================================
 
-# 2.2. Estandarización Tipográfica (Montserrat UI + D-DIN Telemetría)
+# 2.2. Estandarización Tipográfica (Bungee + Big Shoulders + Science Gothic)
+const FONT_LOGO: Font = RallyUITheme.FONT_LOGO
+const FONT_LOGO_INLINE: Font = RallyUITheme.FONT_LOGO_INLINE
 const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_SUBTITLE: Font = RallyUITheme.FONT_SUBTITLE
+const FONT_MENU_OPTION: Font = RallyUITheme.FONT_MENU_OPTION
+const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
 const FONT_REGULAR: Font = RallyUITheme.FONT_REGULAR
-const FONT_UI: Font = RallyUITheme.FONT_DATA
+const FONT_UI: Font = RallyUITheme.FONT_MEDIUM
 const FONT_UI_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
-# Montserrat Bold Italic no existe como TTF en el proyecto (solo Bold/Regular);
-# el título central usa faux-italic vía FontVariation (ver _montserrat_bold_italic()).
-var _montserrat_bold_italic_cache: FontVariation
+const FONT_UI_BOLD_TIGHT: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 
 # 2.1. Paleta de Colores Funcional Unificada (fuente única: RallyUITheme)
 const BG_BASE := RallyUITheme.BG_BASE
@@ -507,15 +510,15 @@ func _build_ui() -> void:
 
 	header_title = Label.new()
 	header_title.text = "Rally Maniac"
-	header_title.add_theme_font_override("font", FONT_TITLE)
-	header_title.add_theme_font_size_override("font_size", 24)
+	header_title.add_theme_font_override("font", FONT_LOGO)
+	header_title.add_theme_font_size_override("font_size", 22)
 	header_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(header_title)
 
 	header_subtitle = Label.new()
 	header_subtitle.text = "HISTORIC RALLY SIMULATION · CAMPEONATO HISTÓRICO"
-	header_subtitle.add_theme_font_override("font", FONT_TITLE)
-	header_subtitle.add_theme_font_size_override("font_size", 10)
+	header_subtitle.add_theme_font_override("font", FONT_SUBTITLE)
+	header_subtitle.add_theme_font_size_override("font_size", 11)
 	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
 	header_subtitle.hide()
 	title_vbox.add_child(header_subtitle)
@@ -533,7 +536,7 @@ func _build_ui() -> void:
 	badge_top = Label.new()
 	badge_top.text = "PANTALLA"
 	badge_top.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_top.add_theme_font_override("font", FONT_TITLE)
+	badge_top.add_theme_font_override("font", FONT_UI)
 	badge_top.add_theme_font_size_override("font_size", 9)
 	badge_top.add_theme_color_override("font_color", C_CHROME_DIM)
 	badge_vbox.add_child(badge_top)
@@ -541,8 +544,8 @@ func _build_ui() -> void:
 	badge_bottom = Label.new()
 	badge_bottom.text = "RALLY MANIAC"
 	badge_bottom.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_bottom.add_theme_font_override("font", FONT_TITLE)
-	badge_bottom.add_theme_font_size_override("font_size", 13)
+	badge_bottom.add_theme_font_override("font", FONT_SUBTITLE)
+	badge_bottom.add_theme_font_size_override("font_size", 16)
 	badge_bottom.add_theme_color_override("font_color", C_GOLD)
 	badge_vbox.add_child(badge_bottom)
 
@@ -583,8 +586,8 @@ func _build_ui() -> void:
 	status_label = Label.new()
 	status_label.text = ""
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status_label.add_theme_font_override("font", FONT_TITLE)
-	status_label.add_theme_font_size_override("font_size", 12)
+	status_label.add_theme_font_override("font", FONT_UI)
+	status_label.add_theme_font_size_override("font_size", 11)
 	status_label.add_theme_color_override("font_color", C_GOLD_HI)
 	status_margin.add_child(status_label)
 
@@ -600,8 +603,8 @@ func _build_ui() -> void:
 	root_vbox.add_child(footer_hbox)
 
 	footer_hint = Label.new()
-	footer_hint.add_theme_font_override("font", FONT_TITLE)
-	footer_hint.add_theme_font_size_override("font_size", 12)
+	footer_hint.add_theme_font_override("font", FONT_UI)
+	footer_hint.add_theme_font_size_override("font_size", 11)
 	footer_hint.add_theme_color_override("font_color", Color(RallyUITheme.TEXT_MUTED, 0.95))
 	footer_hbox.add_child(footer_hint)
 
@@ -612,7 +615,7 @@ func _build_ui() -> void:
 	footer_version = Label.new()
 	footer_version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	footer_version.add_theme_font_override("font", FONT_UI)
-	footer_version.add_theme_font_size_override("font_size", 12)
+	footer_version.add_theme_font_size_override("font_size", 11)
 	footer_version.add_theme_color_override("font_color", Color(RallyUITheme.TEXT_MUTED, 0.95))
 	footer_hbox.add_child(footer_version)
 
@@ -659,14 +662,12 @@ func _build_main_menu_screen() -> void:
 	screen_main_menu.add_theme_constant_override("separation", 10)
 	content_container.add_child(screen_main_menu)
 
-	# Título superior-centro del menú principal (la cabecera tachada sigue oculta).
-	# Montserrat Bold Italic: no existe el TTF en el proyecto, se emula con
-	# FontVariation shear sobre Montserrat-Bold (ver _montserrat_bold_italic()).
+	# Título superior-centro del menú principal con Bungee Inline (logotipo decorativo).
 	main_menu_title = Label.new()
 	main_menu_title.text = "Rally Maniac"
 	main_menu_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_menu_title.add_theme_font_override("font", _montserrat_bold_italic())
-	main_menu_title.add_theme_font_size_override("font_size", 67)
+	main_menu_title.add_theme_font_override("font", FONT_LOGO_INLINE)
+	main_menu_title.add_theme_font_size_override("font_size", 56)
 	main_menu_title.add_theme_color_override("font_color", RallyUITheme.TEXT_WHITE)
 	main_menu_title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.65))
 	main_menu_title.add_theme_constant_override("shadow_offset_x", 0)
@@ -719,17 +720,6 @@ func _build_main_menu_screen() -> void:
 	screen_main_menu.add_child(spacer_bottom)
 
 
-func _montserrat_bold_italic() -> Font:
-	if _montserrat_bold_italic_cache != null and is_instance_valid(_montserrat_bold_italic_cache):
-		return _montserrat_bold_italic_cache
-	var fv := FontVariation.new()
-	fv.base_font = FONT_TITLE
-	# Shear horizontal para faux-italic (x' = x + 0.22*y).
-	fv.variation_transform = Transform2D(Vector2(1, 0), Vector2(-0.22, 1), Vector2.ZERO)
-	_montserrat_bold_italic_cache = fv
-	return fv
-
-
 # =============================================================================
 # PANTALLA 2: SELECTOR DE TRAMO CON CARRUSEL DE 4 TRAMOS MÁXIMO Y TRAZADO VERTICAL
 # =============================================================================
@@ -749,15 +739,15 @@ func _build_stage_select_screen() -> void:
 	var stage_title := Label.new()
 	stage_title.text = _stage_select_title()
 	stage_title.add_theme_font_override("font", FONT_TITLE)
-	stage_title.add_theme_font_size_override("font_size", 15)
+	stage_title.add_theme_font_size_override("font_size", 18)
 	stage_title.add_theme_color_override("font_color", C_GOLD)
 	stage_header.add_child(stage_title)
 	stage_title_label = stage_title
 
 	var stage_sub := Label.new()
 	stage_sub.text = "   · Elige el tramo de entrada"
-	stage_sub.add_theme_font_override("font", FONT_TITLE)
-	stage_sub.add_theme_font_size_override("font_size", 11)
+	stage_sub.add_theme_font_override("font", FONT_SUBTITLE)
+	stage_sub.add_theme_font_size_override("font_size", 13)
 	stage_sub.add_theme_color_override("font_color", C_CHROME_DIM)
 	stage_header.add_child(stage_sub)
 
@@ -866,8 +856,8 @@ func _build_stage_select_screen() -> void:
 
 		var lbl_stage_num := Label.new()
 		lbl_stage_num.text = "STAGE %02d" % i
-		lbl_stage_num.add_theme_font_override("font", FONT_TITLE)
-		lbl_stage_num.add_theme_font_size_override("font_size", 10)
+		lbl_stage_num.add_theme_font_override("font", FONT_SUBTITLE)
+		lbl_stage_num.add_theme_font_size_override("font_size", 12)
 		lbl_stage_num.add_theme_color_override("font_color", C_GOLD)
 		card_top_row.add_child(lbl_stage_num)
 
@@ -877,8 +867,8 @@ func _build_stage_select_screen() -> void:
 
 		var lbl_km := Label.new()
 		lbl_km.text = str(meta_info.get("km", "5.0 KM"))
-		lbl_km.add_theme_font_override("font", FONT_UI_BOLD)
-		lbl_km.add_theme_font_size_override("font_size", 20)
+		lbl_km.add_theme_font_override("font", FONT_UI_BOLD_TIGHT)
+		lbl_km.add_theme_font_size_override("font_size", 15)
 		lbl_km.add_theme_color_override("font_color", C_CHROME_TEXT)
 		card_top_row.add_child(lbl_km)
 
@@ -902,8 +892,8 @@ func _build_stage_select_screen() -> void:
 		# 3. Título del tramo y metadatos de superficie
 		var lbl_title := Label.new()
 		lbl_title.text = s_text
-		lbl_title.add_theme_font_override("font", FONT_TITLE)
-		lbl_title.add_theme_font_size_override("font_size", 14)
+		lbl_title.add_theme_font_override("font", FONT_SUBTITLE)
+		lbl_title.add_theme_font_size_override("font_size", 18)
 		lbl_title.add_theme_color_override("font_color", Color.WHITE)
 		card_vbox.add_child(lbl_title)
 
@@ -912,7 +902,7 @@ func _build_stage_select_screen() -> void:
 
 		var lbl_surface := Label.new()
 		lbl_surface.text = str(meta_info.get("surface", "Grava"))
-		lbl_surface.add_theme_font_override("font", FONT_TITLE)
+		lbl_surface.add_theme_font_override("font", FONT_REGULAR)
 		lbl_surface.add_theme_font_size_override("font_size", 10)
 		lbl_surface.add_theme_color_override("font_color", C_CHROME_DIM)
 		bottom_info_row.add_child(lbl_surface)
@@ -923,8 +913,8 @@ func _build_stage_select_screen() -> void:
 
 		var lbl_tag := Label.new()
 		lbl_tag.text = str(meta_info.get("tag", "Rally")).to_upper()
-		lbl_tag.add_theme_font_override("font", FONT_TITLE)
-		lbl_tag.add_theme_font_size_override("font_size", 9)
+		lbl_tag.add_theme_font_override("font", FONT_SUBTITLE)
+		lbl_tag.add_theme_font_size_override("font_size", 11)
 		lbl_tag.add_theme_color_override("font_color", C_GOLD_HI)
 		bottom_info_row.add_child(lbl_tag)
 
@@ -964,7 +954,7 @@ func _build_stage_select_screen() -> void:
 
 	carousel_page_label = Label.new()
 	carousel_page_label.text = "ETAPAS 1-4 DE %d" % int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
-	carousel_page_label.add_theme_font_override("font", FONT_TITLE)
+	carousel_page_label.add_theme_font_override("font", FONT_UI)
 	carousel_page_label.add_theme_font_size_override("font_size", 11)
 	carousel_page_label.add_theme_color_override("font_color", C_GOLD)
 	bottom_bar.add_child(carousel_page_label)
@@ -1022,7 +1012,7 @@ func _update_country_buttons() -> void:
 		var is_sel := (c == selected_country)
 		b.disabled = is_sel
 		b.modulate.a = 1.0
-		RallyUITheme.style_tone_button(b, "accent" if is_sel else "chrome", 13, 16, 8)
+		RallyUITheme.style_tone_button(b, "accent" if is_sel else "chrome", 16, 16, 8)
 		if is_sel:
 			var sel_sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
 			b.add_theme_stylebox_override("disabled", sel_sb)
@@ -1115,14 +1105,14 @@ func _build_car_select_screen() -> void:
 	var car_title := Label.new()
 	car_title.text = "Select Car"
 	car_title.add_theme_font_override("font", FONT_TITLE)
-	car_title.add_theme_font_size_override("font_size", 16)
+	car_title.add_theme_font_size_override("font_size", 18)
 	car_title.add_theme_color_override("font_color", C_GOLD)
 	car_header.add_child(car_title)
 
 	var car_sub := Label.new()
 	car_sub.text = "   · Selección de vehículo y especificaciones de homologación"
-	car_sub.add_theme_font_override("font", FONT_TITLE)
-	car_sub.add_theme_font_size_override("font_size", 11)
+	car_sub.add_theme_font_override("font", FONT_SUBTITLE)
+	car_sub.add_theme_font_size_override("font_size", 13)
 	car_sub.add_theme_color_override("font_color", C_CHROME_DIM)
 	car_header.add_child(car_sub)
 
@@ -1141,8 +1131,8 @@ func _build_car_select_screen() -> void:
 
 	var list_label := Label.new()
 	list_label.text = "VEHÍCULOS DISPONIBLES"
-	list_label.add_theme_font_override("font", FONT_TITLE)
-	list_label.add_theme_font_size_override("font_size", 10)
+	list_label.add_theme_font_override("font", FONT_SUBTITLE)
+	list_label.add_theme_font_size_override("font_size", 12)
 	list_label.add_theme_color_override("font_color", C_CHROME_DIM)
 	list_label.hide()
 	list_vbox.add_child(list_label)
@@ -1218,14 +1208,14 @@ func _build_car_select_screen() -> void:
 	preview_car_title.text = "---"
 	preview_car_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	preview_car_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_car_title.add_theme_font_override("font", FONT_TITLE)
-	preview_car_title.add_theme_font_size_override("font_size", 22)
+	preview_car_title.add_theme_font_override("font", FONT_SUBTITLE)
+	preview_car_title.add_theme_font_size_override("font_size", 28)
 	preview_car_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(preview_car_title)
 
 	preview_car_category = Label.new()
 	preview_car_category.text = "HISTORIC RALLY SPECIFICATION"
-	preview_car_category.add_theme_font_override("font", FONT_TITLE)
+	preview_car_category.add_theme_font_override("font", FONT_REGULAR)
 	preview_car_category.add_theme_font_size_override("font_size", 10)
 	preview_car_category.add_theme_color_override("font_color", C_CHROME_DIM)
 	preview_car_category.hide()
@@ -1247,8 +1237,8 @@ func _build_car_select_screen() -> void:
 	preview_layout_badge.text = "FR"
 	preview_layout_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	preview_layout_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	preview_layout_badge.add_theme_font_override("font", FONT_TITLE)
-	preview_layout_badge.add_theme_font_size_override("font_size", 14)
+	preview_layout_badge.add_theme_font_override("font", FONT_SUBTITLE)
+	preview_layout_badge.add_theme_font_size_override("font_size", 16)
 	preview_layout_badge.add_theme_color_override("font_color", C_GOLD_HI)
 	badge_margin.add_child(preview_layout_badge)
 
@@ -1319,7 +1309,7 @@ func _build_car_select_screen() -> void:
 	btn_car_confirm = Button.new()
 	btn_car_confirm.text = "Seleccionar y Conducir ▶"
 	btn_car_confirm.custom_minimum_size = Vector2(264, 44)
-	_style_gold_button(btn_car_confirm, 15, 24, 11)
+	_style_gold_button(btn_car_confirm, 17, 24, 11)
 	btn_car_confirm.pressed.connect(func(): _on_car_selected(selected_car_key))
 	bottom_bar.add_child(btn_car_confirm)
 
@@ -1343,7 +1333,7 @@ func _build_weather_select_screen() -> void:
 	var weather_title := Label.new()
 	weather_title.text = "CLIMA INICIAL"
 	weather_title.add_theme_font_override("font", FONT_TITLE)
-	weather_title.add_theme_font_size_override("font_size", 16)
+	weather_title.add_theme_font_size_override("font_size", 19)
 	weather_title.add_theme_color_override("font_color", C_GOLD)
 	weather_header.add_child(weather_title)
 
@@ -1410,8 +1400,8 @@ func _build_weather_select_screen() -> void:
 
 		var lbl_tag := Label.new()
 		lbl_tag.text = wtag
-		lbl_tag.add_theme_font_override("font", FONT_TITLE)
-		lbl_tag.add_theme_font_size_override("font_size", 10)
+		lbl_tag.add_theme_font_override("font", FONT_SUBTITLE)
+		lbl_tag.add_theme_font_size_override("font_size", 12)
 		lbl_tag.add_theme_color_override("font_color", waccent)
 		card_top.add_child(lbl_tag)
 
@@ -1421,8 +1411,8 @@ func _build_weather_select_screen() -> void:
 
 		var lbl_sel := Label.new()
 		lbl_sel.text = "● ACTIVO"
-		lbl_sel.add_theme_font_override("font", FONT_TITLE)
-		lbl_sel.add_theme_font_size_override("font_size", 10)
+		lbl_sel.add_theme_font_override("font", FONT_SUBTITLE)
+		lbl_sel.add_theme_font_size_override("font_size", 12)
 		lbl_sel.add_theme_color_override("font_color", C_GOLD_HI)
 		lbl_sel.visible = (wid == selected_weather)
 		card_top.add_child(lbl_sel)
@@ -1447,7 +1437,7 @@ func _build_weather_select_screen() -> void:
 		lbl_icon.text = wicon
 		lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl_icon.add_theme_font_override("font", FONT_TITLE)
+		lbl_icon.add_theme_font_override("font", FONT_REGULAR)
 		lbl_icon.add_theme_font_size_override("font_size", 52)
 		lbl_icon.add_theme_color_override("font_color", waccent)
 		center_block.add_child(lbl_icon)
@@ -1456,7 +1446,7 @@ func _build_weather_select_screen() -> void:
 		lbl_name.text = wtitle
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_name.add_theme_font_override("font", FONT_TITLE)
-		lbl_name.add_theme_font_size_override("font_size", 21)
+		lbl_name.add_theme_font_size_override("font_size", 26)
 		lbl_name.add_theme_color_override("font_color", Color.WHITE)
 		center_block.add_child(lbl_name)
 
@@ -1470,7 +1460,7 @@ func _build_weather_select_screen() -> void:
 		lbl_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl_desc.add_theme_font_override("font", FONT_REGULAR)
-		lbl_desc.add_theme_font_size_override("font_size", 12)
+		lbl_desc.add_theme_font_size_override("font_size", 11)
 		lbl_desc.add_theme_color_override("font_color", Color("#cbd5e1"))
 		center_block.add_child(lbl_desc)
 
@@ -2232,20 +2222,20 @@ func _create_minimal_spec_item(title: String, val_label: Label, sub_label: Label
 
 	var lbl_title := Label.new()
 	lbl_title.text = title.to_upper()
-	lbl_title.add_theme_font_override("font", FONT_TITLE)
+	lbl_title.add_theme_font_override("font", FONT_UI)
 	lbl_title.add_theme_font_size_override("font_size", 9)
 	lbl_title.add_theme_color_override("font_color", C_CHROME_DIM)
 	item_vbox.add_child(lbl_title)
 
 	val_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	val_label.add_theme_font_override("font", FONT_UI_BOLD)
-	val_label.add_theme_font_size_override("font_size", 16)
+	val_label.add_theme_font_override("font", FONT_UI_BOLD_TIGHT)
+	val_label.add_theme_font_size_override("font_size", 12)
 	val_label.add_theme_color_override("font_color", C_CHROME_TEXT)
 	item_vbox.add_child(val_label)
 
 	sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub_label.add_theme_font_override("font", FONT_TITLE)
-	sub_label.add_theme_font_size_override("font_size", 9)
+	sub_label.add_theme_font_override("font", FONT_REGULAR)
+	sub_label.add_theme_font_size_override("font_size", 8)
 	sub_label.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.70))
 	item_vbox.add_child(sub_label)
 
@@ -2396,33 +2386,34 @@ func _create_menu_button(text: String, callback: Callable, is_gold: bool = false
 
 
 func _style_menu_option_button(btn: Button, is_gold: bool = false) -> void:
-	RallyUITheme.style_tone_button(btn, "accent" if is_gold else "chrome", 16, 22, 12)
+	RallyUITheme.style_tone_button(btn, "accent" if is_gold else "chrome", 20, 22, 12, RallyUITheme.CORNER_RADIUS, FONT_MENU_OPTION)
 
 
 func _style_menu_exit_button(btn: Button) -> void:
-	RallyUITheme.style_tone_button(btn, "danger", 16, 22, 12)
+	RallyUITheme.style_tone_button(btn, "danger", 20, 22, 12, RallyUITheme.CORNER_RADIUS, FONT_MENU_OPTION)
 
 
 func _style_flat_button(btn: Button, is_accent: bool = false) -> void:
-	RallyUITheme.style_button(btn, 13, 18, 10, is_accent)
+	RallyUITheme.style_button(btn, 16, 18, 10, is_accent)
 
 
 func _style_chrome_button(btn: Button) -> void:
 	_style_flat_button(btn, false)
 
 
-func _style_gold_button(btn: Button, font_size: int = 13, pad_h: int = 22, pad_v: int = 10) -> void:
+func _style_gold_button(btn: Button, font_size: int = 16, pad_h: int = 22, pad_v: int = 10) -> void:
 	RallyUITheme.style_gold_button(btn, font_size, pad_h, pad_v)
 
 
 func _style_danger_button(btn: Button) -> void:
-	RallyUITheme.style_danger_button(btn, 13, 18, 10)
+	RallyUITheme.style_danger_button(btn, 15, 18, 10)
 
 
 func _style_editorial_car_button(btn: Button, is_selected: bool) -> void:
-	RallyUITheme.style_editorial_item(btn, is_selected, 13, 10)
+	RallyUITheme.style_editorial_item(btn, is_selected, 17, 9)
+	btn.add_theme_font_override("font", FONT_SUBTITLE)
 	if is_selected:
-		btn.add_theme_font_size_override("font_size", 15)
+		btn.add_theme_font_size_override("font_size", 19)
 
 
 func _style_stage_card(btn: Button) -> void:

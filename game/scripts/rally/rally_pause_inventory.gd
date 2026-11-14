@@ -7,12 +7,13 @@ var opened_from_results := false
 # CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
 # =============================================================================
 
-# 2.2. Estandarización Tipográfica (Sin Serif)
-const FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
-const BOLD := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const DIN := preload("res://fonts/D-DIN.ttf")
-const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
-const FONT_TITLE := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
+# 2.2. Estandarización Tipográfica (Bungee + Big Shoulders + Science Gothic)
+const FONT: Font = RallyUITheme.FONT_REGULAR
+const FONT_MEDIUM: Font = RallyUITheme.FONT_MEDIUM
+const BOLD: Font = RallyUITheme.FONT_SUBTITLE
+const DIN: Font = RallyUITheme.FONT_MEDIUM_TIGHT
+const DIN_BOLD: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
 const RallyHeldPartPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
 
 # 2.3. Paleta Unificada Dark Carbon + Brass Gold (fuente única: RallyUITheme)
@@ -210,13 +211,13 @@ func _build_modal_skeleton() -> void:
 	header_title = Label.new()
 	header_title.text = "PAUSA · COMPETICIÓN · RALLY"
 	header_title.add_theme_font_override("font", FONT_TITLE)
-	header_title.add_theme_font_size_override("font_size", 17)
+	header_title.add_theme_font_size_override("font_size", 22)
 	header_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(header_title)
 
 	header_subtitle = Label.new()
-	header_subtitle.add_theme_font_override("font", FONT)
-	header_subtitle.add_theme_font_size_override("font_size", 11)
+	header_subtitle.add_theme_font_override("font", FONT_MEDIUM)
+	header_subtitle.add_theme_font_size_override("font_size", 10)
 	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
 	title_vbox.add_child(header_subtitle)
 
@@ -242,8 +243,8 @@ func _build_modal_skeleton() -> void:
 	badge_top = Label.new()
 	badge_top.text = "ESTADO DE PRUEBA"
 	badge_top.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_top.add_theme_font_override("font", FONT_TITLE)
-	badge_top.add_theme_font_size_override("font_size", 9)
+	badge_top.add_theme_font_override("font", BOLD)
+	badge_top.add_theme_font_size_override("font_size", 11)
 	badge_top.add_theme_color_override("font_color", C_CHROME_DIM)
 	badge_vbox.add_child(badge_top)
 
@@ -251,7 +252,7 @@ func _build_modal_skeleton() -> void:
 	badge_bottom.text = "EN PAUSA"
 	badge_bottom.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	badge_bottom.add_theme_font_override("font", DIN_BOLD)
-	badge_bottom.add_theme_font_size_override("font_size", 13)
+	badge_bottom.add_theme_font_size_override("font_size", 12)
 	badge_bottom.add_theme_color_override("font_color", C_GOLD)
 	badge_vbox.add_child(badge_bottom)
 
@@ -325,8 +326,8 @@ func _build_modal_skeleton() -> void:
 
 	footer_nav_hint = Label.new()
 	footer_nav_hint.text = "[ W/S / FLECHAS ] NAVEGAR  ·  [ ENTER ] SELECCIONAR  ·  [ ESC ] REANUDAR"
-	footer_nav_hint.add_theme_font_override("font", FONT)
-	footer_nav_hint.add_theme_font_size_override("font_size", 11)
+	footer_nav_hint.add_theme_font_override("font", FONT_MEDIUM)
+	footer_nav_hint.add_theme_font_size_override("font_size", 10)
 	footer_nav_hint.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.8))
 	footer_hbox.add_child(footer_nav_hint)
 
@@ -421,11 +422,11 @@ func label(text: String) -> void:
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if text.begins_with("PAUSA") or text.begins_with("NEUMÁTICOS") or text.begins_with("REPARACIONES") or text.begins_with("OPCIONES") or text.begins_with("DIAGNÓSTICO"):
 		node.add_theme_font_override("font", BOLD)
-		node.add_theme_font_size_override("font_size", 12)
+		node.add_theme_font_size_override("font_size", 15)
 		node.add_theme_color_override("font_color", C_GOLD)
 	else:
 		node.add_theme_font_override("font", FONT)
-		node.add_theme_font_size_override("font_size", 12)
+		node.add_theme_font_size_override("font_size", 11)
 		node.add_theme_color_override("font_color", C_TEXT)
 	content.add_child(node)
 
@@ -455,7 +456,7 @@ func _add_hint_label(text: String) -> void:
 	lbl.text = "   ℹ " + text
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lbl.add_theme_font_override("font", FONT)
-	lbl.add_theme_font_size_override("font_size", 10)
+	lbl.add_theme_font_size_override("font_size", 9)
 	lbl.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.75))
 	content.add_child(lbl)
 
@@ -854,8 +855,8 @@ func _create_damage_bar_row(label_text: String, ratio: float, status_hint: Strin
 	var lbl := Label.new()
 	lbl.text = label_text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.add_theme_font_override("font", FONT_TITLE)
-	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_font_override("font", FONT_MEDIUM)
+	lbl.add_theme_font_size_override("font_size", 10)
 	lbl.add_theme_color_override("font_color", C_TEXT)
 	top.add_child(lbl)
 
@@ -864,7 +865,7 @@ func _create_damage_bar_row(label_text: String, ratio: float, status_hint: Strin
 	pct.text = ("%d%% · %s" % [pct_int, status_hint]) if not status_hint.is_empty() else ("%d%%" % pct_int)
 	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	pct.add_theme_font_override("font", DIN_BOLD)
-	pct.add_theme_font_size_override("font_size", 12)
+	pct.add_theme_font_size_override("font_size", 10)
 	pct.add_theme_color_override("font_color", C_TEXT if clamped < 0.05 else col)
 	top.add_child(pct)
 
@@ -917,8 +918,8 @@ func _update_telemetry_panel() -> void:
 
 	var d_title := Label.new()
 	d_title.text = "DAÑOS"
-	d_title.add_theme_font_override("font", FONT_TITLE)
-	d_title.add_theme_font_size_override("font_size", 11)
+	d_title.add_theme_font_override("font", BOLD)
+	d_title.add_theme_font_size_override("font_size", 14)
 	d_title.add_theme_color_override("font_color", C_CHROME_DIM)
 	d_vbox.add_child(d_title)
 
@@ -945,8 +946,8 @@ func _update_telemetry_panel() -> void:
 
 		var t_title := Label.new()
 		t_title.text = "NEUMÁTICOS Y TREN DE RODAJE"
-		t_title.add_theme_font_override("font", FONT_TITLE)
-		t_title.add_theme_font_size_override("font_size", 10)
+		t_title.add_theme_font_override("font", BOLD)
+		t_title.add_theme_font_size_override("font_size", 13)
 		t_title.add_theme_color_override("font_color", C_CHROME_DIM)
 		t_vbox.add_child(t_title)
 
@@ -990,7 +991,7 @@ func _update_telemetry_panel() -> void:
 			var lbl := Label.new()
 			lbl.text = "%s: %s [%s]%s" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat, extra_suffix]
 			lbl.add_theme_font_override("font", DIN_BOLD)
-			lbl.add_theme_font_size_override("font_size", 11)
+			lbl.add_theme_font_size_override("font_size", 9)
 			lbl.add_theme_color_override("font_color", col)
 			grid.add_child(lbl)
 
@@ -1000,7 +1001,7 @@ func _update_telemetry_panel() -> void:
 		else:
 			spares_info.text = "Repuestos disponibles: %d de %d" % [inv.spares.size(), inv.capacity]
 		spares_info.add_theme_font_override("font", FONT)
-		spares_info.add_theme_font_size_override("font_size", 11)
+		spares_info.add_theme_font_size_override("font_size", 10)
 		spares_info.add_theme_color_override("font_color", C_CHROME_DIM)
 		t_vbox.add_child(spares_info)
 
@@ -1016,15 +1017,15 @@ func _create_telemetry_card(title_text: String, prim_text: String, sub_text: Str
 
 	var l_t := Label.new()
 	l_t.text = title_text.to_upper()
-	l_t.add_theme_font_override("font", FONT_TITLE)
-	l_t.add_theme_font_size_override("font_size", 10)
+	l_t.add_theme_font_override("font", BOLD)
+	l_t.add_theme_font_size_override("font_size", 12)
 	l_t.add_theme_color_override("font_color", C_CHROME_DIM)
 	box.add_child(l_t)
 
 	var l_p := Label.new()
 	l_p.text = prim_text
 	l_p.add_theme_font_override("font", DIN_BOLD)
-	l_p.add_theme_font_size_override("font_size", 15)
+	l_p.add_theme_font_size_override("font_size", 13)
 	l_p.add_theme_color_override("font_color", prim_col)
 	box.add_child(l_p)
 
@@ -1032,7 +1033,7 @@ func _create_telemetry_card(title_text: String, prim_text: String, sub_text: Str
 		var l_s := Label.new()
 		l_s.text = sub_text
 		l_s.add_theme_font_override("font", FONT)
-		l_s.add_theme_font_size_override("font_size", 10)
+		l_s.add_theme_font_size_override("font_size", 9)
 		l_s.add_theme_color_override("font_color", sub_col)
 		box.add_child(l_s)
 
@@ -1056,27 +1057,27 @@ func _make_card_style() -> StyleBoxFlat:
 
 
 func _style_gold_button(btn: Button) -> void:
-	RallyUITheme.style_gold_button(btn, 13, 20, 8)
+	RallyUITheme.style_gold_button(btn, 16, 20, 8)
 
 
 func _style_chrome_button(btn: Button) -> void:
-	RallyUITheme.style_chrome_button(btn, 12, 16, 8)
+	RallyUITheme.style_chrome_button(btn, 15, 16, 8)
 
 
 func _style_caution_button(btn: Button) -> void:
-	RallyUITheme.style_caution_button(btn, 12, 16, 8)
+	RallyUITheme.style_caution_button(btn, 15, 16, 8)
 
 
 func _style_danger_button(btn: Button) -> void:
-	RallyUITheme.style_danger_button(btn, 12, 16, 8)
+	RallyUITheme.style_danger_button(btn, 15, 16, 8)
 
 
 func _style_selected_wheel_button(btn: Button) -> void:
-	RallyUITheme.style_tone_button(btn, "accent", 12, 16, 8)
+	RallyUITheme.style_tone_button(btn, "accent", 15, 16, 8)
 
 
 func _style_option_button(opt: OptionButton) -> void:
-	RallyUITheme.style_option_button(opt, 12, 14, 6)
+	RallyUITheme.style_option_button(opt, 14, 14, 6)
 
 
 # =============================================================================
@@ -1203,7 +1204,7 @@ class ChassisDiagram extends PanelContainer:
 		front_lbl.text = "▲ DIRECCIÓN (FRENTE) ▲"
 		front_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		front_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		front_lbl.add_theme_font_size_override("font_size", 9)
+		front_lbl.add_theme_font_size_override("font_size", 11)
 		front_lbl.add_theme_color_override("font_color", panel_ref.C_RIM)
 		vbox.add_child(front_lbl)
 
@@ -1228,7 +1229,7 @@ class ChassisDiagram extends PanelContainer:
 		v_name.text = "FORD ESCORT RS2000"
 		v_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v_name.add_theme_font_override("font", panel_ref.BOLD)
-		v_name.add_theme_font_size_override("font_size", 10)
+		v_name.add_theme_font_size_override("font_size", 13)
 		v_name.add_theme_color_override("font_color", panel_ref.C_GOLD_HI)
 		car_vbox.add_child(v_name)
 
@@ -1247,7 +1248,7 @@ class ChassisDiagram extends PanelContainer:
 		v_mass.text = "Masa: %.0f kg" % mass_kg
 		v_mass.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v_mass.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		v_mass.add_theme_font_size_override("font_size", 11)
+		v_mass.add_theme_font_size_override("font_size", 9)
 		v_mass.add_theme_color_override("font_color", panel_ref.C_GREEN)
 		car_vbox.add_child(v_mass)
 
@@ -1255,7 +1256,7 @@ class ChassisDiagram extends PanelContainer:
 		rear_lbl.text = "▼ TRACCIÓN (TRASERA) ▼"
 		rear_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rear_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		rear_lbl.add_theme_font_size_override("font_size", 9)
+		rear_lbl.add_theme_font_size_override("font_size", 11)
 		rear_lbl.add_theme_color_override("font_color", panel_ref.C_RIM)
 		vbox.add_child(rear_lbl)
 
@@ -1301,7 +1302,7 @@ class WheelSlotControl extends PanelContainer:
 			lbl.text = "MALETERO #%d\n[ ESPACIO LIBRE ]" % (slot_index + 1)
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			lbl.add_theme_font_override("font", panel_ref.BOLD)
-			lbl.add_theme_font_size_override("font_size", 10)
+			lbl.add_theme_font_size_override("font_size", 12)
 			lbl.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
 			empty_vbox.add_child(lbl)
 			return
@@ -1340,7 +1341,7 @@ class WheelSlotControl extends PanelContainer:
 		title_label = Label.new()
 		title_label.text = title_text
 		title_label.add_theme_font_override("font", panel_ref.FONT_TITLE)
-		title_label.add_theme_font_size_override("font_size", 11)
+		title_label.add_theme_font_size_override("font_size", 13)
 		title_label.add_theme_color_override("font_color", panel_ref.C_GOLD if is_sel else panel_ref.C_CHROME_TEXT)
 		head_box.add_child(title_label)
 
@@ -1354,7 +1355,7 @@ class WheelSlotControl extends PanelContainer:
 		compound_label = Label.new()
 		compound_label.text = comp_name
 		compound_label.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		compound_label.add_theme_font_size_override("font_size", 10)
+		compound_label.add_theme_font_size_override("font_size", 9)
 		compound_label.add_theme_color_override("font_color", Color(str(compound_info.get("visual_tread_color", "#d9d9d9"))))
 		head_box.add_child(compound_label)
 
@@ -1368,7 +1369,7 @@ class WheelSlotControl extends PanelContainer:
 			cond_label.text = "Goma: %.0f%% desg · %.0f°C" % [wear_pct, float(state.get("tread_c", 0.0))]
 			cond_label.add_theme_color_override("font_color", panel_ref.C_GREEN if wear_pct < 35 else (panel_ref.C_GOLD if wear_pct < 70 else panel_ref.C_ROSE))
 		cond_label.add_theme_font_override("font", panel_ref.DIN)
-		cond_label.add_theme_font_size_override("font_size", 10)
+		cond_label.add_theme_font_size_override("font_size", 9)
 		info_vbox.add_child(cond_label)
 
 		var rim_def: float = float(state.get("rim_deformation", 0.0))
@@ -1383,7 +1384,7 @@ class WheelSlotControl extends PanelContainer:
 			rim_label.text = "Rin: Óptimo (0% daño)"
 			rim_label.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
 		rim_label.add_theme_font_override("font", panel_ref.DIN)
-		rim_label.add_theme_font_size_override("font_size", 9)
+		rim_label.add_theme_font_size_override("font_size", 8)
 		info_vbox.add_child(rim_label)
 
 	func _update_style(selected: bool, hover_drop: bool) -> void:
@@ -1425,7 +1426,7 @@ class WheelSlotControl extends PanelContainer:
 		var prefix := "🛞 " + ("DELANT. " if slot_index < 2 else "TRAS. ") if slot_type == "mounted" else "🛞 REPUESTO "
 		p_lbl.text = prefix + "#%d" % int(tire_data.get("id", 0))
 		p_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		p_lbl.add_theme_font_size_override("font_size", 11)
+		p_lbl.add_theme_font_size_override("font_size", 13)
 		p_lbl.add_theme_color_override("font_color", panel_ref.C_GOLD_HI)
 		preview.add_child(p_lbl)
 		preview.custom_minimum_size = Vector2(140, 40)
@@ -1479,7 +1480,7 @@ class DiscardBinSlot extends PanelContainer:
 		title.text = "🗑️ DESECHAR EN RUTA"
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.add_theme_font_override("font", panel_ref.FONT_TITLE)
-		title.add_theme_font_size_override("font_size", 11)
+		title.add_theme_font_size_override("font_size", 13)
 		title.add_theme_color_override("font_color", panel_ref.C_ROSE)
 		vbox.add_child(title)
 
@@ -1487,7 +1488,7 @@ class DiscardBinSlot extends PanelContainer:
 		sub.text = "Suelta aquí para aligerar (-18 kg)"
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sub.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		sub.add_theme_font_size_override("font_size", 9)
+		sub.add_theme_font_size_override("font_size", 8)
 		sub.add_theme_color_override("font_color", panel_ref.C_GOLD)
 		vbox.add_child(sub)
 

@@ -72,15 +72,25 @@ const WB_TEXT_LABEL := TEXT_MUTED
 const WB_TEXT_DATA := TEXT_WHITE
 const WB_TEXT_ACCENT := ACCENT_RALLY
 
-# --- 3. TIPOGRAFÍA ---
+# --- 3. TIPOGRAFÍA DE MENÚS (Bungee, Big Shoulders, Science Gothic) ---
 
-const FONT_TITLE: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
-const FONT_REGULAR: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const FONT_LOGO: Font = preload("res://assets/fonts/variants/bungee_regular.tres")
+const FONT_LOGO_INLINE: Font = preload("res://assets/fonts/variants/bungee_inline.tres")
 
-const FONT_DATA: Font = preload("res://fonts/D-DIN.ttf")
-const FONT_DATA_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
-const FONT_DATA_COND: Font = preload("res://fonts/D-DINCondensed.ttf")
-const FONT_DATA_COND_BOLD: Font = preload("res://fonts/D-DINCondensed-Bold.ttf")
+const FONT_TITLE: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const FONT_SUBTITLE: Font = preload("res://assets/fonts/variants/big_shoulders_display_bold.tres")
+const FONT_MENU_OPTION: Font = preload("res://assets/fonts/variants/big_shoulders_text_bold.tres")
+const FONT_BUTTON: Font = preload("res://assets/fonts/variants/big_shoulders_text_semibold.tres")
+
+const FONT_REGULAR: Font = preload("res://assets/fonts/variants/science_gothic_regular.tres")
+const FONT_MEDIUM: Font = preload("res://assets/fonts/variants/science_gothic_medium.tres")
+const FONT_MEDIUM_TIGHT: Font = preload("res://assets/fonts/variants/science_gothic_medium_tight.tres")
+
+const FONT_DATA: Font = FONT_MEDIUM
+const FONT_DATA_BOLD: Font = preload("res://assets/fonts/variants/science_gothic_bold.tres")
+const FONT_DATA_BOLD_TIGHT: Font = preload("res://assets/fonts/variants/science_gothic_bold_tight.tres")
+const FONT_DATA_COND: Font = FONT_SUBTITLE
+const FONT_DATA_COND_BOLD: Font = FONT_TITLE
 
 # --- 4. FACTORIES PLANOS (STYLEBOXFLAT) ---
 
@@ -221,11 +231,11 @@ static func _tone_spec(tone: String) -> Dictionary:
 static func style_tone_button(
 	btn: Button,
 	tone: String = "chrome",
-	font_size: int = 13,
+	font_size: int = 14,
 	pad_h: int = 14,
 	pad_v: int = 8,
 	corner_r: int = CORNER_RADIUS,
-	font_res: Font = FONT_TITLE
+	font_res: Font = FONT_BUTTON
 ) -> void:
 	if btn == null:
 		return
@@ -333,7 +343,7 @@ static func style_card_surface(
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("pressed", pressed)
 	btn.add_theme_stylebox_override("focus", focus)
-	btn.add_theme_font_override("font", FONT_TITLE)
+	btn.add_theme_font_override("font", FONT_BUTTON)
 	btn.add_theme_font_size_override("font_size", font_size)
 	btn.add_theme_color_override("font_color", TEXT_WHITE if selected else TEXT_PRIMARY)
 	btn.add_theme_color_override("font_hover_color", TEXT_WHITE)
@@ -384,7 +394,7 @@ static func style_editorial_item(
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("pressed", hover)
 	btn.add_theme_stylebox_override("focus", hover)
-	btn.add_theme_font_override("font", FONT_TITLE)
+	btn.add_theme_font_override("font", FONT_MENU_OPTION)
 	btn.add_theme_color_override("font_hover_color", TEXT_WHITE)
 	btn.add_theme_color_override("font_focus_color", TEXT_WHITE)
 
@@ -402,8 +412,8 @@ static func style_option_button(
 	if popup != null:
 		popup.add_theme_stylebox_override("panel", make_flat_panel(BG_SURFACE, BORDER_CARD, 1, CORNER_RADIUS, 6, 6))
 		popup.add_theme_stylebox_override("hover", make_flat_panel(BG_HOVER, ACCENT_RALLY, 1, CORNER_RADIUS))
-		popup.add_theme_font_override("font", FONT_REGULAR)
-		popup.add_theme_font_size_override("font_size", font_size)
+		popup.add_theme_font_override("font", FONT_MEDIUM)
+		popup.add_theme_font_size_override("font_size", maxi(10, font_size - 1))
 		popup.add_theme_color_override("font_color", TEXT_PRIMARY)
 		popup.add_theme_color_override("font_hover_color", TEXT_WHITE)
 
@@ -418,10 +428,10 @@ static func style_tree(tree: Tree, font_size: int = 13) -> void:
 	tree.add_theme_stylebox_override("title_button_normal", make_flat_panel(BG_SHELL, BORDER_SUBTLE, 1, CORNER_RADIUS, 8, 6))
 	tree.add_theme_stylebox_override("title_button_hover", make_flat_panel(BG_CARD, BORDER_HOVER, 1, CORNER_RADIUS, 8, 6))
 	tree.add_theme_stylebox_override("title_button_pressed", make_flat_panel(BG_CARD, ACCENT_RALLY, 1, CORNER_RADIUS, 8, 6))
-	tree.add_theme_font_override("font", FONT_DATA)
-	tree.add_theme_font_override("title_button_font", FONT_TITLE)
-	tree.add_theme_font_size_override("font_size", font_size)
-	tree.add_theme_font_size_override("title_button_font_size", maxi(11, font_size - 1))
+	tree.add_theme_font_override("font", FONT_MEDIUM_TIGHT)
+	tree.add_theme_font_override("title_button_font", FONT_SUBTITLE)
+	tree.add_theme_font_size_override("font_size", maxi(10, font_size - 2))
+	tree.add_theme_font_size_override("title_button_font_size", font_size)
 	tree.add_theme_color_override("font_color", TEXT_PRIMARY)
 	tree.add_theme_color_override("font_selected_color", TEXT_WHITE)
 	tree.add_theme_color_override("title_button_color", TEXT_MUTED)
@@ -456,7 +466,7 @@ static func style_label(
 			col = ACCENT_ALERT
 		"info":
 			col = STATUS_INFO
-	var font_res := FONT_DATA_BOLD if (use_data_font and bold) else (FONT_DATA if use_data_font else (FONT_TITLE if bold else FONT_REGULAR))
+	var font_res := FONT_DATA_BOLD if (use_data_font and bold) else (FONT_DATA if use_data_font else (FONT_SUBTITLE if bold else FONT_REGULAR))
 	lbl.add_theme_font_override("font", font_res)
 	lbl.add_theme_font_size_override("font_size", font_size)
 	lbl.add_theme_color_override("font_color", col)
@@ -470,7 +480,7 @@ static func style_label(
 static func build_menu_theme() -> Theme:
 	var t := Theme.new()
 	t.default_font = FONT_REGULAR
-	t.default_font_size = 13
+	t.default_font_size = 12
 
 	t.set_color("font_color", "Label", TEXT_PRIMARY)
 	t.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0))
@@ -481,12 +491,13 @@ static func build_menu_theme() -> Theme:
 	t.set_stylebox("panel", "Panel", make_window_panel())
 	t.set_stylebox("panel", "PopupMenu", make_flat_panel(BG_SURFACE, BORDER_CARD, 1, CORNER_RADIUS, 6, 6))
 	t.set_stylebox("hover", "PopupMenu", make_flat_panel(BG_HOVER, ACCENT_RALLY, 1, CORNER_RADIUS))
-	t.set_font("font", "PopupMenu", FONT_REGULAR)
+	t.set_font("font", "PopupMenu", FONT_MEDIUM)
+	t.set_font_size("font_size", "PopupMenu", 11)
 	t.set_color("font_color", "PopupMenu", TEXT_PRIMARY)
 	t.set_color("font_hover_color", "PopupMenu", TEXT_WHITE)
 
-	t.set_font("font", "Button", FONT_TITLE)
-	t.set_font_size("font_size", "Button", 13)
+	t.set_font("font", "Button", FONT_BUTTON)
+	t.set_font_size("font_size", "Button", 15)
 	t.set_color("font_color", "Button", TEXT_PRIMARY)
 	t.set_color("font_hover_color", "Button", TEXT_WHITE)
 	t.set_color("font_pressed_color", "Button", ACCENT_RALLY)
@@ -514,8 +525,8 @@ static func build_menu_theme() -> Theme:
 	t.set_icon("unchecked_disabled", "CheckBox", _make_checkbox_icon(false, true))
 	t.set_icon("checked_disabled", "CheckBox", _make_checkbox_icon(true, true))
 	t.set_constant("h_separation", "CheckBox", 8)
-	t.set_font("font", "CheckBox", FONT_REGULAR)
-	t.set_font_size("font_size", "CheckBox", 12)
+	t.set_font("font", "CheckBox", FONT_MEDIUM)
+	t.set_font_size("font_size", "CheckBox", 11)
 	t.set_color("font_color", "CheckBox", TEXT_PRIMARY)
 	t.set_color("font_hover_color", "CheckBox", TEXT_WHITE)
 	t.set_color("font_pressed_color", "CheckBox", TEXT_WHITE)

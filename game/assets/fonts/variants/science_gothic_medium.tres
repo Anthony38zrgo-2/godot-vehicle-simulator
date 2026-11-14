@@ -1,0 +1,9 @@
+[gd_resource type="FontVariation" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/science_gothic/ScienceGothic[CTRS,slnt,wdth,wght].ttf" id="1_o3t4f"]
+
+[resource]
+base_font = ExtResource("1_o3t4f")
+variation_opentype = {
+2003265652: 500
+}

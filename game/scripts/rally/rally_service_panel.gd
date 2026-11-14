@@ -125,21 +125,21 @@ func open(car, event_manager, window: Dictionary) -> void:
 	var title := Label.new()
 	title.text = "ÁREA DE SERVICIO · REPARACIONES"
 	title.add_theme_font_override("font", FONT_TITLE)
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 28)
 	title.add_theme_color_override("font_color", WB_TEXT_TITLE)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	var weather_label := Label.new()
 	weather_label.text = _weather_text()
-	weather_label.add_theme_font_override("font", FONT_REGULAR)
-	weather_label.add_theme_font_size_override("font_size", 12)
+	weather_label.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+	weather_label.add_theme_font_size_override("font_size", 11)
 	weather_label.add_theme_color_override("font_color", C_BLUE)
 	header.add_child(weather_label)
 
 	var hint := Label.new()
 	hint.text = "Marca las piezas a reparar. Pinchazo %d min · Rin %d min · Destalonado irreparable.\nExceso: %d s de penalización por minuto iniciado." % [cost_inflate, cost_rim, penalty_per_minute]
 	hint.add_theme_font_override("font", FONT_REGULAR)
-	hint.add_theme_font_size_override("font_size", 11)
+	hint.add_theme_font_size_override("font_size", 10)
 	hint.add_theme_color_override("font_color", WB_TEXT_LABEL)
 	panel.add_child(hint)
 
@@ -161,8 +161,8 @@ func open(car, event_manager, window: Dictionary) -> void:
 	tire_box.add_theme_constant_override("separation", 6)
 	var tire_title := Label.new()
 	tire_title.text = "RUEDAS Y NEUMÁTICOS"
-	tire_title.add_theme_font_override("font", FONT_TITLE)
-	tire_title.add_theme_font_size_override("font_size", 13)
+	tire_title.add_theme_font_override("font", RallyUITheme.FONT_SUBTITLE)
+	tire_title.add_theme_font_size_override("font_size", 16)
 	tire_title.add_theme_color_override("font_color", ACCENT_RALLY)
 	tire_box.add_child(tire_title)
 	var tire_scroll := ScrollContainer.new()
@@ -180,8 +180,8 @@ func open(car, event_manager, window: Dictionary) -> void:
 	mech_box.add_theme_constant_override("separation", 6)
 	var mech_title := Label.new()
 	mech_title.text = "MECÁNICA Y CARROCERÍA"
-	mech_title.add_theme_font_override("font", FONT_TITLE)
-	mech_title.add_theme_font_size_override("font_size", 13)
+	mech_title.add_theme_font_override("font", RallyUITheme.FONT_SUBTITLE)
+	mech_title.add_theme_font_size_override("font_size", 16)
 	mech_title.add_theme_color_override("font_color", ACCENT_RALLY)
 	mech_box.add_child(mech_title)
 	var mech_scroll := ScrollContainer.new()
@@ -207,18 +207,18 @@ func open(car, event_manager, window: Dictionary) -> void:
 		var healthy := Label.new()
 		healthy.text = "No hay componentes que necesiten reparación."
 		healthy.add_theme_font_override("font", FONT_REGULAR)
-		healthy.add_theme_font_size_override("font_size", 12)
+		healthy.add_theme_font_size_override("font_size", 11)
 		healthy.add_theme_color_override("font_color", STATUS_SUCCESS)
 		mech_list.add_child(healthy)
 
 	summary = Label.new()
-	summary.add_theme_font_override("font", FONT_DATA_BOLD)
-	summary.add_theme_font_size_override("font_size", 13)
+	summary.add_theme_font_override("font", RallyUITheme.FONT_DATA_BOLD_TIGHT)
+	summary.add_theme_font_size_override("font_size", 12)
 	panel.add_child(summary)
 
 	commit = Button.new()
 	commit.text = "CONFIRMAR REPARACIONES Y CONTINUAR"
-	RallyUITheme.style_gold_button(commit, 13, 20, 10)
+	RallyUITheme.style_gold_button(commit, 16, 20, 10)
 	commit.pressed.connect(_commit)
 	panel.add_child(commit)
 
@@ -295,7 +295,7 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 	var info := Label.new()
 	info.text = "🛞 %s (#%d · %s)\nDesgaste: %0.0f%% | %s" % [slot_label, tire_id, cid.to_upper(), wear, status]
 	info.add_theme_font_override("font", FONT_REGULAR)
-	info.add_theme_font_size_override("font_size", 11)
+	info.add_theme_font_size_override("font_size", 10)
 	info.add_theme_color_override("font_color", STATUS_DANGER if status != "OK" else WB_TEXT_TITLE)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(info)
@@ -303,22 +303,22 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 		var dest_lbl := Label.new()
 		dest_lbl.text = "NO REPARABLE"
 		dest_lbl.add_theme_color_override("font_color", STATUS_DANGER)
-		dest_lbl.add_theme_font_override("font", FONT_DATA_BOLD)
-		dest_lbl.add_theme_font_size_override("font_size", 10)
+		dest_lbl.add_theme_font_override("font", RallyUITheme.FONT_DATA_BOLD_TIGHT)
+		dest_lbl.add_theme_font_size_override("font_size", 9)
 		hbox.add_child(dest_lbl)
 		return
 	if is_punc:
 		var cb := _make_repair_checkbox()
 		cb.text = "Inflar (%d min)" % cost_inflate
-		cb.add_theme_font_override("font", FONT_REGULAR)
-		cb.add_theme_font_size_override("font_size", 11)
+		cb.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+		cb.add_theme_font_size_override("font_size", 10)
 		hbox.add_child(cb)
 		tire_actions.append({"kind": "inflate", "tire_id": tire_id, "minutes": cost_inflate, "box": cb})
 	if is_rim:
 		var cb2 := _make_repair_checkbox()
 		cb2.text = "Rin (%d min)" % cost_rim
-		cb2.add_theme_font_override("font", FONT_REGULAR)
-		cb2.add_theme_font_size_override("font_size", 11)
+		cb2.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+		cb2.add_theme_font_size_override("font_size", 10)
 		hbox.add_child(cb2)
 		tire_actions.append({"kind": "rim", "tire_id": tire_id, "minutes": cost_rim, "box": cb2})
 
@@ -328,8 +328,8 @@ func _add_row(list: VBoxContainer, key: String, title: String, damage: float, fu
 	var minutes := maxi(1, ceili(clampf(damage, 0.0, 1.0) * full_minutes))
 	var box := _make_repair_checkbox()
 	box.text = "%s  ·  daño %.1f%%  ·  %d min" % [title, damage * 100.0, minutes]
-	box.add_theme_font_override("font", FONT_REGULAR)
-	box.add_theme_font_size_override("font_size", 12)
+	box.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+	box.add_theme_font_size_override("font_size", 11)
 	box.add_theme_color_override("font_color", WB_TEXT_TITLE)
 	list.add_child(box)
 	rows.append({"key": key, "minutes": minutes, "box": box})

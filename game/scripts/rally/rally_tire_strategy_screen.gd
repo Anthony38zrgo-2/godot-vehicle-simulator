@@ -12,8 +12,10 @@ const StrategyBoard3DScript := preload("res://scripts/rally/rally_strategy_scree
 const Tire3DViewScript := preload("res://scripts/rally/rally_tire_3d_view.gd")
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
 const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_SUBTITLE: Font = RallyUITheme.FONT_SUBTITLE
+const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
 const FONT_REGULAR: Font = RallyUITheme.FONT_REGULAR
-const FONT_DATA: Font = RallyUITheme.FONT_DATA_BOLD
+const FONT_DATA: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 
 const C_BG := RallyUITheme.BG_BASE
 const C_GLASS := RallyUITheme.BG_SURFACE
@@ -191,15 +193,15 @@ func _draw_glass(rect: Rect2) -> void:
 
 
 func _draw_header(win_rect: Rect2) -> void:
-	draw_string(FONT_TITLE, Vector2(56, 66), "ESTRATEGIA DE NEUMÁTICOS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, C_TEXT)
+	draw_string(FONT_TITLE, Vector2(56, 66), "ESTRATEGIA DE NEUMÁTICOS", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, C_TEXT)
 
 	var pill1 := Rect2(win_rect.end.x - 364.0, 42.0, 164.0, 34.0)
 	var pill2 := Rect2(win_rect.end.x - 190.0, 42.0, 164.0, 34.0)
 	draw_style_box(RallyUITheme.make_flat_panel(C_GOLD if step == 0 else RallyUITheme.BG_CARD, Color("#f6c96e") if step == 0 else C_BORDER, 1, RallyUITheme.CORNER_RADIUS), pill1)
-	draw_string(FONT_TITLE, Vector2(pill1.position.x + 12, pill1.position.y + 22), "1 · COCHE (4)", HORIZONTAL_ALIGNMENT_CENTER, pill1.size.x - 24, 11, C_BG if step == 0 else C_DIM)
+	draw_string(FONT_BUTTON, Vector2(pill1.position.x + 12, pill1.position.y + 23), "1 · COCHE (4)", HORIZONTAL_ALIGNMENT_CENTER, pill1.size.x - 24, 14, C_BG if step == 0 else C_DIM)
 
 	draw_style_box(RallyUITheme.make_flat_panel(C_GOLD if step == 1 else RallyUITheme.BG_CARD, Color("#f6c96e") if step == 1 else C_BORDER, 1, RallyUITheme.CORNER_RADIUS), pill2)
-	draw_string(FONT_TITLE, Vector2(pill2.position.x + 12, pill2.position.y + 22), "2 · RESERVA (6)", HORIZONTAL_ALIGNMENT_CENTER, pill2.size.x - 24, 11, C_BG if step == 1 else C_DIM)
+	draw_string(FONT_BUTTON, Vector2(pill2.position.x + 12, pill2.position.y + 23), "2 · RESERVA (6)", HORIZONTAL_ALIGNMENT_CENTER, pill2.size.x - 24, 14, C_BG if step == 1 else C_DIM)
 
 	draw_line(Vector2(56, 90), Vector2(win_rect.end.x - 26, 90), RallyUITheme.BORDER_SUBTLE, 1.0)
 
@@ -219,7 +221,7 @@ func _draw_step2_layout() -> void:
 
 func _draw_weather_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "INFORMACIÓN CLIMÁTICA DEL EVENTO", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_DIM)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "INFORMACIÓN CLIMÁTICA DEL EVENTO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
 	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), Color(C_BORDER, 0.45), 1.0)
 
 	var s1_icon := str(forecast_stage1.get("icon", ""))
@@ -227,30 +229,30 @@ func _draw_weather_panel(rect: Rect2) -> void:
 	var s1_temp := float(forecast_stage1.get("temp_c", 18.0))
 	var row1 := Rect2(rect.position.x + 18, rect.position.y + 58, rect.size.x - 36, 74)
 	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), row1)
-	draw_string(FONT_REGULAR, Vector2(row1.position.x + 16, row1.position.y + 42), "STAGE 1 (ACTUAL):", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, C_TEXT)
-	draw_string(FONT_DATA, Vector2(row1.position.x + 200, row1.position.y + 43), "%s %s · %0.0f °C" % [s1_icon, s1_name.to_upper(), s1_temp], HORIZONTAL_ALIGNMENT_LEFT, row1.size.x - 216, 16, C_GOLD_HI)
+	draw_string(FONT_REGULAR, Vector2(row1.position.x + 16, row1.position.y + 42), "STAGE 1 (ACTUAL):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
+	draw_string(FONT_DATA, Vector2(row1.position.x + 200, row1.position.y + 43), "%s %s · %0.0f °C" % [s1_icon, s1_name.to_upper(), s1_temp], HORIZONTAL_ALIGNMENT_LEFT, row1.size.x - 216, 13, C_GOLD_HI)
 
 	var s2_icon := str(forecast_stage2.get("icon", ""))
 	var s2_name := str(forecast_stage2.get("name", "Pronóstico"))
 	var s2_temp := float(forecast_stage2.get("temp_c", 15.0))
 	var row2 := Rect2(rect.position.x + 18, rect.position.y + 144, rect.size.x - 36, 90)
 	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), row2)
-	draw_string(FONT_REGULAR, Vector2(row2.position.x + 16, row2.position.y + 50), "STAGE 2 (PRONÓSTICO):", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, C_TEXT)
-	draw_string(FONT_DATA, Vector2(row2.position.x + 200, row2.position.y + 34), "%s %s · %0.0f °C" % [s2_icon, s2_name.to_upper(), s2_temp], HORIZONTAL_ALIGNMENT_LEFT, row2.size.x - 216, 15, C_BLUE)
+	draw_string(FONT_REGULAR, Vector2(row2.position.x + 16, row2.position.y + 50), "STAGE 2 (PRONÓSTICO):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
+	draw_string(FONT_DATA, Vector2(row2.position.x + 200, row2.position.y + 34), "%s %s · %0.0f °C" % [s2_icon, s2_name.to_upper(), s2_temp], HORIZONTAL_ALIGNMENT_LEFT, row2.size.x - 216, 12, C_BLUE)
 
 	var prob_pct := 80
 	if manager != null and manager.has_method("_forecast_accuracy"):
 		prob_pct = int(round(float(manager.call("_forecast_accuracy")) * 100.0))
 	var prob_rect := Rect2(row2.position.x + 200, row2.position.y + 48, 184, 28)
 	draw_style_box(RallyUITheme.make_flat_panel(RallyUITheme.ACCENT_RALLY_SOFT, Color(C_GOLD, 0.70), 1, RallyUITheme.CORNER_RADIUS), prob_rect)
-	draw_string(FONT_TITLE, Vector2(prob_rect.position.x + 8, prob_rect.position.y + 19), "Probabilidad : %% %d" % prob_pct, HORIZONTAL_ALIGNMENT_CENTER, prob_rect.size.x - 16, 11, C_GOLD_HI)
+	draw_string(FONT_DATA, Vector2(prob_rect.position.x + 8, prob_rect.position.y + 19), "Probabilidad : %% %d" % prob_pct, HORIZONTAL_ALIGNMENT_CENTER, prob_rect.size.x - 16, 10, C_GOLD_HI)
 
 
 func _draw_step1_selector_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "SELECTOR DE NEUMÁTICOS (SECO / LLUVIA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_DIM)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "SELECTOR DE NEUMÁTICOS (SECO / LLUVIA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
 	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), Color(C_BORDER, 0.45), 1.0)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 18, rect.position.y + 216), "APLICACIÓN RÁPIDA AL COCHE COMPLETO (4×):", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 18, rect.position.y + 216), "APLICACIÓN RÁPIDA AL COCHE COMPLETO (4×):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
 	var count := mini(allowed_compounds.size(), 4)
 	for i in count:
 		var cid := str(allowed_compounds[i])
@@ -265,12 +267,12 @@ func _draw_step1_selector_panel(rect: Rect2) -> void:
 			2 if (focused or all_match) else 1,
 			RallyUITheme.CORNER_RADIUS
 		), btn)
-		draw_string(FONT_TITLE, Vector2(btn.position.x + 8, btn.position.y + 30), "4× %s" % lbl, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 12, ring if all_match else C_TEXT)
+		draw_string(FONT_BUTTON, Vector2(btn.position.x + 8, btn.position.y + 30), "4× %s" % lbl, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 14, ring if all_match else C_TEXT)
 
 
 func _draw_mounted_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "RUEDAS MONTADAS DE SALIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_DIM)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "RUEDAS MONTADAS DE SALIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
 	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), RallyUITheme.BORDER_SUBTLE, 1.0)
 	var bay := Rect2(832, 166, 188, 484)
 	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), bay)
@@ -282,22 +284,22 @@ func _draw_mounted_panel(rect: Rect2) -> void:
 
 func _draw_step2_palette_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "COMPUESTOS PERMITIDOS (ARRASTRA A MALETERO O RESERVA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "COMPUESTOS PERMITIDOS (ARRASTRA A MALETERO O RESERVA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_DIM)
 
 
 func _draw_notice_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "REGLAMENTO Y PESO EN MALETERO", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_GOLD)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 50), "• Cada rueda en el maletero añade +18 KG sobre el eje trasero.", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_TEXT)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 74), "• Mueve repuestos al Inventario de Reserva si buscas aligerar el coche.", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_TEXT)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 98), "• Pinchazos/rines se reparan en servicio.", HORIZONTAL_ALIGNMENT_LEFT, rect.size.x - 32, 11, C_TEXT)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "REGLAMENTO Y PESO EN MALETERO", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_GOLD)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 50), "• Cada rueda en el maletero añade +18 KG sobre el eje trasero.", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 74), "• Mueve repuestos al Inventario de Reserva si buscas aligerar el coche.", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 98), "• Pinchazos/rines se reparan en servicio.", HORIZONTAL_ALIGNMENT_LEFT, rect.size.x - 32, 10, C_TEXT)
 
 
 func _draw_trunk_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
 	var mass_kg := carried_spares_count * 18.0
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 14, rect.position.y + 24), "MALETERO DEL COCHE (0, 1 O 2 REPUESTOS)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
-	draw_string(FONT_DATA, Vector2(rect.position.x + rect.size.x - 216, rect.position.y + 24), "PESO EXTRA: +%0.0f KG" % mass_kg, HORIZONTAL_ALIGNMENT_RIGHT, 200, 13, C_GOLD if carried_spares_count > 0 else C_BLUE)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 14, rect.position.y + 24), "MALETERO DEL COCHE (0, 1 O 2 REPUESTOS)", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_DIM)
+	draw_string(FONT_DATA, Vector2(rect.position.x + rect.size.x - 216, rect.position.y + 24), "PESO EXTRA: +%0.0f KG" % mass_kg, HORIZONTAL_ALIGNMENT_RIGHT, 200, 11, C_GOLD if carried_spares_count > 0 else C_BLUE)
 	for c in [0, 1, 2]:
 		var sel: bool = carried_spares_count == c
 		var is_focused := _focus_id == ("count:%d" % c)
@@ -309,18 +311,18 @@ func _draw_trunk_panel(rect: Rect2) -> void:
 			RallyUITheme.CORNER_RADIUS
 		), btn)
 		var tag := "%d REP." % c
-		draw_string(FONT_TITLE, Vector2(btn.position.x + 8, btn.position.y + 22), tag, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 11, C_BG if sel else C_TEXT)
+		draw_string(FONT_BUTTON, Vector2(btn.position.x + 8, btn.position.y + 22), tag, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 13, C_BG if sel else C_TEXT)
 
 
 func _draw_stock_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_TITLE, Vector2(rect.position.x + 18, rect.position.y + 28), "INVENTARIO DE RESERVA", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_DIM)
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 28), "INVENTARIO DE RESERVA", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
 	draw_line(Vector2(rect.position.x + 18, rect.position.y + 42), Vector2(rect.end.x - 18, rect.position.y + 42), RallyUITheme.BORDER_SUBTLE, 1.0)
 
 
 func _draw_footer(rect: Rect2) -> void:
 	var controls_hint := "FLECHAS / D-PAD MOVER · ENTER / A CAMBIAR · R RESTAURAR · Y / F5 SIGUIENTE" if step == 0 else "ARRASTRA MALETERO ↔ RESERVA · ESC / B VOLVER · Y / F5 CONFIRMAR"
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 6, rect.position.y + 34), controls_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, C_DIM)
+	draw_string(FONT_REGULAR, Vector2(rect.position.x + 6, rect.position.y + 34), controls_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
 
 	if step == 1:
 		var back_rect := _back_btn_rect()
@@ -331,7 +333,7 @@ func _draw_footer(rect: Rect2) -> void:
 			2 if back_focused else 1,
 			RallyUITheme.CORNER_RADIUS
 		), back_rect)
-		draw_string(FONT_TITLE, Vector2(back_rect.position.x + 8, back_rect.position.y + 29), "← PASO 1", HORIZONTAL_ALIGNMENT_CENTER, back_rect.size.x - 16, 12, C_TEXT)
+		draw_string(FONT_BUTTON, Vector2(back_rect.position.x + 8, back_rect.position.y + 29), "← PASO 1", HORIZONTAL_ALIGNMENT_CENTER, back_rect.size.x - 16, 15, C_TEXT)
 
 	var reset_rect := _reset_btn_rect()
 	var reset_focused := _focus_id == "reset"
@@ -341,7 +343,7 @@ func _draw_footer(rect: Rect2) -> void:
 		2 if reset_focused else 1,
 		RallyUITheme.CORNER_RADIUS
 	), reset_rect)
-	draw_string(FONT_TITLE, Vector2(reset_rect.position.x + 8, reset_rect.position.y + 29), "RESTAURAR", HORIZONTAL_ALIGNMENT_CENTER, reset_rect.size.x - 16, 12, C_TEXT)
+	draw_string(FONT_BUTTON, Vector2(reset_rect.position.x + 8, reset_rect.position.y + 29), "RESTAURAR", HORIZONTAL_ALIGNMENT_CENTER, reset_rect.size.x - 16, 15, C_TEXT)
 
 	var primary_rect := _primary_btn_rect()
 	var primary_focused := _focus_id == ("next" if step == 0 else "confirm")
@@ -352,7 +354,7 @@ func _draw_footer(rect: Rect2) -> void:
 		2 if primary_focused else 1,
 		RallyUITheme.CORNER_RADIUS
 	), primary_rect)
-	draw_string(FONT_TITLE, Vector2(primary_rect.position.x + 10, primary_rect.position.y + 29), primary_text, HORIZONTAL_ALIGNMENT_CENTER, primary_rect.size.x - 20, 12, C_BG)
+	draw_string(FONT_BUTTON, Vector2(primary_rect.position.x + 10, primary_rect.position.y + 29), primary_text, HORIZONTAL_ALIGNMENT_CENTER, primary_rect.size.x - 20, 15, C_BG)
 
 
 func _all_mounted_equal(cid: String) -> bool:

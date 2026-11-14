@@ -1,0 +1,6 @@
+[gd_resource type="FontVariation" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/big_shoulders/BigShouldersText-SemiBold.ttf" id="1_4p14r"]
+
+[resource]
+base_font = ExtResource("1_4p14r")

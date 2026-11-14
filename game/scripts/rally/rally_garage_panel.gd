@@ -6,11 +6,14 @@ signal garage_closed(applied: bool)
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
 const StrategyBoardScript := preload("res://scripts/rally/rally_garage_strategy_board.gd")
 # 2.2. Estandarización Tipográfica (fuente única: RallyUITheme)
+# 2.2. Estandarización Tipográfica (Bungee + Big Shoulders + Science Gothic)
 const FONT_SERIF: Font = RallyUITheme.FONT_REGULAR
-const FONT_SERIF_BOLD: Font = RallyUITheme.FONT_TITLE
-const FONT_UI: Font = RallyUITheme.FONT_DATA
-const FONT_UI_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
+const FONT_SERIF_BOLD: Font = RallyUITheme.FONT_MEDIUM
+const FONT_UI: Font = RallyUITheme.FONT_MEDIUM_TIGHT
+const FONT_UI_BOLD: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
+const FONT_SUBTITLE: Font = RallyUITheme.FONT_SUBTITLE
+const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
 
 # 2.1. Paleta de Colores Funcional Unificada (Dark Carbon + Brass Gold)
 const BG_BASE := RallyUITheme.BG_BASE
@@ -1679,26 +1682,26 @@ func _draw_chrome_header() -> void:
 	_glass_window(Rect2(24, 18, 1232, 76), RallyUITheme.CORNER_RADIUS)
 
 	var car_title := _get_vehicle_display_name()
-	var title_size := 20
-	while title_size > 13 and FONT_TITLE.get_string_size(car_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > 272.0:
+	var title_size := 26
+	while title_size > 16 and FONT_SUBTITLE.get_string_size(car_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > 272.0:
 		title_size -= 1
-	_text_title(_box(46, 34, 272, 44), car_title, title_size, C_CHROME_TEXT)
+	_text_with(FONT_SUBTITLE, _box(46, 34, 272, 44), car_title, title_size, C_CHROME_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 
 	draw_line(Vector2(330, 34), Vector2(330, 78), BORDER_SUBTLE, 1.0)
 
 	_ensure_stage_route_cache()
-	_text_title(_box(354, 22, 0, 34), circuit_name.to_upper(), 16, C_CHROME_TEXT)
+	_text_with(FONT_SUBTITLE, _box(354, 22, 0, 34), circuit_name.to_upper(), 21, C_CHROME_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 	var subtitle := "%s  ·  %0.1f KM  ·  %s" % [
 		circuit_country.to_upper(), _effective_stage_length_m() / 1000.0, mode.to_upper()
 	]
-	_text_serif(_box(354, 54, 360, 26), subtitle, 11, C_CHROME_DIM)
+	_text_with(FONT_UI, _box(354, 54, 360, 26), subtitle, 10, C_CHROME_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 
 	_glass_box(Rect2(986, 30, 250, 52), RallyUITheme.CORNER_RADIUS, C_GLASS_DEEP, RallyUITheme.BORDER_CARD, 0.0)
-	_text_title(_box(1002, 36, 218, 20), "REGLAJE ACTIVO", 9, C_CHROME_DIM)
+	_text_with(FONT_SUBTITLE, _box(1002, 36, 218, 20), "REGLAJE ACTIVO", 11, C_CHROME_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 	_text_title(
 		_box(1002, 54, 218, 24),
 		active_setup_name.to_upper(),
-		15,
+		18,
 		C_GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		218
@@ -1718,19 +1721,20 @@ func _draw_chrome_footer() -> void:
 		_text_serif(
 			_box(lane.position.x + 12, lane.position.y, lane.size.x - 24, lane.size.y),
 			notice.to_upper(),
-			11,
+			10,
 			tone,
 			true,
 			HORIZONTAL_ALIGNMENT_CENTER
 		)
 	else:
-		_text_serif(
+		_text_with(
+			FONT_SERIF,
 			_box(lane.position.x, lane.position.y, lane.size.x, lane.size.y),
 			"A / ENTER SELECCIONA · W/S NAVEGA · Y / F5 APLICA · B / START / ESC SALIR",
-			10,
+			9,
 			Color(C_CHROME_DIM, 0.80),
-			false,
-			HORIZONTAL_ALIGNMENT_CENTER
+			HORIZONTAL_ALIGNMENT_CENTER,
+			-1.0
 		)
 
 	var cancel_rect := Rect2(900, 714, 150, 46)
@@ -1757,7 +1761,7 @@ func _draw_tabs() -> void:
 	var x := 34.0
 	for index in titles.size():
 		var label: String = titles[index]
-		var width: float = maxf(126.0, _title_width(label, 11) + 52.0)
+		var width: float = maxf(126.0, FONT_BUTTON.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 52.0)
 		var rect := Rect2(x, 100, width, 44)
 		_tab(rect, label, index == page)
 		_hit_regions.append({ "rect": rect, "kind": "tab", "page": index })
@@ -1766,10 +1770,10 @@ func _draw_tabs() -> void:
 	var changed := _dirty_field_count()
 	if changed > 0:
 		var banner := "%d CAMBIO%s SIN APLICAR" % [changed, "" if changed == 1 else "S"]
-		var banner_w := _serif_width(banner, 10, true)
+		var banner_w := _ui_width(banner, 9, true)
 		var banner_x := 1244.0 - banner_w
 		draw_circle(Vector2(banner_x - 14.0, 122.0), 3.5, C_GOLD)
-		_text(_box(banner_x, 104, banner_w + 2, 36), banner, 10, C_GOLD, true)
+		_num(_box(banner_x, 104, banner_w + 2, 36), banner, 9, C_GOLD)
 
 
 func _dirty_field_count() -> int:
@@ -1811,12 +1815,14 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 	if active:
 		draw_rect(Rect2(tab_rect.position.x + 1, tab_rect.position.y, tab_rect.size.x - 2, 2), C_GOLD)
 
-	_text_title(
+	_text_with(
+		FONT_BUTTON,
 		_box(tab_rect.position.x, tab_rect.position.y + 2.0, tab_rect.size.x, tab_rect.size.y - 4.0),
 		label,
-		11,
+		14,
 		C_GOLD_HI if active else C_DIM,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 
 
@@ -1891,7 +1897,7 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 	_hit_regions.append({ "rect": rect, "kind": "select", "path": key })
 
 	var mid_y := rect.position.y + rect.size.y * 0.5
-	var title_size := 14 if rect.size.y >= 96.0 else 13
+	var title_size := 12 if rect.size.y >= 96.0 else 11
 	_text(_box(rect.position.x + 14, mid_y - 22.0, 250, 24), str(data.name), title_size, C_TEXT, true)
 	_hint(_box(rect.position.x + 14, mid_y + 4.0, 250, 18), str(data.hint))
 
@@ -1917,7 +1923,7 @@ func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
 	_field_box(
 		Rect2(rect.position.x + 624, mid_y - 19.0, 164, 38),
 		str(data.value),
-		16,
+		13,
 		C_GOLD if selected else C_TEXT,
 		bool(data.get("numeric", true))
 	)
@@ -2097,10 +2103,10 @@ func _draw_stage_info_group(rect: Rect2) -> void:
 	var val_w := 204.0
 	var weather_row := Rect2(inner.position.x, map_rect.end.y + gap, inner.size.x, info_h)
 	_row_frame(weather_row, false, false, false)
-	_text(_box(weather_row.position.x + 12, weather_row.position.y + 4, 118, weather_row.size.y - 8), "CLIMA", 11, C_DIM, true)
+	_text(_box(weather_row.position.x + 12, weather_row.position.y + 4, 118, weather_row.size.y - 8), "CLIMA", 9, C_DIM, true)
 	var weather_txt := _get_stage_weather_text()
-	var weather_size := 13
-	while weather_size > 10 and maxf(
+	var weather_size := 11
+	while weather_size > 9 and maxf(
 			FONT_UI_BOLD.get_string_size(weather_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, weather_size).x,
 			FONT_SERIF_BOLD.get_string_size(weather_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, weather_size).x
 		) > (val_w - 20.0):
@@ -2115,11 +2121,11 @@ func _draw_stage_info_group(rect: Rect2) -> void:
 
 	var dist_row := Rect2(inner.position.x, weather_row.end.y + gap, inner.size.x, info_h)
 	_row_frame(dist_row, false, true, false)
-	_text(_box(dist_row.position.x + 12, dist_row.position.y + 4, 128, dist_row.size.y - 8), "KILÓMETROS", 11, C_DIM, true)
+	_text(_box(dist_row.position.x + 12, dist_row.position.y + 4, 128, dist_row.size.y - 8), "KILÓMETROS", 9, C_DIM, true)
 	_field_box(
 		Rect2(dist_row.end.x - val_w - 8, dist_row.position.y + 5, val_w, dist_row.size.y - 10),
 		_get_stage_distance_text(),
-		14,
+		11,
 		C_CHROME_TEXT,
 		true
 	)
@@ -2187,11 +2193,11 @@ func _draw_state_group(rect: Rect2) -> void:
 	var offset := (inner.size.y - height * float(rows.size())) * 0.5
 	for i in rows.size():
 		var y := inner.position.y + float(i) * height + offset
-		_text(_box(inner.position.x, y, 150, height), str(rows[i].k), 10, C_DIM, true)
+		_text(_box(inner.position.x, y, 150, height), str(rows[i].k), 9, C_DIM, true)
 		_field_box(
 			Rect2(inner.end.x - 176, y + (height - 34.0) * 0.5, 176, 34),
 			str(rows[i].v),
-			13,
+			10,
 			WB_TEXT_DATA,
 			bool(rows[i].get("numeric", true))
 		)
@@ -2258,11 +2264,11 @@ func _draw_tire_group(rect: Rect2) -> void:
 		draw_rect(card, BORDER_SUBTLE, false, 1.0)
 		var cid := str(draft_wheel_compounds.get(codes[i], ""))
 		var details := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), cid)
-		_text(_box(card.position.x + 10, card.position.y + 6, 60, 20), codes[i], 13, C_TEXT, true)
+		_text_with(FONT_SUBTITLE, _box(card.position.x + 10, card.position.y + 6, 60, 20), codes[i], 15, C_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 		_text(
 			_box(card.position.x, card.position.y + 8, card.size.x - 10, 16),
 			_compound_label(cid, true),
-			9,
+			8,
 			Color(str(details.get("visual_tread_color", "#d9d9d9"))),
 			true,
 			HORIZONTAL_ALIGNMENT_RIGHT,
@@ -2291,7 +2297,7 @@ func _draw_tire_group(rect: Rect2) -> void:
 		_num(
 			_box(card.position.x, card.position.y + 48, card.size.x - 10, 18),
 			"%0.0f kPa · %0.0f °C" % [_wheel_pressure(i), _wheel_temperature(i)],
-			10,
+			9,
 			WB_TEXT_DATA,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 10
@@ -2319,7 +2325,7 @@ func _draw_section_bar() -> void:
 	var x := 36.0
 	for i in titles.size():
 		var label: String = titles[i]
-		var width: float = maxf(150.0, _title_width(label, 11) + 50.0)
+		var width: float = maxf(150.0, FONT_BUTTON.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 50.0)
 		var rect := Rect2(x, PAGE_TOP, width, 36)
 		_segment_button(rect, label, i == advanced_section)
 		_hit_regions.append({ "rect": rect, "kind": "section", "index": i })
@@ -2482,7 +2488,7 @@ func _draw_differential_preset_row(group_rect: Rect2) -> void:
 	var row := Rect2(inner.position.x, inner.position.y, inner.size.x, 44)
 	_row_frame(row, selected, false, _mouse_over(row))
 	_hit_regions.append({"rect": row, "kind": "select", "path": DIFFERENTIAL_PRESET_PATH})
-	_text(_box(row.position.x + 12, row.position.y, 150, row.size.y), "Configuración", 11, C_TEXT if selected else C_DIM, selected)
+	_text_with(FONT_UI, _box(row.position.x + 12, row.position.y, 150, row.size.y), "Configuración", 10, C_TEXT if selected else C_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 	var minus := Rect2(row.position.x + 168, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
 	var plus := Rect2(row.end.x - 36, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
 	_stepper(minus, false)
@@ -2491,11 +2497,11 @@ func _draw_differential_preset_row(group_rect: Rect2) -> void:
 	_hit_regions.append({"rect": plus, "kind": "preset_adjust", "amount": 1.0})
 	var name_rect := Rect2(minus.end.x + 8, row.position.y + (row.size.y - 32.0) * 0.5, plus.position.x - minus.end.x - 16, 32)
 	if options.is_empty():
-		_field_box(name_rect, "SIN CATÁLOGO", 12, C_DIM)
+		_field_box(name_rect, "SIN CATÁLOGO", 10, C_DIM, false)
 		_hint(_box(inner.position.x + 12, row.end.y + 6, inner.size.x - 24, 18), "Legado temporal: sin presets históricos.")
 		return
 	var label := str(current.get("label", current_id)) if not current.is_empty() else current_id
-	_field_box(name_rect, label, 12, C_GOLD if selected else C_TEXT)
+	_field_box(name_rect, label, 10, C_GOLD if selected else C_TEXT, false)
 	var y := row.end.y + 8.0
 	if current.is_empty():
 		_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), "Preset no resuelto.")
@@ -2507,11 +2513,11 @@ func _draw_differential_preset_row(group_rect: Rect2) -> void:
 	var reported: Dictionary = current.get("reported_nominal_lock_pct", {})
 	var discs: Variant = current.get("physical_disc_count", null)
 	var discs_txt := str(int(discs)) if discs is int or discs is float else "—"
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), str(current.get("supplier_or_family", "")) + " · " + str(current.get("model_reference", "")), 10, C_DIM, false)
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), str(current.get("supplier_or_family", "")) + " · " + str(current.get("model_reference", "")), 9, C_DIM, false)
 	y += 16.0
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Rampas %d°/%d° · Superficies %d · Discos %s" % [int((current.get("ramp_deg", {}) as Dictionary).get("power", 0)), int((current.get("ramp_deg", {}) as Dictionary).get("coast", 0)), int(current.get("active_friction_surfaces", 0)), discs_txt], 10, C_TEXT, false)
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Rampas %d°/%d° · Superficies %d · Discos %s" % [int((current.get("ramp_deg", {}) as Dictionary).get("power", 0)), int((current.get("ramp_deg", {}) as Dictionary).get("coast", 0)), int(current.get("active_friction_surfaces", 0)), discs_txt], 9, C_TEXT, false)
 	y += 16.0
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Banco %.0f–%.0f Nm · Ficha %d%%/%d%% (no bloqueo dinámico)" % [float(bench.get("min", 0.0)), float(bench.get("max", 0.0)), int(reported.get("power", 0)), int(reported.get("coast", 0))], 10, C_DIM, false)
+	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Banco %.0f–%.0f Nm · Ficha %d%%/%d%% (no bloqueo dinámico)" % [float(bench.get("min", 0.0)), float(bench.get("max", 0.0)), int(reported.get("power", 0)), int(reported.get("coast", 0))], 9, C_DIM, false)
 	y += 18.0
 	var names: Array[String] = []
 	for p in options:
@@ -2547,11 +2553,11 @@ func _draw_gear_chart(rect: Rect2) -> void:
 		var box := Rect2(inner.position.x + float(i) * (box_w + gap), inner.position.y, box_w, inner.size.y)
 		draw_rect(box, C_FACE_LO)
 		_sunken(box)
-		_text(_box(box.position.x + 8, box.position.y + 4, 40, 18), str(gears[i].label), 11, C_TEXT, true)
+		_text_with(FONT_SUBTITLE, _box(box.position.x + 8, box.position.y + 4, 40, 18), str(gears[i].label), 13, C_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 		_num(
 			_box(box.position.x, box.position.y + 4, box.size.x - 8, 18),
 			"%0.2f" % float(gears[i].value),
-			11,
+			9,
 			C_DIM,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			box.size.x - 8
@@ -2596,18 +2602,18 @@ func _draw_pool_slot_card(rect: Rect2, title: String, subtitle: String, status_t
 	else:
 		_sunken(rect)
 	var text_col := C_TEXT if interactive else C_DIM
-	_text(_box(rect.position.x + 8, rect.position.y + 4, rect.size.x - 102, 18), title, 10, text_col, true)
+	_text(_box(rect.position.x + 8, rect.position.y + 4, rect.size.x - 102, 18), title, 9, text_col, true)
 	_text(
 		_box(rect.position.x + 8, rect.position.y + 22, rect.size.x - 16, 16),
 		subtitle,
-		9,
+		8,
 		C_DIM,
 		false
 	)
 	_text(
 		_box(rect.position.x, rect.position.y + 4, rect.size.x - 8, 18),
 		status_tag,
-		9,
+		8,
 		status_color,
 		status_tag != "OK",
 		HORIZONTAL_ALIGNMENT_RIGHT,
@@ -2633,11 +2639,11 @@ func _draw_strategy_page() -> void:
 	var fraction := clampf(current / capacity, 0.0, 1.0)
 	var dep_y := 216.0 if _is_pool else 246.0
 	var grv_y := 236.0 if _is_pool else 270.0
-	_text(_box(50, dep_y, 200, 18), "DEPÓSITO", 10, C_DIM, true)
+	_text(_box(50, dep_y, 200, 18), "DEPÓSITO", 9, C_DIM, true)
 	_num(
 		_box(50, dep_y, 568, 18),
 		"%0.1f / %0.1f L" % [current / _fuel_density(), capacity / _fuel_density()],
-		11,
+		10,
 		C_TEXT,
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		568
@@ -2667,13 +2673,13 @@ func _draw_strategy_page() -> void:
 		if event_forecast.is_empty():
 			_hint(_box(memo_pool.position.x + 10, memo_pool.position.y + 4, memo_pool.size.x - 20, 20), "SIN PREVISIÓN PARA ESTE EVENTO")
 		else:
-			var f_lines := _wrap_text(event_forecast, 2, 86)
+			var f_lines := _wrap_text(event_forecast, 2, 68)
 			for i in f_lines.size():
 				var ly := memo_pool.position.y + (5.0 if f_lines.size() == 1 else 2.0 + float(i) * 12.0)
 				_text(
 					_box(memo_pool.position.x + 10, ly, memo_pool.size.x - 20, 14),
 					f_lines[i],
-					9 if f_lines.size() > 1 else 10,
+					9,
 					C_TEXT if i == 0 else C_DIM
 				)
 
@@ -2698,7 +2704,7 @@ func _draw_strategy_page() -> void:
 		_text(
 			_box(50, 356, 568, 15),
 			"MALETERO %d/%d · PARQUE %d  ·  %s" % [draft_spare_ids.size(), _tire_capacity(), draft_stock_ids.size(), mode_note],
-			9,
+			8,
 			note_color,
 			true
 		)
@@ -2708,7 +2714,7 @@ func _draw_strategy_page() -> void:
 		_text(
 			_box(662, 177, 568, 15),
 			"ARRASTRA RUEDAS 3D ENTRE COCHE, MALETERO Y PARQUE  ·  CLIC O D-PAD SELECCIONA",
-			9,
+			8,
 			C_DIM,
 			true
 		)
@@ -2725,7 +2731,7 @@ func _draw_strategy_page() -> void:
 		_text(
 			_box(662, 653, 568, 16),
 			"PRESIÓN MEDIA %0.0f kPa  ·  DESLIZA SOBRE MONTAJE PARA INTERCAMBIAR POSICIONES" % (p_sum * 0.25),
-			9,
+			8,
 			C_DIM,
 			true,
 			HORIZONTAL_ALIGNMENT_CENTER,
@@ -2736,7 +2742,7 @@ func _draw_strategy_page() -> void:
 	_group(Rect2(36, 332, 596, 156), "INVENTARIO DE NEUMÁTICOS")
 	var service_rect := Rect2(50, 356, 568, 44)
 	_row_frame(service_rect, selected_field_path == "service", false, _mouse_over(service_rect))
-	_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 11, C_TEXT)
+	_text(_box(service_rect.position.x + 12, service_rect.position.y, 300, 44), "NEUMÁTICOS NUEVOS", 10, C_TEXT)
 	_toggle(
 		Rect2(service_rect.end.x - 132, service_rect.position.y + 7, 120, 30),
 		"SÍ" if new_tires_service else "NO",
@@ -2747,7 +2753,7 @@ func _draw_strategy_page() -> void:
 
 	var spare_rect := Rect2(50, 408, 568, 44)
 	_row_frame(spare_rect, selected_field_path == "spares", true, _mouse_over(spare_rect))
-	_text(_box(spare_rect.position.x + 12, spare_rect.position.y, 300, 44), "RUEDAS DE REPUESTO", 11, C_TEXT)
+	_text(_box(spare_rect.position.x + 12, spare_rect.position.y, 300, 44), "RUEDAS DE REPUESTO", 10, C_TEXT)
 	for s in 3:
 		var button := Rect2(spare_rect.end.x - 140 + float(s) * 46, spare_rect.position.y + 8, 42, 28)
 		_toggle(button, str(s), draft_spare_wheels == s)
@@ -2762,12 +2768,12 @@ func _draw_strategy_page() -> void:
 	if event_forecast.is_empty():
 		_hint(_box(memo.position.x + 10, memo.position.y + 10, memo.size.x - 20, 18), "SIN PREVISIÓN PARA ESTE EVENTO")
 	else:
-		var lines := _wrap_text(event_forecast, 4, 84)
+		var lines := _wrap_text(event_forecast, 4, 68)
 		for i in lines.size():
 			_text(
 				_box(memo.position.x + 10, memo.position.y + 10 + float(i) * 20, memo.size.x - 20, 18),
 				lines[i],
-				10,
+				9,
 				C_TEXT if i == 0 else C_DIM
 			)
 
@@ -2810,28 +2816,28 @@ func _draw_strategy_page() -> void:
 		if card_focused:
 			draw_rect(card, BORDER_FOCUS, false, 2.0)
 		var id_str := "#%d · " % tid if not tire_info.is_empty() else ""
-		_text(_box(card.position.x + 12, card.position.y + 8, 120, 22), id_str + codes[i], 15, C_TEXT, true)
+		_text_with(FONT_SUBTITLE, _box(card.position.x + 12, card.position.y + 8, 120, 22), id_str + codes[i], 18, C_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 		_text(
 			_box(card.position.x, card.position.y + 10, card.size.x - 12, 18),
 			"%s · %s" % [names[i], status_tag],
-			9,
+			8,
 			status_color if status_tag != "OK" else C_DIM,
 			status_tag != "OK",
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			card.size.x - 12
 		)
-		_text(_box(card.position.x + 12, card.position.y + 42, 220, 14), "PRESIÓN · DESGASTE %0.0f%%" % wear_pct, 9, C_DIM, true)
+		_text(_box(card.position.x + 12, card.position.y + 42, 220, 14), "PRESIÓN · DESGASTE %0.0f%%" % wear_pct, 8, C_DIM, true)
 		_field_box(
 			Rect2(card.position.x + 12, card.position.y + 56, card.size.x - 24, 30),
 			"%0.0f kPa" % _wheel_pressure(i),
-			12,
+			10,
 			C_TEXT
 		)
-		_text(_box(card.position.x + 12, card.position.y + 94, 160, 14), "TEMPERATURA", 9, C_DIM, true)
+		_text(_box(card.position.x + 12, card.position.y + 94, 160, 14), "TEMPERATURA", 8, C_DIM, true)
 		_field_box(
 			Rect2(card.position.x + 12, card.position.y + 108, card.size.x - 24, 30),
 			"%0.0f °C" % _wheel_temperature(i),
-			12,
+			10,
 			C_BLUE
 		)
 		var bar := Rect2(card.position.x + 12, card.position.y + 152, card.size.x - 24, 10)
@@ -2878,14 +2884,14 @@ func _draw_setups_page() -> void:
 		_text(
 			_box(rect.position.x + 24, rect.position.y, rect.size.x - 220, row_h),
 			str(row.get("name", "Reglaje")),
-			12,
+			11,
 			C_TEXT,
 			selected
 		)
 		_num(
 			_box(rect.position.x, rect.position.y, rect.size.x - 16, row_h),
 			_short_timestamp(str(row.get("modified_at", ""))),
-			10,
+			9,
 			C_DIM,
 			HORIZONTAL_ALIGNMENT_RIGHT,
 			rect.size.x - 16
@@ -2896,7 +2902,7 @@ func _draw_setups_page() -> void:
 		_text(
 			_box(inner.position.x, inner.position.y, inner.size.x, inner.size.y),
 			"SIN PERFILES GUARDADOS",
-			12,
+			11,
 			C_DIM,
 			false,
 			HORIZONTAL_ALIGNMENT_CENTER
@@ -2912,17 +2918,17 @@ func _draw_setups_page() -> void:
 	var detail := Rect2(910, 440, 316, 214)
 	draw_rect(detail, C_FIELD)
 	_sunken(detail)
-	_text_title(_box(detail.position.x + 12, detail.position.y + 10, detail.size.x - 24, 18), "DETALLE", 9, C_DIM)
-	_text(_box(detail.position.x + 12, detail.position.y + 32, detail.size.x - 24, 18), "CIRCUITO", 9, Color(C_DIM, 0.75))
-	_text(_box(detail.position.x + 12, detail.position.y + 48, detail.size.x - 24, 18), circuit_name.to_upper(), 11, C_TEXT)
-	_text(_box(detail.position.x + 12, detail.position.y + 74, detail.size.x - 24, 18), "COCHE", 9, Color(C_DIM, 0.75))
-	_text(_box(detail.position.x + 12, detail.position.y + 90, detail.size.x - 24, 18), _get_vehicle_display_name(), 11, C_TEXT)
-	_text(_box(detail.position.x + 12, detail.position.y + 116, detail.size.x - 24, 18), "REGLAJE ACTIVO", 9, Color(C_DIM, 0.75))
-	_text(_box(detail.position.x + 12, detail.position.y + 132, detail.size.x - 24, 18), active_setup_name.to_upper(), 11, C_BLUE, true)
+	_text_with(FONT_SUBTITLE, _box(detail.position.x + 12, detail.position.y + 10, detail.size.x - 24, 18), "DETALLE", 11, C_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
+	_text(_box(detail.position.x + 12, detail.position.y + 32, detail.size.x - 24, 18), "CIRCUITO", 8, Color(C_DIM, 0.75))
+	_text(_box(detail.position.x + 12, detail.position.y + 48, detail.size.x - 24, 18), circuit_name.to_upper(), 10, C_TEXT)
+	_text(_box(detail.position.x + 12, detail.position.y + 74, detail.size.x - 24, 18), "COCHE", 8, Color(C_DIM, 0.75))
+	_text(_box(detail.position.x + 12, detail.position.y + 90, detail.size.x - 24, 18), _get_vehicle_display_name(), 10, C_TEXT)
+	_text(_box(detail.position.x + 12, detail.position.y + 116, detail.size.x - 24, 18), "REGLAJE ACTIVO", 8, Color(C_DIM, 0.75))
+	_text(_box(detail.position.x + 12, detail.position.y + 132, detail.size.x - 24, 18), active_setup_name.to_upper(), 10, C_BLUE, true)
 	_text(
 		_box(detail.position.x + 12, detail.position.y + 164, detail.size.x - 24, 18),
 		"ENTER CARGA · SUPR BORRA",
-		9,
+		8,
 		Color(C_DIM, 0.7)
 	)
 
@@ -2939,7 +2945,7 @@ func _draw_modal() -> void:
 	_text_title(
 		_box(rect.position.x + 18, rect.position.y + 8, rect.size.x - 36, 32),
 		"PERFIL" if modal_mode == "name" else "CONFIRMACIÓN",
-		11,
+		16,
 		C_GOLD
 	)
 	draw_line(
@@ -2954,12 +2960,12 @@ func _draw_modal() -> void:
 	_bevel(body, false, 2)
 
 	if modal_mode == "name":
-		_text_title(_box(body.position.x + 12, body.position.y + 10, body.size.x - 24, 20), "NOMBRE DEL REGLAJE", 10, C_DIM)
+		_text_with(FONT_SUBTITLE, _box(body.position.x + 12, body.position.y + 10, body.size.x - 24, 20), "NOMBRE DEL REGLAJE", 12, C_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 		var input := Rect2(body.position.x + 12, body.position.y + 36, body.size.x - 24, 40)
 		draw_rect(input, C_FIELD)
 		_sunken(input)
-		_text(_box(input.position.x + 8, input.position.y, input.size.x - 16, input.size.y), modal_text, 14, C_TEXT)
-		var caret_x := input.position.x + 8.0 + _serif_width(modal_text, 14, false) + 2.0
+		_text(_box(input.position.x + 8, input.position.y, input.size.x - 16, input.size.y), modal_text, 12, C_TEXT)
+		var caret_x := input.position.x + 8.0 + _serif_width(modal_text, 12, false) + 2.0
 		draw_rect(Rect2(caret_x, input.position.y + 11, 1, 18), C_TEXT)
 		_hint(_box(body.position.x + 12, body.position.y + 84, body.size.x - 24, 18), "ENTER GUARDA · ESC CANCELA")
 	elif modal_mode == "delete":
@@ -2970,7 +2976,7 @@ func _draw_modal() -> void:
 		_text(
 			_box(body.position.x + 12, body.position.y + 30, body.size.x - 24, 24),
 			"¿ELIMINAR «" + selected_name.to_upper() + "»?",
-			13,
+			11,
 			C_TEXT,
 			true
 		)
@@ -2979,7 +2985,7 @@ func _draw_modal() -> void:
 		_text(
 			_box(body.position.x + 12, body.position.y + 30, body.size.x - 24, 24),
 			"¿DESCARTAR CAMBIOS SIN APLICAR?",
-			13,
+			11,
 			C_TEXT,
 			true
 		)
@@ -2996,8 +3002,8 @@ func _draw_modal() -> void:
 
 func _group(rect: Rect2, caption: String) -> void:
 	draw_style_box(RallyUITheme.make_flat_panel(C_FACE_LO, BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
-	var cap_w := _title_width(caption, 10) + 14.0
-	_text_title(_box(rect.position.x + 14, rect.position.y + 4, cap_w, 14), caption, 10, C_TEXT)
+	var cap_w := _title_width(caption, 13) + 14.0
+	_text_with(FONT_SUBTITLE, _box(rect.position.x + 14, rect.position.y + 4, cap_w, 14), caption, 13, C_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
 	draw_line(
 		Vector2(rect.position.x + 14, rect.position.y + 19),
 		Vector2(rect.end.x - 14, rect.position.y + 19),
@@ -3095,13 +3101,14 @@ func _radio(rect: Rect2, label: String, on: bool) -> void:
 func _toggle(rect: Rect2, label: String, on: bool) -> void:
 	var fill := C_BLUE_DEEP if on else C_FIELD
 	draw_style_box(RallyUITheme.make_flat_panel(fill, C_GOLD if on else BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
-	_text(
+	_text_with(
+		FONT_BUTTON,
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
-		10,
+		13,
 		C_GOLD_HI if on else C_DIM,
-		on,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 
 
@@ -3112,12 +3119,14 @@ func _segment_button(rect: Rect2, label: String, active: bool) -> void:
 	draw_style_box(RallyUITheme.make_flat_panel(fill, C_GOLD if active else BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), rect)
 	if active:
 		draw_rect(Rect2(rect.position.x + 2, rect.end.y - 2, rect.size.x - 4, 2), C_GOLD)
-	_text_title(
+	_text_with(
+		FONT_BUTTON,
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
-		11,
+		13,
 		C_TEXT if active else C_DIM,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 
 
@@ -3125,19 +3134,20 @@ func _classic_button(rect: Rect2, label: String, action: String, modal: bool = f
 	var hovered := _mouse_over(rect)
 	var fill := C_FACE_HI if hovered else C_FACE_LO
 	draw_style_box(RallyUITheme.make_flat_panel(fill, BORDER_FOCUS if hovered else RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS), rect)
-	_text(
+	_text_with(
+		FONT_BUTTON,
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
-		11,
+		15,
 		C_TEXT,
-		true,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 	_hit_regions.append({ "rect": rect, "kind": "button", "action": action, "modal": modal })
 
 
 func _hint(rect: Rect2, text: String) -> void:
-	_text(rect, text, 9, Color(C_DIM, 0.9))
+	_text(rect, text, 8, Color(C_DIM, 0.9))
 
 
 # =============================================================================
@@ -3167,12 +3177,14 @@ func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
 	# La fila se registra primero: los controles de dentro ganan el clic.
 	_hit_regions.append({ "rect": rect, "kind": "select", "path": path })
 
-	_text(
+	_text_with(
+		FONT_UI,
 		_box(rect.position.x + 12, rect.position.y, 236, rect.size.y),
 		label,
-		11,
+		10,
 		C_TEXT if selected else C_DIM,
-		selected
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1.0
 	)
 
 	var field_rect := Rect2(rect.end.x - 96, rect.position.y + (rect.size.y - 32.0) * 0.5, 94, 32)
@@ -3185,7 +3197,7 @@ func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
 		11
 	)
 
-	_field_box(field_rect, _format_field(field, path), 12, C_GOLD if selected else C_TEXT)
+	_field_box(field_rect, _format_field(field, path), 10, C_GOLD if selected else C_TEXT)
 	_stepper(minus, false)
 	_track(track, _field_fraction(field, path), selected)
 	_stepper(plus, true)
@@ -3233,13 +3245,14 @@ func _chrome_button(rect: Rect2, label: String, action: String) -> void:
 	var hovered := _mouse_over(rect)
 	var fill := WB_BG_CARD_HOVER if hovered else WB_BG_CARD
 	draw_style_box(RallyUITheme.make_flat_panel(fill, BORDER_FOCUS if hovered else RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS), rect)
-	_text_serif(
+	_text_with(
+		FONT_BUTTON,
 		_box(rect.position.x, rect.position.y, rect.size.x, rect.size.y),
 		label,
-		12,
+		15,
 		C_CHROME_TEXT,
-		true,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 	_hit_regions.append({ "rect": rect, "kind": "button", "action": action })
 
@@ -3248,13 +3261,14 @@ func _gold_button(rect: Rect2, label: String, action: String, modal: bool = fals
 	var hovered := _mouse_over(rect)
 	var fill := Color("#f2bb54") if hovered else ACCENT_RALLY
 	draw_style_box(RallyUITheme.make_flat_panel(fill, Color("#f6c96e"), 1, RallyUITheme.CORNER_RADIUS), rect)
-	_text_serif(
+	_text_with(
+		FONT_BUTTON,
 		_box(rect.position.x, rect.position.y - 1, rect.size.x, rect.size.y),
 		label,
-		12,
+		15,
 		BG_BASE,
-		true,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1.0
 	)
 	_hit_regions.append({ "rect": rect, "kind": "button", "action": action, "modal": modal })
 
@@ -3338,7 +3352,7 @@ func _text_title(
 
 
 func _title_width(text: String, size: int) -> float:
-	return FONT_TITLE.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	return FONT_SUBTITLE.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
 
 func _text_with(

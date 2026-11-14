@@ -35,7 +35,7 @@ func test_menu_structure_and_order() -> void:
 
 	check(menu_scene.header_title != null and menu_scene.header_title.text == "Rally Maniac", "El título exacto debe ser 'Rally Maniac'")
 	var title_font = menu_scene.header_title.get_theme_font("font")
-	check(title_font != null and title_font.resource_path.ends_with("Montserrat-Bold.ttf"), "El título principal debe usar Montserrat-Bold.ttf")
+	check(title_font != null and (title_font.resource_path.ends_with("bungee_regular.tres") or (title_font is FontVariation and title_font.base_font != null and title_font.base_font.resource_path.ends_with("Bungee-Regular.ttf"))), "El título principal debe usar Bungee Regular")
 	check(menu_scene.btn_championship != null and menu_scene.btn_championship.text == "Campeonato", "Primer botón debe ser Campeonato")
 	check(menu_scene.btn_rally != null and menu_scene.btn_rally.text == "Rally", "Segundo botón debe ser Rally")
 	check(menu_scene.btn_single_stage != null and menu_scene.btn_single_stage.text == "Tramo Único", "Tercer botón debe ser Tramo Único")

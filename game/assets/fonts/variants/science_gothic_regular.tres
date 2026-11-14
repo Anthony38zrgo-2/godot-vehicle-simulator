@@ -1,0 +1,6 @@
+[gd_resource type="FontVariation" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/science_gothic/ScienceGothic-Reg.ttf" id="1_feulm"]
+
+[resource]
+base_font = ExtResource("1_feulm")

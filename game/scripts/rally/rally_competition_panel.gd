@@ -11,11 +11,19 @@ signal new_rally_requested
 # =============================================================================
 
 # 2.2. Estandarización Tipográfica (Sin Serif)
-const FONT := RallyUITheme.FONT_REGULAR
-const BOLD := RallyUITheme.FONT_TITLE
-const DIN := RallyUITheme.FONT_DATA
-const DIN_BOLD := RallyUITheme.FONT_DATA_BOLD
-const FONT_TITLE := RallyUITheme.FONT_TITLE
+# Tipografía exclusiva del HUD en pista (preservada sin cambios)
+const HUD_FONT: Font = preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const HUD_BOLD: Font = preload("res://fonts/montserrat/Montserrat-Bold.ttf")
+
+# Tipografía unificada de menús (Bungee, Big Shoulders, Science Gothic)
+const FONT: Font = RallyUITheme.FONT_REGULAR
+const FONT_MEDIUM: Font = RallyUITheme.FONT_MEDIUM
+const FONT_MEDIUM_TIGHT: Font = RallyUITheme.FONT_MEDIUM_TIGHT
+const BOLD: Font = RallyUITheme.FONT_SUBTITLE
+const DIN: Font = RallyUITheme.FONT_DATA
+const DIN_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
+const DIN_BOLD_TIGHT: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
+const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
 
 # 2.3. Paleta Unificada Dark Carbon + Brass Gold (fuente única: RallyUITheme)
 const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
@@ -172,13 +180,13 @@ func _build_ui() -> void:
 
 	title = Label.new()
 	title.add_theme_font_override("font", FONT_TITLE)
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", 23)
 	title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	title_vbox.add_child(title)
 
 	header_subtitle = Label.new()
-	header_subtitle.add_theme_font_override("font", FONT)
-	header_subtitle.add_theme_font_size_override("font_size", 11)
+	header_subtitle.add_theme_font_override("font", FONT_MEDIUM)
+	header_subtitle.add_theme_font_size_override("font_size", 10)
 	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
 	title_vbox.add_child(header_subtitle)
 
@@ -204,16 +212,16 @@ func _build_ui() -> void:
 	badge_label = Label.new()
 	badge_label.text = "ESTADO DE PRUEBA"
 	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_label.add_theme_font_override("font", FONT_TITLE)
-	badge_label.add_theme_font_size_override("font_size", 9)
+	badge_label.add_theme_font_override("font", BOLD)
+	badge_label.add_theme_font_size_override("font_size", 11)
 	badge_label.add_theme_color_override("font_color", C_CHROME_DIM)
 	status_vbox.add_child(badge_label)
 
 	badge_value = Label.new()
 	badge_value.text = "OFICIAL"
 	badge_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_value.add_theme_font_override("font", DIN_BOLD)
-	badge_value.add_theme_font_size_override("font_size", 14)
+	badge_value.add_theme_font_override("font", DIN_BOLD_TIGHT)
+	badge_value.add_theme_font_size_override("font_size", 13)
 	badge_value.add_theme_color_override("font_color", C_BLUE)
 	status_vbox.add_child(badge_value)
 
@@ -244,8 +252,8 @@ func _build_ui() -> void:
 
 	hero_header_label = Label.new()
 	hero_header_label.text = "RESUMEN DEL PILOTO"
-	hero_header_label.add_theme_font_override("font", FONT_TITLE)
-	hero_header_label.add_theme_font_size_override("font_size", 12)
+	hero_header_label.add_theme_font_override("font", BOLD)
+	hero_header_label.add_theme_font_size_override("font_size", 15)
 	hero_header_label.add_theme_color_override("font_color", C_GOLD)
 	hero_vbox.add_child(hero_header_label)
 
@@ -287,8 +295,8 @@ func _build_ui() -> void:
 
 	table_title = Label.new()
 	table_title.text = "CLASIFICACIÓN OFICIAL"
-	table_title.add_theme_font_override("font", FONT_TITLE)
-	table_title.add_theme_font_size_override("font_size", 12)
+	table_title.add_theme_font_override("font", BOLD)
+	table_title.add_theme_font_size_override("font_size", 15)
 	table_title.add_theme_color_override("font_color", C_CHROME_TEXT)
 	table_header_hbox.add_child(table_title)
 
@@ -298,7 +306,7 @@ func _build_ui() -> void:
 
 	table_legend = Label.new()
 	table_legend.text = "FILA DESTACADA: TU VEHÍCULO"
-	table_legend.add_theme_font_override("font", FONT)
+	table_legend.add_theme_font_override("font", FONT_MEDIUM)
 	table_legend.add_theme_font_size_override("font_size", 10)
 	table_legend.add_theme_color_override("font_color", C_GOLD)
 	table_header_hbox.add_child(table_legend)
@@ -334,7 +342,7 @@ func _build_ui() -> void:
 	notice = Label.new()
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notice.add_theme_font_override("font", FONT)
-	notice.add_theme_font_size_override("font_size", 11)
+	notice.add_theme_font_size_override("font_size", 10)
 	notice.add_theme_color_override("font_color", C_TEXT)
 	notice_margin.add_child(notice)
 
@@ -369,7 +377,7 @@ func _build_ui() -> void:
 	shortcuts_label = Label.new()
 	shortcuts_label.text = "[ ENTER / A ] CONTINUAR  ·  [ R / X ] REINTENTAR  ·  [ ESC / B ] SALIR"
 	shortcuts_label.add_theme_font_override("font", FONT)
-	shortcuts_label.add_theme_font_size_override("font_size", 11)
+	shortcuts_label.add_theme_font_size_override("font_size", 10)
 	shortcuts_label.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.8))
 	footer_hbox.add_child(shortcuts_label)
 
@@ -448,15 +456,15 @@ func _make_classic_panel_style() -> StyleBoxFlat:
 
 
 func _style_gold_button(btn: Button) -> void:
-	RallyUITheme.style_gold_button(btn, 13, 24, 8)
+	RallyUITheme.style_gold_button(btn, 16, 24, 8)
 
 
 func _style_chrome_button(btn: Button) -> void:
-	RallyUITheme.style_chrome_button(btn, 12, 18, 8)
+	RallyUITheme.style_chrome_button(btn, 15, 18, 8)
 
 
 func _style_muted_button(btn: Button) -> void:
-	RallyUITheme.style_tone_button(btn, "muted", 12, 16, 8, RallyUITheme.CORNER_RADIUS, FONT)
+	RallyUITheme.style_tone_button(btn, "muted", 15, 16, 8, RallyUITheme.CORNER_RADIUS)
 	var hover := RallyUITheme.make_flat_panel(Color("#2b1316"), STATUS_DANGER, 1, RallyUITheme.CORNER_RADIUS, 16, 8)
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_stylebox_override("focus", hover)
@@ -465,8 +473,9 @@ func _style_muted_button(btn: Button) -> void:
 
 
 func _style_tree(tree_node: Tree) -> void:
-	RallyUITheme.style_tree(tree_node, 13)
-	tree_node.add_theme_font_override("font", DIN_BOLD)
+	RallyUITheme.style_tree(tree_node, 12)
+	tree_node.add_theme_font_override("font", FONT_MEDIUM_TIGHT)
+	tree_node.add_theme_font_size_override("title_button_font_size", 13)
 	tree_node.add_theme_color_override("title_button_color", C_CHROME_TEXT)
 	tree_node.add_theme_constant_override("v_separation", 4)
 	tree_node.add_theme_constant_override("h_separation", 8)
@@ -483,15 +492,15 @@ func _create_card(label_text: String, primary_text: String, sub_text: String, pr
 
 	var l_title := Label.new()
 	l_title.text = label_text.to_upper()
-	l_title.add_theme_font_override("font", FONT_TITLE)
-	l_title.add_theme_font_size_override("font_size", 10)
+	l_title.add_theme_font_override("font", BOLD)
+	l_title.add_theme_font_size_override("font_size", 12)
 	l_title.add_theme_color_override("font_color", C_CHROME_DIM)
 	box.add_child(l_title)
 
 	var l_prim := Label.new()
 	l_prim.text = primary_text
-	l_prim.add_theme_font_override("font", DIN_BOLD)
-	l_prim.add_theme_font_size_override("font_size", 20)
+	l_prim.add_theme_font_override("font", DIN_BOLD_TIGHT)
+	l_prim.add_theme_font_size_override("font_size", 15)
 	l_prim.add_theme_color_override("font_color", primary_color)
 	box.add_child(l_prim)
 
@@ -499,7 +508,7 @@ func _create_card(label_text: String, primary_text: String, sub_text: String, pr
 		var l_sub := Label.new()
 		l_sub.text = sub_text
 		l_sub.add_theme_font_override("font", FONT)
-		l_sub.add_theme_font_size_override("font_size", 11)
+		l_sub.add_theme_font_size_override("font_size", 10)
 		l_sub.add_theme_color_override("font_color", sub_color)
 		box.add_child(l_sub)
 
@@ -529,7 +538,7 @@ func _create_podium_card(rank: int, competitor_name: String, car_team: String, t
 	var l_rank := Label.new()
 	l_rank.text = "%dº PUESTO" % rank
 	l_rank.add_theme_font_override("font", BOLD)
-	l_rank.add_theme_font_size_override("font_size", 11)
+	l_rank.add_theme_font_size_override("font_size", 14)
 	l_rank.add_theme_color_override("font_color", rank_color)
 	top_row.add_child(l_rank)
 
@@ -537,7 +546,7 @@ func _create_podium_card(rank: int, competitor_name: String, car_team: String, t
 		var tag := Label.new()
 		tag.text = " [TU VEHÍCULO]"
 		tag.add_theme_font_override("font", BOLD)
-		tag.add_theme_font_size_override("font_size", 10)
+		tag.add_theme_font_size_override("font_size", 13)
 		tag.add_theme_color_override("font_color", C_GOLD_HI)
 		top_row.add_child(tag)
 
@@ -547,15 +556,15 @@ func _create_podium_card(rank: int, competitor_name: String, car_team: String, t
 
 	var l_pts := Label.new()
 	l_pts.text = points_text
-	l_pts.add_theme_font_override("font", DIN_BOLD)
-	l_pts.add_theme_font_size_override("font_size", 13)
+	l_pts.add_theme_font_override("font", DIN_BOLD_TIGHT)
+	l_pts.add_theme_font_size_override("font_size", 11)
 	l_pts.add_theme_color_override("font_color", C_GOLD if rank == 1 else C_TEXT)
 	top_row.add_child(l_pts)
 
 	var l_name := Label.new()
 	l_name.text = competitor_name
 	l_name.add_theme_font_override("font", BOLD)
-	l_name.add_theme_font_size_override("font_size", 15)
+	l_name.add_theme_font_size_override("font_size", 18)
 	l_name.add_theme_color_override("font_color", C_GOLD_HI if is_player else C_CHROME_TEXT)
 	box.add_child(l_name)
 
@@ -565,7 +574,7 @@ func _create_podium_card(rank: int, competitor_name: String, car_team: String, t
 	var l_car := Label.new()
 	l_car.text = car_team
 	l_car.add_theme_font_override("font", FONT)
-	l_car.add_theme_font_size_override("font_size", 11)
+	l_car.add_theme_font_size_override("font_size", 10)
 	l_car.add_theme_color_override("font_color", C_DIM)
 	bottom_row.add_child(l_car)
 
@@ -575,8 +584,8 @@ func _create_podium_card(rank: int, competitor_name: String, car_team: String, t
 
 	var l_time := Label.new()
 	l_time.text = total_time
-	l_time.add_theme_font_override("font", DIN_BOLD)
-	l_time.add_theme_font_size_override("font_size", 13)
+	l_time.add_theme_font_override("font", DIN_BOLD_TIGHT)
+	l_time.add_theme_font_size_override("font_size", 11)
 	l_time.add_theme_color_override("font_color", C_TEXT)
 	bottom_row.add_child(l_time)
 
@@ -720,6 +729,8 @@ func _present_results(state: Dictionary) -> void:
 		for i in columns.size():
 			item.set_text(i, columns[i])
 			item.set_tooltip_text(i, columns[i])
+			if i == 0 or i == 3 or i == 4:
+				item.set_custom_font(i, DIN_BOLD_TIGHT)
 			if is_player:
 				item.set_custom_color(i, Color("#ffd700"))
 				item.set_custom_bg_color(i, Color("#3b3324"))
@@ -869,6 +880,8 @@ func _present_final(state: Dictionary) -> void:
 		for i in columns.size():
 			item.set_text(i, columns[i])
 			item.set_tooltip_text(i, columns[i])
+			if i == 0 or i >= 2:
+				item.set_custom_font(i, DIN_BOLD_TIGHT)
 			if is_player:
 				item.set_custom_color(i, Color("#ffd700"))
 				item.set_custom_bg_color(i, Color("#3b3324"))
@@ -1037,9 +1050,9 @@ func _num(
 	if value.is_empty():
 		return
 	var width: float = rect.size.x if width_override < 0.0 else width_override
-	var line_height := BOLD.get_height(size_px)
-	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - BOLD.get_descent(size_px)
-	draw_string(BOLD, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
+	var line_height := HUD_BOLD.get_height(size_px)
+	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - HUD_BOLD.get_descent(size_px)
+	draw_string(HUD_BOLD, Vector2(round(rect.position.x), round(baseline)), value, align, width, size_px, color)
 
 
 func _text(
@@ -1053,7 +1066,7 @@ func _text(
 ) -> void:
 	if value.is_empty():
 		return
-	var font: Font = BOLD if bold else FONT
+	var font: Font = HUD_BOLD if bold else HUD_FONT
 	var width: float = rect.size.x if width_override < 0.0 else width_override
 	var line_height := font.get_height(size_px)
 	var baseline := rect.position.y + (rect.size.y + line_height) * 0.5 - font.get_descent(size_px)

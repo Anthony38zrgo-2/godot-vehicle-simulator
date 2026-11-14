@@ -18,9 +18,10 @@ const SPARE_RECTS: Array[Rect2] = [
 	Rect2(338.0, 372.0, 280.0, 92.0),
 ]
 const STOCK_ZONE_RECT := Rect2(44.0, 470.0, 580.0, 196.0)
-const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
-const FONT_BODY: Font = RallyUITheme.FONT_DATA
-const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD
+const FONT_TITLE: Font = RallyUITheme.FONT_SUBTITLE
+const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
+const FONT_BODY: Font = RallyUITheme.FONT_MEDIUM_TIGHT
+const FONT_NUM: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 
 var garage: Control = null
 var _built_for_vehicle: Node3D = null
@@ -331,42 +332,42 @@ class GarageTireSlot3D extends Control:
 		if slot_kind == "mounted":
 			title_lbl.position = Vector2(10.0, 7.0)
 			title_lbl.size = Vector2(92.0, 20.0)
-			title_lbl.add_theme_font_size_override("font_size", 13)
+			title_lbl.add_theme_font_size_override("font_size", 15)
 
 			status_lbl.position = Vector2(90.0, 8.0)
 			status_lbl.size = Vector2(size.x - 100.0, 18.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 10)
+			status_lbl.add_theme_font_size_override("font_size", 9)
 
 			compound_lbl.position = Vector2(10.0, 132.0)
 			compound_lbl.size = Vector2(size.x - 20.0, 18.0)
 			compound_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			compound_lbl.add_theme_font_size_override("font_size", 11)
+			compound_lbl.add_theme_font_size_override("font_size", 10)
 
 			sub_lbl.position = Vector2(10.0, 152.0)
 			sub_lbl.size = Vector2(size.x - 20.0, 32.0)
 			sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			sub_lbl.add_theme_font_size_override("font_size", 11)
+			sub_lbl.add_theme_font_size_override("font_size", 9)
 
 			life_bar.position = Vector2(12.0, size.y - 16.0)
 			life_bar.size = Vector2(size.x - 24.0, 6.0)
 		elif slot_kind == "spare":
 			title_lbl.position = Vector2(78.0, 8.0)
 			title_lbl.size = Vector2(138.0, 20.0)
-			title_lbl.add_theme_font_size_override("font_size", 12)
+			title_lbl.add_theme_font_size_override("font_size", 14)
 
 			compound_lbl.position = Vector2(78.0, 30.0)
 			compound_lbl.size = Vector2(130.0, 18.0)
-			compound_lbl.add_theme_font_size_override("font_size", 11)
+			compound_lbl.add_theme_font_size_override("font_size", 10)
 
 			sub_lbl.position = Vector2(78.0, 50.0)
 			sub_lbl.size = Vector2(140.0, 18.0)
-			sub_lbl.add_theme_font_size_override("font_size", 11)
+			sub_lbl.add_theme_font_size_override("font_size", 9)
 
 			status_lbl.position = Vector2(size.x - 84.0, 8.0)
 			status_lbl.size = Vector2(74.0, 18.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 10)
+			status_lbl.add_theme_font_size_override("font_size", 9)
 
 			life_bar.position = Vector2(78.0, size.y - 14.0)
 			life_bar.size = Vector2(size.x - 146.0, 5.0)
@@ -376,7 +377,7 @@ class GarageTireSlot3D extends Control:
 			unload_btn.position = Vector2(size.x - 62.0, size.y - 34.0)
 			unload_btn.size = Vector2(54.0, 24.0)
 			unload_btn.focus_mode = Control.FOCUS_NONE
-			RallyUITheme.style_tone_button(unload_btn, "chrome", 10, 8, 3, RallyUITheme.CORNER_RADIUS, FONT_NUM)
+			RallyUITheme.style_tone_button(unload_btn, "chrome", 12, 8, 3, RallyUITheme.CORNER_RADIUS, FONT_BUTTON)
 			unload_btn.pressed.connect(func():
 				if board != null and is_instance_valid(board.garage):
 					board.garage.call("_unload_spare_slot", slot_index)
@@ -385,20 +386,20 @@ class GarageTireSlot3D extends Control:
 		else:
 			title_lbl.position = Vector2(70.0, 7.0)
 			title_lbl.size = Vector2(60.0, 18.0)
-			title_lbl.add_theme_font_size_override("font_size", 12)
+			title_lbl.add_theme_font_size_override("font_size", 14)
 
 			status_lbl.position = Vector2(118.0, 8.0)
 			status_lbl.size = Vector2(size.x - 126.0, 16.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 9)
+			status_lbl.add_theme_font_size_override("font_size", 8)
 
 			compound_lbl.position = Vector2(70.0, 28.0)
 			compound_lbl.size = Vector2(size.x - 78.0, 18.0)
-			compound_lbl.add_theme_font_size_override("font_size", 11)
+			compound_lbl.add_theme_font_size_override("font_size", 10)
 
 			sub_lbl.position = Vector2(70.0, 48.0)
 			sub_lbl.size = Vector2(size.x - 78.0, 18.0)
-			sub_lbl.add_theme_font_size_override("font_size", 10)
+			sub_lbl.add_theme_font_size_override("font_size", 8)
 
 			life_bar.position = Vector2(70.0, size.y - 12.0)
 			life_bar.size = Vector2(size.x - 78.0, 5.0)
