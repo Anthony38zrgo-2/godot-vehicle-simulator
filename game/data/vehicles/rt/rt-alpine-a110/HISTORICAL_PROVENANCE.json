@@ -117,7 +117,7 @@
     "fuel.json": "50defec11082a321a830cee3a477a3fd52c931cd04ac1f78da088f655774bff6",
     "powertrain.json": "48413bc2ea0588f7be471cea8f6cd38527867163f2140e96392059a601525687",
     "steering.json": "732801786b7fd7b5e2472fec5acaccc2536145fc11dde3821451e72c8aaa5a82",
-    "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
+    "suspension.json": "670c2cb5550c8c086da7050f70ffc195298ee920c6db01331bc8aac131f61903",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "tire_filters.json": "48ee3e071efe04f9199f5f2f3db723efb8ab75365d0eabfea34a84a6be48443c",
     "tires.json": "cd80a7dfff42b313792a055d96a3c69d8b553277c0fec524dea45c7059501ba1",

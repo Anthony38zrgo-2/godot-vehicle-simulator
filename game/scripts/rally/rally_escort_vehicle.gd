@@ -1365,6 +1365,7 @@ func get_presentation_snapshot() -> Dictionary:
 func _apply_dreamcast_vehicle_visuals() -> void:
 	# Unica parte activa del pipeline visual: sombra blob bajo el chasis.
 	# El coche va en la capa 2 para que el Decal (capa 1) no se proyecte sobre el propio coche.
+	# Desactivar tambien cast_shadow y sombras de luces del coche para dejar solo el Decal blob.
 	_set_vehicle_layers(self)
 	if dc_enable_blob_shadow:
 		_create_blob_shadow()
@@ -1374,6 +1375,10 @@ func _apply_dreamcast_vehicle_visuals() -> void:
 func _set_vehicle_layers(node: Node) -> void:
 	if node is VisualInstance3D:
 		(node as VisualInstance3D).layers = 2
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if node is Light3D:
+		(node as Light3D).shadow_enabled = false
 	for child in node.get_children():
 		_set_vehicle_layers(child)
 

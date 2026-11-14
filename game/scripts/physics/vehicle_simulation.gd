@@ -816,8 +816,9 @@ func _query_shapecast_contact(
 	steer: float,
 ) -> Dictionary:
 	var cast := wheel_contact_casts[index]
+	# Wheel camber rotates around +Z (Vector3.BACK) in axle space to match WheelVisual tilt.
 	var orientation := Basis(Vector3.UP, steer) * Basis(
-		Vector3.FORWARD,
+		Vector3.BACK,
 		suspension_model.dynamic_wheel_camber(index),
 	) * Basis(Vector3.BACK, PI * 0.5)
 	cast.global_transform = body_transform * Transform3D(
@@ -1426,7 +1427,11 @@ func update_wheel_visuals(steering_input: float) -> void:
 		pivot.position = wheel_positions_local[i] + Vector3.UP * suspension_model.compression[i]
 		pivot.rotation.y = steer_angle + toe
 		if i < wheel_visuals.size():
-			wheel_visuals[i].rotation = Vector3(wheel_rotation_angles[i], 0.0, wheel_camber)
+			# Spin first around local +X before tilting camber around +Z; YXZ Euler would precess the spindle.
+			wheel_visuals[i].quaternion = Quaternion(Vector3.BACK, wheel_camber) * Quaternion(
+				Vector3.RIGHT,
+				wheel_rotation_angles[i],
+			)
 
 
 func _effective_toe(index: int) -> float:
