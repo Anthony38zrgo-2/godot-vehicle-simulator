@@ -231,10 +231,14 @@ func create(
 		hub.angular_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
 		hub.linear_damp = 0.0
 		hub.angular_damp = 0.0
+		# Condicionar la inercia rotacional del buje (Jolt Constraint Stability):
+		# los 3 ejes angulares están bloqueados en Generic6DOFJoint3D; un radio mayor
+		# evita un ratio de inercia ~10,000:1 frente al chasis sin alterar hub.mass.
 		var shape_node := CollisionShape3D.new()
 		var shape := SphereShape3D.new()
-		shape.radius = 0.1
+		shape.radius = 0.45
 		shape_node.shape = shape
+		hub.inertia = Vector3.ONE * (maxf(masses[i], 1.0) * 0.25)
 		hub.add_child(shape_node)
 		body.add_child(hub)
 		hub.global_transform = body.global_transform * Transform3D(Basis.IDENTITY, positions[i])

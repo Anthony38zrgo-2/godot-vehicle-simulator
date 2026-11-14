@@ -30,6 +30,13 @@ enabled=PackedStringArray("res://addons/TCA_Weather_System/plugin.cfg")
 
 common/physics_ticks_per_second=120
 3d/physics_engine="Jolt Physics"
+jolt_physics_3d/simulation/velocity_steps=14
+jolt_physics_3d/simulation/position_steps=4
+jolt_physics_3d/simulation/penetration_slop=0.005
+jolt_physics_3d/simulation/speculative_contact_distance=0.025
+jolt_physics_3d/simulation/continuous_cd_movement_threshold=0.25
+jolt_physics_3d/simulation/continuous_cd_max_penetration=0.1
+jolt_physics_3d/queries/use_enhanced_internal_edge_removal=true
 
 [audio]
 
