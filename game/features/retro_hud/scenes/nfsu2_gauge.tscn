@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/retro_hud/scripts/nfsu2_gauge.gd" id="1_gauge"]
+
+[node name="NFSU2Gauge" type="Control"]
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 256.0
+offset_bottom = 256.0
+mouse_filter = 2
+script = ExtResource("1_gauge")

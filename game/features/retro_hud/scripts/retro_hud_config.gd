@@ -3,7 +3,7 @@ extends RefCounted
 
 const DEFAULT_PATH := "res://features/retro_hud/config/retro_hud.json"
 
-var style := "cmr2_digital"
+var style := "nfsu2_analog"
 var card_width := 100.0
 var card_height := 142.0
 var card_gap := 12.0

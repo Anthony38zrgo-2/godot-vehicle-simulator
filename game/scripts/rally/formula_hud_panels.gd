@@ -17,14 +17,14 @@ const C_ORANGE := Color("#f08c35")
 const C_ROSE := Color("#ef4444")
 const C_BLUE := Color("#5fa8e0")
 
-const STANDINGS_ORIGIN := Vector2(88.0, 68.0)
+const STANDINGS_ORIGIN := Vector2(40.0, 20.0)
 const STANDINGS_ROW_SIZE := Vector2(500.0, 42.0)
 const STANDINGS_ROW_GAP := 3.0
 
 const DAMAGE_RECT := Rect2(88.0, 444.0, 226.0, 114.0)
 
-const TIMING_MARGIN_RIGHT := 88.0
-const TIMING_TOP := 86.0
+const TIMING_MARGIN_RIGHT := 40.0
+const TIMING_TOP := 20.0
 const TIMING_WIDTH := 516.0
 const SPLIT_BAR_HEIGHT := 38.0
 const CLOCK_PANEL_HEIGHT := 82.0
@@ -66,7 +66,6 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * factor)
 
 	_draw_split_standings()
-	_draw_damage(DAMAGE_RECT)
 
 	var right_x := maxf(logical_w - TIMING_MARGIN_RIGHT - TIMING_WIDTH, 640.0)
 	_draw_timing(Vector2(right_x, TIMING_TOP))
@@ -95,9 +94,10 @@ func _draw_split_standings() -> void:
 		var y := STANDINGS_ORIGIN.y + float(i) * (STANDINGS_ROW_SIZE.y + STANDINGS_ROW_GAP)
 		var row_rect := Rect2(STANDINGS_ORIGIN.x, y, STANDINGS_ROW_SIZE.x, STANDINGS_ROW_SIZE.y)
 		var is_player := bool(entry.get("player", false))
-		var bg := Cmr2Style.PANEL_PLAYER_BG if is_player else Cmr2Style.PANEL_BG
+		var bg := Cmr2Style.TACHO_CMR_PLAYER_BG if is_player else Cmr2Style.TACHO_PANEL_BG
+		var border := Cmr2Style.TACHO_CMR_PLAYER_BORDER if is_player else Cmr2Style.TACHO_BORDER
 		var fg := Cmr2Style.TEXT_WHITE if is_player else Cmr2Style.TEXT_STANDING
-		Cmr2Style.draw_panel(self, row_rect, bg, Cmr2Style.PANEL_BORDER)
+		Cmr2Style.draw_panel(self, row_rect, bg, border)
 
 		var pos_text := str(int(entry.get("position", i + 1)))
 		var code_text := Cmr2Style.driver_code(str(entry.get("name", "")))
@@ -177,7 +177,7 @@ func _draw_timing(origin: Vector2) -> void:
 		clock_y += SPLIT_BAR_HEIGHT
 
 	var clock_rect := Rect2(origin.x, clock_y, TIMING_WIDTH, CLOCK_PANEL_HEIGHT)
-	Cmr2Style.draw_panel(self, clock_rect, Cmr2Style.PANEL_BG, Cmr2Style.PANEL_BORDER)
+	Cmr2Style.draw_panel(self, clock_rect, Cmr2Style.TACHO_PANEL_BG, Cmr2Style.TACHO_BORDER)
 
 	var current_s: Variant = course.get("current_s")
 	var current_ms: Variant = null if current_s == null else roundi(float(current_s) * 1000.0)
@@ -196,21 +196,21 @@ func _draw_split_progress_bar(rect: Rect2, sector_count: int, sector_deltas: Arr
 		var cell := Rect2(x0, rect.position.y, next_x - x0, rect.size.y)
 		if i < active_index:
 			var delta_val: Variant = sector_deltas[i]
-			var seg_color := Cmr2Style.PANEL_PLAYER_BG
+			var seg_color := Cmr2Style.TACHO_CMR_PLAYER_BG
 			if delta_val != null and (delta_val is int or delta_val is float):
-				seg_color = Color(Cmr2Style.AHEAD_COLOR, 0.94) if int(delta_val) <= 0 else Color(Cmr2Style.BEHIND_COLOR, 0.94)
+				seg_color = Color(Cmr2Style.AHEAD_COLOR.darkened(0.20), 0.90) if int(delta_val) <= 0 else Color(Cmr2Style.BEHIND_COLOR, 0.94)
 			draw_rect(cell, seg_color)
 		elif i == active_index:
-			# Current split highlight mimics RallyData_LayoutPlayerSplitBars
+			# Current split highlight mimics RallyData_LayoutPlayerSplitBars on dark HUD
 			var upper_h := floorf(cell.size.y * 0.45)
-			draw_rect(Rect2(cell.position, Vector2(cell.size.x, upper_h)), Cmr2Style.PANEL_BG_ACTIVE)
-			draw_rect(Rect2(cell.position.x, cell.position.y + upper_h, cell.size.x, cell.size.y - upper_h), Cmr2Style.PANEL_BG_DIM)
+			draw_rect(Rect2(cell.position, Vector2(cell.size.x, upper_h)), Cmr2Style.TACHO_PANEL_ACTIVE)
+			draw_rect(Rect2(cell.position.x, cell.position.y + upper_h, cell.size.x, cell.size.y - upper_h), Cmr2Style.TACHO_WELL_BG)
 		else:
-			draw_rect(cell, Cmr2Style.PANEL_BG_DIM)
+			draw_rect(cell, Cmr2Style.TACHO_PANEL_DIM)
 
 		if i > 0:
-			draw_line(Vector2(x0, rect.position.y), Vector2(x0, rect.end.y), Color(1.0, 1.0, 1.0, 0.90), 1.0)
-	draw_rect(rect, Cmr2Style.PANEL_BORDER, false, 1.0)
+			draw_line(Vector2(x0, rect.position.y), Vector2(x0, rect.end.y), Cmr2Style.TACHO_BORDER, 1.0)
+	draw_rect(rect, Cmr2Style.TACHO_BORDER, false, 1.0)
 
 
 # =============================================================================
@@ -231,7 +231,7 @@ func _draw_tires(rect: Rect2) -> void:
 		var x := rect.position.x + float(col) * (cell_w + gap)
 		var y := rect.position.y + float(row) * (cell_h + gap)
 		var card := Rect2(x, y, cell_w, cell_h)
-		Cmr2Style.draw_panel(self, card, Cmr2Style.PANEL_GAUGE_BG, Cmr2Style.PANEL_BORDER)
+		Cmr2Style.draw_panel(self, card, Cmr2Style.TACHO_PANEL_BG, Cmr2Style.TACHO_BORDER)
 
 		var wheel: Dictionary = wheels[i] if wheels.size() > i else {}
 		Cmr2Style.draw_box_text(self, Rect2(x + 6.0, y + 3.0, 22.0, 13.0), codes[i], 11, Cmr2Style.TEXT_WHITE, true)
@@ -253,7 +253,7 @@ func _draw_tires(rect: Rect2) -> void:
 		var disc_center := Vector2(x + 24.0, y + 43.0)
 		var brake_value: Variant = wheel.get("brake_disc_c")
 		var disc_color := brake_temp_color(brake_value)
-		draw_circle(disc_center, 12.5, Cmr2Style.PANEL_WELL_BG)
+		draw_circle(disc_center, 12.5, Cmr2Style.TACHO_WELL_BG)
 		draw_arc(disc_center, 12.5, 0.0, TAU, 24, disc_color, 2.5, true)
 		draw_arc(disc_center, 6.5, 0.0, TAU, 16, Color(disc_color, 0.45), 1.5, true)
 		Cmr2Style.draw_box_text(self, Rect2(x + 4.0, y + 59.0, 40.0, 14.0), number(brake_value) + "°", 11, disc_color, true, HORIZONTAL_ALIGNMENT_CENTER)
@@ -271,21 +271,17 @@ func _draw_tires(rect: Rect2) -> void:
 				true
 			)
 
-		var tire := Rect2(x + 52.0, y + 22.0, 52.0, 36.0)
+		var tire := Rect2(x + 52.0, y + 30.0, 52.0, 28.0)
 		var is_dest := float(wheel.get("carcass_failure", 0.0)) >= 1.0
 		var has_leak := float(wheel.get("leak_per_second", 0.0)) > 0.0
 		if is_dest or has_leak:
 			var warning := "DEST." if is_dest else ("PINCH." if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA")
 			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), warning, 8, C_ROSE, true)
-			tire.position.y += 8.0
-			tire.size.y -= 8.0
 		elif has_rim:
 			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), "ARO", 8, C_ROSE, true)
-			tire.position.y += 8.0
-			tire.size.y -= 8.0
 
-		draw_rect(tire, Cmr2Style.PANEL_WELL_BG)
-		draw_rect(tire, Cmr2Style.PANEL_BORDER, false, 1.0)
+		draw_rect(tire, Cmr2Style.TACHO_WELL_BG)
+		draw_rect(tire, Cmr2Style.TACHO_BORDER, false, 1.0)
 		var wear: Variant = wheel.get("wear_fraction")
 		var wear_val := clampf(float(wear), 0.0, 1.0) if (wear != null and is_finite(float(wear))) else 0.0
 		var zone_colors := tire_zone_colors(wheel, i)
@@ -315,7 +311,7 @@ func _draw_tires(rect: Rect2) -> void:
 
 
 func _draw_fuel_and_engine(rect: Rect2) -> void:
-	Cmr2Style.draw_panel(self, rect, Cmr2Style.PANEL_GAUGE_BG, Cmr2Style.PANEL_BORDER)
+	Cmr2Style.draw_panel(self, rect, Cmr2Style.TACHO_PANEL_BG, Cmr2Style.TACHO_BORDER)
 
 	var pad := 10.0
 	var inner_w := rect.size.x - pad * 2.0
@@ -331,7 +327,7 @@ func _draw_fuel_and_engine(rect: Rect2) -> void:
 		elif fuel_frac <= 0.22:
 			fuel_color = Cmr2Style.AMBER_ACCENT
 
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad, rect.position.y + 7.0, 56.0, 14.0), "COMB.", 12, Cmr2Style.TEXT_WHITE, true)
+	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad, rect.position.y + 7.0, 56.0, 14.0), "FUEL", 12, Cmr2Style.TEXT_WHITE, true)
 	var fuel_text := ("%.1f L" % rem) if rem >= 0.0 else "-- L"
 	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad + 50.0, rect.position.y + 6.0, inner_w - 50.0, 16.0), fuel_text, 13, fuel_color if has_fuel else Cmr2Style.TEXT_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
 
@@ -342,63 +338,63 @@ func _draw_fuel_and_engine(rect: Rect2) -> void:
 	var lit_count := int(ceil(fuel_frac * float(seg_count))) if (has_fuel and rem > 0.01) else 0
 	for s in seg_count:
 		var seg_rect := Rect2(rect.position.x + pad + float(s) * (seg_w + seg_gap), bar_y, seg_w, 12.0)
-		draw_rect(seg_rect, fuel_color if s < lit_count else Cmr2Style.PANEL_WELL_BG)
+		draw_rect(seg_rect, fuel_color if s < lit_count else Cmr2Style.TACHO_WELL_BG)
 
-	draw_rect(Rect2(rect.position.x + 8.0, rect.position.y + 46.0, rect.size.x - 16.0, 1.0), Cmr2Style.PANEL_DIVIDER)
+	draw_rect(Rect2(rect.position.x + 8.0, rect.position.y + 49.0, rect.size.x - 16.0, 1.0), Cmr2Style.TACHO_DIVIDER)
 
-	# Motor simplificado: Presión de aceite, Temperatura de agua y Alerta/Salud
+	# Mitad inferior: WATER y OIL en columnas verticales separadas por una línea tenue
 	var engine: Dictionary = snapshot.get("engine", {})
 	var oil: Dictionary = engine.get("oil", {})
 	var water: Dictionary = engine.get("water", {})
 	var indicators: Dictionary = snapshot.get("hud_indicators", {})
 
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad, rect.position.y + 51.0, 70.0, 14.0), "MOTOR", 12, Cmr2Style.TEXT_WHITE, true)
-	var torque_frac := clampf(float(engine.get("available_torque_fraction", 1.0)), 0.0, 1.0)
-	var eng_dmg := clampf(float(engine.get("engine_damage", snapshot.get("damage", {}).get("engine", 0.0))), 0.0, 1.0)
-	var pressure_state := str(oil.get("pressure_state", "ok"))
-	var status_label := "OK"
-	var status_col := Cmr2Style.AHEAD_COLOR
-	if pressure_state == "critical" or eng_dmg >= 0.50:
-		status_label = "CRIT"
-		status_col = Cmr2Style.REDLINE_ACCENT
-	elif pressure_state == "low" or torque_frac < 0.99 or eng_dmg >= 0.15:
-		status_label = "AVISO"
-		status_col = Cmr2Style.AMBER_ACCENT
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad + 60.0, rect.position.y + 51.0, inner_w - 60.0, 14.0), status_label, 11, status_col, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	var half_w := rect.size.x * 0.5
+	var divider_x := rect.position.x + half_w
+	draw_line(
+		Vector2(divider_x, rect.position.y + 58.0),
+		Vector2(divider_x, rect.end.y - 12.0),
+		Cmr2Style.TACHO_DIVIDER,
+		1.0
+	)
 
-	# Temperatura de agua (AGUA / H2O)
 	var water_c := float(water.get("temperature_c", -1.0))
 	var water_color: Color = indicators.get("water_color", Cmr2Style.TEXT_STANDING)
-	var water_frac := clampf((water_c - 40.0) / 90.0, 0.0, 1.0) if water_c >= 0.0 else 0.0
-	_draw_vital_row(
-		Rect2(rect.position.x + pad, rect.position.y + 72.0, inner_w, 36.0),
-		"H2O",
+	_draw_vital_column(
+		Rect2(rect.position.x + 6.0, rect.position.y + 62.0, half_w - 10.0, rect.size.y - 72.0),
+		"WATER",
 		("%d °C" % roundi(water_c)) if water_c >= 0.0 else "-- °C",
-		water_frac,
 		water_color
 	)
 
-	# Presión de aceite (ACEITE / OIL)
 	var oil_bar := float(indicators.get("oil_bar", -1.0))
-	var oil_healthy := maxf(float(oil.get("healthy_pressure_bar", 4.5)), 1.0)
 	var oil_color: Color = indicators.get("oil_color", Cmr2Style.TEXT_STANDING)
-	var oil_frac := clampf(oil_bar / oil_healthy, 0.0, 1.0) if oil_bar >= 0.0 else 0.0
-	_draw_vital_row(
-		Rect2(rect.position.x + pad, rect.position.y + 116.0, inner_w, 36.0),
+	_draw_vital_column(
+		Rect2(divider_x + 4.0, rect.position.y + 62.0, half_w - 10.0, rect.size.y - 72.0),
 		"OIL",
 		("%.1f b" % oil_bar) if oil_bar >= 0.0 else "-- b",
-		oil_frac,
 		oil_color
 	)
 
 
-func _draw_vital_row(rect: Rect2, label: String, value_str: String, fill_fraction: float, bar_color: Color) -> void:
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x, rect.position.y, 44.0, 16.0), label, 12, Cmr2Style.TEXT_WHITE, true)
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + 42.0, rect.position.y, rect.size.x - 42.0, 16.0), value_str, 13, bar_color, true, HORIZONTAL_ALIGNMENT_RIGHT)
-	var track := Rect2(rect.position.x, rect.position.y + 20.0, rect.size.x, 8.0)
-	draw_rect(track, Cmr2Style.PANEL_WELL_BG)
-	if fill_fraction > 0.01:
-		draw_rect(Rect2(track.position, Vector2(maxf(track.size.x * fill_fraction, 3.0), track.size.y)), bar_color)
+func _draw_vital_column(rect: Rect2, label: String, value_str: String, value_color: Color) -> void:
+	Cmr2Style.draw_box_text(
+		self,
+		Rect2(rect.position.x, rect.position.y + 6.0, rect.size.x, 18.0),
+		label,
+		12,
+		Cmr2Style.TEXT_WHITE,
+		true,
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	Cmr2Style.draw_box_text(
+		self,
+		Rect2(rect.position.x, rect.position.y + 34.0, rect.size.x, 28.0),
+		value_str,
+		17,
+		value_color,
+		true,
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
 
 
 # =============================================================================

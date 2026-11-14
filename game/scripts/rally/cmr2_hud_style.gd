@@ -14,6 +14,17 @@ const PANEL_BG_ACTIVE := Color(0.737255, 0.745098, 0.862745, 0.86)      # Active
 const PANEL_PLAYER_BG := Color(0.396078, 0.572549, 1.0, 0.588235)       # #6592ff alpha 0x96
 const PANEL_GAUGE_BG := Color(0.24, 0.27, 0.39, 0.72)                   # Deeper cool slate for dense gauge panels
 const PANEL_WELL_BG := Color(0.055, 0.082, 0.137, 0.68)                 # Translucent dark inner well for colored bands
+const TACHO_PANEL_BG := Color(0.08, 0.09, 0.11, 0.76)                   # Dark translucent charcoal matching NFSU2 dial
+const TACHO_PANEL_DIM := Color(0.08, 0.09, 0.11, 0.56)                  # Dimmed tachometer charcoal for future split segments
+const TACHO_PANEL_ACTIVE := Color(0.24, 0.28, 0.36, 0.88)               # Highlighted split segment in dark slate charcoal
+const TACHO_PLAYER_BG := Color(0.45, 0.07, 0.06, 0.80)                  # Deep red-tinted charcoal
+const TACHO_CMR_PLAYER_BG := Color(0.12, 0.25, 0.58, 0.82)              # Deep CMR2 blue for player row on dark HUD
+const TACHO_CMR_PLAYER_BORDER := Color(0.40, 0.60, 1.0, 0.52)
+const TACHO_WELL_BG := Color(0.04, 0.05, 0.06, 0.82)                    # Deep inner cutout well matching dial center
+const TACHO_BORDER := Color(0.76, 0.79, 0.83, 0.34)                     # Subtle silver rim matching dial ticks
+const TACHO_DIVIDER := Color(0.76, 0.79, 0.83, 0.24)
+const TACHO_SILVER := Color(0.76, 0.79, 0.83, 0.92)
+const TACHO_RED := Color("#f0280c")
 const PANEL_BORDER := Color(1.0, 1.0, 1.0, 0.28)
 const PANEL_DIVIDER := Color(1.0, 1.0, 1.0, 0.24)
 

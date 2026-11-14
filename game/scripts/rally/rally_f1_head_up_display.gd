@@ -168,6 +168,15 @@ func update_thermal_readout() -> void:
 			retro_hud.size = Vector2(size.x / maxf(factor, 0.01), size.y / maxf(factor, 0.01))
 			if driving_controls != null and driving_controls.visible:
 				driving_controls.visible = false
+		elif retro_hud.has_method("is_nfsu2_analog_style") and bool(retro_hud.call("is_nfsu2_analog_style")):
+			var dash_size: Vector2 = retro_hud.call("get_nfsu2_dash_size")
+			retro_hud.size = dash_size
+			retro_hud.position = Vector2(
+				size.x - dash_size.x * factor - 24.0 * factor,
+				size.y - dash_size.y * factor - 10.0 * factor
+			)
+			if driving_controls != null and not driving_controls.visible:
+				driving_controls.visible = true
 		elif retro_hud.has_method("is_cmr2_digital_style") and bool(retro_hud.call("is_cmr2_digital_style")):
 			var dash_size: Vector2 = retro_hud.call("get_cmr2_dash_size")
 			retro_hud.size = dash_size

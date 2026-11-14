@@ -42,14 +42,22 @@ func run() -> void:
 	hud.show_partial(5, null)
 	assert(hud.partial_banner.formatted_text == "--:--.--")
 	assert(hud.retro_hud != null)
-	assert(hud.retro_hud.is_cmr2_digital_style())
+	assert(hud.retro_hud.is_nfsu2_analog_style())
 	assert(not hud.retro_hud.is_ribbon_style())
+	hud.published["speed_kph"] = 128.0
+	hud.published["rpm"] = 5800.0
+	hud.published["gear"] = 3
 	hud.published["steering"] = -0.5
 	hud.published["throttle"] = 0.8
 	hud.published["brake"] = 0.2
+	hud.update_retro_hud()
 	hud.update_thermal_readout()
 	hud.update_driving_controls()
-	assert(hud.retro_hud.size.is_equal_approx(hud.retro_hud.get_cmr2_dash_size()))
+	assert(hud.retro_hud.size.is_equal_approx(hud.retro_hud.get_nfsu2_dash_size()))
+	var gauge: Node = hud.retro_hud.get_node_or_null("Nfsu2Gauge")
+	assert(gauge != null and gauge.visible)
+	assert(gauge.get_node("Speed").text == "128")
+	assert(gauge.get_node("Gear").text == "3")
 	assert(hud.driving_controls != null and hud.driving_controls.visible)
 	assert(is_equal_approx(hud.driving_controls.steering_fraction, -0.5))
 	assert(is_equal_approx(hud.driving_controls.accelerator_fraction, 0.8))

@@ -10,9 +10,12 @@ const REVOLUTIONS_PER_MINUTE_SEGMENT_TEXTURE := preload("res://features/retro_hu
 const FUEL_SEGMENT_TEXTURE := preload("res://features/retro_hud/assets/fuel_segment.svg")
 const FUEL_ICON_TEXTURE := preload("res://features/retro_hud/assets/fuel_icon.svg")
 const DIVIDER_TEXTURE := preload("res://features/retro_hud/assets/divider.svg")
+const NFSU2_GAUGE_SCENE := preload("res://features/retro_hud/scenes/nfsu2_gauge.tscn")
 
 const CMR2_DASH_SIZE := Vector2(460.0, 260.0)
 const CMR2_REV_SEGMENT_COUNT := 26
+const NFSU2_DASH_SIZE := Vector2(304.0, 304.0)
+const NFSU2_DESIGN_SIZE := 256.0
 
 const DESIGN_SIZE := Vector2(1448.0, 1086.0)
 const REVOLUTIONS_PER_MINUTE_CENTER := Vector2(650.0, 760.0)
@@ -46,6 +49,7 @@ var _design_origin := Vector2.ZERO
 var _design_scale_factor := 1.0
 var _powertrain_configuration: Dictionary = {}
 var _card_style_box: StyleBoxFlat = StyleBoxFlat.new()
+var _nfsu2_gauge: Nfsu2Gauge = null
 
 
 func _ready() -> void:
@@ -64,8 +68,16 @@ func is_cmr2_digital_style() -> bool:
 	return config != null and config.style == "cmr2_digital"
 
 
+func is_nfsu2_analog_style() -> bool:
+	return config != null and config.style == "nfsu2_analog"
+
+
 func get_cmr2_dash_size() -> Vector2:
 	return CMR2_DASH_SIZE
+
+
+func get_nfsu2_dash_size() -> Vector2:
+	return NFSU2_DASH_SIZE
 
 
 func get_ribbon_size() -> Vector2:
@@ -148,11 +160,15 @@ func reload_config() -> void:
 	if is_ribbon_style():
 		custom_minimum_size = get_ribbon_size()
 		size = get_ribbon_size()
+	elif is_nfsu2_analog_style():
+		custom_minimum_size = NFSU2_DASH_SIZE
+		size = NFSU2_DASH_SIZE
 	elif is_cmr2_digital_style():
 		custom_minimum_size = CMR2_DASH_SIZE
 		size = CMR2_DASH_SIZE
 	else:
 		custom_minimum_size = Vector2(390, 292.5)
+	_sync_nfsu2_gauge()
 	if apply_layout_from_config:
 		scale = Vector2.ONE * config.display_scale
 		visible = config.visible
@@ -182,7 +198,7 @@ func get_vehicle_idle_rpm() -> float:
 	return _cached_vehicle_idle_rpm
 
 
-func _load_vehicle_max_rpm_from_json(path_hint: String = "") -> float:
+func _load_vehicle_powertrain_dict(path_hint: String = "") -> Dictionary:
 	var path_candidates: Array[String] = []
 	if not path_hint.is_empty():
 		path_candidates.append(path_hint)
@@ -215,21 +231,25 @@ func _load_vehicle_max_rpm_from_json(path_hint: String = "") -> float:
 					if pt_file != null:
 						var pt_parsed: Variant = JSON.parse_string(pt_file.get_as_text())
 						if pt_parsed is Dictionary and pt_parsed.has("powertrain") and pt_parsed["powertrain"] is Dictionary:
-							var rpm_val := float(pt_parsed["powertrain"].get("max_rpm", 0.0))
-							if rpm_val > 0.0:
-								return rpm_val
+							return pt_parsed["powertrain"]
 
 		# Case 2: powertrain.json directly
 		if doc.has("powertrain") and doc["powertrain"] is Dictionary:
-			var rpm_val := float(doc["powertrain"].get("max_rpm", 0.0))
-			if rpm_val > 0.0:
-				return rpm_val
+			return doc["powertrain"]
 
-		# Case 3: root max_rpm
-		if doc.has("max_rpm"):
-			var rpm_val := float(doc.get("max_rpm", 0.0))
-			if rpm_val > 0.0:
-				return rpm_val
+		# Case 3: root powertrain fields
+		if doc.has("max_rpm") or doc.has("idle_rpm"):
+			return doc
+
+	return {}
+
+
+func _load_vehicle_max_rpm_from_json(path_hint: String = "") -> float:
+	var pt := _load_vehicle_powertrain_dict(path_hint)
+	if pt.has("max_rpm"):
+		var rpm_val := float(pt.get("max_rpm", 0.0))
+		if rpm_val > 0.0:
+			return rpm_val
 
 	# Fallback to powertrain configuration or config
 	var fallback := float(_powertrain_configuration.get("max_rpm", config.revolutions_per_minute_maximum))
@@ -239,59 +259,50 @@ func _load_vehicle_max_rpm_from_json(path_hint: String = "") -> float:
 
 
 func _load_vehicle_idle_rpm_from_json(path_hint: String = "") -> float:
-	var path_candidates: Array[String] = []
-	if not path_hint.is_empty():
-		path_candidates.append(path_hint)
-	if _powertrain_configuration.has("vehicle_profile_path") and not str(_powertrain_configuration["vehicle_profile_path"]).is_empty():
-		path_candidates.append(str(_powertrain_configuration["vehicle_profile_path"]))
-	if not vehicle_profile_path.is_empty():
-		path_candidates.append(vehicle_profile_path)
-	path_candidates.append("res://data/vehicles/ford-escort-rs2000/vehicle.json")
-	path_candidates.append("res://data/vehicles/ford-escort-rs2000/powertrain.json")
-
-	for candidate in path_candidates:
-		if not FileAccess.file_exists(candidate):
-			continue
-		var file := FileAccess.open(candidate, FileAccess.READ)
-		if file == null:
-			continue
-		var parsed: Variant = JSON.parse_string(file.get_as_text())
-		if not (parsed is Dictionary):
-			continue
-		var doc: Dictionary = parsed
-
-		# Case 1: vehicle.json with domains
-		if doc.has("domains") and doc["domains"] is Dictionary:
-			var domains: Dictionary = doc["domains"]
-			if domains.has("powertrain"):
-				var pt_rel: String = str(domains["powertrain"]).replace("\\", "/")
-				var pt_path := candidate.get_base_dir().path_join(pt_rel)
-				if FileAccess.file_exists(pt_path):
-					var pt_file := FileAccess.open(pt_path, FileAccess.READ)
-					if pt_file != null:
-						var pt_parsed: Variant = JSON.parse_string(pt_file.get_as_text())
-						if pt_parsed is Dictionary and pt_parsed.has("powertrain") and pt_parsed["powertrain"] is Dictionary:
-							var rpm_val := float(pt_parsed["powertrain"].get("idle_rpm", 0.0))
-							if rpm_val > 0.0:
-								return rpm_val
-
-		# Case 2: powertrain.json directly
-		if doc.has("powertrain") and doc["powertrain"] is Dictionary:
-			var rpm_val := float(doc["powertrain"].get("idle_rpm", 0.0))
-			if rpm_val > 0.0:
-				return rpm_val
-
-		# Case 3: root idle_rpm
-		if doc.has("idle_rpm"):
-			var rpm_val := float(doc.get("idle_rpm", 0.0))
-			if rpm_val > 0.0:
-				return rpm_val
+	var pt := _load_vehicle_powertrain_dict(path_hint)
+	if pt.has("idle_rpm"):
+		var rpm_val := float(pt.get("idle_rpm", 0.0))
+		if rpm_val > 0.0:
+			return rpm_val
 
 	# Fallback to powertrain configuration or default
 	var fallback := float(_powertrain_configuration.get("idle_rpm", 1000.0))
 	if fallback > 0.0:
 		return fallback
 	return 1000.0
+
+
+func get_vehicle_shift_thresholds(vehicle_max: float) -> Dictionary:
+	var pt := _load_vehicle_powertrain_dict()
+	var auto_shift: Dictionary = pt.get("automatic_shift", {}) if pt.get("automatic_shift") is Dictionary else {}
+
+	var explicit_ideal := float(_powertrain_configuration.get("ideal_shift_rpm", pt.get("ideal_shift_rpm", 0.0)))
+	var explicit_urgent := float(_powertrain_configuration.get("urgent_shift_rpm", pt.get("redline_rpm", pt.get("urgent_shift_rpm", 0.0))))
+
+	var upshift_full := clampf(float(auto_shift.get("upshift_normalized_rpm_full_throttle", 0.92)), 0.78, 0.96)
+	var urgent_rpm := explicit_urgent if explicit_urgent > 0.0 else clampf(vehicle_max * upshift_full, 1500.0, vehicle_max * 0.96)
+
+	var peak_power_frac := 0.87
+	var torque_curve: Variant = pt.get("torque_curve")
+	if torque_curve is Array and not torque_curve.is_empty():
+		var best_power := -1.0
+		for point in torque_curve:
+			if point is Array and point.size() >= 2:
+				var rpm_norm := clampf(float(point[0]), 0.0, 1.0)
+				var trq_norm := maxf(float(point[1]), 0.0)
+				var pwr := rpm_norm * trq_norm
+				if pwr > best_power:
+					best_power = pwr
+					peak_power_frac = rpm_norm
+
+	var default_ideal := minf(vehicle_max * maxf(upshift_full - 0.07, 0.76), vehicle_max * peak_power_frac * 0.96)
+	var ideal_rpm := explicit_ideal if explicit_ideal > 0.0 else clampf(default_ideal, 1000.0, maxf(1000.0, urgent_rpm - 250.0))
+	ideal_rpm = clampf(ideal_rpm, 500.0, maxf(500.0, urgent_rpm - 100.0))
+
+	return {
+		"ideal": ideal_rpm,
+		"urgent": urgent_rpm,
+	}
 
 
 func apply_hud_layout(scale_value: float, visible_value: bool) -> void:
@@ -302,7 +313,47 @@ func apply_hud_layout(scale_value: float, visible_value: bool) -> void:
 
 func _on_state_changed() -> void:
 	_peak_rpm = maxf(_peak_rpm, state.rpm)
+	_sync_nfsu2_telemetry()
 	queue_redraw()
+
+
+func _ensure_nfsu2_gauge() -> void:
+	if _nfsu2_gauge == null and NFSU2_GAUGE_SCENE != null:
+		_nfsu2_gauge = NFSU2_GAUGE_SCENE.instantiate() as Nfsu2Gauge
+		if _nfsu2_gauge != null:
+			_nfsu2_gauge.name = "Nfsu2Gauge"
+			add_child(_nfsu2_gauge)
+
+
+func _sync_nfsu2_gauge() -> void:
+	if not is_nfsu2_analog_style():
+		if _nfsu2_gauge != null:
+			_nfsu2_gauge.visible = false
+		return
+	_ensure_nfsu2_gauge()
+	if _nfsu2_gauge == null:
+		return
+	_nfsu2_gauge.visible = true
+	_nfsu2_gauge.position = Vector2.ZERO
+	_nfsu2_gauge.scale = Vector2.ONE * (NFSU2_DASH_SIZE.x / NFSU2_DESIGN_SIZE)
+	var vehicle_max := maxf(get_vehicle_max_rpm(), 3000.0)
+	var thresholds := get_vehicle_shift_thresholds(vehicle_max)
+	_nfsu2_gauge.set_rpm_thresholds(
+		vehicle_max,
+		float(thresholds["ideal"]),
+		float(thresholds["urgent"])
+	)
+	_sync_nfsu2_telemetry()
+
+
+func _sync_nfsu2_telemetry() -> void:
+	if _nfsu2_gauge == null or not _nfsu2_gauge.visible:
+		return
+	_nfsu2_gauge.set_telemetry_label(
+		state.engine_revolutions_per_minute,
+		state.speed_kilometers_per_hour,
+		state.gear_label
+	)
 
 
 func _notification(what: int) -> void:
@@ -316,6 +367,9 @@ func _draw() -> void:
 
 	if is_ribbon_style():
 		_draw_cards_ribbon()
+		return
+
+	if is_nfsu2_analog_style():
 		return
 
 	if is_cmr2_digital_style():

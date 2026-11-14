@@ -112,7 +112,7 @@ func _process(_delta: float) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	modal.position = (viewport_size - modal.size) * 0.5
 	pause_button.position = Vector2(viewport_size.x - 150, 12)
-	pause_button.visible = not modal.visible and allowed()
+	pause_button.visible = false
 
 
 var wheel_action_sound: AudioStreamPlayer
@@ -141,12 +141,15 @@ func _ready() -> void:
 	backdrop.visible = false
 	screen.add_child(backdrop)
 
-	# Botón de pausa en la esquina superior derecha
+	# Botón de pausa desactivado visualmente en HUD para no solapar los parciales (pausa activa por ESC/Start)
 	pause_button = Button.new()
 	pause_button.text = "PAUSA · ESC"
 	_style_chrome_button(pause_button)
 	pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	pause_button.size = Vector2(140, 36)
+	pause_button.visible = false
+	pause_button.disabled = true
+	pause_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_button.pressed.connect(toggle)
 	screen.add_child(pause_button)
 
@@ -381,7 +384,7 @@ func toggle() -> void:
 	if modal.visible:
 		modal.hide()
 		backdrop.hide()
-		pause_button.show()
+		pause_button.hide()
 		get_tree().paused = false
 		var _pause_out := get_node_or_null("/root/RallyMusic")
 		if _pause_out != null and _pause_out.has_method("on_pause_closed"):
@@ -829,6 +832,61 @@ func _update_header(title_text: String, subtitle_text: String) -> void:
 			badge_bottom.text = "EN PAUSA"
 
 
+func _pause_damage_color(ratio: float) -> Color:
+	if ratio < 0.25:
+		return C_GREEN
+	if ratio < 0.50:
+		return C_GOLD
+	if ratio < 0.75:
+		return Color("#f08c35")
+	return C_ROSE
+
+
+func _create_damage_bar_row(label_text: String, ratio: float, status_hint: String = "") -> VBoxContainer:
+	var clamped := clampf(ratio, 0.0, 1.0)
+	var col := _pause_damage_color(clamped)
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 3)
+
+	var top := HBoxContainer.new()
+	row.add_child(top)
+
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.add_theme_font_override("font", FONT_TITLE)
+	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_color_override("font_color", C_TEXT)
+	top.add_child(lbl)
+
+	var pct := Label.new()
+	var pct_int := roundi(clamped * 100.0)
+	pct.text = ("%d%% · %s" % [pct_int, status_hint]) if not status_hint.is_empty() else ("%d%%" % pct_int)
+	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pct.add_theme_font_override("font", DIN_BOLD)
+	pct.add_theme_font_size_override("font_size", 12)
+	pct.add_theme_color_override("font_color", C_TEXT if clamped < 0.05 else col)
+	top.add_child(pct)
+
+	var bar := ProgressBar.new()
+	bar.min_value = 0.0
+	bar.max_value = 100.0
+	bar.value = clampf(clamped * 100.0, 0.0, 100.0)
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(0, 8)
+	var track_style := StyleBoxFlat.new()
+	track_style.bg_color = WB_BG_WELL
+	track_style.set_corner_radius_all(3)
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = col
+	fill_style.set_corner_radius_all(3)
+	bar.add_theme_stylebox_override("background", track_style)
+	bar.add_theme_stylebox_override("fill", fill_style)
+	row.add_child(bar)
+
+	return row
+
+
 func _update_telemetry_panel() -> void:
 	if telemetry_vbox == null:
 		return
@@ -841,31 +899,52 @@ func _update_telemetry_panel() -> void:
 	var v: Variant = session.get("vehicle")
 	var sim: Variant = v.get("simulation") if v != null else null
 	var tm: Variant = sim.get("thermal_model") if sim != null else null
+	var pm: Variant = sim.get("powertrain_model") if sim != null else null
+	var pub: Dictionary = v.get("published_state") if v != null and v.get("published_state") is Dictionary else {}
+	var pub_dmg: Dictionary = pub.get("damage", {})
+	var pub_eng: Dictionary = pub.get("engine", {})
 
-	# 1. Tarjeta Térmica / Radiador
-	var rad_dmg := float(tm.radiator_damage) if tm != null and tm.get("radiator_damage") != null else 0.0
-	var water_t := float(tm.water_temperature_c) if tm != null and tm.get("water_temperature_c") != null else 85.0
-	var oil_t := float(tm.oil_temperature_c) if tm != null and tm.get("oil_temperature_c") != null else 90.0
-	var fuel_l := float(tm.fuel_remaining_litres) if tm != null and tm.get("fuel_remaining_litres") != null else 12.0
+	# 1. Tarjeta principal de Daños Mecánicos (reemplaza el panel HUD anterior)
+	var rad_dmg := float(tm.radiator_damage) if tm != null and tm.get("radiator_damage") != null else float(pub_dmg.get("radiator", pub_eng.get("radiator_damage", 0.0)))
+	var eng_dmg := float(tm.engine_damage) if tm != null and tm.get("engine_damage") != null else float(pub_dmg.get("engine", pub_eng.get("engine_damage", 0.0)))
+	var trans_dmg := float(pm.transmission_damage) if pm != null and pm.get("transmission_damage") != null else float(pub_dmg.get("transmission", 0.0))
 
-	var rad_pct := roundi(rad_dmg * 100.0)
-	var rad_title := "SALUD: %d%% [ÓPTIMO]" % (100 - rad_pct) if rad_dmg < 0.05 else ("DAÑO: %d%% [FUGA]" % rad_pct if rad_dmg < 0.70 else "DAÑO CRÍTICO: %d%%" % rad_pct)
-	var rad_col := C_GREEN if rad_dmg < 0.05 else (C_GOLD if rad_dmg < 0.70 else C_ROSE)
-	var rad_sub := "Agua: %.0f °C · Aceite: %.0f °C · Combustible: %.1f L" % [water_t, oil_t, fuel_l]
-	telemetry_vbox.add_child(_create_telemetry_card("Circuito Térmico", rad_title, rad_sub, rad_col))
+	var dmg_card := PanelContainer.new()
+	dmg_card.add_theme_stylebox_override("panel", _make_card_style())
+	var d_vbox := VBoxContainer.new()
+	d_vbox.add_theme_constant_override("separation", 7)
+	dmg_card.add_child(d_vbox)
 
-	# 2. Tarjeta de Neumáticos (4 esquinas)
+	var d_title := Label.new()
+	d_title.text = "DAÑOS"
+	d_title.add_theme_font_override("font", FONT_TITLE)
+	d_title.add_theme_font_size_override("font_size", 11)
+	d_title.add_theme_color_override("font_color", C_CHROME_DIM)
+	d_vbox.add_child(d_title)
+
+	var rad_hint := "FUGA" if rad_dmg >= 0.05 and rad_dmg < 0.70 else ("CRÍTICO" if rad_dmg >= 0.70 else "")
+	var eng_hint := "CRÍTICO" if eng_dmg >= 0.70 else ""
+	var trans_hint := "CRÍTICO" if trans_dmg >= 0.70 else ""
+	d_vbox.add_child(_create_damage_bar_row("RADIADOR", rad_dmg, rad_hint))
+	d_vbox.add_child(_create_damage_bar_row("MOTOR", eng_dmg, eng_hint))
+	d_vbox.add_child(_create_damage_bar_row("TRANS.", trans_dmg, trans_hint))
+	telemetry_vbox.add_child(dmg_card)
+
+	# 2. Tarjeta de Daños de Ruedas, Neumáticos, Frenos y Alineación (4 esquinas)
 	if v != null and v.get("tire_inventory") != null and v.tire_inventory.get("mounted") != null:
 		var inv = v.tire_inventory
 		var mounted: Array = inv.mounted
+		var brake_losses: Array = sim.brake_collision_loss if sim != null and sim.get("brake_collision_loss") != null else pub_dmg.get("brake_collision_loss", [])
+		var align_dmgs: Array = sim.alignment_collision_damage if sim != null and sim.get("alignment_collision_damage") != null else pub_dmg.get("alignment_collision_damage", [])
+
 		var tire_card := PanelContainer.new()
 		tire_card.add_theme_stylebox_override("panel", _make_card_style())
 		var t_vbox := VBoxContainer.new()
-		t_vbox.add_theme_constant_override("separation", 4)
+		t_vbox.add_theme_constant_override("separation", 5)
 		tire_card.add_child(t_vbox)
 
 		var t_title := Label.new()
-		t_title.text = "ESTADO DE NEUMÁTICOS"
+		t_title.text = "NEUMÁTICOS Y TREN DE RODAJE"
 		t_title.add_theme_font_override("font", FONT_TITLE)
 		t_title.add_theme_font_size_override("font_size", 10)
 		t_title.add_theme_color_override("font_color", C_CHROME_DIM)
@@ -886,6 +965,9 @@ func _update_telemetry_panel() -> void:
 			var is_dest: bool = (inv.has_method("is_carcass_destroyed") and bool(inv.is_carcass_destroyed(tire))) or float(st.get("carcass_failure", 0.0)) >= 0.99
 			var has_leak: bool = (inv.has_method("is_punctured") and bool(inv.is_punctured(tire))) or float(st.get("leak_per_second", 0.0)) > 0.0
 			var has_rim: bool = (inv.has_method("is_rim_damaged") and bool(inv.is_rim_damaged(tire))) or float(st.get("rim_deformation", 0.0)) > 0.005
+			var brake_loss := clampf(float(brake_losses[i]), 0.0, 1.0) if i < brake_losses.size() else 0.0
+			var align_dmg := clampf(float(align_dmgs[i]), 0.0, 1.0) if i < align_dmgs.size() else 0.0
+
 			var c_stat := "VIDA %.0f%%" % life
 			var col := C_GREEN if wear < 30.0 else (C_GOLD if wear < 65.0 else C_ROSE)
 			if is_dest:
@@ -898,10 +980,17 @@ func _update_telemetry_panel() -> void:
 				c_stat = "ARO · %.0f%%" % life
 				col = C_ROSE if wear >= 50.0 else C_GOLD
 
+			var extras := PackedStringArray()
+			if align_dmg > 0.005:
+				extras.append("ALIN %d%%" % roundi(align_dmg * 100.0))
+			if brake_loss > 0.005:
+				extras.append("FREN -%d%%" % roundi(brake_loss * 100.0))
+			var extra_suffix := (" · " + " ".join(extras)) if not extras.is_empty() else ""
+
 			var lbl := Label.new()
-			lbl.text = "%s: %s [%s]" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat]
+			lbl.text = "%s: %s [%s]%s" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat, extra_suffix]
 			lbl.add_theme_font_override("font", DIN_BOLD)
-			lbl.add_theme_font_size_override("font_size", 12)
+			lbl.add_theme_font_size_override("font_size", 11)
 			lbl.add_theme_color_override("font_color", col)
 			grid.add_child(lbl)
 
@@ -916,16 +1005,6 @@ func _update_telemetry_panel() -> void:
 		t_vbox.add_child(spares_info)
 
 		telemetry_vbox.add_child(tire_card)
-
-	# 3. Tarjeta de Carrera / Tiempo
-	var course = session.get("course")
-	var comp = session.get("competition")
-	var elapsed_s := float(course.elapsed_s) if course != null and course.get("elapsed_s") != null else 0.0
-	var elapsed_str := "%d:%02d.%03d" % [int(elapsed_s) / 60, int(elapsed_s) % 60, int(elapsed_s * 1000.0) % 1000]
-	var pen_ms := int(comp.player_penalty_ms) if comp != null and comp.get("player_penalty_ms") != null else 0
-	var pen_str := "Sin penalizaciones" if pen_ms <= 0 else "+%.0f s penalización acumulada" % (float(pen_ms) / 1000.0)
-	var pen_col := C_DIM if pen_ms <= 0 else C_ROSE
-	telemetry_vbox.add_child(_create_telemetry_card("Cronómetro de Etapa", elapsed_str, pen_str, C_BLUE, pen_col))
 
 
 func _create_telemetry_card(title_text: String, prim_text: String, sub_text: String, prim_col: Color = C_TEXT, sub_col: Color = C_DIM) -> PanelContainer:
