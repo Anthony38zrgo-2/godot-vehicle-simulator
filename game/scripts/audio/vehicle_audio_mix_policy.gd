@@ -48,7 +48,18 @@ func accept(packet: Dictionary) -> Dictionary:
 	var limiter_cut := 1.0 - clampf((maximum - rpm) / rev_limit_band, 0.0, 1.0)
 	# Engine disconnected from the gearbox: clutch open, mid-shift, or neutral.
 	# The whole gearbox group (gear clunks + transmission whine) only sounds here.
-	var clutch_open := float(packet.get("clutch_engagement", 1.0)) < 0.5 or int(packet.gear) == 0 or str(packet.get("shift_phase", "idle")) != "idle"
+	var clutch_engagement := clampf(float(packet.get("clutch_engagement", 1.0)), 0.0, 1.0)
+	var clutch_open := clutch_engagement < 0.5 or int(packet.gear) == 0 or str(packet.get("shift_phase", "idle")) != "idle"
+	var load_mag := clampf(float(packet.get("load", throttle)), 0.0, 1.0)
+	var torque_nm := float(packet.get("torque_nm", 0.0))
+	var normalized_torque := 0.0
+	if packet.has("normalized_torque"):
+		normalized_torque = clampf(float(packet.get("normalized_torque", 0.0)), -1.0, 1.0)
+	elif packet.has("torque_nm"):
+		var peak_torque := maxf(float(packet.get("peak_torque_nm", 205.0)), 1.0)
+		normalized_torque = clampf(torque_nm / peak_torque, -1.0, 1.0)
+	else:
+		normalized_torque = load_mag if throttle >= 0.08 else -load_mag
 	# Lift latch: the packet throttle is smoothed, so a full-to-zero lift
 	# never lands inside a single frame pair. Arm at high throttle, fire on
 	# the release while RPM is still inside the backfire window.
@@ -72,6 +83,21 @@ func accept(packet: Dictionary) -> Dictionary:
 		if limiter and float(previous.rpm) <= float(previous.rpm_max) and limiter_cooldown <= 0.0:
 			events.append("limiter")
 			limiter_cooldown = 0.25
-	mix = {"rpm": rpm, "throttle": throttle, "engine_gain": (0.45 + 0.55 * throttle) * 0.62, "slip": slip, "load": float(packet.load), "limiter": limiter, "limiter_cut": limiter_cut, "rpm_max": maximum, "clutch_open": clutch_open, "events": events, "dt": dt}
+	mix = {
+		"rpm": rpm,
+		"throttle": throttle,
+		"engine_gain": (0.45 + 0.55 * throttle) * 0.62,
+		"slip": slip,
+		"load": load_mag,
+		"torque_nm": torque_nm,
+		"normalized_torque": normalized_torque,
+		"clutch_engagement": clutch_engagement,
+		"limiter": limiter,
+		"limiter_cut": limiter_cut,
+		"rpm_max": maximum,
+		"clutch_open": clutch_open,
+		"events": events,
+		"dt": dt,
+	}
 	previous = packet
 	return mix

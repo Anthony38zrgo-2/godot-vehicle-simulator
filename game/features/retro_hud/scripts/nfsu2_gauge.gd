@@ -331,13 +331,6 @@ func _draw_scale_markings(ideal_deg: float, urgent_deg: float, max_deg: float) -
 		draw_string(Cmr2Style.FONT_BOLD, baseline_pos + Vector2(1.2, 1.5), num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, Cmr2Style.TEXT_SHADOW)
 		draw_string(Cmr2Style.FONT_BOLD, baseline_pos, num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, num_col)
 
-	# Marca exacta de corte del motor si no coincide con un millar exacto
-	if fmod(_vehicle_max_rpm, 1000.0) > 60.0 and _vehicle_max_rpm < _dial_max_rpm:
-		var lim_dir := _dir_from_deg(max_deg)
-		var lp_in := DIAL_CENTER + lim_dir * 95.0
-		var lp_out := DIAL_CENTER + lim_dir * TRACK_OUTER_RADIUS
-		draw_line(lp_in, lp_out, Cmr2Style.TEXT_WHITE, 1.6, true)
-
 
 func _draw_needle() -> void:
 	if _needle_layer == null:

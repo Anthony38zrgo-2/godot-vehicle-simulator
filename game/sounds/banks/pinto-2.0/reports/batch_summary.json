@@ -1,0 +1,103 @@
+{
+  "profile_id": "pinto-rs2000-7wot",
+  "display_name": "Ford Escort RS2000 Mk1/Mk2 2.0L Pinto 7-state compact bank (idle=900, low=2300, mid=4300, max=7300 RPM)",
+  "is_technical_demo": true,
+  "source_document": "Ford Escort RS2000 2.0L Pinto SOHC L4 (7-state bank: idle 900, WOT 2300/4300/7300 @ throttle=1.0, coast overrun 2300/4300/7300 @ throttle=0.0)",
+  "sample_rate": 48000,
+  "format": "pcm16",
+  "seed": 12345,
+  "buses": [
+    "exhaust",
+    "mechanical"
+  ],
+  "anchors": {
+    "idle_rpm": 900.0,
+    "low_rpm": 2300.0,
+    "mid_rpm": 4300.0,
+    "high_rpm": 7300.0,
+    "redline_rpm": 7300.0
+  },
+  "bus_headroom": [
+    {
+      "bus": "exhaust",
+      "peak_before_dbfs": -2.4277203,
+      "headroom_gain": 0.8838651,
+      "peak_after_dbfs": -3.5000002
+    },
+    {
+      "bus": "mechanical",
+      "peak_before_dbfs": -7.2880783,
+      "headroom_gain": 1.5466923,
+      "peak_after_dbfs": -3.5000002
+    }
+  ],
+  "manifest_path": "rally_bank_manifest.json",
+  "total_delivered_clips": 14,
+  "warnings": [
+    "idle->low pitch ratio is 16.24 semitones (900->2300 RPM, >1 octave); enable dynamic idle->low transition window or lower low_rpm in final historical profile",
+    "Using preset_base='pinto-rs2000' as acoustic/thermodynamic baseline; missing profile fields fall back to this technical demo preset (not final historical validation)."
+  ],
+  "missing_fields": [
+    {
+      "field": "geometry.rod_length_mm",
+      "fallback_value": "126.8700 mm",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Slider-crank harmonic distortion"
+    },
+    {
+      "field": "geometry.exhaust_valve_diameter_mm",
+      "fallback_value": "36.0000 mm",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Exhaust blowdown curtain area and sharpness"
+    },
+    {
+      "field": "geometry.exhaust_max_lift_mm",
+      "fallback_value": "10.5000 mm",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Exhaust mass-flow envelope"
+    },
+    {
+      "field": "geometry.exhaust_open_deg",
+      "fallback_value": "126.0000 deg",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "EVO timing phase"
+    },
+    {
+      "field": "geometry.exhaust_duration_deg",
+      "fallback_value": "172.0000 deg",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Exhaust valve open duration"
+    },
+    {
+      "field": "geometry.header_lengths_mm",
+      "fallback_value": "[0.72, 0.75, 0.76, 0.71] m",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Primary runner standing-wave resonances"
+    },
+    {
+      "field": "geometry.collector_volume_l",
+      "fallback_value": "1.650 L",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Collector Helmholtz resonance"
+    },
+    {
+      "field": "geometry.collector_outlet_length_m",
+      "fallback_value": "0.560 m",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Tailpipe quarter/half-wave resonance"
+    },
+    {
+      "field": "geometry.collector_outlet_diameter_m",
+      "fallback_value": "0.052 m",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Tailpipe radiation impedance"
+    },
+    {
+      "field": "geometry.collector_gas_temperature_k",
+      "fallback_value": "880.0 K",
+      "origin": "fallback from pinto-rs2000",
+      "impact": "Exhaust speed of sound"
+    }
+  ],
+  "provenance": "rally_bank_render:pinto-rs2000-7wot:b17df1febe74e6f4fc1af3df452835107b6295ba896d2ff9cc58609bfd1d9e77"
+}

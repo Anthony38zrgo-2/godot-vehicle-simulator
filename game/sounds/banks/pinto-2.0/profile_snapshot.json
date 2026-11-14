@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "pinto-rs2000-7wot",
+  "source_document": "Ford Escort RS2000 2.0L Pinto SOHC L4 (7-state bank: idle 900, WOT 2300/4300/7300 @ throttle=1.0, coast overrun 2300/4300/7300 @ throttle=0.0)",
+  "preset_base": "pinto-rs2000",
+  "notes": "Ford Escort RS2000 Mk1/Mk2 2.0L Pinto 7-state compact bank (idle=900, low=2300, mid=4300, max=7300 RPM)",
+  "geometry": {
+    "cylinders": 4,
+    "stroke_cycle_degrees": 720.0,
+    "firing_order": [
+      1,
+      3,
+      4,
+      2
+    ],
+    "firing_angles_deg": [
+      0.0,
+      180.0,
+      360.0,
+      540.0
+    ],
+    "bore_mm": 90.8,
+    "stroke_mm": 76.95,
+    "rod_length_mm": null,
+    "compression_ratio": 9.2,
+    "bank_angle_deg": 0.0,
+    "bank_split": 4,
+    "exhaust_valve_diameter_mm": null,
+    "exhaust_max_lift_mm": null,
+    "exhaust_open_deg": null,
+    "exhaust_duration_deg": null,
+    "header_lengths_mm": null,
+    "collector_volume_l": null,
+    "collector_outlet_length_m": null,
+    "collector_outlet_diameter_m": null,
+    "collector_gas_temperature_k": null
+  },
+  "operating_range": {
+    "idle_rpm": 900.0,
+    "redline_rpm": 7300.0,
+    "low_rpm": 2300.0,
+    "mid_rpm": 4300.0,
+    "high_rpm": 7300.0,
+    "idle_throttle": 0.1,
+    "idle_load": 0.15,
+    "idle_normalized_torque": 0.05,
+    "partial_throttle": null,
+    "partial_load": null,
+    "partial_normalized_torque": null,
+    "high_load_throttle": 1.0,
+    "high_load_load": 1.0,
+    "high_load_normalized_torque": 1.0,
+    "overrun_normalized_torque": -0.5,
+    "bank_layout": "seven_wot"
+  },
+  "audio": {
+    "sample_rate": 48000,
+    "render_seconds": 5.0,
+    "warmup_seconds": 1.0,
+    "target_loop_seconds": 2.0,
+    "min_loop_seconds": 1.5,
+    "max_loop_seconds": 3.0,
+    "seed": 12345
+  }
+}

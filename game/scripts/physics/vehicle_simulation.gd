@@ -1348,6 +1348,12 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			0.0,
 			1.0,
 		),
+		"peak_torque_nm": powertrain_model.peak_torque_nm,
+		"normalized_torque": clampf(
+			powertrain_model.engine_torque_nm / maxf(powertrain_model.peak_torque_nm, 1.0),
+			-1.0,
+			1.0,
+		),
 		"speed_kph": state.linear_velocity.length() * 3.6,
 		"throttle": float(inputs.get("throttle", 0.0)),
 		"brake": float(inputs.get("brake", 0.0)),

@@ -7,7 +7,7 @@ extends RefCounted
 # manifest). The 512-frame crossfade then blends the frames before end_s into
 # the frames at start_s, so the wrap uses the chosen loop point instead of the
 # file end. Without loop data the whole file loops, as before.
-static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = {}, loop: Dictionary = {}) -> AudioStreamWAV:
+static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = {}, loop: Dictionary = {}, apply_fade: bool = true) -> AudioStreamWAV:
 	# Exports normally replace WAV sources with imported resources. The build
 	# packs an untouched .pcm copy for this RIFF reader and its seamless loops.
 	var source_path := path + ".pcm" if FileAccess.file_exists(path + ".pcm") else path
@@ -44,7 +44,7 @@ static func load_pcm(path: String, looping: bool = true, envelope: Dictionary = 
 		loop_start = clampi(int(float(loop.get("start_s", 0.0)) * rate), 0, frames - 2)
 		loop_end = clampi(int(float(loop.get("end_s", 0.0)) * rate), loop_start + 2, frames)
 	var span := loop_end - loop_start
-	var fade := mini(int(512.0 * rate / 44100.0), int(span / 4)) if looping else 0
+	var fade := mini(int(512.0 * rate / 44100.0), int(span / 4)) if (looping and apply_fade) else 0
 	if not looping and bool(envelope.get("enabled", false)):
 		var attack := float(envelope.get("attack_ms", 0.0)) * rate / 1000.0
 		var decay := float(envelope.get("decay_ms", 0.0)) * rate / 1000.0

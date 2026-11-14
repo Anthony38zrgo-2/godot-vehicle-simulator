@@ -15,6 +15,13 @@ class SampleVoice:
 	var acceleration_gain: float
 	var blend_weight: float = 0.0
 	var layer_level: float = 0.0
+	var bus_name: String = ""
+	var rpm_zone: String = ""
+	var load_state: String = ""
+	var cycles_in_loop: int = 0
+	var loop_length_samples: int = 0
+	var duration_s: float = 0.0
+	var sample_rate: int = 48000
 
 
 # CMR4 native samples; RPM centres are local estimates (see bank manifest).
@@ -84,7 +91,7 @@ const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
 const ENGINE_LAYER_TRIM := 1.41253754 # +3 dB for engine and exhaust loops.
 const WHINE_MIX_GAIN := 0.05525919 # 0.62 reduced by 21 dB.
-const CHASE_ENGINE_BOOST := 1.77827941 # +5 dB for engine loops only.
+const CHASE_ENGINE_BOOST := 4.46683592 # +13 dB for engine loops only (+8 dB over previous +5 dB).
 # Balance por camara (estilo CMR2: fuera/dentro conmutan el peso motor/escape).
 # Chase trasera: el escape manda; capo (encima del motor): se contiene el motor.
 const CHASE_LEVEL_RATIO := 0.89125094 # -1 dB relative to cockpit.
@@ -121,6 +128,8 @@ const SURFACE_BANK := "res://sounds/banks/surfaces/"
 const WHEEL_DAMAGE_SAMPLES: Array[String] = ["flat_tyre_mono", "bad_brakes"]
 const WHEEL_DAMAGE_GAIN_BUDGET := 0.46
 const SurfaceMixer = preload("res://scripts/audio/surface_mix.gd")
+const PhaseLockedEngineBank = preload("res://scripts/audio/phase_locked_engine_bank.gd")
+const SweepGranularEngineBank = preload("res://scripts/audio/sweep_granular_engine_bank.gd")
 
 const ENGINE_VOLUME_BASE := 0.269
 const ENGINE_VOLUME_ACCELERATION := 0.112
@@ -210,6 +219,8 @@ var cockpit_surface_reverbs: Dictionary = {}
 var view_engine_gain := 1.0
 var view_whine_gain := 1.0
 var view_exhaust_gain := 1.0
+var phase_bank: PhaseLockedEngineBank = null
+var sweep_bank: SweepGranularEngineBank = null
 
 
 func _ready() -> void:
@@ -218,6 +229,7 @@ func _ready() -> void:
 		push_error("Rally audio cannot resolve its vehicle: " + str(vehicle_path))
 		set_physics_process(false)
 		return
+	var parsed_bank: Dictionary = {}
 	if not engine_bank_manifest_path.is_empty():
 		var bank_file := FileAccess.open(engine_bank_manifest_path, FileAccess.READ)
 		var bank: Variant = JSON.parse_string(bank_file.get_as_text()) if bank_file != null else null
@@ -225,6 +237,7 @@ func _ready() -> void:
 			push_error("Invalid vehicle audio bank: " + engine_bank_manifest_path)
 			set_physics_process(false)
 			return
+		parsed_bank = bank
 		engine_definitions = bank.get("engine", [])
 		exhaust_definitions = bank.get("exhaust", [])
 		coast_engine_definitions = bank.get("coast_engine", [])
@@ -239,41 +252,66 @@ func _ready() -> void:
 		var xp: Array = bank.get("exhaust_position", [0.0, 0.20, 1.50])
 		engine_position = Vector3(float(ep[0]), float(ep[1]), float(ep[2]))
 		exhaust_position = Vector3(float(xp[0]), float(xp[1]), float(xp[2]))
-		routing.configure_bank(engine_bank_manifest_path, "Rally:" + str(bank.get("vehicle_id", "custom")) + ":")
+		routing.configure_bank(engine_bank_manifest_path, "Rally:" + str(bank.get("vehicle_id", bank.get("profile_id", "custom"))) + ":")
 	var level_file := FileAccess.open("res://data/rally/audio_sample_levels.json", FileAccess.READ)
 	if level_file != null:
 		var parsed: Variant = JSON.parse_string(level_file.get_as_text())
 		if parsed is Dictionary:
 			sample_levels = parsed.get("samples", { })
 
-	build_sample_layer(
-		engine_definitions,
-		engine_voices,
-		engine_position,
-		4.5,
-		400.0,
-		ENGINE_VOLUME_BASE,
-		ENGINE_VOLUME_ACCELERATION,
-		false,
-	)
-	build_sample_layer(
-		exhaust_definitions,
-		exhaust_voices,
-		exhaust_position,
-		6.0,
-		1030.0,
-		EXHAUST_VOLUME_BASE,
-		EXHAUST_VOLUME_ACCELERATION,
-		true,
-	)
+	if not parsed_bank.is_empty() and SweepGranularEngineBank.is_sweep_bank(parsed_bank):
+		sweep_bank = SweepGranularEngineBank.new()
+		sweep_bank.configure(
+			parsed_bank,
+			engine_bank_manifest_path,
+			self,
+			routing,
+			engine_position,
+			exhaust_position,
+		)
+	elif not parsed_bank.is_empty() and PhaseLockedEngineBank.is_schema3_bank(parsed_bank):
+		phase_bank = PhaseLockedEngineBank.new()
+		phase_bank.configure(
+			parsed_bank,
+			engine_bank_manifest_path,
+			self,
+			SampleVoice,
+			routing,
+			engine_position,
+			exhaust_position,
+			engine_voices,
+			exhaust_voices,
+		)
+	else:
+		build_sample_layer(
+			engine_definitions,
+			engine_voices,
+			engine_position,
+			4.5,
+			400.0,
+			ENGINE_VOLUME_BASE,
+			ENGINE_VOLUME_ACCELERATION,
+			false,
+		)
+		build_sample_layer(
+			exhaust_definitions,
+			exhaust_voices,
+			exhaust_position,
+			6.0,
+			1030.0,
+			EXHAUST_VOLUME_BASE,
+			EXHAUST_VOLUME_ACCELERATION,
+			true,
+		)
 	build_tyre_contact_players()
 	build_wheel_damage_players()
 	build_neutral_player()
 	build_surface_players()
 	build_impact_players()
 	build_auxiliary_audio()
-	play_layer(engine_voices)
-	play_layer(exhaust_voices)
+	if phase_bank == null and sweep_bank == null:
+		play_layer(engine_voices)
+		play_layer(exhaust_voices)
 
 
 func build_sample_layer(
@@ -450,6 +488,11 @@ func play_layer(voices: Array[SampleVoice]) -> void:
 		voice.player.play()
 
 
+func _process(_delta: float) -> void:
+	if sweep_bank != null:
+		sweep_bank.pump_frame(smoothed_revolutions)
+
+
 func _physics_process(delta: float) -> void:
 	if vehicle == null:
 		return
@@ -472,8 +515,31 @@ func _physics_process(delta: float) -> void:
 
 	update_view_balance()
 	update_cockpit_audio(delta)
-	update_layer(engine_voices, smoothed_revolutions, smoothing)
-	update_layer(exhaust_voices, smoothed_revolutions, smoothing)
+	if sweep_bank != null:
+		sweep_bank.update(
+			acoustic,
+			smoothed_revolutions,
+			delta,
+			view_engine_gain,
+			view_exhaust_gain,
+			exhaust_crackle_s,
+			routing.config.get("exhaust", {}),
+			self,
+		)
+	elif phase_bank != null:
+		phase_bank.update(
+			acoustic,
+			smoothed_revolutions,
+			delta,
+			view_engine_gain,
+			view_exhaust_gain,
+			exhaust_crackle_s,
+			routing.config.get("exhaust", {}),
+			self,
+		)
+	else:
+		update_layer(engine_voices, smoothed_revolutions, smoothing)
+		update_layer(exhaust_voices, smoothed_revolutions, smoothing)
 	update_limiter_audio(smoothing)
 	update_neutral_audio(smoothing)
 
@@ -510,7 +576,8 @@ func _physics_process(delta: float) -> void:
 		scrape_player.stream_paused = scrape_player.volume_linear < 0.00001
 
 	update_whine_audio(smoothing)
-	update_retention_audio(smoothing)
+	if phase_bank == null and sweep_bank == null:
+		update_retention_audio(smoothing)
 
 
 #352 vista (chase 0 / capo 1) conmuta el peso motor/escape como en CMR2.
@@ -575,6 +642,8 @@ func camera_distance_compensation(player: AudioStreamPlayer3D) -> float:
 
 
 func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothing: float) -> void:
+	if voices.is_empty() or sweep_bank != null or phase_bank != null:
+		return
 	var throttle := clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)
 	var load_val := clampf(float(acoustic.get("load", 0.0)), -1.0, 1.0)
 	var positive_load := maxf(load_val, 0.0)
@@ -1067,7 +1136,8 @@ func build_auxiliary_audio() -> void:
 	build_event_voice_pool(extra_upshift_players, ["res://sounds/banks/commons/f2002_gearup.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
 	build_event_voice_pool(extra_downshift_players, ["res://sounds/banks/commons/f2002_geardn.wav"], SHIFT_EVENT_POSITION, -20.0, 12.0, 80.0, 2)
 	build_whine_voices()
-	build_retention_voices()
+	if phase_bank == null and sweep_bank == null:
+		build_retention_voices()
 
 
 # Una sola voz de transmisión, modulada por velocidad de eje y par.

@@ -36,10 +36,15 @@ func _load_bank_manifest(path: String) -> void:
 		if not (sample is Dictionary) or not sample.has("file"):
 			continue
 		var key := str(sample["file"]).get_basename()
+		var alt_key := str(sample.get("key", ""))
 		if sample.has("space"):
 			space[key] = sample["space"]
+			if not alt_key.is_empty():
+				space[alt_key] = sample["space"]
 		if sample.has("loop"):
 			loops[key] = sample["loop"]
+			if not alt_key.is_empty():
+				loops[alt_key] = sample["loop"]
 
 func _deep_merge(target: Dictionary, patch: Dictionary) -> void:
 	for key in patch:
