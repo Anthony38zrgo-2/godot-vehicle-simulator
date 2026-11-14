@@ -61,7 +61,8 @@ func configure(domains: Dictionary) -> Dictionary:
 	engine_block_temperature_c = float(engine_config.get("initial_engine_block_temperature_celsius", 85.0))
 	water_temperature_c = float(engine_config.get("initial_water_temperature_celsius", 82.0))
 	oil_temperature_c = float(engine_config.get("initial_oil_temperature_celsius", 85.0))
-	var tires: Dictionary = domains.get("tires", {}).get("tires", {})
+	var merged_tires_doc := RallyTireCompound.merged_tire_domain(domains.get("tires", {}))
+	var tires: Dictionary = merged_tires_doc.get("tires", {})
 	tire_config = (tires.get("thermal", {}) as Dictionary).duplicate(true)
 	pressure_config = (tires.get("pressure", {}) as Dictionary).duplicate(true)
 	pressure_mechanics = (tires.get("pressure_mechanics", {}) as Dictionary).duplicate(true)
@@ -176,6 +177,42 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
 		selected["id"] = compound_id
 		wheel_compounds.append(selected)
 	return true
+
+
+## Refreshes tire thermal/pressure metadata and compound definitions without resetting active thermal/wear state.
+func reload_tire_metadata(domains: Dictionary, catalog: Dictionary = {}) -> void:
+	var merged_tires_doc := RallyTireCompound.merged_tire_domain(domains.get("tires", {}))
+	var tires: Dictionary = merged_tires_doc.get("tires", {})
+	tire_config = (tires.get("thermal", {}) as Dictionary).duplicate(true)
+	pressure_config = (tires.get("pressure", {}) as Dictionary).duplicate(true)
+	pressure_mechanics = (tires.get("pressure_mechanics", {}) as Dictionary).duplicate(true)
+	var front_tire: Dictionary = tires.get("front", {}) if tires.get("front", {}) is Dictionary else {}
+	var rear_tire: Dictionary = tires.get("rear", {}) if tires.get("rear", {}) is Dictionary else {}
+	tire_config_front = _merged_config(tire_config, front_tire.get("thermal", {}))
+	tire_config_rear = _merged_config(tire_config, rear_tire.get("thermal", {}))
+	pressure_config_front = _merged_config(pressure_config, front_tire.get("pressure", {}))
+	pressure_config_rear = _merged_config(pressure_config, rear_tire.get("pressure", {}))
+	pressure_mechanics_front = _merged_config(pressure_mechanics, front_tire.get("pressure_mechanics", {}))
+	pressure_mechanics_rear = _merged_config(pressure_mechanics, rear_tire.get("pressure_mechanics", {}))
+	var cat: Dictionary = catalog if not catalog.is_empty() else RallyTireCompound.load_catalog()
+	var definitions: Dictionary = cat.get("compounds", {})
+	compound_catalog = cat
+	if definitions.has(active_compound_id):
+		active_compound = (definitions[active_compound_id] as Dictionary).duplicate(true)
+	var prev_ids: Array[String] = []
+	for i in 4:
+		var cid := active_compound_id
+		if i < wheel_compounds.size() and wheel_compounds[i] is Dictionary:
+			var prev_id := String(wheel_compounds[i].get("id", active_compound_id))
+			if definitions.has(prev_id):
+				cid = prev_id
+		prev_ids.append(cid)
+	wheel_compounds.clear()
+	for i in 4:
+		var cid := prev_ids[i]
+		var selected := (definitions.get(cid, active_compound) as Dictionary).duplicate(true)
+		selected["id"] = cid
+		wheel_compounds.append(selected)
 
 
 func reset_for_stage(domains: Dictionary) -> void:

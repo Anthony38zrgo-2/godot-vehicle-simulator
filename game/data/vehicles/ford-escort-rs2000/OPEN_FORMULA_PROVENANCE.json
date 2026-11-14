@@ -35,10 +35,9 @@
     "steering.json": "86f4441c18dc3c6efca59b82c12a04bbf51d180bd5aa2fe54acd61be1d53fbc2",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "suspension.json": "db8d6407a69c58f24288ec627d676d5f48d795361af77255484c59b7c60102a3",
-    "tire_filters.json": "842679c7c1c05418c089a99284e2dcd07b7f987c73ed20d4a91f4decc006712b",
-    "tires.json": "92ac76b050adb660dfdee901c6b0fb35c8162e50d790e1e5335f43c559fb11db",
+    "tires.json": "8f97ac0ebbc2c1ae4b0f94030556623279293161ff38a72dfeccbe6fb4f725ab",
     "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
-    "vehicle.json": "e34be5b14d32848109015b7a00cbba288dab425704ad762b844737853c8e39cb"
+    "vehicle.json": "bb6f48fae53b04448ef6ba1e6bd8c5bfda8af52db986d970099b45aa487e9b79"
   },
   "reference_profile_json_sha256": {
     "tires.json": "c273ee0455aec828c3b407652c787d594c7f4ac749c4a14676054f0045355ffa",

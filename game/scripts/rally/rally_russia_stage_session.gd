@@ -47,6 +47,7 @@ var start_heading: float = FALLBACK_START_HEADING
 var elapsed_seconds: float = 0.0
 var session_ready: bool = false
 var pause_inventory: CanvasLayer
+var tire_tuner: CanvasLayer
 var stage_transition_running: bool = false
 var telemetry_file_path: String = ""
 var run_identifier: String = ""
@@ -215,6 +216,9 @@ func _ready() -> void:
 	pause_inventory = preload("res://scripts/rally/rally_pause_inventory.gd").new()
 	pause_inventory.session = self
 	add_child(pause_inventory)
+	tire_tuner = preload("res://scripts/rally/rally_tire_tuner_panel.gd").new()
+	tire_tuner.session = self
+	add_child(tire_tuner)
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
 	session_ready = true

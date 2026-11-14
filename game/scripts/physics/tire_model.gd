@@ -22,6 +22,7 @@ const ENVELOPE_PATCH_TAU_MIN_S := 0.002
 # para no patinar con patch cero + blend<1. Despegue usa tau del perfil.
 const CONTACT_LANDING_TAU_S := 0.02
 
+var base_axle_profiles: Array[Dictionary] = []
 var axle_profiles: Array[Dictionary] = []
 var surfaces: Dictionary = { }
 var axle_surfaces: Array[Dictionary] = []
@@ -106,6 +107,7 @@ func set_compound(compound_id: String, catalog: Dictionary = {}) -> bool:
 		var selected := active_compound.duplicate(true)
 		selected["id"] = compound_id
 		wheel_compounds.append(selected)
+	_rebuild_axle_profiles()
 	return true
 
 
@@ -130,7 +132,24 @@ func set_wheel_compound(index: int, compound_id: String) -> bool:
 	if active_compound.is_empty() or not definitions.has(active_compound_id):
 		active_compound_id = compound_id
 		active_compound = (definitions[compound_id] as Dictionary).duplicate(true)
+	_rebuild_axle_profiles()
 	return true
+
+
+func _rebuild_axle_profiles() -> void:
+	if base_axle_profiles.size() != 4:
+		return
+	axle_profiles.clear()
+	for i in 4:
+		var prof: Dictionary = base_axle_profiles[i].duplicate(true)
+		var comp: Dictionary = wheel_compounds[i] if i < wheel_compounds.size() else active_compound
+		var fm: Variant = comp.get("force_model", {})
+		if fm is Dictionary:
+			var axle_fm: Variant = (fm as Dictionary).get("front" if i < 2 else "rear", {})
+			if axle_fm is Dictionary:
+				for k in (axle_fm as Dictionary):
+					prof[k] = (axle_fm as Dictionary)[k]
+		axle_profiles.append(prof)
 
 
 # Inversión de respaldo compartida §closure-2: misma rutina para la
@@ -177,7 +196,8 @@ func configure(
 	resolved_filters: Dictionary,
 	static_wheel_loads: Array,
 ) -> void:
-	var tires: Dictionary = domains.get("tires", { }).get("tires", { })
+	var merged_tires_doc := RallyTireCompound.merged_tire_domain(domains.get("tires", { }))
+	var tires: Dictionary = merged_tires_doc.get("tires", { })
 	radial_tires = tires
 	surfaces = (tires.get("surfaces", { }) as Dictionary).duplicate(true)
 	surface_transition_tau_s = float(resolved_filters.get("surface_transition_tau_s", tires.get("surface_transition_tau_s", 0.0)))
@@ -233,16 +253,11 @@ func configure(
 			axle_tire, tires, filter_scalars, "load_sensitivity_axle_mult",
 			2.85 if is_front else 2.15, 0.1, 8.0
 		))
-		axle_rolling_coefficient.append(_resolve_scalar(
-			axle_tire, tires, filter_scalars, "rolling_resistance_coefficient", 0.015, 0.0, 0.2
-		))
-		axle_pneumatic_trail.append(_resolve_scalar(
-			axle_tire, tires, filter_scalars, "pneumatic_trail_m", 0.035, 0.0, 0.2
-		))
-		axle_camber_gain.append(_resolve_scalar(
-			axle_tire, tires, filter_scalars, "camber_thrust_gain",
-			FRONT_CAMBER_THRUST_GAIN if is_front else REAR_CAMBER_THRUST_GAIN, 0.0, 1.0
-		))
+		axle_rolling_coefficient.append(rolling_resistance_coefficient)
+		axle_pneumatic_trail.append(pneumatic_trail_m)
+		axle_camber_gain.append(
+			FRONT_CAMBER_THRUST_GAIN if is_front else REAR_CAMBER_THRUST_GAIN
+		)
 		axle_relaxation_scale.append(_resolve_scalar(
 			axle_tire, tires, filter_scalars, "relaxation_length_scale",
 			1.85 if is_front else 1.55, 0.2, 5.0
@@ -314,12 +329,13 @@ func configure(
 		) / sidewall
 		static_deflection_ratio.append(ref_ratio)
 
-	axle_profiles = [
+	base_axle_profiles = [
 		resolved_filters.get("front", { }).duplicate(true),
 		resolved_filters.get("front", { }).duplicate(true),
 		resolved_filters.get("rear", { }).duplicate(true),
 		resolved_filters.get("rear", { }).duplicate(true),
 	]
+	_rebuild_axle_profiles()
 	states.clear()
 	for i in 4:
 		states.append(
@@ -727,12 +743,12 @@ func evaluate(
 		var m_lat := clampf(
 			float(profile.get("combined_lateral_peak_migration", 0.0)),
 			0.0,
-			0.30
+			0.65
 		)
 		var m_lon := clampf(
 			float(profile.get("combined_longitudinal_peak_migration", 0.0)),
 			0.0,
-			0.30
+			0.65
 		)
 
 		# Longitudinal demand migrates lateral reference.

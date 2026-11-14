@@ -25,6 +25,39 @@ static func invalidate_cache() -> void:
 	_cached_catalog = {}
 
 
+static func default_tire_profile() -> Dictionary:
+	var cat := load_catalog()
+	var d: Variant = cat.get("default_tire_profile", {})
+	return (d as Dictionary).duplicate(true) if d is Dictionary else {}
+
+
+static func merge_dict(base: Dictionary, patch: Dictionary) -> Dictionary:
+	var out := base.duplicate(true)
+	for k in patch:
+		var pv: Variant = patch[k]
+		if pv is Dictionary and out.get(k) is Dictionary:
+			out[k] = merge_dict(out[k] as Dictionary, pv as Dictionary)
+		elif pv is Dictionary:
+			out[k] = (pv as Dictionary).duplicate(true)
+		elif pv is Array:
+			out[k] = (pv as Array).duplicate(true)
+		else:
+			out[k] = pv
+	return out
+
+
+static func merged_tire_domain(tire_doc: Dictionary) -> Dictionary:
+	var defaults: Dictionary = default_tire_profile().get("tires", {})
+	var doc_tires: Dictionary = tire_doc.get("tires", {}) if tire_doc.get("tires", {}) is Dictionary else {}
+	return {"tires": merge_dict(defaults, doc_tires)}
+
+
+static func merged_tire_filter_domain(filter_doc: Dictionary) -> Dictionary:
+	var defaults: Dictionary = default_tire_profile().get("tire_filters", {})
+	var doc_filters: Dictionary = filter_doc.get("tire_filters", {}) if filter_doc.get("tire_filters", {}) is Dictionary else {}
+	return {"tire_filters": merge_dict(defaults, doc_filters)}
+
+
 static func compound_ids(catalog: Dictionary) -> Array:
 	return ((catalog.get("compounds", {}) as Dictionary).keys())
 

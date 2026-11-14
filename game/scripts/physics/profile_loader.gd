@@ -4,7 +4,7 @@ extends RefCounted
 const REQUIRED_DOMAINS := [
 	"aerodynamics", "brakes", "chassis", "coupled_world", "driving_assistance",
 	"fuel", "powertrain", "steering", "suspension", "suspension_filters",
-	"tire_filters", "tires", "underfloor_contact",
+	"tires", "underfloor_contact",
 ]
 const EXPECTED_COORDINATES := {"forward": "-Z", "right": "+X", "up": "+Y"}
 
@@ -41,6 +41,9 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		if not domain_value is Dictionary:
 			return _failure("Domain '" + str(domain_name) + "' must contain a JSON object.")
 		domains[str(domain_name)] = domain_value
+
+	domains["tires"] = RallyTireCompound.merged_tire_domain(domains.get("tires", {}))
+	domains["tire_filters"] = RallyTireCompound.merged_tire_filter_domain(domains.get("tire_filters", {}))
 
 	var tires: Dictionary = domains["tires"].get("tires", {})
 	for axle in ["front", "rear"]:
@@ -108,11 +111,8 @@ const TIRE_FORCE_KEYS := [
 ]
 const TIRE_SCALAR_KEYS := [
 	"surface_transition_tau_s",
-	"rolling_resistance_coefficient",
 	"load_sensitivity_per_newton",
 	"load_sensitivity_axle_mult",
-	"pneumatic_trail_m",
-	"camber_thrust_gain",
 	"relaxation_length_scale",
 	"contact_patch_load_gain",
 	"contact_patch_deflection_gain",
@@ -131,18 +131,13 @@ static func _resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) 
 
 
 static func resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) -> Dictionary:
-	# tire_filters.json es una capa opcional sobre tires.json.
-	# - Las claves de TIRE_FORCE_KEYS van a force_model por eje.
-	# - surfaces/thermal/pressure_mechanics/radial_model/pressure por eje se
-	#   fusionan (global -> tires eje -> filters eje).
-	# - Los escalares por eje (taus, rolling, trail, camber, etc.) resuelven
-	#   filters eje > tires eje > tires global > builtin (builtin en tire_model).
-	# Sin overrides por eje, el comportamiento es idéntico al legacy global,
-	# salvo que el delantero mantiene lateral_grip_assist=0 por compatibilidad
-	# (ver TireModel._resolve_axle_surfaces).
-	var tires: Dictionary = tire_doc.get("tires", {})
+	# tire_filters.json es una capa opcional sobre el perfil base del catálogo
+	# (rally_compounds.json -> default_tire_profile) y tires.json del vehículo.
+	var merged_tire_doc := RallyTireCompound.merged_tire_domain(tire_doc)
+	var merged_filter_doc := RallyTireCompound.merged_tire_filter_domain(filter_doc)
+	var tires: Dictionary = merged_tire_doc.get("tires", {})
 	var force_model: Dictionary = tires.get("force_model", {})
-	var filters: Dictionary = filter_doc.get("tire_filters", {})
+	var filters: Dictionary = merged_filter_doc.get("tire_filters", {})
 	var resolved: Dictionary = {}
 	for axle in ["front", "rear"]:
 		var profile: Dictionary = (force_model.get(axle, {}) as Dictionary).duplicate(true) if force_model.get(axle, {}) is Dictionary else {}

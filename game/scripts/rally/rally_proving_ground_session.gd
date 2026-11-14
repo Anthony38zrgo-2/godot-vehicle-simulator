@@ -20,6 +20,7 @@ var input_controller: RallyVehicleInputController
 var camera_rig: RallyChaseCameraRig
 var head_up_display: RallyF1HeadUpDisplay
 var telemetry_recorder: RallyTelemetryRecorder
+var tire_tuner: CanvasLayer
 var elapsed_seconds: float = 0.0
 var session_ready: bool = false
 
@@ -51,6 +52,9 @@ func _ready() -> void:
 	head_up_display.set_vehicle(vehicle)
 	if telemetry_recorder != null:
 		telemetry_recorder.set_physics_process(true)
+	tire_tuner = preload("res://scripts/rally/rally_tire_tuner_panel.gd").new()
+	tire_tuner.session = self
+	add_child(tire_tuner)
 	session_ready = true
 	print(
 		"RALLY_PROVING_GROUND_READY physics_engine=",

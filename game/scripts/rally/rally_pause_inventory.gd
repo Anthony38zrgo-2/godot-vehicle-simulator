@@ -359,7 +359,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func allowed() -> bool:
-	return session != null and session.session_ready and not session.awaiting_setup and not session.stage_transition_running and not session.competition.complete and (session.garage_panel == null or not session.garage_panel.visible)
+	var tuner: Variant = session.get("tire_tuner") if session != null else null
+	var tuner_open: bool = tuner != null and (tuner as Object).has_method("is_open") and bool((tuner as Object).call("is_open"))
+	return session != null and session.session_ready and not session.awaiting_setup and not session.stage_transition_running and not session.competition.complete and not tuner_open and (session.garage_panel == null or not session.garage_panel.visible)
 
 
 func open_from_results() -> void:
