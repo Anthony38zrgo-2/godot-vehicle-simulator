@@ -306,6 +306,7 @@ const WEATHER_OPTIONS: Array[Dictionary] = [
 		"title": "Soleado",
 		"tag": "DESPEJADO",
 		"icon": "☀",
+		"svg": "res://assets/rally/weather/monocromos/soleado.svg",
 		"summary": "Cielo abierto con máxima irradiancia solar y calentamiento rápido del neumático. Trazado completamente seco y agarre óptimo.",
 		"surface": "Grava seca / Polvo",
 		"temp": "19°C ~ 24°C",
@@ -317,6 +318,7 @@ const WEATHER_OPTIONS: Array[Dictionary] = [
 		"title": "Nublado",
 		"tag": "LUZ DIFUSA",
 		"icon": "☁",
+		"svg": "res://assets/rally/weather/monocromos/nublado.svg",
 		"summary": "Cubierta nubosa uniforme con luz difusa y temperatura templada. Superficie firme y consistente sin presencia de lluvia.",
 		"surface": "Grava compacta",
 		"temp": "14°C ~ 18°C",
@@ -328,6 +330,7 @@ const WEATHER_OPTIONS: Array[Dictionary] = [
 		"title": "Lluvia",
 		"tag": "MOJADO",
 		"icon": "🌧",
+		"svg": "res://assets/rally/weather/monocromos/lluvia.svg",
 		"summary": "Precipitación constante que moja activamente el tramo. Formación progresiva de charcos, reducción de tracción y menor visibilidad.",
 		"surface": "Grava mojada / Barro",
 		"temp": "10°C ~ 14°C",
@@ -339,6 +342,7 @@ const WEATHER_OPTIONS: Array[Dictionary] = [
 		"title": "Aleatorio",
 		"tag": "DINÁMICO",
 		"icon": "🎲",
+		"svg": "res://assets/rally/weather/monocromos/aleatorio.svg",
 		"summary": "Condición meteorológica determinada por el boletín meteorológico oficial del evento y el azar regional. Puede comenzar en cualquier estado.",
 		"surface": "Condición variable",
 		"temp": "Variable",
@@ -350,7 +354,6 @@ const WEATHER_OPTIONS: Array[Dictionary] = [
 var selected_weather: String = "random"
 var screen_weather_select: VBoxContainer
 var weather_buttons: Array[Button] = []
-var weather_indicator_labels: Array[Label] = []
 var btn_weather_back: Button
 var btn_weather_confirm: Button
 
@@ -685,27 +688,64 @@ func _build_main_menu_screen() -> void:
 	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	screen_main_menu.add_child(spacer_top)
 
+	# Sombra suave degradada detrás de la barra de menú para dar contraste al texto blanco.
+	var bar_wrapper := Control.new()
+	bar_wrapper.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	bar_wrapper.custom_minimum_size = Vector2(0, 68)
+	screen_main_menu.add_child(bar_wrapper)
+
+	var bar_backdrop := TextureRect.new()
+	bar_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bar_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bar_backdrop.stretch_mode = TextureRect.STRETCH_SCALE
+	bar_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.16, 0.84, 1.0])
+	grad.colors = PackedColorArray([
+		Color(0.03, 0.05, 0.08, 0.0),
+		Color(0.03, 0.05, 0.08, 0.56),
+		Color(0.03, 0.05, 0.08, 0.56),
+		Color(0.03, 0.05, 0.08, 0.0),
+	])
+	var grad_tex := GradientTexture2D.new()
+	grad_tex.gradient = grad
+	grad_tex.width = 256
+	grad_tex.height = 1
+	bar_backdrop.texture = grad_tex
+	bar_wrapper.add_child(bar_backdrop)
+
+	var bar_margin := MarginContainer.new()
+	bar_margin.add_theme_constant_override("margin_left", 48)
+	bar_margin.add_theme_constant_override("margin_right", 48)
+	bar_margin.add_theme_constant_override("margin_top", 8)
+	bar_margin.add_theme_constant_override("margin_bottom", 8)
+	bar_wrapper.add_child(bar_margin)
+
 	var buttons_box := HBoxContainer.new()
-	buttons_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons_box.add_theme_constant_override("separation", 18)
-	screen_main_menu.add_child(buttons_box)
+	buttons_box.add_theme_constant_override("separation", 8)
+	bar_margin.add_child(buttons_box)
 
 	btn_championship = _create_menu_button("Campeonato", func(): _on_mode_selected("championship"), true)
-	btn_championship.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_championship)
+	buttons_box.add_child(_create_menu_separator())
 
 	btn_rally = _create_menu_button("Rally", func(): _on_mode_selected("rally"), true)
-	btn_rally.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_rally)
+	buttons_box.add_child(_create_menu_separator())
 
 	btn_single_stage = _create_menu_button("Tramo Único", func(): _on_mode_selected("single_stage"))
-	btn_single_stage.custom_minimum_size = Vector2(236, 52)
 	buttons_box.add_child(btn_single_stage)
+	buttons_box.add_child(_create_menu_separator())
 
 	btn_exit = _create_menu_button("Salir", func(): get_tree().quit(), false, true)
-	btn_exit.custom_minimum_size = Vector2(210, 52)
 	buttons_box.add_child(btn_exit)
+
+	# Asegura que el wrapper tenga el ancho/alto de su contenido centrado.
+	bar_margin.resized.connect(func():
+		bar_wrapper.custom_minimum_size = bar_margin.size
+	)
+	bar_wrapper.custom_minimum_size = bar_margin.get_combined_minimum_size()
 
 	var main_btns: Array[Button] = [btn_championship, btn_rally, btn_single_stage, btn_exit]
 	for i in main_btns.size():
@@ -753,19 +793,22 @@ func _build_stage_select_screen() -> void:
 
 	# Selector de país/evento: Russia (10) + Kenia, Finlandia, Suecia, Suiza (8).
 	var country_row := HBoxContainer.new()
-	country_row.add_theme_constant_override("separation", 8)
+	country_row.add_theme_constant_override("separation", 6)
 	screen_stage_select.add_child(country_row)
 	country_buttons.clear()
-	for country in COUNTRY_ORDER:
+	for i in COUNTRY_ORDER.size():
+		var country: String = COUNTRY_ORDER[i]
 		var cbtn := Button.new()
 		cbtn.text = str(COUNTRY_LABELS.get(country, country.capitalize()))
 		cbtn.set_meta("country", country)
-		cbtn.custom_minimum_size = Vector2(150, 38)
+		cbtn.custom_minimum_size = Vector2(0, 44)
 		cbtn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var target_country := country
 		cbtn.pressed.connect(func(): _on_country_selected(target_country))
 		country_row.add_child(cbtn)
 		country_buttons.append(cbtn)
+		if i < COUNTRY_ORDER.size() - 1:
+			country_row.add_child(_create_menu_separator(22))
 	_update_country_buttons()
 
 	# Fila del carrusel: Flecha izquierda + Contenedor de 4 tramos + Flecha derecha
@@ -1012,11 +1055,7 @@ func _update_country_buttons() -> void:
 		var is_sel := (c == selected_country)
 		b.disabled = is_sel
 		b.modulate.a = 1.0
-		RallyUITheme.style_tone_button(b, "accent" if is_sel else "chrome", 16, 16, 8)
-		if is_sel:
-			var sel_sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
-			b.add_theme_stylebox_override("disabled", sel_sb)
-			b.add_theme_color_override("font_disabled_color", C_GOLD_HI)
+		_apply_minimal_text_button_style(b, 22, 24, 8, is_sel)
 
 
 func _update_stage_card_widths() -> void:
@@ -1351,13 +1390,12 @@ func _build_weather_select_screen() -> void:
 	screen_weather_select.add_child(cards_hbox)
 
 	weather_buttons.clear()
-	weather_indicator_labels.clear()
 
 	for opt in WEATHER_OPTIONS:
 		var wid := str(opt.get("id", "random"))
 		var wtitle := str(opt.get("title", ""))
-		var wtag := str(opt.get("tag", ""))
 		var wicon := str(opt.get("icon", ""))
+		var wsvg := str(opt.get("svg", ""))
 		var wsummary := str(opt.get("summary", ""))
 		var waccent: Color = opt.get("accent", C_GOLD)
 
@@ -1394,35 +1432,6 @@ func _build_weather_select_screen() -> void:
 		card_vbox.add_theme_constant_override("separation", 10)
 		card_inner.add_child(card_vbox)
 
-		# Cabecera de la tarjeta: Tag de estado + Indicador de selección
-		var card_top := HBoxContainer.new()
-		card_vbox.add_child(card_top)
-
-		var lbl_tag := Label.new()
-		lbl_tag.text = wtag
-		lbl_tag.add_theme_font_override("font", FONT_SUBTITLE)
-		lbl_tag.add_theme_font_size_override("font_size", 12)
-		lbl_tag.add_theme_color_override("font_color", waccent)
-		card_top.add_child(lbl_tag)
-
-		var spacer_top := Control.new()
-		spacer_top.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		card_top.add_child(spacer_top)
-
-		var lbl_sel := Label.new()
-		lbl_sel.text = "● ACTIVO"
-		lbl_sel.add_theme_font_override("font", FONT_SUBTITLE)
-		lbl_sel.add_theme_font_size_override("font_size", 12)
-		lbl_sel.add_theme_color_override("font_color", C_GOLD_HI)
-		lbl_sel.visible = (wid == selected_weather)
-		card_top.add_child(lbl_sel)
-		weather_indicator_labels.append(lbl_sel)
-
-		var div1 := ColorRect.new()
-		div1.custom_minimum_size = Vector2(0, 1)
-		div1.color = Color(1, 1, 1, 0.08)
-		card_vbox.add_child(div1)
-
 		var mid_top_spacer := Control.new()
 		mid_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		card_vbox.add_child(mid_top_spacer)
@@ -1433,14 +1442,24 @@ func _build_weather_select_screen() -> void:
 		center_block.add_theme_constant_override("separation", 10)
 		card_vbox.add_child(center_block)
 
-		var lbl_icon := Label.new()
-		lbl_icon.text = wicon
-		lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl_icon.add_theme_font_override("font", FONT_REGULAR)
-		lbl_icon.add_theme_font_size_override("font_size", 52)
-		lbl_icon.add_theme_color_override("font_color", waccent)
-		center_block.add_child(lbl_icon)
+		if not wsvg.is_empty() and ResourceLoader.exists(wsvg):
+			var icon_rect := TextureRect.new()
+			icon_rect.texture = load(wsvg) as Texture2D
+			icon_rect.custom_minimum_size = Vector2(56, 56)
+			icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.modulate = Color("#f3f6f9")
+			center_block.add_child(icon_rect)
+		else:
+			var lbl_icon := Label.new()
+			lbl_icon.text = wicon
+			lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			lbl_icon.add_theme_font_override("font", FONT_REGULAR)
+			lbl_icon.add_theme_font_size_override("font_size", 52)
+			lbl_icon.add_theme_color_override("font_color", Color("#f3f6f9"))
+			center_block.add_child(lbl_icon)
 
 		var lbl_name := Label.new()
 		lbl_name.text = wtitle
@@ -1662,13 +1681,10 @@ func _select_weather(weather_id: String) -> void:
 
 
 func _update_weather_cards_visuals() -> void:
-	for i in weather_buttons.size():
-		var btn: Button = weather_buttons[i]
+	for btn in weather_buttons:
 		var wid := str(btn.get_meta("weather_id", ""))
 		var is_sel := (wid == selected_weather)
 		_style_weather_card(btn, is_sel)
-		if i < weather_indicator_labels.size():
-			weather_indicator_labels[i].visible = is_sel
 
 
 func _on_weather_confirmed() -> void:
@@ -1740,14 +1756,26 @@ func _launch_session() -> void:
 		return
 
 	# 5. Instanciar escena base y configurar ANTES de _ready()
-	var packed := load(scene_path) as PackedScene
+	var loading_overlay := get_node_or_null("/root/RallyLoadingOverlay")
+	if loading_overlay != null and loading_overlay.has_method("show_loading"):
+		loading_overlay.call("show_loading", "Loading...")
+		await get_tree().process_frame
+	var packed: PackedScene = null
+	if loading_overlay != null and loading_overlay.has_method("load_packed_scene_async"):
+		packed = await loading_overlay.load_packed_scene_async(scene_path)
+	else:
+		packed = load(scene_path) as PackedScene
 	if packed == null:
+		if loading_overlay != null and loading_overlay.has_method("hide_loading"):
+			loading_overlay.call("hide_loading")
 		_show_error("No se pudo cargar la escena: %s" % scene_path)
 		_set_loading(false)
 		return
 
 	var session := packed.instantiate() as RallyRussiaStageSession
 	if session == null:
+		if loading_overlay != null and loading_overlay.has_method("hide_loading"):
+			loading_overlay.call("hide_loading")
 		_show_error("La escena %s no es un RallyRussiaStageSession válido." % scene_path)
 		_set_loading(false)
 		return
@@ -1770,6 +1798,8 @@ func _launch_session() -> void:
 		if selected_mode == "championship":
 			choices["save_path"] = "user://championship_event_v1.json"
 		if not manager.begin_event(choices):
+			if loading_overlay != null and loading_overlay.has_method("hide_loading"):
+				loading_overlay.call("hide_loading")
 			_show_error("Error al iniciar el evento: %s" % manager.error)
 			_set_loading(false)
 			return
@@ -2372,10 +2402,19 @@ func _style_scroll_container(scroll: ScrollContainer) -> void:
 		h_bar.add_theme_stylebox_override("grabber_pressed", h_grabber_hl)
 
 
+func _create_menu_separator(height: int = 28) -> ColorRect:
+	var sep := ColorRect.new()
+	sep.custom_minimum_size = Vector2(2, height)
+	sep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sep.color = Color(ACCENT_RALLY, 0.72)
+	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return sep
+
+
 func _create_menu_button(text: String, callback: Callable, is_gold: bool = false, is_danger: bool = false) -> Button:
 	var btn := Button.new()
 	btn.text = text
-	btn.custom_minimum_size = Vector2(0, 55)
+	btn.custom_minimum_size = Vector2(0, 56)
 	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if is_danger:
 		_style_menu_exit_button(btn)
@@ -2385,12 +2424,40 @@ func _create_menu_button(text: String, callback: Callable, is_gold: bool = false
 	return btn
 
 
-func _style_menu_option_button(btn: Button, is_gold: bool = false) -> void:
-	RallyUITheme.style_tone_button(btn, "accent" if is_gold else "chrome", 20, 22, 12, RallyUITheme.CORNER_RADIUS, FONT_MENU_OPTION)
+func _style_menu_option_button(btn: Button, _is_gold: bool = false) -> void:
+	_style_minimal_menu_button(btn)
 
 
 func _style_menu_exit_button(btn: Button) -> void:
-	RallyUITheme.style_tone_button(btn, "danger", 20, 22, 12, RallyUITheme.CORNER_RADIUS, FONT_MENU_OPTION)
+	_style_minimal_menu_button(btn)
+
+
+func _style_minimal_menu_button(btn: Button) -> void:
+	_apply_minimal_text_button_style(btn, 28, 34, 10, false)
+
+
+func _apply_minimal_text_button_style(btn: Button, font_size: int, pad_h: int, pad_v: int, is_selected: bool) -> void:
+	var empty := StyleBoxEmpty.new()
+	empty.content_margin_left = pad_h
+	empty.content_margin_right = pad_h
+	empty.content_margin_top = pad_v
+	empty.content_margin_bottom = pad_v
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		btn.add_theme_stylebox_override(state_name, empty)
+	btn.add_theme_font_override("font", FONT_MENU_OPTION)
+	btn.add_theme_font_size_override("font_size", font_size)
+	var base_color := RallyUITheme.ACCENT_RALLY if is_selected else RallyUITheme.TEXT_PRIMARY
+	btn.add_theme_color_override("font_color", base_color)
+	btn.add_theme_color_override("font_focus_color", base_color)
+	btn.add_theme_color_override("font_hover_color", RallyUITheme.ACCENT_RALLY)
+	btn.add_theme_color_override("font_hover_pressed_color", RallyUITheme.ACCENT_RALLY)
+	btn.add_theme_color_override("font_pressed_color", RallyUITheme.ACCENT_RALLY_DARK)
+	btn.add_theme_color_override("font_disabled_color", RallyUITheme.ACCENT_RALLY if is_selected else RallyUITheme.TEXT_DIM)
+	btn.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.85))
+	btn.add_theme_constant_override("shadow_offset_x", 0)
+	btn.add_theme_constant_override("shadow_offset_y", 2)
+	btn.add_theme_constant_override("shadow_outline_size", 5)
+	btn.mouse_default_cursor_shape = Control.CURSOR_ARROW if is_selected else Control.CURSOR_POINTING_HAND
 
 
 func _style_flat_button(btn: Button, is_accent: bool = false) -> void:
