@@ -59,8 +59,8 @@ const COAST_EXHAUST_DEFINITIONS := [
 const NEUTRAL_SAMPLE_PATH := "res://sounds/banks/commons/neutral_first_gear_transition.wav"
 const NEUTRAL_FADE_WIDTH := 0.15
 
-const GEAR_WHINE_PATH := "res://sounds/banks/EscortRS1600/whinelo.wav"
-const GEAR_WHINE_HIGH_PATH := "res://sounds/banks/EscortRS1600/whinehi.wav"
+const GEAR_WHINE_PATH := "res://sounds/banks/commons/whinelo.wav"
+const GEAR_WHINE_HIGH_PATH := "res://sounds/banks/commons/whinehi.wav"
 # CMR4 lift-off events; not claimed to be isolated combustion detonations.
 const BACKFIRE_SAMPLE_PATHS := [
 	"res://sounds/banks/commons/backfire_ext_1.wav",
@@ -87,6 +87,18 @@ const LIMITER_GAIN := 0.0448917 # -14 dB relative to the original 0.225.
 const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
+const WATERSPLASH_PATHS := [
+	"res://sounds/banks/commons/watersplash_1.wav",
+	"res://sounds/banks/commons/watersplash_2.wav",
+]
+const WATERSPLASH_MIN_DEPTH_MM := 8.0
+const WATERSPLASH_MIN_SPEED_MS := 4.0
+const WATERSPLASH_GAIN_SCALE := 0.5
+const WATERSPLASH_COOLDOWN_SECONDS := 0.40
+const RAIN_AMBIENCE_PATH := "res://sounds/banks/commons/rain_ambience_loop.wav"
+const RAIN_AMBIENCE_GAIN_SCALE := 0.85
+const RAIN_AMBIENCE_HPF_DRY_HZ := 1000.0
+const RAIN_AMBIENCE_HPF_HEAVY_HZ := 160.0
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const ENGINE_GAIN_BOOST := 0.95 # 3.0041637771599605 * 0.31622776601683794 (-10 dB)
 const ENGINE_LAYER_TRIM := 1.41253754 # +3 dB for engine and exhaust loops.
@@ -158,6 +170,11 @@ var tyre_contact_players: Array[AudioStreamPlayer3D] = []
 var tyre_contact_filters: Array[AudioEffectLowPassFilter] = []
 var tyre_previous_velocity: Array[float] = []
 var tyre_contact_cooldowns: Array[float] = []
+var watersplash_streams: Array[AudioStream] = []
+var watersplash_players: Array[AudioStreamPlayer3D] = []
+var watersplash_filter: AudioEffectLowPassFilter = null
+var watersplash_was_in_puddle: Array[bool] = []
+var watersplash_cooldowns: Array[float] = []
 var neutral_player: AudioStreamPlayer3D
 var clunk_scale: float = 1.0
 var packet_rpm_idle: float = 1050.0
@@ -172,6 +189,9 @@ var rain_last_variant := -1
 var rain_burst_remaining := 0
 var rain_impact_cooldown := 0.0
 var _cached_rain_precip := 0.0
+var rain_ambience_player: AudioStreamPlayer3D
+var rain_ambience_hpf: AudioEffectHighPassFilter = null
+var rain_ambience_intensity := 0.0
 var sand_impact_cooldown := 0.0
 var impact_small_players: Array[AudioStreamPlayer3D] = []
 var impact_medium_players: Array[AudioStreamPlayer3D] = []
@@ -304,6 +324,8 @@ func _ready() -> void:
 			true,
 		)
 	build_tyre_contact_players()
+	build_watersplash_players()
+	build_rain_ambience_player()
 	build_wheel_damage_players()
 	build_neutral_player()
 	build_surface_players()
@@ -563,6 +585,7 @@ func _physics_process(delta: float) -> void:
 		play_impact(vehicle)
 
 	update_tyre_contacts(delta)
+	update_watersplash(delta)
 	update_surface_audio(packet, delta)
 	update_wheel_damage_audio(packet.get("wheels", []), delta)
 
@@ -596,6 +619,8 @@ func update_cockpit_audio(delta: float) -> void:
 	for rp in rain_impact_players:
 		if rp != null:
 			players.append(rp)
+	if rain_ambience_player != null:
+		players.append(rain_ambience_player)
 	if neutral_player != null:
 		players.append(neutral_player)
 	for player: AudioStreamPlayer3D in players:
@@ -721,12 +746,17 @@ func is_onboard_or_bonnet_camera() -> bool:
 	return mode == 1 or mode == 2
 
 
+const SHIFT_CABIN_OFFSET_DB := -8.0
+const SHIFT_CHASE_OFFSET_DB := 6.0
+
+
 func play_extra_shift(players: Array[AudioStreamPlayer3D], sequence: int, ascending: bool) -> void:
 	if players.is_empty():
 		return
 	var player := players[(sequence - 1) % players.size()]
 	player.pitch_scale = shift_random_pitch(ascending)
-	player.volume_db = -20.0 + linear_to_db(0.75 * 0.85 * 0.85 * maxf(clunk_scale, 0.001))
+	var camera_offset_db := SHIFT_CABIN_OFFSET_DB if is_onboard_or_bonnet_camera() else SHIFT_CHASE_OFFSET_DB
+	player.volume_db = -20.0 + camera_offset_db + linear_to_db(0.75 * 0.85 * 0.85 * maxf(clunk_scale, 0.001))
 	player.play()
 
 
@@ -770,6 +800,7 @@ func update_surface_audio(packet: Dictionary, delta: float) -> void:
 	var state: Dictionary = SurfaceMixer.evaluate(packet.get("wheels", []), absf(float(packet.get("speed_kph", 0.0))), float(packet.get("throttle", 0.0)), maxf(float(packet.get("brake", 0.0)), float(packet.get("handbrake", 0.0))), vehicle.mass * 9.81)
 	update_sand_impacts(state, absf(float(packet.get("speed_kph", 0.0))), delta)
 	update_rain_impacts(delta)
+	update_rain_ambience(delta)
 	current_slip_ratio = float(state.slip_total)
 	for key in surface_players:
 		var parts: PackedStringArray = str(key).split(":")
@@ -1007,51 +1038,26 @@ func update_sand_impacts(state: Dictionary, speed_kph: float, delta: float) -> v
 	sand_impact_cooldown = clampf(lerpf(1.35, 0.42, presence) * exp_sample * randf_range(0.65, 1.45), 0.22, 2.60)
 
 
-func update_rain_impacts(delta: float) -> void:
-	rain_impact_cooldown = maxf(0.0, rain_impact_cooldown - delta)
-	if rain_impact_players.is_empty() or rain_impact_streams.is_empty() or vehicle == null or vehicle.simulation == null:
+func update_rain_impacts(_delta: float) -> void:
+	# Disabled: synthesized windshield/roof droplet clicks are muted in favor of rain_ambience_loop.
+	return
+
+
+func _refresh_rain_precip() -> void:
+	if vehicle == null or vehicle.simulation == null:
 		return
 	var conditions: Array = vehicle.simulation.last_local_conditions
-	var precip := _cached_rain_precip
 	var found_climate := false
 	for cond in conditions:
 		if cond is Dictionary and cond.has("climate") and cond["climate"] is Dictionary:
-			precip = float(cond["climate"].get("precipitation_mm_h", 0.0))
-			_cached_rain_precip = precip
+			_cached_rain_precip = float(cond["climate"].get("precipitation_mm_h", 0.0))
 			found_climate = true
 			break
 	if not found_climate and vehicle.simulation.weather_controller != null:
 		var wc: Object = vehicle.simulation.weather_controller
 		var blend = wc.get("current_blend")
 		if blend is Dictionary and blend.has("climate") and blend["climate"] is Dictionary:
-			precip = float(blend["climate"].get("precipitation_mm_h", 0.0))
-			_cached_rain_precip = precip
-	if precip < 0.15 or rain_impact_cooldown > 0.0:
-		return
-	var player: AudioStreamPlayer3D = rain_impact_players[randi() % rain_impact_players.size()]
-	if player.playing:
-		for candidate in rain_impact_players:
-			if not candidate.playing:
-				player = candidate
-				break
-	var v_idx := randi() % rain_impact_streams.size()
-	if v_idx == rain_last_variant and rain_impact_streams.size() > 1:
-		v_idx = (v_idx + 1 + (randi() % (rain_impact_streams.size() - 1))) % rain_impact_streams.size()
-	rain_last_variant = v_idx
-	player.stream = rain_impact_streams[v_idx]
-
-	var intensity := clampf(precip / 12.0, 0.0, 1.0)
-	var speed_mps: float = vehicle.linear_velocity.length()
-	var speed_factor := clampf(speed_mps / 25.0, 0.0, 0.8)
-	var cabin_gain := lerpf(0.026, 0.088, cockpit_audio_blend)
-	var drop_weight := randf_range(0.45, 1.15)
-	player.volume_linear = cabin_gain * intensity * (1.0 + speed_factor) * drop_weight
-	player.pitch_scale = randf_range(0.85, 1.35)
-	player.play()
-
-	# Continuous, rhythmic patter on glass and roof without wide silences
-	var cadence := lerpf(0.095, 0.038, intensity) / (1.0 + speed_factor * 0.45)
-	rain_impact_cooldown = randf_range(cadence * 0.70, cadence * 1.30)
+			_cached_rain_precip = float(blend["climate"].get("precipitation_mm_h", 0.0))
 
 
 func play_landing(_other_body: Node) -> void:
@@ -1339,6 +1345,106 @@ func update_tyre_contacts(delta: float) -> void:
 		tyre_contact_filters[i].cutoff_hz = lerpf(900.0, 4800.0, strength)
 		player.play()
 		tyre_contact_cooldowns[i] = 0.12
+
+
+func build_watersplash_players() -> void:
+	watersplash_streams.clear()
+	for path in WATERSPLASH_PATHS:
+		if not FileAccess.file_exists(path) and not ResourceLoader.exists(path):
+			continue
+		var stream := load_event_stream(path, "watersplash")
+		if stream != null:
+			watersplash_streams.append(stream)
+	for i in 4:
+		var player := AudioStreamPlayer3D.new()
+		if not watersplash_streams.is_empty():
+			player.stream = watersplash_streams[0]
+		player.unit_size = 8.0
+		player.max_distance = 90.0
+		player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		routing.route(player, "watersplash")
+		if watersplash_filter == null:
+			var bus_idx := AudioServer.get_bus_index(player.bus)
+			if bus_idx >= 0:
+				watersplash_filter = AudioEffectLowPassFilter.new()
+				watersplash_filter.cutoff_hz = 1100.0
+				AudioServer.add_bus_effect(bus_idx, watersplash_filter)
+		add_child(player)
+		watersplash_players.append(player)
+		watersplash_was_in_puddle.append(false)
+		watersplash_cooldowns.append(0.0)
+
+
+func update_watersplash(delta: float) -> void:
+	if watersplash_streams.is_empty() or vehicle.simulation == null:
+		return
+	var conditions_list: Array = vehicle.simulation.last_local_conditions
+	for i in watersplash_players.size():
+		watersplash_cooldowns[i] = maxf(watersplash_cooldowns[i] - delta, 0.0)
+		var hub: RigidBody3D = vehicle.simulation.unsprung_rig.hubs[i]
+		var player := watersplash_players[i]
+		player.global_position = hub.global_position
+		var depth_mm := 0.0
+		if i < conditions_list.size() and conditions_list[i] is Dictionary:
+			depth_mm = float((conditions_list[i] as Dictionary).get("puddle_depth_mm", 0.0))
+		var in_puddle := vehicle.simulation.suspension_model.contact_active[i] and depth_mm >= WATERSPLASH_MIN_DEPTH_MM
+		var entered_puddle := in_puddle and not watersplash_was_in_puddle[i]
+		watersplash_was_in_puddle[i] = in_puddle
+		var speed_ms := hub.linear_velocity.length()
+		if not entered_puddle or speed_ms < WATERSPLASH_MIN_SPEED_MS or watersplash_cooldowns[i] > 0.0:
+			continue
+		var strength := clampf(
+			((speed_ms - WATERSPLASH_MIN_SPEED_MS) / 18.0) * 0.65 + (depth_mm / 25.0) * 0.35,
+			0.0,
+			1.0,
+		)
+		var stream_index := 0 if (strength < 0.5 or watersplash_streams.size() == 1) else 1
+		player.stream = watersplash_streams[stream_index]
+		player.pitch_scale = randf_range(0.94, 1.06)
+		player.volume_linear = lerpf(0.25, 1.25, strength) * WATERSPLASH_GAIN_SCALE * lerpf(1.0, db_to_linear(-4.0), cockpit_audio_blend)
+		if watersplash_filter != null:
+			watersplash_filter.cutoff_hz = lerpf(1100.0, 6500.0, strength)
+		player.play()
+		watersplash_cooldowns[i] = WATERSPLASH_COOLDOWN_SECONDS
+
+
+func build_rain_ambience_player() -> void:
+	if not FileAccess.file_exists(RAIN_AMBIENCE_PATH) and not ResourceLoader.exists(RAIN_AMBIENCE_PATH):
+		return
+	var stream := load_looping_stream(RAIN_AMBIENCE_PATH)
+	if stream == null:
+		return
+	rain_ambience_player = AudioStreamPlayer3D.new()
+	rain_ambience_player.stream = stream
+	rain_ambience_player.position = Vector3(0.0, 1.0, 0.0)
+	rain_ambience_player.unit_size = 10.0
+	rain_ambience_player.max_distance = 120.0
+	rain_ambience_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+	rain_ambience_player.volume_linear = 0.0
+	routing.route(rain_ambience_player, "rain_ambience")
+	var bus_idx := AudioServer.get_bus_index(rain_ambience_player.bus)
+	if bus_idx >= 0:
+		rain_ambience_hpf = AudioEffectHighPassFilter.new()
+		rain_ambience_hpf.cutoff_hz = RAIN_AMBIENCE_HPF_DRY_HZ
+		AudioServer.add_bus_effect(bus_idx, rain_ambience_hpf)
+	add_child(rain_ambience_player)
+	rain_ambience_player.play()
+	rain_ambience_player.stream_paused = true
+
+
+func update_rain_ambience(delta: float) -> void:
+	if rain_ambience_player == null:
+		return
+	_refresh_rain_precip()
+	var target_intensity := clampf(_cached_rain_precip / 12.0, 0.0, 1.0) if _cached_rain_precip >= 0.1 else 0.0
+	rain_ambience_intensity = lerpf(rain_ambience_intensity, target_intensity, 1.0 - exp(-delta * 2.5))
+	var target_gain := 0.0
+	if rain_ambience_intensity > 0.005:
+		target_gain = lerpf(0.05, 0.85, pow(rain_ambience_intensity, 0.85)) * RAIN_AMBIENCE_GAIN_SCALE * lerpf(1.0, db_to_linear(-4.0), cockpit_audio_blend)
+	rain_ambience_player.volume_linear = target_gain
+	rain_ambience_player.stream_paused = target_gain < 0.0001
+	if rain_ambience_hpf != null:
+		rain_ambience_hpf.cutoff_hz = exp(lerpf(log(RAIN_AMBIENCE_HPF_DRY_HZ), log(RAIN_AMBIENCE_HPF_HEAVY_HZ), rain_ambience_intensity))
 
 
 func _exit_tree() -> void:
