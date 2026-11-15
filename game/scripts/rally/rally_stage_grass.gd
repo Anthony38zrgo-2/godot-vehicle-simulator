@@ -34,7 +34,7 @@ const OFFSETS := [2.5, 3.6, 4.8, 6.0, 7.4, 9.0, 10.6, 12.4, 14.4, 17.0, 20.0, 23
 
 ## Tufts per metre of stage. The total budget is this times the route length,
 ## which keeps density identical across stages instead of scaling with length.
-const TUFTS_PER_METRE := 4.8
+const TUFTS_PER_METRE := 3.36
 ## Hard ceiling on candidates as a multiple of the budget, so a stage whose
 ## terrain is mostly road or dirt cannot spin here.
 const MAX_ATTEMPT_FACTOR := 6.0
@@ -53,14 +53,14 @@ const ARC_TABLE_STEP := 1.0
 ## car, so each range lifts them into a common 0.5-1.5 m band without letting
 ## the tall types swamp the verge.
 const VARIANT_SCALE := [
-	Vector2(2.2, 3.4),
-	Vector2(2.2, 3.4),
-	Vector2(1.6, 2.4),
-	Vector2(0.95, 1.45),
+	Vector2(1.8, 3.6),
+	Vector2(1.8, 3.6),
+	Vector2(1.3, 2.6),
+	Vector2(0.80, 1.65),
 ]
 ## Selection weight per variant (index matches VARIANTS). Weights are relative
 ## and sum to 100 here: 20 aged / 30 dry / 10 tall low / 40 tall high.
-const VARIANT_WEIGHT := [20.0, 30.0, 10.0, 40.0]
+const VARIANT_WEIGHT := [32.0, 38.0, 18.0, 12.0]
 const MAX_TILT_DEGREES := 5.0
 
 const SECTOR_LENGTH := 96.0
@@ -120,7 +120,8 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		var point := _sample_position
 		# The density field is the only filter that is not geometry-driven, so
 		# it runs before the physics query and shapes the field into patches.
-		if rng.randf() > _density_chance(point.x, point.z):
+		var density := _density_chance(point.x, point.z)
+		if rng.randf() > density:
 			continue
 		var hit := _raycast_ground(space, collision_mask, point)
 		if hit.is_empty():
@@ -132,9 +133,11 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		var key := Vector2i(_sample_sector, slot)
 		if not buckets.has(key):
 			buckets[key] = [] as Array[Transform3D]
-		var scale := rng.randf_range(scale_range.x, scale_range.y)
+		var bell := (rng.randf() + rng.randf()) * 0.5
+		var t := clampf(lerpf(bell, density, 0.25), 0.0, 1.0)
+		var scale_y := lerpf(scale_range.x, scale_range.y, t)
 		(buckets[key] as Array[Transform3D]).append(
-			_scatter_transform(position, scale, _sample_base, rng))
+			_scatter_transform(position, scale_y, _sample_base, rng))
 
 	var count := _commit_batches(buckets, entries)
 	print("RALLY_GRASS_READY instances=", count, " batches=", buckets.size(),
@@ -263,8 +266,9 @@ func _raycast_ground(space: PhysicsDirectSpaceState3D, collision_mask: int, poin
 	return hit
 
 
-func _scatter_transform(position: Vector3, scale: float, base: Vector3, rng: RandomNumberGenerator) -> Transform3D:
-	var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * scale)
+func _scatter_transform(position: Vector3, scale_y: float, base: Vector3, rng: RandomNumberGenerator) -> Transform3D:
+	var scale_xz := scale_y * rng.randf_range(0.82, 1.22)
+	var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale_xz, scale_y, scale_xz))
 	# Sources are anchored at y = 0, so tilting pivots on the ground and the
 	# tuft never floats or sinks.
 	var tilt_axis := Vector3(position.x - base.x, 0.0, position.z - base.z)
@@ -298,7 +302,7 @@ func _load_variant_entries() -> Array[Dictionary]:
 			"variant": index,
 			"mesh": visual.mesh,
 			"material": _make_material(visual),
-			"scale": Vector2(0.85, 1.20) if not custom_variants.is_empty() else (Vector2(1.5, 2.6) if aged_only else VARIANT_SCALE[index]),
+			"scale": Vector2(0.75, 1.35) if not custom_variants.is_empty() else (Vector2(1.5, 2.6) if aged_only else VARIANT_SCALE[index]),
 			"weight": VARIANT_WEIGHT[index] if custom_variants.is_empty() else 1.0,
 		})
 		instance.free()
