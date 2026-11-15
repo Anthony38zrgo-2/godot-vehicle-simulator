@@ -3,8 +3,9 @@ class_name RallyTireStrategyScreen
 ## Pantalla inicial en 2 pasos para configurar el pool de 10 neumáticos del evento:
 ## Paso 1/2: Clima previsto + selector de compuestos + montaje inicial (4 ruedas).
 ## Paso 2/2: Maletero (0-2 repuestos, +18 kg c/u) e inventario de reserva (resto del pool).
-## No toca get_tree().paused: la sesión la congela con vehicle.freeze + event_clock,
-## así el garaje posterior guarda/restaura _restore_tree_paused=false y no congela el HUD.
+## La sesión pausa el SceneTree (get_tree().paused = true) junto con vehicle.freeze + event_clock
+## mientras esta pantalla está abierta, y lo restaura a false justo antes de abrir el garaje
+## para que _restore_tree_paused sea false y no congele el HUD al comenzar el rally.
 
 signal strategy_confirmed(initial_inventory_data: Dictionary)
 

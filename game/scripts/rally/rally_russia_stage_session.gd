@@ -197,10 +197,13 @@ func _ready() -> void:
 	if not practice_mode and event_manager != null:
 		vehicle.restore_damage(event_manager.vehicle_damage_state)
 	if track_collision == null:
+		_hide_loading_overlay()
 		push_error("Rally session cannot resolve the stage collision builder")
 		return
+	_show_loading_overlay()
 	var collision_ready: bool = await _swap_stage_geometry(resolved_stage)
 	if not collision_ready:
+		_hide_loading_overlay()
 		push_error("Rally session cannot build the stage collision")
 		return
 	await get_tree().physics_frame
@@ -237,6 +240,7 @@ func _ready() -> void:
 	reset_start_sequence()
 	apply_competition_controls()
 	_update_panel_for_stage()
+	_hide_loading_overlay()
 	# Ventana inicial de reglaje (Neumáticos primero, Aceptar inicia la salida).
 	# Se abre automáticamente en las tres modalidades (Rally, Championship, Single Stage).
 	# Sin ventana vamos directo a pilotar: corte inmediato, nada de menú en tramo.
@@ -1065,6 +1069,8 @@ func _advance_event_stage() -> void:
 	stage_transition_running = false
 
 func load_event_stage(next_id: String) -> void:
+	_show_loading_overlay()
+	await get_tree().process_frame
 	session_ready = false
 	vehicle.freeze = true
 	input_controller.set_controls_enabled(false)
@@ -1074,6 +1080,7 @@ func load_event_stage(next_id: String) -> void:
 		telemetry_recorder.set_physics_process(false)
 	var resolved = stage_loader.resolve(next_id)
 	if resolved.is_empty():
+		_hide_loading_overlay()
 		push_error("Rally stage: " + stage_loader.error)
 		return
 	session_track_id = next_id
@@ -1085,6 +1092,7 @@ func load_event_stage(next_id: String) -> void:
 	if event_manager != null:
 		competition = event_manager.sim
 	elif not competition.configure(stage_config_path, event_seed):
+		_hide_loading_overlay()
 		push_error(competition.error)
 		return
 	course.sector_indices = competition.stage.sector_checkpoint_indices
@@ -1096,6 +1104,7 @@ func load_event_stage(next_id: String) -> void:
 	apply_start_pose_from_manifest()
 	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
 	if not await _swap_stage_geometry(resolved):
+		_hide_loading_overlay()
 		return
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -1118,6 +1127,7 @@ func load_event_stage(next_id: String) -> void:
 		telemetry_recorder.set_physics_process(true)
 	apply_competition_controls()
 	_update_panel_for_stage()
+	_hide_loading_overlay()
 	# Servicio Stage 5→6: Resultados → Continuar al servicio → Neumáticos → Aceptar → Stage 6.
 	# Sin ventana pendiente vamos directo a pilotar: corte inmediato para que
 	# el tema del menú (resultados/transición) no siga en el tramo.
@@ -1140,7 +1150,7 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	for child in track_visual.get_children():
 		child.queue_free()
 	await get_tree().process_frame
-	var packed := load(visual_path) as PackedScene
+	var packed := await _load_packed_scene_async(visual_path)
 	if packed == null:
 		return false
 	track_visual.add_child(packed.instantiate())
@@ -1159,6 +1169,37 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	track_collision.terrain_surface_group = "Road" if str(stage_data.get("surface", "")).to_lower() == "asphalt" else "Gravel"
 	track_collision.collision_scene_path = collision_path
 	return await track_collision.build_collision(track_visual)
+
+
+func _show_loading_overlay(text: String = "Loading...") -> void:
+	var overlay := get_node_or_null("/root/RallyLoadingOverlay")
+	if overlay != null and overlay.has_method("show_loading"):
+		overlay.call("show_loading", text)
+
+
+func _hide_loading_overlay() -> void:
+	var overlay := get_node_or_null("/root/RallyLoadingOverlay")
+	if overlay != null and overlay.has_method("hide_loading"):
+		overlay.call("hide_loading")
+
+
+func _load_packed_scene_async(path: String) -> PackedScene:
+	var overlay := get_node_or_null("/root/RallyLoadingOverlay")
+	if overlay != null and overlay.has_method("load_packed_scene_async"):
+		return await overlay.load_packed_scene_async(path)
+	if ResourceLoader.has_cached(path):
+		return ResourceLoader.load(path) as PackedScene
+	var err := ResourceLoader.load_threaded_request(path, "PackedScene")
+	if err != OK:
+		return ResourceLoader.load(path) as PackedScene
+	while true:
+		var status := ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			return ResourceLoader.load_threaded_get(path) as PackedScene
+		if status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			return null
+		await get_tree().process_frame
+	return null
 
 func start_clock_for_stage(schedule: Dictionary) -> void:
 	# Salta a la hora de salida (empieza la cuenta atrás unos segundos antes).
@@ -1366,14 +1407,17 @@ func _open_setup_window() -> void:
 	if not practice_mode and event_manager != null:
 		var window: Dictionary = event_manager.get_pending_window()
 		if window.is_empty():
+			get_tree().paused = false
 			return
 		if str(window.get("window_key", "initial")) == "initial" and not event_manager.windows_attended.has("strategy:initial"):
-			# Estrategia inicial: NO pausa el SceneTree (el garaje lo hará después con
-			# _restore_tree_paused=false). Solo congela vehículo + reloj + input.
+			# Pausa el SceneTree durante la estrategia inicial para que el vehículo no
+			# avance ni ejecute _physics_process; antes de abrir el garaje se restaura
+			# a false para que _restore_tree_paused en RallyGaragePanel sea false.
 			awaiting_setup = true
 			vehicle.freeze = true
 			input_controller.set_controls_enabled(false)
 			event_clock.set_paused(true)
+			get_tree().paused = true
 			var strat_layer := CanvasLayer.new()
 			strat_layer.layer = 115
 			strat_layer.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -1398,6 +1442,7 @@ func _open_setup_window() -> void:
 			vehicle.freeze = true
 			input_controller.set_controls_enabled(false)
 			event_clock.set_paused(true)
+			get_tree().paused = true
 			var service := preload("res://scripts/rally/rally_service_panel.gd").new()
 			add_child(service)
 			service.confirmed.connect(_open_setup_window, CONNECT_DEFERRED)
@@ -1418,6 +1463,9 @@ func _open_setup_window() -> void:
 			label = "SERVICIO · " + str(window.get("before_stage_id", "")).to_upper()
 		garage_panel.circuit_name = label
 		var open_tab := str(window.get("initial_tab", "tires"))
+		# Si venimos de estrategia inicial o servicio, restaurar paused = false
+		# justo antes de abrir el garaje para que guarde _restore_tree_paused = false.
+		get_tree().paused = false
 		garage_panel.call("open_garage_for_event", {
 			"spare_wheels": vehicle.tire_inventory.spares.size(),
 			"wheel_compounds": mounted_wheel_compounds(),
