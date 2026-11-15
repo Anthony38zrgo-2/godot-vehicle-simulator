@@ -34,61 +34,61 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "87c3d2562aa49db80b3dceb63428a3e7a48208c991b2ca528e6350572a876b7c",
-      "size_bytes": 60500
+      "sha256": "3aa434a5ca1c7655108b5e850ef7b6435db9afa1bd6db120caa0617b37e64932",
+      "size_bytes": 60356
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "03503a19184498bb9aab73f4b031c3ddcf3b541df784bd1535a1a1bd806d01c5",
-      "size_bytes": 60500
+      "sha256": "f181c9914198ca75c15d3a5ff00ce0a78572ccdf620843be60f20ff896e5474e",
+      "size_bytes": 60352
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "28ac979dca717cf244c106481ddc4fca09d89a9d11d9a3692bbee20035589d8d",
-      "size_bytes": 60496
+      "sha256": "e2181b587e4e7098b935c9f9e7f6d398cc65571b983607e2350ce52db5438b28",
+      "size_bytes": 60356
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "117ad9f9bd3a2fa9b0f552f7773320cdd7a438f1a907fa40b0e994ea58cb56be",
-      "size_bytes": 60496
+      "sha256": "4c922063fc4b3e50c1ebc4b0232de22651f75258dc497201263c39872913290d",
+      "size_bytes": 60352
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
         "x": -0.5704421997070312,
-        "y": 0.30799993872642517,
+        "y": 0.2665,
         "z": -1.0499999523162842
       },
-      "radius_metres": 0.3079999983310646,
-      "width_metres": 0.22000005841255188
+      "radius_metres": 0.2665,
+      "width_metres": 0.188
     },
     "front_right": {
       "center_metres": {
         "x": 0.5707464814186096,
-        "y": 0.30799993872642517,
+        "y": 0.2665,
         "z": -1.0499999523162842
       },
-      "radius_metres": 0.30799999833106817,
-      "width_metres": 0.2199999988079071
+      "radius_metres": 0.2665,
+      "width_metres": 0.188
     },
     "rear_left": {
       "center_metres": {
         "x": -0.6100000143051147,
-        "y": 0.3080001175403595,
+        "y": 0.2655,
         "z": 1.0499999523162842
       },
-      "radius_metres": 0.3079999983310735,
-      "width_metres": 0.22000005841255188
+      "radius_metres": 0.2655,
+      "width_metres": 0.248
     },
     "rear_right": {
       "center_metres": {
         "x": 0.60999995470047,
-        "y": 0.3080001175403595,
+        "y": 0.2655,
         "z": 1.0500000715255737
       },
-      "radius_metres": 0.30799999833106995,
-      "width_metres": 0.2199999988079071
+      "radius_metres": 0.2655,
+      "width_metres": 0.248
     }
   },
   "geometry": {
