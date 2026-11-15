@@ -15,6 +15,7 @@ const DIN: Font = RallyUITheme.FONT_MEDIUM_TIGHT
 const DIN_BOLD: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
 const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
 const RallyHeldPartPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
+const HudPanelsScript := preload("res://scripts/rally/formula_hud_panels.gd")
 
 # 2.3. Paleta Unificada Dark Carbon + Brass Gold (fuente única: RallyUITheme)
 const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
@@ -98,6 +99,8 @@ var header_title: Label
 var header_subtitle: Label
 var badge_top: Label
 var badge_bottom: Label
+var ambient_temp_label: Label
+var track_temp_label: Label
 var telemetry_panel: PanelContainer
 var telemetry_vbox: VBoxContainer
 var content_panel: PanelContainer
@@ -111,6 +114,12 @@ var current_view: String = "menu"
 
 func _process(_delta: float) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
+	var target_size := Vector2(
+		minf(1350.0, maxf(viewport_size.x - 32.0, 640.0)),
+		minf(775.0, maxf(viewport_size.y - 24.0, 480.0))
+	)
+	if modal.custom_minimum_size != target_size:
+		modal.custom_minimum_size = target_size
 	modal.position = (viewport_size - modal.size) * 0.5
 	pause_button.position = Vector2(viewport_size.x - 150, 12)
 	pause_button.visible = false
@@ -158,7 +167,7 @@ func _ready() -> void:
 	modal = PanelContainer.new()
 	screen.add_child(modal)
 	modal.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	modal.custom_minimum_size = Vector2(1080, 620)
+	modal.custom_minimum_size = Vector2(1350, 775)
 	modal.add_theme_stylebox_override("panel", RallyUITheme.make_window_panel(WB_BG_SHELL, RallyUITheme.BORDER_CARD))
 	modal.hide()
 	var pause_sound := AudioStreamPlayer.new()
@@ -224,6 +233,19 @@ func _build_modal_skeleton() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_hbox.add_child(spacer)
+
+	var temp_hbox := HBoxContainer.new()
+	temp_hbox.add_theme_constant_override("separation", 14)
+	temp_hbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header_hbox.add_child(temp_hbox)
+
+	ambient_temp_label = _add_header_temp_item(temp_hbox, "AMB")
+	var temp_sep := ColorRect.new()
+	temp_sep.custom_minimum_size = Vector2(1, 16)
+	temp_sep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	temp_sep.color = RallyUITheme.BORDER_SUBTLE
+	temp_hbox.add_child(temp_sep)
+	track_temp_label = _add_header_temp_item(temp_hbox, "PISTA")
 
 	var badge_box := PanelContainer.new()
 	badge_box.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS_DEEP, RallyUITheme.BORDER_CARD))
@@ -344,10 +366,7 @@ func _input(event: InputEvent) -> void:
 					if child.has_method("cancel_transfer") and child.cancel_transfer():
 						get_viewport().set_input_as_handled()
 						return
-			if current_view != "menu" and not opened_from_results:
-				show_menu()
-			else:
-				toggle()
+			toggle()
 			get_viewport().set_input_as_handled()
 		elif allowed():
 			toggle()
@@ -409,7 +428,7 @@ func toggle() -> void:
 	modal.show()
 	backdrop.show()
 	pause_button.hide()
-	show_menu()
+	show_inventory()
 
 
 func clear() -> void:
@@ -443,9 +462,9 @@ func button(text: String, callback: Callable, parent: Node = null, custom_sound:
 
 	if text == "Reanudar" or text.begins_with("Cambiar rueda") or text.begins_with("Reparación de radiador"):
 		_style_gold_button(node)
-	elif text == "Abandonar etapa" or text.begins_with("Descartar"):
+	elif text.begins_with("Abandonar etapa") or text.begins_with("Descartar"):
 		_style_danger_button(node)
-	elif text == "Pedir rescate":
+	elif text.begins_with("Pedir rescate"):
 		_style_caution_button(node)
 	else:
 		_style_chrome_button(node)
@@ -595,13 +614,128 @@ func show_inventory() -> void:
 			for entry in (get_session_allowed_compound_ids() if not get_session_allowed_compound_ids().is_empty() else RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())):
 				var cid := str(entry)
 				button("+ " + cid, func(): load_spare(cid), row)
+	if not opened_from_results:
+		_add_minimal_damage_strip()
 	var nav := HBoxContainer.new()
+	nav.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nav.add_theme_constant_override("separation", 10)
 	content.add_child(nav)
 	if opened_from_results:
 		button("Volver a resultados", toggle, nav)
 	else:
-		button("Volver a pausa", show_menu, nav)
 		button("Reanudar", toggle, nav)
+		var nav_spacer := Control.new()
+		nav_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nav.add_child(nav_spacer)
+		button("Pedir rescate (+15 s)", request_rescue, nav)
+		button("Abandonar etapa (+300 s)", abandon_stage, nav)
+
+
+func _add_minimal_damage_strip() -> void:
+	var strip := HBoxContainer.new()
+	strip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	strip.alignment = BoxContainer.ALIGNMENT_CENTER
+	strip.add_theme_constant_override("separation", 20)
+	content.add_child(strip)
+
+	for item in _collect_hud_damage_metrics():
+		var key := str(item["key"])
+		var ratio := clampf(float(item["ratio"]), 0.0, 1.0)
+		var col: Color = HudPanelsScript.damage_icon_color(ratio)
+
+		var cell := HBoxContainer.new()
+		cell.add_theme_constant_override("separation", 6)
+		cell.alignment = BoxContainer.ALIGNMENT_CENTER
+		strip.add_child(cell)
+
+		var icon_path := str(HudPanelsScript.DAMAGE_ICON_PATHS.get(key, ""))
+		if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
+			var icon := TextureRect.new()
+			icon.texture = load(icon_path) as Texture2D
+			icon.custom_minimum_size = Vector2(20, 20)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.modulate = col
+			cell.add_child(icon)
+
+		var name_lbl := Label.new()
+		name_lbl.text = str(item["label"])
+		name_lbl.add_theme_font_override("font", FONT_MEDIUM)
+		name_lbl.add_theme_font_size_override("font_size", 11)
+		name_lbl.add_theme_color_override("font_color", C_CHROME_DIM)
+		cell.add_child(name_lbl)
+
+		var pct_lbl := Label.new()
+		pct_lbl.text = "%d%%" % roundi(ratio * 100.0)
+		pct_lbl.add_theme_font_override("font", DIN_BOLD)
+		pct_lbl.add_theme_font_size_override("font_size", 13)
+		pct_lbl.add_theme_color_override("font_color", col)
+		cell.add_child(pct_lbl)
+
+
+func _collect_hud_damage_metrics() -> Array[Dictionary]:
+	var v: Variant = session.get("vehicle") if session != null else null
+	var sim: Variant = v.get("simulation") if v != null else null
+	var tm: Variant = sim.get("thermal_model") if sim != null else null
+	var pm: Variant = sim.get("powertrain_model") if sim != null else null
+	var pub: Dictionary = v.get("published_state") if v != null and v.get("published_state") is Dictionary else {}
+	var pub_dmg: Dictionary = pub.get("damage", {})
+	var pub_eng: Dictionary = pub.get("engine", {})
+	var wheels: Array = pub.get("wheels", [])
+
+	var eng_dmg := float(tm.engine_damage) if tm != null and tm.get("engine_damage") != null else float(pub_dmg.get("engine", pub_eng.get("engine_damage", 0.0)))
+	var rad_dmg := float(tm.radiator_damage) if tm != null and tm.get("radiator_damage") != null else float(pub_dmg.get("radiator", pub_eng.get("radiator_damage", 0.0)))
+	var trans_dmg := float(pm.transmission_damage) if pm != null and pm.get("transmission_damage") != null else float(pub_dmg.get("transmission", 0.0))
+
+	var worst_align := 0.0
+	var brake_sum := 0.0
+	var brake_count := 0
+	var worst_wheel := 0.0
+
+	if not wheels.is_empty():
+		for wheel_var in wheels:
+			if not (wheel_var is Dictionary):
+				continue
+			var wheel: Dictionary = wheel_var
+			worst_align = maxf(worst_align, float(wheel.get("alignment_collision_damage", 0.0)))
+			var b_col := clampf(float(wheel.get("brake_collision_loss", 0.0)), 0.0, 1.0)
+			var b_wear := clampf(float(wheel.get("brake_wear_fraction", 0.0)), 0.0, 1.0)
+			brake_sum += 1.0 - (1.0 - b_col) * (1.0 - b_wear)
+			brake_count += 1
+			var is_puncture := (
+				float(wheel.get("carcass_failure", 0.0)) >= 1.0
+				or float(wheel.get("leak_per_second", 0.0)) > 0.0
+				or float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85
+			)
+			if is_puncture:
+				worst_wheel = 1.0
+			else:
+				worst_wheel = maxf(worst_wheel, maxf(float(wheel.get("wear_fraction", 0.0)), float(wheel.get("rim_deformation", 0.0))))
+	elif v != null and v.get("tire_inventory") != null and v.tire_inventory.get("mounted") != null:
+		var align_arr: Array = sim.alignment_collision_damage if sim != null and sim.get("alignment_collision_damage") != null else []
+		var brake_arr: Array = sim.brake_collision_loss if sim != null and sim.get("brake_collision_loss") != null else []
+		for i in v.tire_inventory.mounted.size():
+			if i < align_arr.size():
+				worst_align = maxf(worst_align, float(align_arr[i]))
+			if i < brake_arr.size():
+				brake_sum += clampf(float(brake_arr[i]), 0.0, 1.0)
+				brake_count += 1
+			var st: Dictionary = v.tire_inventory.mounted[i].get("state", {})
+			if float(st.get("leak_per_second", 0.0)) > 0.0 or float(st.get("pressure_loss_fraction", 0.0)) > 0.85:
+				worst_wheel = 1.0
+			else:
+				worst_wheel = maxf(worst_wheel, maxf(float(st.get("wear_fraction", 0.0)), float(st.get("rim_deformation", 0.0))))
+
+	var brake_dmg := (brake_sum / float(brake_count)) if brake_count > 0 else 0.0
+
+	return [
+		{"key": "engine", "label": "MOTOR", "ratio": eng_dmg},
+		{"key": "radiator", "label": "RADIADOR", "ratio": rad_dmg},
+		{"key": "transmission", "label": "TRANS.", "ratio": trans_dmg},
+		{"key": "steering", "label": "DIRECCIÓN", "ratio": worst_align},
+		{"key": "wheel", "label": "RUEDAS", "ratio": worst_wheel},
+		{"key": "brake", "label": "FRENOS", "ratio": brake_dmg},
+	]
 
 
 func exchange() -> void:
@@ -833,6 +967,64 @@ func _update_header(title_text: String, subtitle_text: String) -> void:
 			badge_bottom.text = "%d:%02d.%03d · PAUSADO" % [int(s) / 60, int(s) % 60, int(s * 1000.0) % 1000]
 		else:
 			badge_bottom.text = "EN PAUSA"
+	_update_header_temperatures()
+
+
+func _add_header_temp_item(parent: HBoxContainer, title: String) -> Label:
+	var item := HBoxContainer.new()
+	item.add_theme_constant_override("separation", 6)
+	item.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(item)
+
+	var key_lbl := Label.new()
+	key_lbl.text = title
+	key_lbl.add_theme_font_override("font", FONT_MEDIUM)
+	key_lbl.add_theme_font_size_override("font_size", 11)
+	key_lbl.add_theme_color_override("font_color", C_CHROME_DIM)
+	item.add_child(key_lbl)
+
+	var val_lbl := Label.new()
+	val_lbl.text = "—"
+	val_lbl.add_theme_font_override("font", DIN_BOLD)
+	val_lbl.add_theme_font_size_override("font_size", 13)
+	val_lbl.add_theme_color_override("font_color", C_CHROME_TEXT)
+	item.add_child(val_lbl)
+	return val_lbl
+
+
+func _update_header_temperatures() -> void:
+	var amb_text := "—"
+	var track_text := "—"
+	if session != null:
+		var ew: Variant = session.get("event_weather")
+		var v: Variant = session.get("vehicle")
+		var sim: Variant = v.get("simulation") if v != null else null
+		var tm: Variant = sim.get("thermal_model") if sim != null else null
+		var has_ambient := false
+		var amb_c := 0.0
+
+		if ew != null and ew.get("current_blend") is Dictionary:
+			var blend: Dictionary = ew.current_blend
+			if not blend.is_empty() and blend.has("air_c"):
+				amb_c = float(blend["air_c"])
+				has_ambient = true
+		if not has_ambient and tm != null and tm.get("ambient_temperature_c") != null:
+			amb_c = float(tm.ambient_temperature_c)
+			has_ambient = true
+		if has_ambient:
+			amb_text = "%d°C" % roundi(amb_c)
+
+		if ew != null and ew.has_method("surface_temperature_at_vehicle"):
+			var surf: Variant = ew.call("surface_temperature_at_vehicle")
+			if surf is Dictionary and bool((surf as Dictionary).get("ok", false)):
+				track_text = "%d°C" % roundi(float((surf as Dictionary).get("celsius", 0.0)))
+		if track_text == "—" and has_ambient:
+			track_text = "%d°C" % roundi(amb_c)
+
+	if ambient_temp_label != null:
+		ambient_temp_label.text = amb_text
+	if track_temp_label != null:
+		track_temp_label.text = track_text
 
 
 func _pause_damage_color(ratio: float) -> Color:
