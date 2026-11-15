@@ -20,6 +20,24 @@ const C_ORANGE := Color("#f08c35")
 const C_ROSE := Color("#ef4444")
 const C_BLUE := Color("#5fa8e0")
 
+const DAMAGE_ICON_PATHS := {
+	"engine": "res://assets/rally/hud_damage/engine.svg",
+	"radiator": "res://assets/rally/hud_damage/temperature.svg",
+	"transmission": "res://assets/rally/hud_damage/manual-gearbox.svg",
+	"steering": "res://assets/rally/hud_damage/steering-wheel.svg",
+	"wheel": "res://assets/rally/hud_damage/wheel.png",
+	"brake": "res://assets/rally/hud_damage/brake.svg",
+}
+const DAMAGE_ICON_ORDER := ["engine", "radiator", "transmission", "steering", "wheel", "brake"]
+const DAMAGE_ICON_SIZE := 26.0
+const DAMAGE_ICON_GAP := 8.0
+const DAMAGE_CAPSULE_PAD_X := 10.0
+const DAMAGE_CAPSULE_PAD_Y := 10.0
+const DAMAGE_COLOR_HEALTHY := Color("#f1f5f9")
+const DAMAGE_COLOR_YELLOW := Color("#facc15")
+const DAMAGE_COLOR_ORANGE := Color("#f97316")
+const DAMAGE_COLOR_RED := Color("#ef4444")
+
 const STANDINGS_ORIGIN := Vector2(40.0, 20.0)
 const STANDINGS_ROW_SIZE := Vector2(500.0, 42.0)
 const STANDINGS_ROW_GAP := 3.0
@@ -42,10 +60,15 @@ const BOTTOM_LEFT_H := 168.0
 var snapshot: Dictionary = {}
 var thermal_config: Dictionary = {}
 var palette: RetroHudConfig = RetroHudConfig.new()
+var _damage_icons: Dictionary = {}
+var _damage_capsule_style: StyleBoxFlat = null
+var _tach_right_margin: float = 24.0
+var _tach_bottom_offset: float = 314.0
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ensure_damage_icon_assets()
 
 
 func present(state: Dictionary, limits: Dictionary) -> void:
@@ -58,6 +81,14 @@ func set_palette(next_palette: RetroHudConfig) -> void:
 	if next_palette == null:
 		return
 	palette = next_palette
+	queue_redraw()
+
+
+func set_tachometer_anchor(right_margin: float, bottom_offset: float) -> void:
+	if is_equal_approx(_tach_right_margin, right_margin) and is_equal_approx(_tach_bottom_offset, bottom_offset):
+		return
+	_tach_right_margin = right_margin
+	_tach_bottom_offset = bottom_offset
 	queue_redraw()
 
 
@@ -76,6 +107,7 @@ func _draw() -> void:
 	var bottom_y := logical_h - BOTTOM_LEFT_H - BOTTOM_LEFT_MARGIN
 	_draw_tires(Rect2(BOTTOM_LEFT_X, bottom_y, TIRES_W, BOTTOM_LEFT_H))
 	_draw_fuel_and_engine(Rect2(BOTTOM_LEFT_X + TIRES_W + VITALS_GAP, bottom_y, VITALS_W, BOTTOM_LEFT_H))
+	_draw_damage_icons_column(logical_w, logical_h)
 
 	draw_set_transform(Vector2.ZERO)
 
@@ -159,6 +191,136 @@ func _damage_color(ratio: float) -> Color:
 	if ratio < 0.75:
 		return C_ORANGE
 	return C_ROSE
+
+
+# =============================================================================
+# ICONOS VERTICALES DE DAÑO SOBRE EL TACÓMETRO (DERECHA)
+# =============================================================================
+
+
+func _ensure_damage_icon_assets() -> void:
+	if _damage_capsule_style == null:
+		_damage_capsule_style = StyleBoxFlat.new()
+		_damage_capsule_style.bg_color = Color(0.06, 0.07, 0.09, 0.42)
+		_damage_capsule_style.set_border_width_all(0)
+		_damage_capsule_style.set_corner_radius_all(8)
+		_damage_capsule_style.shadow_color = Color(0.0, 0.0, 0.0, 0.28)
+		_damage_capsule_style.shadow_size = 6
+		_damage_capsule_style.shadow_offset = Vector2(0.0, 2.0)
+
+	if not _damage_icons.is_empty():
+		return
+	for key in DAMAGE_ICON_ORDER:
+		var path: String = str(DAMAGE_ICON_PATHS.get(key, ""))
+		var tex: Texture2D = null
+		if ResourceLoader.exists(path):
+			tex = load(path) as Texture2D
+		elif FileAccess.file_exists(path):
+			var img := Image.load_from_file(ProjectSettings.globalize_path(path))
+			if img != null and not img.is_empty():
+				tex = ImageTexture.create_from_image(img)
+		_damage_icons[key] = tex
+
+
+static func damage_icon_color(ratio: float) -> Color:
+	var r := clampf(ratio, 0.0, 1.0)
+	if r <= 0.005:
+		return DAMAGE_COLOR_HEALTHY
+	# Ligero impulso inicial para que un daño leve ya se distinga del blanco humo
+	var t := clampf(pow(r, 0.82), 0.08, 1.0)
+	if t <= 0.30:
+		return DAMAGE_COLOR_HEALTHY.lerp(DAMAGE_COLOR_YELLOW, t / 0.30)
+	if t <= 0.65:
+		return DAMAGE_COLOR_YELLOW.lerp(DAMAGE_COLOR_ORANGE, (t - 0.30) / 0.35)
+	return DAMAGE_COLOR_ORANGE.lerp(DAMAGE_COLOR_RED, clampf((t - 0.65) / 0.25, 0.0, 1.0))
+
+
+func _wheel_icon_color(wheels: Array) -> Color:
+	var has_rim := false
+	for wheel_var in wheels:
+		if not (wheel_var is Dictionary):
+			continue
+		var wheel: Dictionary = wheel_var
+		var is_puncture := (
+			float(wheel.get("carcass_failure", 0.0)) >= 1.0
+			or float(wheel.get("leak_per_second", 0.0)) > 0.0
+			or float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85
+		)
+		if is_puncture:
+			return DAMAGE_COLOR_RED
+		if float(wheel.get("rim_deformation", 0.0)) > 0.005:
+			has_rim = true
+	if has_rim:
+		return DAMAGE_COLOR_YELLOW
+	return DAMAGE_COLOR_HEALTHY
+
+
+func _steering_icon_color(wheels: Array) -> Color:
+	var worst_align := 0.0
+	for wheel_var in wheels:
+		if not (wheel_var is Dictionary):
+			continue
+		var wheel: Dictionary = wheel_var
+		worst_align = maxf(worst_align, float(wheel.get("alignment_collision_damage", 0.0)))
+	return damage_icon_color(worst_align)
+
+
+func _brake_icon_color(wheels: Array) -> Color:
+	var sum := 0.0
+	var count := 0
+	for wheel_var in wheels:
+		if not (wheel_var is Dictionary):
+			continue
+		var wheel: Dictionary = wheel_var
+		var collision := clampf(float(wheel.get("brake_collision_loss", 0.0)), 0.0, 1.0)
+		var wear := clampf(float(wheel.get("brake_wear_fraction", 0.0)), 0.0, 1.0)
+		var combined := 1.0 - (1.0 - collision) * (1.0 - wear)
+		sum += combined
+		count += 1
+	if count == 0:
+		return DAMAGE_COLOR_HEALTHY
+	return damage_icon_color(sum / float(count))
+
+
+func _draw_damage_icons_column(logical_w: float, logical_h: float) -> void:
+	_ensure_damage_icon_assets()
+	var count := DAMAGE_ICON_ORDER.size()
+	var capsule_w := DAMAGE_ICON_SIZE + DAMAGE_CAPSULE_PAD_X * 2.0
+	var capsule_h := float(count) * DAMAGE_ICON_SIZE + float(count - 1) * DAMAGE_ICON_GAP + DAMAGE_CAPSULE_PAD_Y * 2.0
+	var capsule_x := logical_w - _tach_right_margin - capsule_w
+	var capsule_y := logical_h - _tach_bottom_offset - capsule_h - 12.0
+	var capsule_rect := Rect2(capsule_x, capsule_y, capsule_w, capsule_h)
+
+	if _damage_capsule_style != null:
+		draw_style_box(_damage_capsule_style, capsule_rect)
+
+	var dmg: Dictionary = snapshot.get("damage", {})
+	var eng_snap: Dictionary = snapshot.get("engine", {})
+	var wheels: Array = snapshot.get("wheels", [])
+
+	var colors := {
+		"engine": damage_icon_color(float(dmg.get("engine", eng_snap.get("engine_damage", 0.0)))),
+		"radiator": damage_icon_color(float(dmg.get("radiator", eng_snap.get("radiator_damage", 0.0)))),
+		"transmission": damage_icon_color(float(dmg.get("transmission", 0.0))),
+		"steering": _steering_icon_color(wheels),
+		"wheel": _wheel_icon_color(wheels),
+		"brake": _brake_icon_color(wheels),
+	}
+
+	var shadow_col := Color(0.0, 0.0, 0.0, 0.65)
+	var shadow_off := Vector2(1.5, 1.5)
+	for i in count:
+		var key: String = DAMAGE_ICON_ORDER[i]
+		var tex: Texture2D = _damage_icons.get(key) as Texture2D
+		if tex == null:
+			continue
+		var icon_pos := Vector2(
+			capsule_x + DAMAGE_CAPSULE_PAD_X,
+			capsule_y + DAMAGE_CAPSULE_PAD_Y + float(i) * (DAMAGE_ICON_SIZE + DAMAGE_ICON_GAP)
+		)
+		var icon_rect := Rect2(icon_pos, Vector2(DAMAGE_ICON_SIZE, DAMAGE_ICON_SIZE))
+		draw_texture_rect(tex, Rect2(icon_pos + shadow_off, icon_rect.size), false, shadow_col)
+		draw_texture_rect(tex, icon_rect, false, colors.get(key, DAMAGE_COLOR_HEALTHY))
 
 
 # =============================================================================

@@ -256,7 +256,7 @@ func _draw() -> void:
 	_draw_scale_markings(ideal_deg, urgent_deg, max_deg)
 
 	# 5. Bisel exterior limpio envolviendo el dial sin partir la pista superior
-	draw_arc(DIAL_CENTER, DIAL_RADIUS, 0.0, TAU, 80, Cmr2Style.TACHO_BORDER, 1.4, true)
+	draw_arc(DIAL_CENTER, DIAL_RADIUS, 0.0, TAU, 80, Cmr2Style.TACHO_BORDER, 2.8, true)
 
 
 func _draw_readout_cutout() -> void:

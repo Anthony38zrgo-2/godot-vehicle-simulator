@@ -175,6 +175,8 @@ func update_thermal_readout() -> void:
 				size.x - dash_size.x * factor - 24.0 * factor,
 				size.y - dash_size.y * factor - 10.0 * factor
 			)
+			if formula_panels != null:
+				formula_panels.call("set_tachometer_anchor", 24.0, dash_size.y + 10.0)
 			if driving_controls != null and not driving_controls.visible:
 				driving_controls.visible = true
 		elif retro_hud.has_method("is_cmr2_digital_style") and bool(retro_hud.call("is_cmr2_digital_style")):
@@ -184,11 +186,15 @@ func update_thermal_readout() -> void:
 				size.x - dash_size.x * factor - 32.0 * factor,
 				size.y - dash_size.y * factor - 20.0 * factor
 			)
+			if formula_panels != null:
+				formula_panels.call("set_tachometer_anchor", 32.0, dash_size.y + 20.0)
 			if driving_controls != null and not driving_controls.visible:
 				driving_controls.visible = true
 		else:
 			retro_hud.size = Vector2(541.35, 370.0125)
 			retro_hud.position = Vector2(size.x - 541.35 * factor - 16.0 * factor, size.y - (370.0125 + 48.0) * factor)
+			if formula_panels != null:
+				formula_panels.call("set_tachometer_anchor", 16.0, 370.0125 + 48.0)
 			if driving_controls != null and not driving_controls.visible:
 				driving_controls.visible = true
 
