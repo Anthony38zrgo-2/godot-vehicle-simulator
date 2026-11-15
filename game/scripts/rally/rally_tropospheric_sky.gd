@@ -88,8 +88,8 @@ func _ready() -> void:
 		if parsed is Dictionary and (parsed as Dictionary).has("visual_response"):
 			visual = ((parsed as Dictionary)["visual_response"] as Dictionary).duplicate()
 	environment.adjustment_enabled = true
-	environment.adjustment_contrast = 1.08
-	environment.adjustment_saturation = float(visual.get("saturation_clear", 1.25))
+	environment.adjustment_contrast = 1.06
+	environment.adjustment_saturation = float(visual.get("saturation_clear", 1.08))
 	update_visuals(0.0)
 
 func apply_climate(next_climate: Dictionary, next_visual: Dictionary) -> void:
@@ -122,12 +122,15 @@ func update_visuals(delta: float) -> void:
 	var daylight := smoothstep(-0.12, 0.18, altitude)
 	var twilight := 1.0 - smoothstep(0.0, 0.32, absf(altitude))
 	var cover := clampf(float(climate.get("cumulus_coverage", 0.2)), 0.0, 1.0)
-	cover = maxf(cover, smoothstep(0.0, 12.0, float(climate.get("precipitation_mm_h", 0.0))) * 0.95)
-	var overcast := smoothstep(0.35, 0.95, cover)
+	var cirrus := clampf(float(climate.get("cirrus_coverage", 0.0)), 0.0, 1.0)
+	var precip := float(climate.get("precipitation_mm_h", 0.0))
+	cover = maxf(cover, smoothstep(0.0, 12.0, precip) * 0.95)
+	var overcast := smoothstep(0.28, 0.95, cover)
+	var sun_clarity := clampf(1.0 - smoothstep(0.06, 0.90, cover) * 0.88 - cirrus * 0.14, 0.0, 1.0)
 	var twilight_id: String = "day_2" if morning else variants["dusk"]
 	var twilight_yaw := 0.0 if morning else PI
 	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast)
-	var day_mix := smoothstep(6.0, 10.0, current_time) if morning else 1.0 - smoothstep(18.0, 19.5, current_time)
+	var day_mix := smoothstep(5.5, 8.5, current_time) if morning else 1.0 - smoothstep(18.0, 19.5, current_time)
 	if altitude < 0.02:
 		_bind_sky(variants["night"], twilight_id, variants["night"], smoothstep(-0.25, 0.02, altitude), 1.0,
 			0.0, twilight_yaw, Vector3.ONE.lerp(Vector3(0.15, 0.20, 0.28), overcast), twilight_tint, Vector3.ONE)
@@ -136,10 +139,13 @@ func update_visuals(delta: float) -> void:
 		var blend := smoothstep(0.55, 0.95, cover) if cloudy else smoothstep(0.15, 0.55, cover)
 		_bind_sky(variants["cloudy"] if cloudy else variants["day"], variants["verycloudy"] if cloudy else variants["cloudy"], twilight_id,
 			blend, day_mix, twilight_yaw, 0.0, Vector3.ONE, Vector3.ONE, twilight_tint)
-	var clear_col: Array = visual.get("fog_color_clear", [0.64, 0.73, 0.82])
-	var storm_col: Array = visual.get("fog_color_overcast", [0.46, 0.50, 0.55])
+	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0052)), 0.00001), 0.0, 1.0)
+	var mist_boost := fog_weight * (1.0 - smoothstep(0.5, 4.0, precip))
+	var clear_col: Array = visual.get("fog_color_clear", [0.68, 0.76, 0.86])
+	var storm_col: Array = visual.get("fog_color_overcast", [0.57, 0.61, 0.66])
+	var storm_horizon := Color(float(storm_col[0]), float(storm_col[1]), float(storm_col[2])).lerp(Color(0.67, 0.71, 0.74), mist_boost * 0.65)
 	var horizon := Color(float(clear_col[0]), float(clear_col[1]), float(clear_col[2])).lerp(
-		Color(float(storm_col[0]), float(storm_col[1]), float(storm_col[2])), overcast)
+		storm_horizon, maxf(overcast, fog_weight * 0.85))
 	horizon = horizon.lerp(Color(0.58, 0.42, 0.36), twilight * daylight * (1.0 - overcast) * 0.55)
 	horizon *= lerpf(0.10, 1.0, daylight)
 	_set_uniform("horizon_color", horizon)
@@ -148,26 +154,27 @@ func update_visuals(delta: float) -> void:
 	sun.look_at(Vector3.ZERO, Vector3.UP)
 	moon.position = Vector3(1.0, 0.389, -0.729) # Moon painted on the +X face of night_2.
 	moon.look_at(Vector3.ZERO, Vector3.UP)
-	sun.light_color = Color(1.0, 0.95, 0.84).lerp(Color(1.0, 0.68, 0.40), twilight)
-	sun.light_energy = daylight * lerpf(float(visual.get("sun_energy_clear", 0.95)),
-		float(visual.get("sun_energy_overcast", 0.22)), overcast)
+	sun.light_color = Color(1.0, 0.94, 0.82).lerp(Color(1.0, 0.68, 0.40), twilight).lerp(Color(0.94, 0.96, 1.0), overcast * 0.65)
+	sun.light_energy = daylight * lerpf(float(visual.get("sun_energy_overcast", 0.38)),
+		float(visual.get("sun_energy_clear", 1.24)), sun_clarity)
 	sun.shadow_enabled = daylight > 0.1 and cover < 0.85
 	sun.shadow_opacity = lerpf(float(visual.get("shadow_opacity_clear", 0.45)),
 		float(visual.get("shadow_opacity_overcast", 0.15)), overcast)
 	moon.light_color = Color(0.46, 0.56, 0.76)
 	moon.light_energy = (1.0 - daylight) * lerpf(0.08, 0.025, overcast)
-	environment.ambient_light_energy = lerpf(0.06, lerpf(float(visual.get("ambient_energy_clear", 0.72)),
-		float(visual.get("ambient_energy_overcast", 0.52)), overcast), daylight)
+	var clear_amb := Color(0.68, 0.77, 0.90).lerp(Color(0.66, 0.65, 0.76), twilight * 0.55)
+	environment.ambient_light_color = clear_amb.lerp(Color(0.71, 0.75, 0.80), overcast)
+	environment.ambient_light_energy = lerpf(0.06, lerpf(float(visual.get("ambient_energy_clear", 0.70)),
+		float(visual.get("ambient_energy_overcast", 0.86)), overcast), daylight)
 	environment.fog_light_color = horizon
-	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0045)), 0.00001), 0.0, 1.0)
-	environment.fog_depth_end = lerpf(float(visual.get("fog_clear_end_m", 460.0)), float(visual.get("fog_storm_end_m", 175.0)), fog_weight)
-	environment.fog_depth_begin = environment.fog_depth_end * float(visual.get("fog_start_fraction", 0.22))
-	environment.fog_sky_affect = lerpf(float(visual.get("fog_sky_affect_clear", 0.05)),
-		float(visual.get("fog_sky_affect_storm", 0.42)), fog_weight)
+	environment.fog_depth_end = lerpf(float(visual.get("fog_clear_end_m", 420.0)), float(visual.get("fog_storm_end_m", 165.0)), fog_weight)
+	environment.fog_depth_begin = environment.fog_depth_end * lerpf(float(visual.get("fog_start_fraction", 0.22)), 0.16, mist_boost)
+	environment.fog_sky_affect = lerpf(float(visual.get("fog_sky_affect_clear", 0.08)),
+		float(visual.get("fog_sky_affect_storm", 0.44)), maxf(fog_weight, overcast * 0.35))
 	if environment.adjustment_enabled:
-		var sat_clear := float(visual.get("saturation_clear", 1.30))
-		var sat_storm := float(visual.get("saturation_storm", 1.12))
-		environment.adjustment_saturation = lerpf(sat_storm, sat_clear, daylight * (1.0 - overcast * 0.5))
+		var sat_clear := float(visual.get("saturation_clear", 1.08))
+		var sat_storm := float(visual.get("saturation_storm", 0.92))
+		environment.adjustment_saturation = lerpf(sat_storm, sat_clear, daylight * (1.0 - overcast))
 
 func _bind_sky(a: String, b: String, c: String, weather_mix: float, daylight_mix: float,
 		twilight_yaw: float, second_yaw: float, tint_a: Vector3, tint_b: Vector3, tint_c: Vector3) -> void:

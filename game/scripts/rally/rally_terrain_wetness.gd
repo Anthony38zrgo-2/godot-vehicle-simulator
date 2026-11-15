@@ -22,7 +22,7 @@ const WETTABLE_NAME_FRAGMENTS := [
 @export var rain_accumulation_rate: float = 0.35
 @export var dry_rate: float = 0.02
 @export var maximum_roughness_drop: float = 0.5
-@export var maximum_albedo_darkening: float = 0.3
+@export var maximum_albedo_darkening: float = 0.2
 @export var minimum_roughness: float = 0.05
 
 var wetness: float = 0.0

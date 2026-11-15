@@ -39,7 +39,7 @@ func run() -> void:
 		check(not wetness._materials.is_empty(), "stage %d wet materials bound" % stage)
 		for index in wetness._materials.size():
 			check(is_equal_approx(wetness._original_roughness[index], 1.0), "wetness uses prepared roughness")
-			check(wetness._materials[index].albedo_color.is_equal_approx(wetness._original_albedo[index] * Color(0.85, 0.85, 0.85, 1.0)), "wetness applied on load")
+			check(wetness._materials[index].albedo_color.is_equal_approx(wetness._original_albedo[index] * Color(0.9, 0.9, 0.9, 1.0)), "wetness applied on load")
 		inspect_meshes(visual, stage)
 		print("VISUAL_SETTINGS stage=", stage, " wet_materials=", wetness._materials.size())
 		visual.free()

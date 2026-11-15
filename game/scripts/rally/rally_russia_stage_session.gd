@@ -1266,16 +1266,55 @@ func _refresh_stage_weather() -> void:
 
 
 func _apply_single_stage_weather(w: String) -> void:
-	match w.strip_edges().to_lower():
-		"sunny", "soleado":
+	var key := w.strip_edges().to_lower()
+	var aliases := {
+		"soleado": "sunny",
+		"nublado": "cloudy",
+		"rain": "medium_precipitation",
+		"lluvia": "medium_precipitation",
+	}
+	var state_id: String = str(aliases.get(key, key))
+	var preset := {}
+	var visual_response := {}
+	if FileAccess.file_exists("res://data/weather/rally_weather_presets.json"):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/weather/rally_weather_presets.json"))
+		if parsed is Dictionary:
+			var doc := parsed as Dictionary
+			visual_response = (doc.get("visual_response", {}) as Dictionary)
+			var presets := (doc.get("presets", {}) as Dictionary)
+			if presets.has(state_id):
+				preset = (presets[state_id] as Dictionary)
+	if not preset.is_empty():
+		var climate := {}
+		for k in ["cumulus_coverage", "cirrus_coverage", "irradiance_w_m2", "air_temperature_c", "precipitation_mm_h", "fog_density", "wind_m_s"]:
+			var bounds: Variant = preset.get(k, [])
+			if bounds is Array and (bounds as Array).size() >= 2:
+				climate[k] = (float(bounds[0]) + float(bounds[1])) * 0.5
+		if weather_sky_node != null and weather_sky_node.has_method("apply_climate"):
+			weather_sky_node.apply_climate(climate, visual_response)
+			weather_sky_node.update_visuals(0.0)
+		var precip := float(climate.get("precipitation_mm_h", 0.0))
+		var cover := float(climate.get("cumulus_coverage", 0.0))
+		var fog_density := float(climate.get("fog_density", 0.0))
+		if precip >= 0.4:
+			weather_start_weather = 2
+			if weather_controller_node != null and weather_controller_node.has_method("set_weather"):
+				weather_controller_node.call("set_weather", 2)
+		elif cover >= 0.45 or fog_density >= 0.002:
+			weather_start_weather = 1
+		else:
+			weather_start_weather = 0
+		return
+	match state_id:
+		"sunny":
 			if weather_sky_node != null:
 				weather_sky_node.set_practice_weather(0.1, 0.0)
 			weather_start_weather = 0
-		"cloudy", "nublado":
+		"cloudy":
 			if weather_sky_node != null:
 				weather_sky_node.set_practice_weather(0.6, 0.0)
 			weather_start_weather = 1
-		"rain", "lluvia", "medium_precipitation", "light_precipitation":
+		"medium_precipitation", "light_precipitation":
 			if weather_sky_node != null:
 				weather_sky_node.set_practice_weather(0.9, 0.003)
 			weather_start_weather = 2
