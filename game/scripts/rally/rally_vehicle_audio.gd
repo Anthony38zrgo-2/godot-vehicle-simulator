@@ -88,7 +88,7 @@ const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
-const ENGINE_GAIN_BOOST := 3.0041637771599605 # 3.1622776601683795 * 0.95 (-5% gain)
+const ENGINE_GAIN_BOOST := 0.95 # 3.0041637771599605 * 0.31622776601683794 (-10 dB)
 const ENGINE_LAYER_TRIM := 1.41253754 # +3 dB for engine and exhaust loops.
 const WHINE_MIX_GAIN := 0.05525919 # 0.62 reduced by 21 dB.
 const CHASE_ENGINE_BOOST := 4.46683592 # +13 dB for engine loops only (+8 dB over previous +5 dB).
@@ -610,17 +610,6 @@ func update_cockpit_audio(delta: float) -> void:
 		var cutoff := 20500.0 if player == neutral_player else (2500.0 if player.bus == "Rally:e_stat" else (4800.0 if str(player.bus).begins_with("Rally:surface_") else 3500.0))
 		var effect: AudioEffectLowPassFilter = cockpit_filter_buses[player.bus]
 		effect.cutoff_hz = lerpf(20500.0, cutoff, cockpit_audio_blend)
-		if str(player.bus).begins_with("Rally:surface_"):
-			if not cockpit_surface_reverbs.has(player.bus):
-				var reverb := AudioEffectReverb.new()
-				reverb.room_size = 0.15
-				reverb.damping = 0.85
-				reverb.dry = 1.0
-				reverb.wet = 0.0
-				AudioServer.add_bus_effect(bus, reverb)
-				cockpit_surface_reverbs[player.bus] = reverb
-			var reverb: AudioEffectReverb = cockpit_surface_reverbs[player.bus]
-			reverb.wet = 0.04 * cockpit_audio_blend
 
 
 func update_view_balance() -> void:
