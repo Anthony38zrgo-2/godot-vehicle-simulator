@@ -1,5 +1,5 @@
 extends Control
-const FONT := preload("res://fonts/montserrat/Montserrat-Bold.ttf")
+const FONT: Font = preload("res://assets/fonts/variants/big_shoulders_display_bold.tres")
 var state: Dictionary = {}
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE

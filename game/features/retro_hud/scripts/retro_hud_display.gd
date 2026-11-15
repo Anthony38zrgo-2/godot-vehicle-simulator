@@ -397,8 +397,11 @@ func _draw() -> void:
 # CLÚSTER Y COMBUSTIBLE · AERO GLASS 2006 + WINDOWS 98
 # ==============================================================================
 
-const DIN: Font = preload("res://fonts/D-DIN.ttf")
-const DIN_BOLD: Font = preload("res://fonts/D-DIN-Bold.ttf")
+const DIN: Font = preload("res://assets/fonts/variants/science_gothic_medium.tres")
+const DIN_BOLD: Font = preload("res://assets/fonts/variants/science_gothic_bold.tres")
+const FONT_SPEED_MAIN: Font = preload("res://assets/fonts/variants/big_shoulders_display_bold.tres")
+const FONT_GEAR_MAIN: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const FONT_HUD_LABEL: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
 
 const C_FACE := Color("#2b3d4d")
 const C_FACE_HI := Color("#374c5e")
@@ -536,18 +539,19 @@ func _draw_cmr2_speed_and_gear(redline_rpm: float, vehicle_max: float) -> void:
 		24,
 		Cmr2Style.TEXT_WHITE,
 		true,
-		HORIZONTAL_ALIGNMENT_RIGHT
+		HORIZONTAL_ALIGNMENT_RIGHT,
+		FONT_SPEED_MAIN
 	)
 
 	var rpm := maxf(state.engine_revolutions_per_minute, 0.0)
 	var urgent_rpm := minf(vehicle_max * 0.96, maxf(redline_rpm, vehicle_max * 0.93))
 	var gear_color := Cmr2Style.REDLINE_ACCENT if rpm >= urgent_rpm else Cmr2Style.TEXT_WHITE
 	var gear_rect := Rect2(332.0, 134.0, 118.0, 120.0)
-	var line_h := DIN_BOLD.get_height(98)
-	var baseline := gear_rect.position.y + (gear_rect.size.y + line_h) * 0.5 - DIN_BOLD.get_descent(98)
+	var line_h := FONT_GEAR_MAIN.get_height(98)
+	var baseline := gear_rect.position.y + (gear_rect.size.y + line_h) * 0.5 - FONT_GEAR_MAIN.get_descent(98)
 	Cmr2Style.draw_shadowed_string(
 		self,
-		DIN_BOLD,
+		FONT_GEAR_MAIN,
 		Vector2(gear_rect.position.x, baseline),
 		state.gear_label,
 		HORIZONTAL_ALIGNMENT_CENTER,

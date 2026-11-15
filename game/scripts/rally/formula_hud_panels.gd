@@ -8,8 +8,11 @@ extends Control
 
 const Cmr2Style := preload("res://scripts/rally/cmr2_hud_style.gd")
 
-const DIN := preload("res://fonts/D-DIN.ttf")
-const DIN_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_DATA: Font = preload("res://assets/fonts/variants/science_gothic_medium.tres")
+const FONT_DATA_BOLD: Font = preload("res://assets/fonts/variants/science_gothic_bold.tres")
+const FONT_LABEL: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const DIN: Font = FONT_DATA
+const DIN_BOLD: Font = FONT_DATA_BOLD
 
 const C_GREEN := Color("#22c55e")
 const C_GOLD := Color("#e5a93c")
@@ -103,9 +106,9 @@ func _draw_split_standings() -> void:
 		var code_text := Cmr2Style.driver_code(str(entry.get("name", "")))
 		var time_text := Cmr2Style.format_stage_time_ms(entry.get("time_ms"))
 
-		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 12.0, y, 36.0, row_rect.size.y), pos_text, 22, fg, true, HORIZONTAL_ALIGNMENT_LEFT)
-		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 50.0, y, 220.0, row_rect.size.y), code_text, 22, fg, true, HORIZONTAL_ALIGNMENT_LEFT)
-		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 260.0, y, row_rect.size.x - 274.0, row_rect.size.y), time_text, 22, fg, true, HORIZONTAL_ALIGNMENT_RIGHT)
+		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 12.0, y, 36.0, row_rect.size.y), pos_text, 22, fg, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_DATA_BOLD)
+		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 50.0, y, 220.0, row_rect.size.y), code_text, 22, fg, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_DATA_BOLD)
+		Cmr2Style.draw_box_text(self, Rect2(row_rect.position.x + 260.0, y, row_rect.size.x - 274.0, row_rect.size.y), time_text, 22, fg, true, HORIZONTAL_ALIGNMENT_RIGHT, FONT_DATA_BOLD)
 
 
 # =============================================================================
@@ -117,7 +120,7 @@ func _draw_damage(rect: Rect2) -> void:
 	Cmr2Style.draw_panel(self, rect, Cmr2Style.PANEL_GAUGE_BG, Cmr2Style.PANEL_BORDER)
 
 	var header_rect := Rect2(rect.position.x + 10.0, rect.position.y + 4.0, rect.size.x - 20.0, 16.0)
-	Cmr2Style.draw_box_text(self, header_rect, "DAÑOS", 12, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT)
+	Cmr2Style.draw_box_text(self, header_rect, "DAÑOS", 12, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 	draw_rect(Rect2(rect.position.x + 8.0, rect.position.y + 22.0, rect.size.x - 16.0, 1.0), Cmr2Style.PANEL_DIVIDER)
 
 	var dmg: Dictionary = snapshot.get("damage", {})
@@ -138,8 +141,8 @@ func _draw_damage(rect: Rect2) -> void:
 		var bar_color := _damage_color(ratio)
 		var value_color := Cmr2Style.TEXT_WHITE if ratio < 0.05 else bar_color
 
-		Cmr2Style.draw_box_text(self, Rect2(rect.position.x + 10.0, y, 120.0, 14.0), str(row.label), 12, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT)
-		Cmr2Style.draw_box_text(self, Rect2(rect.end.x - 66.0, y, 56.0, 14.0), "%d%%" % roundi(ratio * 100.0), 12, value_color, true, HORIZONTAL_ALIGNMENT_RIGHT)
+		Cmr2Style.draw_box_text(self, Rect2(rect.position.x + 10.0, y, 120.0, 14.0), str(row.label), 12, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
+		Cmr2Style.draw_box_text(self, Rect2(rect.end.x - 66.0, y, 56.0, 14.0), "%d%%" % roundi(ratio * 100.0), 12, value_color, true, HORIZONTAL_ALIGNMENT_RIGHT, FONT_DATA_BOLD)
 
 		var track := Rect2(rect.position.x + 10.0, y + 16.0, inner_w, 6.0)
 		draw_rect(track, Cmr2Style.PANEL_WELL_BG)
@@ -234,12 +237,12 @@ func _draw_tires(rect: Rect2) -> void:
 		Cmr2Style.draw_panel(self, card, Cmr2Style.TACHO_PANEL_BG, Cmr2Style.TACHO_BORDER)
 
 		var wheel: Dictionary = wheels[i] if wheels.size() > i else {}
-		Cmr2Style.draw_box_text(self, Rect2(x + 6.0, y + 3.0, 22.0, 13.0), codes[i], 11, Cmr2Style.TEXT_WHITE, true)
+		Cmr2Style.draw_box_text(self, Rect2(x + 6.0, y + 3.0, 22.0, 13.0), codes[i], 11, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 
 		var has_align := float(wheel.get("alignment_collision_damage", 0.0)) > 0.005
 		var has_rim := float(wheel.get("rim_deformation", 0.0)) > 0.005
 		if has_align:
-			Cmr2Style.draw_box_text(self, Rect2(x + 26.0, y + 3.0, 32.0, 13.0), "ALIN.", 8, C_ROSE, true)
+			Cmr2Style.draw_box_text(self, Rect2(x + 26.0, y + 3.0, 32.0, 13.0), "ALIN.", 8, C_ROSE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 		Cmr2Style.draw_box_text(
 			self,
 			Rect2(x + 54.0, y + 3.0, cell_w - 60.0, 13.0),
@@ -247,7 +250,8 @@ func _draw_tires(rect: Rect2) -> void:
 			11,
 			Cmr2Style.TEXT_WHITE,
 			true,
-			HORIZONTAL_ALIGNMENT_RIGHT
+			HORIZONTAL_ALIGNMENT_RIGHT,
+			FONT_DATA_BOLD
 		)
 
 		var disc_center := Vector2(x + 24.0, y + 43.0)
@@ -256,10 +260,10 @@ func _draw_tires(rect: Rect2) -> void:
 		draw_circle(disc_center, 12.5, Cmr2Style.TACHO_WELL_BG)
 		draw_arc(disc_center, 12.5, 0.0, TAU, 24, disc_color, 2.5, true)
 		draw_arc(disc_center, 6.5, 0.0, TAU, 16, Color(disc_color, 0.45), 1.5, true)
-		Cmr2Style.draw_box_text(self, Rect2(x + 4.0, y + 59.0, 40.0, 14.0), number(brake_value) + "°", 11, disc_color, true, HORIZONTAL_ALIGNMENT_CENTER)
+		Cmr2Style.draw_box_text(self, Rect2(x + 4.0, y + 59.0, 40.0, 14.0), number(brake_value) + "°", 11, disc_color, true, HORIZONTAL_ALIGNMENT_CENTER, FONT_DATA_BOLD)
 
 		if float(wheel.get("brake_collision_loss", 0.0)) > 0.005:
-			Cmr2Style.draw_box_text(self, Rect2(x + 5.0, y + 17.0, 42.0, 11.0), "FRENO", 8, C_ROSE, true)
+			Cmr2Style.draw_box_text(self, Rect2(x + 5.0, y + 17.0, 42.0, 11.0), "FRENO", 8, C_ROSE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 		else:
 			var brake_remaining := 1.0 - clampf(float(wheel.get("brake_wear_fraction", 0.0)), 0.0, 1.0)
 			Cmr2Style.draw_box_text(
@@ -268,7 +272,9 @@ func _draw_tires(rect: Rect2) -> void:
 				"F%d%%" % roundi(brake_remaining * 100.0),
 				10,
 				C_ROSE if brake_remaining < 0.3 else Cmr2Style.TEXT_MUTED,
-				true
+				true,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				FONT_DATA_BOLD
 			)
 
 		var tire := Rect2(x + 52.0, y + 30.0, 52.0, 28.0)
@@ -276,9 +282,9 @@ func _draw_tires(rect: Rect2) -> void:
 		var has_leak := float(wheel.get("leak_per_second", 0.0)) > 0.0
 		if is_dest or has_leak:
 			var warning := "DEST." if is_dest else ("PINCH." if float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85 else "FUGA")
-			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), warning, 8, C_ROSE, true)
+			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), warning, 8, C_ROSE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 		elif has_rim:
-			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), "ARO", 8, C_ROSE, true)
+			Cmr2Style.draw_box_text(self, Rect2(x + 50.0, y + 16.0, cell_w - 54.0, 11.0), "ARO", 8, C_ROSE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 
 		draw_rect(tire, Cmr2Style.TACHO_WELL_BG)
 		draw_rect(tire, Cmr2Style.TACHO_BORDER, false, 1.0)
@@ -301,7 +307,8 @@ func _draw_tires(rect: Rect2) -> void:
 			12,
 			tread_color,
 			true,
-			HORIZONTAL_ALIGNMENT_CENTER
+			HORIZONTAL_ALIGNMENT_CENTER,
+			FONT_DATA_BOLD
 		)
 
 
@@ -327,9 +334,9 @@ func _draw_fuel_and_engine(rect: Rect2) -> void:
 		elif fuel_frac <= 0.22:
 			fuel_color = Cmr2Style.AMBER_ACCENT
 
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad, rect.position.y + 7.0, 56.0, 14.0), "FUEL", 12, Cmr2Style.TEXT_WHITE, true)
+	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad, rect.position.y + 7.0, 56.0, 14.0), "FUEL", 12, Cmr2Style.TEXT_WHITE, true, HORIZONTAL_ALIGNMENT_LEFT, FONT_LABEL)
 	var fuel_text := ("%.1f L" % rem) if rem >= 0.0 else "-- L"
-	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad + 50.0, rect.position.y + 6.0, inner_w - 50.0, 16.0), fuel_text, 13, fuel_color if has_fuel else Cmr2Style.TEXT_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT)
+	Cmr2Style.draw_box_text(self, Rect2(rect.position.x + pad + 50.0, rect.position.y + 6.0, inner_w - 50.0, 16.0), fuel_text, 13, fuel_color if has_fuel else Cmr2Style.TEXT_MUTED, true, HORIZONTAL_ALIGNMENT_RIGHT, FONT_DATA_BOLD)
 
 	var seg_count := 10
 	var seg_gap := 2.0
@@ -384,16 +391,18 @@ func _draw_vital_column(rect: Rect2, label: String, value_str: String, value_col
 		12,
 		Cmr2Style.TEXT_WHITE,
 		true,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		FONT_LABEL
 	)
 	Cmr2Style.draw_box_text(
 		self,
 		Rect2(rect.position.x, rect.position.y + 34.0, rect.size.x, 28.0),
 		value_str,
-		17,
+		15,
 		value_color,
 		true,
-		HORIZONTAL_ALIGNMENT_CENTER
+		HORIZONTAL_ALIGNMENT_CENTER,
+		FONT_DATA_BOLD
 	)
 
 

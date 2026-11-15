@@ -4,8 +4,22 @@ extends RefCounted
 ## Shared palette, formatting helpers, and vector 7-segment LCD drawing
 ## matching the OpenCMR2 HUD aesthetics.
 
-const FONT_REG := preload("res://fonts/D-DIN.ttf")
-const FONT_BOLD := preload("res://fonts/D-DIN-Bold.ttf")
+const FONT_REG: Font = preload("res://assets/fonts/variants/science_gothic_medium.tres")
+const FONT_BOLD: Font = preload("res://assets/fonts/variants/science_gothic_bold.tres")
+const FONT_LABEL: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const FONT_DISPLAY_BOLD: Font = preload("res://assets/fonts/variants/big_shoulders_display_bold.tres")
+const FONT_DISPLAY_BLACK: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const BUNGEE_BASE: Font = preload("res://assets/fonts/variants/bungee_regular.tres")
+
+static var _bungee_compact_cache: FontVariation = null
+
+static func get_compact_bungee_font() -> Font:
+	if _bungee_compact_cache == null:
+		_bungee_compact_cache = FontVariation.new()
+		_bungee_compact_cache.base_font = BUNGEE_BASE
+		_bungee_compact_cache.spacing_glyph = -1
+		_bungee_compact_cache.variation_transform = Transform2D(Vector2(0.82, 0.0), Vector2(0.0, 1.0), Vector2.ZERO)
+	return _bungee_compact_cache
 
 # Exact RGBA values unpacked from OpenCMR2 (RallyData.cpp, HudDash.cpp, gfx.h)
 const PANEL_BG := Color(0.737255, 0.745098, 0.862745, 0.588235)         # #bcbedc alpha 0x96
@@ -84,11 +98,12 @@ static func draw_box_text(
 	size_px: int,
 	color: Color,
 	bold: bool = true,
-	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT
+	align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+	font_override: Font = null
 ) -> void:
 	if text.is_empty():
 		return
-	var font: Font = FONT_BOLD if bold else FONT_REG
+	var font: Font = font_override if font_override != null else (FONT_BOLD if bold else FONT_REG)
 	var line_h := font.get_height(size_px)
 	var baseline := rect.position.y + (rect.size.y + line_h) * 0.5 - font.get_descent(size_px)
 	draw_shadowed_string(canvas, font, Vector2(rect.position.x, baseline), text, align, rect.size.x, size_px, color)

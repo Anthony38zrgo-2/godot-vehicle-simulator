@@ -6,6 +6,10 @@ extends Control
 ## across the full 225 deg sweep based on the active vehicle's RPM envelope.
 
 const Cmr2Style := preload("res://scripts/rally/cmr2_hud_style.gd")
+const FONT_RPM_SCALE: Font = preload("res://assets/fonts/variants/science_gothic_bold.tres")
+const FONT_SPEED_MAIN: Font = preload("res://assets/fonts/variants/big_shoulders_display_bold.tres")
+const FONT_GEAR_MAIN: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
+const FONT_UNIT_LABEL: Font = preload("res://assets/fonts/variants/big_shoulders_display_black.tres")
 
 const DESIGN_SIZE := Vector2(256.0, 256.0)
 const DIAL_CENTER := Vector2(127.5, 128.0)
@@ -50,18 +54,18 @@ func _ready() -> void:
 	_gear_label = _add_label("Gear", gear_position, Vector2(66.0, 32.0), 28)
 	if gear_italic_slant > 0.001:
 		var gear_font := FontVariation.new()
-		gear_font.base_font = Cmr2Style.FONT_BOLD
+		gear_font.base_font = FONT_GEAR_MAIN
 		gear_font.variation_transform = Transform2D(Vector2(1.0, 0.0), Vector2(gear_italic_slant, 1.0), Vector2.ZERO)
 		_gear_label.add_theme_font_override("font", gear_font)
 	else:
-		_gear_label.add_theme_font_override("font", Cmr2Style.FONT_BOLD)
+		_gear_label.add_theme_font_override("font", FONT_GEAR_MAIN)
 
-	# Ventana inferior derecha: velocidad y unidad con tipografía unificada D-DIN
+	# Ventana inferior derecha: velocidad principal y etiqueta fija de unidad con Big Shoulders
 	_speed_label = _add_label("Speed", Vector2(154.0, 134.0), Vector2(74.0, 38.0), 34)
-	_speed_label.add_theme_font_override("font", Cmr2Style.FONT_BOLD)
+	_speed_label.add_theme_font_override("font", FONT_SPEED_MAIN)
 
 	_unit_label = _add_label("Units", Vector2(158.0, 169.0), Vector2(66.0, 16.0), 11)
-	_unit_label.add_theme_font_override("font", Cmr2Style.FONT_BOLD)
+	_unit_label.add_theme_font_override("font", FONT_UNIT_LABEL)
 	_unit_label.add_theme_color_override("font_color", Cmr2Style.TACHO_SILVER)
 
 	_needle_layer = Control.new()
@@ -317,7 +321,7 @@ func _draw_scale_markings(ideal_deg: float, urgent_deg: float, max_deg: float) -
 
 		var num_str := str(k)
 		var num_center := DIAL_CENTER + dir * NUMBER_RADIUS
-		var str_size := Cmr2Style.FONT_BOLD.get_string_size(num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size)
+		var str_size := FONT_RPM_SCALE.get_string_size(num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size)
 		var baseline_pos := Vector2(
 			num_center.x - str_size.x * 0.5,
 			num_center.y + str_size.y * 0.30
@@ -328,8 +332,8 @@ func _draw_scale_markings(ideal_deg: float, urgent_deg: float, max_deg: float) -
 		elif deg >= ideal_deg - 0.5 and milestone_rpm < _urgent_shift_rpm:
 			num_col = Color(1.0, 0.94, 0.80, 0.98)
 
-		draw_string(Cmr2Style.FONT_BOLD, baseline_pos + Vector2(1.2, 1.5), num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, Cmr2Style.TEXT_SHADOW)
-		draw_string(Cmr2Style.FONT_BOLD, baseline_pos, num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, num_col)
+		draw_string(FONT_RPM_SCALE, baseline_pos + Vector2(1.2, 1.5), num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, Cmr2Style.TEXT_SHADOW)
+		draw_string(FONT_RPM_SCALE, baseline_pos, num_str, HORIZONTAL_ALIGNMENT_LEFT, -1, number_font_size, num_col)
 
 
 func _draw_needle() -> void:

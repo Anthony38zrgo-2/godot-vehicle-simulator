@@ -1,7 +1,7 @@
 class_name RallyF1HeadUpDisplay
 extends Control
 
-const UI_FONT := preload("res://fonts/montserrat/Montserrat-Regular.ttf")
+const UI_FONT: Font = preload("res://assets/fonts/variants/science_gothic_medium.tres")
 const PartialDeltaBannerScript := preload("res://scripts/rally/cmr2_partial_delta_banner.gd")
 
 @export var vehicle_path: NodePath
