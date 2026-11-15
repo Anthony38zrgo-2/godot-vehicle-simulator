@@ -2,8 +2,8 @@
   "schema_version": 1,
   "vehicle_id": "ford_escort_rs2000",
   "whine": [
-    "res://sounds/banks/EscortRS1600/whinelo.wav",
-    "res://sounds/banks/EscortRS1600/whinehi.wav"
+    "res://sounds/banks/commons/whinelo.wav",
+    "res://sounds/banks/commons/whinehi.wav"
   ],
   "source": "Gran Turismo 3: A-Spec USA v1.10",
   "sound_id": 10024,

@@ -10,7 +10,7 @@
       "Stage": "russia_stage1_lancia_fulvia",
       "Proving": "rally_proving_ground_fulvia",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "FulviaHF",
+      "SoundBank": "gt3-bank/trueno-gt-apex",
       "ValidateSoundHashes": true,
       "DisplayName": "Lancia Fulvia HF"
     },
@@ -22,7 +22,7 @@
       "Stage": "russia_stage1_ford_escort_rs2000",
       "Proving": "rally_proving_ground",
       "Provenance": "OPEN_FORMULA_PROVENANCE.json",
-      "SoundBank": "EscortRS1600",
+      "SoundBank": "gt3-bank/mx-5",
       "ValidateSoundHashes": false,
       "DisplayName": "Ford Escort RS2000"
     },
@@ -34,7 +34,7 @@
       "Stage": "rt/rt-alfa-giulia-gta_stage",
       "Proving": "rt/rt-alfa-giulia-gta_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-alfa-giulia-gta",
+      "SoundBank": "gt3-bank/civic-type-r",
       "ValidateSoundHashes": true,
       "DisplayName": "Alfa Romeo Giulia Sprint GTA"
     },
@@ -46,7 +46,7 @@
       "Stage": "rt/rt-alpine-a110_stage",
       "Proving": "rt/rt-alpine-a110_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-alpine-a110",
+      "SoundBank": "gt3-bank/vitz-rs",
       "ValidateSoundHashes": true,
       "DisplayName": "Alpine Renault A110 1600"
     },
@@ -58,7 +58,7 @@
       "Stage": "rt/rt-fiat-abarth-1000_stage",
       "Proving": "rt/rt-fiat-abarth-1000_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-fiat-abarth-1000",
+      "SoundBank": "gt3-bank/civic-sir-ii",
       "ValidateSoundHashes": true,
       "DisplayName": "Fiat 600 Abarth"
     },
@@ -70,7 +70,7 @@
       "Stage": "rt/rt-lancia-stratos_stage",
       "Proving": "rt/rt-lancia-stratos_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lancia-stratos",
+      "SoundBank": "gt3-bank/stratos-rally-car",
       "ValidateSoundHashes": true,
       "DisplayName": "Lancia Stratos HF"
     },
@@ -82,7 +82,7 @@
       "Stage": "rt/rt-lotus-cortina_stage",
       "Proving": "rt/rt-lotus-cortina_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-lotus-cortina",
+      "SoundBank": "gt3-bank/motor-sport-elise",
       "ValidateSoundHashes": true,
       "DisplayName": "Ford Lotus Cortina Mk1"
     },
@@ -94,7 +94,7 @@
       "Stage": "rt/rt-mini-cooper-s_stage",
       "Proving": "rt/rt-mini-cooper-s_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-mini-cooper-s",
+      "SoundBank": "gt3-bank/mini-cooper",
       "ValidateSoundHashes": true,
       "DisplayName": "Mini Cooper S"
     },
@@ -106,7 +106,7 @@
       "Stage": "rt/rt-opel-kadett_stage",
       "Proving": "rt/rt-opel-kadett_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-opel-kadett",
+      "SoundBank": "gt3-bank/mx-5-18-rs",
       "ValidateSoundHashes": true,
       "DisplayName": "Opel Kadett Rallye"
     },
@@ -118,7 +118,7 @@
       "Stage": "rt/rt-saab-96-v4_stage",
       "Proving": "rt/rt-saab-96-v4_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-saab-96-v4",
+      "SoundBank": "gt3-bank/peugeot-206-s16",
       "ValidateSoundHashes": true,
       "DisplayName": "Saab 96 V4"
     },
@@ -130,7 +130,7 @@
       "Stage": "rt/rt-volvo-amazon_stage",
       "Proving": "rt/rt-volvo-amazon_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "rt-volvo-amazon",
+      "SoundBank": "gt3-bank/new-beetle-20",
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
     }
