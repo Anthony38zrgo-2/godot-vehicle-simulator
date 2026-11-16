@@ -2,6 +2,190 @@
   "format_version": 1,
   "entries": [
     {
+      "id": "2026-11-15_21-23-57_866",
+      "timestamp": "2026-11-15 21:23:57",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_21-23-57_866.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.1725→0.175"
+    },
+    {
+      "id": "2026-11-15_21-20-33_974",
+      "timestamp": "2026-11-15 21:20:33",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_21-20-33_974.json",
+      "changes_summary": "Tras contact_ramp_tau_s: 0→0.1; Tras surfaces.Gravel.lateral_grip_assist: 0.1718→0.1725"
+    },
+    {
+      "id": "2026-11-15_21-17-56_824",
+      "timestamp": "2026-11-15 21:17:56",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_21-17-56_824.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.171→0.1718"
+    },
+    {
+      "id": "2026-11-15_21-12-52_966",
+      "timestamp": "2026-11-15 21:12:52",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_wet",
+      "backup_file": "rally_compounds_2026-11-15_21-12-52_966.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.1725→0.171"
+    },
+    {
+      "id": "2026-11-15_21-09-34_574",
+      "timestamp": "2026-11-15 21:09:34",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_wet",
+      "backup_file": "rally_compounds_2026-11-15_21-09-34_574.json",
+      "changes_summary": "Sin cambios en parámetros de tabla"
+    },
+    {
+      "id": "2026-11-15_21-09-16_216",
+      "timestamp": "2026-11-15 21:09:16",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_wet",
+      "backup_file": "rally_compounds_2026-11-15_21-09-16_216.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.172→0.1725"
+    },
+    {
+      "id": "2026-11-15_21-09-09_957",
+      "timestamp": "2026-11-15 21:09:09",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_wet",
+      "backup_file": "rally_compounds_2026-11-15_21-09-09_957.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.173→0.172"
+    },
+    {
+      "id": "2026-11-15_21-03-15_616",
+      "timestamp": "2026-11-15 21:03:15",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_wet",
+      "backup_file": "rally_compounds_2026-11-15_21-03-15_616.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.172→0.173"
+    },
+    {
+      "id": "2026-11-15_21-00-21_241",
+      "timestamp": "2026-11-15 21:00:21",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_21-00-21_241.json",
+      "changes_summary": "Del slip_loss_tau_s: 0.05→0.001; Tras slip_loss_tau_s: 0.05→0.001; Tras surfaces.Gravel.lateral_grip_assist: 0.173→0.172"
+    },
+    {
+      "id": "2026-11-15_20-54-51_499",
+      "timestamp": "2026-11-15 20:54:51",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-54-51_499.json",
+      "changes_summary": "Del slip_loss_tau_s: 0.1→0.05; Tras slip_loss_tau_s: 0.1→0.05; Tras surfaces.Gravel.lateral_grip_assist: 0.175→0.173"
+    },
+    {
+      "id": "2026-11-15_20-51-12_491",
+      "timestamp": "2026-11-15 20:51:12",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-51-12_491.json",
+      "changes_summary": "Del slip_loss_tau_s: 0.15→0.1; Del contact_ramp_tau_s: 0.01→0; Tras slip_loss_tau_s: 0.15→0.1; Tras contact_ramp_tau_s: 0.01→0"
+    },
+    {
+      "id": "2026-11-15_20-45-49_933",
+      "timestamp": "2026-11-15 20:45:49",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-45-49_933.json",
+      "changes_summary": "Del contact_ramp_tau_s: 0.05→0.01; Tras contact_ramp_tau_s: 0.05→0.01"
+    },
+    {
+      "id": "2026-11-15_20-44-46_583",
+      "timestamp": "2026-11-15 20:44:46",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-44-46_583.json",
+      "changes_summary": "Tras slip_loss_tau_s: 0.2→0.15"
+    },
+    {
+      "id": "2026-11-15_20-41-12_650",
+      "timestamp": "2026-11-15 20:41:12",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-41-12_650.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.17→0.175"
+    },
+    {
+      "id": "2026-11-15_20-38-25_366",
+      "timestamp": "2026-11-15 20:38:25",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-38-25_366.json",
+      "changes_summary": "Del contact_ramp_tau_s: 0.1→0.05; Del radial_model.damping_ratio: 0.16→0.17; Tras contact_ramp_tau_s: 0.1→0.05; Tras radial_model.damping_ratio: 0.16→0.17"
+    },
+    {
+      "id": "2026-11-15_20-34-09_416",
+      "timestamp": "2026-11-15 20:34:09",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-34-09_416.json",
+      "changes_summary": "Del radial_model.damping_ratio: 0.17→0.16; Tras radial_model.damping_ratio: 0.17→0.16; Tras surfaces.Gravel.lateral_grip_assist: 0.18→0.17"
+    },
+    {
+      "id": "2026-11-15_20-28-34_608",
+      "timestamp": "2026-11-15 20:28:34",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-28-34_608.json",
+      "changes_summary": "Del contact_ramp_tau_s: 0.3→0.1; Tras contact_ramp_tau_s: 0.3→0.1"
+    },
+    {
+      "id": "2026-11-15_20-22-57_425",
+      "timestamp": "2026-11-15 20:22:57",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-22-57_425.json",
+      "changes_summary": "Del contact_ramp_tau_s: 0.4→0.3; Tras contact_ramp_tau_s: 0.4→0.3; Tras surfaces.Gravel.lateral_grip_assist: 0.19→0.18"
+    },
+    {
+      "id": "2026-11-15_20-18-41_233",
+      "timestamp": "2026-11-15 20:18:41",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-18-41_233.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.2→0.19"
+    },
+    {
+      "id": "2026-11-15_20-13-33_541",
+      "timestamp": "2026-11-15 20:13:33",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-13-33_541.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.15→0.2"
+    },
+    {
+      "id": "2026-11-15_20-12-16_841",
+      "timestamp": "2026-11-15 20:12:16",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-12-16_841.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.1→0.15"
+    },
+    {
+      "id": "2026-11-15_20-10-57_983",
+      "timestamp": "2026-11-15 20:10:57",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-10-57_983.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.2→0.1"
+    },
+    {
+      "id": "2026-11-15_20-08-41_434",
+      "timestamp": "2026-11-15 20:08:41",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-15_20-08-41_434.json",
+      "changes_summary": "Tras surfaces.Gravel.lateral_grip_assist: 0.05→0.2"
+    },
+    {
       "id": "2026-11-14_17-43-13_348",
       "timestamp": "2026-11-14 17:43:13",
       "label": "Pre-aplicación (auto)",
