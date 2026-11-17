@@ -484,7 +484,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		for _qi in 4:
 			if _qi < simulation.suspension_model.axle_parameters.size():
 				var _p: Dictionary = simulation.suspension_model.axle_parameters[_qi]
-				var _qe := VehicleSuspensionModel.equilibrium_travel_m(_p)
+				# Paso 4.1: q_eq efectivo de reset_at() (con -droop si no hay suelo).
+				var _qe := simulation.unsprung_rig.last_reset_q_eq[_qi] if _qi < simulation.unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(_p)
 				simulation.suspension_model.compression[_qi] = clampf(_qe, -float(_p.get("droop_m", 0.18)), float(_p.get("bump_m", 0.22)))
 				simulation.suspension_model.compression_velocity[_qi] = 0.0
 				simulation.suspension_model.filtered_arb_travel[_qi] = simulation.suspension_model.compression[_qi]

@@ -52,9 +52,16 @@ const SIDEWALL_AXIAL_MIN := 0.70
 const TREAD_AXIAL_MAX := 0.45
 const TREAD_UP_MIN := 0.25
 # Paso 3.3: sensibilidad de carga en lugar de tope duro de agarre.
-# mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k_load), k típico 0.10-0.20.
-const LOAD_SENSITIVITY_K := 0.15
+# La ley mu_eff = mu0*(fz/fz_nom)^(-k) vive en TireModel.load_adjusted_mu()
+# (k 0.10-0.20). Aquí solo queda el tope de recuperación de baja confianza.
 const RECOVERY_FZ_CAP_MULT := 2.4
+# Paso 0.1 Jolt fix: firma de solapamiento. Se arma al crear los casts para
+# que se imprima UNA vez en el primer tick (igual que la estabilidad) y se
+# puede volver a pedir con request_overlap_signature_diagnostic().
+const OVERLAP_DIAGNOSTIC_BURY_M := 0.05
+var debug_overlap_signature_requested := false
+## Última firma capturada ({} hasta que se ejecuta el diagnóstico).
+var last_overlap_signature: Dictionary = {}
 # Auditoría §3: último contacto por rueda (hit, punto, normal, collider,
 # distancia usada por la ley radial, fracción segura y apoyo seleccionado).
 var last_contacts: Array[Dictionary] = [{}, {}, {}, {}]
@@ -717,7 +724,7 @@ func bind_wheel_visuals(pivots: Array[Node3D], visuals: Array[Node3D]) -> void:
 
 
 func create_wheel_contact_casts(body: RigidBody3D) -> void:
-	unsprung_rig.create(body, wheel_positions_local, mass_model.unsprung_mass_kg, suspension_model)
+	unsprung_rig.create(body, wheel_positions_local, mass_model.unsprung_mass_kg, suspension_model, wheel_radii)
 	for old_cast in wheel_contact_casts:
 		old_cast.queue_free()
 	wheel_contact_casts.clear()
@@ -744,6 +751,9 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 	# rueda enterrada 0.05 m) + chequeo ω*dt y c*dt/m_eff por esquina a
 	# dt = 1/120 s. Si cualquiera supera 2.0 el integrador explícito diverge.
 	_print_stability_diagnostic(body)
+	# Paso 0.1: arma la firma de solapamiento; se ejecuta en el primer tick,
+	# cuando ya existe un PhysicsDirectSpaceState3D (no disponible en setup).
+	debug_overlap_signature_requested = true
 
 
 ## Paso 0.2: imprime ω*dt y c*dt/m_eff por esquina a dt=1/120.
@@ -811,12 +821,10 @@ static func classify_tire_contact(contact_normal: Vector3, wheel_spin_axis: Vect
 	return {"axial": axial, "is_sidewall": is_sidewall, "is_tread": is_tread}
 
 
-## Paso 3.3 Jolt fix: decaimiento del coeficiente con la carga en vez de tope
-## duro 2.4×. mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k_load).
-static func load_adjusted_mu(mu0: float, fz_n: float, fz_nominal_n: float, k_load: float = LOAD_SENSITIVITY_K) -> float:
-	var fz := maxf(float(fz_n), 1.0)
-	var nom := maxf(float(fz_nominal_n), 1.0)
-	return maxf(float(mu0), 0.0) * pow(fz / nom, -clampf(float(k_load), 0.0, 0.5))
+## Paso 3.3 Jolt fix: la ley de sensibilidad de carga (mu_eff = mu0 *
+## (max(fz,1)/fz_nominal)^(-k_load)) tiene una única implementación en
+## TireModel.load_adjusted_mu(), usada por el modelo de neumático. El tope
+## duro 2.4× queda restringido a recuperación de baja confianza (ver step()).
 
 
 ## Paso 0.1 Jolt fix: firma de solapamiento en Jolt. Con la rueda enterrada
@@ -856,6 +864,44 @@ static func debug_overlap_signature(
 	var sig := {"cast_motion": cast_res, "intersect_count": hits.size(), "rest": rest}
 	print("RALLY_OVERLAP_SIGNATURE ", JSON.stringify({"cast_motion": cast_res, "hits": hits.size(), "has_rest": not rest.is_empty(), "rest_normal": [float((rest.get("normal", Vector3.UP) as Vector3).x), float((rest.get("normal", Vector3.UP) as Vector3).y), float((rest.get("normal", Vector3.UP) as Vector3).z)] if not rest.is_empty() else []}))
 	return sig
+
+
+## Paso 0.1 Jolt fix: pide la firma de solapamiento en el próximo tick.
+## Se arma automáticamente al crear los casts (primer tick) y está disponible
+## para repetirla en cualquier momento desde consola/telemetría.
+func request_overlap_signature_diagnostic() -> void:
+	debug_overlap_signature_requested = true
+
+
+## Paso 0.1 Jolt fix: ejecuta la consulta con la rueda 0 hundida 0.05 m.
+## Usa el cilindro real, su margen y su máscara, y excluye chasis y bujes.
+## Se llama desde step() porque necesita el space state del tick.
+func _run_overlap_signature_diagnostic(
+	body: RigidBody3D,
+	state: PhysicsDirectBodyState3D,
+	chassis_up: Vector3,
+) -> void:
+	var cast := wheel_contact_casts[0]
+	var orientation := Basis(Vector3.UP, 0.0) * Basis(
+		Vector3.BACK,
+		suspension_model.dynamic_wheel_camber(0),
+	) * Basis(Vector3.BACK, PI * 0.5)
+	var buried_origin := state.transform * Transform3D(
+		orientation,
+		wheel_positions_local[0] - chassis_up * OVERLAP_DIAGNOSTIC_BURY_M,
+	)
+	var excluded: Array[RID] = [body.get_rid()]
+	for hub in unsprung_rig.hubs:
+		excluded.append(hub.get_rid())
+	last_overlap_signature = debug_overlap_signature(
+		state.get_space_state(),
+		cast.shape,
+		buried_origin,
+		chassis_up * OVERLAP_DIAGNOSTIC_BURY_M,
+		SHAPECAST_CYLINDER_MARGIN,
+		body.collision_mask,
+		excluded,
+	)
 
 
 ## Selección del apoyo ShapeCast (§3): el apoyo con máxima alineación con +Y
@@ -1352,6 +1398,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 
 	var chassis_up := state.transform.basis.y.normalized()
+	# Paso 0.1 Jolt fix: firma de solapamiento armada (una sola vez por petición).
+	if debug_overlap_signature_requested:
+		debug_overlap_signature_requested = false
+		_run_overlap_signature_diagnostic(body, state, chassis_up)
 	var com_world := state.transform * body.center_of_mass
 	var contacts: Array[Dictionary] = []
 	contact_query_count = 0
@@ -2039,7 +2089,9 @@ func clear_teleport_residual() -> void:
 	for i in 4:
 		if i < suspension_model.axle_parameters.size():
 			var p: Dictionary = suspension_model.axle_parameters[i]
-			var qe := VehicleSuspensionModel.equilibrium_travel_m(p)
+			# Paso 4.1: usar el q_eq efectivo de reset_at() (ya incluye -droop
+			# en esquinas sin suelo) en vez de recalcular el equilibrio.
+			var qe := unsprung_rig.last_reset_q_eq[i] if i < unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(p)
 			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
 			suspension_model.compression_velocity[i] = 0.0
 			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]
@@ -2204,7 +2256,9 @@ func reset_dynamics() -> void:
 	for i in 4:
 		if i < suspension_model.axle_parameters.size():
 			var p: Dictionary = suspension_model.axle_parameters[i]
-			var qe := VehicleSuspensionModel.equilibrium_travel_m(p)
+			# Paso 4.1: usar el q_eq efectivo de reset_at() (ya incluye -droop
+			# en esquinas sin suelo) en vez de recalcular el equilibrio.
+			var qe := unsprung_rig.last_reset_q_eq[i] if i < unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(p)
 			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
 			suspension_model.compression_velocity[i] = 0.0
 			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]

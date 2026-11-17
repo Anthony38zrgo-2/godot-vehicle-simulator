@@ -30,6 +30,28 @@ static func contact_query_travel_m(bump_m: float, droop_m: float, top_margin_m: 
 	var bump := maxf(float(bump_m), 0.0) + maxf(float(top_margin_m), 0.0)
 	var droop_eff := effective_droop_limit_m(droop_m)
 	return {"bump": bump, "droop_effective": droop_eff, "travel": bump + droop_eff}
+
+
+## Paso 4.1 Jolt fix: sonda de suelo bajo una rueda. Devuelve true si existe
+## geometría alcanzable dentro de `probe_m` (radio + droop + margen). Se usa
+## solo en reset: sin suelo, la esquina arranca en extensión máxima (-droop).
+static func has_ground_support_at(
+	space_state: PhysicsDirectSpaceState3D,
+	from: Vector3,
+	down: Vector3,
+	probe_m: float,
+	collision_mask: int,
+	exclude: Array[RID],
+) -> bool:
+	var query := PhysicsRayQueryParameters3D.create(
+		from,
+		from + down.normalized() * maxf(probe_m, 0.01),
+		collision_mask,
+		exclude,
+	)
+	return not space_state.intersect_ray(query).is_empty()
+
+
 ## Recorte de diagnóstico del impulso del amortiguador (§5, hallazgo F1).
 ## DESACTIVADO POR DEFECTO: la ruta normal de producción aplica la fuerza de
 ## la curva digresiva sin recortar. Cuando se activa (solo diagnóstico), recorta
@@ -46,6 +68,12 @@ var chassis: RigidBody3D
 var hubs: Array[RigidBody3D] = []
 var joints: Array[Generic6DOFJoint3D] = []
 var neutral_positions: Array[Vector3] = []
+## Paso 4.1: radios aportados por la simulación para la sonda de suelo que
+## decide si el coche nace en el aire (q_eq = -droop) o asentado (q_eq estático).
+var wheel_radii_m: Array[float] = [0.30, 0.30, 0.30, 0.30]
+## Paso 4.1: q_eq efectivo del último reset (ya incluye -droop si no había
+## suelo). Los consumidores deben leerlo en vez de recalcular el equilibrio.
+var last_reset_q_eq: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_deflection_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
 ## Recorrido físico del hub sin clampear (H1): desplazamiento real medido
 ## hub-vs-chasis antes del clamp a [-droop, +bump]. Se usa SOLO para la
@@ -292,9 +320,12 @@ func create(
 	positions: Array[Vector3],
 	masses: Array[float],
 	suspension: VehicleSuspensionModel,
+	wheel_radii: Array[float] = [],
 ) -> void:
 	chassis = body
 	neutral_positions.assign(positions)
+	if wheel_radii.size() == 4:
+		wheel_radii_m.assign(wheel_radii)
 	for i in 4:
 		var hub := RigidBody3D.new()
 		hub.name = "UnsprungHub_" + str(i)
@@ -370,14 +401,40 @@ func reset() -> void:
 func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> void:
 	# Paso 4.1 Jolt fix: pre-asentar en el equilibrio estático q_eq donde el
 	# muelle soporta el peso suspendido de la esquina (Fs(q_eq)=W_sprung).
-	# Si no hay suspensión o el coche nace en el aire (sin suelo), q_eq cae a
-	# -droop (extensión máxima). El origen local neutro de la junta sigue
-	# siendo q=0: NO se reconstruyen las juntas tras pre-asentar.
+	# Si no hay suelo alcanzable bajo la rueda (coche nacido en el aire),
+	# q_eq cae a -droop (extensión máxima). Sin suspensión se usa q=0.
+	# El origen local neutro de la junta sigue siendo q=0: NO se reconstruyen
+	# las juntas tras pre-asentar.
 	var q_eq: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	# La sonda de suelo necesita el space state; fuera de un tick se obtiene
+	# directamente del espacio físico del chasis (si está en escena).
+	var space_state: PhysicsDirectSpaceState3D = null
+	if chassis != null and is_instance_valid(chassis) and chassis.is_inside_tree():
+		var world := chassis.get_world_3d()
+		if world != null:
+			space_state = PhysicsServer3D.space_get_direct_state(world.space)
+	var excluded: Array[RID] = []
+	var collision_mask := 0xFFFFFFFF
+	if chassis != null and is_instance_valid(chassis):
+		excluded.append(chassis.get_rid())
+		collision_mask = chassis.collision_mask
+	for hub in hubs:
+		if is_instance_valid(hub):
+			excluded.append(hub.get_rid())
+	var up := pose.basis.y.normalized()
 	if suspension != null and suspension.axle_parameters.size() == 4:
 		for w in 4:
 			var p: Dictionary = suspension.axle_parameters[w]
 			q_eq[w] = VehicleSuspensionModel.equilibrium_travel_m(p)
+			# Sonda Paso 4.1: radio + droop + margen. Sin geometría debajo,
+			# la esquina arranca en extensión máxima en vez de asentada.
+			if space_state != null:
+				var droop := maxf(float(p.get("droop_m", 0.18)), 0.0)
+				var radius := wheel_radii_m[w] if w < wheel_radii_m.size() else 0.30
+				var from := pose * neutral_positions[w]
+				if not has_ground_support_at(space_state, from, -up, radius + droop + 0.03, collision_mask, excluded):
+					q_eq[w] = -droop
+	last_reset_q_eq = q_eq.duplicate()
 	for i in hubs.size():
 		var qi := q_eq[i] if i < q_eq.size() else 0.0
 		var target_transform := pose * Transform3D(

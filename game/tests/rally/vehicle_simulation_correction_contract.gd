@@ -243,17 +243,24 @@ func test_late_rejection_via_garage() -> void:
 
 
 func test_contact_reach() -> void:
-	print("\n[§2] Alcance de consulta en extensión...")
-	# El viaje deriva del límite efectivo (droop + margen del joint).
-	var q := UnsprungSuspensionRig.contact_query_travel_m(0.22, 0.18)
-	check(absf(float(q["droop_effective"]) - 0.21) < 0.0001, "droop efectivo 0.18+0.03=0.21")
-	check(absf(float(q["bump"]) - 0.24) < 0.0001, "bump 0.22+0.02=0.24")
-	check(absf(float(q["travel"]) - 0.45) < 0.0001, "travel 0.24+0.21=0.45")
-	# Alcance bajo el neutro = droop efectivo; una superficie a 0.205 bajo el
-	# neutro es alcanzable, a 0.22 ya no (más allá del límite efectivo).
+	print("\n[§2] Alcance de consulta en extensión (Paso 1.4: joint ±0.10)...")
+	# El viaje deriva del límite efectivo (droop + margen de la junta), que el
+	# Paso 1.4 amplió de 0.03 a 0.10. Derivar la expectativa de la constante
+	# evita que el contrato vuelva a quedar obsoleto si el margen cambia.
+	var joint_margin := UnsprungSuspensionRig.JOINT_LIMIT_MARGIN_M
+	var droop := 0.18
+	var q := UnsprungSuspensionRig.contact_query_travel_m(0.22, droop)
+	var expected_droop := droop + joint_margin
+	var expected_bump := 0.22 + 0.02
+	check(absf(float(q["droop_effective"]) - expected_droop) < 0.0001, "droop efectivo %.2f+%.2f=%.2f" % [droop, joint_margin, expected_droop])
+	check(absf(float(q["bump"]) - expected_bump) < 0.0001, "bump 0.22+0.02=0.24")
+	check(absf(float(q["travel"]) - (expected_bump + expected_droop)) < 0.0001, "travel = bump + droop efectivo")
 	var reach: float = q["droop_effective"]
+	check(absf(reach - UnsprungSuspensionRig.effective_droop_limit_m(droop)) < 0.0001, "alcance = límite efectivo de la junta")
+	# El límite antiguo (0.21 con margen 0.03) y 0.22 están ahora dentro del
+	# alcance: la aserción vieja "0.22 fuera del alcance" quedó corregida.
 	check(0.205 <= reach + 0.001, "apoyo a 0.205 alcanzable dentro del límite")
-	check(0.22 > reach + 0.001, "apoyo a 0.22 fuera del alcance físico")
+	check(0.22 <= reach + 0.001, "apoyo a 0.22 (antes fuera) ahora alcanzable")
 	# La distancia referida al neutro con fracción 1 es radio + droop efectivo.
 	var radii := 0.28
 	var dist_full := radii + float(q["travel"]) * 1.0 - float(q["bump"])
@@ -311,6 +318,94 @@ func test_shapecast_selection_contract() -> void:
 	var hit := FordRallyVehicleSimulation.select_shapecast_support(cast, Vector3.UP)
 	check(hit.is_empty(), "sin colisiones no hay apoyo")
 	cast.queue_free()
+
+
+func test_overlap_signature_diagnostic() -> void:
+	print("\n[Paso 0.1] Firma de solapamiento cableada...")
+	var sim := _configure_escort()
+	if sim == null:
+		check(false, "sim escort lista (diagnóstico solapamiento)")
+		return
+	check(sim.has_method("request_overlap_signature_diagnostic"), "método para pedir la firma presente")
+	check(sim.has_method("_run_overlap_signature_diagnostic"), "ejecutor de la firma presente")
+	check(not sim.debug_overlap_signature_requested, "sin petición pendiente antes de armar")
+	check(sim.last_overlap_signature.is_empty(), "firma vacía antes del diagnóstico")
+	var body := RigidBody3D.new()
+	var col := CollisionShape3D.new()
+	col.shape = CylinderShape3D.new()
+	body.add_child(col)
+	root.add_child(body)
+	await physics_frame
+	await physics_frame
+	sim.create_wheel_contact_casts(body)
+	var state := PhysicsServer3D.body_get_direct_state(body.get_rid())
+	check(state != null, "direct state del chasis disponible")
+	if state != null:
+		check(float(state.step) > 0.0, "step() con dt>0 (tick físico real, got %.6f)" % float(state.step))
+		sim.request_overlap_signature_diagnostic()
+		sim.step(body, state, {"steering": 0.0})
+		check(not sim.debug_overlap_signature_requested, "petición consumida por step()")
+		check(not sim.last_overlap_signature.is_empty(), "firma capturada en step()")
+		check(sim.last_overlap_signature.has("cast_motion"), "firma incluye cast_motion")
+	body.queue_free()
+
+
+func test_load_sensitivity_helper() -> void:
+	print("\n[Paso 3.3] Helper común de sensibilidad de carga...")
+	var k := 0.15
+	check(absf(TireModel.load_adjusted_mu(1.0, 2.0, 1.0, k) - pow(2.0, -k)) < 1.0e-6, "carga 2x => 2^-k")
+	check(absf(TireModel.load_adjusted_mu(1.0, 1.0, 2.0, k) - pow(0.5, -k)) < 1.0e-6, "carga 0.5x => 0.5^-k")
+	check(absf(TireModel.load_adjusted_mu(1.0, 0.5, 1.0, k) - 1.0) < 1.0e-6, "guardia max(fz,1): fz<1 no aumenta mu")
+	check(absf(TireModel.load_adjusted_mu(0.9, 1.0, 1.0, k) - 0.9) < 1.0e-6, "carga nominal conserva mu0")
+	# El helper es la única implementación: debe coincidir con la fórmula
+	# inline anterior sobre todo el rango usado por el modelo.
+	for ratio in [0.5, 0.8, 1.0, 1.5, 2.0]:
+		var expected := clampf(pow(ratio, -k), 0.60, 1.20)
+		var got := clampf(TireModel.load_adjusted_mu(1.0, ratio * 4000.0, 4000.0, k), 0.60, 1.20)
+		check(absf(got - expected) < 1.0e-6, "ratio %.1f coincide con la forma inline" % ratio)
+
+
+func test_reset_ground_probe() -> void:
+	print("\n[Paso 4.1] Sonda de suelo en reset (aire => -droop)...")
+	var sim := _configure_escort()
+	if sim == null:
+		check(false, "sim escort lista (sonda suelo)")
+		return
+	var body := RigidBody3D.new()
+	var col := CollisionShape3D.new()
+	col.shape = CylinderShape3D.new()
+	body.add_child(col)
+	root.add_child(body)
+	var ground := StaticBody3D.new()
+	var ground_col := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20.0, 0.2, 20.0)
+	ground_col.shape = box
+	ground.add_child(ground_col)
+	root.add_child(ground)
+	await physics_frame
+	await physics_frame
+	sim.create_wheel_contact_casts(body)
+	var rig := sim.unsprung_rig
+	var susp := sim.suspension_model
+	var droop := float(susp.axle_parameters[0].droop_m)
+	var ground_top := sim.wheel_positions_local[0].y - sim.wheel_radii[0] - 0.01
+	# Con suelo justo bajo la rueda: q_eq estático (no -droop).
+	ground.global_position = Vector3(0.0, ground_top - 0.1, 0.0)
+	await physics_frame
+	rig.reset_at(Transform3D.IDENTITY, susp)
+	var q_ground := rig.last_reset_q_eq.duplicate()
+	check(q_ground[0] > -droop + 0.001, "con suelo q_eq estático (got %.3f, droop %.3f)" % [q_ground[0], -droop])
+	# Sin suelo alcanzable: extensión máxima en las 4 esquinas.
+	ground.global_position = Vector3(0.0, ground_top - 10.0, 0.0)
+	await physics_frame
+	rig.reset_at(Transform3D.IDENTITY, susp)
+	var q_air := rig.last_reset_q_eq.duplicate()
+	for w in 4:
+		check(absf(q_air[w] + float(susp.axle_parameters[w].droop_m)) < 0.0001, "sin suelo rueda %d q_eq=-droop (got %.3f)" % [w, q_air[w]])
+	check(absf(rig.hubs[0].global_transform.origin.y - (sim.wheel_positions_local[0].y - droop)) < 0.01, "hub colocado en extensión máxima")
+	body.queue_free()
+	ground.queue_free()
 
 
 func test_ride_frequency_validation() -> void:
@@ -394,6 +489,9 @@ func run() -> void:
 	test_contact_reach()
 	test_physical_hub_travel_deflection()
 	test_shapecast_selection_contract()
+	await test_overlap_signature_diagnostic()
+	test_load_sensitivity_helper()
+	await test_reset_ground_probe()
 	test_ride_frequency_validation()
 	test_shared_suspension()
 	print("\nVEHICLE_SIMULATION_CORRECTION_CONTRACT ", "PASS" if failures.is_empty() else "FAIL")

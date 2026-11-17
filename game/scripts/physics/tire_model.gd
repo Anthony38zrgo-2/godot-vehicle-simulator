@@ -610,7 +610,14 @@ func evaluate(
 		0.10,
 		0.20,
 	)
-	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
+	# Paso 3.3: se usa el helper común load_adjusted_mu() (con mu0=1 para
+	# obtener el factor adimensional). load_ratio*reference_load reconstruye
+	# la Fz completa, de modo que el resultado es idéntico a pow(load_ratio,-k).
+	var load_scale := clampf(
+		load_adjusted_mu(1.0, load_ratio * reference_load, reference_load, load_sensitivity_exp),
+		0.60,
+		1.20,
+	)
 	# Respuesta de compuesto/agua/nieve/suelo combinada una sola vez con la
 	# curva base y el factor térmico (sin duplicar la reducción mojada).
 	# Película fina con velocidad §4.5; hielo mojado combina y clampea §4.5.
