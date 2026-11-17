@@ -3,11 +3,10 @@
   "track_id": "switzerland_stage7",
   "source": {
     "repository": "stage_exporter",
-    "blend": "D:\\games\\rally-throphy\\stage_exporter\\stages\\switzerland\\stage7\\switzerland_stage7.blend",
-    "blend_sha256": "8a56ec16460b535c19738b28bce8a09760d3f249a3837bb270f2f372ff9cc173",
+    "blend": "switzerland_stage7.blend",
+    "blend_sha256": "85da84c2d3d33ffdcae36755063bc301682c6e90ab4ceaa42d26fc42a91a83eb",
     "blender_version": "5.2.0 LTS",
-    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
-    "import_source_manifest_sha256": "07bb07750ceb7ccd1ef6123370d85910d7bf807fde6e32f2ae66f17c022c618b"
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -54,8 +53,8 @@
   },
   "collision": {
     "path": "switzerland_stage7_collision.glb",
-    "sha256": "51103d0288f3125abc162c00ffc462a75d2c9b429b68ca20eeb5695355a96dbd",
-    "size_bytes": 1704408,
+    "sha256": "8e7921f95f095e9446a1691151a98072f05c4ff9d4d6188f92de96d1f9f26aa4",
+    "size_bytes": 4135504,
     "collision_objects": {
       "Collision_Road": 20072,
       "Collision_Terrain_Grass": 46105,
@@ -71,7 +70,7 @@
       "Collision_Tree_trunks"
     ],
     "surface_mapping": {
-      "Collision_Road": "Road",
+      "Collision_Road": "Gravel",
       "Collision_Terrain_Grass": "Grass",
       "Collision_Terrain_Dirt": "Dirt",
       "Collision_Terrain_Sand": "Sand"
@@ -139,5 +138,5 @@
     "skybox_excluded": true,
     "timing_triggers_excluded_from_render": true
   },
-  "export_duration_seconds": 14.99
+  "export_duration_seconds": 15.42
 }

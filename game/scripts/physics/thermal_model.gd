@@ -659,8 +659,11 @@ func tire_grip_factor(index: int) -> float:
 		thermal_factor = lerpf(cold_floor, 1.0, clampf((tread - (lower - cold_ramp)) / cold_ramp, 0.0, 1.0))
 	elif tread > upper:
 		thermal_factor = 1.0 - clampf(float(compound.get("overheat_grip_loss", 0.25)), 0.0, 1.0) * clampf((tread - upper) / maxf(overheat - upper, 1.0), 0.0, 1.0)
-	var wear_factor := 1.0 - clampf(float(compound.get("wear_grip_loss", 0.25)), 0.0, 1.0) * clampf(float(state.wear_fraction), 0.0, 1.0)
-	var damage_factor := 1.0 - clampf(float(compound.get("thermal_damage_grip_loss", 0.35)), 0.0, 1.0) * clampf(float(state.get("thermal_damage_fraction", 0.0)), 0.0, 1.0)
+	# Exponentes opt-in: default 1.0 = lineal, bit-idéntico al anterior.
+	var wear_exp := clampf(float(compound.get("wear_grip_exponent", 1.0)), 0.5, 3.0)
+	var wear_factor := 1.0 - clampf(float(compound.get("wear_grip_loss", 0.25)), 0.0, 1.0) * pow(clampf(float(state.wear_fraction), 0.0, 1.0), wear_exp)
+	var damage_exp := clampf(float(compound.get("thermal_damage_grip_exponent", 1.0)), 0.5, 3.0)
+	var damage_factor := 1.0 - clampf(float(compound.get("thermal_damage_grip_loss", 0.35)), 0.0, 1.0) * pow(clampf(float(state.get("thermal_damage_fraction", 0.0)), 0.0, 1.0), damage_exp)
 	var puncture_factor := lerpf(1.0, 0.35, clampf(float(state.get("pressure_loss_fraction", 0.0)), 0.0, 1.0))
 	var carcass_factor := lerpf(1.0, 0.55, clampf(float(state.get("carcass_failure", 0.0)), 0.0, 1.0))
 	if float(state.get("carcass_failure", 0.0)) >= 1.0:

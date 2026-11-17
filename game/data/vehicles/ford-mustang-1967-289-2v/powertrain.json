@@ -53,8 +53,9 @@
     "front_torque_split": 0.0,
     "gear_inertia": 0.02,
     "gear_ratios": [
-      2.99,
-      1.75,
+      2.78,
+      1.93,
+      1.36,
       1.0
     ],
     "handbrake_torque_fraction": 1.0,

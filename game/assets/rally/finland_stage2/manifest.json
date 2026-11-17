@@ -3,11 +3,10 @@
   "track_id": "finland_stage2",
   "source": {
     "repository": "stage_exporter",
-    "blend": "D:\\games\\rally-throphy\\stage_exporter\\stages\\finland\\stage2\\finland_stage2.blend",
-    "blend_sha256": "ac4a639512c22ba38f01d5ea79d525c22bab8e6725cc9102de5c83a5d4c7ded2",
+    "blend": "finland_stage2.blend",
+    "blend_sha256": "da86ee09950c2753c5e30e5d3d942f5a568360b82c498a8b4d5a7157cca14820",
     "blender_version": "5.2.0 LTS",
-    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf",
-    "import_source_manifest_sha256": "d4c67e5e8e8b09946974732a223809b142f471c9dea17e2a55273e25b8bbb0e2"
+    "exporter": "Khronos glTF Blender I/O via bpy.ops.export_scene.gltf"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -54,8 +53,8 @@
   },
   "collision": {
     "path": "finland_stage2_collision.glb",
-    "sha256": "10dfa13054e7f257aeb6985a8f7e0dace4f2dcdeef0180d2d7eb5a0086ff4bfe",
-    "size_bytes": 3758772,
+    "sha256": "8052a3a9015e2dae365cec6553a1b14f57ed984c27bf35cb33b2eee2e60ea46e",
+    "size_bytes": 7527044,
     "collision_objects": {
       "Collision_Road": 38692,
       "Collision_Terrain_Dirt": 25214,
@@ -141,5 +140,5 @@
     "skybox_excluded": true,
     "timing_triggers_excluded_from_render": true
   },
-  "export_duration_seconds": 20.03
+  "export_duration_seconds": 21.66
 }

@@ -9,6 +9,10 @@
 !game/assets/weather/tropospheric/*.png.import
 *.uid
 
+# Texturas extraídas por Godot al importar collision GLBs con materiales
+# (duplican las visuales; se regeneran solas en cada import).
+game/assets/rally/*/*_collision_*.png
+
 # Generated standalone runtime state and validation/export outputs.
 .tools/appdata/
 .tools/localappdata/
