@@ -140,7 +140,7 @@ void fragment() {
 	vec2 detail_flow = vec2(TIME) * detail_speed * vec2(0.7, 1.0);
 	vec3 wd = water_detail_sample(world_position.xz, detail_flow);
 	float dist_fade = 1.0 - smoothstep(55.0, 140.0, length(world_position - CAMERA_POSITION_WORLD));
-	float detail_k = clamp(detail_strength * water_body * dist_fade, 0.0, 1.0);
+	float detail_k = clamp(detail_strength * 0.25 * water_body * dist_fade, 0.0, 1.0);
 	float pattern = smoothstep(0.40, 0.68, wd.x);
 
 	// Sky reflection lookup (smooth planar/env-map feel)
