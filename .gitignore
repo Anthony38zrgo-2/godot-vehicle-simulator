@@ -25,10 +25,15 @@ __pycache__/
 
 # Fase 0 refactor: arboles locales que no deben trackearse.
 tmp/
+tmp_pacenote_review/
 acl-recovery/
 archive/
 .uv-install*.log
 _tmp_*
+
+# Artefactos temporales de tuning/revisión (auto-generados, no versionar).
+*.bak_pre_refine_all
+game/data/tires/backups/rally_compounds_*.json
 
 # Modelos pesados generados localmente (excluidos de Git remoto)
 game/assets/rally/raura_stage2/*.glb
