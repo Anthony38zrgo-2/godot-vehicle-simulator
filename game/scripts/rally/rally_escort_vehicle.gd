@@ -13,9 +13,14 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 @export var cockpit_camera_enabled: bool = true
 @export_group("Dreamcast Vehicle Aesthetics")
 @export var dreamcast_car_visuals: bool = true
+@export var dc_shader_materials: bool = false
+@export_range(0.0, 1.0) var dc_reflectivity: float = 0.10
+@export_range(0.0, 1.0) var dc_vertex_snap: float = 0.0
 @export var dc_enable_blob_shadow: bool = true
-@export var dc_blob_shadow_size: Vector2 = Vector2(1.95, 4.35)
-@export var dc_blob_shadow_opacity: float = 0.78
+@export var dc_blob_shadow_size: Vector2 = Vector2(2.25, 4.85)
+@export var dc_blob_shadow_opacity: float = 0.92
+
+const DC_SHADER := preload("res://shaders/dreamcast_vehicle.gdshader")
 
 var _blob_shadow_decal: Decal = null
 
@@ -346,6 +351,9 @@ func _physics_process(delta: float) -> void:
 		_reset_pending = false
 	if not _physics_ready:
 		return
+	if _blob_shadow_decal != null:
+		var target_mix := 0.35 if is_airborne() else 1.0
+		_blob_shadow_decal.albedo_mix = lerpf(_blob_shadow_decal.albedo_mix, target_mix, clampf(delta * 12.0, 0.0, 1.0))
 	simulation.unsprung_rig.sync_freeze()
 	simulation.update_wheel_visuals(steering_amount)
 	_update_unseated_wheel_visuals()
@@ -1363,13 +1371,69 @@ func get_presentation_snapshot() -> Dictionary:
 
 
 func _apply_dreamcast_vehicle_visuals() -> void:
-	# Unica parte activa del pipeline visual: sombra blob bajo el chasis.
 	# El coche va en la capa 2 para que el Decal (capa 1) no se proyecte sobre el propio coche.
 	# Desactivar tambien cast_shadow y sombras de luces del coche para dejar solo el Decal blob.
 	_set_vehicle_layers(self)
 	if dc_enable_blob_shadow:
 		_create_blob_shadow()
+	if dc_shader_materials:
+		_apply_dc_materials_recursive(self)
+		if _visual_damage != null and _visual_damage.has_method("apply_dreamcast_shader"):
+			_visual_damage.apply_dreamcast_shader(DC_SHADER, dc_reflectivity, dc_vertex_snap)
 	print("RALLY_VEHICLE_BLOB_SHADOW_READY")
+
+
+static func make_dc_shader_material(src: BaseMaterial3D, dc_shader: Shader, reflectivity: float, snap_strength: float) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = dc_shader
+	mat.resource_name = src.resource_name if src != null else ""
+	mat.set_shader_parameter("reflectivity", reflectivity)
+	mat.set_shader_parameter("snap_strength", snap_strength)
+	if src != null:
+		mat.set_shader_parameter("albedo_color", src.albedo_color)
+		mat.set_shader_parameter("use_texture", src.albedo_texture != null)
+		if src.albedo_texture != null:
+			mat.set_shader_parameter("albedo_tex", src.albedo_texture)
+		mat.set_shader_parameter("roughness_value", src.roughness)
+		mat.set_shader_parameter("specular_value", 0.0 if src.specular_mode == BaseMaterial3D.SPECULAR_DISABLED else 0.50)
+		var lower_name := src.resource_name.to_lower()
+		if src.roughness > 0.85 or "interior" in lower_name or "tire" in lower_name:
+			mat.set_shader_parameter("reflectivity", 0.0)
+			mat.set_shader_parameter("vertex_specular_strength", 0.0)
+		if src.emission_enabled:
+			mat.set_shader_parameter("emission_color", src.emission)
+			mat.set_shader_parameter("emission_energy", src.emission_energy_multiplier)
+		if src.next_pass != null:
+			mat.next_pass = src.next_pass
+	return mat
+
+
+static func _should_convert_dc_material(mat: Material) -> bool:
+	if mat == null or mat is ShaderMaterial or not (mat is BaseMaterial3D):
+		return false
+	var base := mat as BaseMaterial3D
+	var lower_name := base.resource_name.to_lower()
+	if "window" in lower_name or "glass" in lower_name:
+		return false
+	if base.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+		return false
+	if base.cull_mode == BaseMaterial3D.CULL_DISABLED:
+		return false
+	return true
+
+
+func _apply_dc_materials_recursive(node: Node) -> void:
+	if node is MeshInstance3D and node.mesh != null:
+		var mi := node as MeshInstance3D
+		if _should_convert_dc_material(mi.material_override):
+			mi.material_override = make_dc_shader_material(mi.material_override as BaseMaterial3D, DC_SHADER, dc_reflectivity, dc_vertex_snap)
+		else:
+			for surface in mi.mesh.get_surface_count():
+				var current := mi.get_active_material(surface)
+				if _should_convert_dc_material(current):
+					mi.set_surface_override_material(surface, make_dc_shader_material(current as BaseMaterial3D, DC_SHADER, dc_reflectivity, dc_vertex_snap))
+	for child in node.get_children():
+		_apply_dc_materials_recursive(child)
 
 
 func _set_vehicle_layers(node: Node) -> void:
@@ -1394,6 +1458,8 @@ func _create_blob_shadow() -> void:
 			var dist := pow(absf(nx), 2.4) + pow(absf(ny), 3.2)
 			var alpha := clampf(1.0 - dist, 0.0, 1.0)
 			alpha = smoothstep(0.0, 1.0, alpha) * dc_blob_shadow_opacity
+			# Cuantización ARGB4444 (16 niveles de alfa como en texturas transparentes de Dreamcast)
+			alpha = floor(alpha * 15.0 + 0.5) / 15.0
 			img.set_pixel(x, y, Color(0.0, 0.0, 0.0, alpha))
 
 	var shadow_tex := ImageTexture.create_from_image(img)

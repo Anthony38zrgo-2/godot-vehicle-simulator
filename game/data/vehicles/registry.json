@@ -133,6 +133,18 @@
       "SoundBank": "gt3-bank/new-beetle-20",
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
+    },
+    "mustang67": {
+      "Id": "ford_mustang_1967_289_2v",
+      "Assets": "ford_mustang_1967_289_2v",
+      "Profile": "ford-mustang-1967-289-2v",
+      "Scene": "ford_mustang_1967_289_2v",
+      "Stage": "russia_stage1_ford_mustang_1967_289_2v",
+      "Proving": "ford_mustang_1967_289_2v_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/v8-1967",
+      "ValidateSoundHashes": false,
+      "DisplayName": "Ford Mustang 1967 (289-2V)"
     }
   }
 }

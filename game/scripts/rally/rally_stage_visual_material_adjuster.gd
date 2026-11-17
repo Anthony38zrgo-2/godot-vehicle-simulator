@@ -47,7 +47,6 @@ const CUTOUT_MATERIAL_NAMES := [
 	"fin_trees_leaves",
 	"forest_ends",
 	"forest_ends2",
-	"water",
 	# Suecia (shader_id == 5)
 	"fence_snow_1",
 	"forest_snow_1",
@@ -77,12 +76,18 @@ const BANNER_MATERIAL_PREFIXES := [
 	"fin_sponsors",
 ]
 
+const STATIC_WATER_SHADER := preload("res://scripts/rally/rally_static_water.gdshader")
+const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
+const WATER_BODY_TOKENS := ["water", "lake", "lago", "agua", "pond", "lagoon", "laguna", "sea"]
+const WATER_EXCLUDE_TOKENS := ["waterfall", "bank", "terrain", "road", "dry", "rock", "wall", "sign", "snow", "ice", "wet"]
+
 @export var visual_root_path: NodePath
 @export var alpha_scissor_threshold: float = 0.38
 @export var enforce_dreamcast_pipeline: bool = true
 
 var adjusted_surface_count: int = 0
 var adjusted_materials: Dictionary = {}
+var static_water_materials: Dictionary = {}
 var prepared_textures: Dictionary = {}
 
 
@@ -106,10 +111,86 @@ func adjust_node(node: Node) -> void:
 
 		for surface_index in mesh_instance.mesh.get_surface_count():
 			var mat := mesh_instance.get_active_material(surface_index)
-			if mat is BaseMaterial3D:
-				adjust_material(mat as BaseMaterial3D)
+			if mat is BaseMaterial3D and not bool(mat.get_meta("rally_dynamic_water", false)):
+				var base_mat := mat as BaseMaterial3D
+				if is_static_water_candidate(base_mat.resource_name.to_lower(), mesh_instance.name.to_lower()):
+					var water_mat := _get_or_create_static_water_material(base_mat)
+					mesh_instance.set_surface_override_material(surface_index, water_mat)
+					adjusted_surface_count += 1
+				else:
+					adjust_material(base_mat)
 	for child in node.get_children():
 		adjust_node(child)
+
+
+static func is_static_water_candidate(material_name: String, mesh_name: String = "") -> bool:
+	if material_name == "river1_1" or material_name == "river2_1":
+		return false
+	for excluded in WATER_EXCLUDE_TOKENS:
+		if material_name.contains(excluded):
+			return false
+	for token in WATER_BODY_TOKENS:
+		if material_name.contains(token):
+			return true
+	if material_name.is_empty() or material_name.begins_with("material"):
+		for excluded in WATER_EXCLUDE_TOKENS:
+			if mesh_name.contains(excluded):
+				return false
+		for token in WATER_BODY_TOKENS:
+			if mesh_name.contains(token):
+				return true
+	return false
+
+
+func _get_or_create_static_water_material(base_mat: BaseMaterial3D) -> ShaderMaterial:
+	var key := base_mat.get_instance_id()
+	if static_water_materials.has(key):
+		return static_water_materials[key] as ShaderMaterial
+	var sm := ShaderMaterial.new()
+	sm.shader = STATIC_WATER_SHADER
+	sm.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
+	var col := base_mat.albedo_color
+	var use_tex := false
+	var tex := base_mat.albedo_texture
+	if tex != null:
+		use_tex = _texture_has_visible_alpha(tex)
+	if use_tex:
+		var prepared := prepare_texture(tex) if enforce_dreamcast_pipeline else tex
+		sm.set_shader_parameter("has_albedo_tex", true)
+		sm.set_shader_parameter("albedo_tex", prepared)
+		sm.set_shader_parameter("base_color", col)
+		sm.set_shader_parameter("base_alpha", col.a)
+	else:
+		sm.set_shader_parameter("has_albedo_tex", false)
+		# Placeholders de lago exportados con alfa 0 (p. ej. Finlandia) usan albedo blanco
+		# o negro vacío; conservar un tono natural oscuro cuando no hay textura visible.
+		if tex != null and (col.is_equal_approx(Color.WHITE) or col.r + col.g + col.b < 0.01):
+			sm.set_shader_parameter("base_color", Color(0.07, 0.15, 0.20))
+			sm.set_shader_parameter("base_alpha", 0.65)
+		else:
+			sm.set_shader_parameter("base_color", col)
+			sm.set_shader_parameter("base_alpha", col.a)
+	static_water_materials[key] = sm
+	return sm
+
+
+func _texture_has_visible_alpha(tex: Texture2D) -> bool:
+	var img := tex.get_image()
+	if img == null:
+		return false
+	if img.is_compressed() and img.decompress() != OK:
+		return false
+	var w := img.get_width()
+	var h := img.get_height()
+	if w <= 0 or h <= 0:
+		return false
+	var step_x := maxi(w / 8, 1)
+	var step_y := maxi(h / 8, 1)
+	for y in range(0, h, step_y):
+		for x in range(0, w, step_x):
+			if img.get_pixel(x, y).a > 0.15:
+				return true
+	return false
 
 
 func adjust_material(material: BaseMaterial3D) -> void:

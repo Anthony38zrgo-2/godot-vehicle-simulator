@@ -45,8 +45,8 @@ func _initialize() -> void:
 	print("HUD render frames with active icon: ", hud_rendered_count)
 	print("Total audio samples played: ", ctrl.speech_queue.total_samples_played)
 
-	assert(ctrl.tracker.next_gate >= 490) # Reached finish!
-	assert(triggered_indices.size() == 32) # All 32 curve calls triggered across stage!
+	assert(ctrl.tracker.next_gate >= ctrl.tracker.gates.size()) # Reached finish!
+	assert(triggered_indices.size() == ctrl.call_table.size()) # All calls triggered across stage!
 	assert(ctrl.speech_queue.total_samples_played >= 80) # Audio played throughout stage
 	assert(hud_rendered_count > 100) # HUD presented visual icons during run
 

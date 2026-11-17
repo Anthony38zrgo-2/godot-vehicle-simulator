@@ -709,10 +709,11 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		var cylinder := CylinderShape3D.new()
 		cylinder.radius = wheel_radii[i]
 		cylinder.height = wheel_widths[i]
+		cylinder.margin = 0.005
 		cast.shape = cylinder
 		cast.enabled = false
 		cast.margin = 0.002
-		cast.max_results = 8
+		cast.max_results = 16
 		cast.collide_with_areas = false
 		cast.collide_with_bodies = true
 		body.add_child(cast)
@@ -749,16 +750,88 @@ static func select_shapecast_support(cast: ShapeCast3D, chassis_up: Vector3) -> 
 	return best
 
 
+static func _restore_shapecast_exceptions(cast: ShapeCast3D, permanent_exceptions: Array[RID]) -> void:
+	cast.clear_exceptions()
+	for prid in permanent_exceptions:
+		cast.add_exception_rid(prid)
+
+
+## Calcula la fracción segura proyectada geométricamente sobre el plano `(point, normal)`
+## para el apoyo seleccionado. Evita heredar a ciegas `get_closest_collision_safe_fraction()`
+## cuando un mismo `StaticBody3D` agrupa varias formas (p. ej. calzada + bordillo/talud)
+## y `exclude` por RID no puede separarlas.
+static func _shapecast_projected_safe_fraction(
+	cast: ShapeCast3D,
+	point: Vector3,
+	normal: Vector3,
+	travel_m: float,
+) -> Dictionary:
+	if travel_m <= 1.0e-6 or cast.target_position.length_squared() <= 1.0e-12:
+		return {"ok": false}
+	if not (cast.shape is CylinderShape3D):
+		return {"ok": false}
+	var origin := cast.global_transform.origin
+	var sweep_dir := (cast.global_transform.basis * cast.target_position).normalized()
+	var up_dir := -sweep_dir
+	var unit_normal := normal.normalized()
+	var denom := unit_normal.dot(up_dir)
+	if denom <= 0.25:
+		return {"ok": false}
+	var cyl := cast.shape as CylinderShape3D
+	var axis := cast.global_transform.basis.y.normalized()
+	var n_dot_a := clampf(absf(unit_normal.dot(axis)), 0.0, 1.0)
+	var n_perp := sqrt(maxf(1.0 - n_dot_a * n_dot_a, 0.0))
+	var support := cyl.height * 0.5 * n_dot_a + cyl.radius * n_perp
+	var sweep_m := ((origin - point).dot(unit_normal) - support) / denom
+	return {
+		"ok": true,
+		"sweep_m": sweep_m,
+		"safe_fraction": sweep_m / travel_m,
+	}
+
+
+static func _resolved_safe_for_same_rid(
+	cast: ShapeCast3D,
+	point: Vector3,
+	normal: Vector3,
+	global_safe: float,
+	travel_m: float,
+) -> Dictionary:
+	var proj := _shapecast_projected_safe_fraction(cast, point, normal, travel_m)
+	if not bool(proj.get("ok", false)):
+		return {
+			"safe": global_safe,
+			"coherent": true,
+			"same_rid_projected": false,
+			"proj_safe": global_safe,
+		}
+	var proj_sweep_m := float(proj["sweep_m"])
+	var proj_safe := float(proj["safe_fraction"])
+	if absf(proj_sweep_m - global_safe * travel_m) > 0.015:
+		var in_range := proj_safe >= -0.05 and proj_safe <= 1.05
+		return {
+			"safe": proj_safe if in_range else global_safe,
+			"coherent": in_range,
+			"same_rid_projected": in_range,
+			"proj_safe": proj_safe,
+		}
+	return {
+		"safe": global_safe,
+		"coherent": true,
+		"same_rid_projected": false,
+		"proj_safe": proj_safe,
+	}
+
+
 ## Barrido cilíndrico coherente (H2), núcleo estático: punto, normal, collider
 ## y distancia del MISMO apoyo. Tras seleccionar por alineación, si hay más
 ## de una colisión se aísla el apoyo seleccionado excluyendo los demás
-## colliders y se repite el barrido: la fracción leída entonces pertenece
-## por construcción al apoyo seleccionado (se verifica collider, punto y
-## normal). Con una sola colisión no hace falta consulta adicional.
-## `permanent_exceptions` se restauran antes de salir. `sweeps` cuenta los
-## barridos (1 o 2). La coherencia se demuestra por correspondencia, no por
-## el rango [0,1]. Sin llamada a get_collision_safe_fraction(i): no existe
-## en Godot 4.7.1.
+## colliders y se repite el barrido; cuando todas las colisiones pertenecen al
+## mismo `StaticBody3D` (`exclude_rids` vacío), valida o proyecta la distancia
+## usando el punto y normal del apoyo elegido para evitar contaminar con otros
+## sub-shapes. Si el barrido queda detenido únicamente contra un muro/barrera
+## vertical (`alignment <= 0.25`), excluye temporalmente esos cuerpos una vez
+## para alcanzar el suelo debajo. `permanent_exceptions` se restauran siempre.
 static func shapecast_coherent_result(
 	cast: ShapeCast3D,
 	chassis_up: Vector3,
@@ -775,8 +848,30 @@ static func shapecast_coherent_result(
 	var global_safe := cast.get_closest_collision_safe_fraction()
 	var selected := select_shapecast_support(cast, chassis_up)
 	if selected.is_empty():
-		return {"sweeps": sweeps}
+		var barrier_rids: Array[RID] = []
+		for ci in first_count:
+			var other_b: Variant = cast.get_collider(ci)
+			if other_b is CollisionObject3D:
+				var brid := (other_b as CollisionObject3D).get_rid()
+				if not barrier_rids.has(brid):
+					barrier_rids.append(brid)
+		if barrier_rids.is_empty():
+			return {"sweeps": sweeps}
+		for brid in barrier_rids:
+			cast.add_exception_rid(brid)
+		cast.force_shapecast_update()
+		sweeps += 1
+		first_count = cast.get_collision_count()
+		if first_count == 0:
+			_restore_shapecast_exceptions(cast, permanent_exceptions)
+			return {"sweeps": sweeps}
+		global_safe = cast.get_closest_collision_safe_fraction()
+		selected = select_shapecast_support(cast, chassis_up)
+		if selected.is_empty():
+			_restore_shapecast_exceptions(cast, permanent_exceptions)
+			return {"sweeps": sweeps}
 	if first_count == 1:
+		_restore_shapecast_exceptions(cast, permanent_exceptions)
 		var safe := global_safe
 		return {
 			"position": selected["position"],
@@ -792,7 +887,7 @@ static func shapecast_coherent_result(
 			"coherent": true,
 			"sweeps": sweeps,
 		}
-	# Múltiples apoyos: aislar el seleccionado excluyendo los demás.
+	# Múltiples apoyos: aislar el seleccionado excluyendo los demás RIDs distintos.
 	var selected_collider: Variant = selected.get("collider")
 	var selected_rid := RID()
 	if selected_collider is CollisionObject3D:
@@ -807,7 +902,15 @@ static func shapecast_coherent_result(
 			if orid != selected_rid and not exclude_rids.has(orid):
 				exclude_rids.append(orid)
 	if exclude_rids.is_empty():
-		var safe := global_safe
+		_restore_shapecast_exceptions(cast, permanent_exceptions)
+		var same_rid_res := _resolved_safe_for_same_rid(
+			cast,
+			selected["position"] as Vector3,
+			selected["normal"] as Vector3,
+			global_safe,
+			travel_m,
+		)
+		var safe := float(same_rid_res["safe"])
 		return {
 			"position": selected["position"],
 			"normal": selected["normal"],
@@ -819,25 +922,41 @@ static func shapecast_coherent_result(
 			"collision_count": first_count,
 			"alignment": float(selected["alignment"]),
 			"isolated": false,
-			"coherent": true,
+			"coherent": bool(same_rid_res["coherent"]),
 			"sweeps": sweeps,
+			"verify": {
+				"same_rid_multi_shape": true,
+				"same_rid_projected": bool(same_rid_res["same_rid_projected"]),
+				"proj_safe": float(same_rid_res["proj_safe"]),
+			},
 		}
 	for rid in exclude_rids:
 		cast.add_exception_rid(rid)
 	cast.force_shapecast_update()
-	sweeps = 2
+	sweeps += 1
 	var isolated_safe := cast.get_closest_collision_safe_fraction()
 	var isolated_count := cast.get_collision_count()
 	var isolated_ok := isolated_count > 0
-	var isolated_collider: Variant = cast.get_collider(0) if isolated_ok else null
-	var isolated_point: Vector3 = cast.get_collision_point(0) if isolated_ok else selected["position"]
-	var isolated_normal: Vector3 = (cast.get_collision_normal(0) as Vector3).normalized() if isolated_ok else selected["normal"]
-	# Restaurar exclusiones permanentes antes de salir.
-	cast.clear_exceptions()
-	for prid in permanent_exceptions:
-		cast.add_exception_rid(prid)
+	var isolated_sel := select_shapecast_support(cast, chassis_up) if isolated_count > 1 else {}
+	var isolated_idx := int(isolated_sel.get("collision_index", 0)) if not isolated_sel.is_empty() else 0
+	var isolated_collider: Variant = cast.get_collider(isolated_idx) if isolated_ok else null
+	var isolated_point: Vector3 = cast.get_collision_point(isolated_idx) if isolated_ok else selected["position"]
+	var isolated_normal: Vector3 = (cast.get_collision_normal(isolated_idx) as Vector3).normalized() if isolated_ok else selected["normal"]
+	_restore_shapecast_exceptions(cast, permanent_exceptions)
 	if not isolated_ok:
 		return {"sweeps": sweeps}
+	var resolved_isolated_safe := isolated_safe
+	var same_rid_projected := false
+	if isolated_count > 1:
+		var iso_same_rid := _resolved_safe_for_same_rid(
+			cast,
+			isolated_point,
+			isolated_normal,
+			isolated_safe,
+			travel_m,
+		)
+		resolved_isolated_safe = float(iso_same_rid["safe"])
+		same_rid_projected = bool(iso_same_rid["same_rid_projected"])
 	var same_collider: bool = isolated_collider == selected_collider
 	var point_gap := (isolated_point - (selected["position"] as Vector3)).length()
 	var normal_gap := (isolated_normal - (selected["normal"] as Vector3)).length()
@@ -846,8 +965,8 @@ static func shapecast_coherent_result(
 		"position": isolated_point,
 		"normal": isolated_normal,
 		"collider": isolated_collider,
-		"distance": float(wheel_radius_m) + float(travel_m) * float(isolated_safe) - float(bump_m),
-		"safe_fraction": float(isolated_safe),
+		"distance": float(wheel_radius_m) + float(travel_m) * float(resolved_isolated_safe) - float(bump_m),
+		"safe_fraction": float(resolved_isolated_safe),
 		"global_safe_fraction": float(global_safe),
 		"collision_index": int(selected["collision_index"]),
 		"collision_count": first_count,
@@ -860,8 +979,64 @@ static func shapecast_coherent_result(
 			"same_collider": same_collider,
 			"point_gap_m": point_gap,
 			"normal_gap": normal_gap,
+			"same_rid_projected": same_rid_projected,
 		},
 	}
+
+
+static func _shapecast_is_initial_overlap(
+	cast: ShapeCast3D,
+	hit: Dictionary,
+	travel_m: float,
+) -> bool:
+	if hit.is_empty():
+		return true
+	var safe := float(hit.get("safe_fraction", 0.0))
+	if safe <= 0.001:
+		return true
+	# En Jolt Physics, ShapeCast3D/cast_motion devuelve safe_fraction == 1.0
+	# cuando el cilindro arranca solapado con el suelo; contrastamos contra
+	# la proyección geométrica del contacto reportado.
+	if safe >= 0.999 and hit.has("position") and hit.has("normal"):
+		var proj := _shapecast_projected_safe_fraction(
+			cast,
+			hit["position"] as Vector3,
+			hit["normal"] as Vector3,
+			travel_m,
+		)
+		if bool(proj.get("ok", false)) and float(proj["safe_fraction"]) <= 0.05:
+			return true
+		if not bool(hit.get("coherent", true)):
+			return true
+	return false
+
+
+func _sweep_shapecast_with_elevation(
+	cast: ShapeCast3D,
+	body_transform: Transform3D,
+	orientation: Basis,
+	wheel_local_pos: Vector3,
+	chassis_up: Vector3,
+	wheel_radius_m: float,
+	base_bump_m: float,
+	base_travel_m: float,
+	elevation_m: float,
+	permanents: Array[RID],
+) -> Dictionary:
+	var eff_bump := base_bump_m + elevation_m
+	var eff_travel := base_travel_m + elevation_m
+	cast.global_transform = body_transform * Transform3D(
+		orientation,
+		wheel_local_pos + Vector3.UP * eff_bump,
+	)
+	cast.target_position = orientation.inverse() * (Vector3.DOWN * eff_travel)
+	var hit := shapecast_coherent_result(cast, chassis_up, wheel_radius_m, eff_travel, eff_bump, permanents)
+	if hit.has("position"):
+		hit["query_bump_m"] = eff_bump
+		hit["query_travel_m"] = eff_travel
+		hit["elevated_m"] = elevation_m
+	hit["_initial_overlap"] = _shapecast_is_initial_overlap(cast, hit, eff_travel)
+	return hit
 
 
 func _query_shapecast_contact(
@@ -879,19 +1054,57 @@ func _query_shapecast_contact(
 		Vector3.BACK,
 		suspension_model.dynamic_wheel_camber(index),
 	) * Basis(Vector3.BACK, PI * 0.5)
-	cast.global_transform = body_transform * Transform3D(
-		orientation,
-		wheel_positions_local[index] + Vector3.UP * bump,
-	)
-	cast.target_position = orientation.inverse() * (Vector3.DOWN * travel)
 	cast.collision_mask = body.collision_mask
 	var permanents: Array[RID] = [body.get_rid()]
 	for hub in unsprung_rig.hubs:
 		permanents.append(hub.get_rid())
-	var hit := shapecast_coherent_result(cast, chassis_up, wheel_radii[index], travel, bump, permanents)
-	contact_query_count += int(hit.get("sweeps", 1))
-	hit.erase("sweeps")
-	return hit
+	var best := _sweep_shapecast_with_elevation(
+		cast, body_transform, orientation, wheel_positions_local[index],
+		chassis_up, wheel_radii[index], bump, travel, 0.0, permanents,
+	)
+	var total_sweeps := int(best.get("sweeps", 1))
+	var best_overlap := bool(best.get("_initial_overlap", best.is_empty()))
+	best.erase("sweeps")
+	best.erase("_initial_overlap")
+	if not best.is_empty() and not best_overlap:
+		contact_query_count += total_sweeps
+		return best
+	# Recuperación por barrido elevado (P0): si el cilindro comienza en o bajo
+	# el terreno (safe_fraction <= 0.001, solapamiento Jolt con safe ≈ 1.0 o
+	# vacío en malla ConcavePolygonShape3D), elevamos el origen manteniendo
+	# invariante el extremo inferior del barrido.
+	var phys_comp := (
+		unsprung_rig.compression_physical_m[index]
+		if index < unsprung_rig.compression_physical_m.size()
+		else 0.0
+	)
+	var elev_1 := clampf(maxf(0.18, phys_comp - bump + 0.16), 0.18, 0.38)
+	var elev_2 := clampf(maxf(elev_1 + 0.22, wheel_radii[index] + 0.14), elev_1 + 0.15, 0.55)
+	var elevs: Array[float] = [elev_1, elev_2]
+	var saw_overlap_hit := not best.is_empty() and best_overlap
+	var step_idx := 0
+	while step_idx < elevs.size():
+		var cand := _sweep_shapecast_with_elevation(
+			cast, body_transform, orientation, wheel_positions_local[index],
+			chassis_up, wheel_radii[index], bump, travel, elevs[step_idx], permanents,
+		)
+		total_sweeps += int(cand.get("sweeps", 1))
+		var cand_overlap := bool(cand.get("_initial_overlap", cand.is_empty()))
+		cand.erase("sweeps")
+		cand.erase("_initial_overlap")
+		if not cand.is_empty():
+			if not cand_overlap:
+				best = cand
+				break
+			saw_overlap_hit = true
+			if best.is_empty() or best_overlap or float(cand.get("distance", INF)) < float(best.get("distance", INF)):
+				best = cand
+				best_overlap = true
+		step_idx += 1
+		if step_idx == 2 and (saw_overlap_hit or best.is_empty()):
+			elevs.append(maxf(elev_2 + 0.35, 0.90))
+	contact_query_count += total_sweeps
+	return best
 
 
 func _query_tandem_contact(
@@ -1022,8 +1235,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"isolated": bool(hit.get("isolated", false)),
 				"coherent": bool(hit.get("coherent", true)),
 				"verify": hit.get("verify", {}),
-				"query_bump_m": bump,
-				"query_travel_m": travel,
+				"query_bump_m": float(hit.get("query_bump_m", bump)),
+				"query_travel_m": float(hit.get("query_travel_m", travel)),
+				"elevated_m": float(hit.get("elevated_m", 0.0)),
 			}
 		)
 
@@ -1482,7 +1696,12 @@ func update_wheel_visuals(steering_input: float) -> void:
 		var toe := _effective_toe(i)
 		var wheel_camber := suspension_model.dynamic_wheel_camber(i)
 		var pivot := wheel_visual_pivots[i]
-		pivot.position = wheel_positions_local[i] + Vector3.UP * suspension_model.compression[i]
+		var hub_travel := (
+			unsprung_rig.compression_physical_m[i]
+			if i < unsprung_rig.hubs.size() and i < unsprung_rig.compression_physical_m.size()
+			else suspension_model.compression[i]
+		)
+		pivot.position = wheel_positions_local[i] + Vector3.UP * hub_travel
 		pivot.rotation.y = steer_angle + toe
 		if i < wheel_visuals.size():
 			# Spin first around local +X before tilting camber around +Z; YXZ Euler would precess the spindle.
@@ -1685,6 +1904,7 @@ func sample_contact_trace() -> Array[Dictionary]:
 				"verify": c.get("verify", {}),
 				"query_bump_m": float(c.get("query_bump_m", 0.0)),
 				"query_travel_m": float(c.get("query_travel_m", 0.0)),
+				"elevated_m": float(c.get("elevated_m", 0.0)),
 				"radial_deflection_m": unsprung_rig.radial_deflection_m[i] if i < unsprung_rig.radial_deflection_m.size() else 0.0,
 				"load_n": wheel_loads[i] if i < wheel_loads.size() else 0.0,
 			}

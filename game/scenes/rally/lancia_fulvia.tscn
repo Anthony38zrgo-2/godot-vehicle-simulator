@@ -35,7 +35,7 @@ rally_profile_path = "res://data/vehicles/lancia-fulvia/vehicle.json"
 asset_manifest_path = "res://assets/rally/lancia_fulvia/manifest.json"
 rally_collision_path = "res://assets/rally/lancia_fulvia/lancia_fulvia_collision.json"
 cockpit_camera_enabled = true
-dc_blob_shadow_size = Vector2(1.8, 4.1)
+dc_blob_shadow_size = Vector2(2.1, 4.6)
 
 [node name="Chassis" parent="." instance=ExtResource("2_chassis")]
 

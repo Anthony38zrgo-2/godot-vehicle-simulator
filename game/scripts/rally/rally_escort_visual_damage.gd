@@ -252,3 +252,26 @@ func repair_parts(parts: Array[String]) -> void:
 		for binding in _surfaces.get(part, []):
 			binding.mesh.set_surface_override_material(binding.surface, binding.get("healthy_override"))
 	_dirty = true
+
+
+func apply_dreamcast_shader(dc_shader: Shader, reflectivity: float, snap_strength: float) -> void:
+	var convert := func(src: Material) -> Material:
+		if src == null or src is ShaderMaterial or not (src is BaseMaterial3D):
+			return src
+		var base := src as BaseMaterial3D
+		if "window" in base.resource_name.to_lower() or "glass" in base.resource_name.to_lower():
+			return src
+		if base.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or base.cull_mode == BaseMaterial3D.CULL_DISABLED:
+			return src
+		return RallyEscortVehicle.make_dc_shader_material(base, dc_shader, reflectivity, snap_strength)
+
+	for part in _surfaces:
+		for binding in _surfaces[part]:
+			for key in ["material", "healthy_override", "lit", "off"]:
+				if not binding.has(key):
+					continue
+				var current: Material = binding[key]
+				if current == null and (key == "healthy_override" or key == "off"):
+					current = binding.mesh.get_active_material(binding.surface)
+				binding[key] = convert.call(current)
+	_dirty = true

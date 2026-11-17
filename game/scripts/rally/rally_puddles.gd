@@ -6,6 +6,7 @@ extends Node3D
 ## conformal adaptive mesh, prefabricated PNG masks, physical hydrodynamic retarding drag and aquaplaning.
 
 const WATER_SHADER = preload("res://scripts/rally/rally_puddle.gdshader")
+const WATER_DETAIL_TEX = preload("res://assets/rally/water/water_detail.jpg")
 
 const MASK_ROUND = preload("res://assets/vfx/puddles/puddle_round_organic.png")
 const MASK_KIDNEY = preload("res://assets/vfx/puddles/puddle_kidney_soft.png")
@@ -458,6 +459,7 @@ func build() -> void:
 				material.set_shader_parameter("shape_params", shape_params)
 				material.set_shader_parameter("max_depth_mm", instance_depth_mm)
 				material.set_shader_parameter("edge_softness", float(profile.get("edge_softness", 0.18)))
+				material.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
 
 				var mesh_instance := MeshInstance3D.new()
 				mesh_instance.name = "Puddle_%03d_%s" % [patches.size(), String(profile.id)]

@@ -181,6 +181,82 @@ static func solve_radial_impulse(
 	return {"impulse_ns": 0.5 * (lo + hi), "iterations": iters, "fallback": false, "opening": false}
 
 
+## Masa efectiva traslacional+rotacional del chasis proyectada sobre +Y en el anclaje local.
+static func effective_corner_mass_kg(chassis_body: RigidBody3D, local_mount: Vector3) -> float:
+	var m := maxf(float(chassis_body.mass), 1.0)
+	var r := local_mount - chassis_body.center_of_mass
+	var rxu := r.cross(Vector3.UP)
+	var iner := chassis_body.inertia
+	var ix := maxf(float(iner.x), m * 0.25)
+	var iz := maxf(float(iner.z), m * 0.25)
+	var inv_m := 1.0 / m + (rxu.x * rxu.x) / ix + (rxu.z * rxu.z) / iz
+	return 1.0 / maxf(inv_m, 1.0e-6)
+
+
+## Restricción unilateral de llanta (P1: d >= r_rim + holgura mínima) resuelta en
+## velocidad por impulso no negativo + sesgo suave de Baumgarte.
+## Al acercarse a `bump_limit_m`, acopla la masa efectiva de esa esquina del chasis
+## y reparte el impulso entre buje y chasis sin teletransportar cuerpos de Jolt.
+static func compute_unilateral_rim_constraint(
+	wheel_radius_m: float,
+	rim_radius_m: float,
+	deflection_m: float,
+	cos_angle: float,
+	dt_s: float,
+	hub_mass_kg: float,
+	corner_chassis_mass_kg: float,
+	hub_vel_ax: float,
+	anchor_vel_ax: float,
+	comp_physical_m: float,
+	bump_limit_m: float,
+	known_hub_accel_ax: float,
+	known_tire_normal_n: float,
+	gravity_ax: float,
+	max_force_n: float,
+) -> Dictionary:
+	var dt := maxf(float(dt_s), 0.00001)
+	var cos_a := clampf(float(cos_angle), 0.25, 1.0)
+	var rim_r := clampf(float(rim_radius_m), float(wheel_radius_m) * 0.40, float(wheel_radius_m) - 0.03)
+	var sidewall := maxf(float(wheel_radius_m) - rim_r, 0.03)
+	var min_rubber_m := clampf(sidewall * 0.12, 0.010, 0.022)
+	var max_deflection_m := maxf(sidewall - min_rubber_m, 0.02)
+	var signed_err := float(deflection_m) - max_deflection_m
+	if signed_err < -maxf(25.0 * dt * cos_a, 0.05):
+		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
+	var beta := 0.18
+	var v_target_ax := (
+		minf(2.0, (beta / dt) * signed_err) / cos_a
+		if signed_err >= 0.0
+		else signed_err / (dt * cos_a)
+	)
+	var hub_m := maxf(float(hub_mass_kg), 1.0)
+	var corner_m := maxf(float(corner_chassis_mass_kg), hub_m)
+	var bump_blend := clampf((float(comp_physical_m) - (float(bump_limit_m) - 0.015)) / 0.020, 0.0, 1.0)
+	var v_hub_after := float(hub_vel_ax) + float(known_hub_accel_ax) * dt
+	var m_coupled := hub_m + corner_m
+	var v_pair_0 := (hub_m * float(hub_vel_ax) + corner_m * float(anchor_vel_ax)) / m_coupled
+	var a_pair_known := (float(known_tire_normal_n) * cos_a) / m_coupled + float(gravity_ax)
+	var v_pair_after := v_pair_0 + a_pair_known * dt
+	var v_after := lerpf(v_hub_after, v_pair_after, bump_blend)
+	if v_after >= v_target_ax:
+		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
+	var m_eff := hub_m + corner_m * bump_blend
+	var dv_needed := v_target_ax - v_after
+	var j_total_ax := minf(m_eff * dv_needed, maxf(float(max_force_n), 0.0) * cos_a * dt)
+	if j_total_ax <= 1.0e-6:
+		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
+	var dv_clamped := j_total_ax / m_eff
+	var f_hub_ax := (hub_m * dv_clamped) / dt
+	var f_chas_ax := (corner_m * bump_blend * dv_clamped) / dt
+	var f_total_normal := (f_hub_ax + f_chas_ax) / cos_a
+	return {
+		"active": true,
+		"extra_hub_force_n": f_hub_ax,
+		"extra_chassis_force_n": f_chas_ax,
+		"extra_total_normal_n": f_total_normal,
+	}
+
+
 func substep_count() -> int:
 	return maxi(1, int(coupled_substeps))
 
@@ -510,6 +586,7 @@ func solve_coupled(
 			var rim_f := 0.0
 			var elas_f := 0.0
 			var visc_f := 0.0
+			var rim_radius_sub := float(radii[i]) * 0.58
 			if hit[i]:
 				var dist_pred: float = dist_0[i] - (Pc - Pc0).dot(up)
 				var road_comp: float = float(radii[i]) - dist_pred
@@ -518,6 +595,7 @@ func solve_coupled(
 				var axle_str := "front" if i < 2 else "rear"
 				var radial := TireRadialModel.evaluate(tires, axle_str, press_kpa[i], carc_c[i], hub_mass[i], defl, cspeed, opt_c[i], float(radial_viscous_scale))
 				F_n = maxf(float(radial.force_n), 0.0)
+				rim_radius_sub = float(radial.get("rim_radius_m", rim_radius_sub))
 				damp_c = float(radial.get("damping_ns_m", 0.0))
 				rim_f = float(radial.get("rim_stop_force_n", 0.0))
 				var eff := cspeed if cspeed >= 0.0 else cspeed * 0.45
@@ -528,9 +606,36 @@ func solve_coupled(
 				radial_dissipation_w[i] = float(radial.get("dissipation_w", 0.0))
 			# Dinámica predicha (semi-implícita): el buje solo se mueve en el
 			# eje de la guía; el chasis solo traslada (rotación congelada).
-			var f_hub_ax := -internal + F_n * cos_a[i]
+			var rad_hub_ax := F_n * cos_a[i]
+			var f_hub_ax := -internal + rad_hub_ax
 			var lat_vec: Vector3 = nrm[i] * F_n - up * (F_n * cos_a[i])
 			var f_chas: Vector3 = up * internal + lat_vec
+			if hit[i]:
+				var rim_sub := compute_unilateral_rim_constraint(
+					float(radii[i]),
+					rim_radius_sub,
+					defl,
+					cos_a[i],
+					h,
+					hub_mass[i],
+					effective_corner_mass_kg(chassis, neutral_positions[i]),
+					vh[i] - road_vel[i].dot(up),
+					anchor_ax[i] - road_vel[i].dot(up),
+					s_pred[i],
+					float(p.bump_m),
+					f_hub_ax / hub_mass[i] + grav_axial,
+					F_n,
+					grav_axial,
+					chassis_mass * grav_mag * 8.0,
+				)
+				if bool(rim_sub.get("active", false)):
+					var ex_hub_ax := float(rim_sub["extra_hub_force_n"])
+					var ex_chas_ax := float(rim_sub["extra_chassis_force_n"])
+					var ex_norm := float(rim_sub["extra_total_normal_n"])
+					rad_hub_ax += ex_hub_ax
+					f_hub_ax += ex_hub_ax
+					f_chas += up * ex_chas_ax + (nrm[i] * ex_norm - up * (ex_norm * cos_a[i]))
+					F_n += ex_norm
 			vh[i] = vh[i] + (f_hub_ax / hub_mass[i] + grav_axial) * h
 			zh[i] = zh[i] + vh[i] * h
 			Vc = Vc + (f_chas / chassis_mass + grav) * h
@@ -539,7 +644,7 @@ func solve_coupled(
 			var com_k: Vector3 = Pc + R0 * com_l
 			J_hub[i] = float(J_hub[i]) + f_hub_ax * h
 			J_susp_acc[i] = float(J_susp_acc[i]) + (-internal) * h
-			J_rad_acc[i] = float(J_rad_acc[i]) + F_n * cos_a[i] * h
+			J_rad_acc[i] = float(J_rad_acc[i]) + rad_hub_ax * h
 			J_chas_lin = J_chas_lin + f_chas * h
 			J_ang = J_ang + (mount_k - com_k).cross(f_chas) * h
 			mean_F[i] = float(mean_F[i]) + F_n
@@ -1017,11 +1122,47 @@ func solve(
 		var total_tire_vec := normal * applied_normal_force
 		var axial_tire_vec := up * total_tire_vec.dot(up)
 		var lateral_normal_vec := total_tire_vec - axial_tire_vec
+		var grav_ax := gravity_mag * Vector3.DOWN.dot(up)
+		var hub_m_i := maxf(hub.mass, 1.0)
+		var anchor_vel_world := state.linear_velocity + state.angular_velocity.cross(neutral_world[i] - com)
+		var rim_constraint := compute_unilateral_rim_constraint(
+			radii[i],
+			float(radial.get("rim_radius_m", radii[i] * 0.58)),
+			deflection,
+			cos_angle,
+			dt,
+			hub_m_i,
+			effective_corner_mass_kg(chassis, neutral_positions[i]),
+			relative_hub_vel.dot(up),
+			(anchor_vel_world - road_velocity).dot(up),
+			compression_physical_m[i],
+			bump_m,
+			(-internal_force_n + applied_normal_force * cos_angle) / hub_m_i + grav_ax,
+			applied_normal_force,
+			grav_ax,
+			maxf(chassis_mass, 100.0) * gravity_mag * 8.0,
+		)
+		var extra_chassis_axial := Vector3.ZERO
+		if bool(rim_constraint.get("active", false)):
+			var extra_hub_ax := float(rim_constraint["extra_hub_force_n"])
+			var extra_chas_ax := float(rim_constraint["extra_chassis_force_n"])
+			var extra_norm := float(rim_constraint["extra_total_normal_n"])
+			normal_loads[i] += extra_norm
+			suspension.contact_active[i] = normal_loads[i] > 0.0
+			axial_tire_vec += up * extra_hub_ax
+			extra_chassis_axial = up * extra_chas_ax
+			lateral_normal_vec += (normal * extra_norm) - up * (extra_norm * cos_angle)
+			tr["radial_rim_constraint_n"] = extra_norm
+			tr["hub_radial_axial_n"] = float(tr["hub_radial_axial_n"]) + extra_hub_ax
+			tr["J_radial_ns"] = float(tr["J_radial_ns"]) + extra_hub_ax * dt
+			tr["J_sum_known_ns"] = float(tr["J_susp_ns"]) + float(tr["J_radial_ns"]) + float(tr["J_gravity_ns"])
+		else:
+			tr["radial_rim_constraint_n"] = 0.0
 
 		if h_state != null:
 			h_state.apply_central_force(axial_tire_vec)
 		else:
 			hub.apply_central_force(axial_tire_vec)
-		state.apply_force(lateral_normal_vec, mount_offset)
+		state.apply_force(lateral_normal_vec + extra_chassis_axial, mount_offset)
 
 	return normal_loads

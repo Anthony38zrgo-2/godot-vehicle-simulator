@@ -1,0 +1,6 @@
+{
+  "vehicle_identifier": "ford_mustang_1967_289_2v",
+  "display_name": "1967 Ford Mustang Hardtop (289-2V)",
+  "geometry_policy": "native_glb",
+  "note": "Uses native measured GLB wheelbase (2.81144 m) and track (1.51192 m) from PalominoSpecial67_with_Driver.blend; historical Ford 65A specs (2.7432 m / 1.47574 m) used for powertrain, brakes, steering, and suspension frequencies."
+}

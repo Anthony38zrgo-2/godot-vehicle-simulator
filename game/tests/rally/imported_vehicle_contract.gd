@@ -83,8 +83,12 @@ func run() -> void:
 	var damage = car.get_node("VisualDamage")
 	check(damage._damaged.has("body") and damage._damaged.has("interior") and damage._healthy.size() == damage._damaged.size(), "native damage variants")
 	check(damage.broken_light != null and damage.broken_glass != null and damage.broken_glass_inside != null, "damage textures available")
-	check(damage._healthy.body.get_active_material(0).albedo_texture != null, "textured body")
-	check(damage._healthy.interior.get_active_material(0).albedo_texture != null, "textured cockpit")
+	var body_mat: Material = damage._healthy.body.get_active_material(0)
+	var body_tex = body_mat.get_shader_parameter("albedo_tex") if body_mat is ShaderMaterial else body_mat.albedo_texture
+	check(body_tex != null, "textured body")
+	var interior_mat: Material = damage._healthy.interior.get_active_material(0)
+	var interior_tex = interior_mat.get_shader_parameter("albedo_tex") if interior_mat is ShaderMaterial else interior_mat.albedo_texture
+	check(interior_tex != null, "textured cockpit")
 	var cfg: Dictionary = car.simulation.domains.damage.get("visual", {})
 	damage.register_impact(Vector3(-0.55, 0.45, -1.8), Vector3.BACK, 1.0, cfg)
 	damage.register_impact(Vector3(0, 0.5, 1.8), Vector3.FORWARD, 1.0, cfg)

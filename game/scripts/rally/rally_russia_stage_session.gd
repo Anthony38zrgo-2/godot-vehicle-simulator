@@ -1265,6 +1265,43 @@ func _refresh_stage_weather() -> void:
 	weather_sky_node.update_visuals(0.0)
 
 
+func _resolve_tca_rain_weather_index() -> int:
+	if weather_controller_node != null:
+		var seasons_var: Variant = weather_controller_node.get("seasons")
+		if seasons_var is Array and not (seasons_var as Array).is_empty():
+			var season: Variant = (seasons_var as Array)[0]
+			if season != null:
+				var weathers_var: Variant = season.get("weathers")
+				if weathers_var is Array:
+					var weathers := weathers_var as Array
+					for i in weathers.size():
+						var occ: Variant = weathers[i]
+						var w: Variant = occ.get("weather") if occ != null else null
+						if w == null:
+							continue
+						var precip: Variant = w.get("precipitation")
+						if precip == null:
+							continue
+						var particles: Variant = precip.get("particles")
+						var particles_path := (particles as PackedScene).resource_path.to_lower() if particles is PackedScene else ""
+						if not particles_path.contains("snow"):
+							return i
+	return 3
+
+
+func _activate_single_stage_rain(precip_mm_h: float) -> void:
+	var rain_idx := _resolve_tca_rain_weather_index()
+	weather_start_weather = rain_idx
+	if weather_controller_node != null and weather_controller_node.has_method("set_weather"):
+		weather_controller_node.call("set_weather", rain_idx)
+	weather_is_raining = true
+	if terrain_wetness != null:
+		terrain_wetness.wetness = clampf(precip_mm_h / 8.0, 0.30, 1.0)
+		terrain_wetness.set_rain_intensity(clampf(precip_mm_h / 10.0, 0.25, 1.0))
+		if terrain_wetness.has_method("apply_wetness"):
+			terrain_wetness.call("apply_wetness")
+
+
 func _apply_single_stage_weather(w: String) -> void:
 	var key := w.strip_edges().to_lower()
 	var aliases := {
@@ -1297,9 +1334,7 @@ func _apply_single_stage_weather(w: String) -> void:
 		var cover := float(climate.get("cumulus_coverage", 0.0))
 		var fog_density := float(climate.get("fog_density", 0.0))
 		if precip >= 0.4:
-			weather_start_weather = 2
-			if weather_controller_node != null and weather_controller_node.has_method("set_weather"):
-				weather_controller_node.call("set_weather", 2)
+			_activate_single_stage_rain(precip)
 		elif cover >= 0.45 or fog_density >= 0.002:
 			weather_start_weather = 1
 		else:
@@ -1317,9 +1352,7 @@ func _apply_single_stage_weather(w: String) -> void:
 		"medium_precipitation", "light_precipitation":
 			if weather_sky_node != null:
 				weather_sky_node.set_practice_weather(0.9, 0.003)
-			weather_start_weather = 2
-			if weather_controller_node != null and weather_controller_node.has_method("set_weather"):
-				weather_controller_node.call("set_weather", 2)
+			_activate_single_stage_rain(6.0 if state_id == "medium_precipitation" else 2.5)
 
 
 func _assign_wetness_zones(entry: Dictionary) -> void:
@@ -1397,7 +1430,7 @@ func _resolve_stage_weather_label() -> String:
 			return "Lluvia"
 		"heavy_precipitation":
 			return "Lluvia intensa"
-	if weather_is_raining or weather_start_weather == 2:
+	if weather_is_raining or weather_start_weather == _resolve_tca_rain_weather_index():
 		return "Lluvia"
 	if weather_start_weather == 1:
 		return "Nublado"

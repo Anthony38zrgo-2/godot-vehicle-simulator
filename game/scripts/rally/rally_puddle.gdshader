@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_burley, specular_schlick_ggx;
+render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_lambert, specular_disabled;
 
 uniform vec2 patch_size = vec2(1.0);
 varying vec2 patch_uv;
@@ -28,8 +28,10 @@ uniform float max_depth_mm = 48.0;
 uniform float fill = 0.0;
 uniform float rain = 0.0;
 uniform float edge_softness = 0.18;
-uniform vec4 shallow_color : source_color = vec4(0.065, 0.052, 0.038, 0.22);
-uniform vec4 deep_color : source_color = vec4(0.015, 0.010, 0.006, 0.88);
+uniform vec4 shallow_color : source_color = vec4(0.030, 0.065, 0.105, 0.22);
+uniform vec4 deep_color : source_color = vec4(0.008, 0.022, 0.048, 0.88);
+
+#include "res://scripts/rally/rally_water_detail.gdshaderinc"
 
 vec3 rotate_y(vec3 d, float yaw) {
 	return vec3(cos(yaw) * d.x + sin(yaw) * d.z, d.y, -sin(yaw) * d.x + cos(yaw) * d.z);
@@ -134,24 +136,14 @@ void fragment() {
 	float meniscus = smoothstep(0.17, 0.22, mask) * (1.0 - smoothstep(0.22, 0.28, mask));
 	float meniscus_glint = pow(meniscus, 2.0) * 0.30 * water_body;
 
-	// 4. Wave & Ripple Dynamics modulated by depth:
-	// Shallow puddles exhibit high-frequency capillary ripples; deep pools allow broad gravity waves.
-	vec3 n_mod = NORMAL;
-	if (water_body > 0.01 && rain > 0.02) {
-		float freq1 = mix(28.0, 14.0, depth_norm);
-		float freq2 = mix(42.0, 20.0, depth_norm);
-		vec2 uv1 = fract(UV * freq1 + vec2(0.12, 0.18)) - 0.5;
-		vec2 uv2 = fract(UV * freq2 + vec2(0.65, 0.42)) - 0.5;
-		float r1 = sin(length(uv1) * mix(52.0, 24.0, depth_norm) - TIME * 7.5);
-		float r2 = sin(length(uv2) * mix(68.0, 32.0, depth_norm) - TIME * 10.5);
-		float wave_amplitude = mix(0.020, 0.055, depth_norm);
-		float ripples = (r1 * 0.60 + r2 * 0.40) * rain * wave_amplitude * water_body;
-		float drops = rain_drop_ripples(world_position.xz, TIME, rain) * 0.035 * water_body;
-		n_mod = normalize(NORMAL + TANGENT * (ripples + drops) + BINORMAL * (ripples - drops));
-	}
-	NORMAL = n_mod;
+	// 4. Dreamcast-style smooth surface normal + scrolling water texture in ALBEDO (no micro-specular noise).
+	vec2 detail_flow = vec2(TIME) * detail_speed * vec2(0.7, 1.0);
+	vec3 wd = water_detail_sample(world_position.xz, detail_flow);
+	float dist_fade = 1.0 - smoothstep(55.0, 140.0, length(world_position - CAMERA_POSITION_WORLD));
+	float detail_k = clamp(detail_strength * water_body * dist_fade, 0.0, 1.0);
+	float pattern = smoothstep(0.40, 0.68, wd.x);
 
-	// Sky reflection lookup
+	// Sky reflection lookup (smooth planar/env-map feel)
 	vec3 normal_world = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	vec3 reflected = reflect(normalize(world_position - CAMERA_POSITION_WORLD), normal_world);
 	vec3 sky = horizon_color;
@@ -163,31 +155,28 @@ void fragment() {
 		sky = sky_tint.rgb;
 	}
 
-	// Fresnel re-calibrated for low chase-camera grazing angles (dot(N,V) ~ 0.07 to 0.22):
-	float view_angle = clamp(dot(NORMAL, VIEW) * 2.8, 0.0, 1.0);
-	float fresnel = pow(1.0 - view_angle, 3.0) * water_body;
+	float view_angle = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	float soft_fresnel = 1.0 - view_angle;
 
 	// Dark damp soil albedo modulated by rim cavity occlusion
 	vec3 soil_albedo = vec3(0.012, 0.009, 0.007) * cavity_occlusion;
 
-	// Water body color: clear amber/clay in shallow water, deep espresso mud in deep puddles
-	vec3 water_color = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
-	vec3 water_albedo = mix(water_color, sky * 0.55, fresnel * 0.32);
+	// Water body color: Dreamcast-style contrast between dark trough and sky-tinted pattern
+	vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
+	vec3 highlight = mix(base_puddle * 1.8 + sky * 0.16, sky * 0.44, 0.38);
+	vec3 water_color = mix(base_puddle * 0.72, highlight, pattern * detail_k);
+	vec3 water_albedo = mix(water_color, sky * 0.45, 0.04 + 0.10 * soft_fresnel);
 
 	ALBEDO = mix(soil_albedo, water_albedo, water_body);
-	EMISSION = (sky * fresnel * 0.32 + vec3(meniscus_glint)) * water_body;
+	EMISSION = (sky * (0.14 * pattern * detail_k + 0.04 * soft_fresnel) + vec3(meniscus_glint * 0.30)) * water_body;
 
-	// Roughness: damp mud = 0.48; shallow water = 0.08 (ground contact); deep water = 0.02 (liquid glass)
-	ROUGHNESS = mix(0.48, mix(0.08, 0.02, turbidity), water_body);
+	ROUGHNESS = 0.85;
 	METALLIC = 0.0;
-	SPECULAR = mix(0.22, 0.98, water_body);
+	SPECULAR = 0.0;
 
-	// Transparency:
-	// - Wet soil ring: alpha ~0.38 darkens the underlying road gravel/dirt texture
-	// - Shallow water (turbidity ~ 0.25): alpha ~0.24 (gravel & rocks underneath clearly visible)
-	// - Deep water (turbidity ~ 0.95): alpha ~0.88 (impenetrable muddy water that hides the road)
+	// Uniform Dreamcast-like water translucency over wet road rim
 	float soil_alpha = wet_soil * 0.38;
-	float base_water_alpha = mix(0.22, 0.88, turbidity);
-	float water_alpha = (base_water_alpha + fresnel * (1.0 - base_water_alpha) * 0.50) * water_body;
+	float base_water_alpha = mix(0.36, 0.66, turbidity);
+	float water_alpha = base_water_alpha * water_body;
 	ALPHA = max(soil_alpha, water_alpha) * smoothstep(0.0, 0.03, fill);
 }

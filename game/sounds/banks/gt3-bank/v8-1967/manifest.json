@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "ford_mustang_1967_289_2v",
+  "source": "Gran Turismo 3 / v8-1967 layered bank",
+  "engine_position": [0.0, 0.55, -0.95],
+  "exhaust_position": [0.0, 0.22, 2.25],
+  "whine": [
+    "res://sounds/banks/commons/whinelo.wav",
+    "res://sounds/banks/commons/whinehi.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer00_00800rpm.wav",
+      "reference": 800.0,
+      "lower": 0.0,
+      "upper": 2000.0,
+      "mode": "idle"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer01_02000rpm.wav",
+      "reference": 2000.0,
+      "lower": 800.0,
+      "upper": 3000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer02_03000rpm.wav",
+      "reference": 3000.0,
+      "lower": 2000.0,
+      "upper": 4000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer03_04000rpm.wav",
+      "reference": 4000.0,
+      "lower": 3000.0,
+      "upper": 5000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer04_05000rpm.wav",
+      "reference": 5000.0,
+      "lower": 4000.0,
+      "upper": 6500.0,
+      "mode": "drive"
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer00_00800rpm.wav",
+      "reference": 800.0,
+      "lower": 0.0,
+      "upper": 2000.0,
+      "mode": "idle"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer01_02000rpm.wav",
+      "reference": 2000.0,
+      "lower": 800.0,
+      "upper": 3000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer02_03000rpm.wav",
+      "reference": 3000.0,
+      "lower": 2000.0,
+      "upper": 4000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer03_04000rpm.wav",
+      "reference": 4000.0,
+      "lower": 3000.0,
+      "upper": 5000.0,
+      "mode": "drive"
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-1967/layer04_05000rpm.wav",
+      "reference": 5000.0,
+      "lower": 4000.0,
+      "upper": 6500.0,
+      "mode": "drive"
+    }
+  ]
+}

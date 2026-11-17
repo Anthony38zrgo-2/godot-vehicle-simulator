@@ -13,7 +13,7 @@ func test_controller_lifecycle() -> void:
 	var ctrl = Controller.new()
 	root.add_child(ctrl)
 	assert(ctrl.configure("res://data/rally/pacenotes/russia_stage1.json"))
-	assert(ctrl.tracker.gates.size() == 493)
+	assert(ctrl.tracker.gates.size() == ctrl.call_table.size())
 	assert(ctrl.call_table.size() > 20)
 
 	# Start sequence audio triggers

@@ -1,0 +1,507 @@
+{
+  "chassis": {
+    "center_of_gravity_height_offset": -0.176701,
+    "front_weight_distribution": 0.56,
+    "inertia_multipliers": {
+      "x": 1.15,
+      "y": 1.22,
+      "z": 1.05
+    },
+    "vehicle_mass": 1308.0,
+    "vehicle_mass_excludes_wheel_assemblies": true,
+    "vehicle_name": "Ford Mustang Hardtop 1967 289 V8 2V (65A)",
+    "target_cg_z_m": 0.54
+  },
+  "geometry": {
+    "front_track": 1.51192,
+    "rear_track": 1.51192,
+    "wheelbase": 2.81144,
+    "front_axle_z": -1.40572,
+    "rear_axle_z": 1.40572
+  },
+  "physical_mass_inventory": {
+    "schema_version": 2,
+    "base_budget_kilograms": 1308.0,
+    "components": [
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "body_unibody_65a",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.58,
+            "z": 0.1
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                340.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                420.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                145.0
+              ]
+            ]
+          },
+          "mass_kilograms": 470.0,
+          "provenance": "65A hardtop unibody shell, doors, hood, trunk, glass"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "interior_and_trim",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.54,
+            "z": 0.15
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                48.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                62.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                34.0
+              ]
+            ]
+          },
+          "mass_kilograms": 118.0,
+          "provenance": "Factory street seats, dashboard, trim, carpets"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "engine_289_2v_v8",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.52,
+            "z": -1.18
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                26.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                34.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                22.0
+              ]
+            ]
+          },
+          "mass_kilograms": 242.0,
+          "provenance": "Ford Windsor 289-2V V8 cast-iron block/heads, intake, radiator"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "transmission_3spd_and_shaft",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.36,
+            "z": -0.45
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                3.5,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                11.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                10.5
+              ]
+            ]
+          },
+          "mass_kilograms": 56.0,
+          "provenance": "3-speed manual transmission, bellhousing, clutch, driveshaft"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_sla_and_steering",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.32,
+            "z": -1.36
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                14.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                12.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                18.0
+              ]
+            ]
+          },
+          "mass_kilograms": 68.0,
+          "provenance": "Front SLA suspension, 245 lb/in coils, 17.5mm bar, manual steering box"
+        },
+        "unsprung_mass_distribution_kg": [
+          12.0,
+          12.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_live_axle_leaf",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.31,
+            "z": 1.38
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                18.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                24.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                14.0
+              ]
+            ]
+          },
+          "mass_kilograms": 98.0,
+          "provenance": "Hotchkiss 8-inch open rear axle 2.79:1 and 4-leaf springs"
+        },
+        "unsprung_mass_distribution_kg": [
+          0.0,
+          0.0,
+          36.0,
+          36.0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "fuel_system_and_spare",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.42,
+            "z": 1.75
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                4.5,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                6.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                5.5
+              ]
+            ]
+          },
+          "mass_kilograms": 36.0,
+          "provenance": "Empty 16-gal tank, exhaust piping, spare wheel"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "bumpers_and_battery",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.44,
+            "z": -0.1
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                16.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                95.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                88.0
+              ]
+            ]
+          },
+          "mass_kilograms": 60.0,
+          "provenance": "Chrome front/rear bumpers, battery, wiring"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "driver_and_copilot",
+        "properties": {
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.62,
+            "z": 0.25
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                28.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                32.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                18.0
+              ]
+            ]
+          },
+          "mass_kilograms": 160.0,
+          "provenance": "Driver + co-driver seated occupants (80 kg each)"
+        }
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "frontleft wheel assembly",
+        "properties": {
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.65,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.42,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.42
+              ]
+            ]
+          },
+          "mass_kilograms": 19.0,
+          "name": "wheel_frontleft",
+          "provenance": "14x5J stamped steel wheel + 6.95x14 4PR bias-ply tire"
+        },
+        "rotating_wheel": "FrontLeft"
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "frontright wheel assembly",
+        "properties": {
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.65,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.42,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.42
+              ]
+            ]
+          },
+          "mass_kilograms": 19.0,
+          "name": "wheel_frontright",
+          "provenance": "14x5J stamped steel wheel + 6.95x14 4PR bias-ply tire"
+        },
+        "rotating_wheel": "FrontRight"
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "rearleft wheel assembly",
+        "properties": {
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.65,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.42,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.42
+              ]
+            ]
+          },
+          "mass_kilograms": 19.0,
+          "name": "wheel_rearleft",
+          "provenance": "14x5J stamped steel wheel + 6.95x14 4PR bias-ply tire"
+        },
+        "rotating_wheel": "RearLeft"
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "rearright wheel assembly",
+        "properties": {
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.65,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.42,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.42
+              ]
+            ]
+          },
+          "mass_kilograms": 19.0,
+          "name": "wheel_rearright",
+          "provenance": "14x5J stamped steel wheel + 6.95x14 4PR bias-ply tire"
+        },
+        "rotating_wheel": "RearRight"
+      }
+    ]
+  }
+}

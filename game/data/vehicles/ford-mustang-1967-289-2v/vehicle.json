@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "vehicle_identifier": "ford_mustang_1967_289_2v",
+  "profile_name": "Ford Mustang Hardtop 1967 289 V8 2V - street",
+  "units": "SI",
+  "coordinate_contract": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y"
+  },
+  "domains": {
+    "aerodynamics": "aerodynamics.json",
+    "brakes": "brakes.json",
+    "chassis": "chassis.json",
+    "coupled_world": "coupled_world.json",
+    "damage": "damage.json",
+    "driving_assistance": "driving_assistance.json",
+    "fuel": "fuel.json",
+    "powertrain": "powertrain.json",
+    "steering": "steering.json",
+    "suspension": "suspension.json",
+    "suspension_filters": "suspension_filters.json",
+    "tires": "tires.json",
+    "underfloor_contact": "underfloor_contact.json"
+  }
+}

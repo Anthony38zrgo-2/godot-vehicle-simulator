@@ -17,6 +17,7 @@ extends Node3D
 const DATA_PATH := "res://data/rally/kenya_rivers.json"
 const SNAPSHOT_VERSION := 1
 const RIVER_SHADER := preload("res://scripts/rally/rally_river.gdshader")
+const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
 const BUCKET_CELL_M := 8.0
 const MAX_BAKE_SAMPLES := 4096
 
@@ -237,11 +238,13 @@ func _register_channel(cfg: Dictionary, visual_root: Node, route_total: float) -
 		"tau_drain_s": tau_drain,
 		"activation_threshold_mm_h": threshold,
 		"flow_dir": Vector2(0.3, 0.95),
+		"flow_speed": clampf(float(cfg.get("flow_speed", 0.58)), 0.0, 5.0),
 		"edge_feather_m": maxf(float(cfg.get("edge_feather_m", 0.06)), 0.005),
 		"drag_scale": maxf(float(cfg.get("drag_scale", 1.25)), 0.1),
 		"rainy_start_fraction": clampf(float(cfg.get("rainy_start_fraction", 0.5)), 0.0, 1.0),
 		"settle_tolerance_m": maxf(float(cfg.get("settle_tolerance_m", 0.001)), 0.0001),
 		"base_cx": 0.0, "base_cz": 0.0, "base_b0": 0.0, "base_gx": 0.0, "base_gz": 0.0,
+		"visual_base_offset_m": 0.0,
 		"min_x": INF, "min_z": INF, "max_x": -INF, "max_z": -INF,
 		"rise_m": 0.0, "target_m": 0.0, "last_rain_mm_h": 0.0,
 		"nodes": [], "orig_y": [], "override_info": [], "materials": [],
@@ -299,6 +302,7 @@ func add_test_channel(cfg: Dictionary) -> Dictionary:
 		"tau_drain_s": float(cfg.get("tau_drain_s", 120.0)),
 		"activation_threshold_mm_h": cfg.get("activation_threshold_mm_h", null),
 		"flow_dir": Vector2(0.3, 0.95),
+		"flow_speed": clampf(float(cfg.get("flow_speed", 0.58)), 0.0, 5.0),
 		"edge_feather_m": 0.06,
 		"drag_scale": 1.25,
 		"rainy_start_fraction": 0.5,
@@ -306,6 +310,7 @@ func add_test_channel(cfg: Dictionary) -> Dictionary:
 		"base_cx": 0.0, "base_cz": 0.0,
 		"base_b0": float(cfg.get("base_y", 0.0)),
 		"base_gx": 0.0, "base_gz": 0.0,
+		"visual_base_offset_m": 0.0,
 		"min_x": -5.0, "min_z": -5.0, "max_x": 5.0, "max_z": 5.0,
 		"rise_m": 0.0, "target_m": 0.0, "last_rain_mm_h": 0.0,
 		"nodes": [], "orig_y": [], "override_info": [], "materials": [],
@@ -449,13 +454,16 @@ func _fit_base_plane(ch: Dictionary) -> void:
 	ch["base_gz"] = clampf(gz, -0.25, 0.25)
 	if ch.has("level_anchor"):
 		# Anclar el plano al nivel medido en el vado: exacto donde pisan las
-		# ruedas; la pendiente de la malla se conserva alrededor.
+		# ruedas; la pendiente de la malla se conserva alrededor y se guarda
+		# el desplazamiento vertical para alinear también el shader.
 		var an: Dictionary = ch["level_anchor"]
 		var px := float(an.get("x", cx))
 		var pz := float(an.get("z", cz))
 		var py := float(an.get("y", cy))
 		var plane_at := cy + float(ch["base_gx"]) * (px - cx) + float(ch["base_gz"]) * (pz - cz)
-		ch["base_b0"] = cy + (py - plane_at)
+		var delta_y := py - plane_at
+		ch["base_b0"] = cy + delta_y
+		ch["visual_base_offset_m"] = delta_y
 	if bool(ch.get("has_footprint", false)):
 		return
 	ch["min_x"] = INF
@@ -580,10 +588,9 @@ func _inside_coverage(ch: Dictionary, x: float, z: float) -> bool:
 
 
 func _bake_bed_field(ch: Dictionary) -> void:
-	## Campo de altura del lecho sobre la huella: rejilla local con máscara de
-	## validez y altura en metros. El tablero de puentes se excluye del
-	## horneado (se conserva para la consulta de contacto del coche).
-	var res := maxi(8, int(ch.get("bed_res", 32)))
+	## Campo de altura del lecho sobre la huella: rejilla proporcional con
+	## celda fija (~1 m, acotada por MAX_BAKE_SAMPLES) para evitar bloques
+	## alargados en ríos largos. El tablero de puentes se excluye del horneado.
 	var space = _space()
 	var minx := float(ch["min_x"])
 	var minz := float(ch["min_z"])
@@ -591,18 +598,24 @@ func _bake_bed_field(ch: Dictionary) -> void:
 	var maxz := float(ch["max_z"])
 	if not is_finite(minx) or maxx <= minx:
 		return
+	var span_x := maxf(maxx - minx, 0.5)
+	var span_z := maxf(maxz - minz, 0.5)
+	var cell_m := maxf(1.0, sqrt((span_x * span_z) / float(MAX_BAKE_SAMPLES)))
+	var res_x := clampi(int(round(span_x / cell_m)), 8, 256)
+	var res_z := clampi(int(round(span_z / cell_m)), 8, 256)
+	var total_samples := res_x * res_z
 	var heights := PackedFloat32Array()
 	var mask := PackedByteArray()
-	heights.resize(res * res)
-	mask.resize(res * res)
+	heights.resize(total_samples)
+	mask.resize(total_samples)
 	var bed_min := INF
 	var bed_max := -INF
 	var base := float(ch["base_b0"])
-	for gz in res:
-		for gx in res:
-			var idx := gz * res + gx
-			var x := lerpf(minx, maxx, (float(gx) + 0.5) / float(res))
-			var z := lerpf(minz, maxz, (float(gz) + 0.5) / float(res))
+	for gz in res_z:
+		for gx in res_x:
+			var idx := gz * res_x + gx
+			var x := lerpf(minx, maxx, (float(gx) + 0.5) / float(res_x))
+			var z := lerpf(minz, maxz, (float(gz) + 0.5) / float(res_z))
 			var h := base - 0.25
 			var ok := true
 			if space != null:
@@ -629,7 +642,7 @@ func _bake_bed_field(ch: Dictionary) -> void:
 	for i in mask.size():
 		if mask[i] == 1:
 			valid_count += 1
-	if valid_count < int(float(res * res) * 0.05):
+	if valid_count < int(float(total_samples) * 0.05):
 		# Sin horneado útil (p. ej. sin colisión bajo la huella): lecho
 		# uniforme bajo la base para no romper la lámina.
 		for i in heights.size():
@@ -642,12 +655,14 @@ func _bake_bed_field(ch: Dictionary) -> void:
 		bed_max = base + 0.1
 	ch["bed_min_y"] = bed_min
 	ch["bed_max_y"] = bed_max
+	ch["bed_res_x"] = res_x
+	ch["bed_res_z"] = res_z
 	ch["bed_heights"] = heights
 	ch["bed_valid"] = mask
-	var img := Image.create(res, res, false, Image.FORMAT_RG8)
-	for gz in res:
-		for gx in res:
-			var idx := gz * res + gx
+	var img := Image.create(res_x, res_z, false, Image.FORMAT_RG8)
+	for gz in res_z:
+		for gx in res_x:
+			var idx := gz * res_x + gx
 			var r := clampf((heights[idx] - bed_min) / maxf(bed_max - bed_min, 0.001), 0.0, 1.0)
 			img.set_pixel(gx, gz, Color(r, 1.0 if mask[idx] == 1 else 0.0, 0.0, 1.0))
 	ch["bed_tex"] = ImageTexture.create_from_image(img)
@@ -683,6 +698,8 @@ func _apply_materials(ch: Dictionary) -> void:
 			# a la vez la lámina importada y la de cobertura.
 			var sm := ShaderMaterial.new()
 			sm.shader = RIVER_SHADER
+			sm.render_priority = -1
+			sm.set_meta("rally_dynamic_water", true)
 			(ch["override_info"] as Array).append([inst, si, mat])
 			inst.set_surface_override_material(si, sm)
 			(ch["materials"] as Array).append(sm)
@@ -702,8 +719,11 @@ func _update_channel_material(ch: Dictionary) -> void:
 		m.set_shader_parameter("bed_min_y", float(ch.get("bed_min_y", 0.0)))
 		m.set_shader_parameter("bed_max_y", float(ch.get("bed_max_y", 1.0)))
 		m.set_shader_parameter("edge_feather_m", float(ch.get("edge_feather_m", 0.06)))
+		m.set_shader_parameter("rise_m", float(ch.get("visual_base_offset_m", 0.0)) + float(ch.get("rise_m", 0.0)))
 		m.set_shader_parameter("flow_dir", ch.get("flow_dir", Vector2(0.3, 0.95)))
+		m.set_shader_parameter("flow_speed", float(ch.get("flow_speed", 0.58)))
 		m.set_shader_parameter("rain", clampf(float(ch.get("last_rain_mm_h", 0.0)) / 10.0, 0.0, 1.0))
+		m.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
 
 
 func liquid_rain_now(progress_m: float) -> float:
@@ -788,16 +808,12 @@ func _step(h: float) -> void:
 
 
 func _update_render() -> void:
+	## La crecida vertical se aplica en el shader de río (uniform rise_m) en lugar
+	## de desplazar el nodo MeshInstance3D, porque en Kenia river1_1/river2_1
+	## comparten Track_Road_And_Terrain con toda la carretera y el terreno.
 	for ch in channels:
 		if not bool((ch as Dictionary).get("active", false)):
 			continue
-		var rise := float((ch as Dictionary).get("rise_m", 0.0))
-		var nodes: Array = (ch as Dictionary).get("nodes", [])
-		var orig: Array = (ch as Dictionary).get("orig_y", [])
-		for i in mini(nodes.size(), orig.size()):
-			var mi := nodes[i] as MeshInstance3D
-			if is_instance_valid(mi):
-				mi.position.y = float(orig[i]) + rise
 		_update_channel_material((ch as Dictionary))
 
 
