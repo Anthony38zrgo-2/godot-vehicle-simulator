@@ -661,10 +661,13 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 	var throttle := clampf(float(acoustic.get("throttle", 0.0)), 0.0, 1.0)
 	var load_val := clampf(float(acoustic.get("load", 0.0)), -1.0, 1.0)
 	var positive_load := maxf(load_val, 0.0)
+	var signed_torque := clampf(float(acoustic.get("normalized_torque", load_val)), -1.0, 1.0)
+	# Solo desplazamos el timbre hacia arriba bajo par positivo de aceleración; en ralentí o retención no expulsamos la capa idle.
+	var timbre_load := maxf(signed_torque, 0.0) if throttle > 0.01 else 0.0
 	var rpm_norm := clampf(revolutions / 7500.0, 0.0, 1.0)
 
 	# Desplazamos la lectura de pesos bajo carga para abrir el timbre sin alterar el pitch_scale
-	var lookup_rpm := revolutions + LOAD_TIMBRE_RPM_OFFSET * positive_load
+	var lookup_rpm := revolutions + LOAD_TIMBRE_RPM_OFFSET * timbre_load
 	var weights := layer_weights(voices, lookup_rpm)
 
 	var energy := 0.0
@@ -709,6 +712,8 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 		var view_gain := view_exhaust_gain if voice.is_exhaust else view_engine_gain
 		voice.player.volume_linear = (voice.blend_weight / normalization) * voice.layer_level * voice.level_gain * view_gain * ENGINE_GAIN_BOOST * ENGINE_LAYER_TRIM * camera_distance_compensation(voice.player)
 		voice.player.pitch_scale = clampf(revolutions / voice.reference_rpm, 0.5, 3.5)
+		if not voice.player.playing and not voice.player.stream_paused:
+			voice.player.play()
 
 
 func sample_weight(revolutions: float, reference: float, lower: float, upper: float) -> float:

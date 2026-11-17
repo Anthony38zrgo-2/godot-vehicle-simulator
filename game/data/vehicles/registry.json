@@ -143,7 +143,7 @@
       "Proving": "ford_mustang_1967_289_2v_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
       "SoundBank": "gt3-bank/v8-1967",
-      "ValidateSoundHashes": false,
+      "ValidateSoundHashes": true,
       "DisplayName": "Ford Mustang 1967 (289-2V)"
     }
   }
