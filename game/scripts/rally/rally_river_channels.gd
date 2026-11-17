@@ -20,6 +20,10 @@ const RIVER_SHADER := preload("res://scripts/rally/rally_river.gdshader")
 const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
 const BUCKET_CELL_M := 8.0
 const MAX_BAKE_SAMPLES := 4096
+const MAX_FIT_SAMPLES := 16384
+# Elevación de render de la capa de agua respecto a la lámina importada.
+# Solo para ganar el test de profundidad; no cuenta en la profundidad.
+const WATER_RENDER_BIAS_M := 0.05
 
 var stage_id: String = ""
 var valid: bool = false
@@ -31,6 +35,8 @@ var tca_node: Node = null
 var practice_choice: String = "random"
 var practice_rain_override: float = -1.0
 var initial_state: Dictionary = {}
+# Mallas importadas por instance_id (para la partición por cauce).
+var _mesh_registry: Dictionary = {}
 
 # channel runtime: {
 #  id, kind, active, pilot, surfaces, progress_m, max_rise_m, reference_rain_mm_h,
@@ -39,6 +45,7 @@ var initial_state: Dictionary = {}
 #  base_cx, base_cz, base_b0, base_gx, base_gz,
 #  min_x, min_z, max_x, max_z, rise_m, target_m, last_rain_mm_h,
 #  nodes: Array[MeshInstance3D], orig_y: Array[float],
+#  claimed_surfaces: Dictionary (instance_id -> Array[int] de surface_idx),
 #  override_info: Array (mesh, surface_idx, prev_material),
 #  materials: Array[ShaderMaterial], tris: Array (a,b,c Vector2),
 #  buckets: Dictionary, bed_tex: ImageTexture, bed_min_y, bed_max_y,
@@ -105,10 +112,25 @@ func configure(for_stage_id: String, visual_root: Node, weather_provider, choice
 		if str((cfg as Dictionary).get("stage_id", "")) != for_stage_id:
 			continue
 		_register_channel((cfg as Dictionary).duplicate(true), visual_root, route_total)
-	_resolve_instance_ownership()
+	# 1) Geometría por cauce sobre la malla importada: plano base, índice de
+	# triángulos (física) y lecho horneado (corte de la lámina).
 	for ch in channels:
-		if bool((ch as Dictionary).get("active", false)) and not ((ch as Dictionary).get("nodes", []) as Array).is_empty():
-			_apply_materials((ch as Dictionary))
+		if not bool((ch as Dictionary).get("active", false)):
+			continue
+		if ((ch as Dictionary).get("nodes", []) as Array).is_empty():
+			continue
+		_prepare_channel_geometry((ch as Dictionary))
+	# 2) Partir la geometría de agua por cauce: cada cauce recibe solo los
+	# triángulos que moja y el resto conserva el material importado.
+	_partition_water_surfaces()
+	_resolve_instance_ownership()
+	# 3) Material dinámico sobre las mallas propias de cada cauce.
+	for ch in channels:
+		if not bool((ch as Dictionary).get("active", false)):
+			continue
+		if ((ch as Dictionary).get("nodes", []) as Array).is_empty():
+			continue
+		_apply_materials((ch as Dictionary))
 	valid = true
 	return true
 
@@ -134,58 +156,175 @@ func _inside_footprint(ch: Dictionary, x: float, z: float, margin: float) -> boo
 		and z >= float(ch["min_z"]) - margin and z <= float(ch["max_z"]) + margin
 
 
-func _resolve_instance_ownership() -> void:
-	## Varias secciones pueden compartir MeshInstances: cada instancia la
-	## desplaza un solo cauce (el de la huella que contiene su centroide; si
-	## no, el más cercano). La cobertura física ya va particionada por
-	## huella, así que no hay doble desplazamiento ni escalones por ello.
-	var owned := {}
+func _partition_water_surfaces() -> void:
+	## Prepara una CAPA de agua dinámica por cauce sobre la lámina importada.
+	##
+	## La lámina importada (la cinta de río que trae el GLB) se conserva tal
+	## cual: es la superficie real del agua y con ella el cauce se ve river
+	## en todo su recorrido. Encima, cada cauce dibuja su propia capa con el
+	## shader de río, que solo pinta donde el lecho está por debajo de la
+	## lámina (las hondonadas: vados y canales). Así el río seco conserva su
+	## aspecto original y solo la parte con agua real se anima y reacciona a
+	## la lluvia.
+	##
+	## Antes la capa sustituía al material importado de toda la superficie,
+	## así que el shader (que descarta donde no hay agua) dejaba el río en
+	## negro fuera de la huella del cauce: de ahí que se viera "seco de
+	## golpe" en tramos enteros.
+	##
+	## Reparto de triángulos por huella (centroide, franja común de 4 m; a
+	## igualdad, el cauce más cercano). Un cauce sin huella que lo contenga
+	## no aporta capa, y sus triángulos quedan solo con la lámina importada.
+	var groups := {}
 	for ch in channels:
 		if not bool((ch as Dictionary).get("active", false)):
 			continue
+		var claimed: Dictionary = (ch as Dictionary).get("claimed_surfaces", {})
+		for key in claimed.keys():
+			for si in (claimed[key] as Array):
+				var gkey := "%d:%d" % [int(key), int(si)]
+				if not groups.has(gkey):
+					groups[gkey] = {"instance_id": int(key), "surface": int(si), "owners": []}
+				((groups[gkey] as Dictionary)["owners"] as Array).append(ch as Dictionary)
+	for gkey in groups.keys():
+		var g: Dictionary = groups[gkey]
+		var owners: Array = g["owners"]
+		var inst: MeshInstance3D = _mesh_registry.get(int(g["instance_id"]), null)
+		if inst == null or not is_instance_valid(inst):
+			continue
+		_partition_surface(inst, int(g["surface"]), owners)
+
+
+func _partition_surface(inst: MeshInstance3D, si: int, owners: Array) -> void:
+	## Capa de agua por cauce sobre la lámina importada.
+	##
+	## La lámina importada (la cinta de río que trae el GLB) se conserva tal
+	## cual: es el aspecto original del cauce y cubre todo el río. Encima,
+	## cada cauce dibuja su propia capa con el shader de río, que solo pinta
+	## donde el lecho está por debajo de la lámina (las hondonadas: vados y
+	## canales).
+	##
+	## Antes la capa sustituía al material importado de toda la superficie,
+	## así que el shader (que descarta donde no hay agua) dejaba el río sin
+	## textura dentro de la huella del cauce: de ahí que se viera "seco de
+	## golpe" en tramos enteros.
+	##
+	## La geometría de la capa es una MALLA DE COBERTURA sobre la huella, no
+	## la cinta importada: la cinta es un zigzag con huecos y el agua necesita
+	## superficie continua para cubrir la hondonada.
+	for owner in owners:
+		var ch: Dictionary = owner
+		var coverage := _build_coverage_mesh(ch, inst, si)
+		if coverage == null:
+			continue
+		var part := MeshInstance3D.new()
+		part.name = "%s_water_%s" % [inst.name, str(ch.get("id", ""))]
+		part.transform = inst.transform
+		part.layers = inst.layers
+		part.visible = inst.visible
+		part.cast_shadow = inst.cast_shadow
+		part.mesh = coverage
+		var parent := inst.get_parent()
+		if parent == null:
+			continue
+		parent.add_child(part)
+		var ch_nodes: Array = ch.get("nodes", [])
+		var ch_orig: Array = ch.get("orig_y", [])
+		var ch_claimed: Dictionary = ch.get("claimed_surfaces", {})
+		# La malla importada sale de la lista: su material no se toca y solo
+		# la capa de este cauce lleva el shader de río.
 		var keep_nodes: Array = []
 		var keep_orig: Array = []
-		var nodes: Array = (ch as Dictionary).get("nodes", [])
-		var orig: Array = (ch as Dictionary).get("orig_y", [])
-		for i in mini(nodes.size(), orig.size()):
-			var mi := nodes[i] as MeshInstance3D
-			if mi == null or not is_instance_valid(mi):
+		for i in ch_nodes.size():
+			if ch_nodes[i] == inst:
 				continue
-			var key := mi.get_instance_id()
-			var center: Vector3 = (mi as Node3D).global_transform.origin
-			if owned.has(key):
-				continue
-			if _instance_claimed_by_other(ch, mi, center):
-				continue
-			owned[key] = str((ch as Dictionary).get("id", ""))
-			keep_nodes.append(mi)
-			keep_orig.append(orig[i])
-		(ch as Dictionary)["nodes"] = keep_nodes
-		(ch as Dictionary)["orig_y"] = keep_orig
+			keep_nodes.append(ch_nodes[i])
+			keep_orig.append(ch_orig[i] if i < ch_orig.size() else 0.0)
+		ch_claimed.erase(inst.get_instance_id())
+		keep_nodes.append(part)
+		keep_orig.append(part.position.y)
+		ch_claimed[part.get_instance_id()] = [0]
+		ch["nodes"] = keep_nodes
+		ch["orig_y"] = keep_orig
+		ch["claimed_surfaces"] = ch_claimed
 
 
-func _instance_claimed_by_other(me: Dictionary, mi: MeshInstance3D, center: Vector3) -> bool:
-	var best: Dictionary = me
-	var best_d := INF
+func _build_coverage_mesh(ch: Dictionary, inst: MeshInstance3D, si: int) -> Mesh:
+	## Malla de cobertura del cauce: rejilla sobre la huella a la cota del
+	## plano base. El shader recorta contra el lecho horneado, así que solo
+	## queda pintada el agua real. La resolución sigue la del lecho (una
+	## celda por celda del campo de alturas).
+	var rx := int(ch.get("bed_res_x", 0))
+	var rz := int(ch.get("bed_res_z", 0))
+	if rx < 2 or rz < 2:
+		return null
+	var minx := float(ch["min_x"])
+	var minz := float(ch["min_z"])
+	var maxx := float(ch["max_x"])
+	var maxz := float(ch["max_z"])
+	if not is_finite(minx) or maxx <= minx:
+		return null
+	var to_local := inst.global_transform.affine_inverse()
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var idx := PackedInt32Array()
+	for gz in rz + 1:
+		for gx in rx + 1:
+			var x := lerpf(minx, maxx, float(gx) / float(rx))
+			var z := lerpf(minz, maxz, float(gz) / float(rz))
+			verts.append(to_local * Vector3(x, base_level_at(ch, x, z), z))
+			norms.append(Vector3.UP)
+			uvs.append(Vector2(float(gx) / float(rx), float(gz) / float(rz)))
+	for gz in rz:
+		for gx in rx:
+			var i0 := gz * (rx + 1) + gx
+			var i1 := i0 + 1
+			var i2 := i0 + rx + 1
+			var i3 := i2 + 1
+			idx.append(i0)
+			idx.append(i2)
+			idx.append(i1)
+			idx.append(i1)
+			idx.append(i2)
+			idx.append(i3)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = norms
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = idx
+	var out := ArrayMesh.new()
+	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	# Material provisional con el nombre de la superficie importada: el
+	# cotejo por material lo sustituye por el shader de río.
+	var src_mat := inst.mesh.surface_get_material(si)
+	var placeholder := StandardMaterial3D.new()
+	if src_mat is BaseMaterial3D:
+		placeholder.resource_name = (src_mat as BaseMaterial3D).resource_name
+		placeholder.albedo_color = Color(0, 0, 0, 0)
+		placeholder.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	out.surface_set_material(0, placeholder)
+	return out
+
+
+func _resolve_instance_ownership() -> void:
+	## Verificación de mallas: la cobertura por cauce deja a cada cauce con su
+	## propia malla de agua, así que no puede haber dos cauces sobre la misma
+	## malla. Se avisa si lo hubiera.
+	var seen := {}
 	for ch in channels:
 		if not bool((ch as Dictionary).get("active", false)):
 			continue
-		if not ((ch as Dictionary).get("nodes", []) as Array).has(mi):
-			continue
-		var d := INF
-		if bool((ch as Dictionary).get("has_footprint", false)):
-			var cx := (float((ch as Dictionary)["min_x"]) + float((ch as Dictionary)["max_x"])) * 0.5
-			var cz := (float((ch as Dictionary)["min_z"]) + float((ch as Dictionary)["max_z"])) * 0.5
-			if _inside_footprint((ch as Dictionary), center.x, center.z, 0.0):
-				d = -1.0
-			else:
-				d = Vector2(center.x - cx, center.z - cz).length()
-		else:
-			d = 0.0
-		if d < best_d:
-			best_d = d
-			best = (ch as Dictionary)
-	return best != me
+		for mi in ((ch as Dictionary).get("nodes", []) as Array):
+			var part := mi as MeshInstance3D
+			if part == null or not is_instance_valid(part):
+				continue
+			var key := part.get_instance_id()
+			if seen.has(key):
+				_log_channel(str((ch as Dictionary).get("id", "")), "malla compartida con otro cauce: se conserva la primera")
+				continue
+			seen[key] = str((ch as Dictionary).get("id", ""))
 
 
 func _route_total_m() -> float:
@@ -248,6 +387,7 @@ func _register_channel(cfg: Dictionary, visual_root: Node, route_total: float) -
 		"min_x": INF, "min_z": INF, "max_x": -INF, "max_z": -INF,
 		"rise_m": 0.0, "target_m": 0.0, "last_rain_mm_h": 0.0,
 		"nodes": [], "orig_y": [], "override_info": [], "materials": [],
+		"claimed_surfaces": {}, "surface_min_y": 0.0, "surface_max_y": 0.0,
 		"tris": [], "buckets": {},
 		"bed_tex": null, "bed_min_y": 0.0, "bed_max_y": 1.0,
 		"bed_res": int(cfg.get("bed_bake_resolution", 32)),
@@ -276,16 +416,21 @@ func _register_channel(cfg: Dictionary, visual_root: Node, route_total: float) -
 		channels.append(ch)
 		return
 	_read_footprint(ch, cfg)
+	channels.append(ch)
+
+
+func _prepare_channel_geometry(ch: Dictionary) -> void:
+	## Geometría del cauce: plano base, índice de triángulos y lecho horneado.
+	## Se calcula DESPUÉS de la partición, sobre la malla propia del cauce.
 	_fit_base_plane(ch)
 	_build_triangle_index(ch)
 	_bake_bed_field(ch)
-	channels.append(ch)
 	# Diagnóstico para el inventario del piloto: huella, cota base y clima.
-	print("RALLY_RIVER_READY id=", cid, " progress_m=", snappedf(float(ch["progress_m"]), 0.1),
-		" base_y=", snappedf(float(ch["base_b0"]), 0.001),
-		" footprint_x=[", snappedf(float(ch["min_x"]), 0.1), ",", snappedf(float(ch["max_x"]), 0.1),
-		"] z=[", snappedf(float(ch["min_z"]), 0.1), ",", snappedf(float(ch["max_z"]), 0.1),
-		"] tris=", (ch["tris"] as Array).size())
+	print("RALLY_RIVER_READY id=", str(ch.get("id", "")), " progress_m=", snappedf(float(ch.get("progress_m", 0.0)), 0.1),
+		" base_y=", snappedf(float(ch.get("base_b0", 0.0)), 0.001),
+		" footprint_x=[", snappedf(float(ch.get("min_x", 0.0)), 0.1), ",", snappedf(float(ch.get("max_x", 0.0)), 0.1),
+		"] z=[", snappedf(float(ch.get("min_z", 0.0)), 0.1), ",", snappedf(float(ch.get("max_z", 0.0)), 0.1),
+		"] tris=", (ch.get("tris", []) as Array).size())
 
 
 func add_test_channel(cfg: Dictionary) -> Dictionary:
@@ -314,6 +459,7 @@ func add_test_channel(cfg: Dictionary) -> Dictionary:
 		"min_x": -5.0, "min_z": -5.0, "max_x": 5.0, "max_z": 5.0,
 		"rise_m": 0.0, "target_m": 0.0, "last_rain_mm_h": 0.0,
 		"nodes": [], "orig_y": [], "override_info": [], "materials": [],
+		"claimed_surfaces": {}, "surface_min_y": 0.0, "surface_max_y": 0.0,
 		"tris": [], "buckets": {},
 		"bed_tex": null, "bed_min_y": -1.0, "bed_max_y": 1.0,
 		"bed_res": 8, "bed_valid": PackedByteArray(), "bed_heights": PackedFloat32Array(),
@@ -345,6 +491,7 @@ func _discover_meshes(ch: Dictionary, visual_root: Node) -> void:
 	var wanted := {}
 	for s in (ch["surfaces"] as Array):
 		wanted[str(s).to_lower()] = true
+	var claimed: Dictionary = ch.get("claimed_surfaces", {})
 	var stack: Array = [visual_root]
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
@@ -366,15 +513,32 @@ func _discover_meshes(ch: Dictionary, visual_root: Node) -> void:
 					if not (ch["nodes"] as Array).has(mi):
 						(ch["nodes"] as Array).append(mi)
 						(ch["orig_y"] as Array).append(mi.position.y)
+					_mesh_registry[mi.get_instance_id()] = mi
+					# Reclamación por (malla, superficie): dos cauces con
+					# superficies distintas pueden compartir la malla.
+					var key := mi.get_instance_id()
+					var sis: Array = claimed.get(key, [])
+					if not sis.has(si):
+						sis.append(si)
+					claimed[key] = sis
 		for child in node.get_children():
 			stack.append(child)
+	ch["claimed_surfaces"] = claimed
 
 
 func _collect_water_vertices(ch: Dictionary) -> Array:
-	var pts: Array = []
+	## Vértices de agua del cauce.
+	##
+	## Dentro de la huella se conserva la densidad COMPLETA: el plano base se
+	## ajusta ahí y una muestra dispersa de la malla larga daría una
+	## pendiente falsa (o ninguna). Fuera de la huella se guarda una muestra
+	## espaciada como respaldo si la huella no contiene vértices.
+	var dense: Array = []
+	var sparse: Array = []
 	var wanted := {}
 	for s in (ch["surfaces"] as Array):
 		wanted[str(s).to_lower()] = true
+	var has_fp := bool(ch.get("has_footprint", false))
 	for mi in (ch["nodes"] as Array):
 		var inst := mi as MeshInstance3D
 		if inst == null or inst.mesh == null:
@@ -396,12 +560,27 @@ func _collect_water_vertices(ch: Dictionary) -> Array:
 			if arrays == null or arrays.size() <= Mesh.ARRAY_VERTEX:
 				continue
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			var step := maxi(1, verts.size() / 512)
+			var step := 1
+			if verts.size() > MAX_FIT_SAMPLES * 2:
+				step = int(ceil(float(verts.size()) / float(MAX_FIT_SAMPLES * 2)))
 			var i := 0
-			while i < verts.size() and pts.size() < MAX_BAKE_SAMPLES:
-				pts.append(gt * verts[i])
+			var k := 0
+			while i < verts.size():
+				var w: Vector3 = gt * verts[i]
+				if has_fp:
+					if _inside_footprint(ch, w.x, w.z, 4.0):
+						dense.append(w)
+					elif k % 8 == 0:
+						sparse.append(w)
+				else:
+					sparse.append(w)
+				k += 1
 				i += step
-	return pts
+	if dense.size() >= 16:
+		return dense
+	if not sparse.is_empty():
+		return sparse
+	return dense
 
 
 func _fit_base_plane(ch: Dictionary) -> void:
@@ -416,7 +595,17 @@ func _fit_base_plane(ch: Dictionary) -> void:
 				inside.append(p)
 		pts = inside
 	if pts.is_empty():
+		_log_channel(str(ch.get("id", "?")), "sin vértices de agua en la huella: plano base sin ajustar")
 		return
+	# Rango vertical real de la lámina en la zona de ajuste: define la
+	# ventana del horneado del lecho (cascadas y tramos con desnivel).
+	var ymin := INF
+	var ymax := -INF
+	for p in pts:
+		ymin = minf(ymin, (p as Vector3).y)
+		ymax = maxf(ymax, (p as Vector3).y)
+	ch["surface_min_y"] = ymin
+	ch["surface_max_y"] = ymax
 	var cx := 0.0
 	var cz := 0.0
 	var cy := 0.0
@@ -591,6 +780,11 @@ func _bake_bed_field(ch: Dictionary) -> void:
 	## Campo de altura del lecho sobre la huella: rejilla proporcional con
 	## celda fija (~1 m, acotada por MAX_BAKE_SAMPLES) para evitar bloques
 	## alargados en ríos largos. El tablero de puentes se excluye del horneado.
+	##
+	## La ventana vertical del rayo sigue al plano base local (no a un único
+	## nivel) y se abre hasta el rango real de la lámina: con una ventana
+	## fija el lecho de los tramos con desnivel (cascadas, river1_1) quedaba
+	## sin muestrear y la lámina se descartaba entera.
 	var space = _space()
 	var minx := float(ch["min_x"])
 	var minz := float(ch["min_z"])
@@ -611,16 +805,24 @@ func _bake_bed_field(ch: Dictionary) -> void:
 	var bed_min := INF
 	var bed_max := -INF
 	var base := float(ch["base_b0"])
+	# Rango de la lámina en el mismo marco que el plano base (el mesh se
+	# desplaza en el shader por visual_base_offset_m).
+	var offset := float(ch.get("visual_base_offset_m", 0.0))
+	var s_min := float(ch.get("surface_min_y", base)) + offset
+	var s_max := float(ch.get("surface_max_y", base)) + offset
 	for gz in res_z:
 		for gx in res_x:
 			var idx := gz * res_x + gx
 			var x := lerpf(minx, maxx, (float(gx) + 0.5) / float(res_x))
 			var z := lerpf(minz, maxz, (float(gz) + 0.5) / float(res_z))
-			var h := base - 0.25
+			var plane_y := base_level_at(ch, x, z)
+			var h := plane_y - 0.25
 			var ok := true
 			if space != null:
+				var top := minf(maxf(plane_y + 8.0, s_max + 2.0), plane_y + 60.0)
+				var bottom := maxf(minf(plane_y - 8.0, s_min - 2.0), plane_y - 60.0)
 				var query := PhysicsRayQueryParameters3D.create(
-					Vector3(x, base + 8.0, z), Vector3(x, base - 8.0, z), 1)
+					Vector3(x, top, z), Vector3(x, bottom, z), 1)
 				var hit: Dictionary = space.intersect_ray(query)
 				if hit.is_empty():
 					ok = false
@@ -629,7 +831,7 @@ func _bake_bed_field(ch: Dictionary) -> void:
 					var cname := str((collider as Node).name) if collider is Node else ""
 					var hy := float((hit.get("position", Vector3(x, h, z)) as Vector3).y)
 					# Tablero de puente: la lámina pasa por debajo; no hornear.
-					if cname.to_lower().contains("bridge") and hy > base - 0.15:
+					if cname.to_lower().contains("bridge") and hy > plane_y - 0.15:
 						ok = false
 					else:
 						h = hy
@@ -644,10 +846,14 @@ func _bake_bed_field(ch: Dictionary) -> void:
 			valid_count += 1
 	if valid_count < int(float(total_samples) * 0.05):
 		# Sin horneado útil (p. ej. sin colisión bajo la huella): lecho
-		# uniforme bajo la base para no romper la lámina.
-		for i in heights.size():
-			heights[i] = base - 0.25
-			mask[i] = 1
+		# uniforme bajo el plano base local para no romper la lámina.
+		for gz in res_z:
+			for gx in res_x:
+				var idx := gz * res_x + gx
+				var x := lerpf(minx, maxx, (float(gx) + 0.5) / float(res_x))
+				var z := lerpf(minz, maxz, (float(gz) + 0.5) / float(res_z))
+				heights[idx] = base_level_at(ch, x, z) - 0.25
+		mask.fill(1)
 		bed_min = base - 0.5
 		bed_max = base + 0.1
 	elif bed_min >= bed_max:
@@ -678,13 +884,23 @@ func _space() -> PhysicsDirectSpaceState3D:
 
 
 func _apply_materials(ch: Dictionary) -> void:
+	var claimed: Dictionary = ch.get("claimed_surfaces", {})
 	for mi in (ch["nodes"] as Array):
 		var inst := mi as MeshInstance3D
 		if inst == null or inst.mesh == null:
 			continue
 		var mesh := inst.mesh
-		for si in mesh.get_surface_count():
-			var mat := inst.get_active_material(si)
+		# Superficies asignadas a este cauce. Sin registro (canal sintético
+		# de los contratos) se barren todas por nombre de material.
+		var surfaces: Array = (claimed.get(inst.get_instance_id(), []) as Array).duplicate()
+		if surfaces.is_empty():
+			for si in mesh.get_surface_count():
+				surfaces.append(si)
+		for si in surfaces:
+			var idx := int(si)
+			if idx < 0 or idx >= mesh.get_surface_count():
+				continue
+			var mat := inst.get_active_material(idx)
 			if not (mat is BaseMaterial3D):
 				continue
 			var wanted := false
@@ -700,8 +916,8 @@ func _apply_materials(ch: Dictionary) -> void:
 			sm.shader = RIVER_SHADER
 			sm.render_priority = -1
 			sm.set_meta("rally_dynamic_water", true)
-			(ch["override_info"] as Array).append([inst, si, mat])
-			inst.set_surface_override_material(si, sm)
+			(ch["override_info"] as Array).append([inst, idx, mat])
+			inst.set_surface_override_material(idx, sm)
 			(ch["materials"] as Array).append(sm)
 	_update_channel_material(ch)
 
@@ -719,11 +935,22 @@ func _update_channel_material(ch: Dictionary) -> void:
 		m.set_shader_parameter("bed_min_y", float(ch.get("bed_min_y", 0.0)))
 		m.set_shader_parameter("bed_max_y", float(ch.get("bed_max_y", 1.0)))
 		m.set_shader_parameter("edge_feather_m", float(ch.get("edge_feather_m", 0.06)))
-		m.set_shader_parameter("rise_m", float(ch.get("visual_base_offset_m", 0.0)) + float(ch.get("rise_m", 0.0)))
+		# La capa se apoya en la lámina importada: solo sube con la crecida.
+		# El desfase de la cota base vive en el plano de física, no en el
+		# render, para que la lámina dinámica no se despegue del río.
+		m.set_shader_parameter("rise_m", float(ch.get("rise_m", 0.0)))
+		# La capa se dibuja unos centímetros por encima de la lámina
+		# importada: la cinta es opaca y su superfície ondula alrededor del
+		# plano base. La elevación no cuenta en el cálculo de profundidad, así
+		# que el agua que ve el jugador y la que siente el coche coinciden.
+		m.set_shader_parameter("depth_bias", WATER_RENDER_BIAS_M)
 		m.set_shader_parameter("flow_dir", ch.get("flow_dir", Vector2(0.3, 0.95)))
 		m.set_shader_parameter("flow_speed", float(ch.get("flow_speed", 0.58)))
 		m.set_shader_parameter("rain", clampf(float(ch.get("last_rain_mm_h", 0.0)) / 10.0, 0.0, 1.0))
 		m.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
+		# El oleaje y el color los calcula el shader (paleta de PS2): el mapa
+		# de bits solo queda como respaldo.
+		m.set_shader_parameter("detail_procedural_mix", 1.0)
 
 
 func liquid_rain_now(progress_m: float) -> float:
@@ -904,6 +1131,13 @@ func unbind() -> void:
 				mi.set_surface_override_material(si, prev)
 		(ch as Dictionary)["override_info"] = []
 		(ch as Dictionary)["materials"] = []
+	# Superficies neutralizadas por la partición: restaurar el material
+	# importado y retirar las mallas por cauce.
+	for ch in channels:
+		for mi in ((ch as Dictionary).get("nodes", []) as Array):
+			var part := mi as MeshInstance3D
+			if part != null and is_instance_valid(part):
+				part.queue_free()
 	provider = null
 	tca_node = null
 

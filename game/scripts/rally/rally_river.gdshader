@@ -4,11 +4,15 @@ render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_lambert, specula
 // Uniforms conectados a RallyRiverChannels._update_channel_material()
 uniform vec2 footprint_min = vec2(0.0);
 uniform vec2 footprint_size = vec2(1.0);
-uniform sampler2D bed_tex : hint_default_white, filter_nearest;
+uniform sampler2D bed_tex : hint_default_white, filter_linear;
 uniform float bed_min_y = 0.0;
 uniform float bed_max_y = 1.0;
 uniform float edge_feather_m = 0.06;
 uniform float rise_m = 0.0;
+// Elevación de la lámina dinámica respecto a la importada que tiene debajo.
+// Solo sirve para ganar el test de profundidad: el cálculo de profundidad no
+// la cuenta (la lámina importada es la superficie real del río).
+uniform float depth_bias = 0.008;
 uniform float rain = 0.0;
 uniform vec2 flow_dir = vec2(0.3, 0.95);
 uniform float flow_speed = 0.58;
@@ -16,6 +20,14 @@ uniform vec3 shallow_color : source_color = vec3(0.09, 0.19, 0.22);
 uniform vec3 deep_color : source_color = vec3(0.03, 0.08, 0.12);
 uniform vec3 horizon_color : source_color = vec3(0.26, 0.36, 0.46);
 uniform vec3 sky_tint : source_color = vec3(0.34, 0.48, 0.62);
+// Rampa de agua de PS2: 6 pasos elegidos a mano con bandas duras, en vez de
+// una mezcla continua. El paso lo elige la profundidad y la turbidez.
+uniform vec3 palette_step0 : source_color = vec3(0.14, 0.36, 0.42);
+uniform vec3 palette_step1 : source_color = vec3(0.10, 0.28, 0.38);
+uniform vec3 palette_step2 : source_color = vec3(0.07, 0.21, 0.32);
+uniform vec3 palette_step3 : source_color = vec3(0.05, 0.15, 0.25);
+uniform vec3 palette_step4 : source_color = vec3(0.03, 0.10, 0.19);
+uniform vec3 palette_step5 : source_color = vec3(0.02, 0.06, 0.13);
 
 // Controles de estética PS2 (GS / VU1)
 uniform float ps2_vertex_wave = 0.012;
@@ -46,9 +58,9 @@ float ps2_bayer4x4(vec2 screen_pos) {
 }
 
 void vertex() {
-	vec3 wp_base = (MODEL_MATRIX * vec4(VERTEX + vec3(0.0, rise_m, 0.0), 1.0)).xyz;
+	vec3 wp_base = (MODEL_MATRIX * vec4(VERTEX + vec3(0.0, rise_m + depth_bias, 0.0), 1.0)).xyz;
 	v_base_y = wp_base.y;
-	VERTEX.y += rise_m;
+	VERTEX.y += rise_m + depth_bias;
 
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 
@@ -73,12 +85,16 @@ void fragment() {
 	if (fuv.x < 0.0 || fuv.x > 1.0 || fuv.y < 0.0 || fuv.y > 1.0) {
 		discard;
 	}
-	vec4 bed = texture(bed_tex, fuv);
+		// La textura del lecho se guarda por filas (gz desde min_z) y Godot la
+	// lee con la V invertida: se corrige al muestrear.
+	vec4 bed = texture(bed_tex, vec2(fuv.x, 1.0 - fuv.y));
 	if (bed.g < 0.5) {
 		discard;
 	}
 	float bed_y = mix(bed_min_y, bed_max_y, bed.r);
-	float depth_m = v_base_y - bed_y;
+	// La profundidad no cuenta la elevación de render: la lámina importada
+	// es la superficie real del agua y el lecho está medido en el mundo.
+	float depth_m = (v_base_y - depth_bias) - bed_y;
 	if (depth_m <= 0.0) {
 		discard;
 	}
@@ -114,16 +130,33 @@ void fragment() {
 	float dist_fade = 1.0 - clamp((length(world_position - CAMERA_POSITION_WORLD) - 45.0) / 85.0, 0.0, 1.0);
 	float detail_k = clamp(detail_strength * edge * dist_fade, 0.0, 1.0);
 
-	float spec_band = smoothstep(0.32, 0.72, combined_tex);
+	// Destello del sol en las olas: 3 bandas duras, no un degradado (PS2).
+	float spec_band = floor(smoothstep(0.32, 0.72, combined_tex) * 3.0 + 0.5) / 3.0;
 	float foam_shore = smoothstep(0.10, 0.25, edge_raw) * (1.0 - smoothstep(0.35, 0.60, edge_raw)) * smoothstep(0.35, 0.65, wd_a.x);
 
-	vec3 river_base = mix(shallow_color, deep_color, turbidity);
-	// Modulate 2x sobre los reflejos del cielo interpolados por vértice
-	vec3 env_highlight = (river_base * 1.6 + v_sky_color * 0.65) * 1.35;
+	// Rampa de paleta con bandas duras (PS2): el agua no es una mezcla
+	// continua de color sino un salto entre pasos elegidos a mano.
+	float ramp_t = clamp(turbidity * 0.75 + depth_norm * 0.25, 0.0, 1.0);
+	vec3 river_base = palette_step5;
+	if (ramp_t < 0.1667) {
+		river_base = palette_step0;
+	} else if (ramp_t < 0.3333) {
+		river_base = palette_step1;
+	} else if (ramp_t < 0.5) {
+		river_base = palette_step2;
+	} else if (ramp_t < 0.6667) {
+		river_base = palette_step3;
+	} else if (ramp_t < 0.8333) {
+		river_base = palette_step4;
+	}
+	// Modulate 2x sobre los reflejos del cielo interpolados por vértice.
+	// El peso es contenido: en PS2 el agua era color de paleta con un
+	// destello de sol, no un espejo del cielo.
+	vec3 env_highlight = (river_base * 1.6 + v_sky_color * 0.45) * 1.05;
 
-	vec3 water_color = mix(river_base * 0.82, env_highlight, spec_band * detail_k);
-	water_color = mix(water_color, v_sky_color * 0.75, 0.08 + 0.22 * v_fresnel);
-	water_color += v_sky_color * (rain_sparkle * 0.35 + foam_shore * 0.25);
+	vec3 water_color = mix(river_base * 0.90, env_highlight, spec_band * detail_k);
+	water_color = mix(water_color, v_sky_color * 0.75, 0.04 + 0.10 * v_fresnel);
+	water_color += v_sky_color * (rain_sparkle * 0.20 + foam_shore * 0.15);
 
 	// Cuantización final a 16-bit (RGB5A1) con Bayer Dithering centrado (sin sesgo oscuro)
 	float color_steps = max(ps2_color_levels - 1.0, 1.0);

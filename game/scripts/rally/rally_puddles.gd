@@ -577,6 +577,16 @@ func sample_contact(position: Vector3) -> Dictionary:
 
 ## Computes physical hydrodynamic response: retarding drag force, entry slam,
 ## wheel rotational braking torque, steering pull and differentiated aquaplaning support.
+##
+## Saturations:
+## - WATER_GRIP_DEPTH_SATURATION_MM: depth at which the aquaplaning risk is
+##   complete (12 mm). Any water deeper than that behaves like deep water
+##   for grip purposes, so a road puddle and a river ford share the same
+##   aquaplaning curve once the tyre is submerged.
+## - WATER_DRAG_MAX_LOAD_FRACTION: cap of the retarding force as a fraction
+##   of the wheel's normal load (+25% maximum retarding reaction force).
+const WATER_GRIP_DEPTH_SATURATION_MM := 12.0
+const WATER_DRAG_MAX_LOAD_FRACTION := 0.8125
 static func contact_response(
 	depth_mm: float,
 	speed: float,
@@ -603,7 +613,7 @@ static func contact_response(
 	# Numeric evacuation property from the catalog; bool callers remain compatible.
 	var evac_speed := (28.0 if evacuation else 16.0) if evacuation is bool else maxf(float(evacuation), 0.1)
 	var wet_factor := clampf((evac_speed - 16.0) / 12.0, 0.0, 1.0)
-	var risk := smoothstep(evac_speed * 0.60, evac_speed * 1.30, abs_speed) * smoothstep(1.5, 12.0, depth_mm)
+	var risk := smoothstep(evac_speed * 0.60, evac_speed * 1.30, abs_speed) * smoothstep(1.5, WATER_GRIP_DEPTH_SATURATION_MM, depth_mm)
 
 	# Differentiated aquaplaning support: lateral cornering grip drops faster than longitudinal braking
 	var support_long := 1.0 - risk * lerpf(0.80, 0.55, wet_factor)
@@ -620,7 +630,7 @@ static func contact_response(
 		slam_drag = minf(slam_drag, load_n * 0.3125)
 
 	# Cap total drag at 81.25% of wheel normal load (+25% maximum retarding reaction force)
-	var max_drag := load_n * 0.8125
+	var max_drag := load_n * WATER_DRAG_MAX_LOAD_FRACTION
 	var total_drag := minf(continuous_drag + slam_drag, max_drag)
 
 	# Rotational braking torque on tire tread

@@ -95,7 +95,6 @@
       "active": true,
       "pilot": true,
       "surfaces": [
-        "river1_1",
         "river2_1"
       ],
       "footprint": {
@@ -140,13 +139,13 @@
           0.0,
           -0.51
         ],
-        "water_y": -5.575,
-        "submersion_base_mm": 180
+        "water_y": -5.422,
+        "submersion_base_mm": 292
       },
       "edge_check": {
         "label": "entrada del vado (ruta idx 167: seco en base, mojado en crecida)",
         "route_progress_m": 1728.2,
-        "water_y": -5.463,
+        "water_y": -5.422,
         "road_y": -5.448
       },
       "outside_check": {
@@ -163,11 +162,371 @@
           -1856.8
         ]
       },
-      "notes": "Vado piloto calibrado en rango 120-200 mm en seco: calzada -5.755 bajo lámina -5.575 (180 mm en base, cruce transitable). Crecida máxima +0.45 m -> 630 mm. Segundo vado candidato (river1_1, prog ~174.5 m, ~170 mm en base) registrado como alternativa; cascadas jungle_vaterfall* excluidas por función visual.",
+      "notes": "Vado piloto: la lámina importada de river2_1 está a -5.422 en el vado y la calzada de colisión baja a -5.859, así que el agua real del cauce son 292 mm en el centro del cruce (el coche baja al canal y sube por la otra orilla). La capa dinámica se apoya sobre la lámina importada (no la sustituye), así que el resto del río conserva su aspecto y solo el canal inundable se anima. river1_1 queda fuera de todo cauce: la colisión de Kenia 1 es plana a su paso (sin hondonada que inundar) y el río conserva su material importado. Crecida máxima +0.45 m (la subida se comparten los nueve tramos del cauce: con distintos valores la superficie del agua daría escalones).",
       "level_anchor": {
         "x": 761.5,
-        "y": -5.575,
+        "y": -5.422,
         "z": -1321.1
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s1",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 1205.0,
+        "min_z": -2135.0,
+        "max_x": 1290.0,
+        "max_z": -1930.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.5607,
+      "climate_progress_m": 2560.8,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo alto de river2_1 (cola del cauce, z -2122..-1953). Mismo nivel que el resto del río (-5.434). Sin vado: la ruta pasa a 143 m.",
+      "level_anchor": {
+        "x": 1255.4,
+        "y": -5.434,
+        "z": -2033.1
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s2",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 1142.0,
+        "min_z": -1970.0,
+        "max_x": 1233.0,
+        "max_z": -1780.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.5380,
+      "climate_progress_m": 2457.1,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 en la curva (z -1949..-1801). Sin vado: la ruta pasa a 53 m.",
+      "level_anchor": {
+        "x": 1185.1,
+        "y": -5.434,
+        "z": -1872.3
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s3",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 1035.0,
+        "min_z": -1820.0,
+        "max_x": 1171.0,
+        "max_z": -1630.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.5063,
+      "climate_progress_m": 2312.4,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 en la curva (z -1798..-1651). Sin vado: la ruta pasa a 52 m.",
+      "level_anchor": {
+        "x": 1102.8,
+        "y": -5.434,
+        "z": -1719.9
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s4",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 901.0,
+        "min_z": -1670.0,
+        "max_x": 1066.0,
+        "max_z": -1480.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.4634,
+      "climate_progress_m": 2116.4,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 en la curva (z -1649..-1502). Sin vado: la ruta pasa a 34 m.",
+      "level_anchor": {
+        "x": 992.2,
+        "y": -5.434,
+        "z": -1569.2
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s5",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 776.0,
+        "min_z": -1520.0,
+        "max_x": 928.0,
+        "max_z": -1330.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.4205,
+      "climate_progress_m": 1920.8,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 antes del vado (z -1499..-1351). Sin vado: la ruta pasa a 34 m.",
+      "level_anchor": {
+        "x": 856.6,
+        "y": -5.434,
+        "z": -1432.2
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s6",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 690.0,
+        "min_z": -1300.0,
+        "max_x": 800.0,
+        "max_z": -1185.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.3822,
+      "climate_progress_m": 1745.7,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 justo aguas abajo del vado (z -1299..-1196). Sin vado: la ruta pasa a 86 m.",
+      "level_anchor": {
+        "x": 726.7,
+        "y": -5.434,
+        "z": -1242.3
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s7",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 638.0,
+        "min_z": -1210.0,
+        "max_x": 710.0,
+        "max_z": -1040.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.3209,
+      "climate_progress_m": 1465.5,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo de river2_1 en la curva final (z -1196..-1052). Sin vado: la ruta pasa a 153 m.",
+      "level_anchor": {
+        "x": 672.3,
+        "y": -5.434,
+        "z": -1132.8
+      }
+    },
+    {
+      "id": "kenya_stage1_river2_s8",
+      "stage_id": "kenya_stage1",
+      "kind": "permanent",
+      "active": true,
+      "pilot": false,
+      "surfaces": [
+        "river2_1"
+      ],
+      "footprint": {
+        "min_x": 628.0,
+        "min_z": -1060.0,
+        "max_x": 665.0,
+        "max_z": -990.0
+      },
+      "base_level_y": null,
+      "base_slope": {
+        "dir_x": 0.0,
+        "dir_z": 1.0,
+        "grade": 0.0
+      },
+      "climate_progress_fraction": 0.3047,
+      "climate_progress_m": 1391.8,
+      "max_rise_m": 0.45,
+      "reference_rain_mm_h": 12.0,
+      "tau_rise_s": 45.0,
+      "tau_drain_s": 120.0,
+      "activation_threshold_mm_h": null,
+      "flow_dir": [
+        0.3,
+        0.95
+      ],
+      "flow_speed": 0.58,
+      "edge_feather_m": 0.06,
+      "bed_bake_resolution": 32,
+      "settle_tolerance_m": 0.001,
+      "rainy_start_fraction": 0.5,
+      "drag_scale": 1.25,
+      "notes": "Tramo final de river2_1 (z -1049..-998). Sin vado: la ruta pasa a 154 m.",
+      "level_anchor": {
+        "x": 645.8,
+        "y": -5.434,
+        "z": -1029.5
       }
     },
     {
@@ -216,19 +575,19 @@
           -2.02,
           -1507.6
         ],
-        "water_y": -1.83,
-        "submersion_base_mm": 190
+        "water_y": -1.594,
+        "submersion_base_mm": 421
       },
       "edge_check": {
         "label": "entrada (ruta idx 408: seco en base por 35 mm)",
         "route_progress_m": 4267.5,
-        "water_y": -1.556,
+        "water_y": -1.594,
         "road_y": -1.521
       },
-      "notes": "Vado calibrado en rango 120-200 mm en seco: calzada -2.02 bajo lámina -1.83 (190 mm en base). Lámina con pendiente local; el plano base autoajustado la conserva.",
+      "notes": "Vado de Kenia 2: la lámina importada de river2_1 está a -1.594 y la calzada de colisión baja a -2.02, así que el agua real son 426 mm en la hondonada. La capa dinámica se apoya sobre la lámina importada.",
       "level_anchor": {
         "x": 2385.2,
-        "y": -1.83,
+        "y": -1.594,
         "z": -1507.6
       }
     },
@@ -328,7 +687,7 @@
           -994.6
         ],
         "water_y": -7.013,
-        "submersion_base_mm": 157
+        "submersion_base_mm": 193
       },
       "edge_check": {
         "label": "entrada (ruta idx 100: seco en base por 133 mm)",
@@ -390,7 +749,7 @@
           -2732.5
         ],
         "water_y": -11.178,
-        "submersion_base_mm": 198
+        "submersion_base_mm": 201
       },
       "edge_check": {
         "label": "entrada (ruta idx 291: seco en base)",
@@ -509,19 +868,19 @@
           -7.594,
           -738.6
         ],
-        "water_y": -7.414,
-        "submersion_base_mm": 180
+        "water_y": -7.297,
+        "submersion_base_mm": 345
       },
       "edge_check": {
         "label": "entrada (ruta idx 115: seco en base por 119 mm)",
         "route_progress_m": 1212.4,
-        "water_y": -7.281,
+        "water_y": -7.297,
         "road_y": -7.162
       },
-      "notes": "Vado calibrado en rango 120-200 mm en seco: calzada -7.594 bajo lámina -7.414 (180 mm en base). Sistema independiente del river1_1 de la especial.",
+      "notes": "Vado de Kenia 6: la lámina importada de river2_1 está a -7.297 y la calzada de colisión baja a -7.594, así que el agua real son 297 mm en la hondonada. La capa dinámica se apoya sobre la lámina importada.",
       "level_anchor": {
         "x": 635.9,
-        "y": -7.414,
+        "y": -7.297,
         "z": -738.6
       }
     },

@@ -20,10 +20,30 @@ const SURFACE_GROUP_BY_NODE := {
 	"collision_terrain_sand": "Sand",
 }
 
+# River lid removal: the imported Kenya collision closes the river channel
+# with a flat cap at water level, so the channel has no bed to flood and the
+# dynamic water only appears in the fords. The cap is detected against the
+# imported water ribbon (visual) and dropped from the terrain bodies.
+const RIVER_DATA_PATH := "res://data/rally/kenya_rivers.json"
+const LID_CELL_M := 0.5
+const LID_FLAT_SPAN_M := 0.25
+# Tolerancia del nivel del agua para el triángulo semilla de la tapa.
+const LID_LEVEL_TOL_M := 0.12
+# Tolerancia ampliada para los triángulos que se enganchan a la hoja de la
+# tapa (la tapa exportada no siempre está al mismo nivel que la lámina
+# importada: en Kenia 2 hay tramos 145 mm más arriba).
+const LID_LEVEL_TOL_WIDE_M := 0.35
+
 var generated_body_count: int = 0
 var generated_triangle_count: int = 0
 var generated_shape_count: int = 0
 var minimum_collision_height_m: float = INF
+# Nivel del agua importada por celda (XZ) y celdas con agua, para detectar la
+# tapa plana que cierra el cauce del río en la colisión.
+var _water_levels: Dictionary = {}
+# Triángulos de tapa que se retiran, por "instance_id:surface".
+var _lid_triangles: Dictionary = {}
+var _lid_removed_triangles: int = 0
 
 
 func build_collision(visual_root: Node = null) -> bool:
@@ -34,7 +54,9 @@ func build_collision(visual_root: Node = null) -> bool:
 	if packed == null:
 		push_error("Rally collision scene cannot be loaded: " + collision_scene_path)
 		return false
+	_collect_water_levels(visual_root)
 	var collision_source := packed.instantiate()
+	_mark_river_lids(collision_source)
 	# No añadir collision_source al SceneTree: evita subir 114k triángulos al RenderingServer
 	var mesh_instances: Array[MeshInstance3D] = []
 	collect_mesh_instances(collision_source, mesh_instances)
@@ -67,6 +89,256 @@ func build_collision(visual_root: Node = null) -> bool:
 	collision_source.free()
 	print("RALLY_COLLISION_READY bodies=", generated_body_count, " shapes=", generated_shape_count, " triangles=", generated_triangle_count)
 	return generated_shape_count > 0
+
+
+## Nivel del agua importada por celda (XZ).
+## Recorre la escena visual y rasteriza las láminas de agua (river1_1,
+## river2_1) en una rejilla: cada celda guarda el nivel medio del agua.
+## Sirve para reconocer la tapa plana que cierra el cauce en la colisión.
+func _collect_water_levels(visual_root: Node) -> void:
+	_water_levels.clear()
+	if visual_root == null:
+		return
+	if not FileAccess.file_exists(RIVER_DATA_PATH):
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(RIVER_DATA_PATH))
+	if not (parsed is Dictionary):
+		return
+	var policy: Dictionary = (parsed as Dictionary).get("surface_policy", {})
+	var wanted := {}
+	for name in (policy.get("dynamic_surfaces", []) as Array):
+		wanted[str(name).to_lower()] = true
+	if wanted.is_empty():
+		return
+	var meshes: Array[MeshInstance3D] = []
+	collect_mesh_instances(visual_root, meshes)
+	for source in meshes:
+		if source.mesh == null:
+			continue
+		var gt := source.global_transform
+		for surface_index in source.mesh.get_surface_count():
+			var material := source.mesh.surface_get_material(surface_index)
+			if material == null or not (material is BaseMaterial3D):
+				continue
+			if not wanted.has(str((material as BaseMaterial3D).resource_name).to_lower()):
+				continue
+			var arrays := source.mesh.surface_get_arrays(surface_index)
+			if arrays == null or arrays.size() <= Mesh.ARRAY_VERTEX:
+				continue
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			var tri_count := (idx.size() / 3) if not idx.is_empty() else (verts.size() / 3)
+			for t in tri_count:
+				var a := Vector3.ZERO
+				var b := Vector3.ZERO
+				var c := Vector3.ZERO
+				if idx.is_empty():
+					a = gt * verts[t * 3]
+					b = gt * verts[t * 3 + 1]
+					c = gt * verts[t * 3 + 2]
+				else:
+					a = gt * verts[idx[t * 3]]
+					b = gt * verts[idx[t * 3 + 1]]
+					c = gt * verts[idx[t * 3 + 2]]
+				var cen := (a + b + c) / 3.0
+				var key := Vector2i(floori(cen.x / LID_CELL_M), floori(cen.z / LID_CELL_M))
+				var level := (a.y + b.y + c.y) / 3.0
+				if _water_levels.has(key):
+					var prev: float = float(_water_levels[key])
+					_water_levels[key] = (prev + level) * 0.5
+				else:
+					_water_levels[key] = level
+
+
+## Nivel del agua importada en (x, z) buscando en el vecindario (celdas de
+## 0.5 m). INF si no hay agua importada cerca.
+func _water_level_at(x: float, z: float) -> float:
+	if _water_levels.is_empty():
+		return INF
+	var cx := floori(x / LID_CELL_M)
+	var cz := floori(z / LID_CELL_M)
+	for dz in range(-2, 3):
+		for dx in range(-2, 3):
+			var key := Vector2i(cx + dx, cz + dz)
+			if _water_levels.has(key):
+				return float(_water_levels[key])
+	return INF
+
+
+## ¿Hay agua importada cerca de (x, z)?
+func _has_water_near(x: float, z: float) -> bool:
+	return is_finite(_water_level_at(x, z))
+
+
+## ¿Es este triángulo la tapa plana que cierra el cauce del río?
+##
+## Condiciones: está sobre el agua importada, es plano y está al nivel del
+## agua. El valle real (paredes y fondo) no es plano y se conserva.
+func _is_river_lid(a: Vector3, b: Vector3, c: Vector3) -> bool:
+	if _water_levels.is_empty():
+		return false
+	var cen := (a + b + c) / 3.0
+	if not _has_water_near(cen.x, cen.z):
+		return false
+	var level := _water_level_at(cen.x, cen.z)
+	if not is_finite(level):
+		return false
+	var span := maxf(maxf(a.y, b.y), c.y) - minf(minf(a.y, b.y), c.y)
+	if span > LID_FLAT_SPAN_M:
+		return false
+	return absf(cen.y - level) <= LID_LEVEL_TOL_M
+
+
+## Marca las tapas del cauce como una HOJA CONECTADA.
+##
+## La tapa exportada es una lámina continua al nivel del agua que cubre el
+## valle. Si solo se retiran los triángulos que coinciden con el nivel, se
+## quedan fragmentos sueltos (en Kenia 2, un bloque de 145 mm más arriba
+## que el agua) que forman un muro en mitad del cauce e impiden cruzarlo.
+## Por eso, desde los triángulos semilla se extiende la retirada a los
+## vecinos que también son planos y están cerca del nivel del agua: se
+## retira la hoja entera y el valle queda limpio.
+func _mark_river_lids(node: Node) -> void:
+	_lid_triangles.clear()
+	if _water_levels.is_empty():
+		return
+	var meshes: Array[MeshInstance3D] = []
+	collect_mesh_instances(node, meshes)
+	for source in meshes:
+		if source.mesh == null:
+			continue
+		var source_name := str(source.name).to_lower()
+		if "terrain" not in source_name or "road" in source_name:
+			continue
+		# La malla de colisión no está en el árbol: se usa la transform
+		# relativa al nodo raíz de la escena de colisión.
+		var gt := _get_relative_transform(source, node)
+		for surface_index in source.mesh.get_surface_count():
+			var arrays := source.mesh.surface_get_arrays(surface_index)
+			if arrays == null or arrays.size() <= Mesh.ARRAY_VERTEX:
+				continue
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			var tri_count := (idx.size() / 3) if not idx.is_empty() else (verts.size() / 3)
+			var centroids: Array = []
+			var spans: Array = []
+			var levels: Array = []
+			var tri_vertices: Array = []
+			var adjacency: Dictionary = {}
+			for t in tri_count:
+				var a := Vector3.ZERO
+				var b := Vector3.ZERO
+				var c := Vector3.ZERO
+				var vi := [0, 0, 0]
+				if idx.is_empty():
+					a = gt * verts[t * 3]
+					b = gt * verts[t * 3 + 1]
+					c = gt * verts[t * 3 + 2]
+					vi = [t * 3, t * 3 + 1, t * 3 + 2]
+				else:
+					vi = [idx[t * 3], idx[t * 3 + 1], idx[t * 3 + 2]]
+					a = gt * verts[vi[0]]
+					b = gt * verts[vi[1]]
+					c = gt * verts[vi[2]]
+				var cen := (a + b + c) / 3.0
+				var span := maxf(maxf(a.y, b.y), c.y) - minf(minf(a.y, b.y), c.y)
+				centroids.append(cen)
+				spans.append(span)
+				levels.append(_water_level_at(cen.x, cen.z))
+				tri_vertices.append(vi)
+				for v in vi:
+					if not adjacency.has(v):
+						adjacency[v] = []
+					(adjacency[v] as Array).append(t)
+			# Semillas: planos y al nivel del agua.
+			var removed := {}
+			var queue: Array = []
+			for t in tri_count:
+				var level: float = levels[t]
+				if not is_finite(level):
+					continue
+				if float(spans[t]) > LID_FLAT_SPAN_M:
+					continue
+				if absf((centroids[t] as Vector3).y - level) > LID_LEVEL_TOL_M:
+					continue
+				removed[t] = true
+				queue.append(t)
+			# Extensión a los vecinos de la hoja (tolerancia ampliada).
+			var head := 0
+			while head < queue.size():
+				var t2: int = queue[head]
+				head += 1
+				var cen2: Vector3 = centroids[t2]
+				var level2: float = levels[t2]
+				if not is_finite(level2):
+					continue
+				for v in (tri_vertices[t2] as Array):
+					for nb in (adjacency.get(v, []) as Array):
+						var t3: int = nb
+						if removed.has(t3):
+							continue
+						if float(spans[t3]) > LID_FLAT_SPAN_M:
+							continue
+						var level3: float = levels[t3]
+						if not is_finite(level3):
+							continue
+						if absf((centroids[t3] as Vector3).y - level3) > LID_LEVEL_TOL_WIDE_M:
+							continue
+						removed[t3] = true
+						queue.append(t3)
+			if removed.is_empty():
+				continue
+			var list: Array = removed.keys()
+			list.sort()
+			_lid_triangles["%d:%d" % [source.get_instance_id(), surface_index]] = list
+			_lid_removed_triangles += list.size()
+
+
+func _triangle_vertices(vi: Array, idx: PackedInt32Array, t: int) -> Array:
+	if idx.is_empty():
+		return [t * 3, t * 3 + 1, t * 3 + 2]
+	return [idx[t * 3], idx[t * 3 + 1], idx[t * 3 + 2]]
+
+
+
+## Construcción del cuerpo estático del terreno descartando la tapa del río.
+func _build_terrain_shape_without_lid(mesh_instance: MeshInstance3D, transform: Transform3D) -> ConcavePolygonShape3D:
+	var faces := PackedVector3Array()
+	for surface_index in mesh_instance.mesh.get_surface_count():
+		var arrays := mesh_instance.mesh.surface_get_arrays(surface_index)
+		if arrays == null or arrays.size() <= Mesh.ARRAY_VERTEX:
+			continue
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var tri_count := (idx.size() / 3) if not idx.is_empty() else (verts.size() / 3)
+		var surface_key := "%d:%d" % [mesh_instance.get_instance_id(), surface_index]
+		var surface_drop: Dictionary = {}
+		for t in (_lid_triangles.get(surface_key, []) as Array):
+			surface_drop[int(t)] = true
+		for t in tri_count:
+			if surface_drop.has(t):
+				continue
+			var a := Vector3.ZERO
+			var b := Vector3.ZERO
+			var c := Vector3.ZERO
+			if idx.is_empty():
+				a = verts[t * 3]
+				b = verts[t * 3 + 1]
+				c = verts[t * 3 + 2]
+			else:
+				a = verts[idx[t * 3]]
+				b = verts[idx[t * 3 + 1]]
+				c = verts[idx[t * 3 + 2]]
+			faces.append(transform * a)
+			faces.append(transform * b)
+			faces.append(transform * c)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	return shape
+
+
+func get_removed_lid_triangle_count() -> int:
+	return _lid_removed_triangles
 
 
 func build_erosion_bank_collision(visual_root: Node) -> void:
@@ -141,7 +413,20 @@ func _get_relative_transform(node: Node3D, root_node: Node) -> Transform3D:
 func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transform3D = Transform3D()) -> void:
 	if mesh_instance.mesh == null:
 		return
-	var shape := mesh_instance.mesh.create_trimesh_shape()
+	var shape_transform := override_transform if override_transform != Transform3D() else mesh_instance.transform
+	var source_name_lid := str(mesh_instance.name).to_lower()
+	# La tapa del río solo se retira del terreno: la calzada mantiene su
+	# superficie (el vado) y las barreras no se tocan.
+	var drop_lid := (
+		not _lid_triangles.is_empty()
+		and "terrain" in source_name_lid
+		and "road" not in source_name_lid
+	)
+	var shape: Shape3D = null
+	if drop_lid:
+		shape = _build_terrain_shape_without_lid(mesh_instance, shape_transform)
+	else:
+		shape = mesh_instance.mesh.create_trimesh_shape()
 	if shape == null:
 		return
 	var static_body := StaticBody3D.new()
@@ -242,7 +527,7 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.name = "TrackCollisionShape"
 	collision_shape.shape = shape
-	collision_shape.transform = override_transform if override_transform != Transform3D() else mesh_instance.transform
+	collision_shape.transform = shape_transform
 	static_body.add_child(collision_shape)
 	add_child(static_body)
 	var world_bounds := collision_shape.global_transform * mesh_instance.mesh.get_aabb()

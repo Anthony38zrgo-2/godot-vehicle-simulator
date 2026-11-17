@@ -13,7 +13,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	var expect := {"kenya_stage1": 1, "kenya_stage2": 2, "kenya_stage3": 2,
+	var expect := {"kenya_stage1": 9, "kenya_stage2": 2, "kenya_stage3": 2,
 		"kenya_stage5": 1, "kenya_stage6": 2, "kenya_stage4": 0}
 	for stage in expect:
 		var path := "res://assets/rally/%s/%s_visual.glb" % [stage, stage]
