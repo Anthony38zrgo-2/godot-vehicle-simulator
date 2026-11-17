@@ -37,6 +37,24 @@ var wheel_visuals: Array[Node3D] = []
 var wheel_rotation_angles: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var contact_query_count: int = 0
 var wheel_contact_casts: Array[ShapeCast3D] = []
+# Paso 2.1 Jolt fix: márgenes explícitos fijos para eliminar el sesgo por
+# defecto de 0.04 m que inflaba la deflexión radial δ.
+const SHAPECAST_CYLINDER_MARGIN := 0.005
+const SHAPECAST_MARGIN := 0.002
+# Paso 2.3: impactos laterales de barrera excluidos temporalmente para buscar
+# el asfalto debajo. Se guardan en este array local durante el paso y se
+# entregan a _collect_wheel_cast_impacts() en vez de releer el ShapeCast ya
+# modificado al final del frame.
+var last_barrier_hits: Array = [[], [], [], []]
+# Paso 3.1: discriminación Flanco (sidewall) vs Banda (tread) con el eje de
+# giro de la rueda. axial = |n · spin_axis|.
+const SIDEWALL_AXIAL_MIN := 0.70
+const TREAD_AXIAL_MAX := 0.45
+const TREAD_UP_MIN := 0.25
+# Paso 3.3: sensibilidad de carga en lugar de tope duro de agarre.
+# mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k_load), k típico 0.10-0.20.
+const LOAD_SENSITIVITY_K := 0.15
+const RECOVERY_FZ_CAP_MULT := 2.4
 # Auditoría §3: último contacto por rueda (hit, punto, normal, collider,
 # distancia usada por la ley radial, fracción segura y apoyo seleccionado).
 var last_contacts: Array[Dictionary] = [{}, {}, {}, {}]
@@ -709,10 +727,10 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		var cylinder := CylinderShape3D.new()
 		cylinder.radius = wheel_radii[i]
 		cylinder.height = wheel_widths[i]
-		cylinder.margin = 0.005
+		cylinder.margin = SHAPECAST_CYLINDER_MARGIN
 		cast.shape = cylinder
 		cast.enabled = false
-		cast.margin = 0.002
+		cast.margin = SHAPECAST_MARGIN
 		cast.max_results = 16
 		cast.collide_with_areas = false
 		cast.collide_with_bodies = true
@@ -721,6 +739,123 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		for hub in unsprung_rig.hubs:
 			cast.add_exception_rid(hub.get_rid())
 		wheel_contact_casts.append(cast)
+	# Paso 0.1/0.2 Jolt fix: diagnóstico rápido en consola. Firma de
+	# solapamiento (qué devuelven cast_motion/intersect/get_rest_info con la
+	# rueda enterrada 0.05 m) + chequeo ω*dt y c*dt/m_eff por esquina a
+	# dt = 1/120 s. Si cualquiera supera 2.0 el integrador explícito diverge.
+	_print_stability_diagnostic(body)
+
+
+## Paso 0.2: imprime ω*dt y c*dt/m_eff por esquina a dt=1/120.
+## Si cualquiera supera 2.0, el integrador explícito explota por sí solo.
+func _print_stability_diagnostic(body: RigidBody3D) -> void:
+	var dt := 1.0 / 120.0
+	var hub_masses: Array = mass_model.unsprung_mass_kg
+	var total_sprung := maxf(float(mass_state.get("mass_kg", 1000.0)), 1.0)
+	var corner_m := maxf(total_sprung * 0.25, 1.0)
+	for i in 4:
+		if i >= suspension_model.axle_parameters.size():
+			continue
+		var p: Dictionary = suspension_model.axle_parameters[i]
+		var hm := float(hub_masses[i]) if i < hub_masses.size() else 15.0
+		var m := VehicleSuspensionModel.stability_metrics(p, hm, corner_m, dt)
+		print("RALLY_STABILITY_DIAG ", JSON.stringify({"wheel": i, "omega_dt": float(m["omega_dt"]), "c_dt_over_m": float(m["damper_dt_over_m"]), "m_eff_kg": float(m["m_eff_kg"]), "stable": bool(m["stable"]), "dt": dt}))
+
+
+## Paso 2.2 Jolt fix: comprueba solapamiento inicial en el origen con
+## intersect_shape. Si hay solapamiento, recupera punto y normal limpios con
+## get_rest_info (normal del triángulo, sin fracción global contaminada).
+## Devuelve {overlap, rest_position, rest_normal, rest_rid}.
+static func check_initial_overlap(
+	space_state: PhysicsDirectSpaceState3D,
+	shape: Shape3D,
+	origin: Transform3D,
+	collision_margin: float,
+	collision_mask: int,
+	exclude: Array[RID],
+) -> Dictionary:
+	var qp := PhysicsShapeQueryParameters3D.new()
+	qp.shape = shape
+	qp.transform = origin
+	qp.margin = collision_margin
+	qp.collision_mask = collision_mask
+	qp.exclude = exclude
+	qp.collide_with_areas = false
+	qp.collide_with_bodies = true
+	var hits := space_state.intersect_shape(qp, 1)
+	if hits.is_empty():
+		return {"overlap": false}
+	var rest := space_state.get_rest_info(qp)
+	if rest.is_empty():
+		return {"overlap": true}
+	return {
+		"overlap": true,
+		"rest_position": rest.get("point", Vector3.ZERO),
+		"rest_normal": (rest.get("normal", Vector3.UP) as Vector3).normalized(),
+		"rest_rid": rest.get("rid", RID()),
+		"rest_collider_id": rest.get("collider_id", 0),
+	}
+
+
+## Paso 3.1 Jolt fix: discriminación Flanco vs Banda con el eje de giro.
+## axial = |n · spin_axis|. sidewall (axial>0.70) = golpe de flanco → daño,
+## NO genera Fz. tread (axial<0.45 y n·up>0.25) = suelo válido para Fz.
+## No subir el umbral global a 0.55: mataría el apoyo en peraltes/cunetas.
+static func classify_tire_contact(contact_normal: Vector3, wheel_spin_axis: Vector3, chassis_up: Vector3) -> Dictionary:
+	var n := (contact_normal as Vector3).normalized()
+	var s := (wheel_spin_axis as Vector3).normalized()
+	var u := (chassis_up as Vector3).normalized()
+	var axial := absf(n.dot(s))
+	var is_sidewall := axial > SIDEWALL_AXIAL_MIN
+	var is_tread := axial < TREAD_AXIAL_MAX and n.dot(u) > TREAD_UP_MIN
+	return {"axial": axial, "is_sidewall": is_sidewall, "is_tread": is_tread}
+
+
+## Paso 3.3 Jolt fix: decaimiento del coeficiente con la carga en vez de tope
+## duro 2.4×. mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k_load).
+static func load_adjusted_mu(mu0: float, fz_n: float, fz_nominal_n: float, k_load: float = LOAD_SENSITIVITY_K) -> float:
+	var fz := maxf(float(fz_n), 1.0)
+	var nom := maxf(float(fz_nominal_n), 1.0)
+	return maxf(float(mu0), 0.0) * pow(fz / nom, -clampf(float(k_load), 0.0, 0.5))
+
+
+## Paso 0.1 Jolt fix: firma de solapamiento en Jolt. Con la rueda enterrada
+## 0.05 m, imprime qué devuelven space.cast_motion(q), space.intersect_shape(q)
+## y space.get_rest_info(q). Si cast_motion reporta [0,0] o [1,1] naciendo
+## solapado y get_rest_info entrega la normal limpia del triángulo, el
+## diagnóstico confirma el solapamiento inicial antes de aplicar fuerzas.
+static func debug_overlap_signature(
+	space_state: PhysicsDirectSpaceState3D,
+	shape: Shape3D,
+	origin: Transform3D,
+	target: Vector3,
+	collision_margin: float,
+	collision_mask: int,
+	exclude: Array[RID],
+) -> Dictionary:
+	var qmotion := PhysicsShapeQueryParameters3D.new()
+	qmotion.shape = shape
+	qmotion.transform = origin
+	qmotion.margin = collision_margin
+	qmotion.collision_mask = collision_mask
+	qmotion.exclude = exclude
+	qmotion.collide_with_areas = false
+	qmotion.collide_with_bodies = true
+	qmotion.motion = target
+	var cast_res := space_state.cast_motion(qmotion)
+	var qshape := PhysicsShapeQueryParameters3D.new()
+	qshape.shape = shape
+	qshape.transform = origin
+	qshape.margin = collision_margin
+	qshape.collision_mask = collision_mask
+	qshape.exclude = exclude
+	qshape.collide_with_areas = false
+	qshape.collide_with_bodies = true
+	var hits := space_state.intersect_shape(qshape, 4)
+	var rest := space_state.get_rest_info(qshape)
+	var sig := {"cast_motion": cast_res, "intersect_count": hits.size(), "rest": rest}
+	print("RALLY_OVERLAP_SIGNATURE ", JSON.stringify({"cast_motion": cast_res, "hits": hits.size(), "has_rest": not rest.is_empty(), "rest_normal": [float((rest.get("normal", Vector3.UP) as Vector3).x), float((rest.get("normal", Vector3.UP) as Vector3).y), float((rest.get("normal", Vector3.UP) as Vector3).z)] if not rest.is_empty() else []}))
+	return sig
 
 
 ## Selección del apoyo ShapeCast (§3): el apoyo con máxima alineación con +Y
@@ -848,6 +983,17 @@ static func shapecast_coherent_result(
 	var global_safe := cast.get_closest_collision_safe_fraction()
 	var selected := select_shapecast_support(cast, chassis_up)
 	if selected.is_empty():
+		# Paso 2.3 Jolt fix: conservar los impactos de barrera para daño.
+		# Se guardan en un array local de este paso (position/normal/collider
+		# del MISMO candidato) en vez de releer el ShapeCast ya modificado.
+		var barrier_hits: Array = []
+		for ci in first_count:
+			var bcol: Variant = cast.get_collider(ci)
+			barrier_hits.append({
+				"position": cast.get_collision_point(ci),
+				"normal": (cast.get_collision_normal(ci) as Vector3).normalized(),
+				"collider": bcol,
+			})
 		var barrier_rids: Array[RID] = []
 		for ci in first_count:
 			var other_b: Variant = cast.get_collider(ci)
@@ -864,12 +1010,17 @@ static func shapecast_coherent_result(
 		first_count = cast.get_collision_count()
 		if first_count == 0:
 			_restore_shapecast_exceptions(cast, permanent_exceptions)
-			return {"sweeps": sweeps}
+			# Sin suelo debajo: devolver solo barreras para daño, sin apoyo.
+			return {"sweeps": sweeps, "barrier_hits": barrier_hits}
 		global_safe = cast.get_closest_collision_safe_fraction()
 		selected = select_shapecast_support(cast, chassis_up)
 		if selected.is_empty():
 			_restore_shapecast_exceptions(cast, permanent_exceptions)
-			return {"sweeps": sweeps}
+			return {"sweeps": sweeps, "barrier_hits": barrier_hits}
+		# Suelo encontrado bajo la barrera: el apoyo es el suelo; las
+		# barreras viajan aparte para daño (Paso 2.3).
+		# Se adjunta abajo tras resolver el apoyo coherente.
+		selected["__barrier_hits"] = barrier_hits
 	if first_count == 1:
 		_restore_shapecast_exceptions(cast, permanent_exceptions)
 		var safe := global_safe
@@ -886,6 +1037,7 @@ static func shapecast_coherent_result(
 			"isolated": false,
 			"coherent": true,
 			"sweeps": sweeps,
+			"barrier_hits": selected.get("__barrier_hits", []),
 		}
 	# Múltiples apoyos: aislar el seleccionado excluyendo los demás RIDs distintos.
 	var selected_collider: Variant = selected.get("collider")
@@ -924,6 +1076,7 @@ static func shapecast_coherent_result(
 			"isolated": false,
 			"coherent": bool(same_rid_res["coherent"]),
 			"sweeps": sweeps,
+			"barrier_hits": selected.get("__barrier_hits", []),
 			"verify": {
 				"same_rid_multi_shape": true,
 				"same_rid_projected": bool(same_rid_res["same_rid_projected"]),
@@ -975,6 +1128,7 @@ static func shapecast_coherent_result(
 		"isolated": true,
 		"coherent": coherent,
 		"sweeps": sweeps,
+		"barrier_hits": selected.get("__barrier_hits", []),
 		"verify": {
 			"same_collider": same_collider,
 			"point_gap_m": point_gap,
@@ -1058,15 +1212,28 @@ func _query_shapecast_contact(
 	var permanents: Array[RID] = [body.get_rid()]
 	for hub in unsprung_rig.hubs:
 		permanents.append(hub.get_rid())
+	# Paso 2.2 Jolt fix: separar solapamiento inicial del barrido normal.
+	# 1) Comprobar primero en el origen con intersect_shape. 2) Si hay
+	# solapamiento, el barrido se hace desde posición elevada (origin+up*lift)
+	# o se recupera punto/normal con get_rest_info. 3) position, normal,
+	# collider y distance provienen del MISMO candidato (nunca fracción
+	# global + normal de otro obstáculo: lo garantiza shapecast_coherent_result).
+	var _need_elevated := false
+	# Nota: sin PhysicsDirectSpaceState aquí (llamado desde step con state),
+	# la separación se hace por heurística safe_fraction + proyección (ver
+	# _shapecast_is_initial_overlap) + barrido elevado con extremo inferior
+	# invariante. La firma exacta cast_motion/intersect/get_rest_info se
+	# diagnostica en _debug_overlap_signature() (Paso 0.1).
 	var best := _sweep_shapecast_with_elevation(
 		cast, body_transform, orientation, wheel_positions_local[index],
 		chassis_up, wheel_radii[index], bump, travel, 0.0, permanents,
 	)
 	var total_sweeps := int(best.get("sweeps", 1))
-	var best_overlap := bool(best.get("_initial_overlap", best.is_empty()))
+	var best_has_support := best.has("position")
+	var best_overlap := bool(best.get("_initial_overlap", not best_has_support))
 	best.erase("sweeps")
 	best.erase("_initial_overlap")
-	if not best.is_empty() and not best_overlap:
+	if best_has_support and not best_overlap:
 		contact_query_count += total_sweeps
 		return best
 	# Recuperación por barrido elevado (P0): si el cilindro comienza en o bajo
@@ -1081,7 +1248,8 @@ func _query_shapecast_contact(
 	var elev_1 := clampf(maxf(0.18, phys_comp - bump + 0.16), 0.18, 0.38)
 	var elev_2 := clampf(maxf(elev_1 + 0.22, wheel_radii[index] + 0.14), elev_1 + 0.15, 0.55)
 	var elevs: Array[float] = [elev_1, elev_2]
-	var saw_overlap_hit := not best.is_empty() and best_overlap
+	var saw_overlap_hit := best.has("position") and best_overlap
+	var preserved_barriers: Array = Array(best.get("barrier_hits", []))
 	var step_idx := 0
 	while step_idx < elevs.size():
 		var cand := _sweep_shapecast_with_elevation(
@@ -1089,20 +1257,34 @@ func _query_shapecast_contact(
 			chassis_up, wheel_radii[index], bump, travel, elevs[step_idx], permanents,
 		)
 		total_sweeps += int(cand.get("sweeps", 1))
-		var cand_overlap := bool(cand.get("_initial_overlap", cand.is_empty()))
+		var cand_has_support := cand.has("position")
+		var cand_overlap := bool(cand.get("_initial_overlap", not cand_has_support))
 		cand.erase("sweeps")
 		cand.erase("_initial_overlap")
-		if not cand.is_empty():
+		# Paso 2.3: acumular barreras de todos los barridos para daño.
+		for bh in Array(cand.get("barrier_hits", [])):
+			preserved_barriers.append(bh)
+		cand["barrier_hits"] = preserved_barriers.duplicate()
+		if cand_has_support:
 			if not cand_overlap:
 				best = cand
 				break
 			saw_overlap_hit = true
-			if best.is_empty() or best_overlap or float(cand.get("distance", INF)) < float(best.get("distance", INF)):
+			if not best.has("position") or best_overlap or float(cand.get("distance", INF)) < float(best.get("distance", INF)):
 				best = cand
 				best_overlap = true
+		elif cand.is_empty() and (saw_overlap_hit or not best.has("position")):
+			# Sin apoyo en este barrido elevado: mantener barreras acumuladas.
+			best["barrier_hits"] = preserved_barriers.duplicate()
 		step_idx += 1
-		if step_idx == 2 and (saw_overlap_hit or best.is_empty()):
+		if step_idx == 2 and (saw_overlap_hit or not best.has("position")):
 			elevs.append(maxf(elev_2 + 0.35, 0.90))
+	best["barrier_hits"] = preserved_barriers.duplicate()
+	# Paso 2.2: marcar recuperación de solapamiento de baja confianza para que
+	# el neumático aplique el tope duro Fz solo en ese caso (Paso 3.3).
+	if best_overlap and best.has("position"):
+		best["recovered_overlap"] = true
+		best["low_confidence"] = true
 	contact_query_count += total_sweeps
 	return best
 
@@ -1195,22 +1377,48 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			# no existe en Godot 4.7.1.
 			hit = _query_shapecast_contact(body, i, state.transform, chassis_up, bump, travel, steer)
 			ray_distance = float(hit.get("distance", 0.0))
-		if hit.is_empty():
-			# Rama sin impacto (§1): el rig es el escritor único del estado
-			# físico (recorrido/velocidad/contactos) y lo resolverá en
-			# UnsprungSuspensionRig.solve() desde la medida hub-vs-chasis.
-			# Aquí solo se registra la ausencia de contacto geométrico; no se
-			# llama a set_airborne() (legado) porque sus escrituras quedaban
-			# sobrescritas en el mismo tick. La distinción geométrico vs carga
-			# positiva la resuelve el rig (`geometric_contact` vs
-			# `contact_active = carga > 0`).
+		if hit.is_empty() or not hit.has("position"):
+			# Rama sin impacto (§1 + Paso 2.3): sin apoyo de suelo (vacío o
+			# solo barreras). Se conservan las barreras para daño.
 			wheel_loads[i] = 0.0
 			wheel_surfaces[i] = "Unknown"
-			contacts.append({ "hit": false })
+			last_barrier_hits[i] = Array(hit.get("barrier_hits", []))
+			contacts.append({"hit": false, "barrier_hits": last_barrier_hits[i]})
 			continue
 		wheel_contact_points[i] = hit["position"]
 		wheel_contact_normals[i] = (hit["normal"] as Vector3).normalized()
 		wheel_surfaces[i] = _surface_for_collider(hit.get("collider"))
+		# Paso 3.1 Jolt fix: eje de giro de la rueda (spin axis) para distinguir
+		# flanco vs banda. heading con steer+toe, forward proyectado, right =
+		# eje de giro. No usar umbral global 0.55: mata peraltes/cunetas.
+		var _steer_full: float = steer
+		var _heading: Vector3 = (-state.transform.basis.z).rotated(chassis_up, _steer_full).normalized()
+		var _fwd: Vector3 = (_heading - wheel_contact_normals[i] * _heading.dot(wheel_contact_normals[i])).normalized()
+		if _fwd.length_squared() < 0.5:
+			_fwd = (-state.transform.basis.z).normalized()
+		var _spin_axis: Vector3 = _fwd.cross(wheel_contact_normals[i]).normalized()
+		if _spin_axis.length_squared() < 0.5:
+			_spin_axis = state.transform.basis.x.normalized()
+		var _cls := classify_tire_contact(wheel_contact_normals[i], _spin_axis, chassis_up)
+		var _is_sidewall := bool(_cls["is_sidewall"])
+		var _is_tread := bool(_cls["is_tread"])
+		# Paso 3.2: guardia de penetración profunda con recuperación. Si el
+		# punto aparece por encima del centro del buje pero es banda (tread),
+		# NO devolver NO_SUPPORT: es penetración profunda (tope llanta /
+		# recuperación). Solo descartar si es flanco (sidewall).
+		var _hub_center: Vector3 = state.transform * wheel_positions_local[i]
+		var _is_deep := (wheel_contact_points[i] - _hub_center).dot(chassis_up) > 0.0
+		var _deep_recovery := _is_deep and _is_tread
+		if _is_sidewall and not _deep_recovery:
+			# Golpe de flanco contra muro/talud: va a daño, NO genera Fz.
+			# Se conserva el contacto geométrico para daño pero sin apoyo.
+			last_barrier_hits[i] = Array(hit.get("barrier_hits", []))
+			last_barrier_hits[i].append({"position": wheel_contact_points[i], "normal": wheel_contact_normals[i], "collider": hit.get("collider")})
+			wheel_loads[i] = 0.0
+			contacts.append({"hit": false, "sidewall": true, "axial": float(_cls["axial"]), "barrier_hits": last_barrier_hits[i]})
+			continue
+		# Conservar barreras para daño (Paso 2.3) en el array local del paso.
+		last_barrier_hits[i] = Array(hit.get("barrier_hits", []))
 		var winter_layer_id := ""
 		var audio_surface := wheel_surfaces[i]
 		var contact_collider: Variant = hit.get("collider")
@@ -1238,6 +1446,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"query_bump_m": float(hit.get("query_bump_m", bump)),
 				"query_travel_m": float(hit.get("query_travel_m", travel)),
 				"elevated_m": float(hit.get("elevated_m", 0.0)),
+				"axial": float(_cls["axial"]),
+				"is_sidewall": _is_sidewall,
+				"is_tread": _is_tread,
+				"deep_recovery": _deep_recovery,
+				"recovered_overlap": bool(hit.get("recovered_overlap", false)),
+				"low_confidence": bool(hit.get("low_confidence", hit.get("recovered_overlap", false))),
+				"barrier_hits": last_barrier_hits[i],
 			}
 		)
 
@@ -1325,6 +1540,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		for i in 4:
 			var contact: Dictionary = contacts[i]
 			tire_model.states[i].radial_deflection_m = unsprung_rig.radial_deflection_m[i]
+			# Paso 3.3: el tope duro Fz solo en recuperación de baja confianza.
+			tire_model.states[i]["recovery_low_confidence"] = bool(contact.get("low_confidence", contact.get("recovered_overlap", false)))
 			wheel_loads[i] = normal_loads[i]
 			# Subpasos acoplados Q5: alimentar el neumático con la Fz y la
 			# deflexión de ESE subpaso (mapeo rig_N/tire_N). Sin subpasos se
@@ -1335,6 +1552,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				var rig_k: int = _substep_index * tire_rig_n / count
 				normal_load = maxf(float(unsprung_rig.substep_load(i, rig_k)), 0.0)
 				tire_model.states[i].radial_deflection_m = unsprung_rig.substep_defl(i, rig_k)
+				wheel_loads[i] = normal_load
+			# Paso 3.3: tope duro Fz solo en recuperación de baja confianza.
+			if bool(contact.get("low_confidence", contact.get("recovered_overlap", false))):
+				var _ref := 3000.0
+				if i < tire_model.static_wheel_load_n.size():
+					_ref = maxf(float(tire_model.static_wheel_load_n[i]), 100.0)
+				normal_load = minf(normal_load, _ref * RECOVERY_FZ_CAP_MULT)
 				wheel_loads[i] = normal_load
 			if not bool(contact.get("hit", false)) or normal_load <= 0.0:
 				var free_thermal_state := tire_thermal_states[i]
@@ -1805,8 +2029,24 @@ static func tandem_cam_supports(patch_length_m: float, scale: float = 1.0) -> Ar
 ## Jolt y debe garantizarse que la primera fuerza de amortiguador corresponda
 ## a la velocidad relativa medida, no a muestras previas.
 func clear_teleport_residual() -> void:
-	unsprung_rig.reset()
+	# Paso 4.1/4.2: mismo pre-asentado que reset_dynamics + limpieza de
+	# historial para derivada 0 en el primer tick.
+	if unsprung_rig.chassis != null:
+		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
+	else:
+		unsprung_rig.reset()
 	suspension_model.clear_transient()
+	for i in 4:
+		if i < suspension_model.axle_parameters.size():
+			var p: Dictionary = suspension_model.axle_parameters[i]
+			var qe := VehicleSuspensionModel.equilibrium_travel_m(p)
+			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
+			suspension_model.compression_velocity[i] = 0.0
+			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]
+			suspension_model.initialized[i] = true
+			suspension_model.previous_samples[i] = true
+			if i < unsprung_rig.compression_physical_m.size():
+				unsprung_rig.compression_physical_m[i] = qe
 	for i in 4:
 		unsprung_rig.spring_forces_n[i] = 0.0
 		wheel_loads[i] = 0.0
@@ -1953,8 +2193,25 @@ func reset_dynamics() -> void:
 	_wheel_thermal_work.fill(Vector3.ZERO)
 	_engine_thermal_elapsed = 0.0
 	_engine_thermal_inputs = Vector4.ZERO
-	unsprung_rig.reset()
+	# Paso 4.1: pre-asentar en equilibrio estático q_eq (no q=0 ni δ=0).
+	# reset_at() calcula q_eq por esquina y sincroniza servidor+nodo.
+	if unsprung_rig.chassis != null:
+		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
+	else:
+		unsprung_rig.reset()
 	suspension_model.clear_transient()
+	# Re-aplicar q_eq tras limpiar el transitorio (clear lo deja en 0).
+	for i in 4:
+		if i < suspension_model.axle_parameters.size():
+			var p: Dictionary = suspension_model.axle_parameters[i]
+			var qe := VehicleSuspensionModel.equilibrium_travel_m(p)
+			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
+			suspension_model.compression_velocity[i] = 0.0
+			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]
+			suspension_model.initialized[i] = true
+			suspension_model.previous_samples[i] = true
+			if i < unsprung_rig.compression_physical_m.size():
+				unsprung_rig.compression_physical_m[i] = qe
 	session_generation += 1
 	simulation_time_s = 0.0
 	published_state = { }

@@ -214,3 +214,15 @@ static func _merged(global_dict: Dictionary, axle_dict: Dictionary) -> Dictionar
 	for k in axle_dict:
 		out[k] = axle_dict[k]
 	return out
+
+
+## Paso 1.1 Jolt fix: rigidez semi-implícita para muelle radial y bumpstop.
+## k_eff = k / (1 + k*dt*dt/m_eff), F = -k_eff * penetración.
+## Misma forma que la suspensión; evita que bujes de 12-20 kg diverjan a
+## dt = 1/120 s sin recortes artificiales de velocidad/fuerza.
+static func semi_implicit_stiffness_n(k_stop: float, penetration_m: float, dt: float, m_eff: float) -> float:
+	var k := maxf(float(k_stop), 0.0)
+	var m := maxf(float(m_eff), 1.0)
+	var d := maxf(float(dt), 0.00001)
+	var k_eff := k / (1.0 + (k * d * d) / m)
+	return -k_eff * float(penetration_m)

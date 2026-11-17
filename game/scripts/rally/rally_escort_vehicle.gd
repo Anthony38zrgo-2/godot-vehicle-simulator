@@ -473,13 +473,23 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		_rescue_pose = null
-		# Limpieza residual (Â§2): la primera fuerza de amortiguador tras el
-		# rescate debe corresponder a la velocidad relativa medida, no a
-		# muestras previas. No se llama a reset_dynamics() completo aquÃ­
-		# (ya corriÃ³ en _reset_to_transform); se reubican hubs y se limpian
-		# los campos publicados que el rig reescribirÃ¡ en el primer solve.
+		# Limpieza residual (Â§2 + Paso 4 Jolt fix): la primera fuerza de
+		# amortiguador tras el rescate debe corresponder a la velocidad
+		# relativa medida, no a muestras previas. No se llama a
+		# reset_dynamics() completo aquÃ­ (ya corriÃ³ en _reset_to_transform);
+		# se reubican hubs en q_eq y se limpian los campos publicados que el
+		# rig reescribirÃ¡ en el primer solve.
 		simulation.suspension_model.clear_transient()
-		simulation.unsprung_rig.reset_at(state.transform)
+		simulation.unsprung_rig.reset_at(state.transform, simulation.suspension_model)
+		for _qi in 4:
+			if _qi < simulation.suspension_model.axle_parameters.size():
+				var _p: Dictionary = simulation.suspension_model.axle_parameters[_qi]
+				var _qe := VehicleSuspensionModel.equilibrium_travel_m(_p)
+				simulation.suspension_model.compression[_qi] = clampf(_qe, -float(_p.get("droop_m", 0.18)), float(_p.get("bump_m", 0.22)))
+				simulation.suspension_model.compression_velocity[_qi] = 0.0
+				simulation.suspension_model.filtered_arb_travel[_qi] = simulation.suspension_model.compression[_qi]
+				simulation.suspension_model.initialized[_qi] = true
+				simulation.suspension_model.previous_samples[_qi] = true
 		simulation.wheel_loads.fill(0.0)
 		simulation.wheel_slips.fill(Vector2.ZERO)
 		simulation.wheel_contact_points.fill(state.transform.origin)
@@ -784,6 +794,34 @@ func _reset_to_transform(pose: Transform3D) -> void:
 		chassis_state.linear_velocity = Vector3.ZERO
 		chassis_state.angular_velocity = Vector3.ZERO
 	simulation.reset_dynamics()
+	# Paso 4.1/4.2 Jolt fix: pre-asentar hubs en q_eq (no q=0) y sincronizar
+	# servidor físico + nodo visual. reset_dynamics() ya calculó q_eq; aquí
+	# se colocan los hubs en su pose objetivo y se iguala el historial para
+	# derivada 0 en el primer tick. No reconstruir juntas: el origen local
+	# neutro sigue siendo q=0. reset_physics_interpolation en chasis+hubs.
+	for i in simulation.unsprung_rig.hubs.size():
+		var qi := 0.0
+		if i < simulation.unsprung_rig.compression_physical_m.size():
+			qi = simulation.unsprung_rig.compression_physical_m[i]
+		var hub_target_xform: Transform3D = pose * Transform3D(Basis.IDENTITY, simulation.unsprung_rig.neutral_positions[i] + Vector3(0.0, qi, 0.0))
+		var hub: RigidBody3D = simulation.unsprung_rig.hubs[i]
+		hub.global_transform = hub_target_xform
+		hub.linear_velocity = Vector3.ZERO
+		hub.angular_velocity = Vector3.ZERO
+		var hub_state := PhysicsServer3D.body_get_direct_state(hub.get_rid())
+		if hub_state != null:
+			hub_state.transform = hub_target_xform
+			hub_state.linear_velocity = Vector3.ZERO
+			hub_state.angular_velocity = Vector3.ZERO
+		hub.reset_physics_interpolation()
+	# Paso 4.3: can_sleep=false en chasis y bujes (evita que un buje con
+	# collision_mask=0 quede dormido al arrancar o tras detenerse).
+	can_sleep = false
+	sleeping = false
+	for hub in simulation.unsprung_rig.hubs:
+		hub.can_sleep = false
+		hub.sleeping = false
+	reset_physics_interpolation()
 	_log_teleport("post_reset", pose)
 	_teleport_trace_ticks = 3
 	throttle_input = 0.0
@@ -824,8 +862,52 @@ func prepare_for_stage() -> void:
 
 func _collect_wheel_cast_impacts(state: PhysicsDirectBodyState3D, contacts: Array[bool], speeds: Array[float], cfg: Dictionary, lateral: Array[float]) -> void:
 	# The hubs use suspension casts for contact instead of solid collision shapes.
+	# Paso 2.3 Jolt fix: NO releer el ShapeCast ya modificado al final del
+	# frame. Los impactos laterales de barrera excluidos temporalmente para
+	# buscar el asfalto viajan en simulation.last_barrier_hits (array local
+	# del paso) + contactos sidewall; el ShapeCast solo aporta el barrido final.
 	var inverse := state.transform.affine_inverse()
 	var com_world := state.transform * center_of_mass
+	# 1) Barreras preservadas del paso (suelo buscado bajo barrera + flancos).
+	for i in mini(4, simulation.last_barrier_hits.size()):
+		for bh in Array(simulation.last_barrier_hits[i]):
+			var bdict: Dictionary = bh
+			var bcollider: Variant = bdict.get("collider")
+			var bpoint: Vector3 = bdict.get("position", Vector3.ZERO)
+			var bnormal: Vector3 = (bdict.get("normal", Vector3.UP) as Vector3).normalized()
+			if bcollider is StaticBody3D:
+				var sbody := bcollider as StaticBody3D
+				if _impact_wheel(inverse * bpoint, cfg) != i:
+					continue
+				contacts[i] = true
+				var vel := state.linear_velocity + state.angular_velocity.cross(bpoint - com_world)
+				var close := maxf(0.0, -(vel - sbody.constant_linear_velocity).dot(bnormal))
+				if close * mass * 0.25 >= float(cfg.minimum_impulse_ns) and close > speeds[i]:
+					speeds[i] = close
+					lateral[i] = absf(bnormal.dot(state.transform.basis.x))
+			elif bcollider is CollisionObject3D:
+				if _impact_wheel(inverse * bpoint, cfg) != i:
+					continue
+				contacts[i] = true
+	# 1b) Flancos (sidewall) descartados para Fz pero válidos para daño.
+	for i in mini(4, simulation.last_contacts.size()):
+		var lc: Dictionary = simulation.last_contacts[i] if i < simulation.last_contacts.size() else {}
+		if bool(lc.get("sidewall", false)):
+			contacts[i] = true
+			var sp: Vector3 = lc.get("position", Vector3.ZERO)
+			var sn: Vector3 = (lc.get("normal", Vector3.UP) as Vector3).normalized()
+			var scoll: Variant = lc.get("collider")
+			var svel := state.linear_velocity + state.angular_velocity.cross(sp - com_world)
+			var scol_vel := Vector3.ZERO
+			if scoll is RigidBody3D:
+				scol_vel = (scoll as RigidBody3D).linear_velocity
+			elif scoll is StaticBody3D:
+				scol_vel = (scoll as StaticBody3D).constant_linear_velocity
+			var sclose := maxf(0.0, -(svel - scol_vel).dot(sn))
+			if sclose * mass * 0.25 >= float(cfg.minimum_impulse_ns) and sclose > speeds[i]:
+				speeds[i] = sclose
+				lateral[i] = absf(sn.dot(state.transform.basis.x))
+	# 2) Barrido final del ShapeCast (suelo + barreras aún presentes).
 	for i in simulation.wheel_contact_casts.size():
 		var cast: ShapeCast3D = simulation.wheel_contact_casts[i]
 		for hit in cast.get_collision_count():

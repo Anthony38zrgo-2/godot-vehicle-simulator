@@ -158,6 +158,79 @@ static func corner_rates(
 	}
 
 
+## Paso 1.1 Jolt fix: masa reducida del par chasis-buje.
+## m_eff = 1 / (1/m_u + 1/m_s_corner). Estabiliza el integrador explícito a
+## 120 Hz para bujes ligeros (12-20 kg) sin límites artificiales.
+static func reduced_mass_kg(hub_mass_kg: float, corner_sprung_mass_kg: float) -> float:
+	var mu := maxf(float(hub_mass_kg), 1.0)
+	var ms := maxf(float(corner_sprung_mass_kg), 1.0)
+	return 1.0 / (1.0 / mu + 1.0 / ms)
+
+
+## Amortiguador semi-implícito: c_eff = c / (1 + c*dt/m_eff).
+## Elimina la oscilación por retardo de 1 tick. Devuelve fuerza.
+static func semi_implicit_damper_n(c_damper: float, v_rel_axis: float, dt: float, m_eff: float) -> float:
+	var c := maxf(float(c_damper), 0.0)
+	var m := maxf(float(m_eff), 1.0)
+	var d := maxf(float(dt), 0.00001)
+	var c_eff := c / (1.0 + (c * d) / m)
+	return -c_eff * float(v_rel_axis)
+
+
+## Muelle / bumpstop / radial semi-implícito:
+## k_eff = k / (1 + k*dt*dt/m_eff). Devuelve fuerza.
+static func semi_implicit_spring_n(k_stop: float, penetration_m: float, dt: float, m_eff: float) -> float:
+	var k := maxf(float(k_stop), 0.0)
+	var m := maxf(float(m_eff), 1.0)
+	var d := maxf(float(dt), 0.00001)
+	var k_eff := k / (1.0 + (k * d * d) / m)
+	return -k_eff * float(penetration_m)
+
+
+## Compresión de equilibrio estático q_eq donde el muelle soporta el peso
+## suspendido de la esquina (F_s(q_eq) = W_sprung_corner). Bisección sobre la
+## ley elástica de referencia (incluye progresividad y cola de desasentado).
+## Si no converge, cae a W/k clamped a [-droop, +bump].
+static func equilibrium_travel_m(p: Dictionary) -> float:
+	var w := float(p.get("static_load", 0.0))
+	var droop := -maxf(float(p.get("droop_m", 0.18)), 0.01)
+	var bump := maxf(float(p.get("bump_m", 0.22)), 0.01)
+	var k := maxf(float(p.get("spring_rate", 1.0)), 1.0)
+	var lo := droop
+	var hi := bump
+	var f_lo := elastic_force_reference(p, lo) - w
+	var f_hi := elastic_force_reference(p, hi) - w
+	if f_lo > 0.0:
+		return droop
+	if f_hi < 0.0:
+		return clampf(w / k, droop, bump)
+	for _i in 48:
+		var mid := 0.5 * (lo + hi)
+		var f_mid := elastic_force_reference(p, mid) - w
+		if f_mid >= 0.0:
+			hi = mid
+		else:
+			lo = mid
+	return 0.5 * (lo + hi)
+
+
+## Chequeo de estabilidad numérica (Paso 0.2): imprime\omega*dt y
+## c*dt/m_eff por esquina. Si cualquiera supera 2.0 el integrador explícito
+## diverge a 120 Hz por sí solo.
+static func stability_metrics(p: Dictionary, hub_mass_kg: float, corner_sprung_mass_kg: float, dt: float) -> Dictionary:
+	var m_eff := reduced_mass_kg(hub_mass_kg, corner_sprung_mass_kg)
+	var k := maxf(float(p.get("spring_rate", 1.0)), 1.0)
+	var mu := maxf(float(hub_mass_kg), 1.0)
+	var omega := sqrt(k / mu)
+	var c := maxf(float(p.get("bump_damping", 0.0)), float(p.get("rebound_damping", 0.0)))
+	return {
+		"omega_dt": float(omega * dt),
+		"damper_dt_over_m": float(c * dt / m_eff),
+		"m_eff_kg": float(m_eff),
+		"stable": bool(omega * dt < 2.0 and c * dt / m_eff < 2.0),
+	}
+
+
 ## Barra estabilizadora: rigidez = wheel rate * ratio geométrico.
 static func arb_stiffness_n_per_m(wheel_rate_n_per_m: float, ratio: float) -> float:
 	return maxf(float(wheel_rate_n_per_m), 0.0) * float(ratio)
@@ -482,6 +555,126 @@ func suspension_forces() -> Array[float]:
 				1.0,
 			)
 			bump_force = bump_elastic + bump_damp
+			force += bump_force
+		last_bump_forces_n[i] = bump_force
+		forces[i] = force
+	var front_roll := filtered_arb_travel[0] - filtered_arb_travel[1]
+	var rear_roll := filtered_arb_travel[2] - filtered_arb_travel[3]
+	var front_arb := front_arb_stiffness_n_per_m * front_roll
+	var rear_arb := rear_arb_stiffness_n_per_m * rear_roll
+	var f_weight_0 := clampf(
+		forces[0] / maxf(float(axle_parameters[0].static_load) * 0.25, 1.0),
+		0.0,
+		1.0,
+	) if not contact_active[0] else 1.0
+	var f_weight_1 := clampf(
+		forces[1] / maxf(float(axle_parameters[1].static_load) * 0.25, 1.0),
+		0.0,
+		1.0,
+	) if not contact_active[1] else 1.0
+	front_arb *= minf(f_weight_0, f_weight_1)
+	var r_weight_2 := clampf(
+		forces[2] / maxf(float(axle_parameters[2].static_load) * 0.25, 1.0),
+		0.0,
+		1.0,
+	) if not contact_active[2] else 1.0
+	var r_weight_3 := clampf(
+		forces[3] / maxf(float(axle_parameters[3].static_load) * 0.25, 1.0),
+		0.0,
+		1.0,
+	) if not contact_active[3] else 1.0
+	rear_arb *= minf(r_weight_2, r_weight_3)
+	forces[0] += front_arb
+	forces[1] -= front_arb
+	forces[2] += rear_arb
+	forces[3] -= rear_arb
+	return forces
+
+
+## Variante semi-implícita (Paso 1.1 Jolt fix): misma ley que
+## suspension_forces() pero con amortiguador y bumpstop corregidos por
+## m_eff = 1/(1/m_u + 1/m_s_corner):
+##   c_eff = c/(1 + c*dt/m_eff), k_eff = k/(1 + k*dt*dt/m_eff).
+## `hub_masses_kg` y `corner_sprung_masses_kg` tienen 4 entradas. Si dt <= 0
+## o las masas están vacías, cae a la ruta explícita (bit-idéntica).
+## La fuerza interna total por esquina se calcula UNA SOLA VEZ (Paso 1.3) y
+## el llamante debe aplicar +F al chasis y -F al buje sin recortes asimétricos.
+func suspension_forces_implicit(
+	dt: float,
+	hub_masses_kg: Array = [],
+	corner_sprung_masses_kg: Array = [],
+) -> Array[float]:
+	if dt <= 0.0 or hub_masses_kg.size() != 4 or corner_sprung_masses_kg.size() != 4:
+		return suspension_forces()
+	var forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for i in 4:
+		var p: Dictionary = axle_parameters[i]
+		var travel := compression[i]
+		var speed := compression_velocity[i]
+		var damper_rate := float(p.bump_damping if speed >= 0.0 else p.rebound_damping)
+		var abs_speed := absf(speed)
+		var knee := maxf(float(p.knee_speed), 1.0e-4)
+		var fast_f := float(p.fast_factor)
+		var damper_explicit := 0.0
+		if is_finite(knee) and abs_speed > 0.0:
+			var slow_part := knee * tanh(abs_speed / knee)
+			var fast_part := maxf(abs_speed - slow_part, 0.0) * fast_f
+			damper_explicit = signf(speed) * damper_rate * (slow_part + fast_part)
+		else:
+			damper_explicit = damper_rate * speed
+		# Linealización local c = |F|/|v| para el factor implícito.
+		var c_lin := damper_rate
+		if abs_speed > 1.0e-4:
+			c_lin = absf(damper_explicit) / abs_speed
+		var m_eff := reduced_mass_kg(float(hub_masses_kg[i]), float(corner_sprung_masses_kg[i]))
+		var c_eff := c_lin / (1.0 + (c_lin * maxf(dt, 0.00001)) / maxf(m_eff, 1.0))
+		var damper_force := -c_eff * speed if abs_speed > 1.0e-9 else 0.0
+		# Conservar el signo digresivo exacto cuando la linealización coincide:
+		# si la curva era lineal, -c_eff*v == explícito/(1+c*dt/m). Si era
+		# digresiva, escala por el mismo factor para no cambiar la forma.
+		if abs_speed > 1.0e-9 and absf(damper_explicit) > 1.0e-9:
+			var scale := absf(damper_force) / maxf(absf(damper_explicit), 1.0e-9)
+			# scale ya es 1/(1+c*dt/m) por construcción; aplicar directo.
+			damper_force = damper_explicit * clampf(scale / maxf(absf(damper_explicit) / maxf(absf(damper_explicit), 1.0e-9), 1.0), 0.0, 1.0)
+			damper_force = damper_explicit / (1.0 + (c_lin * maxf(dt, 0.00001)) / maxf(m_eff, 1.0))
+		var travel_delta := travel - float(p.get("rest_compression_offset", 0.0))
+		var max_range := maxf(float(p.bump_m), 0.05)
+		var norm_travel := clampf(travel_delta / max_range, -1.0, 1.5)
+		var progressive_rate := float(p.spring_rate) * (
+			1.0 + SPRING_PROGRESSIVITY_RATE * norm_travel * absf(norm_travel)
+		)
+		var elastic_force := float(p.static_load) + progressive_rate * travel_delta
+		if bool(p.spring_can_unseat):
+			var helper_zone := float(p.static_load) * HELPER_ZONE_FRACTION
+			if elastic_force < helper_zone:
+				elastic_force = helper_zone * exp(
+					(elastic_force - helper_zone) / maxf(helper_zone, 1.0)
+				)
+		var force := elastic_force + damper_force
+		last_elastic_forces_n[i] = elastic_force
+		last_damper_forces_n[i] = damper_force
+		var bump_range := maxf(float(p.bump_stop_travel), 0.015)
+		var bump_threshold := float(p.bump_m) - bump_range
+		var bump_force := 0.0
+		if travel > bump_threshold:
+			var overtravel := travel - bump_threshold
+			var norm_over := clampf(overtravel / bump_range, 0.0, 2.0)
+			var bump_elastic := float(p.bump_stop_stiffness) * overtravel * norm_over * (
+				0.5 + 0.5 * norm_over
+			)
+			var bump_damp := float(p.bump_stop_damping) * maxf(speed, 0.0) * clampf(
+				norm_over,
+				0.0,
+				1.0,
+			)
+			var bump_explicit := bump_elastic + bump_damp
+			# k linealizada local para el factor implícito.
+			var k_lin := float(p.bump_stop_stiffness) * norm_over * (0.5 + 0.5 * norm_over)
+			k_lin = maxf(k_lin, absf(bump_explicit) / maxf(overtravel, 1.0e-4))
+			var k_eff := k_lin / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
+			bump_force = k_eff * overtravel + bump_damp / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
+			# Conservar forma exacta escalando el explícito por el factor.
+			bump_force = bump_explicit / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
 			force += bump_force
 		last_bump_forces_n[i] = bump_force
 		forces[i] = force

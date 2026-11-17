@@ -15,8 +15,8 @@ extends RefCounted
 ## Los topes progresivos de compresión se resuelven en la ley de fuerza; los
 ## límites duros los resuelven estas juntas.
 
-const JOINT_LIMIT_MARGIN_M := 0.03
-## Alcance efectivo de extensión (§2): el joint permite
+const JOINT_LIMIT_MARGIN_M := 0.10
+## Alcance efectivo de extensión (§2 + Paso 1.4 Jolt fix): el joint permite
 ## `droop + JOINT_LIMIT_MARGIN_M` bajo el neutro. Las consultas de contacto
 ## (tándem y ShapeCast) deben derivar su alcance de este mismo límite para
 ## no recortar 30 mm de droop real. Distancias referidas al centro neutro.
@@ -64,11 +64,11 @@ var impulse_trace: Array[Dictionary] = [{ }, { }, { }, { }]
 ## para aislar el aporte viscoso conservando elástica, tope y unilateralidad.
 ## No se reinicia en reset_at para que la sonda lo fije una vez por pasada.
 var radial_viscous_scale := 1.0
-## Paso radial implícito (tercera prueba, variante de sonda): false =
-## producción (fuerza instantánea). true = impulso normal unilateral del
-## intervalo desde la deformación y velocidad predichas al final del paso,
-## aplicado al buje una sola vez por tick como fuerza equivalente J/dt.
-var radial_implicit_enabled := false
+## Paso radial implícito (Paso 1.1 Jolt fix, producción): true =
+## impulso normal unilateral del intervalo desde la deformación y velocidad
+## predichas al final del paso, aplicado al buje una sola vez por tick como
+## fuerza equivalente J/dt.
+var radial_implicit_enabled := true
 ## Subpasos acoplados (quinta prueba, solo sonda): 1 = producción.
 ## 3/6 = integrador diagnóstico con N subpasos por tick de Jolt a 60 Hz
 ## (paso efectivo 180/360 Hz). Predice chasis (traslación) y bujes (eje de
@@ -367,26 +367,47 @@ func reset() -> void:
 	reset_at(chassis.global_transform)
 
 
-func reset_at(pose: Transform3D) -> void:
+func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> void:
+	# Paso 4.1 Jolt fix: pre-asentar en el equilibrio estático q_eq donde el
+	# muelle soporta el peso suspendido de la esquina (Fs(q_eq)=W_sprung).
+	# Si no hay suspensión o el coche nace en el aire (sin suelo), q_eq cae a
+	# -droop (extensión máxima). El origen local neutro de la junta sigue
+	# siendo q=0: NO se reconstruyen las juntas tras pre-asentar.
+	var q_eq: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	if suspension != null and suspension.axle_parameters.size() == 4:
+		for w in 4:
+			var p: Dictionary = suspension.axle_parameters[w]
+			q_eq[w] = VehicleSuspensionModel.equilibrium_travel_m(p)
 	for i in hubs.size():
+		var qi := q_eq[i] if i < q_eq.size() else 0.0
 		var target_transform := pose * Transform3D(
 			Basis.IDENTITY,
-			neutral_positions[i],
+			neutral_positions[i] + Vector3(0.0, qi, 0.0),
 		)
 		hubs[i].global_transform = target_transform
 		hubs[i].linear_velocity = Vector3.ZERO
 		hubs[i].angular_velocity = Vector3.ZERO
 		hubs[i].constant_force = Vector3.ZERO
+		# Paso 4.2: actualizar servidor físico Y nodo visual.
 		var hub_state := PhysicsServer3D.body_get_direct_state(hubs[i].get_rid())
 		if hub_state != null:
 			hub_state.transform = target_transform
 			hub_state.linear_velocity = Vector3.ZERO
 			hub_state.angular_velocity = Vector3.ZERO
+		hubs[i].reset_physics_interpolation()
 		radial_deflection_m[i] = 0.0
-		compression_physical_m[i] = 0.0
+		# Paso 4.2: igualar historial para que la derivada del amortiguador
+		# sea 0.0 en el primer tick.
+		compression_physical_m[i] = qi
 		radial_dissipation_w[i] = 0.0
 		radial_states[i] = { }
 		impulse_trace[i] = { }
+		if suspension != null and suspension.axle_parameters.size() == 4:
+			suspension.compression[i] = clampf(qi, -float(suspension.axle_parameters[i].droop_m), float(suspension.axle_parameters[i].bump_m))
+			suspension.compression_velocity[i] = 0.0
+			suspension.filtered_arb_travel[i] = suspension.compression[i]
+			suspension.initialized[i] = true
+			suspension.previous_samples[i] = true
 		if i < spring_forces_n.size():
 			spring_forces_n[i] = 0.0
 		if i < last_tick_trace.size():
@@ -406,6 +427,9 @@ func reset_at(pose: Transform3D) -> void:
 	# (reset_dynamics / clear_teleport_residual) junto a este reset de hubs,
 	# para que la primera muestra tras teletransporte no arrastre el estado
 	# previo.
+	# Paso 4.2: reset_physics_interpolation del chasis tras teletransportar.
+	if chassis != null and is_instance_valid(chassis):
+		chassis.reset_physics_interpolation()
 
 
 func sync_freeze() -> void:
@@ -558,7 +582,11 @@ func solve_coupled(
 			suspension.compression[i] = comp_in[i]
 			suspension.compression_velocity[i] = u_rel[i]
 			suspension.filtered_arb_travel[i] = comp_in[i]
-		var forces: Array = suspension.suspension_forces()
+		var _hm: Array = [hub_mass[0], hub_mass[1], hub_mass[2], hub_mass[3]]
+		var _cm: Array = [0.0, 0.0, 0.0, 0.0]
+		for _ci2 in 4:
+			_cm[_ci2] = effective_corner_mass_kg(chassis, neutral_positions[_ci2])
+		var forces: Array = suspension.suspension_forces_implicit(h, _hm, _cm)
 		for i in 4:
 			var p: Dictionary = suspension.axle_parameters[i]
 			var elastic_f: float = suspension.last_elastic_forces_n[i]
@@ -843,22 +871,36 @@ func solve(
 		suspension.geometric_contact[i] = bool(contacts[i].get("hit", false))
 		suspension.contact_active[i] = bool(contacts[i].get("hit", false))
 
-	spring_forces_n = suspension.suspension_forces()
+	# Paso 1.1/1.2/1.3 Jolt fix: ley semi-implícita con velocidad relativa
+	# limpia (proyectada sobre el eje, ya calculada arriba como
+	# (h_vel - body_point_velocity).dot(up)) y masa reducida
+	# m_eff = 1/(1/m_u + 1/m_s_corner). Fuerza interna total UNA SOLA VEZ:
+	# +F al chasis, -F al buje, sin recortes asimétricos.
+	var _explicit_forces := suspension.suspension_forces()
+	var _explicit_dampers: Array[float] = [suspension.last_damper_forces_n[0], suspension.last_damper_forces_n[1], suspension.last_damper_forces_n[2], suspension.last_damper_forces_n[3]]
+	tick_sequence += 1
+	var dt := maxf(state.step, 0.00001)
+	var chassis_mass := maxf(chassis.mass, 1.0)
+	var _hub_m: Array = [maxf(hubs[0].mass, 1.0), maxf(hubs[1].mass, 1.0), maxf(hubs[2].mass, 1.0), maxf(hubs[3].mass, 1.0)]
+	var _corner_m: Array = [chassis_mass, chassis_mass, chassis_mass, chassis_mass]
+	for _ci in 4:
+		_corner_m[_ci] = effective_corner_mass_kg(chassis, neutral_positions[_ci])
+	spring_forces_n = suspension.suspension_forces_implicit(dt, _hub_m, _corner_m)
+	for _ci in 4:
+		last_damper_requested_n[_ci] = _explicit_dampers[_ci]
 	# Recorte de diagnóstico del damper (F1, §5): DESACTIVADO POR DEFECTO.
-	# Ruta normal: se aplica la fuerza de la curva digresiva íntegra
-	# (`suspension.last_damper_forces_n` = solicitada). Con
+	# Ruta normal: se aplica la fuerza semi-implícita íntegra
+	# (`suspension.last_damper_forces_n` = aplicada). Con
 	# `damper_impulse_limit_enabled = true` se recorta solo el damper si su
 	# impulso invertiría la velocidad relativa del tick:
 	# J = F*dt (+ al chasis, − al hub): dvel_rel = −J*(1/M+1/m).
 	# Sin inversión: |F| <= fracción*|vel|/(dt*(1/M+1/m)).
 	# La fórmula solo usa masas traslacionales; ver limitación en la cabecera.
-	tick_sequence += 1
-	var dt := maxf(state.step, 0.00001)
-	var chassis_mass := maxf(chassis.mass, 1.0)
 	for i in 4:
 		var rel_vel_clamp: float = suspension.compression_velocity[i]
 		var damper_raw: float = suspension.last_damper_forces_n[i]
-		last_damper_requested_n[i] = damper_raw
+		# last_damper_requested_n ya guarda la explícita (traza); aquí la
+		# aplicada semi-implícita.
 		last_damper_applied_n[i] = damper_raw
 		last_damper_clamped[i] = false
 		if damper_impulse_limit_enabled and absf(rel_vel_clamp) > 1.0e-6 and absf(damper_raw) > 1.0e-9:

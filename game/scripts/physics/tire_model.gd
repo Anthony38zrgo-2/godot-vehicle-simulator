@@ -21,6 +21,12 @@ const ENVELOPE_PATCH_TAU_MIN_S := 0.002
 # Rampa de aterrizaje: el contact_blend sube con tau rápido al re-contactar
 # para no patinar con patch cero + blend<1. Despegue usa tau del perfil.
 const CONTACT_LANDING_TAU_S := 0.02
+# Paso 3.3 Jolt fix: sensibilidad de carga en lugar de tope duro de agarre.
+# mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k_load), k típico 0.10-0.20.
+# El tope duro 2.4× solo aplica en recuperación de solapamiento de baja
+# confianza (ver evaluate(): state "recovery_low_confidence").
+const LOAD_SENSITIVITY_K := 0.15
+const RECOVERY_FZ_CAP_MULT := 2.4
 
 var base_axle_profiles: Array[Dictionary] = []
 var axle_profiles: Array[Dictionary] = []
@@ -189,6 +195,12 @@ func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c
 static func effective_radius_m(nominal_m: float, deflection_m: float, sidewall_m: float) -> float:
 	var rim := maxf(nominal_m - maxf(sidewall_m, 0.03), 0.05)
 	return maxf(nominal_m - maxf(deflection_m, 0.0) * EFFECTIVE_RADIUS_COMPRESSION_GAIN, rim + EFFECTIVE_RADIUS_RIM_MARGIN_M)
+
+
+## Paso 3.3 Jolt fix: decaimiento del coeficiente con la carga.
+## mu_eff = mu0 * (max(fz,1)/fz_nominal)^(-k). k típico 0.10-0.20.
+static func load_adjusted_mu(mu0: float, fz_n: float, fz_nominal_n: float, k_load: float = LOAD_SENSITIVITY_K) -> float:
+	return maxf(float(mu0), 0.0) * pow(maxf(float(fz_n), 1.0) / maxf(float(fz_nominal_n), 1.0), -clampf(float(k_load), 0.0, 0.5))
 
 
 func configure(
@@ -577,19 +589,26 @@ func evaluate(
 	state.effective_slip_ratio += (target_ratio - float(state.effective_slip_ratio)) * lon_alpha
 
 	# Carga para mu/capacidad: envolvente (suaviza curbs), no el pico instantáneo.
-	# A carga constante converge a Fz. §4.5.
+	# A carga constante converge a Fz. §4.5 + Paso 3.3 Jolt fix: decaimiento
+	# mu_eff = mu0*(fz/fz_nom)^(-k) en vez de tope duro 2.4×. El tope duro
+	# solo aplica en recuperación de solapamiento de baja confianza.
 	var fz := enveloped_load
 	var fz_static := maxf(normal_load_n, 0.0)
+	if bool(state.get("recovery_low_confidence", false)):
+		var _cap := maxf(reference_load * RECOVERY_FZ_CAP_MULT, 100.0)
+		fz = minf(fz, _cap)
+		fz_static = minf(fz_static, _cap)
 	var pressure_rr := clampf(
 		pow(pressure_ratio, clampf(float(axle_pressure_rolling[index]), -3.0, 3.0)),
 		0.75,
 		1.50,
 	)
 	var axle_mult := float(axle_load_mult[index])
+	# Paso 3.3: k típico 0.10-0.20 (antes 0.08-0.25).
 	var load_sensitivity_exp := clampf(
 		float(axle_load_sensitivity[index]) * reference_load * axle_mult,
-		0.08,
-		0.25,
+		0.10,
+		0.20,
 	)
 	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
 	# Respuesta de compuesto/agua/nieve/suelo combinada una sola vez con la
