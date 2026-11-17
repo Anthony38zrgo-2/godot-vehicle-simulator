@@ -349,6 +349,10 @@ class Particle:
 	var shade := 1.0
 	var bounced := false
 	var intensity := 1.0
+	var visual_dirty := true
+	var visual_basis := Basis.IDENTITY
+	var visual_color := Color.WHITE
+	var visual_data := Color()
 
 
 @export var look: Look = Look.VRALLY2:
@@ -356,11 +360,14 @@ class Particle:
 		look = value
 		_cfg = LOOKS[value]
 		_restyle_batches()
+		for particle in particles:
+			particle.visual_dirty = true
 
 var particles: Array[Particle] = []
 var batches: Dictionary = { }
 var batch_kinds: Dictionary = { }
-var next_slot := 0
+var active_slots: Array[int] = []
+var free_slots: Array[int] = []
 var rng := RandomNumberGenerator.new()
 # RNG aparte para el estilo: no altera la secuencia determinista original.
 var style_rng := RandomNumberGenerator.new()
@@ -378,6 +385,7 @@ func _ready() -> void:
 		_shader_uniforms[u.name] = true
 	for i in CAPACITY:
 		particles.append(Particle.new())
+	_reset_slots()
 	_restyle_batches()
 
 
@@ -390,20 +398,21 @@ func emit_particle(
 	floor_normal: Vector3,
 	intensity: float = 1.0,
 ) -> void:
-	var slot := next_slot
-	var oldest_age := -1
-	for i in CAPACITY:
-		var candidate := (next_slot + i) % CAPACITY
-		var existing := particles[candidate]
-		if existing.ticks == 0:
-			slot = candidate
-			break
-		var age := existing.max_ticks - existing.ticks
-		if age > oldest_age:
-			oldest_age = age
-			slot = candidate
-	next_slot = (slot + 1) % CAPACITY
+	var slot: int
+	if free_slots.is_empty():
+		slot = active_slots[0]
+		var oldest_age := -1
+		for candidate in active_slots:
+			var existing := particles[candidate]
+			var age := existing.max_ticks - existing.ticks
+			if age > oldest_age:
+				oldest_age = age
+				slot = candidate
+	else:
+		slot = free_slots.pop_back()
+		active_slots.insert(active_slots.bsearch(slot), slot)
 	var p := particles[slot]
+	p.visual_dirty = true
 	p.kind = kind
 	p.texture = texture
 	p.previous = point
@@ -435,10 +444,10 @@ func emit_particle(
 
 
 func step(wind: Vector3) -> void:
-	for p in particles:
-		if p.ticks == 0:
-			continue
+	for index in active_slots:
+		var p := particles[index]
 		p.ticks -= 1
+		p.visual_dirty = true
 		p.previous = p.position
 		var profile: Dictionary = TYPES[p.kind]
 		p.velocity = p.velocity.lerp(wind, float(profile.drag) * STEP)
@@ -463,6 +472,12 @@ func step(wind: Vector3) -> void:
 		elif bool(profile.get("cutout", false)) or p.kind in [Kind.WATER, Kind.SNOW, Kind.GLASS]:
 			p.ticks = 0
 
+	for index in range(active_slots.size() - 1, -1, -1):
+		var slot := active_slots[index]
+		if particles[slot].ticks == 0:
+			active_slots.remove_at(index)
+			free_slots.append(slot)
+
 
 func dust_frame(p: Particle) -> int:
 	var age := p.max_ticks - p.ticks
@@ -473,13 +488,6 @@ func dust_frame(p: Particle) -> int:
 func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool) -> void:
 	var snap: float = _cfg.snap
 	var fraction_steps: int = _cfg.fraction_steps
-	var size_steps: int = _cfg.size_steps
-	var alpha_steps: int = _cfg.alpha_steps
-	var angle_steps: int = _cfg.angle_steps
-	var alpha_boost: float = _cfg.alpha_boost
-	var cloud_scale: float = _cfg.cloud_scale
-	var debris_scale: float = _cfg.debris_scale
-	var retro := look != Look.MODERN
 
 	# Interpolación recortada a subpasos: el movimiento "salta" como en los 90.
 	if fraction_steps > 0:
@@ -488,86 +496,103 @@ func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool
 	var draw_counts: Dictionary = { }
 	for texture in batches:
 		draw_counts[texture] = 0
+
+	for index in active_slots:
+		var p := particles[index]
+		var batch: MultiMesh = batches[p.texture]
+		var slot: int = draw_counts[p.texture]
+		if p.visual_dirty:
+			_update_particle_visual(p)
+		var position := p.previous.lerp(p.position, fraction)
+		if snap > 0.0:
+			position = position.snapped(Vector3.ONE * snap)
+		batch.set_instance_transform(slot, Transform3D(p.visual_basis, position))
+		batch.set_instance_color(slot, p.visual_color)
+		batch.set_instance_custom_data(slot, p.visual_data)
+		draw_counts[p.texture] = slot + 1
+	for texture in batches:
 		var batch: MultiMesh = batches[texture]
+		var count: int = draw_counts[texture]
+		if batch.visible_instance_count != count:
+			batch.visible_instance_count = count
+		if count == 0:
+			continue
 		var kind: Kind = batch_kinds[texture]
 		var soft_here := soften and (bool(_cfg.soft_particles) or kind == Kind.SPLASH)
 		var material := batch.mesh.surface_get_material(0) as ShaderMaterial
 		material.set_shader_parameter("world_to_vehicle", world_to_vehicle)
 		material.set_shader_parameter("soft_intersection_metres", 0.15 if soft_here else 0.0)
 
-	for p in particles:
-		if p.ticks == 0:
-			continue
-		var batch: MultiMesh = batches[p.texture]
-		var slot: int = draw_counts[p.texture]
-		var profile: Dictionary = TYPES[p.kind]
-		var progress := 1.0 - float(p.ticks) / float(p.max_ticks)
 
-		# --- Frame de sprite ---
-		var frame := dust_frame(p) if p.kind in DUST_KINDS else 0
-		if profile.has("frame_delay"):
-			var age := p.max_ticks - p.ticks
-			var delay := int(profile.frame_delay)
-			if age > delay:
-				frame = (p.frame_offset + int(float(age - delay) / float(profile.frame_ticks))) % int(
-					profile.frames
-				)
-		elif p.kind == Kind.BACKFIRE:
-			frame = p.max_ticks - p.ticks
 
-		# --- Tamaño: crecimiento en escalones + escala retro ---
-		var sizes: Vector2 = profile.size
-		var size := lerpf(sizes.x, sizes.y, _stepped(progress, size_steps)) * p.size_factor
-		size *= lerpf(0.6, 1.0, p.intensity)
-		if p.kind in CLOUD_KINDS:
-			size *= cloud_scale
-		elif p.kind in DEBRIS_KINDS:
-			size *= debris_scale
-		if retro and p.kind == Kind.BACKFIRE and frame % 2 == 1:
-			size *= 0.75 # parpadeo del fogonazo
+func _update_particle_visual(p: Particle) -> void:
+	var size_steps: int = _cfg.size_steps
+	var alpha_steps: int = _cfg.alpha_steps
+	var angle_steps: int = _cfg.angle_steps
+	var alpha_boost: float = _cfg.alpha_boost
+	var cloud_scale: float = _cfg.cloud_scale
+	var debris_scale: float = _cfg.debris_scale
+	var retro := look != Look.MODERN
 
-		# --- Posición: interpolación recortada + snap a rejilla (jitter) ---
-		var position := p.previous.lerp(p.position, fraction)
-		if snap > 0.0:
-			position = position.snapped(Vector3.ONE * snap)
+	var profile: Dictionary = TYPES[p.kind]
+	var progress := 1.0 - float(p.ticks) / float(p.max_ticks)
 
-		var bead_spark := p.kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE]
-		# --- Opacidad: desvanecimiento en bandas ---
-		var constant_alpha := (
-			bool(profile.get("cutout", false)) or p.kind == Kind.SLIP_DUST
-			or (retro and p.kind == Kind.BACKFIRE)
-		)
-		var fade := 1.0
-		if bead_spark:
-			fade = 1.0 - smoothstep(0.65, 1.0, progress)
-		elif not constant_alpha:
-			fade = (
-				1.0 - progress
-				if alpha_steps <= 0
-				else 1.0 - floorf(progress * alpha_steps) / float(alpha_steps)
+	# --- Frame de sprite ---
+	var frame := dust_frame(p) if p.kind in DUST_KINDS else 0
+	if profile.has("frame_delay"):
+		var age := p.max_ticks - p.ticks
+		var delay := int(profile.frame_delay)
+		if age > delay:
+			frame = (p.frame_offset + int(float(age - delay) / float(profile.frame_ticks))) % int(
+				profile.frames
 			)
-		var opacity := float(profile.alpha) * (1.6 if p.texture.resource_path == GRAVEL_DUST_PATH else 1.0)
-		var alpha := clampf(opacity * alpha_boost * fade * lerpf(0.5, 1.0, p.intensity), 0.0, 1.0)
+	elif p.kind == Kind.BACKFIRE:
+		frame = p.max_ticks - p.ticks
 
-		# --- Rotación: ángulos discretos ---
-		var angle := p.angle
-		if angle_steps > 0:
-			angle = snappedf(angle, TAU / float(angle_steps))
+	# --- Tamaño: crecimiento en escalones + escala retro ---
+	var sizes: Vector2 = profile.size
+	var size := lerpf(sizes.x, sizes.y, _stepped(progress, size_steps)) * p.size_factor
+	size *= lerpf(0.6, 1.0, p.intensity)
+	if p.kind in CLOUD_KINDS:
+		size *= cloud_scale
+	elif p.kind in DEBRIS_KINDS:
+		size *= debris_scale
+	if retro and p.kind == Kind.BACKFIRE and frame % 2 == 1:
+		size *= 0.75 # parpadeo del fogonazo
 
-		var basis := Basis.IDENTITY
-		if bead_spark and p.velocity.length_squared() > 0.001:
-			var direction := p.velocity.normalized()
-			var up := Vector3.RIGHT if absf(direction.y) > 0.95 else Vector3.UP
-			basis = Basis.looking_at(direction, up) * Basis(Vector3.RIGHT, -PI * 0.5)
-		batch.set_instance_transform(
-			slot,
-			Transform3D(basis.scaled(Vector3(size * 0.285, size * 1.2375, size * 0.75) if bead_spark else Vector3.ONE * size), position),
+	var bead_spark := p.kind in [Kind.BEAD_YELLOW, Kind.BEAD_ORANGE]
+	# --- Opacidad: desvanecimiento en bandas ---
+	var constant_alpha := (
+		bool(profile.get("cutout", false)) or p.kind == Kind.SLIP_DUST
+		or (retro and p.kind == Kind.BACKFIRE)
+	)
+	var fade := 1.0
+	if bead_spark:
+		fade = 1.0 - smoothstep(0.65, 1.0, progress)
+	elif not constant_alpha:
+		fade = (
+			1.0 - progress
+			if alpha_steps <= 0
+			else 1.0 - floorf(progress * alpha_steps) / float(alpha_steps)
 		)
-		batch.set_instance_color(slot, _particle_color(p, profile, progress, alpha))
-		batch.set_instance_custom_data(slot, Color(angle, float(frame), 0.0, 0.0))
-		draw_counts[p.texture] = slot + 1
-	for texture in batches:
-		batches[texture].visible_instance_count = draw_counts[texture]
+	var opacity := float(profile.alpha) * (1.6 if p.texture.resource_path == GRAVEL_DUST_PATH else 1.0)
+	var alpha := clampf(opacity * alpha_boost * fade * lerpf(0.5, 1.0, p.intensity), 0.0, 1.0)
+
+	# --- Rotación: ángulos discretos ---
+	var angle := p.angle
+	if angle_steps > 0:
+		angle = snappedf(angle, TAU / float(angle_steps))
+
+	var basis := Basis.IDENTITY
+	if bead_spark and p.velocity.length_squared() > 0.001:
+		var direction := p.velocity.normalized()
+		var up := Vector3.RIGHT if absf(direction.y) > 0.95 else Vector3.UP
+		basis = Basis.looking_at(direction, up) * Basis(Vector3.RIGHT, -PI * 0.5)
+	var mesh_scale := Vector3(size * 0.285, size * 1.2375, size * 0.75) if bead_spark else Vector3.ONE * size
+	p.visual_basis = basis.scaled(mesh_scale)
+	p.visual_color = _particle_color(p, profile, progress, alpha)
+	p.visual_data = Color(angle, float(frame), 0.0, 0.0)
+	p.visual_dirty = false
 
 
 func clear() -> void:
@@ -575,9 +600,16 @@ func clear() -> void:
 		p.ticks = 0
 	for batch in batches.values():
 		batch.visible_instance_count = 0
-	next_slot = 0
+	_reset_slots()
 	rng.seed = 0x434d5232
 	style_rng.seed = 0x56524c32
+
+
+func _reset_slots() -> void:
+	active_slots.clear()
+	free_slots.clear()
+	for slot in range(particles.size() - 1, -1, -1):
+		free_slots.append(slot)
 
 
 # ---------------------------------------------------------------------------

@@ -1480,6 +1480,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"hit": true,
 				"position": wheel_contact_points[i],
 				"normal": wheel_contact_normals[i],
+				"tread_axis": _spin_axis,
 				"distance": ray_distance,
 				"surface": wheel_surfaces[i],
 				"collider": hit.get("collider"),

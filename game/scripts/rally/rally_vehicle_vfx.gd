@@ -238,25 +238,30 @@ func _physics_process(delta: float) -> void:
 
 func update_tire_track(index: int) -> void:
 	var sim := vehicle.simulation
-	if sim.wheel_contact_casts.size() != 4 or not sim.wheel_contact_casts[index].is_colliding() or sim.wheel_loads[index] < 60.0:
+	var contact: Dictionary = sim.last_contacts[index]
+	var load_n: float = sim.wheel_loads[index]
+	if not contact.get("hit", false) or load_n < 60.0:
 		tire_tracks.break_track(index)
 		return
-	var surface := sim.wheel_surfaces[index].to_lower()
+	var surface := str(contact["surface"]).to_lower()
+	var collider: Object = contact.get("collider")
+	if contact.get("audio_surface") == "wood_bridge":
+		surface = "wood_bridge"
+	elif surface == "unknown" and is_instance_valid(collider):
+		surface = str(collider.get_meta("surface", surface)).to_lower()
 	var track_winter := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
 	var variant: int = tire_tracks.variant_for(surface, float(wheel_conditions(index).get("snow_mm", 0.0)), index, track_winter)
-	var offset := sim.wheel_contact_points[index] - vehicle.global_position
+	var point: Vector3 = contact["position"]
+	var normal: Vector3 = contact["normal"]
+	var offset := point - vehicle.global_position
 	var velocity := vehicle.linear_velocity + vehicle.angular_velocity.cross(offset)
-	var forward_speed := velocity.dot(-vehicle.global_basis.z)
-	if variant < 0 or velocity.length_squared() < 1.0:
+	if velocity.slide(normal).length_squared() < 1.0:
 		tire_tracks.break_track(index)
 		return
-	var slip := sim.wheel_slips[index]
-	var lock := smoothstep(0.10, 0.85, -slip.x * signf(forward_speed))
-	var lateral := smoothstep(0.07, 0.35, absf(slip.y)) * 0.55
-	var load := clampf(sim.wheel_loads[index] / (vehicle.mass * 9.81 * 0.25), 0.0, 1.0)
-	var rolling := 0.12 if variant < 2 else 0.22
-	var strength := intensity * load * lerpf(rolling, 0.68, maxf(lock, lateral))
-	tire_tracks.add_contact(index, sim.wheel_contact_points[index], sim.wheel_contact_normals[index], sim.wheel_widths[index], variant, strength, surface)
+	var load := clampf(load_n / (vehicle.mass * 9.81 * 0.25), 0.0, 1.0)
+	var strength: float = intensity * load * tire_tracks.opacity_for(surface, variant, sim.wheel_slips[index])
+	var excluded: Array[RID] = [vehicle.get_rid()]
+	tire_tracks.add_contact(index, contact, sim.wheel_widths[index], variant, strength, surface, sim.wheel_slips[index], vehicle.collision_mask, excluded)
 
 
 func _process(_delta: float) -> void:

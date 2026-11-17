@@ -65,19 +65,23 @@ func verify() -> void:
 	assert(active_wheel_particles(vfx).is_empty(), "Front wheels skip rolling dust")
 	vehicle.linear_velocity = Vector3(0, 0, -15)
 	# Both axles can leave marks independently of the rear-only particle emitters.
-	var contact_point: Vector3 = sim.wheel_contact_points[index]
+	var contact: Dictionary = sim.last_contacts[index]
+	var contact_point: Vector3 = contact.position
+	var contact_surface: String = contact.surface
+	contact.surface = "asphalt"
 	vfx.tire_tracks.clear_tracks()
 	sim.wheel_surfaces[index] = "asphalt"
 	sim.last_local_conditions[index] = { "snow_mm": 0.0 }
 	sim.wheel_slips[index] = Vector2(0.4, 0.0)
 	vfx.update_tire_track(index)
-	sim.wheel_contact_points[index] = contact_point + Vector3(0.0, 0.0, 0.5)
+	contact.position = contact_point + Vector3(0.0, 0.0, 0.5)
 	vfx.update_tire_track(index)
-	assert(vfx.tire_tracks.counts[index % 2] == 1, "Loaded slipping wheel should leave a mark")
+	assert(not vfx.tire_tracks.segments.is_empty(), "Loaded slipping wheel should leave a mark")
 	sim.wheel_slips[index] = Vector2.ZERO
 	vfx.update_tire_track(index)
-	assert(vfx.tire_tracks.active[index], "Rolling contact must retain track continuity")
-	sim.wheel_contact_points[index] = contact_point
+	assert(not vfx.tire_tracks.previous[index].is_empty(), "Rolling contact must retain track continuity")
+	contact.position = contact_point
+	contact.surface = contact_surface
 	vfx.tire_tracks.clear_tracks()
 	sim.wheel_slips[index] = Vector2(0.24, 0.12)
 	for surface in ["Gravel", "Dirt", "Sand", "Grass"]:
