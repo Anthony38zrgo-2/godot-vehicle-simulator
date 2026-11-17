@@ -97,8 +97,8 @@ const WATERSPLASH_GAIN_SCALE := 0.5
 const WATERSPLASH_COOLDOWN_SECONDS := 0.40
 const RAIN_AMBIENCE_PATH := "res://sounds/banks/commons/rain_ambience_loop.wav"
 const RAIN_AMBIENCE_GAIN_SCALE := 0.85
-const RAIN_AMBIENCE_HPF_DRY_HZ := 1000.0
-const RAIN_AMBIENCE_HPF_HEAVY_HZ := 160.0
+const RAIN_AMBIENCE_HPF_DRY_HZ := 320.0
+const RAIN_AMBIENCE_HPF_HEAVY_HZ := 140.0
 const SCRAPE_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const ENGINE_GAIN_BOOST := 0.95 # 3.0041637771599605 * 0.31622776601683794 (-10 dB)
 const ENGINE_LAYER_TRIM := 1.41253754 # +3 dB for engine and exhaust loops.
@@ -1445,7 +1445,10 @@ func update_rain_ambience(delta: float) -> void:
 	rain_ambience_intensity = lerpf(rain_ambience_intensity, target_intensity, 1.0 - exp(-delta * 2.5))
 	var target_gain := 0.0
 	if rain_ambience_intensity > 0.005:
-		target_gain = lerpf(0.05, 0.85, pow(rain_ambience_intensity, 0.85)) * RAIN_AMBIENCE_GAIN_SCALE * lerpf(1.0, db_to_linear(-4.0), cockpit_audio_blend)
+		# Soft low-end curve + higher floor: light rain must not lose body to the
+		# high-pass (the source has ~half its energy below 1 kHz).
+		var loudness := pow(rain_ambience_intensity, 0.55)
+		target_gain = lerpf(0.18, 0.85, loudness) * RAIN_AMBIENCE_GAIN_SCALE * lerpf(1.0, db_to_linear(-4.0), cockpit_audio_blend)
 	rain_ambience_player.volume_linear = target_gain
 	rain_ambience_player.stream_paused = target_gain < 0.0001
 	if rain_ambience_hpf != null:
