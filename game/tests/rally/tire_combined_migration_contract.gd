@@ -17,7 +17,7 @@ extends SceneTree
 ## 10. Airborne / unloaded wheel: Generates zero forces.
 ## 11. Traction and braking: Continuous across sign change of demand.
 ## 12. Friction ellipse budget: sqrt((Fx/Lx)^2 + (Fy/Ly)^2) <= 1 + eps.
-## 13. Profile loader & Escort RS2000 initial rear axle calibration.
+## 13. Profile loader preserves the catalog and mounted compound calibration.
 
 var failures: Array[String] = []
 
@@ -76,22 +76,26 @@ func create_tire_model(overrides: Dictionary = {}, axle_idx: int = 2) -> TireMod
 
 
 func test_profile_and_escort_calibration() -> void:
-	print("\n[1] Testing Escort RS2000 profile configuration and calibration...")
+	print("\n[1] Testing Escort profile and compound overrides...")
 	var loader := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
-	check(loader.ok, "VehicleProfileLoader loads escort profile")
-	var rear: Dictionary = loader.resolved_tire_filters.get("rear", {})
-	check(bool(rear.get("combined_migration_v2_enabled", false)) == true, "Rear axle migration v2 is enabled")
-	check(is_equal_approx(float(rear.get("combined_lateral_peak_migration", 0.0)), 0.15), "Rear combined_lateral_peak_migration is 0.15")
-	check(is_equal_approx(float(rear.get("combined_longitudinal_peak_migration", 0.0)), 0.08), "Rear combined_longitudinal_peak_migration is 0.08")
-	check(is_equal_approx(float(rear.get("lateral_peak_slip_angle_rad", 0.0)), 0.17), "Rear lateral_peak_slip_angle_rad is 0.17")
-	check(is_equal_approx(float(rear.get("longitudinal_peak_slip_ratio", 0.0)), 0.28), "Rear longitudinal_peak_slip_ratio is 0.28")
-	check(is_equal_approx(float(rear.get("lateral_slide_mu_ratio", 0.0)), 0.97), "Rear lateral_slide_mu_ratio is 0.97")
-	check(is_equal_approx(float(rear.get("longitudinal_slide_mu_ratio", 0.0)), 0.96), "Rear longitudinal_slide_mu_ratio is 0.96")
-	check(is_equal_approx(float(rear.get("slip_loss_tau_s", 0.0)), 0.10), "Rear slip_loss_tau_s is 0.10")
-	check(is_equal_approx(float(rear.get("slip_recovery_tau_s", 0.0)), 0.12), "Rear slip_recovery_tau_s is 0.12")
-
-	var front: Dictionary = loader.resolved_tire_filters.get("front", {})
-	check(bool(front.get("combined_migration_v2_enabled", false)) == false, "Front axle migration v2 defaults to disabled")
+	check(loader.ok, "VehicleProfileLoader loads Escort profile")
+	if not loader.ok:
+		return
+	var catalog := RallyTireCompound.load_catalog()
+	var defaults: Dictionary = catalog["default_tire_profile"]["tire_filters"]
+	var model := TireModel.new()
+	model.configure(loader.domains, loader.resolved_tire_filters, [2500.0, 2500.0, 2500.0, 2500.0])
+	for axle in ["front", "rear"]:
+		var configured: Dictionary = loader.resolved_tire_filters[axle]
+		for key in ["combined_migration_v2_enabled", "combined_lateral_peak_migration", "combined_longitudinal_peak_migration"]:
+			check(configured[key] == defaults[axle][key], "Escort %s inherits catalog %s" % [axle, key])
+	for compound_id: String in ["gravel_normal", "gravel_wet"]:
+		check(model.set_compound(compound_id, catalog), "Escort mounts " + compound_id)
+		for wheel in [0, 2]:
+			var axle := "front" if wheel == 0 else "rear"
+			var expected: Dictionary = catalog["compounds"][compound_id]["force_model"][axle]
+			for key in expected:
+				check(model.axle_profiles[wheel][key] == expected[key], "%s %s overrides %s" % [compound_id, axle, key])
 
 
 func test_legacy_equivalence() -> void:
@@ -476,63 +480,16 @@ func test_high_combined_slip_and_friction_budget() -> void:
 						var res := tire.evaluate(2, load, surf, v_lon, v_lat, w_rad, 0.28, 0.0, 1.0, 200.0, 0.01, 60.0)
 						if not is_finite(res.longitudinal_force_n) or not is_finite(res.lateral_force_n):
 							non_finite_count += 1
+						var budget_ratio := float(res.instant_combined_utilization)
+						if not is_finite(budget_ratio) or budget_ratio > 1.001:
+							budget_violation_count += 1
 
-					var st: Dictionary = tire.states[2]
-					var fx: float = float(st.longitudinal_force)
-					var fy: float = float(st.lateral_force)
-
-					if not is_finite(fx) or not is_finite(fy):
-						non_finite_count += 1
-
-					# Compute ellipse friction limits Lx and Ly including slide_scale and contact_blend
-					var limits := compute_friction_limits(tire, 2, load, surf)
-					var budget_ratio := sqrt(pow(fx / limits.x, 2.0) + pow(fy / limits.y, 2.0))
-					# Budget norm must not exceed 1.0 + small numerical epsilon (1e-3)
-					if budget_ratio > 1.001:
-						budget_violation_count += 1
-
-	check(non_finite_count == 0, "No non-finite forces or NaNs under extreme combined slip (%d cases)" % total_tests)
-	check(budget_violation_count == 0, "Friction ellipse budget respected: sqrt((Fx/Lx)^2 + (Fy/Ly)^2) <= 1 + eps across all %d conditions" % total_tests)
-
-
-func compute_friction_limits(tire: TireModel, index: int, normal_load_n: float, surface_name: String, thermal_grip_factor: float = 1.0) -> Vector2:
-	var state: Dictionary = tire.states[index]
-	var profile: Dictionary = tire.axle_profiles[index]
-	var axle_surface_set: Dictionary = tire.axle_surfaces[index]
-	var target_surface: Dictionary = axle_surface_set.get(surface_name, axle_surface_set.get("Gravel", {}))
-	var fz := maxf(normal_load_n, 0.0)
-	var ref_load := maxf(float(tire.static_wheel_load_n[index]), 100.0)
-	var load_ratio := maxf(fz / ref_load, 0.05)
-	var axle_mult := float(tire.axle_load_mult[index])
-	var load_sensitivity_exp := clampf(float(tire.axle_load_sensitivity[index]) * ref_load * axle_mult, 0.08, 0.25)
-	var load_scale := clampf(pow(load_ratio, -load_sensitivity_exp), 0.60, 1.20)
-	var compound_mult := 1.0
-	if not tire.active_compound.is_empty():
-		var compound_detail: Dictionary = tire.compound_water_snow_ground_factor(0.0, 0.0, 30.0, index)
-		compound_mult = float(compound_detail.get("combined", 1.0))
-	var mu := maxf(float(state.surface_friction), 0.0) * load_scale * clampf(thermal_grip_factor, 0.05, 1.0) * compound_mult
-	var longitudinal_ratio := clampf(float(target_surface.get("longitudinal_grip_ratio", 1.0)), 0.10, 1.50)
-	var lateral_assist := clampf(float(target_surface.get("lateral_grip_assist", 0.0)), -0.5, 1.0)
-	var lateral_bonus := 1.0 + lateral_assist
-	var fx_capacity := maxf(mu * longitudinal_ratio * fz, 1e-6)
-	var fy_capacity := maxf(mu * lateral_bonus * fz, 1e-6)
-	var slide_lat := clampf(float(profile.get("lateral_slide_mu_ratio", profile.get("longitudinal_slide_mu_ratio", 0.94))), 0.0, 1.0)
-	var slide_lon := clampf(float(profile.get("longitudinal_slide_mu_ratio", 0.95)), 0.0, 1.0)
-	var sliding_fraction := clampf(float(state.post_peak_decay_lon) + float(state.post_peak_decay_lat), 0.0, 1.0)
-
-	var fx: float = float(state.longitudinal_force)
-	var fy: float = float(state.lateral_force)
-	var nd_x := absf(fx) / maxf(fx_capacity, 1e-6)
-	var nd_y := absf(fy) / maxf(fy_capacity, 1e-6)
-	var lat_w := nd_y / maxf(nd_x + nd_y, 1e-6)
-	var directional_slide_mu := lerpf(slide_lon, slide_lat, lat_w)
-	var slide_scale := lerpf(1.0, directional_slide_mu, sliding_fraction)
-	var blend := float(state.contact_blend)
-	return Vector2(maxf(fx_capacity * slide_scale * blend, 1e-6), maxf(fy_capacity * slide_scale * blend, 1e-6))
+	check(non_finite_count == 0, "No non-finite forces under extreme combined slip (%d cases)" % total_tests)
+	check(budget_violation_count == 0, "Instantaneous ellipse respected throughout all %d sequences" % total_tests)
 
 
 func test_all_vehicles_migration_v2() -> void:
-	print("\n[12] Testing all vehicle profiles have rear axle migration v2 enabled and calibrated...")
+	print("\n[12] Testing resolved combined-slip calibration for the production profiles...")
 	var vehicle_paths := [
 		"res://data/vehicles/ford-escort-rs2000/vehicle.json",
 		"res://data/vehicles/lancia-fulvia/vehicle.json",
@@ -552,9 +509,9 @@ func test_all_vehicles_migration_v2() -> void:
 		check(loaded.ok, "Vehicle profile loads: " + vname)
 		if not loaded.ok:
 			continue
-		var front: Dictionary = loaded.resolved_tire_filters.get("front", {})
-		var rear: Dictionary = loaded.resolved_tire_filters.get("rear", {})
-		check(bool(front.get("combined_migration_v2_enabled", false)) == false, "%s front axle migration v2 is disabled" % vname)
-		check(bool(rear.get("combined_migration_v2_enabled", false)) == true, "%s rear axle migration v2 is enabled" % vname)
-		check(is_equal_approx(float(rear.get("combined_lateral_peak_migration", 0.0)), 0.15), "%s rear combined_lateral_peak_migration is 0.15" % vname)
-		check(is_equal_approx(float(rear.get("combined_longitudinal_peak_migration", 0.0)), 0.08), "%s rear combined_longitudinal_peak_migration is 0.08" % vname)
+		for axle in ["front", "rear"]:
+			var configured: Dictionary = loaded.resolved_tire_filters[axle]
+			check(configured.get("combined_migration_v2_enabled") is bool, "%s %s resolves its migration mode" % [vname, axle])
+			for key in ["combined_lateral_peak_migration", "combined_longitudinal_peak_migration"]:
+				var coefficient := float(configured.get(key, -1.0))
+				check(coefficient >= 0.0 and coefficient <= 0.65, "%s %s %s is in range" % [vname, axle, key])

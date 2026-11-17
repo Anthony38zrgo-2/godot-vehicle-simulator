@@ -16,19 +16,6 @@ const SURFACES := [
 	{"key": "Grass", "label": "HIERBA (Grass)"},
 	{"key": "Curb", "label": "PIANO / BORDE (Curb)"},
 ]
-const COMPOUND_FORCE_KEYS := [
-	"slip_loss_tau_s",
-	"combined_lateral_peak_migration",
-	"combined_longitudinal_peak_migration",
-]
-const TIRE_FILTER_SCALAR_KEYS := [
-	"surface_transition_tau_s",
-	"load_sensitivity_per_newton",
-	"load_sensitivity_axle_mult",
-	"relaxation_length_scale",
-	"contact_patch_load_gain",
-	"contact_patch_deflection_gain",
-]
 const MAX_HISTORY_ENTRIES := 100
 
 var session: Node = null
@@ -40,6 +27,7 @@ var _modal: PanelContainer
 var _sound_player: AudioStreamPlayer
 var _header_subtitle: Label
 var _search_edit: LineEdit
+var _history_panel: PanelContainer
 var _history_option: OptionButton
 var _history_detail_label: Label
 var _load_history_button: Button
@@ -58,6 +46,13 @@ var _active_tab: String = "filters"
 var _syncing_edits: bool = false
 var _loaded_values: Dictionary = {"front": {}, "rear": {}}
 var _loaded_compound_id: String = RallyTireCompound.DEFAULT_ID
+var _catalog: Dictionary = {}
+var _routes: Dictionary = {}
+var _wheel_side := 0
+var _curve_surface := "Gravel"
+var _curve_mode := 0
+var _curve_plots: Dictionary = {}
+var _curve_timer: Timer
 var _history_entries: Array = []
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 
@@ -68,6 +63,11 @@ func _ready() -> void:
 	_specs = _build_parameter_specs()
 	_filter_specs = _build_filter_specs(_specs)
 	_build_ui()
+	_curve_timer = Timer.new()
+	_curve_timer.one_shot = true
+	_curve_timer.wait_time = 0.25
+	_curve_timer.timeout.connect(_refresh_curves)
+	add_child(_curve_timer)
 	_set_active_tab("filters")
 
 
@@ -109,6 +109,7 @@ func open_panel() -> void:
 	_reload_from_disk_into_ui()
 	_refresh_history_ui()
 	_overlay_root.show()
+	_refresh_curves()
 	_play_window_sound(true)
 
 
@@ -215,7 +216,9 @@ func _build_ui() -> void:
 	root_margin.add_child(root_vbox)
 
 	root_vbox.add_child(_build_header_panel())
-	root_vbox.add_child(_build_history_panel())
+	_history_panel = _build_history_panel()
+	_history_panel.hide()
+	root_vbox.add_child(_history_panel)
 	root_vbox.add_child(_build_tab_bar())
 
 	root_vbox.add_child(_create_tab_view("filters", _filter_specs))
@@ -233,20 +236,53 @@ func _build_tab_bar() -> PanelContainer:
 	panel.add_child(hbox)
 
 	var btn_filters := Button.new()
-	btn_filters.text = "1 · AJUSTES DE FILTROS"
-	btn_filters.custom_minimum_size = Vector2(220, 32)
+	btn_filters.text = "CALIBRACIÓN"
+	btn_filters.custom_minimum_size = Vector2(132, 32)
 	btn_filters.pressed.connect(func() -> void:
 		_set_active_tab("filters")
 	)
 	hbox.add_child(btn_filters)
 
 	var btn_all := Button.new()
-	btn_all.text = "2 · TODOS LOS PARÁMETROS"
-	btn_all.custom_minimum_size = Vector2(240, 32)
+	btn_all.text = "AVANZADO"
+	btn_all.custom_minimum_size = Vector2(106, 32)
 	btn_all.pressed.connect(func() -> void:
 		_set_active_tab("all")
 	)
 	hbox.add_child(btn_all)
+
+	var surface_picker := OptionButton.new()
+	for surface in SURFACES:
+		surface_picker.add_item(str(surface["label"]))
+	surface_picker.tooltip_text = "Superficie del ensayo de curva pura"
+	surface_picker.item_selected.connect(func(index: int) -> void:
+		_curve_surface = str(SURFACES[index]["key"])
+		_refresh_curves()
+	)
+	hbox.add_child(surface_picker)
+
+	var mode_picker := OptionButton.new()
+	for title in ["Lateral", "Frenada", "Tracción"]:
+		mode_picker.add_item(title)
+	mode_picker.item_selected.connect(func(index: int) -> void:
+		_curve_mode = index
+		_refresh_curves()
+	)
+	hbox.add_child(mode_picker)
+
+	var wheel_picker := OptionButton.new()
+	wheel_picker.add_item("Ruedas izquierdas")
+	wheel_picker.add_item("Ruedas derechas")
+	wheel_picker.tooltip_text = "Ruedas de referencia. Los ajustes de catálogo se guardan por eje."
+	wheel_picker.item_selected.connect(func(index: int) -> void:
+		if _count_pending_changes() != 0:
+			wheel_picker.select(_wheel_side)
+			_set_status("Aplica o descarta los cambios antes de cambiar de rueda.", RallyUITheme.STATUS_DANGER)
+			return
+		_wheel_side = index
+		_reload_from_disk_into_ui()
+	)
+	hbox.add_child(wheel_picker)
 
 	_tab_hint_label = Label.new()
 	_tab_hint_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -268,8 +304,8 @@ func _create_tab_view(view_key: String, specs_list: Array[Dictionary]) -> HBoxCo
 	tables_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tables_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tables_hbox.add_theme_constant_override("separation", 12)
-	tables_hbox.add_child(_create_axle_table_panel("front", "EJE DELANTERO (FRONT)", specs_list, view_key))
-	tables_hbox.add_child(_create_axle_table_panel("rear", "EJE TRASERO (REAR)", specs_list, view_key))
+	tables_hbox.add_child(_create_axle_table_panel("front", "EJE DELANTERO", specs_list, view_key))
+	tables_hbox.add_child(_create_axle_table_panel("rear", "EJE TRASERO", specs_list, view_key))
 	(_views[view_key] as Dictionary)["root"] = tables_hbox
 	return tables_hbox
 
@@ -291,11 +327,8 @@ func _set_active_tab(tab_key: String) -> void:
 			else:
 				RallyUITheme.style_chrome_button(btn as Button, 12, 16, 6)
 	if _tab_hint_label != null:
-		if tab_key == "filters":
-			_tab_hint_label.text = "18 filtros por eje (sincronizado con vista completa)"
-		else:
-			_tab_hint_label.text = "60 parámetros por eje (vista completa)"
-		_tab_hint_label.tooltip_text = _tab_hint_label.text
+		_tab_hint_label.text = "Curvas puras en seco" if tab_key == "filters" else "Coeficientes por eje y superficie"
+	_refresh_curves()
 
 
 static func _set_label_style(lbl: Label, size: int, col: Color, font_res: Font) -> void:
@@ -345,6 +378,15 @@ func _build_header_panel() -> PanelContainer:
 	_search_edit.clear_button_enabled = true
 	_search_edit.text_changed.connect(_on_search_changed)
 	hbox.add_child(_search_edit)
+
+	var history_toggle := Button.new()
+	history_toggle.text = "Historial"
+	history_toggle.toggle_mode = true
+	history_toggle.toggled.connect(func(expanded: bool) -> void:
+		_history_panel.visible = expanded
+	)
+	RallyUITheme.style_chrome_button(history_toggle, 12, 12, 6)
+	hbox.add_child(history_toggle)
 
 	var badge := Label.new()
 	badge.text = "[F8 / ESC] REANUDAR"
@@ -454,6 +496,12 @@ func _create_axle_table_panel(
 	table_title.text = title_text
 	_set_label_style(table_title, 15, RallyUITheme.ACCENT_RALLY, RallyUITheme.FONT_TITLE)
 	vbox.add_child(table_title)
+	if view_key == "filters":
+		var plot := CurvePlot.new()
+		plot.custom_minimum_size.y = 113.0
+		plot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.add_child(plot)
+		_curve_plots[axle] = plot
 
 	var col_header_panel := PanelContainer.new()
 	col_header_panel.add_theme_stylebox_override("panel", RallyUITheme.make_flat_panel(RallyUITheme.BG_ELEVATED, RallyUITheme.BORDER_SUBTLE, 1, 0))
@@ -530,8 +578,9 @@ func _create_axle_table_panel(
 		var row_margin := MarginContainer.new()
 		row_margin.add_theme_constant_override("margin_left", 8)
 		row_margin.add_theme_constant_override("margin_right", 8)
-		row_margin.add_theme_constant_override("margin_top", 4)
-		row_margin.add_theme_constant_override("margin_bottom", 4)
+		var row_padding := 1 if view_key == "filters" else 4
+		row_margin.add_theme_constant_override("margin_top", row_padding)
+		row_margin.add_theme_constant_override("margin_bottom", row_padding)
 		row_panel.add_child(row_margin)
 
 		var row_hbox := HBoxContainer.new()
@@ -558,7 +607,7 @@ func _create_axle_table_panel(
 		row_hbox.add_child(desc_label)
 
 		var edit := LineEdit.new()
-		edit.custom_minimum_size = Vector2(108, 28)
+		edit.custom_minimum_size = Vector2(108, 26 if view_key == "filters" else 28)
 		edit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		edit.alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		edit.select_all_on_focus = true
@@ -576,6 +625,7 @@ func _create_axle_table_panel(
 			"spec": spec,
 			"node": row_panel,
 			"param_label": param_label,
+			"description_label": desc_label,
 			"edit": edit,
 		}
 		row_refs.append(row_ref)
@@ -613,7 +663,7 @@ func _build_footer_panel() -> PanelContainer:
 	hbox.add_child(_status_label)
 
 	_discard_button = Button.new()
-	_discard_button.text = "Recargar JSON"
+	_discard_button.text = "Descartar cambios"
 	_discard_button.custom_minimum_size = Vector2(142, 36)
 	_discard_button.pressed.connect(_on_discard_pressed)
 	RallyUITheme.style_chrome_button(_discard_button)
@@ -640,16 +690,16 @@ func _build_footer_panel() -> PanelContainer:
 # DATA EXTRACTION, VALIDATION & PERSISTENCE
 # =============================================================================
 
-func _active_compound_id() -> String:
+func _active_simulation() -> FordRallyVehicleSimulation:
 	if session != null:
 		var vehicle: Variant = session.get("vehicle")
 		if vehicle != null:
-			var sim: Variant = vehicle.get("simulation")
-			if sim != null:
-				var cid := str(sim.get("active_compound_id"))
-				if not cid.is_empty():
-					return cid
-	return RallyTireCompound.DEFAULT_ID
+			return vehicle.get("simulation") as FordRallyVehicleSimulation
+	return null
+
+
+func _wheel_index(axle: String) -> int:
+	return (0 if axle == "front" else 2) + _wheel_side
 
 
 func _resolve_read_path(res_path: String) -> String:
@@ -679,125 +729,160 @@ func _write_json_dict(res_path: String, doc: Dictionary) -> bool:
 		var dir_err := DirAccess.make_dir_recursive_absolute(parent_dir)
 		if dir_err != OK and dir_err != ERR_ALREADY_EXISTS:
 			return false
-	var serialized := JSON.stringify(doc, "  ", false) + "\n"
+	var serialized := JSON.stringify(doc, "  ", false, true) + "\n"
 	var check: Variant = JSON.parse_string(serialized)
 	if not check is Dictionary:
 		return false
-	var file := FileAccess.open(write_path, FileAccess.WRITE)
+	var temp_path := write_path + ".%d-%d.tmp" % [OS.get_process_id(), Time.get_ticks_usec()]
+	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
 		return false
-	file.store_string(serialized)
+	var written := file.store_string(serialized)
 	file.close()
-	return true
+	if written and DirAccess.rename_absolute(temp_path, write_path) == OK:
+		return true
+	DirAccess.remove_absolute(temp_path)
+	return false
 
 
 func _reload_from_disk_into_ui() -> void:
-	RallyTireCompound.invalidate_cache()
-	var catalog := _read_json_dict(OFFICIAL_CATALOG_RES)
-	_loaded_compound_id = _active_compound_id()
-	_loaded_values = _extract_axle_values_from_catalog(catalog, _loaded_compound_id)
+	_catalog = _read_json_dict(OFFICIAL_CATALOG_RES)
+	var sim := _active_simulation()
+	_loaded_compound_id = sim.active_compound_id if sim != null else RallyTireCompound.DEFAULT_ID
+	_routes.clear()
+	_loaded_values = {"front": {}, "rear": {}}
+	if sim != null and not _catalog.is_empty() and sim.tire_model.wheel_compounds.size() == 4:
+		var live_catalog := sim.tire_model.compound_catalog
+		if not live_catalog.is_empty() and live_catalog != _catalog:
+			_catalog = live_catalog
+		_loaded_values = _extract_axle_values(sim.tire_model, _catalog, sim.tire_sources, true)
 	_populate_tables(_loaded_values, _loaded_values)
 	_update_header_summary()
-	_set_status("Valores cargados desde rally_compounds.json. Edita los números y pulsa APLICAR Y GUARDAR.", RallyUITheme.TEXT_MUTED)
+	_refresh_curves()
+	_set_status("Solo se guardan los campos editados. Cada fila indica su origen y destino.", RallyUITheme.TEXT_MUTED)
 
 
-func _extract_axle_values_from_catalog(catalog: Dictionary, compound_id: String) -> Dictionary:
+func _extract_axle_values(model: TireModel, catalog: Dictionary, sources: Dictionary, record_routes: bool = false) -> Dictionary:
 	var out := {"front": {}, "rear": {}}
-	var def_profile: Dictionary = catalog.get("default_tire_profile", {}) if catalog.get("default_tire_profile", {}) is Dictionary else {}
-	var tires: Dictionary = def_profile.get("tires", {}) if def_profile.get("tires", {}) is Dictionary else {}
-	var tire_filters: Dictionary = def_profile.get("tire_filters", {}) if def_profile.get("tire_filters", {}) is Dictionary else {}
-	var compounds: Dictionary = catalog.get("compounds", {}) if catalog.get("compounds", {}) is Dictionary else {}
-	var comp_def: Dictionary = compounds.get(compound_id, {}) if compounds.get(compound_id, {}) is Dictionary else {}
-	var comp_fm_root: Dictionary = comp_def.get("force_model", {}) if comp_def.get("force_model", {}) is Dictionary else {}
-
-	var tires_fm_root: Dictionary = tires.get("force_model", {}) if tires.get("force_model", {}) is Dictionary else {}
-	var global_pm: Dictionary = tires.get("pressure_mechanics", {}) if tires.get("pressure_mechanics", {}) is Dictionary else {}
-	var global_radial: Dictionary = tires.get("radial_model", {}) if tires.get("radial_model", {}) is Dictionary else {}
-	var global_surfaces: Dictionary = tires.get("surfaces", {}) if tires.get("surfaces", {}) is Dictionary else {}
-
-	for axle: String in ["front", "rear"]:
-		var is_front: bool = (axle == "front")
-		var axle_vals := {}
-		var axle_tires: Dictionary = tires.get(axle, {}) if tires.get(axle, {}) is Dictionary else {}
-		var axle_filters: Dictionary = tire_filters.get(axle, {}) if tire_filters.get(axle, {}) is Dictionary else {}
-		var axle_tires_fm: Dictionary = tires_fm_root.get(axle, {}) if tires_fm_root.get(axle, {}) is Dictionary else {}
-		var axle_comp_fm: Dictionary = comp_fm_root.get(axle, {}) if comp_fm_root.get(axle, {}) is Dictionary else {}
-		var axle_pm: Dictionary = axle_tires.get("pressure_mechanics", {}) if axle_tires.get("pressure_mechanics", {}) is Dictionary else {}
-		var axle_radial: Dictionary = axle_tires.get("radial_model", {}) if axle_tires.get("radial_model", {}) is Dictionary else {}
-		var axle_surf_root: Dictionary = axle_tires.get("surfaces", {}) if axle_tires.get("surfaces", {}) is Dictionary else {}
-		var flt_surf_root: Dictionary = axle_filters.get("surfaces", {}) if axle_filters.get("surfaces", {}) is Dictionary else {}
-
+	for axle: String in out:
+		var wheel := _wheel_index(axle)
+		var compound: Dictionary = model.wheel_compounds[wheel] if wheel < model.wheel_compounds.size() else {}
+		var compound_id := str(compound.get("id", ""))
+		var compound_force: Dictionary = compound.get("force_model", {}).get(axle, {})
+		var radial := RallyTireCompound.merge_dict(model.radial_tires.get("radial_model", {}), model.radial_tires.get(axle, {}).get("radial_model", {}))
+		var raw_tires: Dictionary = sources.get("tires", {}).get("tires", {})
+		var raw_axle: Dictionary = raw_tires.get(axle, {})
+		var raw_filter: Dictionary = sources.get("tire_filters", {}).get("tire_filters", {})
+		var raw_filter_axle: Dictionary = raw_filter.get(axle, {})
+		var base_filter := ["default_tire_profile", "tire_filters", axle]
+		var base_tire := ["default_tire_profile", "tires", axle]
+		var defaults: Dictionary = catalog.get("default_tire_profile", {})
+		var catalog_tires: Dictionary = defaults.get("tires", {})
+		var catalog_axle: Dictionary = catalog_tires.get(axle, {})
+		var catalog_filters: Dictionary = defaults.get("tire_filters", {})
+		var catalog_filter: Dictionary = catalog_filters.get(axle, {})
+		var routes := {}
 		for spec in _specs:
-			if str(spec.get("kind", "")) != "param":
+			if spec["kind"] != "param":
 				continue
-			var id := str(spec.get("id", ""))
-			var source := str(spec.get("source", ""))
-			var field := str(spec.get("field", ""))
-			var val := float(spec.get("default", 0.0))
-
-			match source:
+			var field: String = spec["field"]
+			var id: String = spec["id"]
+			var value := float(spec["default"])
+			var path := base_filter + [field]
+			var origin := "Valor por defecto del motor"
+			var blocked := false
+			var factor := 1.0
+			match spec["source"]:
 				"force_model":
-					if axle_comp_fm.has(field):
-						val = float(axle_comp_fm.get(field, val))
-					elif axle_tires_fm.has(field):
-						val = float(axle_tires_fm.get(field, val))
-					elif axle_filters.has(field):
-						val = float(axle_filters.get(field, val))
+					var axle_catalog_force: Dictionary = catalog_tires.get("force_model", {}).get(axle, {})
+					origin = "Perfil base · force_model" if axle_catalog_force.has(field) else origin
+					if raw_tires.get("force_model", {}).get(axle, {}).has(field):
+						origin = "Vehículo · tires"
+					if catalog_filter.has(field):
+						origin = "Perfil base · tire_filters"
+					if raw_filter_axle.has(field):
+						origin = "Vehículo · tire_filters"
+						blocked = true
+					if compound_force.has(field):
+						origin = "Compuesto · " + compound_id
+						path = ["compounds", compound_id, "force_model", axle, field]
+						blocked = false
+					value = float(model.axle_profiles[wheel].get(field, value))
 				"axle_scalar":
-					if axle_filters.has(field):
-						val = float(axle_filters.get(field, val))
-					elif axle_tires.has(field):
-						val = float(axle_tires.get(field, val))
-					elif tires.has(field):
-						val = float(tires.get(field, val))
-					elif tire_filters.has(field):
-						val = float(tire_filters.get(field, val))
+					origin = "Perfil base · tires" if catalog_axle.has(field) or catalog_tires.has(field) else origin
+					if raw_axle.has(field) or (not catalog_axle.has(field) and raw_tires.has(field)):
+						origin = "Vehículo · tires"
+					if field == "surface_transition_tau_s" and not raw_axle.has(field) and not catalog_axle.has(field):
+						if raw_filter.has(field):
+							origin = "Vehículo · tire_filters"
+						elif catalog_filters.has(field):
+							origin = "Perfil base · tire_filters"
+					if catalog_filter.has(field):
+						origin = "Perfil base · tire_filters"
+					if raw_filter_axle.has(field):
+						origin = "Vehículo · tire_filters"
+						blocked = true
+					match field:
+						"load_sensitivity_per_newton":
+							factor = model.axle_load_mult[wheel] * 1.0e6
+							value = model.axle_load_sensitivity[wheel] * factor
+						"relaxation_length_scale":
+							factor = model.base_contact_patch_m[wheel]
+							value = model.base_relaxation_length_m[wheel]
+						"surface_transition_tau_s":
+							value = model.axle_surface_tau_s[wheel]
+						"contact_patch_load_gain":
+							value = model.axle_contact_load_gain[wheel]
+						"contact_patch_deflection_gain":
+							value = model.axle_contact_deflection_gain[wheel]
 				"pressure_mechanics":
-					if axle_pm.has(field):
-						val = float(axle_pm.get(field, val))
-					elif global_pm.has(field):
-						val = float(global_pm.get(field, val))
+					path = base_filter + ["pressure_mechanics", field]
+					origin = "Perfil base · tires" if catalog_axle.get("pressure_mechanics", {}).has(field) or catalog_tires.get("pressure_mechanics", {}).has(field) else origin
+					if raw_axle.get("pressure_mechanics", {}).has(field) or (
+						not catalog_axle.get("pressure_mechanics", {}).has(field) and raw_tires.get("pressure_mechanics", {}).has(field)
+					):
+						origin = "Vehículo · tires"
+					if catalog_filter.get("pressure_mechanics", {}).has(field):
+						origin = "Perfil base · tire_filters"
+					if raw_filter_axle.get("pressure_mechanics", {}).has(field):
+						origin = "Vehículo · tire_filters"
+						blocked = true
+					value = model.axle_pressure_relaxation[wheel] if field == "response_sensitivity" else model.axle_pressure_rolling[wheel]
 				"radial_model":
-					if axle_radial.has(field):
-						val = float(axle_radial.get(field, val))
-					elif global_radial.has(field):
-						val = float(global_radial.get(field, val))
+					path = base_tire + ["radial_model", field]
+					origin = "Perfil base · tires" if catalog_axle.get("radial_model", {}).has(field) or catalog_tires.get("radial_model", {}).has(field) else origin
+					blocked = raw_axle.get("radial_model", {}).has(field)
+					if blocked or (not catalog_axle.get("radial_model", {}).has(field) and raw_tires.get("radial_model", {}).has(field)):
+						origin = "Vehículo · tires"
+					value = float(radial.get(field, value))
+					match field:
+						"damping_ratio":
+							value = maxf(value, TireRadialModel.MIN_DAMPING_RATIO)
+						"damping_contact_ramp_m":
+							value = maxf(float(radial.get(field, 0.015)), TireRadialModel.MIN_DAMPING_RAMP_M)
+						"rim_stop_start_sidewall_fraction":
+							value = clampf(value, 0.4, 0.95)
 				"surface":
-					var surf_name := str(spec.get("surface", ""))
-					val = _resolve_surface_value(global_surfaces, axle_surf_root, flt_surf_root, surf_name, field, is_front)
-
-			axle_vals[id] = val
-		out[axle] = axle_vals
+					var surface: String = spec["surface"]
+					path = base_filter + ["surfaces", surface, field]
+					if catalog_tires.get("surfaces", {}).get(surface, {}).has(field) or catalog_axle.get("surfaces", {}).get(surface, {}).has(field):
+						origin = "Perfil base · tires"
+					if raw_axle.get("surfaces", {}).get(surface, {}).has(field) or (
+						not catalog_axle.get("surfaces", {}).get(surface, {}).has(field)
+						and raw_tires.get("surfaces", {}).get(surface, {}).has(field)
+					):
+						origin = "Vehículo · tires"
+					if catalog_filter.get("surfaces", {}).get(surface, {}).has(field):
+						origin = "Perfil base · tire_filters"
+					if raw_filter_axle.get("surfaces", {}).get(surface, {}).has(field):
+						origin = "Vehículo · tire_filters"
+						blocked = true
+					value = float(model.axle_surfaces[wheel].get(surface, {}).get(field, value))
+			out[axle][id] = value
+			routes[id] = {"path": path, "origin": origin, "blocked": blocked, "factor": factor}
+		if record_routes:
+			_routes[axle] = routes
 	return out
-
-
-func _resolve_surface_value(
-	global_surfaces: Dictionary,
-	axle_surfaces: Dictionary,
-	filter_surfaces: Dictionary,
-	surf_name: String,
-	field: String,
-	is_front: bool,
-) -> float:
-	var g_surf: Dictionary = global_surfaces.get(surf_name, {}) if global_surfaces.get(surf_name, {}) is Dictionary else {}
-	var ax_surf: Dictionary = axle_surfaces.get(surf_name, {}) if axle_surfaces.get(surf_name, {}) is Dictionary else {}
-	var flt_surf: Dictionary = filter_surfaces.get(surf_name, {}) if filter_surfaces.get(surf_name, {}) is Dictionary else {}
-	if flt_surf.has(field):
-		return float(flt_surf.get(field, 0.0))
-	if ax_surf.has(field):
-		return float(ax_surf.get(field, 0.0))
-	if is_front and field == "lateral_grip_assist":
-		return 0.0
-	if g_surf.has(field):
-		return float(g_surf.get(field, 0.0))
-	var defaults := {
-		"friction": 1.0,
-		"stiffness": 1.0,
-		"rolling_resistance": 1.0,
-		"longitudinal_grip_ratio": 1.0,
-		"lateral_grip_assist": 0.0,
-	}
-	return float(defaults.get(field, 0.0))
 
 
 func _canonical_rows_for_axle(axle: String) -> Array:
@@ -820,15 +905,27 @@ func _populate_tables(values_by_axle: Dictionary, baseline_by_axle: Dictionary) 
 					continue
 				var id := str(row.get("id", ""))
 				var edit: LineEdit = row["edit"]
+				var route: Dictionary = _routes.get(axle, {}).get(id, {})
 				var v := float(vals.get(id, 0.0))
 				var base_v := float(base_vals.get(id, v))
+				edit.editable = not route.is_empty() and not bool(route["blocked"])
+				if not edit.editable:
+					v = base_v
 				edit.text = _format_float(v)
 				var spec: Dictionary = row["spec"]
-				edit.tooltip_text = "JSON actual: %s  |  Rango permitido: [%s .. %s]" % [
-					_format_float(base_v),
-					_format_float(float(spec.get("min", -1e9))),
-					_format_float(float(spec.get("max", 1e9))),
+				var factor := float(route.get("factor", 1.0))
+				var destination := "Edición en el perfil del vehículo" if route.get("blocked", false) else ".".join(route.get("path", []))
+				edit.tooltip_text = "Origen: %s\nDestino: %s\nRango: %s a %s" % [
+					str(route.get("origin", "Sin perfil activo")), destination,
+					_format_float(float(spec["min"]) * factor),
+					_format_float(float(spec["max"]) * factor),
 				]
+				var desc: Label = row["description_label"]
+				desc.text = str(spec["description"])
+				if view_key == "all":
+					desc.text += "\n" + str(route.get("origin", ""))
+				desc.tooltip_text = edit.tooltip_text
+				(row["param_label"] as Label).tooltip_text = edit.tooltip_text
 				_style_row_state(row, v, base_v, true)
 	_syncing_edits = false
 
@@ -845,13 +942,15 @@ func _on_row_value_edited(axle: String, param_id: String, new_text: String, sour
 	if not sibling_rows.is_empty():
 		var base_vals: Dictionary = _loaded_values.get(axle, {})
 		var base_v := float(base_vals.get(param_id, 0.0))
-		var parsed := _parse_row_float(sibling_rows[0])
+		var parsed := _parse_row_float(sibling_rows[0], axle)
 		var current_v := float(parsed.get("value", base_v))
 		var valid := bool(parsed.get("ok", false))
 		for r in sibling_rows:
 			_style_row_state(r, current_v, base_v, valid)
 	_syncing_edits = false
 	_update_header_summary()
+	if is_open() and _active_tab == "filters":
+		_curve_timer.start()
 
 
 func _style_row_state(row: Dictionary, current_v: float, base_v: float, valid: bool) -> void:
@@ -868,7 +967,7 @@ func _style_row_state(row: Dictionary, current_v: float, base_v: float, valid: b
 		edit.add_theme_color_override("font_color", RallyUITheme.TEXT_WHITE)
 
 
-func _parse_row_float(row: Dictionary) -> Dictionary:
+func _parse_row_float(row: Dictionary, axle: String) -> Dictionary:
 	var edit: LineEdit = row["edit"]
 	var spec: Dictionary = row["spec"]
 	var raw := edit.text.strip_edges().replace(",", ".")
@@ -877,12 +976,14 @@ func _parse_row_float(row: Dictionary) -> Dictionary:
 	var v := raw.to_float()
 	if not is_finite(v):
 		return {"ok": false, "error": "Valor infinito o inválido en '%s'" % str(spec.get("key", ""))}
-	var min_v := float(spec.get("min", -1e12))
-	var max_v := float(spec.get("max", 1e12))
+	var route: Dictionary = _routes.get(axle, {}).get(row["id"], {})
+	var factor := float(route.get("factor", 1.0))
+	var min_v := float(spec["min"]) * factor
+	var max_v := float(spec["max"]) * factor
 	var strict_pos := bool(spec.get("strict_positive", false))
 	if strict_pos and v <= 0.0:
 		return {"ok": false, "error": "'%s' debe ser mayor que 0." % str(spec.get("key", ""))}
-	if v < min_v or v > max_v:
+	if v < min_v - 1e-10 or v > max_v + 1e-10:
 		return {
 			"ok": false,
 			"error": "'%s' fuera de rango [%s .. %s]." % [
@@ -896,47 +997,54 @@ func _parse_row_float(row: Dictionary) -> Dictionary:
 
 func _collect_validated_values() -> Dictionary:
 	var values := {"front": {}, "rear": {}}
-	for axle: String in ["front", "rear"]:
-		var axle_map := {}
+	for axle: String in values:
 		for row in _canonical_rows_for_axle(axle):
-			if str(row.get("kind", "")) != "param":
+			if row["kind"] != "param":
 				continue
-			var res := _parse_row_float(row)
-			if not bool(res.get("ok", false)):
-				return {"ok": false, "error": "[%s] %s" % [axle.to_upper(), str(res.get("error", "Error"))]}
-			axle_map[str(row["id"])] = float(res["value"])
-		values[axle] = axle_map
+			var edit: LineEdit = row["edit"]
+			var id: String = row["id"]
+			var original := float(_loaded_values.get(axle, {}).get(id, 0.0))
+			if not edit.editable or edit.text.strip_edges().replace(",", ".") == _format_float(original):
+				continue
+			var result := _parse_row_float(row, axle)
+			if not result["ok"]:
+				return {"ok": false, "error": "[%s] %s" % [axle.to_upper(), result["error"]]}
+			if absf(float(result["value"]) - original) > 1.0e-10:
+				values[axle][id] = result["value"]
 	return {"ok": true, "values": values}
 
 
 func _count_pending_changes() -> int:
-	var count := 0
-	for axle: String in ["front", "rear"]:
-		var base_vals: Dictionary = _loaded_values.get(axle, {})
-		for row in _canonical_rows_for_axle(axle):
-			if str(row.get("kind", "")) != "param":
-				continue
-			var parsed := _parse_row_float(row)
-			if not bool(parsed.get("ok", false)):
-				count += 1
-				continue
-			var base_v := float(base_vals.get(str(row["id"]), 0.0))
-			if absf(float(parsed["value"]) - base_v) > 1e-9:
-				count += 1
-	return count
+	var validation := _collect_validated_values()
+	if not validation["ok"]:
+		return -1
+	return validation["values"]["front"].size() + validation["values"]["rear"].size()
 
 
 func _update_header_summary() -> void:
-	if _header_subtitle == null:
-		return
-	var comp_label := _loaded_compound_id
-	var cat := _read_json_dict(OFFICIAL_CATALOG_RES)
-	var comp_def: Variant = (cat.get("compounds", {}) as Dictionary).get(_loaded_compound_id, {})
-	if comp_def is Dictionary and not str((comp_def as Dictionary).get("label", "")).is_empty():
-		comp_label = "%s (%s)" % [str((comp_def as Dictionary).get("label", "")), _loaded_compound_id]
 	var pending := _count_pending_changes()
-	var pending_text := "Sin cambios pendientes" if pending == 0 else ("%d cambios sin aplicar" % pending)
-	_header_subtitle.text = "Compuesto activo: %s  ·  JSON oficial: %s  ·  %s" % [comp_label, OFFICIAL_CATALOG_RES, pending_text]
+	var pending_text := "%d cambios sin aplicar" % pending
+	if pending == 0:
+		pending_text = "Sin cambios pendientes"
+	elif pending == 1:
+		pending_text = "1 cambio sin aplicar"
+	if pending < 0:
+		pending_text = "Revisa los valores marcados"
+	var sim := _active_simulation()
+	if sim == null or _routes.is_empty():
+		_header_subtitle.text = "Sin perfil de neumáticos activo"
+		_apply_button.disabled = true
+		return
+	var front := _wheel_index("front")
+	var rear := _wheel_index("rear")
+	var compounds := sim.tire_model.wheel_compounds
+	var front_compound := str(compounds[front].get("label", compounds[front].get("id", "")))
+	var rear_compound := str(compounds[rear].get("label", compounds[rear].get("id", "")))
+	_header_subtitle.text = "%s  ·  Del. %s  ·  Tras. %s  ·  %s" % [
+		str(sim.profile.get("vehicle_identifier", "")), front_compound, rear_compound, pending_text,
+	]
+	_header_subtitle.tooltip_text = _header_subtitle.text
+	_apply_button.disabled = pending <= 0
 
 
 func _build_diff_summary(old_values: Dictionary, new_values: Dictionary) -> String:
@@ -950,7 +1058,7 @@ func _build_diff_summary(old_values: Dictionary, new_values: Dictionary) -> Stri
 				continue
 			var id := str(spec["id"])
 			var a := float(old_map.get(id, 0.0))
-			var b := float(new_map.get(id, 0.0))
+			var b := float(new_map.get(id, a))
 			if absf(a - b) > 1e-9:
 				diffs.append("%s %s: %s→%s" % [prefix, str(spec["key"]), _format_float(a), _format_float(b)])
 	if diffs.is_empty():
@@ -960,97 +1068,19 @@ func _build_diff_summary(old_values: Dictionary, new_values: Dictionary) -> Stri
 	return "%s (+%d más)" % ["; ".join(diffs.slice(0, 4)), diffs.size() - 4]
 
 
-func _apply_values_to_catalog(catalog: Dictionary, values: Dictionary, compound_id: String) -> Dictionary:
-	var doc := catalog.duplicate(true)
-	if not doc.get("default_tire_profile") is Dictionary:
-		doc["default_tire_profile"] = {}
-	var def_profile: Dictionary = doc["default_tire_profile"]
-	if not def_profile.get("tires") is Dictionary:
-		def_profile["tires"] = {}
-	if not def_profile.get("tire_filters") is Dictionary:
-		def_profile["tire_filters"] = {}
-	var tires: Dictionary = def_profile["tires"]
-	var tire_filters: Dictionary = def_profile["tire_filters"]
-	if not tires.get("force_model") is Dictionary:
-		tires["force_model"] = {}
-	var tires_fm_root: Dictionary = tires["force_model"]
-	var global_surfaces: Dictionary = tires.get("surfaces", {}) if tires.get("surfaces", {}) is Dictionary else {}
-	var compounds: Dictionary = doc.get("compounds", {}) if doc.get("compounds", {}) is Dictionary else {}
-	var active_comp: Dictionary = compounds.get(compound_id, {}) if compounds.get(compound_id, {}) is Dictionary else {}
-
-	for axle: String in ["front", "rear"]:
-		var is_front: bool = (axle == "front")
-		var axle_vals: Dictionary = values.get(axle, {})
-		if not tires.get(axle) is Dictionary:
-			tires[axle] = {}
-		if not tire_filters.get(axle) is Dictionary:
-			tire_filters[axle] = {}
-		if not tires_fm_root.get(axle) is Dictionary:
-			tires_fm_root[axle] = {}
-		var axle_tires: Dictionary = tires[axle]
-		var axle_filters: Dictionary = tire_filters[axle]
-		var axle_fm: Dictionary = tires_fm_root[axle]
-
-		if not axle_tires.get("pressure_mechanics") is Dictionary:
-			axle_tires["pressure_mechanics"] = (tires.get("pressure_mechanics", {}) as Dictionary).duplicate(true)
-		var axle_pm: Dictionary = axle_tires["pressure_mechanics"]
-
-		if not axle_tires.get("radial_model") is Dictionary:
-			axle_tires["radial_model"] = (tires.get("radial_model", {}) as Dictionary).duplicate(true)
-		var axle_radial: Dictionary = axle_tires["radial_model"]
-
-		if not axle_tires.get("surfaces") is Dictionary:
-			axle_tires["surfaces"] = {}
-		if not axle_filters.get("surfaces") is Dictionary:
-			axle_filters["surfaces"] = {}
-		var axle_surf_root: Dictionary = axle_tires["surfaces"]
-		var flt_surf_root: Dictionary = axle_filters["surfaces"]
-
-		var comp_axle_fm: Dictionary = {}
-		var sync_comp_fm := active_comp.get("force_model") is Dictionary
-		if sync_comp_fm:
-			var comp_fm_root: Dictionary = active_comp["force_model"]
-			if not comp_fm_root.get(axle) is Dictionary:
-				comp_fm_root[axle] = {}
-			comp_axle_fm = comp_fm_root[axle]
-
-		for spec in _specs:
-			if str(spec.get("kind", "")) != "param":
-				continue
-			var id := str(spec["id"])
-			if not axle_vals.has(id):
-				continue
-			var v := float(axle_vals[id])
-			var source := str(spec["source"])
-			var field := str(spec["field"])
-
-			match source:
-				"force_model":
-					axle_fm[field] = v
-					axle_filters[field] = v
-					if sync_comp_fm and (COMPOUND_FORCE_KEYS.has(field) or comp_axle_fm.has(field)):
-						comp_axle_fm[field] = v
-				"axle_scalar":
-					axle_tires[field] = v
-					if TIRE_FILTER_SCALAR_KEYS.has(field) or axle_filters.has(field):
-						axle_filters[field] = v
-				"pressure_mechanics":
-					axle_pm[field] = v
-				"radial_model":
-					axle_radial[field] = v
-				"surface":
-					var surf_name := str(spec["surface"])
-					var base_v := _resolve_surface_value(global_surfaces, {}, {}, surf_name, field, is_front)
-					var already_present := axle_surf_root.has(surf_name) or flt_surf_root.has(surf_name)
-					if already_present or absf(v - base_v) > 1e-9:
-						if not axle_surf_root.get(surf_name) is Dictionary:
-							axle_surf_root[surf_name] = {}
-						if not flt_surf_root.get(surf_name) is Dictionary:
-							flt_surf_root[surf_name] = {}
-						(axle_surf_root[surf_name] as Dictionary)[field] = v
-						(flt_surf_root[surf_name] as Dictionary)[field] = v
-
-	return doc
+func _apply_values_to_catalog(catalog: Dictionary, changes: Dictionary) -> Dictionary:
+	var updated := catalog.duplicate(true)
+	for axle: String in changes:
+		for id: String in changes[axle]:
+			var route: Dictionary = _routes[axle][id]
+			var path: Array = route["path"]
+			var target := updated
+			for key in path.slice(0, -1):
+				if not target.has(key):
+					target[key] = {}
+				target = target[key]
+			target[path[-1]] = float(changes[axle][id]) / float(route["factor"])
+	return updated
 
 
 func _reload_vehicle_tire_runtime() -> bool:
@@ -1211,9 +1241,16 @@ func _on_load_history_pressed() -> void:
 	if backup_doc.is_empty():
 		_set_status("Error: no se pudo leer el backup %s." % str(entry.get("backup_file", "")), RallyUITheme.STATUS_DANGER)
 		return
-	var preview_vals := _extract_axle_values_from_catalog(backup_doc, _loaded_compound_id)
+	var sim := _active_simulation()
+	if sim == null or _routes.is_empty():
+		return
+	if not sim.supports_tire_calibration_catalog(backup_doc):
+		_set_status("El respaldo no contiene todos los compuestos montados.", RallyUITheme.STATUS_DANGER)
+		return
+	var preview_vals := _extract_axle_values(sim.make_tire_calibration_model(backup_doc), backup_doc, sim.tire_sources)
 	_populate_tables(preview_vals, _loaded_values)
 	_update_header_summary()
+	_refresh_curves()
 	_set_status("Valores del backup cargados en las tablas (aún sin guardar). Pulsa APLICAR Y GUARDAR para confirmarlos.", RallyUITheme.ACCENT_RALLY)
 
 
@@ -1226,6 +1263,10 @@ func _on_restore_history_pressed() -> void:
 	var backup_doc := _read_json_dict(backup_res)
 	if backup_doc.is_empty():
 		_set_status("Error: el archivo de backup '%s' está vacío o no existe." % backup_file, RallyUITheme.STATUS_DANGER)
+		return
+	var sim := _active_simulation()
+	if sim != null and not sim.supports_tire_calibration_catalog(backup_doc):
+		_set_status("El respaldo no contiene todos los compuestos montados.", RallyUITheme.STATUS_DANGER)
 		return
 
 	var current_doc := _read_json_dict(OFFICIAL_CATALOG_RES)
@@ -1273,7 +1314,7 @@ func _on_create_manual_backup_pressed() -> void:
 
 func _on_discard_pressed() -> void:
 	_reload_from_disk_into_ui()
-	_set_status("Tablas recargadas desde el JSON oficial (cambios no guardados descartados).", RallyUITheme.TEXT_MUTED)
+	_set_status("Cambios descartados. Se muestran los valores activos.", RallyUITheme.TEXT_MUTED)
 
 
 func _on_apply_pressed() -> void:
@@ -1287,9 +1328,23 @@ func _on_apply_pressed() -> void:
 		_set_status("Error: no se pudo leer %s." % OFFICIAL_CATALOG_RES, RallyUITheme.STATUS_DANGER)
 		return
 
-	var new_values: Dictionary = validation["values"]
-	var old_values := _extract_axle_values_from_catalog(current_doc, _loaded_compound_id)
-	var diff_summary := _build_diff_summary(old_values, new_values)
+	if _count_pending_changes() == 0:
+		return
+	if current_doc != _catalog:
+		_set_status("El archivo cambió fuera de la sesión. Reinicia la sesión para editar esa versión.", RallyUITheme.STATUS_DANGER)
+		return
+	var sim := _active_simulation()
+	if sim == null:
+		return
+	var changes: Dictionary = validation["values"]
+	var updated_doc := _apply_values_to_catalog(current_doc, changes)
+	var resolved := _extract_axle_values(sim.make_tire_calibration_model(updated_doc), updated_doc, sim.tire_sources)
+	for axle: String in changes:
+		for id: String in changes[axle]:
+			if absf(float(changes[axle][id]) - float(resolved[axle][id])) > 1.0e-9:
+				_set_status("El perfil efectivo no admite este valor para %s (%s)." % [id, axle], RallyUITheme.STATUS_DANGER)
+				return
+	var diff_summary := _build_diff_summary(_loaded_values, changes)
 
 	_ensure_initial_baseline_backup(current_doc)
 	var backup_res := _create_backup_snapshot(current_doc, "Pre-aplicación (auto)", diff_summary, _loaded_compound_id)
@@ -1297,7 +1352,6 @@ func _on_apply_pressed() -> void:
 		_set_status(str(backup_res.get("error", "Fallo al crear backup antes de guardar")), RallyUITheme.STATUS_DANGER)
 		return
 
-	var updated_doc := _apply_values_to_catalog(current_doc, new_values, _loaded_compound_id)
 	if not _write_json_dict(OFFICIAL_CATALOG_RES, updated_doc):
 		_set_status("Error escribiendo %s en disco." % OFFICIAL_CATALOG_RES, RallyUITheme.STATUS_DANGER)
 		return
@@ -1327,7 +1381,7 @@ func _set_status(msg: String, color: Color) -> void:
 static func _format_float(v: float) -> String:
 	if not is_finite(v):
 		return "0"
-	if is_zero_approx(v):
+	if v == 0.0:
 		return "0"
 	var text := "%.10f" % v
 	if text.contains("."):
@@ -1364,41 +1418,41 @@ static func _param(
 static func _build_parameter_specs() -> Array[Dictionary]:
 	var specs: Array[Dictionary] = [
 		{"kind": "section", "title": "CURVA DE AGARRE Y DESLIZAMIENTO (force_model)"},
-		_param("fm.lateral_peak_slip_angle_rad", "lateral_peak_slip_angle_rad", "Ángulo (rad) donde alcanza el pico de agarre lateral; mayor = dirección más progresiva.", "force_model", "lateral_peak_slip_angle_rad", 0.02, 1.2, 0.18),
-		_param("fm.lateral_slide_mu_ratio", "lateral_slide_mu_ratio", "Fracción de agarre lateral tras superar el pico; mayor = trasera más noble y menos brusca.", "force_model", "lateral_slide_mu_ratio", 0.2, 1.5, 0.92),
-		_param("fm.longitudinal_peak_slip_ratio", "longitudinal_peak_slip_ratio", "Deslizamiento óptimo en tracción/freno; mayor = más margen antes de patinar o bloquear.", "force_model", "longitudinal_peak_slip_ratio", 0.02, 1.0, 0.2),
-		_param("fm.longitudinal_slide_mu_ratio", "longitudinal_slide_mu_ratio", "Fracción de agarre longitudinal más allá del pico; empuje residual al patinar o bloquear.", "force_model", "longitudinal_slide_mu_ratio", 0.2, 1.5, 0.91),
-		_param("fm.falloff_sharpness", "falloff_sharpness", "Brusquedad de pérdida de agarre tras el pico; menor = transición más suave y controlable.", "force_model", "falloff_sharpness", 0.05, 5.0, 1.0),
-		_param("fm.combined_lateral_peak_migration", "combined_lateral_peak_migration", "Migración del pico lateral al frenar o acelerar en curva; ayuda en trail-braking.", "force_model", "combined_lateral_peak_migration", 0.0, 1.0, 0.3),
-		_param("fm.combined_longitudinal_peak_migration", "combined_longitudinal_peak_migration", "Migración del pico longitudinal al girar; evita corte brusco al dar gas doblando.", "force_model", "combined_longitudinal_peak_migration", 0.0, 1.0, 0.35),
-		_param("fm.budget_blend_width", "budget_blend_width", "Ancho de transición al límite combinado lat+lon; mayor = paso más dulce al límite.", "force_model", "budget_blend_width", 0.01, 2.0, 0.2),
-		_param("fm.peak_load_sensitivity", "peak_load_sensitivity", "Desplazamiento del pico según carga vertical; modula cambios por transferencia de peso.", "force_model", "peak_load_sensitivity", -0.5, 1.0, 0.05),
+		_param("fm.lateral_peak_slip_angle_rad", "Referencia lateral (rad)", "Pendiente inicial en curva.", "force_model", "lateral_peak_slip_angle_rad", 0.02, 1.2, 0.18),
+		_param("fm.lateral_slide_mu_ratio", "Agarre residual lateral", "Fracción de agarre en derrape.", "force_model", "lateral_slide_mu_ratio", 0.0, 1.0, 0.92),
+		_param("fm.longitudinal_peak_slip_ratio", "Referencia longitudinal", "Pendiente en frenada y tracción.", "force_model", "longitudinal_peak_slip_ratio", 0.02, 1.0, 0.2),
+		_param("fm.longitudinal_slide_mu_ratio", "Agarre residual longitudinal", "Agarre al patinar o bloquear.", "force_model", "longitudinal_slide_mu_ratio", 0.0, 1.0, 0.91),
+		_param("fm.falloff_sharpness", "falloff_sharpness", "Brusquedad de pérdida de agarre tras el pico; menor = transición más suave y controlable.", "force_model", "falloff_sharpness", 0.2, 8.0, 1.2),
+		_param("fm.combined_lateral_peak_migration", "combined_lateral_peak_migration", "Migración del pico lateral al frenar o acelerar en curva; ayuda en trail-braking.", "force_model", "combined_lateral_peak_migration", 0.0, 0.65, 0.0),
+		_param("fm.combined_longitudinal_peak_migration", "combined_longitudinal_peak_migration", "Migración del pico longitudinal al girar; evita corte brusco al dar gas doblando.", "force_model", "combined_longitudinal_peak_migration", 0.0, 0.65, 0.0),
+
+		_param("fm.peak_load_sensitivity", "peak_load_sensitivity", "Desplazamiento del pico según carga vertical; modula cambios por transferencia de peso.", "force_model", "peak_load_sensitivity", -0.5, 0.5, 0.0),
 
 		{"kind": "section", "title": "TRANSITORIOS, RELAJACIÓN Y HUELLA"},
 		_param("fm.slip_loss_tau_s", "slip_loss_tau_s", "Tiempo (s) en soltar relajación al entrar en derrape; menor = giro más vivo al romper agarre.", "force_model", "slip_loss_tau_s", 0.001, 2.0, 0.08),
 		_param("fm.slip_recovery_tau_s", "slip_recovery_tau_s", "Tiempo (s) en recuperar agarre al salir del derrape; menor = cambia de apoyo en S más rápido.", "force_model", "slip_recovery_tau_s", 0.001, 2.0, 0.09),
-		_param("fm.contact_ramp_tau_s", "contact_ramp_tau_s", "Tiempo (s) de asentamiento del apoyo tras baches o saltos; menor = mordida más inmediata.", "force_model", "contact_ramp_tau_s", 0.0, 2.0, 0.05),
-		_param("fm.min_relaxation_tau_s", "min_relaxation_tau_s", "Retardo mínimo (s) de deformación del flanco; menor = respuesta más directa al volante.", "force_model", "min_relaxation_tau_s", 0.001, 1.0, 0.01),
+		_param("fm.contact_ramp_tau_s", "contact_ramp_tau_s", "Constante de mezcla en segundos. Al aterrizar, la subida usa un máximo de 20 ms.", "force_model", "contact_ramp_tau_s", 0.0, 1.0, 0.0),
+		_param("fm.min_relaxation_tau_s", "min_relaxation_tau_s", "Retardo mínimo (s) de deformación del flanco; menor = respuesta más directa al volante.", "force_model", "min_relaxation_tau_s", 0.0, 0.5, 0.0),
 		_param("fm.relaxation_recovery_scale", "relaxation_recovery_scale", "Escala de retorno de relajación al estabilizar; <1 agiliza recuperación entre curvas.", "force_model", "relaxation_recovery_scale", 0.1, 3.0, 0.9),
-		_param("ax.relaxation_length_scale", "relaxation_length_scale", "Longitud de relajación respecto a la huella; mayor = respuesta más filtrada y dócil.", "axle_scalar", "relaxation_length_scale", 0.2, 5.0, 1.25),
+		_param("ax.relaxation_length_scale", "Longitud de relajación (m)", "Distancia de respuesta al slip.", "axle_scalar", "relaxation_length_scale", 0.2, 5.0, 1.25),
 		_param("ax.surface_transition_tau_s", "surface_transition_tau_s", "Suavizado (s) al cambiar entre superficies; menor = adaptación más instantánea.", "axle_scalar", "surface_transition_tau_s", 0.0, 2.0, 0.09),
 		_param("ax.contact_patch_load_gain", "contact_patch_load_gain", "Crecimiento de la huella dinámica con el peso vertical; aporta apoyo bajo carga.", "axle_scalar", "contact_patch_load_gain", 0.0, 1.0, 0.12),
 		_param("ax.contact_patch_deflection_gain", "contact_patch_deflection_gain", "Crecimiento de huella según la compresión de carcasa en apoyos y aterrizajes.", "axle_scalar", "contact_patch_deflection_gain", 0.0, 1.0, 0.2),
 
 		{"kind": "section", "title": "SENSIBILIDAD A CARGA Y PRESIÓN"},
-		_param("ax.load_sensitivity_axle_mult", "load_sensitivity_axle_mult", "Caída de agarre del eje al aumentar peso; subirlo delante da subviraje, atrás provoca rotación.", "axle_scalar", "load_sensitivity_axle_mult", 0.1, 8.0, 2.275),
-		_param("ax.load_sensitivity_per_newton", "load_sensitivity_per_newton", "Pérdida base de μ por cada newton extra; menor conserva más agarre en apoyos fuertes.", "axle_scalar", "load_sensitivity_per_newton", 0.0, 0.001, 1.5e-5),
-		_param("ax.airborne_spin_decay_torque", "airborne_spin_decay_torque", "Par de frenado que desacelera la rueda en el aire durante saltos.", "axle_scalar", "airborne_spin_decay_torque", 0.0, 50.0, 1.5),
-		_param("pm.compliance_sensitivity", "pressure_mechanics.compliance_sensitivity", "Sensibilidad de elasticidad y absorción de carcasa ante cambios de presión.", "pressure_mechanics", "compliance_sensitivity", -3.0, 3.0, 0.6),
+
+		_param("ax.load_sensitivity_per_newton", "Sensibilidad a carga (1/MN)", "Caída de μ con carga.", "axle_scalar", "load_sensitivity_per_newton", 0.0, 0.001, 1.5e-5),
+
+
 		_param("pm.response_sensitivity", "pressure_mechanics.response_sensitivity", "Influencia de la presión de aire sobre la rapidez de respuesta y relajación.", "pressure_mechanics", "response_sensitivity", -3.0, 3.0, -0.15),
 		_param("pm.rolling_resistance_sensitivity", "pressure_mechanics.rolling_resistance_sensitivity", "Variación de la resistencia a la rodadura según la presión en caliente.", "pressure_mechanics", "rolling_resistance_sensitivity", -3.0, 3.0, -0.3),
 
 		{"kind": "section", "title": "CARCASA RADIAL (radial_model)"},
 		_param("rad.carcass_stiffness_n_m", "radial_model.carcass_stiffness_n_m", "Rigidez base de carcasa (N/m); mayor = flanco firme y directo, menor = más absorción.", "radial_model", "carcass_stiffness_n_m", 1000.0, 500000.0, 30000.0, true),
 		_param("rad.pressure_stiffness_n_m_per_kpa", "radial_model.pressure_stiffness_n_m_per_kpa", "Rigidez extra por kPa de presión (N/m/kPa); controla cuánto endurece al inflar.", "radial_model", "pressure_stiffness_n_m_per_kpa", 1.0, 10000.0, 666.6667, true),
-		_param("rad.damping_ratio", "radial_model.damping_ratio", "Amortiguamiento vertical de carcasa; mayor = menos rebote en rizado y baches.", "radial_model", "damping_ratio", 0.0, 2.0, 0.12),
-		_param("rad.damping_contact_ramp_m", "radial_model.damping_contact_ramp_m", "Rampa inicial (m) de contacto para suavizar impactos verticales tras un salto.", "radial_model", "damping_contact_ramp_m", 0.0001, 0.1, 0.005, true),
-		_param("rad.rim_stop_start_sidewall_fraction", "radial_model.rim_stop_start_sidewall_fraction", "Fracción comprimida del flanco donde entra el tope de llanta (entre 0 y 1).", "radial_model", "rim_stop_start_sidewall_fraction", 0.05, 0.98, 0.75),
+		_param("rad.damping_ratio", "radial_model.damping_ratio", "Amortiguamiento vertical de carcasa; mayor = menos rebote en rizado y baches.", "radial_model", "damping_ratio", TireRadialModel.MIN_DAMPING_RATIO, 2.0, TireRadialModel.MIN_DAMPING_RATIO),
+		_param("rad.damping_contact_ramp_m", "radial_model.damping_contact_ramp_m", "Rampa inicial (m) de contacto para suavizar impactos verticales tras un salto.", "radial_model", "damping_contact_ramp_m", TireRadialModel.MIN_DAMPING_RAMP_M, 0.1, 0.015, true),
+		_param("rad.rim_stop_start_sidewall_fraction", "radial_model.rim_stop_start_sidewall_fraction", "Fracción comprimida del flanco donde entra el tope de llanta (entre 0 y 1).", "radial_model", "rim_stop_start_sidewall_fraction", 0.4, 0.95, 0.75),
 		_param("rad.rim_stop_stiffness_n_m", "radial_model.rim_stop_stiffness_n_m", "Rigidez del tope metálico de llanta (N/m) en compresiones extremas.", "radial_model", "rim_stop_stiffness_n_m", 1000.0, 2000000.0, 300000.0, true),
 	]
 
@@ -1422,7 +1476,7 @@ static func _build_parameter_specs() -> Array[Dictionary]:
 			"surf.%s.longitudinal_grip_ratio" % s_key,
 			"surfaces.%s.longitudinal_grip_ratio" % s_key,
 			"Balance tracción/freno frente a giro en %s (>1 prioriza acelerar/frenar; <1 prioriza lateral)." % s_key,
-			"surface", "longitudinal_grip_ratio", 0.1, 3.0, 1.0, false, s_key,
+			"surface", "longitudinal_grip_ratio", 0.1, 1.5, 1.0, false, s_key,
 		))
 		specs.append(_param(
 			"surf.%s.lateral_grip_assist" % s_key,
@@ -1441,54 +1495,141 @@ static func _build_parameter_specs() -> Array[Dictionary]:
 
 
 static func _build_filter_specs(all_specs: Array[Dictionary]) -> Array[Dictionary]:
-	var by_id := {}
-	for s in all_specs:
-		if str(s.get("kind", "")) == "param":
-			by_id[str(s["id"])] = s
-	var groups := [
-		{
-			"title": "CURVA COMBINADA (tire_filters)",
-			"ids": [
-				"fm.combined_lateral_peak_migration",
-				"fm.combined_longitudinal_peak_migration",
-			],
-		},
-		{
-			"title": "TRANSITORIOS, RELAJACIÓN Y HUELLA (tire_filters)",
-			"ids": [
-				"fm.slip_loss_tau_s",
-				"fm.slip_recovery_tau_s",
-				"fm.contact_ramp_tau_s",
-				"fm.min_relaxation_tau_s",
-				"fm.relaxation_recovery_scale",
-				"ax.surface_transition_tau_s",
-				"ax.relaxation_length_scale",
-				"ax.contact_patch_load_gain",
-				"ax.contact_patch_deflection_gain",
-			],
-		},
-		{
-			"title": "SENSIBILIDAD A CARGA (tire_filters)",
-			"ids": [
-				"ax.load_sensitivity_axle_mult",
-				"ax.load_sensitivity_per_newton",
-			],
-		},
-		{
-			"title": "SUPERFICIE GRAVA (tire_filters · Gravel)",
-			"ids": [
-				"surf.Gravel.friction",
-				"surf.Gravel.stiffness",
-				"surf.Gravel.longitudinal_grip_ratio",
-				"surf.Gravel.lateral_grip_assist",
-				"surf.Gravel.rolling_resistance",
-			],
-		},
-	]
 	var out: Array[Dictionary] = []
-	for g in groups:
-		out.append({"kind": "section", "title": str(g["title"])})
-		for pid in g["ids"]:
-			if by_id.has(pid):
-				out.append(by_id[pid])
+	var groups := {
+		"CURVA PURA": [
+			"fm.lateral_peak_slip_angle_rad", "fm.longitudinal_peak_slip_ratio",
+			"fm.lateral_slide_mu_ratio", "fm.longitudinal_slide_mu_ratio",
+		],
+		"CARGA Y RESPUESTA": ["ax.load_sensitivity_per_newton", "ax.relaxation_length_scale"],
+	}
+	var by_id := {}
+	for spec in all_specs:
+		if spec["kind"] == "param":
+			by_id[spec["id"]] = spec
+	for title: String in groups:
+		out.append({"kind": "section", "title": title})
+		for id: String in groups[title]:
+			out.append(by_id[id])
 	return out
+
+
+func _refresh_curves() -> void:
+	if not is_open() or _active_tab != "filters" or _routes.is_empty():
+		return
+	var sim := _active_simulation()
+	if sim == null:
+		return
+	var validation := _collect_validated_values()
+	if not validation["ok"]:
+		return
+	var baseline := sim.make_tire_calibration_model(sim.tire_model.compound_catalog)
+	var changes: Dictionary = validation["values"]
+	var has_edits: bool = not changes["front"].is_empty() or not changes["rear"].is_empty()
+	var candidate := sim.make_tire_calibration_model(_apply_values_to_catalog(_catalog, changes)) if has_edits else baseline
+	for axle: String in _curve_plots:
+		var wheel := _wheel_index(axle)
+		var plot: CurvePlot = _curve_plots[axle]
+		var previous := _sample_curve(baseline, wheel) if has_edits else PackedVector2Array()
+		var current := _sample_curve(candidate, wheel)
+		var k_load := candidate.effective_load_sensitivity(wheel)
+		var loss := 100.0 * (1.0 - TireModel.load_adjusted_mu(1.0, 2.0, 1.0, k_load))
+		plot.set_samples(current, previous, _curve_mode == 0, candidate.static_wheel_load_n[wheel], candidate.reference_hot_pressure_kpa[wheel], k_load, loss)
+
+
+func _sample_curve(model: TireModel, wheel: int) -> PackedVector2Array:
+	# This model is configured for preview, with fresh states and no vehicle body.
+	var axle := "front" if wheel < 2 else "rear"
+	var load := model.static_wheel_load_n[wheel]
+	var pressure := model.reference_hot_pressure_kpa[wheel]
+	var temperature := model.axle_optimal_carcass_c[wheel]
+	var sidewall := model.maximum_tire_deflection_m[wheel]
+	var nominal_radius := float(model.radial_tires[axle].get("radius", 0.28))
+	var deflection := TireModel.fallback_deflection_m(model.radial_tires, axle, pressure, temperature, load, temperature, sidewall)
+	var radius := TireModel.effective_radius_m(nominal_radius, deflection, sidewall)
+	var samples := PackedVector2Array()
+	var speed := 20.0
+	var slip_max := 0.70 if _curve_mode == 0 else 1.0
+	if _curve_mode == 2:
+		slip_max = 0.60
+	for i in 101:
+		var slip := slip_max * float(i) / 100.0
+		var lateral_speed := -speed * tan(slip) if _curve_mode == 0 else 0.0
+		var rim_speed := speed
+		if _curve_mode == 1:
+			rim_speed = speed * (1.0 - slip)
+		elif _curve_mode == 2:
+			rim_speed = speed / (1.0 - slip)
+		model.reset_patch(wheel)
+		model.states[wheel]["surface_initialized"] = false
+		model.states[wheel]["radial_deflection_m"] = deflection
+		var result: Dictionary
+		for step in 120:
+			result = model.evaluate(wheel, load, _curve_surface, speed, lateral_speed, rim_speed / radius, nominal_radius, 0.0, 1.0, pressure, 1.0 / 120.0, temperature, 0.0, 0.0, 20.0)
+		var force := float(result["lateral_force_n"] if _curve_mode == 0 else result["longitudinal_force_n"])
+		var x := rad_to_deg(slip) if _curve_mode == 0 else slip * 100.0
+		samples.append(Vector2(x, -force if _curve_mode == 1 else force))
+	return samples
+
+
+class CurvePlot extends Control:
+	var _current := PackedVector2Array()
+	var _baseline := PackedVector2Array()
+	var _lateral := true
+	var _summary := ""
+	var _condition := ""
+
+	func set_samples(current: PackedVector2Array, baseline: PackedVector2Array, lateral: bool, load: float, pressure: float, exponent: float, loss: float) -> void:
+		_current = current
+		_baseline = baseline
+		_lateral = lateral
+		var peak := current[0]
+		for sample in current:
+			if sample.y > peak.y:
+				peak = sample
+		var unit := "°" if lateral else "%"
+		var boundary := " · límite del barrido" if peak == current[-1] else ""
+		var slope := (current[1].y - current[0].y) / current[1].x
+		_summary = "Máx. %.2f kN a %.1f %s%s · pendiente %.0f N/%s" % [peak.y * 0.001, peak.x, unit, boundary, slope, unit]
+		tooltip_text = "Barrido con carga y presión fijas. Cada punto se mide tras 1 s en seco con la banda en su ventana de agarre."
+		if not baseline.is_empty():
+			tooltip_text += "\nGris: valores activos. Naranja: valores pendientes."
+		_condition = "%.0f N · %.0f kPa · 72 km/h · k %.3f · μ −%.1f%% a 2× carga" % [load, pressure, exponent, loss]
+		queue_redraw()
+
+	func _draw() -> void:
+		var font := get_theme_default_font()
+		var color := RallyUITheme.TEXT_MUTED
+		var rect := Rect2(Vector2(45.0, 22.0), Vector2(maxf(size.x - 60.0, 1.0), 55.0))
+		draw_style_box(RallyUITheme.make_flat_panel(RallyUITheme.BG_WELL, RallyUITheme.BORDER_SUBTLE, 1, 0), Rect2(Vector2.ZERO, size))
+		if _current.is_empty():
+			return
+		var x_max := _current[-1].x
+		var y_max := 1000.0
+		var y_min := 0.0
+		for series in [_current, _baseline]:
+			for p: Vector2 in series:
+				y_max = maxf(y_max, p.y)
+				y_min = minf(y_min, p.y)
+		y_max = ceilf(y_max / 1000.0) * 1000.0
+		y_min = floorf(y_min / 1000.0) * 1000.0
+		draw_string(font, Vector2(4.0, 91.0), "kN", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, color)
+		for fraction in [0.0, 0.5, 1.0]:
+			var y := rect.end.y - float(fraction) * rect.size.y
+			draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), RallyUITheme.BORDER_SUBTLE)
+			draw_string(font, Vector2(4.0, y + 4.0), "%.1f" % (lerpf(y_min, y_max, fraction) * 0.001), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, color)
+		_draw_series(_baseline, rect, x_max, y_min, y_max, color)
+		_draw_series(_current, rect, x_max, y_min, y_max, RallyUITheme.ACCENT_RALLY)
+		draw_string(font, Vector2(8.0, 15.0), _summary, HORIZONTAL_ALIGNMENT_LEFT, size.x - 16.0, 11, RallyUITheme.TEXT_WHITE)
+		draw_string(font, Vector2(rect.position.x, 91.0), "0", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, color)
+		var axes := "%.0f%s" % [x_max, "°" if _lateral else "%"]
+		draw_string(font, Vector2(rect.end.x - 40.0, 91.0), axes, HORIZONTAL_ALIGNMENT_RIGHT, 40.0, 10, color)
+		draw_string(font, Vector2(8.0, 106.0), _condition, HORIZONTAL_ALIGNMENT_LEFT, size.x - 16.0, 10, color)
+
+	func _draw_series(series: PackedVector2Array, rect: Rect2, x_max: float, y_min: float, y_max: float, color: Color) -> void:
+		if series.is_empty():
+			return
+		var points := PackedVector2Array()
+		for p in series:
+			points.append(Vector2(rect.position.x + rect.size.x * p.x / x_max, rect.end.y - rect.size.y * (p.y - y_min) / (y_max - y_min)))
+		draw_polyline(points, color, 2.0, true)

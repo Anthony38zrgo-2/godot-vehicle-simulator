@@ -102,6 +102,7 @@ var river_system = null
 const PuddleModel = preload("res://scripts/rally/rally_puddles.gd")
 var active_compound_id: String = "gravel_normal"
 var compound_catalog: Dictionary = {}
+var tire_sources: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
 var _ambient_irradiance_w_m2: float = 0.0
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -133,6 +134,7 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 		return loaded
 	profile = loaded["manifest"]
 	domains = loaded["domains"]
+	tire_sources = loaded["tire_sources"]
 	var mass_result := mass_model.configure(domains, asset_manifest)
 	if not bool(mass_result.get("ok", false)):
 		return mass_result
@@ -251,57 +253,65 @@ func get_compound_catalog() -> Dictionary:
 func reload_tire_catalog_runtime() -> bool:
 	RallyTireCompound.invalidate_cache()
 	var cat := RallyTireCompound.load_catalog()
-	if cat.is_empty():
+	if not supports_tire_calibration_catalog(cat):
 		return false
-	var current_tires_root: Dictionary = domains.get("tires", {}).get("tires", {})
-	var vehicle_tires_stub := {}
-	for axle in ["front", "rear"]:
-		var src_axle: Variant = current_tires_root.get(axle, {})
-		if src_axle is Dictionary:
-			var axle_stub := {}
-			for geom_key in ["contact_patch", "radius", "rim_diameter_inches", "wheel_mass", "width"]:
-				if (src_axle as Dictionary).has(geom_key):
-					axle_stub[geom_key] = (src_axle as Dictionary)[geom_key]
-			vehicle_tires_stub[axle] = axle_stub
-	var cur_pressure: Variant = current_tires_root.get("pressure", {})
-	if cur_pressure is Dictionary and (cur_pressure as Dictionary).has("cold_kpa_gauge"):
-		vehicle_tires_stub["pressure"] = {
-			"cold_kpa_gauge": ((cur_pressure as Dictionary).get("cold_kpa_gauge", {}) as Dictionary).duplicate(true),
-		}
-	domains["tires"] = RallyTireCompound.merged_tire_domain({"tires": vehicle_tires_stub})
-	domains["tire_filters"] = RallyTireCompound.merged_tire_filter_domain({})
-	var resolved_filters := VehicleProfileLoader.resolve_tire_filters(domains["tires"], domains["tire_filters"])
+	var tire_domains := resolve_tire_calibration_domains(cat)
+	domains["tires"] = tire_domains["tires"]
+	domains["tire_filters"] = tire_domains["tire_filters"]
 	TireRadialModel._geom_cache.clear()
 	TireRadialModel._model_cache.clear()
-
-	var wheel_ids: Array[String] = []
-	for i in 4:
-		var cid := active_compound_id
-		if i < tire_model.wheel_compounds.size() and tire_model.wheel_compounds[i] is Dictionary:
-			cid = str((tire_model.wheel_compounds[i] as Dictionary).get("id", active_compound_id))
-		wheel_ids.append(cid)
-	var prev_states: Array[Dictionary] = []
-	for st in tire_model.states:
-		if st is Dictionary:
-			prev_states.append((st as Dictionary).duplicate(true))
-
-	tire_model.configure(domains, resolved_filters, suspension_model.static_corner_loads_n)
-	if tire_model.states.size() == prev_states.size():
-		for i in prev_states.size():
-			var kept := prev_states[i]
-			kept["surface_initialized"] = false
-			tire_model.states[i] = kept
-
-	var definitions: Dictionary = cat.get("compounds", {})
-	if definitions.has(active_compound_id):
-		tire_model.set_compound(active_compound_id, cat)
-	for i in wheel_ids.size():
-		if definitions.has(wheel_ids[i]):
-			tire_model.set_wheel_compound(i, wheel_ids[i])
-
+	var prev_states := tire_model.states.duplicate(true)
+	_configure_tire_calibration_model(tire_model, tire_domains, cat)
+	if prev_states.size() == tire_model.states.size():
+		tire_model.states.assign(prev_states)
 	thermal_model.reload_tire_metadata(domains, cat)
 	compound_catalog = cat
 	return true
+
+
+func resolve_tire_calibration_domains(catalog: Dictionary) -> Dictionary:
+	var tires := RallyTireCompound.merged_tire_domain(tire_sources.get("tires", {}), catalog)
+	var current_pressure: Dictionary = domains.get("tires", {}).get("tires", {}).get("pressure", {})
+	if current_pressure.has("cold_kpa_gauge"):
+		var pressure: Dictionary = tires["tires"].get("pressure", {})
+		pressure["cold_kpa_gauge"] = current_pressure["cold_kpa_gauge"].duplicate(true)
+		tires["tires"]["pressure"] = pressure
+	return {
+		"tires": tires,
+		"tire_filters": RallyTireCompound.merged_tire_filter_domain(tire_sources.get("tire_filters", {}), catalog),
+	}
+
+
+func make_tire_calibration_model(catalog: Dictionary) -> TireModel:
+	var model := TireModel.new()
+	_configure_tire_calibration_model(model, resolve_tire_calibration_domains(catalog), catalog)
+	return model
+
+
+func supports_tire_calibration_catalog(catalog: Dictionary) -> bool:
+	var definitions: Variant = catalog.get("compounds", {})
+	if not definitions is Dictionary or not definitions.get(active_compound_id) is Dictionary:
+		return false
+	for wheel in tire_model.wheel_compounds:
+		if not definitions.get(wheel.get("id", active_compound_id)) is Dictionary:
+			return false
+	return true
+
+
+func _configure_tire_calibration_model(model: TireModel, tire_domains: Dictionary, catalog: Dictionary) -> void:
+	var wheel_ids: Array[String] = []
+	for wheel in tire_model.wheel_compounds:
+		wheel_ids.append(str(wheel.get("id", active_compound_id)))
+	var filters := VehicleProfileLoader.resolve_tire_filters(tire_domains["tires"], tire_domains["tire_filters"], catalog)
+	model.configure(tire_domains, filters, suspension_model.static_corner_loads_n, catalog)
+	var definitions: Dictionary = catalog.get("compounds", {})
+	if not definitions.has(active_compound_id):
+		return
+	model.set_compound(active_compound_id, catalog)
+	for i in wheel_ids.size():
+		if wheel_ids[i] != active_compound_id and definitions.has(wheel_ids[i]):
+			model.set_wheel_compound(i, wheel_ids[i])
+
 
 func set_weather_controller(controller) -> void:
 	weather_controller = controller

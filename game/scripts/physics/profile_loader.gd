@@ -42,6 +42,10 @@ static func load_profile(manifest_path: String) -> Dictionary:
 			return _failure("Domain '" + str(domain_name) + "' must contain a JSON object.")
 		domains[str(domain_name)] = domain_value
 
+	var tire_sources := {
+		"tires": domains.get("tires", {}),
+		"tire_filters": domains.get("tire_filters", {}),
+	}
 	domains["tires"] = RallyTireCompound.merged_tire_domain(domains.get("tires", {}))
 	domains["tire_filters"] = RallyTireCompound.merged_tire_filter_domain(domains.get("tire_filters", {}))
 
@@ -86,6 +90,7 @@ static func load_profile(manifest_path: String) -> Dictionary:
 		"manifest": manifest,
 		"domains": domains,
 		"resolved_tire_filters": resolved_filters,
+		"tire_sources": tire_sources,
 		"profile_id": str(manifest.get("vehicle_identifier", "")),
 	}
 
@@ -130,11 +135,11 @@ static func _resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) 
 	return resolve_tire_filters(tire_doc, filter_doc)
 
 
-static func resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary) -> Dictionary:
+static func resolve_tire_filters(tire_doc: Dictionary, filter_doc: Dictionary, catalog: Dictionary = {}) -> Dictionary:
 	# tire_filters.json es una capa opcional sobre el perfil base del catálogo
 	# (rally_compounds.json -> default_tire_profile) y tires.json del vehículo.
-	var merged_tire_doc := RallyTireCompound.merged_tire_domain(tire_doc)
-	var merged_filter_doc := RallyTireCompound.merged_tire_filter_domain(filter_doc)
+	var merged_tire_doc := RallyTireCompound.merged_tire_domain(tire_doc, catalog)
+	var merged_filter_doc := RallyTireCompound.merged_tire_filter_domain(filter_doc, catalog)
 	var tires: Dictionary = merged_tire_doc.get("tires", {})
 	var force_model: Dictionary = tires.get("force_model", {})
 	var filters: Dictionary = merged_filter_doc.get("tire_filters", {})

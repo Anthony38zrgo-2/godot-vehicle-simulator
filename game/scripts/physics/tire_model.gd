@@ -203,12 +203,17 @@ static func load_adjusted_mu(mu0: float, fz_n: float, fz_nominal_n: float, k_loa
 	return maxf(float(mu0), 0.0) * pow(maxf(float(fz_n), 1.0) / maxf(float(fz_nominal_n), 1.0), -clampf(float(k_load), 0.0, 0.5))
 
 
+func effective_load_sensitivity(index: int) -> float:
+	return clampf(float(axle_load_sensitivity[index]) * maxf(static_wheel_load_n[index], 100.0) * float(axle_load_mult[index]), 0.10, 0.20)
+
+
 func configure(
 	domains: Dictionary,
 	resolved_filters: Dictionary,
 	static_wheel_loads: Array,
+	catalog: Dictionary = {},
 ) -> void:
-	var merged_tires_doc := RallyTireCompound.merged_tire_domain(domains.get("tires", { }))
+	var merged_tires_doc := RallyTireCompound.merged_tire_domain(domains.get("tires", { }), catalog)
 	var tires: Dictionary = merged_tires_doc.get("tires", { })
 	radial_tires = tires
 	surfaces = (tires.get("surfaces", { }) as Dictionary).duplicate(true)
@@ -603,13 +608,7 @@ func evaluate(
 		0.75,
 		1.50,
 	)
-	var axle_mult := float(axle_load_mult[index])
-	# Paso 3.3: k típico 0.10-0.20 (antes 0.08-0.25).
-	var load_sensitivity_exp := clampf(
-		float(axle_load_sensitivity[index]) * reference_load * axle_mult,
-		0.10,
-		0.20,
-	)
+	var load_sensitivity_exp := effective_load_sensitivity(index)
 	# Paso 3.3: se usa el helper común load_adjusted_mu() (con mu0=1 para
 	# obtener el factor adimensional). load_ratio*reference_load reconstruye
 	# la Fz completa, de modo que el resultado es idéntico a pow(load_ratio,-k).

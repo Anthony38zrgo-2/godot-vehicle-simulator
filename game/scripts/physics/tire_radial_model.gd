@@ -1,6 +1,9 @@
 class_name TireRadialModel
 extends RefCounted
 
+const MIN_DAMPING_RATIO := 0.18
+const MIN_DAMPING_RAMP_M := 0.012
+
 # Caché de geometría/modelo por eje para evitar recomputar merges en el bucle
 # de subpasos (hasta 500 Hz x 4 ruedas). Clave: axle + hash ligero del dict.
 static var _geom_cache: Dictionary = {}
@@ -198,14 +201,14 @@ static func evaluate_prepared(
 	# Piso de amortiguación 0.18: mínimo de estabilidad a 60 Hz con tangente
 	# al entrar el tope. Revisado §4.3: no bajar sin revalidar el rig a paso
 	# físico completo (el tope dispara la tangente a rim_stop_stiffness).
-	var base_damping_ratio := maxf(float(model.get("damping_ratio", 0.12)), 0.18)
+	var base_damping_ratio := maxf(float(model.get("damping_ratio", 0.12)), MIN_DAMPING_RATIO)
 	# Estabilidad al entrar el tope: la tangente para amortiguación se acota a
 	# 2.5x la rigidez lineal + 5 kN/m. Sin esto el salto a 300 kN/m dispara c
 	# y el rig a 60 Hz oscila. La fuerza sigue usando la tangente completa.
 	var tangent_for_damping := minf(tangent, stiffness * 2.5 + 5000.0)
 	var critical_damping := 2.0 * sqrt(maxf(tangent_for_damping, 1.0) * maxf(unsprung_mass, 1.0))
 	var damping := critical_damping * base_damping_ratio
-	var ramp_m := maxf(float(model.get("damping_contact_ramp_m", 0.015)), 0.012)
+	var ramp_m := maxf(float(model.get("damping_contact_ramp_m", 0.015)), MIN_DAMPING_RAMP_M)
 	var contact_fraction := clampf(delta / ramp_m, 0.0, 1.0)
 	damping *= contact_fraction * contact_fraction * (3.0 - 2.0 * contact_fraction)
 
