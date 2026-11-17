@@ -1069,9 +1069,14 @@ func _advance_event_stage() -> void:
 	stage_transition_running = false
 
 func load_event_stage(next_id: String) -> void:
+	# Bloquear el bucle de físicas ANTES de cualquier awaits. Si no, en el
+	# primer frame el `course` todavía terminado del tramo anterior llama a
+	# competition.update() con la simulación ya reconfigurada del nuevo tramo
+	# y lo marca `complete` en el verde, dejando el botón "Continuar" activo
+	# y permitiendo saltarse una especial con un segundo clic.
+	session_ready = false
 	_show_loading_overlay()
 	await get_tree().process_frame
-	session_ready = false
 	vehicle.freeze = true
 	input_controller.set_controls_enabled(false)
 	event_clock.set_paused(true)
