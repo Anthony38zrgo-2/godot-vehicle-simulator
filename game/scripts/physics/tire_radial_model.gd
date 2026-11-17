@@ -30,18 +30,7 @@ static func prepare_coefficients(
 ) -> Dictionary:
 	var g := geometry(tires.get(axle, { }))
 	var axle_dict: Dictionary = tires.get(axle, { }) if tires.get(axle, { }) is Dictionary else { }
-	var axle_radial_hash := 0
-	if axle_dict.has("radial_model") and (axle_dict.get("radial_model", {}) is Dictionary):
-		axle_radial_hash = (axle_dict.get("radial_model", {}) as Dictionary).hash()
-	var cache_key := axle + ":" + str((tires.get("radial_model", {}) as Dictionary).hash()) + ":" + str(axle_radial_hash)
-	var model: Dictionary = _model_cache.get(cache_key, {})
-	if model.is_empty():
-		var model_global: Dictionary = tires.get("radial_model", { })
-		var model_axle: Dictionary = axle_dict.get("radial_model", { }) if axle_dict.get("radial_model", { }) is Dictionary else { }
-		model = _merged(model_global, model_axle)
-		_model_cache[cache_key] = model
-		if _model_cache.size() > 32:
-			_model_cache.clear()
+	var model := _model_for(tires, axle, axle_dict)
 	var sidewall := float(g.sidewall_m)
 	var reference_height := float(model.get("reference_sidewall_m", 0.1149))
 	var geometry_scale := float(g.width_m) / maxf(float(model.get("reference_width_m", 0.2)), 0.05) * reference_height / maxf(
@@ -76,6 +65,25 @@ static func prepare_coefficients(
 		"rim_stop_k_n_m": stop_k,
 		"rim_radius_m": g.rim_radius_m,
 	}
+
+
+# Modelo radial fusionado (global + eje) con caché por clave de hash.
+# Extraído de prepare_coefficients/evaluate para que ambos compartan
+# exactamente la misma clave y el mismo merged.
+static func _model_for(tires: Dictionary, axle: String, axle_dict: Dictionary) -> Dictionary:
+	var axle_radial_hash := 0
+	if axle_dict.has("radial_model") and (axle_dict.get("radial_model", {}) is Dictionary):
+		axle_radial_hash = (axle_dict.get("radial_model", {}) as Dictionary).hash()
+	var cache_key := axle + ":" + str((tires.get("radial_model", {}) as Dictionary).hash()) + ":" + str(axle_radial_hash)
+	var model: Dictionary = _model_cache.get(cache_key, {})
+	if model.is_empty():
+		var model_global: Dictionary = tires.get("radial_model", { })
+		var model_axle: Dictionary = axle_dict.get("radial_model", { }) if axle_dict.get("radial_model", { }) is Dictionary else { }
+		model = _merged(model_global, model_axle)
+		_model_cache[cache_key] = model
+		if _model_cache.size() > 32:
+			_model_cache.clear()
+	return model
 
 
 # Fuerza elástica F_elástica(δ) monótona con seating + tope (§closure-2).
@@ -118,6 +126,26 @@ static func invert_deflection_m(coeffs: Dictionary, load_n: float, max_deflectio
 	return (lo + hi) * 0.5
 
 
+## Estado radial preparado UNA vez por (neumático, eje, presión, temperatura).
+## Los coeficientes NO dependen de la deflexión ni de la velocidad, así que
+## pueden calcularse una vez y reutilizarse en toda la bisección de impulso
+## radial (48 iteraciones por rueda y tick). Devuelve el estado opaco que
+## consume evaluate_prepared().
+static func prepare_state(
+	tires: Dictionary,
+	axle: String,
+	pressure_kpa: float,
+	temperature_c: float,
+	resolved_optimum_c: float = INF,
+) -> Dictionary:
+	var axle_dict: Dictionary = tires.get(axle, { }) if tires.get(axle, { }) is Dictionary else { }
+	return {
+		"coeffs": prepare_coefficients(tires, axle, pressure_kpa, temperature_c, resolved_optimum_c),
+		"model": _model_for(tires, axle, axle_dict),
+		"geometry": geometry(tires.get(axle, { })),
+	}
+
+
 static func evaluate(
 	tires: Dictionary,
 	axle: String,
@@ -129,16 +157,28 @@ static func evaluate(
 	resolved_optimum_c: float = INF,
 	viscous_scale: float = 1.0,
 ) -> Dictionary:
-	var coeffs := prepare_coefficients(tires, axle, pressure_kpa, temperature_c, resolved_optimum_c)
-	var g := geometry(tires.get(axle, { }))
-	var axle_dict: Dictionary = tires.get(axle, { }) if tires.get(axle, { }) is Dictionary else { }
-	var cache_key := axle + ":" + str((tires.get("radial_model", {}) as Dictionary).hash()) + ":" + str((axle_dict.get("radial_model", {}) as Dictionary).hash() if axle_dict.has("radial_model") else 0)
-	var model: Dictionary = _model_cache.get(cache_key, {})
-	if model.is_empty():
-		var model_global: Dictionary = tires.get("radial_model", { })
-		var model_axle: Dictionary = axle_dict.get("radial_model", { }) if axle_dict.get("radial_model", { }) is Dictionary else { }
-		model = _merged(model_global, model_axle)
-		_model_cache[cache_key] = model
+	return evaluate_prepared(
+		prepare_state(tires, axle, pressure_kpa, temperature_c, resolved_optimum_c),
+		unsprung_mass,
+		deflection,
+		speed,
+		viscous_scale,
+	)
+
+
+## Evaluación radial sobre un estado ya preparado (misma salida que
+## evaluate()). Evita reconstruir coeficientes y rehacer el hash del modelo
+## en cada iteración de la bisección de impulso.
+static func evaluate_prepared(
+	state: Dictionary,
+	unsprung_mass: float,
+	deflection: float,
+	speed: float,
+	viscous_scale: float = 1.0,
+) -> Dictionary:
+	var coeffs: Dictionary = state.get("coeffs", {})
+	var model: Dictionary = state.get("model", {})
+	var g: Dictionary = state.get("geometry", {})
 	var sidewall := float(coeffs.sidewall_m)
 	var stiffness := float(coeffs.stiffness_n_m)
 	var carcass_k := float(coeffs.carcass_stiffness_n_m)

@@ -97,6 +97,10 @@ var radial_viscous_scale := 1.0
 ## predichas al final del paso, aplicado al buje una sola vez por tick como
 ## fuerza equivalente J/dt.
 var radial_implicit_enabled := true
+## Tolerancia relativa de convergencia de la bisección de impulso radial.
+## 1e-4 sobre el impulso (N·s) es muy por debajo de la precisión útil del
+## modelo y evita las ~48 iteraciones fijas por rueda y tick.
+const RADIAL_BISECTION_REL_TOL := 1.0e-4
 ## Subpasos acoplados (quinta prueba, solo sonda): 1 = producción.
 ## 3/6 = integrador diagnóstico con N subpasos por tick de Jolt a 60 Hz
 ## (paso efectivo 180/360 Hz). Predice chasis (traslación) y bujes (eje de
@@ -206,6 +210,11 @@ static func solve_radial_impulse(
 		else:
 			hi = mid
 		iters += 1
+		# Tolerancia relativa sobre el impulso: la bisección converge muy rápido
+		# (la curva radial es suave) y 48 iteraciones fijas eran puro gasto.
+		# Se conserva el máximo de 48 como red de seguridad.
+		if hi - lo <= RADIAL_BISECTION_REL_TOL * maxf(absf(lo), 1.0):
+			break
 	return {"impulse_ns": 0.5 * (lo + hi), "iterations": iters, "fallback": false, "opening": false}
 
 
@@ -933,8 +942,10 @@ func solve(
 	# (h_vel - body_point_velocity).dot(up)) y masa reducida
 	# m_eff = 1/(1/m_u + 1/m_s_corner). Fuerza interna total UNA SOLA VEZ:
 	# +F al chasis, -F al buje, sin recortes asimétricos.
-	var _explicit_forces := suspension.suspension_forces()
-	var _explicit_dampers: Array[float] = [suspension.last_damper_forces_n[0], suspension.last_damper_forces_n[1], suspension.last_damper_forces_n[2], suspension.last_damper_forces_n[3]]
+	# La ley explícita NO se evalúa aquí: la ruta implícita ya publica la
+	# fuerza de amortiguador solicitada (last_damper_explicit_n) para la
+	# traza. Antes se ejecutaba suspension_forces() completo solo para leer
+	# ese valor, duplicando el coste de la ley de fuerza en cada tick.
 	tick_sequence += 1
 	var dt := maxf(state.step, 0.00001)
 	var chassis_mass := maxf(chassis.mass, 1.0)
@@ -944,7 +955,7 @@ func solve(
 		_corner_m[_ci] = effective_corner_mass_kg(chassis, neutral_positions[_ci])
 	spring_forces_n = suspension.suspension_forces_implicit(dt, _hub_m, _corner_m)
 	for _ci in 4:
-		last_damper_requested_n[_ci] = _explicit_dampers[_ci]
+		last_damper_requested_n[_ci] = suspension.last_damper_explicit_n[_ci]
 	# Recorte de diagnóstico del damper (F1, §5): DESACTIVADO POR DEFECTO.
 	# Ruta normal: se aplica la fuerza semi-implícita íntegra
 	# (`suspension.last_damper_forces_n` = aplicada). Con
@@ -1197,8 +1208,13 @@ func solve(
 			var opt_c := float(thermal.optimal_carcass_temperature(i))
 			var hub_m := maxf(hub.mass, 1.0)
 			var visc_scale := float(radial_viscous_scale)
+			# Los coeficientes radiales no dependen de la deflexión ni de la
+			# velocidad: se preparan UNA vez por rueda y tick y se reutilizan
+			# en las 48 iteraciones de la bisección. Antes se reconstruían
+			# (dict + hash del modelo) en cada iteración.
+			var radial_state := TireRadialModel.prepare_state(tires, axle_str, press_kpa, carc_c, opt_c)
 			var force_at := func(delta_m: float, speed_m_s: float) -> float:
-				var ev := TireRadialModel.evaluate(tires, axle_str, press_kpa, carc_c, hub_m, delta_m, speed_m_s, opt_c, visc_scale)
+				var ev := TireRadialModel.evaluate_prepared(radial_state, hub_m, delta_m, speed_m_s, visc_scale)
 				return float(ev.get("force_n", 0.0))
 			var sep_0 := float(relative_hub_vel.dot(up))
 			var known_j: float = float(tr["J_susp_ns"]) + float(tr["J_gravity_ns"])

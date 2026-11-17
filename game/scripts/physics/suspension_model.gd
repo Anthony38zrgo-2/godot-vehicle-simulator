@@ -69,6 +69,11 @@ var geometric_contact: Array[bool] = [false, false, false, false]
 ## traza ( §5 ) y para el límite de impulso del amortiguador en el rig.
 var last_elastic_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_damper_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+## Fuerza de amortiguador ANTES del escalado semi-implícito (la "solicitada"
+## de la traza). La calcula la propia ruta implícita, de modo que el rig no
+## necesita ejecutar una segunda vez la ley explícita completa solo para leer
+## este valor de telemetría.
+var last_damper_explicit_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_bump_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
@@ -421,6 +426,7 @@ func clear_transient() -> void:
 		geometric_contact[i] = false
 		last_elastic_forces_n[i] = 0.0
 		last_damper_forces_n[i] = 0.0
+		last_damper_explicit_n[i] = 0.0
 		last_bump_forces_n[i] = 0.0
 
 
@@ -540,6 +546,7 @@ func suspension_forces() -> Array[float]:
 		var force := elastic_force + damper_force
 		last_elastic_forces_n[i] = elastic_force
 		last_damper_forces_n[i] = damper_force
+		last_damper_explicit_n[i] = damper_force
 		var bump_range := maxf(float(p.bump_stop_travel), 0.015)
 		var bump_threshold := float(p.bump_m) - bump_range
 		var bump_force := 0.0
@@ -653,6 +660,7 @@ func suspension_forces_implicit(
 		var force := elastic_force + damper_force
 		last_elastic_forces_n[i] = elastic_force
 		last_damper_forces_n[i] = damper_force
+		last_damper_explicit_n[i] = damper_explicit
 		var bump_range := maxf(float(p.bump_stop_travel), 0.015)
 		var bump_threshold := float(p.bump_m) - bump_range
 		var bump_force := 0.0
