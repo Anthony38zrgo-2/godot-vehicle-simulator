@@ -2,6 +2,7 @@ class_name RallyEscortVehicle
 extends RigidBody3D
 
 signal backfire_triggered
+signal tyre_contact_impact(wheel_index: int, strength: float)
 
 const PROFILE_PATH := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
 const ASSET_MANIFEST_PATH := "res://assets/rally/ford_escort_rs2000_1971/manifest.json"
@@ -594,6 +595,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			"position": state.get_contact_collider_position(index), "normal": normal,
 			"impulse_ns": impulse, "speed_ms": closing_speed, "tangent_ms": tangent_speed,
 			"surface": vfx_surface,
+			"collision_role": role,
 			"collider_name": str(vfx_collider.name).to_lower() if vfx_collider != null else "",
 		})
 		var force := impulse / maxf(state.step, 0.0001)

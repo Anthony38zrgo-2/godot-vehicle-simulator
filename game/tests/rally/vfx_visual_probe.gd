@@ -1,9 +1,5 @@
 extends SceneTree
 
-const SPARK := RallyVehicleVFX.SPARK
-const MUD := RallyVehicleVFX.MUD_CLOD
-const LEAF := RallyVehicleVFX.LEAVES[0]
-
 var folder := ""
 var scene: Node3D
 var vehicle: RigidBody3D
@@ -138,10 +134,13 @@ func run() -> void:
 
 	var impact_point: Vector3 = vehicle.global_transform * Vector3(2.3, 0.15, 1.0)
 	set_close_camera(impact_point)
+	vfx.impact_busy.fill(0.0)
+	vfx.emit_metal_clang(impact_point, Vector3.UP, Vector3.RIGHT, 1.0)
+	await create_timer(0.16).timeout
+	await capture("impact_spark_close")
 	var effects := [
-		["impact_spark", { "texture": SPARK, "additive": true, "color": Color(1.0, 0.74, 0.28), "quad_size": Vector2(0.35, 0.9), "unlit": true }],
-		["impact_mud", { "texture": MUD, "additive": false, "color": Color(0.34, 0.25, 0.15), "quad_size": Vector2(0.16, 0.28), "unlit": true }],
-		["impact_leaf", { "texture": LEAF, "additive": false, "color": Color(0.34, 0.44, 0.17), "quad_size": Vector2(0.22, 0.32), "unlit": false }],
+		["impact_mud", { "texture": vfx.get("MUD_CLOD"), "color": Color(0.34, 0.25, 0.15), "quad_size": Vector2(0.16, 0.28) }],
+		["impact_leaf", { "texture": vfx.get("LEAVES")[0], "color": Color(0.34, 0.44, 0.17), "quad_size": Vector2(0.22, 0.32) }],
 	]
 	for entry in effects:
 		vfx.impact_busy.fill(0.0)

@@ -1350,6 +1350,8 @@ func build_tyre_contact_players() -> void:
 
 
 func update_tyre_contacts(delta: float, wheel_samples: Array[Dictionary]) -> void:
+	var strongest_wheel := -1
+	var strongest_impact := -1.0
 	for i in tyre_contact_players.size():
 		var sample := wheel_samples[i]
 		var vH: Vector3 = sample.get("vH", Vector3.ZERO)
@@ -1366,6 +1368,11 @@ func update_tyre_contacts(delta: float, wheel_samples: Array[Dictionary]) -> voi
 		tyre_contact_filters[i].cutoff_hz = lerpf(900.0, 4800.0, strength)
 		player.play()
 		tyre_contact_cooldowns[i] = 0.12
+		if strength > strongest_impact:
+			strongest_impact = strength
+			strongest_wheel = i
+	if strongest_wheel >= 0:
+		vehicle.tyre_contact_impact.emit(strongest_wheel, strongest_impact)
 
 
 func build_watersplash_players() -> void:

@@ -9,7 +9,10 @@ var DUST_CORE: Texture2D
 const GRAVEL_DUST := preload(CMR4_TEXTURES + "dust_01.png")
 const TIRE_SMOKE := preload(CMR4_TEXTURES + "smoke_01.png")
 const RAIN_SPLAT := preload(CMR2_TEXTURES + "splat.png")
-const RADIATOR_STEAM := preload(CMR4_TEXTURES + "smoke_01.png")
+const RADIATOR_STEAM_ATLAS := preload("res://assets/vfx/free_retro_3d_effects/smoke-atlas-1bit.png")
+const ENGINE_FIRE_ATLAS := preload("res://assets/vfx/free_retro_3d_effects/flame-atlas-1bit.png")
+const RADIATOR_STEAM_FRAMES := 12
+const RADIATOR_STEAM_FPS := 12.0
 const SPLASH_LOOSE := preload(CMR4_TEXTURES + "cr_splsh.png")
 const SPLASH_PAVED := preload(CMR4_TEXTURES + "rd_splsh.png")
 const WATER_CORE := preload(CMR4_TEXTURES + "water_1.png")
@@ -19,8 +22,13 @@ const SNOW_ROLL := [
 	preload(CMR4_TEXTURES + "snw_rd2.png"),
 	preload(CMR4_TEXTURES + "snw_rd3.png"),
 ]
-const SMALL_SPARK := preload(CMR4_TEXTURES + "sprk_sml.png")
-const SPARK := preload(CMR4_TEXTURES + "sprk_big.png")
+const METAL_CLANG_ATLAS := preload("res://assets/vfx/pvfx_foundry/metal-clang.png")
+const HIT_SPARK_ATLAS := preload("res://assets/vfx/pvfx_foundry/hit-spark.png")
+# PVFX Foundry strict/grid Landing Dust, converted to grayscale for surface tinting.
+const LANDING_DUST_ATLAS := preload("res://assets/vfx/pvfx_foundry/landing-dust-neutral.png")
+const LANDING_DUST_MIN_STRENGTH := 0.45
+const METAL_CLANG_FRAME_COUNT := 13
+const METAL_CLANG_FRAME_SECONDS := 0.06
 var GRAVEL: Array = []
 var MUD_CLOD: Texture2D
 var LEAVES: Array = []
@@ -31,7 +39,6 @@ const SNOW_MIN_MM := 0.25
 const SNOW_HAZE_TICKS := 9
 const WHEEL_PARTICLES := preload("res://scripts/rally/rally_wheel_particles.gd")
 const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
-const ADDITIVE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
 const TIRE_TRACKS = preload("res://scripts/rally/rally_tire_tracks.gd")
 const SURFACES := {
 	"gravel": { "dust": 0.60, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DUST, "burst": 2 },
@@ -42,6 +49,14 @@ const SURFACES := {
 	"road": { "dust": 0.0, "interval": 10 },
 	"asphalt": { "dust": 0.0, "interval": 10 },
 	"tarmac": { "dust": 0.0, "interval": 10 },
+}
+const LANDING_DUST_TINTS := {
+	"gravel": Color(0.91, 0.79, 0.63),
+	"dirt": Color(0.94, 0.65, 0.39),
+	"sand": Color(1.0, 0.86, 0.58),
+	"grass": Color(0.73, 0.78, 0.50),
+	"mud": Color(0.58, 0.39, 0.25),
+	"snow": Color(1.12, 1.21, 1.32),
 }
 
 @export_range(0.0, 1.5, 0.025) var intensity: float = 0.975
@@ -61,6 +76,10 @@ var wheel_has_previous_point: Array[bool] = [false, false, false, false]
 var wheel_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var wheel_snow_haze: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var impact_pool: Array[GPUParticles3D] = []
+var metal_clang_pool: Array[AnimatedSprite3D] = []
+var tire_sparks: Array[AnimatedSprite3D] = []
+var landing_dust: AnimatedSprite3D
+var tire_was_unseated: Array[bool] = [false, false, false, false]
 var impact_busy: Array[float] = []
 var impact_cooldown: float = 0.0
 var wetness_node: Node
@@ -69,7 +88,8 @@ var last_position := Vector3.ZERO
 var emitted_impacts: int = 0
 var wetness_lookup_cooldown: float = 0.0
 var particle_materials: Array[ShaderMaterial] = []
-var steam_emitter: GPUParticles3D
+var radiator_steam: Sprite3D
+var engine_fire: Sprite3D
 var steam_time: float = 0.0
 var current_steam_strength: float = 0.0
 var camera_rig: Node = null
@@ -104,6 +124,9 @@ func _ready() -> void:
 	wheel_particles.name = "WheelParticles"
 	add_child(wheel_particles)
 	vehicle.backfire_triggered.connect(emit_backfire)
+	vehicle.tyre_contact_impact.connect(emit_landing_dust)
+	var metal_clang_frames := SpriteFrames.new()
+	add_impact_animation(metal_clang_frames, &"default", METAL_CLANG_ATLAS, Vector2(58, 44), METAL_CLANG_FRAME_COUNT, METAL_CLANG_FRAME_SECONDS)
 	for i in 6:
 		impact_pool.append(
 			make_emitter(
@@ -119,8 +142,23 @@ func _ready() -> void:
 		)
 		var emitter := impact_pool.back() as GPUParticles3D
 		emitter.set_meta("impact_scale_curve", emitter.process_material.scale_curve)
+		var clang := make_impact_sprite("MetalClang%d" % i, metal_clang_frames)
+		clang.offset = Vector2(5.0, 4.0) # Atlas pivot (24, 26) relative to frame center.
+		metal_clang_pool.append(clang)
 		impact_busy.append(0.0)
-	steam_emitter = make_steam_emitter()
+	var tire_spark_frames := metal_clang_frames.duplicate() as SpriteFrames
+	tire_spark_frames.rename_animation(&"default", &"scrape")
+	add_impact_animation(tire_spark_frames, &"unseat", HIT_SPARK_ATLAS, Vector2(64, 64), 8, 0.08)
+	for i in 4:
+		tire_sparks.append(make_impact_sprite("TireSpark%d" % i, tire_spark_frames))
+	reset_tire_sparks()
+	var landing_frames := SpriteFrames.new()
+	add_impact_animation(landing_frames, &"default", LANDING_DUST_ATLAS, Vector2(88, 46), 12, 0.07)
+	landing_dust = make_impact_sprite("LandingDust", landing_frames)
+	landing_dust.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	landing_dust.offset = Vector2(0.0, 17.0)
+	radiator_steam = make_engine_vfx_sprite("RadiatorSteam", RADIATOR_STEAM_ATLAS)
+	engine_fire = make_engine_vfx_sprite("EngineFire", ENGINE_FIRE_ATLAS)
 	last_position = vehicle.global_position
 	print("RALLY_VFX_READY wheel_particle_capacity=", WHEEL_PARTICLES.CAPACITY, " intensity=", intensity)
 
@@ -222,8 +260,15 @@ func _physics_process(delta: float) -> void:
 		clear_wheel_bursts()
 		for i in 4:
 			tire_tracks.break_track(i)
-		if steam_emitter != null:
-			steam_emitter.emitting = false
+		if radiator_steam != null:
+			radiator_steam.hide()
+		if engine_fire != null:
+			engine_fire.hide()
+		for clang in metal_clang_pool:
+			clang.stop()
+			clang.hide()
+		reset_tire_sparks()
+		clear_landing_dust()
 		return
 	var wetness := get_wetness()
 	wheel_particle_accumulator += delta
@@ -381,11 +426,12 @@ func emit_backfire() -> void:
 
 func update_wheel(index: int, wetness: float) -> void:
 	var sim := vehicle.simulation
+	var unseated := RallyEscortVehicle.tire_is_unseated(sim.thermal_model.tire_states[index])
+	var grounded := sim.wheel_loads[index] >= 60.0 and sim.wheel_contact_casts.size() == 4 and sim.wheel_contact_casts[index].is_colliding()
+	if unseated or tire_was_unseated[index]:
+		update_tire_spark(index, unseated, grounded)
 	var surface := sim.wheel_surfaces[index].to_lower()
-	if (
-		sim.wheel_loads[index] < 60.0 or not SURFACES.has(surface)
-		or sim.wheel_contact_casts.size() != 4 or not sim.wheel_contact_casts[index].is_colliding()
-	):
+	if unseated or not grounded or not SURFACES.has(surface):
 		wheel_has_previous_point[index] = false
 		wheel_previous_surface[index] = ""
 		wheel_was_wet[index] = false
@@ -424,11 +470,6 @@ func update_wheel(index: int, wetness: float) -> void:
 	var side := normal.cross(rearward) * (-1.0 if index % 2 == 0 else 1.0)
 	var source := previous.lerp(point, wheel_particles.rng.randf())
 	var velocity := rearward * clampf(corner_speed.length() * 0.16 + slip, 0.6, 4.0) + side * slip * 0.5
-	if RallyEscortVehicle.tire_is_unseated(sim.thermal_model.tire_states[index]):
-		emit_unseated_sparks(index, velocity, point, normal)
-		wheel_cooldowns[index] = int(profile.interval) * WHEEL_PARTICLES.STEP
-		return
-
 	var paved := surface in ["road", "asphalt", "tarmac"]
 	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
 	# La capa invernal manda sobre la superficie base: en Suecia la carretera
@@ -528,17 +569,104 @@ func wheel_conditions(index: int) -> Dictionary:
 	return {}
 
 
-func emit_unseated_sparks(index: int, velocity: Vector3, point: Vector3, normal: Vector3) -> void:
-	var sideways := normal.cross(velocity.slide(normal)).normalized()
-	if sideways.is_zero_approx():
-		sideways = vehicle.global_basis.x
-	for kind in [WHEEL_PARTICLES.Kind.BEAD_YELLOW, WHEEL_PARTICLES.Kind.BEAD_ORANGE]:
-		for spark in 3:
-			var spark_velocity := velocity.slide(normal) * wheel_particles.rng.randf_range(0.8, 1.5)
-			spark_velocity += sideways * wheel_particles.rng.randf_range(-1.0, 1.0)
-			spark_velocity += normal * wheel_particles.rng.randf_range(0.30, 1.0)
-			var origin := point + normal * 0.055 + sideways * wheel_particles.rng.randf_range(-0.06, 0.06)
-			wheel_particles.emit_particle(kind, SMALL_SPARK, origin, spark_velocity, point, normal)
+func update_tire_spark(index: int, unseated: bool, grounded: bool) -> void:
+	var spark := tire_sparks[index]
+	var just_unseated := unseated and not tire_was_unseated[index]
+	tire_was_unseated[index] = unseated
+	if not unseated:
+		spark.stop()
+		spark.hide()
+		return
+
+	var sim := vehicle.simulation
+	var point := sim.wheel_contact_points[index]
+	var normal := sim.wheel_contact_normals[index].normalized()
+	if just_unseated:
+		if not grounded:
+			point = vehicle.to_global(sim.wheel_positions_local[index])
+			normal = vehicle.global_basis.y
+		spark.global_transform = Transform3D(impact_sprite_basis(Vector3.ZERO), point + normal * 0.08)
+		spark.pixel_size = 0.012
+		spark.offset = Vector2.ZERO
+		spark.show()
+		spark.play(&"unseat")
+		return
+	if spark.is_playing() and spark.animation == &"unseat":
+		return
+
+	var contact_velocity := vehicle.linear_velocity + vehicle.angular_velocity.cross(point - vehicle.global_position)
+	var slide := contact_velocity.slide(normal)
+	var speed := slide.length()
+	if not grounded or speed < 1.0:
+		spark.stop()
+		spark.hide()
+		return
+	if spark.is_playing():
+		return
+	var strength := smoothstep(1.0, 20.0, speed)
+	spark.global_transform = Transform3D(impact_sprite_basis(-slide.normalized() + normal * 0.25), point + normal * 0.055)
+	spark.pixel_size = lerpf(0.009, 0.015, strength)
+	spark.offset = Vector2(5.0, 4.0)
+	spark.stop()
+	spark.show()
+	spark.play(&"scrape", lerpf(2.0, 4.0, strength))
+
+
+func reset_tire_sparks() -> void:
+	var states := vehicle.simulation.thermal_model.tire_states
+	for i in tire_sparks.size():
+		tire_sparks[i].stop()
+		tire_sparks[i].hide()
+		tire_was_unseated[i] = i < states.size() and RallyEscortVehicle.tire_is_unseated(states[i])
+
+
+func emit_landing_dust(index: int, strength: float) -> void:
+	if not enabled or intensity <= 0.0 or vehicle.freeze or not vehicle._physics_ready:
+		return
+	if strength < LANDING_DUST_MIN_STRENGTH or landing_dust.visible:
+		return
+	var sim := vehicle.simulation
+	var surface := sim.wheel_surfaces[index].to_lower()
+	var conditions := wheel_conditions(index)
+	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
+	if surface == "snowdeep" or float(conditions.get("snow_mm", 0.0)) >= SNOW_MIN_MM or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
+		surface = "snow"
+	elif surface in ["dirt", "gravel"] and float(conditions.get("water_mm", 0.0)) >= 1.4:
+		surface = "mud"
+
+	var paved := surface in ["road", "asphalt", "tarmac", "curb"]
+	var tint: Color = LANDING_DUST_TINTS.get(surface, Color(0.76, 0.77, 0.80))
+	var severity := inverse_lerp(LANDING_DUST_MIN_STRENGTH, 1.0, strength)
+	var size := lerpf(0.022, 0.035, severity)
+	var opacity := lerpf(0.60, 0.95, severity) * intensity
+	if paved:
+		opacity *= 0.50
+	elif surface == "mud":
+		size *= 0.80
+	tint.a = clampf(opacity, 0.0, 1.0)
+	var rear_center := (sim.wheel_positions_local[2] + sim.wheel_positions_local[3]) * 0.5
+	var rear_contact_height := 0.0
+	var rear_contacts := 0
+	for rear_index in [2, 3]:
+		if sim.suspension_model.contact_active[rear_index]:
+			rear_contact_height += vehicle.to_local(sim.wheel_contact_points[rear_index]).y
+			rear_contacts += 1
+	if rear_contacts > 0:
+		rear_center.y = rear_contact_height / rear_contacts
+	else:
+		rear_center.y -= (sim.wheel_radii[2] + sim.wheel_radii[3]) * 0.5
+	var origin := vehicle.to_global(rear_center) + Vector3.UP * 0.035
+	landing_dust.global_transform = Transform3D(impact_sprite_basis(Vector3.ZERO), origin)
+	landing_dust.pixel_size = size
+	landing_dust.modulate = tint
+	landing_dust.stop()
+	landing_dust.show()
+	landing_dust.play(&"default", 3.0)
+
+
+func clear_landing_dust() -> void:
+	landing_dust.stop()
+	landing_dust.hide()
 
 
 func snow_texture_variant(index: int) -> Texture2D:
@@ -552,78 +680,67 @@ func update_impacts(wetness: float) -> void:
 		return
 	var selected: Dictionary = { }
 	var largest := 0.0
+	var selected_sparks := false
 	for contact in vehicle.body_contact_vfx:
 		var impulse := float(contact.impulse_ns)
 		var closing := float(contact.speed_ms)
 		var scrape := float(contact.tangent_ms)
-		if (
-			impulse < vehicle.mass * 0.20
-			or (closing < 1.8 and scrape < 4.0 and impulse < vehicle.mass * 0.8)
-		):
+		var surface := str(contact.surface).to_lower()
+		var collider_name := str(contact.collider_name).to_lower()
+		var role := str(contact.get("collision_role", ""))
+		var soft_surface := surface in ["gravel", "grass", "dirt", "sand", "mud"] or "tree" in collider_name
+		var obstacle := (
+			role in ["barrier", "obstacle"]
+			or "barrier" in collider_name or "props" in collider_name or "building" in collider_name
+		) and not soft_surface
+		var hard := obstacle or surface in ["road", "asphalt", "tarmac", "curb"]
+		var hard_scrape := hard and scrape >= 4.0 and wetness < 0.6
+		var hard_hit := obstacle and (closing >= 1.8 or impulse >= vehicle.mass * 0.8) and wetness < 0.6
+		var impact := impulse >= vehicle.mass * 0.20 and (
+			closing >= 1.8 or scrape >= 4.0 or impulse >= vehicle.mass * 0.8
+		)
+		if not impact and not (hard_scrape and impulse >= vehicle.mass * 0.025):
 			continue
 		if impulse > largest:
 			largest = impulse
 			selected = contact
+			selected_sparks = hard_scrape or hard_hit
 	if selected.is_empty():
 		return
 	var surface := str(selected.surface).to_lower()
 	var collider_name := str(selected.collider_name)
-	var tangent := float(selected.tangent_ms)
-	var hard := (
-		surface in ["road", "asphalt", "tarmac", "curb"]
-		or "barrier" in collider_name
-		or "props" in collider_name
-		or "building" in collider_name
-	)
-	var spark := hard and tangent > 4.0 and wetness < 0.6
 	var severity := clampf(largest / maxf(vehicle.mass * 3.0, 1.0), 0.15, 1.0)
-	var effect := classify_impact(surface, collider_name, severity, wetness, spark)
-	if spark:
+	if selected_sparks:
 		var normal: Vector3 = selected.normal
-		effect["direction"] = (normal * 0.32 - vehicle.linear_velocity.slide(normal).normalized()).normalized()
-	emit_impact_effect(selected.position, selected.normal, effect, severity)
-	impact_cooldown = 0.22 if str(effect.get("kind", "dirt")) == "spark" else 0.35
+		var direction := normal * 0.32 - vehicle.linear_velocity.slide(normal).normalized()
+		emit_metal_clang(selected.position, normal, direction, severity)
+	else:
+		var effect := classify_impact(surface, collider_name, wetness)
+		emit_impact_effect(selected.position, selected.normal, effect, severity)
+	impact_cooldown = 0.22 if selected_sparks else 0.35
 
 
-## Chooses one sprite per contact. Sparks are additive; leaves and mud keep
-## the alpha shader. The material only ever receives a single texture per event.
+## Chooses the debris sprite for a contact that does not produce metal sparks.
 func classify_impact(
 	surface: String,
 	collider_name: String,
-	severity: float,
 	wetness: float,
-	spark: bool,
 ) -> Dictionary:
-	if spark:
-		var big := severity >= 0.5
-		return {
-			"kind": "spark",
-			"texture": SPARK if big else SMALL_SPARK,
-			"additive": true,
-			"color": Color(1.0, 0.74, 0.28),
-			"quad_size": Vector2(0.18, 0.78) if big else Vector2(0.10, 0.48),
-		}
 	if "tree" in collider_name or surface == "grass":
 		var leaf := emitted_impacts % LEAVES.size()
 		return {
-			"kind": "leaf",
 			"texture": LEAVES[leaf] as Texture2D,
-			"additive": false,
 			"color": WHEEL_PARTICLES.TYPES[WHEEL_PARTICLES.Kind.LEAF].color,
 			"quad_size": Vector2.ONE,
 		}
 	if surface == "mud" or (surface == "dirt" and wetness >= 0.35):
 		return {
-			"kind": "mud",
 			"texture": MUD_CLOD,
-			"additive": false,
 			"color": WHEEL_PARTICLES.TYPES[WHEEL_PARTICLES.Kind.MUD].color,
 			"quad_size": Vector2(0.12, 0.22),
 		}
 	return {
-		"kind": "dirt",
 		"texture": DIRT_CHIPS,
-		"additive": false,
 		"color": Color(0.44, 0.37, 0.29),
 		"quad_size": Vector2.ONE,
 	}
@@ -636,24 +753,14 @@ func emit_impact(
 	severity: float,
 	sparks: bool,
 ) -> void:
-	var effect: Dictionary
 	if sparks:
-		var big := severity >= 0.5
-		effect = {
-			"kind": "spark",
-			"texture": SPARK if big else SMALL_SPARK,
-			"additive": true,
-			"color": Color(1.0, 0.74, 0.28) if color == Color.WHITE else color,
-			"quad_size": Vector2(0.18, 0.78) if big else Vector2(0.10, 0.48),
-		}
-	else:
-		effect = {
-			"kind": "dirt",
-			"texture": DIRT_CHIPS,
-			"additive": false,
-			"color": color.darkened(0.25),
-			"quad_size": Vector2.ONE,
-		}
+		emit_metal_clang(point, normal, normal, severity)
+		return
+	var effect := {
+		"texture": DIRT_CHIPS,
+		"color": color.darkened(0.25),
+		"quad_size": Vector2.ONE,
+	}
 	emit_impact_effect(point, normal, effect, severity)
 
 
@@ -664,14 +771,12 @@ func emit_impact_effect(
 	severity: float,
 ) -> void:
 	for i in impact_pool.size():
-		if impact_busy[i] > 0.0:
+		if impact_busy[i] > 0.0 or metal_clang_pool[i].visible:
 			continue
 		var emitter := impact_pool[i]
 		var process := emitter.process_material as ParticleProcessMaterial
 		var quad := emitter.draw_pass_1 as QuadMesh
 		var material := quad.material as ShaderMaterial
-		var spark := bool(effect.get("additive", false))
-		material.shader = ADDITIVE_SHADER if spark else PARTICLE_SHADER
 		var effect_texture: Texture2D = effect.get("texture")
 		var effect_color: Color = effect.get("color", Color.WHITE)
 		var quad_size: Vector2 = effect.get("quad_size", Vector2.ONE)
@@ -679,17 +784,15 @@ func emit_impact_effect(
 		material.set_shader_parameter("body_exclusion_strength", 0.0)
 		material.set_shader_parameter("world_to_vehicle", vehicle.global_transform.affine_inverse())
 		var foliage := effect_texture in LEAVES
-		if not spark:
-			material.set_shader_parameter("opaque_sprite_mask", foliage or effect_texture in [MUD_CLOD, DIRT_CHIPS])
+		material.set_shader_parameter("opaque_sprite_mask", foliage or effect_texture in [MUD_CLOD, DIRT_CHIPS])
 		quad.size = quad_size
 		process.scale_min = WHEEL_PARTICLES.LEAF_SIZE if foliage else 0.10
 		process.scale_max = WHEEL_PARTICLES.LEAF_SIZE if foliage else 0.24
 		process.scale_curve = null if foliage else emitter.get_meta("impact_scale_curve")
-		emitter.lifetime = 0.19 if spark else 0.32
-		emitter.amount = 3 + roundi(severity * 5.0) if spark else 2 + roundi(severity * 4.0)
-		process.particle_flag_align_y = spark
-		process.gravity = Vector3(0.0, -6.5 if spark else -9.8, 0.0)
-		process.spread = 19.0 if spark else 55.0
+		emitter.lifetime = 0.32
+		emitter.amount = 2 + roundi(severity * 4.0)
+		process.gravity = Vector3(0.0, -9.8, 0.0)
+		process.spread = 55.0
 		process.angle_min = -180.0
 		process.angle_max = 180.0
 		process.color = effect_color
@@ -701,6 +804,57 @@ func emit_impact_effect(
 		emitter.restart()
 		emitter.emitting = true
 		impact_busy[i] = emitter.lifetime + 0.12
+		emitted_impacts += 1
+		return
+
+
+func add_impact_animation(frames: SpriteFrames, clip: StringName, atlas: Texture2D, cell: Vector2, count: int, frame_seconds: float) -> void:
+	if not frames.has_animation(clip):
+		frames.add_animation(clip)
+	frames.set_animation_speed(clip, 1.0 / frame_seconds)
+	frames.set_animation_loop(clip, false)
+	for frame in count:
+		var texture := AtlasTexture.new()
+		texture.atlas = atlas
+		texture.region = Rect2(Vector2(frame % 8, floori(frame / 8.0)) * cell, cell)
+		texture.filter_clip = true
+		frames.add_frame(clip, texture)
+
+
+func make_impact_sprite(sprite_name: String, frames: SpriteFrames) -> AnimatedSprite3D:
+	var sprite := AnimatedSprite3D.new()
+	sprite.name = sprite_name
+	sprite.sprite_frames = frames
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	sprite.top_level = true
+	sprite.hide()
+	sprite.animation_finished.connect(sprite.hide)
+	add_child(sprite)
+	return sprite
+
+
+func impact_sprite_basis(direction: Vector3) -> Basis:
+	var camera := get_viewport().get_camera_3d()
+	var view_axes := camera.global_basis if camera != null else Basis.IDENTITY
+	var toward_camera := view_axes.z
+	var right := direction.slide(toward_camera)
+	right = right.normalized() if right.length_squared() > 0.0001 else view_axes.x
+	return Basis(right, toward_camera.cross(right), toward_camera)
+
+
+func emit_metal_clang(point: Vector3, normal: Vector3, direction: Vector3, severity: float) -> void:
+	for i in metal_clang_pool.size():
+		var clang := metal_clang_pool[i]
+		if impact_busy[i] > 0.0 or clang.visible:
+			continue
+		clang.global_transform = Transform3D(impact_sprite_basis(direction), point + normal * 0.04)
+		clang.pixel_size = lerpf(0.012, 0.027, severity) * lerpf(0.75, 1.0, clampf(intensity, 0.0, 1.0))
+		clang.stop()
+		clang.show()
+		clang.play()
+		impact_busy[i] = METAL_CLANG_FRAME_COUNT * METAL_CLANG_FRAME_SECONDS
 		emitted_impacts += 1
 		return
 
@@ -721,12 +875,20 @@ func reset_effects() -> void:
 	if tire_tracks != null:
 		tire_tracks.clear_tracks()
 	clear_wheel_bursts()
+	reset_tire_sparks()
+	clear_landing_dust()
 	for emitter in impact_pool:
 		emitter.restart()
 		emitter.emitting = false
-	if steam_emitter != null:
-		steam_emitter.restart()
-		steam_emitter.emitting = false
+	for clang in metal_clang_pool:
+		clang.stop()
+		clang.hide()
+	if radiator_steam != null:
+		radiator_steam.frame = 0
+		radiator_steam.hide()
+	if engine_fire != null:
+		engine_fire.frame = 0
+		engine_fire.hide()
 	impact_busy.fill(0.0)
 	impact_cooldown = 0.0
 	current_steam_strength = 0.0
@@ -734,68 +896,26 @@ func reset_effects() -> void:
 	_cached_weather_condition = {}
 
 
-func make_steam_emitter() -> GPUParticles3D:
-	var emitter := GPUParticles3D.new()
-	emitter.name = "RadiatorSteam"
-	emitter.emitting = false
-	emitter.amount = 20
-	emitter.lifetime = 0.85
-	emitter.one_shot = false
-	emitter.explosiveness = 0.0
-	emitter.local_coords = false
-	emitter.visibility_aabb = AABB(Vector3(-8, -4, -8), Vector3(16, 12, 16))
-	emitter.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-
-	var process := ParticleProcessMaterial.new()
-	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(0.25, 0.10, 0.05)
-	process.direction = Vector3.UP
-	process.spread = 30.0
-	process.initial_velocity_min = 0.8
-	process.initial_velocity_max = 1.8
-	process.gravity = Vector3(0, 0.6, 0)
-	process.scale_min = 0.25
-	process.scale_max = 0.85
-	process.angle_min = -180.0
-	process.angle_max = 180.0
-
-	var curve := Curve.new()
-	curve.max_value = 2.0
-	curve.add_point(Vector2(0.0, 0.25))
-	curve.add_point(Vector2(0.3, 0.8))
-	curve.add_point(Vector2(1.0, 1.8))
-	var curve_texture := CurveTexture.new()
-	curve_texture.curve = curve
-	process.scale_curve = curve_texture
-
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.95, 0.96, 0.98, 0.0))
-	gradient.add_point(0.12, Color(0.95, 0.96, 0.98, 0.55))
-	gradient.add_point(0.65, Color(0.90, 0.92, 0.95, 0.25))
-	gradient.set_color(1, Color(0.90, 0.92, 0.95, 0.0))
-	var ramp := GradientTexture1D.new()
-	ramp.gradient = gradient
-	process.color_ramp = ramp
-	emitter.process_material = process
-
-	var material := ShaderMaterial.new()
-	material.shader = PARTICLE_SHADER
-	material.set_shader_parameter("soft_intersection_metres", 0.22)
-	material.set_shader_parameter("particle_texture", RADIATOR_STEAM)
-	material.set_shader_parameter("body_exclusion_strength", 0.0)
-	material.set_shader_parameter("world_to_vehicle", vehicle.global_transform.affine_inverse())
-	particle_materials.append(material)
-
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.8, 0.8)
-	quad.material = material
-	emitter.draw_pass_1 = quad
-	add_child(emitter)
-	return emitter
+func make_engine_vfx_sprite(sprite_name: String, atlas: Texture2D) -> Sprite3D:
+	var sprite := Sprite3D.new()
+	sprite.name = sprite_name
+	sprite.texture = atlas
+	sprite.hframes = 4
+	sprite.vframes = 4
+	sprite.pixel_size = 0.025
+	sprite.centered = false
+	sprite.offset = Vector2(-16.0, 0.0)
+	sprite.top_level = true
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	sprite.hide()
+	add_child(sprite)
+	return sprite
 
 
 func update_radiator_steam(delta: float) -> void:
-	if steam_emitter == null or vehicle == null or vehicle.simulation == null:
+	if radiator_steam == null or engine_fire == null or vehicle == null or vehicle.simulation == null:
 		return
 	steam_time += delta
 	var thermal_snap := vehicle.simulation.thermal_model.get_engine_thermal_state_snapshot()
@@ -814,8 +934,27 @@ func update_radiator_steam(delta: float) -> void:
 	var local_pos_arr: Array = steam_cfg.get("local_position", [0.0, 0.48, -1.76])
 	var local_pos := Vector3(float(local_pos_arr[0]), float(local_pos_arr[1]), float(local_pos_arr[2]))
 
-	if rad_damage < start_dmg or not enabled or intensity <= 0.0 or vehicle.freeze:
-		steam_emitter.emitting = false
+	if not enabled or intensity <= 0.0 or vehicle.freeze:
+		radiator_steam.hide()
+		engine_fire.hide()
+		current_steam_strength = move_toward(current_steam_strength, 0.0, delta * 2.0)
+		return
+
+	var outlet := vehicle.global_transform * local_pos
+	var frame := int(steam_time * RADIATOR_STEAM_FPS) % RADIATOR_STEAM_FRAMES
+	var engine_failed := float(thermal_snap.get("engine_damage", 0.0)) >= 1.0
+	engine_fire.visible = engine_failed
+	if engine_failed:
+		var axes := engine_vfx_basis(outlet)
+		engine_fire.global_transform = Transform3D(axes, outlet)
+		engine_fire.frame = frame
+		radiator_steam.global_transform = Transform3D(axes.scaled(Vector3.ONE * 1.35), outlet + axes.y * 0.55)
+		radiator_steam.frame = frame
+		radiator_steam.show()
+		return
+
+	if rad_damage < start_dmg:
+		radiator_steam.hide()
 		current_steam_strength = move_toward(current_steam_strength, 0.0, delta * 2.0)
 		return
 
@@ -837,19 +976,25 @@ func update_radiator_steam(delta: float) -> void:
 	var target_strength := tier_strength * temp_factor * load_factor * camera_factor * max_int * intensity
 	current_steam_strength = lerpf(current_steam_strength, target_strength, clampf(delta * 4.0, 0.0, 1.0))
 
-	var global_spawn := vehicle.global_transform * local_pos
-	var speed := vehicle.linear_velocity.length()
-	var vehicle_back := vehicle.global_transform.basis.z
-	var stream_blend := clampf(speed / 18.0, 0.0, 0.85)
-	var stream_dir := (Vector3.UP * (1.0 - stream_blend * 0.6) + vehicle_back * (stream_blend * 1.2)).normalized()
+	var strength := clampf(current_steam_strength, 0.0, 1.0)
+	var axes := engine_vfx_basis(outlet)
+	var size := lerpf(0.35, 1.35, strength)
+	radiator_steam.global_transform = Transform3D(axes.scaled(Vector3.ONE * size), outlet)
+	radiator_steam.frame = frame
+	radiator_steam.visible = strength > 0.03
 
-	steam_emitter.global_transform = Transform3D(Basis.IDENTITY, global_spawn)
-	var process := steam_emitter.process_material as ParticleProcessMaterial
-	process.direction = stream_dir
-	process.initial_velocity_min = lerpf(0.8, 2.5, stream_blend)
-	process.initial_velocity_max = lerpf(1.8, 5.0, stream_blend)
-	steam_emitter.amount_ratio = clampf(current_steam_strength, 0.0, 1.0)
-	steam_emitter.emitting = current_steam_strength > 0.03
+
+func engine_vfx_basis(outlet: Vector3) -> Basis:
+	# A horizontal speed of 25 m/s gives the maximum lean of 45 degrees.
+	var airflow := -vehicle.linear_velocity.slide(Vector3.UP)
+	var plume_up := (Vector3.UP + (airflow / 25.0).limit_length()).normalized()
+	var camera := get_viewport().get_camera_3d()
+	var toward_camera := camera.global_position - outlet if camera != null else Vector3.BACK
+	var right := plume_up.cross(toward_camera)
+	if right.length_squared() < 0.0001:
+		right = plume_up.cross(Vector3.BACK)
+	right = right.normalized()
+	return Basis(right, plume_up, right.cross(plume_up))
 
 
 func is_bonnet_camera() -> bool:

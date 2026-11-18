@@ -163,17 +163,19 @@ func verify() -> void:
 	vfx.update_wheel(index, 0.0)
 	assert(active_wheel_particles(vfx)[0].kind == pool.Kind.GRAVEL_SPRAY)
 	tire.carcass_failure = 1.0
-	for iteration in 2:
-		vfx.clear_wheel_bursts()
-		sim.last_local_conditions[index] = {"snow_mm": 1.0}
-		vfx.update_wheel(index, 1.0)
-		var spray := active_wheel_particles(vfx)
-		assert(spray.size() == 6, "Unseated tire emits balanced sparks")
-		assert(spray.filter(func(p): return p.kind == pool.Kind.BEAD_YELLOW).size() == 3)
-		assert(spray.filter(func(p): return p.kind == pool.Kind.BEAD_ORANGE).size() == 3)
-		for particle in spray:
-			assert(particle.texture == vfx.SMALL_SPARK and particle.ticks == 18)
-		assert(pool.batches[vfx.SMALL_SPARK].mesh.surface_get_material(0).shader == vfx.ADDITIVE_SHADER)
+	vfx.clear_wheel_bursts()
+	vfx.update_wheel(index, 0.0)
+	var tire_spark: AnimatedSprite3D = vfx.tire_sparks[index]
+	assert(tire_spark.visible and tire_spark.animation == &"unseat")
+	assert(active_wheel_particles(vfx).is_empty())
+	await tire_spark.animation_finished
+	vfx.update_tire_spark(index, true, false)
+	assert(not tire_spark.visible)
+	vehicle.linear_velocity = Vector3(0.0, 0.0, -12.0)
+	vfx.update_tire_spark(index, true, true)
+	assert(tire_spark.visible and tire_spark.animation == &"scrape")
+	vfx.update_tire_spark(index, true, false)
+	assert(not tire_spark.visible)
 	tire.carcass_failure = 0.0
 	tire.pressure_loss_fraction = 0.0
 	sim.last_local_conditions[index] = {"snow_mm": 0.0}
@@ -194,26 +196,28 @@ func verify() -> void:
 	assert(vfx.emitted_impacts == 1)
 	vfx.update_impacts(0.0)
 	assert(vfx.emitted_impacts == 1, "Sustained contacts must respect the cooldown")
-	# Hard contact in the dry: one additive spark, big at high severity.
+	# Hard contact in the dry: one Metal Clang flipbook sized by severity.
 	var spark_contact := {
 		"position": Vector3.ZERO, "normal": Vector3.UP,
 		"impulse_ns": vehicle.mass * 3.0, "speed_ms": 3.0, "tangent_ms": 8.0,
 		"surface": "Road", "collider_name": "collision_barriers",
 	}
-	var spark_material := trigger_impact(vfx, spark_contact, 0.0)
-	assert(spark_material != null)
-	assert(spark_material.shader.resource_path.ends_with("rally_vehicle_vfx_add.gdshader"))
-	var spark_texture := spark_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(spark_texture == vfx.SPARK)
-	assert(
-		is_equal_approx(float(spark_material.get_shader_parameter("body_exclusion_strength")), 0.0),
-		"Impact sprites must not be clipped by the body box",
-	)
+	trigger_impact(vfx, spark_contact, 0.0)
+	var clang: AnimatedSprite3D = vfx.metal_clang_pool[0]
+	assert(clang.visible and clang.is_playing())
+	assert(clang.sprite_frames.get_frame_count(&"default") == 13)
+	assert(not clang.sprite_frames.get_animation_loop(&"default"))
+	var atlas_frame := clang.sprite_frames.get_frame_texture(&"default", 0) as AtlasTexture
+	assert(atlas_frame.atlas == vfx.METAL_CLANG_ATLAS)
+	var strong_impact_size := clang.pixel_size
+	await clang.animation_finished
+	assert(not clang.visible)
 	spark_contact.impulse_ns = vehicle.mass * 0.4
 	spark_contact.speed_ms = 2.5
-	var small_spark_material := trigger_impact(vfx, spark_contact, 0.0)
-	var small_spark_texture := small_spark_material.get_shader_parameter("particle_texture") as Texture2D
-	assert(small_spark_texture == vfx.SMALL_SPARK)
+	trigger_impact(vfx, spark_contact, 0.0)
+	assert(clang.visible and clang.pixel_size < strong_impact_size)
+	await clang.animation_finished
+	assert(not clang.visible)
 	# Mud on wet dirt and leaves on vegetation keep the alpha shader.
 	var mud_contact := {
 		"position": Vector3.ZERO, "normal": Vector3.UP,
