@@ -78,7 +78,16 @@ const BACKLIGHT_COLOR := Color(0.65, 0.65, 0.65)
 
 var aged_only := false
 var custom_variants: Array[PackedScene] = []
+var custom_variant_weights: Array[float] = []
+var use_standard_variant_profile := false
 var density_scale := 1.0
+var instance_scale := 1.0
+var ground_group: StringName = &""
+var collidable_bushes := false
+var fog_enabled := true
+var visual_range_m := 0.0
+var reserved_points: Array[Vector3] = []
+var sector_stream: RallyVisualSectorStream
 
 var _sample_position := Vector3.ZERO
 var _sample_base := Vector3.ZERO
@@ -108,10 +117,15 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 	var budget := maxi(1, roundi(total_length * TUFTS_PER_METRE * density_scale))
 	var max_attempts := maxi(budget, roundi(float(budget) * MAX_ATTEMPT_FACTOR))
 	var bins := _offset_bins()
+	if collidable_bushes:
+		bins = bins.slice(4)
 	var arc_table := _arc_table(cumulative, total_length)
 	var buckets: Dictionary = {}
 	var placed := 0
 	var attempts := 0
+	var bush_cells := {}
+	var reservation_radius := 1.25 if collidable_bushes else 0.46
+	var reserved := _reservation_grid(reservation_radius)
 
 	while placed < budget and attempts < max_attempts:
 		attempts += 1
@@ -127,6 +141,10 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		if hit.is_empty():
 			continue
 		var position: Vector3 = hit.position
+		if not reserved.is_empty() and _near_reserved_point(reserved, position, reservation_radius):
+			continue
+		if collidable_bushes and not _reserve_bush_position(bush_cells, position):
+			continue
 		placed += 1
 		var slot := _pick_variant(rng, entries)
 		var scale_range: Vector2 = entries[slot]["scale"]
@@ -135,13 +153,14 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 			buckets[key] = [] as Array[Transform3D]
 		var bell := (rng.randf() + rng.randf()) * 0.5
 		var t := clampf(lerpf(bell, density, 0.25), 0.0, 1.0)
-		var scale_y := lerpf(scale_range.x, scale_range.y, t)
+		var scale_y := lerpf(scale_range.x, scale_range.y, t) * instance_scale
 		(buckets[key] as Array[Transform3D]).append(
 			_scatter_transform(position, scale_y, _sample_base, rng))
 
-	var count := _commit_batches(buckets, entries)
-	print("RALLY_GRASS_READY instances=", count, " batches=", buckets.size(),
-		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", OFFSETS[0], "-", OFFSETS[OFFSETS.size() - 1],
+	var count := _commit_batches(buckets, entries, collision_mask)
+	print("RALLY_BUSHES_READY" if collidable_bushes else "RALLY_GRASS_READY",
+		" instances=", count, " batches=", buckets.size(),
+		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", bins[0].x, "-", bins[-1].y,
 		" build_ms=", Time.get_ticks_msec() - started_at)
 
 
@@ -257,13 +276,52 @@ func _raycast_ground(space: PhysicsDirectSpaceState3D, collision_mask: int, poin
 	if hit.is_empty():
 		return {}
 	var collider := hit.collider as Node
-	if collider == null or not collider.is_in_group("RauraGrassGround" if aged_only else "Grass"):
+	var required_group := ground_group
+	if required_group.is_empty():
+		required_group = &"RauraGrassGround" if aged_only else &"Grass"
+	if collider == null or not collider.is_in_group(required_group):
 		return {}
 	if collider.get_meta("is_stage_road", false):
 		return {}
 	if (hit.normal as Vector3).y < MIN_SURFACE_UP:
 		return {}
 	return hit
+
+
+func _reserve_bush_position(cells: Dictionary, position: Vector3) -> bool:
+	const SPACING_M := 3.5
+	var point := Vector2(position.x, position.z)
+	var cell := Vector2i(floori(point.x / SPACING_M), floori(point.y / SPACING_M))
+	for x in range(cell.x - 1, cell.x + 2):
+		for y in range(cell.y - 1, cell.y + 2):
+			var neighbour := Vector2i(x, y)
+			if cells.has(neighbour) and point.distance_squared_to(cells[neighbour]) < SPACING_M * SPACING_M:
+				return false
+	if cells.has(cell):
+		return false
+	cells[cell] = point
+	return true
+
+
+func _reservation_grid(radius: float) -> Dictionary:
+	var grid := {}
+	for point in reserved_points:
+		var cell := Vector2i(floori(point.x / radius), floori(point.z / radius))
+		if not grid.has(cell):
+			grid[cell] = []
+		grid[cell].append(Vector2(point.x, point.z))
+	return grid
+
+
+func _near_reserved_point(grid: Dictionary, position: Vector3, radius: float) -> bool:
+	var point := Vector2(position.x, position.z)
+	var cell := Vector2i(floori(point.x / radius), floori(point.y / radius))
+	for x in range(cell.x - 1, cell.x + 2):
+		for y in range(cell.y - 1, cell.y + 2):
+			for other: Vector2 in grid.get(Vector2i(x, y), []):
+				if point.distance_squared_to(other) < radius * radius:
+					return true
+	return false
 
 
 func _scatter_transform(position: Vector3, scale_y: float, base: Vector3, rng: RandomNumberGenerator) -> Transform3D:
@@ -285,6 +343,9 @@ func _load_variant_entries() -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
 	var variants := VARIANTS if custom_variants.is_empty() else custom_variants
 	for index in (1 if aged_only and custom_variants.is_empty() else variants.size()):
+		if variants[index] == null:
+			push_warning("Stage grass variant could not be loaded: %d" % index)
+			continue
 		var instance := variants[index].instantiate()
 		if instance == null:
 			push_warning("Stage grass variant failed to instantiate: " + variants[index].resource_path)
@@ -298,12 +359,19 @@ func _load_variant_entries() -> Array[Dictionary]:
 			push_warning("Stage grass variant has no mesh: " + variants[index].resource_path)
 			instance.free()
 			continue
+		var standard_profile := custom_variants.is_empty() or use_standard_variant_profile
+		var scale_range: Vector2 = VARIANT_SCALE[index] if standard_profile else Vector2(0.75, 1.35)
+		var weight: float = VARIANT_WEIGHT[index] if standard_profile else 1.0
+		if index < custom_variant_weights.size():
+			weight = custom_variant_weights[index]
+		if aged_only and custom_variants.is_empty():
+			scale_range = Vector2(1.5, 2.6)
 		entries.append({
 			"variant": index,
 			"mesh": visual.mesh,
 			"material": _make_material(visual),
-			"scale": Vector2(0.75, 1.35) if not custom_variants.is_empty() else (Vector2(1.5, 2.6) if aged_only else VARIANT_SCALE[index]),
-			"weight": VARIANT_WEIGHT[index] if custom_variants.is_empty() else 1.0,
+			"scale": scale_range,
+			"weight": weight,
 		})
 		instance.free()
 	return entries
@@ -334,6 +402,7 @@ func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
 	material.backlight_enabled = true
 	material.backlight = BACKLIGHT_COLOR
 	material.disable_receive_shadows = true
+	material.disable_fog = not fog_enabled
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return material
 
@@ -354,27 +423,67 @@ func _pick_variant(rng: RandomNumberGenerator, entries: Array[Dictionary]) -> in
 	return entries.size() - 1
 
 
-func _commit_batches(buckets: Dictionary, entries: Array[Dictionary]) -> int:
+func _commit_batches(buckets: Dictionary, entries: Array[Dictionary], collision_layer: int) -> int:
 	var count := 0
 	for key: Vector2i in buckets:
 		var transforms: Array[Transform3D] = buckets[key]
 		if transforms.is_empty() or key.y < 0 or key.y >= entries.size():
 			continue
 		var entry: Dictionary = entries[key.y]
-		var multimesh := MultiMesh.new()
-		multimesh.transform_format = MultiMesh.TRANSFORM_3D
-		multimesh.mesh = entry["mesh"]
-		multimesh.instance_count = transforms.size()
-		for index in transforms.size():
-			multimesh.set_instance_transform(index, transforms[index])
-		var batch := MultiMeshInstance3D.new()
-		batch.name = "GrassSector%02dVariant%d" % [key.x, key.y]
-		batch.multimesh = multimesh
-		batch.material_override = entry["material"]
-		batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(batch)
+		if sector_stream == null:
+			_create_batch(self, key, entry, transforms, collision_layer)
+		else:
+			var by_sector := {}
+			for transform in transforms:
+				var path := sector_stream.sector_for_point(to_global(transform.origin))
+				if not by_sector.has(path):
+					by_sector[path] = [] as Array[Transform3D]
+				by_sector[path].append(transform)
+			for path in by_sector:
+				sector_stream.register_content(path, _create_batch.bind(key, entry, by_sector[path], collision_layer))
 		count += transforms.size()
 	return count
+
+
+func _create_batch(parent: Node3D, key: Vector2i, entry: Dictionary,
+		transforms: Array[Transform3D], collision_layer: int) -> void:
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = entry["mesh"]
+	multimesh.instance_count = transforms.size()
+	for index in transforms.size():
+		multimesh.set_instance_transform(index, transforms[index])
+	var batch := MultiMeshInstance3D.new()
+	batch.name = ("BushSector%02dVariant%d" if collidable_bushes else "GrassSector%02dVariant%d") % [key.x, key.y]
+	batch.multimesh = multimesh
+	batch.material_override = entry["material"]
+	batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if visual_range_m > 0.0:
+		batch.visibility_range_end = visual_range_m
+		batch.visibility_range_end_margin = 24.0
+	parent.add_child(batch)
+	if collidable_bushes:
+		_add_bush_colliders(batch, transforms, multimesh.mesh.get_aabb(), collision_layer)
+
+
+func _add_bush_colliders(batch: MultiMeshInstance3D, transforms: Array[Transform3D],
+		bounds: AABB, collision_layer: int) -> void:
+	var body := StaticBody3D.new()
+	body.name = "BushCollision"
+	body.collision_layer = collision_layer
+	body.collision_mask = 0
+	body.set_meta("collision_role", "obstacle")
+	batch.add_child(body)
+	for instance in transforms:
+		var scale := instance.basis.get_scale()
+		var shape := CapsuleShape3D.new()
+		shape.radius = maxf(0.12, minf(bounds.size.x * scale.x, bounds.size.z * scale.z) * 0.29)
+		shape.height = maxf(shape.radius * 2.0, bounds.size.y * scale.y * 0.80)
+		var collider := CollisionShape3D.new()
+		collider.shape = shape
+		collider.position = instance * Vector3(bounds.get_center().x, bounds.position.y, bounds.get_center().z)
+		collider.position.y += shape.height * 0.5
+		body.add_child(collider)
 
 
 func _clear() -> void:

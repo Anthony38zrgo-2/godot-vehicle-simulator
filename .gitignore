@@ -6,6 +6,8 @@
 !game/assets/rally/finland_stage*/finland_stage*_visual.glb.import
 !game/assets/rally/sweden_stage*/sweden_stage*_visual.glb.import
 !game/assets/rally/switzerland_stage*/switzerland_stage*_visual.glb.import
+!game/assets/rally/cdi_stage1/*.glb.import
+!game/assets/rally/cdi_stage1/sectores/*.glb.import
 !game/assets/weather/tropospheric/*.png.import
 *.uid
 

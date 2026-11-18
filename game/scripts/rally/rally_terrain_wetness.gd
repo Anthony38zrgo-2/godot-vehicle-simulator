@@ -146,6 +146,8 @@ func collect_materials(node: Node) -> void:
 		var mesh_instance := node as MeshInstance3D
 		var mesh := mesh_instance.mesh
 		for surface_index in mesh.get_surface_count():
+			if mesh_instance.get_active_material(surface_index) is ShaderMaterial:
+				continue
 			var material := mesh.surface_get_material(surface_index)
 			if material is BaseMaterial3D and matches_name(material as BaseMaterial3D):
 				register_material(mesh_instance, surface_index, material as BaseMaterial3D)

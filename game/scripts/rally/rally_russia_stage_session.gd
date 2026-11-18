@@ -10,6 +10,8 @@ const FALL_DISTANCE_BELOW_STAGE_METRES := 50.0
 # resuelve por ID con RallyStageLoader. STAGE_MANIFEST_PATH queda como
 # respaldo legado para la escena Stage 1 existente.
 @export var track_id: String = "russia_stage1"
+@export var stage_place: String = ""
+@export var stage_country: String = ""
 @export var practice_mode: bool = false
 @export var event_seed: int = 0
 
@@ -329,10 +331,11 @@ func _build_terrain_wetness() -> void:
 
 
 func _build_stage_grass() -> void:
-	var previous := get_node_or_null("StageGrass")
-	if previous != null:
-		remove_child(previous)
-		previous.queue_free()
+	for node_name in ["StageGrass", "StageBushes", "StageProps"]:
+		var previous := get_node_or_null(node_name)
+		if previous != null:
+			remove_child(previous)
+			previous.queue_free()
 	# La nieve de Suecia usa Collision_Terrain_Grass para el manto nevado:
 	# no generar matas de hierba de verano sobre la nieve. En Finlandia el
 	# suelo es Dirt/Sand (grass=0) y RallyStageGrass retorna limpio sin error.
@@ -340,7 +343,25 @@ func _build_stage_grass() -> void:
 		return
 	var grass := preload("res://scripts/rally/rally_stage_grass.gd").new()
 	grass.name = "StageGrass"
+	var occupied: Array[Vector3] = []
+	var sector_stream := track_visual.get_node_or_null("VisualSectorStream") as RallyVisualSectorStream
 	grass.aged_only = session_track_id in ["raura_stage2", "raurasr_stage2", "raurastart_stage2", "rauraearth_stage2"]
+	if session_track_id == "cdi_stage1":
+		var props := preload("res://scripts/rally/cdi_stage_props.gd").new()
+		props.name = "StageProps"
+		props.sector_stream = sector_stream
+		add_child(props)
+		props.build(course, hash(session_track_id + "_props"), track_collision.collision_layer)
+		occupied = props.occupied_points()
+		grass.ground_group = &"RauraGrassGround"
+		grass.use_standard_variant_profile = true
+		grass.density_scale = 0.45
+		grass.instance_scale = 0.575
+		grass.sector_stream = sector_stream
+		grass.reserved_points = occupied
+		grass.fog_enabled = false
+		for number in range(1, 5):
+			grass.custom_variants.append(load("res://assets/rally/cdi_stage1/vegetacion/pasto_%02d.glb" % number) as PackedScene)
 	if session_track_id == "raurasr_stage2":
 		grass.density_scale = 0.5
 		for variant in ["hierba-seca-florida", "matorral-bajo-oliva", "pasto-alto-dorado", "planta-hojas-verdes"]:
@@ -349,6 +370,26 @@ func _build_stage_grass() -> void:
 				grass.custom_variants.append(asset)
 	add_child(grass)
 	grass.build(course.points, hash(session_track_id), track_collision.collision_layer)
+	if session_track_id == "cdi_stage1":
+		var bushes := preload("res://scripts/rally/rally_stage_grass.gd").new()
+		bushes.name = "StageBushes"
+		bushes.sector_stream = sector_stream
+		bushes.ground_group = &"RauraGrassGround"
+		bushes.collidable_bushes = true
+		bushes.density_scale = 0.018 * 0.60
+		bushes.reserved_points = occupied
+		bushes.fog_enabled = false
+		bushes.custom_variants.assign([
+			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_beige_01.glb"),
+			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_beige_02.glb"),
+			load("res://assets/rally/cdi_stage1/vegetacion/cactus_01.glb"),
+			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_verde_01.glb"),
+			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_verde_02.glb"),
+			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_verde_03.glb"),
+		])
+		bushes.custom_variant_weights.assign([20.0, 20.0, 18.0, 14.0, 14.0, 14.0])
+		add_child(bushes)
+		bushes.build(course.points, hash(session_track_id + "_bushes"), track_collision.collision_layer)
 
 
 func _build_puddles() -> void:
@@ -826,6 +867,8 @@ func get_session_state() -> Dictionary:
 
 func stage_label() -> String:
 	var number := _get_stage_number(session_track_id)
+	if not stage_place.is_empty():
+		return "STAGE %d · %s" % [number, stage_place.to_upper()]
 	var place := str(session_track_id)
 	var cut := place.rfind("_stage")
 	if cut > 0:
@@ -1166,6 +1209,19 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	adjuster.free()
 	if str(resolved.track_id) in ["raurastart_stage2", "rauraearth_stage2"]:
 		preload("res://scripts/rally/raura_pilot_materials.gd").new().apply(track_visual)
+	var streaming: Dictionary = resolved.manifest.get("streaming", {})
+	if not streaming.is_empty():
+		var stream := preload("res://scripts/rally/rally_visual_sector_stream.gd").new()
+		stream.name = "VisualSectorStream"
+		if str(resolved.track_id) == "cdi_stage1" and not stream.load_rajuntay_palette():
+			push_error("Could not load the Rajuntay terrain palette")
+			stream.free()
+			return false
+		stream.tune_materials(track_visual)
+		track_visual.add_child(stream)
+		var index_path := visual_path.get_base_dir().path_join(str(streaming.index))
+		if not await stream.configure(index_path, vehicle, start_position, float(streaming.cell_m)):
+			return false
 	if terrain_wetness != null:
 		terrain_wetness.bind_visual_root(track_visual)
 		if not practice_mode and event_weather.calendar_active and event_manager != null:
@@ -1375,6 +1431,8 @@ func _assign_wetness_zones(entry: Dictionary) -> void:
 
 
 func _resolve_stage_country() -> String:
+	if not stage_country.is_empty():
+		return stage_country
 	var place := str(session_track_id)
 	var cut := place.rfind("_stage")
 	if cut > 0:

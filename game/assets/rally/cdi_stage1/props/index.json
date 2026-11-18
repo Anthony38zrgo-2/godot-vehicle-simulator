@@ -1,0 +1,180 @@
+{
+  "people": [
+    {
+      "file": "argentina-espectador-1.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-10.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-11.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-12.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-13.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-14.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-15.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-16.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-17.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-2.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-3.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-4.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-5.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-6.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-7.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-8.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectador-9.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-espectadores-1.glb",
+      "scatter": false
+    },
+    {
+      "file": "argentina-espectadores-2.glb",
+      "scatter": false
+    },
+    {
+      "file": "argentina-espectadores-3.glb",
+      "scatter": false
+    },
+    {
+      "file": "argentina-espectadores-4.glb",
+      "scatter": false
+    }
+  ],
+  "animals": [
+    {
+      "file": "ani_cow.glb",
+      "scatter": true
+    },
+    {
+      "file": "ani_shp1.glb",
+      "scatter": true
+    },
+    {
+      "file": "ani_shp2.glb",
+      "scatter": true
+    },
+    {
+      "file": "ani_shp3.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-animal-1.glb",
+      "scatter": true
+    },
+    {
+      "file": "argentina-caballo-2.glb",
+      "scatter": false
+    },
+    {
+      "file": "argentina-caballo-3.glb",
+      "scatter": false
+    }
+  ],
+  "rocks": [
+    {
+      "file": "cascajo_rock_1.glb"
+    },
+    {
+      "file": "cascajo_rock_2.glb"
+    },
+    {
+      "file": "cascajo_rock_3.glb"
+    },
+    {
+      "file": "cascajo_rock_4.glb"
+    },
+    {
+      "file": "cascajo_rock_5.glb"
+    },
+    {
+      "file": "cascajo_rock_6.glb"
+    },
+    {
+      "file": "cascajo_rock_7.glb"
+    },
+    {
+      "file": "cascajo_rock_8.glb"
+    },
+    {
+      "file": "piedra_stone_01.glb"
+    },
+    {
+      "file": "piedra_stone_02.glb"
+    },
+    {
+      "file": "piedra_stone_03.glb"
+    },
+    {
+      "file": "piedra_stone_04.glb"
+    },
+    {
+      "file": "piedra_stone_05.glb"
+    },
+    {
+      "file": "piedra_stone_06.glb"
+    },
+    {
+      "file": "piedra_stone_07.glb"
+    },
+    {
+      "file": "piedra_stone_08.glb"
+    },
+    {
+      "file": "piedra_stone_09.glb"
+    },
+    {
+      "file": "piedra_stone_10.glb"
+    },
+    {
+      "file": "piedra_stone_11.glb"
+    },
+    {
+      "file": "piedra_stone_12.glb"
+    }
+  ]
+}
