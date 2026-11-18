@@ -354,7 +354,7 @@ func _physics_process(delta: float) -> void:
 	if _blob_shadow_decal != null:
 		var target_mix := 0.35 if is_airborne() else 1.0
 		_blob_shadow_decal.albedo_mix = lerpf(_blob_shadow_decal.albedo_mix, target_mix, clampf(delta * 12.0, 0.0, 1.0))
-	simulation.unsprung_rig.sync_freeze()
+	# 1DOF: sin nodos de buje que congelar; la muestra visual sale de q.
 	simulation.update_wheel_visuals(steering_amount)
 	_update_unseated_wheel_visuals()
 	_sync_mass_from_fuel()
@@ -431,13 +431,12 @@ var _teleport_trace_ticks: int = 0
 
 func _log_teleport(stage: String, pose: Transform3D) -> void:
 	# Todo en flotantes/arrays para un JSON robusto (sin Vector3 directos).
-	var hubs_pose: Array = []
-	var hubs_vel: Array = []
-	for hub in simulation.unsprung_rig.hubs:
-		var p: Vector3 = hub.global_transform.origin
-		var v: Vector3 = hub.linear_velocity
-		hubs_pose.append([p.x, p.y, p.z])
-		hubs_vel.append([v.x, v.y, v.z])
+	# 1DOF: recorridos/velocidades escalares + muestras H/vH, sin nodos.
+	var travels: Array = []
+	var vels: Array = []
+	for i in 4:
+		travels.append(float(simulation.unsprung_rig.q[i]) if i < simulation.unsprung_rig.q.size() else 0.0)
+		vels.append(float(simulation.unsprung_rig.u[i]) if i < simulation.unsprung_rig.u.size() else 0.0)
 	var cv: Vector3 = state_linear_velocity_safe()
 	print(
 		"RALLY_TELEPORT ",
@@ -448,8 +447,8 @@ func _log_teleport(stage: String, pose: Transform3D) -> void:
 				"pose_origin": [pose.origin.x, pose.origin.y, pose.origin.z],
 				"pose_yaw": [pose.basis.z.x, pose.basis.z.z],
 				"chassis_vel": [cv.x, cv.y, cv.z],
-				"hubs_pos": hubs_pose,
-				"hubs_vel": hubs_vel,
+				"q": travels,
+				"u": vels,
 				"suspension": simulation.sample_suspension_trace(),
 				"tick": simulation.sample_tick_trace(),
 			}
@@ -473,24 +472,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		_rescue_pose = null
-		# Limpieza residual (Â§2 + Paso 4 Jolt fix): la primera fuerza de
-		# amortiguador tras el rescate debe corresponder a la velocidad
-		# relativa medida, no a muestras previas. No se llama a
-		# reset_dynamics() completo aquÃ­ (ya corriÃ³ en _reset_to_transform);
-		# se reubican hubs en q_eq y se limpian los campos publicados que el
-		# rig reescribirÃ¡ en el primer solve.
-		simulation.suspension_model.clear_transient()
 		simulation.unsprung_rig.reset_at(state.transform, simulation.suspension_model)
-		for _qi in 4:
-			if _qi < simulation.suspension_model.axle_parameters.size():
-				var _p: Dictionary = simulation.suspension_model.axle_parameters[_qi]
-				# Paso 4.1: q_eq efectivo de reset_at() (con -droop si no hay suelo).
-				var _qe := simulation.unsprung_rig.last_reset_q_eq[_qi] if _qi < simulation.unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(_p)
-				simulation.suspension_model.compression[_qi] = clampf(_qe, -float(_p.get("droop_m", 0.18)), float(_p.get("bump_m", 0.22)))
-				simulation.suspension_model.compression_velocity[_qi] = 0.0
-				simulation.suspension_model.filtered_arb_travel[_qi] = simulation.suspension_model.compression[_qi]
-				simulation.suspension_model.initialized[_qi] = true
-				simulation.suspension_model.previous_samples[_qi] = true
 		simulation.wheel_loads.fill(0.0)
 		simulation.wheel_slips.fill(Vector2.ZERO)
 		simulation.wheel_contact_points.fill(state.transform.origin)
@@ -781,47 +763,22 @@ func _reset_to_transform(pose: Transform3D) -> void:
 	_log_teleport("pre_reset", global_transform)
 	_rescue_pose = null
 	freeze = true
-	simulation.unsprung_rig.sync_freeze()
 	global_transform = pose
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
-	# SincronÃ­a nodo vs cuerpo Jolt (Â§2): ademÃ¡s del nodo, se escribe el estado
-	# servidor del chasis cuando estÃ¡ disponible para que pose/velocidad no
-	# diverjan en el primer solve. No cambia la API de teletransporte: la traza
-	# RALLY_TELEPORT dirÃ¡ si ambas escrituras coinciden.
+	# Sincronía nodo vs cuerpo Jolt: además del nodo, se escribe el estado
+	# servidor del chasis cuando está disponible para que pose/velocidad no
+	# diverjan en el primer solve.
 	var chassis_state := PhysicsServer3D.body_get_direct_state(get_rid())
 	if chassis_state != null:
 		chassis_state.transform = pose
 		chassis_state.linear_velocity = Vector3.ZERO
 		chassis_state.angular_velocity = Vector3.ZERO
 	simulation.reset_dynamics()
-	# Paso 4.1/4.2 Jolt fix: pre-asentar hubs en q_eq (no q=0) y sincronizar
-	# servidor físico + nodo visual. reset_dynamics() ya calculó q_eq; aquí
-	# se colocan los hubs en su pose objetivo y se iguala el historial para
-	# derivada 0 en el primer tick. No reconstruir juntas: el origen local
-	# neutro sigue siendo q=0. reset_physics_interpolation en chasis+hubs.
-	for i in simulation.unsprung_rig.hubs.size():
-		var qi := 0.0
-		if i < simulation.unsprung_rig.compression_physical_m.size():
-			qi = simulation.unsprung_rig.compression_physical_m[i]
-		var hub_target_xform: Transform3D = pose * Transform3D(Basis.IDENTITY, simulation.unsprung_rig.neutral_positions[i] + Vector3(0.0, qi, 0.0))
-		var hub: RigidBody3D = simulation.unsprung_rig.hubs[i]
-		hub.global_transform = hub_target_xform
-		hub.linear_velocity = Vector3.ZERO
-		hub.angular_velocity = Vector3.ZERO
-		var hub_state := PhysicsServer3D.body_get_direct_state(hub.get_rid())
-		if hub_state != null:
-			hub_state.transform = hub_target_xform
-			hub_state.linear_velocity = Vector3.ZERO
-			hub_state.angular_velocity = Vector3.ZERO
-		hub.reset_physics_interpolation()
-	# Paso 4.3: can_sleep=false en chasis y bujes (evita que un buje con
-	# collision_mask=0 quede dormido al arrancar o tras detenerse).
+	# 1DOF: reset_dynamics() ya pre-asentó q en q_eq e invalidó la predicción.
+	# Sin nodos de buje: solo chasis.
 	can_sleep = false
 	sleeping = false
-	for hub in simulation.unsprung_rig.hubs:
-		hub.can_sleep = false
-		hub.sleeping = false
 	reset_physics_interpolation()
 	_log_teleport("post_reset", pose)
 	_teleport_trace_ticks = 3

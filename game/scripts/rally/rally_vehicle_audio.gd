@@ -170,6 +170,7 @@ var tyre_contact_players: Array[AudioStreamPlayer3D] = []
 var tyre_contact_filters: Array[AudioEffectLowPassFilter] = []
 var tyre_previous_velocity: Array[float] = []
 var tyre_contact_cooldowns: Array[float] = []
+var last_audio_generation := -1
 var watersplash_streams: Array[AudioStream] = []
 var watersplash_players: Array[AudioStreamPlayer3D] = []
 var watersplash_filter: AudioEffectLowPassFilter = null
@@ -584,10 +585,25 @@ func _physics_process(delta: float) -> void:
 	elif float(vehicle.body_contact_audio.get("lateral_impulse_ns", 0.0)) > vehicle.mass * 0.8:
 		play_impact(vehicle)
 
-	update_tyre_contacts(delta)
-	update_watersplash(delta)
+	var wheel_samples: Array[Dictionary] = []
+	var rig := vehicle.simulation.unsprung_rig
+	var pose: Transform3D = vehicle.global_transform
+	var velocity: Vector3 = vehicle.linear_velocity
+	var angular_velocity: Vector3 = vehicle.angular_velocity
+	for i in 4:
+		wheel_samples.append(rig.muestra_de_rueda(i, pose, velocity, angular_velocity))
+	if last_audio_generation != vehicle.simulation.session_generation:
+		last_audio_generation = vehicle.simulation.session_generation
+		for i in tyre_previous_velocity.size():
+			var hub_velocity: Vector3 = wheel_samples[i]["vH"]
+			tyre_previous_velocity[i] = hub_velocity.y
+		tyre_contact_cooldowns.fill(0.0)
+		watersplash_was_in_puddle.fill(false)
+		watersplash_cooldowns.fill(0.0)
+	update_tyre_contacts(delta, wheel_samples)
+	update_watersplash(delta, wheel_samples)
 	update_surface_audio(packet, delta)
-	update_wheel_damage_audio(packet.get("wheels", []), delta)
+	update_wheel_damage_audio(packet.get("wheels", []), delta, wheel_samples)
 
 	if scrape_player != null:
 		var gain := 0.62 * SCRAPE_GAIN_SCALE * clampf(
@@ -859,15 +875,14 @@ func build_wheel_damage_players() -> void:
 			players.append(player)
 
 
-func update_wheel_damage_audio(wheels: Array, delta: float) -> void:
-	var hubs := vehicle.simulation.unsprung_rig.hubs
+func update_wheel_damage_audio(wheels: Array, delta: float, wheel_samples: Array[Dictionary]) -> void:
 	var targets: Array[Vector2] = []
 	var pitches: Array[float] = []
 	var total_gain := 0.0
-	for i in mini(4, hubs.size()):
+	for i in wheel_samples.size():
 		var wheel: Dictionary = wheels[i] if i < wheels.size() else {}
 		var spin := absf(float(wheel.get("spin_rad_s", 0.0)))
-		var hub_velocity: Vector3 = hubs[i].linear_velocity
+		var hub_velocity: Vector3 = wheel_samples[i]["vH"]
 		var travel_speed := Vector2(hub_velocity.x, hub_velocity.z).length()
 		var rolling := smoothstep(0.4, 5.0, maxf(travel_speed, spin * vehicle.simulation.wheel_radii[i]))
 		var braking_rotation := smoothstep(1.0, 18.0, spin)
@@ -891,7 +906,7 @@ func update_wheel_damage_audio(wheels: Array, delta: float) -> void:
 	for effect in wheel_damage_players.size():
 		for i in mini(targets.size(), wheel_damage_players[effect].size()):
 			var player: AudioStreamPlayer3D = wheel_damage_players[effect][i]
-			player.global_position = hubs[i].global_position
+			player.global_position = wheel_samples[i]["H"]
 			var target := targets[i][effect] * mix_gain
 			player.volume_linear = SurfaceMixer.smooth(player.volume_linear, target, delta, 0.08)
 			player.pitch_scale = SurfaceMixer.smooth(player.pitch_scale, pitches[i], delta, 0.12)
@@ -1334,15 +1349,16 @@ func build_tyre_contact_players() -> void:
 		tyre_contact_cooldowns.append(0.3)
 
 
-func update_tyre_contacts(delta: float) -> void:
+func update_tyre_contacts(delta: float, wheel_samples: Array[Dictionary]) -> void:
 	for i in tyre_contact_players.size():
-		var hub: RigidBody3D = vehicle.simulation.unsprung_rig.hubs[i]
-		var speed := hub.linear_velocity.y
+		var sample := wheel_samples[i]
+		var vH: Vector3 = sample.get("vH", Vector3.ZERO)
+		var speed := vH.y
 		var impact := maxf(speed - tyre_previous_velocity[i] - 9.81 * delta, 0.0)
 		tyre_previous_velocity[i] = speed
 		tyre_contact_cooldowns[i] = maxf(tyre_contact_cooldowns[i] - delta, 0.0)
 		var player := tyre_contact_players[i]
-		player.global_position = hub.global_position
+		player.global_position = sample.get("H", vehicle.global_position)
 		if not vehicle.simulation.suspension_model.contact_active[i] or impact < 0.6 or tyre_contact_cooldowns[i] > 0.0:
 			continue
 		var strength := clampf((impact - 0.6) / 3.4, 0.0, 1.0)
@@ -1380,22 +1396,23 @@ func build_watersplash_players() -> void:
 		watersplash_cooldowns.append(0.0)
 
 
-func update_watersplash(delta: float) -> void:
+func update_watersplash(delta: float, wheel_samples: Array[Dictionary]) -> void:
 	if watersplash_streams.is_empty() or vehicle.simulation == null:
 		return
 	var conditions_list: Array = vehicle.simulation.last_local_conditions
 	for i in watersplash_players.size():
 		watersplash_cooldowns[i] = maxf(watersplash_cooldowns[i] - delta, 0.0)
-		var hub: RigidBody3D = vehicle.simulation.unsprung_rig.hubs[i]
+		var sample := wheel_samples[i]
+		var vH: Vector3 = sample.get("vH", Vector3.ZERO)
 		var player := watersplash_players[i]
-		player.global_position = hub.global_position
+		player.global_position = sample.get("H", vehicle.global_position)
 		var depth_mm := 0.0
 		if i < conditions_list.size() and conditions_list[i] is Dictionary:
 			depth_mm = float((conditions_list[i] as Dictionary).get("puddle_depth_mm", 0.0))
 		var in_puddle := vehicle.simulation.suspension_model.contact_active[i] and depth_mm >= WATERSPLASH_MIN_DEPTH_MM
 		var entered_puddle := in_puddle and not watersplash_was_in_puddle[i]
 		watersplash_was_in_puddle[i] = in_puddle
-		var speed_ms := hub.linear_velocity.length()
+		var speed_ms := vH.length()
 		if not entered_puddle or speed_ms < WATERSPLASH_MIN_SPEED_MS or watersplash_cooldowns[i] > 0.0:
 			continue
 		var strength := clampf(

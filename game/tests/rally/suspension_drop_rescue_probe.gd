@@ -124,7 +124,7 @@ func _parse_args() -> void:
 			opt_repeats = maxi(1, int(s.trim_prefix("--repeats=")))
 		elif s.begins_with("--diag="):
 			var dv := s.trim_prefix("--diag=").strip_edges().to_lower()
-			if dv in ["base", "limiter", "novisc", "implicit", "implicit_limiter"]:
+			if dv in ["base", "novisc"]:
 				opt_diag = dv
 		elif s == "--settle120":
 			opt_settle120 = true
@@ -278,12 +278,9 @@ func _run_legacy_matrix() -> void:
 	var drop_origin: Vector3 = base_pose.origin + Vector3.UP * DROP_HEIGHT_M
 	var drop_pose := Transform3D(base_pose.basis, drop_origin)
 	for tandem in [true, false]:
-		vehicle.simulation.tandem_cam_enabled = tandem
-		for limit in [false, true]:
-			vehicle.simulation.set_damper_impulse_limit(limit)
-			var r := await _run_drop(vehicle, drop_pose, tandem, limit)
-			drop_results.append(r)
-			print("SUSPENSION_DROP_RESULT ", JSON.stringify(r))
+		var result := await _run_drop(vehicle, drop_pose, tandem)
+		drop_results.append(result)
+		print("SUSPENSION_DROP_RESULT ", JSON.stringify(result))
 	check(true, "caidas 0,5 m completadas (%d configs)" % drop_results.size())
 	var rescue := await _run_rescue_comparison(vehicle, drop_pose)
 	print("SUSPENSION_RESCUE_RESULT ", JSON.stringify(rescue))
@@ -292,8 +289,7 @@ func _run_legacy_matrix() -> void:
 	await process_frame
 
 
-func _run_drop(vehicle: Node, pose: Transform3D, tandem: bool, limit: bool) -> Dictionary:
-	vehicle.simulation.set_damper_impulse_limit(limit)
+func _run_drop(vehicle: Node, pose: Transform3D, tandem: bool) -> Dictionary:
 	vehicle.simulation.tandem_cam_enabled = tandem
 	vehicle._reset_to_transform(pose)
 	for i in 6:
@@ -326,7 +322,6 @@ func _run_drop(vehicle: Node, pose: Transform3D, tandem: bool, limit: bool) -> D
 	var total_wheel_ticks := ticks * 4
 	return {
 		"tandem": tandem,
-		"limiter": ("diag_on" if limit else "prod_off"),
 		"hz": Engine.physics_ticks_per_second,
 		"drop_m": DROP_HEIGHT_M,
 		"ticks": ticks,
@@ -357,7 +352,6 @@ func _sample_ticks(vehicle: Node, n: int) -> Array:
 
 func _run_rescue_comparison(vehicle: Node, pose: Transform3D) -> Dictionary:
 	vehicle.simulation.tandem_cam_enabled = true
-	vehicle.simulation.set_damper_impulse_limit(false)
 	vehicle._reset_to_transform(pose)
 	for i in 90:
 		await physics_frame
@@ -586,14 +580,9 @@ func _apply_candidate(vehicle: Node, cand: Dictionary, fuel_kg: float) -> Dictio
 
 func _run_single_maneuver(scene: Node, vehicle: Node, base_pose: Transform3D, profile_key: String, maneuver: String, cand: Dictionary, fuel_kg: float, run_label: String) -> Dictionary:
 	var sim = vehicle.simulation
-	# Variante de diagnóstico de la tercera prueba (solo sonda): base =
-	# producción; limiter = recorte de impulso del amortiguador ON;
-	# novisc = término viscoso radial ×0.0; implicit/implicit_limiter =
-	# paso radial implícito (con/sin limitador).
+	# novisc aísla la contribución viscosa del radial implícito.
 	sim.tandem_cam_enabled = false
-	sim.set_damper_impulse_limit(opt_diag == "limiter" or opt_diag == "implicit_limiter")
 	sim.unsprung_rig.radial_viscous_scale = 0.0 if opt_diag == "novisc" else 1.0
-	sim.unsprung_rig.radial_implicit_enabled = opt_diag == "implicit" or opt_diag == "implicit_limiter"
 	var applied := _apply_candidate(vehicle, cand, fuel_kg)
 	if not bool(applied.get("ok", false)):
 		check(false, "%s %s %s: candidato no aplicado (%s)" % [profile_key, maneuver, run_label, str(applied.get("error", ""))])

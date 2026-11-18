@@ -2,15 +2,8 @@ extends SceneTree
 ## fulvia_landing_probe.gd - Cuarta prueba del Fulvia (runbook): aterrizaje
 ## equivalente y validacion en movimiento.
 ##
-## Compara aterrizaje con aterrizaje a igual estado pre-impacto y separa la
-## sensibilidad a la frecuencia (60 vs 120 Hz) de la sensibilidad al algoritmo
-## (radial explicito vs implicito), sin rescate automatico.
-##
-## Configuraciones (x3 pasadas):
-##   impl60       : radial implicito + limitador de impulso @ 60 Hz (candidato)
-##   base120      : radial explicito de produccion, limitador OFF @ 120 Hz (control)
-##   impl120      : radial implicito + limitador @ 120 Hz
-##   impl60_nolim : radial implicito sin limitador @ 60 Hz (caso mixto Q3)
+## Compara aterrizajes con el mismo estado pre-impacto usando el rig 1DOF.
+## Las configuraciones varían la frecuencia de Jolt y los subpasos del rig.
 ##
 ## Preparacion del estado pre-impacto:
 ##   1. Asentar con setup de fabrica + 20 kg hasta pose estable.
@@ -54,19 +47,16 @@ const SETTLE_HOLD_TICKS := 20
 const CONTACT_SEARCH_TICKS := 90
 
 const CONFIGS := {
-	"impl60": {"hz": 60, "implicit": true, "limiter": true},
-	"base120": {"hz": 120, "implicit": false, "limiter": false},
-	"impl120": {"hz": 120, "implicit": true, "limiter": true},
-	"impl60_nolim": {"hz": 60, "implicit": true, "limiter": false},
-	"sub180": {"hz": 60, "implicit": false, "limiter": false, "substeps": 3},
-	"sub360": {"hz": 60, "implicit": false, "limiter": false, "substeps": 6},
-	"base60": {"hz": 60, "implicit": false, "limiter": false},
+	"base120": {"hz": 120},
+	"sub180": {"hz": 60, "substeps": 3},
+	"sub360": {"hz": 60, "substeps": 6},
+	"base60": {"hz": 60},
 }
 
 var failures: Array[String] = []
 var opt_mode := "landing"
 var opt_reps := 3
-var opt_configs: Array[String] = ["impl60", "base120", "impl120", "impl60_nolim"]
+var opt_configs: Array[String] = ["base60", "base120", "sub180", "sub360"]
 var opt_window_s := 4.0
 var opt_impact_v := 0.0
 var opt_substeps := 1
@@ -147,7 +137,7 @@ func run() -> void:
 
 
 # -------------------------------------------------------------- escena comun
-func _prepare_scene(hz: int, implicit: bool, limiter: bool, substeps: int = 1) -> Dictionary:
+func _prepare_scene(hz: int, substeps: int = 1) -> Dictionary:
 	Engine.physics_ticks_per_second = hz
 	var scene = load(SCENE_PATH).instantiate()
 	root.add_child(scene)
@@ -163,12 +153,10 @@ func _prepare_scene(hz: int, implicit: bool, limiter: bool, substeps: int = 1) -
 	var sim = vehicle.simulation
 	vehicle.diagnostic_body_contacts_enabled = true
 	sim.tandem_cam_enabled = false
-	sim.set_damper_impulse_limit(limiter)
-	sim.unsprung_rig.radial_implicit_enabled = implicit
 	sim.unsprung_rig.radial_viscous_scale = 1.0
 	# Los subpasos solo actúan en la ventana de registro; asentado,
 	# calibración y medida corren a frecuencia nativa (idéntico pre-impacto).
-	sim.unsprung_rig.coupled_substeps = 1
+	sim.configured_substeps_per_tick = 1
 	pending_substeps = maxi(1, substeps)
 	var payload: Dictionary = sim.filter_garage_values(RallySetupCatalog.defaults(sim.domains))
 	payload["fuel.initial_kg"] = NOMINAL_FUEL_KG
@@ -250,21 +238,13 @@ func _measure_impact_speed(vehicle: Node, sim, settled_pose: Transform3D, hz: in
 	return {"impact_vy": 0.0, "impact_y": NAN, "ticks": -1, "fall_m": NAN}
 
 
-func _set_landing_state(vehicle: Node, sim, pose: Transform3D, v_down: float) -> void:
+func _set_landing_state(vehicle: Node, pose: Transform3D, v_down: float) -> void:
 	vehicle._reset_to_transform(pose)
 	vehicle.freeze = false
 	vehicle._reset_pending = false
 	var v := Vector3(0.0, -v_down, 0.0)
 	vehicle.linear_velocity = v
 	vehicle.angular_velocity = Vector3.ZERO
-	for hub in sim.unsprung_rig.hubs:
-		hub.freeze = false
-		hub.linear_velocity = v
-		hub.angular_velocity = Vector3.ZERO
-		var hs := PhysicsServer3D.body_get_direct_state((hub as RigidBody3D).get_rid())
-		if hs != null:
-			hs.linear_velocity = v
-			hs.angular_velocity = Vector3.ZERO
 	var cs := PhysicsServer3D.body_get_direct_state((vehicle as RigidBody3D).get_rid())
 	if cs != null:
 		cs.linear_velocity = v
@@ -275,7 +255,7 @@ func _set_landing_state(vehicle: Node, sim, pose: Transform3D, v_down: float) ->
 func _run_landing(cfg_name: String, rep: int) -> void:
 	var cfg: Dictionary = CONFIGS[cfg_name]
 	var hz := int(cfg["hz"])
-	var env := await _prepare_scene(hz, bool(cfg["implicit"]), bool(cfg["limiter"]), int(cfg.get("substeps", opt_substeps)))
+	var env := await _prepare_scene(hz, int(cfg.get("substeps", opt_substeps)))
 	if env.is_empty():
 		check(false, "%s r%d: escena preparada" % [cfg_name, rep])
 		return
@@ -298,20 +278,19 @@ func _run_landing(cfg_name: String, rep: int) -> void:
 	Engine.physics_ticks_per_second = hz
 	var dt := 1.0 / float(hz)
 	var pre_pose := Transform3D(Basis(Vector3.UP, 0.0), Vector3(settled_pose.origin.x, contact_y, settled_pose.origin.z))
-	_set_landing_state(vehicle, sim, pre_pose, v_impact)
+	_set_landing_state(vehicle, pre_pose, v_impact)
 	# Aquí empieza la ventana de registro: activar subpasos acoplados.
-	sim.unsprung_rig.coupled_substeps = pending_substeps
+	sim.configured_substeps_per_tick = pending_substeps
+	sim.unsprung_rig.capture_substeps = pending_substeps > 1
 	var seq_at_reset := int(sim.unsprung_rig.tick_sequence)
 	print("SUSPENSION_SEQ0 ", JSON.stringify({"config": cfg_name, "rep": rep, "tick_seq_at_reset": seq_at_reset, "pre_pose_y": pre_pose.origin.y, "deterministic_check": pending_substeps}))
 	var max_ticks := int(round(opt_window_s * float(hz))) + CONTACT_SEARCH_TICKS
 	var frames: Array = []
-	var hub_masses: Array[float] = []
-	for hub in sim.unsprung_rig.hubs:
-		hub_masses.append(float((hub as RigidBody3D).mass))
+	var hub_masses: Array[float] = sim.unsprung_rig.m_unsprung.duplicate()
 	var contact_idx := -1
 	var verify := {}
 	var substep_rows: Array = []
-	var sub_n := int(sim.unsprung_rig.coupled_substeps)
+	var sub_n := int(sim.configured_substeps_per_tick)
 	var skipped_total := 0
 	var skipped_max := 0
 	var frames0 := Engine.get_physics_frames()
@@ -322,29 +301,16 @@ func _run_landing(cfg_name: String, rep: int) -> void:
 		var susp: Array = sim.sample_suspension_trace()
 		var ticks: Array = sim.sample_tick_trace()
 		var contacts: Array = sim.sample_contact_trace()
-		var imp_trace: Array = sim.unsprung_rig.impulse_trace
 		if sub_n > 1:
-			var sst: Array = sim.unsprung_rig.substep_trace
-			if not sst.is_empty():
-				var sentry: Dictionary = sst[0]
-				var srows: Array = sentry.get("rows", [])
-				for k in sub_n:
-					for w in 4:
-						var wr: Dictionary = (srows[w] as Dictionary) if w < srows.size() else {}
-						substep_rows.append({
-							"tick": t, "sub": k, "wheel": w,
-							"travel": float((wr.get("travel", []) as Array)[k]) if (wr.get("travel", []) as Array).size() > k else 0.0,
-							"vel_rel": float((wr.get("vel_rel", []) as Array)[k]) if (wr.get("vel_rel", []) as Array).size() > k else 0.0,
-							"comp": float((wr.get("comp", []) as Array)[k]) if (wr.get("comp", []) as Array).size() > k else 0.0,
-							"damper": float((wr.get("damper_app", []) as Array)[k]) if (wr.get("damper_app", []) as Array).size() > k else 0.0,
-							"elastic": float((wr.get("elastic", []) as Array)[k]) if (wr.get("elastic", []) as Array).size() > k else 0.0,
-							"bump": float((wr.get("bump", []) as Array)[k]) if (wr.get("bump", []) as Array).size() > k else 0.0,
-							"arb": float((wr.get("arb", []) as Array)[k]) if (wr.get("arb", []) as Array).size() > k else 0.0,
-							"droop": float((wr.get("droop", []) as Array)[k]) if (wr.get("droop", []) as Array).size() > k else 0.0,
-							"defl": float((wr.get("defl", []) as Array)[k]) if (wr.get("defl", []) as Array).size() > k else 0.0,
-							"Fz": float((wr.get("Fz", []) as Array)[k]) if (wr.get("Fz", []) as Array).size() > k else 0.0,
-							"loaded": bool((wr.get("loaded", []) as Array)[k]) if (wr.get("loaded", []) as Array).size() > k else false,
-						})
+			for w in 4:
+				var loads_by_step: Array = sim.unsprung_rig.substep_loads_n[w]
+				for k in loads_by_step.size():
+					substep_rows.append({
+						"tick": t, "sub": k, "wheel": w,
+						"defl": sim.unsprung_rig.substep_defl(w, k),
+						"Fz": loads_by_step[k],
+						"loaded": loads_by_step[k] > 0.0,
+					})
 		var loads: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var bumps: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var hub_vy: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -363,7 +329,7 @@ func _run_landing(cfg_name: String, rep: int) -> void:
 			"chassis_y": chassis_y, "body_contacts": body_contacts,
 			"body_impulse": body_impulse, "skipped": skipped,
 			"loads": loads, "hub_vy": hub_vy, "bumps": bumps,
-			"susp": susp, "ticks": ticks, "contacts": contacts, "imp": imp_trace,
+			"susp": susp, "ticks": ticks, "contacts": contacts,
 		})
 		if contact_idx < 0 and _any_loaded_from(loads):
 			contact_idx = t
@@ -405,7 +371,6 @@ func _run_landing(cfg_name: String, rep: int) -> void:
 	summary["pass_id"] = "%s_r%d" % [cfg_name, rep]
 	results.append(summary)
 	_write_landing_csv(cfg_name, hz, rep, frames, win_start, win_end)
-	_write_substep_csv(cfg_name, hz, rep, substep_rows)
 	_write_substep_csv(cfg_name, hz, rep, substep_rows)
 	print("SUSPENSION_LANDING_SUMMARY ", JSON.stringify(summary))
 	scene.queue_free()
@@ -449,7 +414,7 @@ func _summarize_landing(cfg_name: String, hz: int, rep: int, order: int, verify:
 		var loads: Array = fr["loads"]
 		var hub_vy: Array = fr["hub_vy"]
 		var susp: Array = fr["susp"]
-		var imp: Array = fr["imp"]
+		var ticks: Array = fr["ticks"]
 		var tot := 0.0
 		for w in 4:
 			var s: Dictionary = susp[w]
@@ -463,9 +428,9 @@ func _summarize_landing(cfg_name: String, hz: int, rep: int, order: int, verify:
 			if not bool(s.get("loaded_contact", false)):
 				loss_ticks[w] += 1
 			rebound_v[w] = maxf(rebound_v[w], float(hub_vy[w]))
-			impulse[w] += load * dt
-			if w < imp.size():
-				radial_imp[w] += float((imp[w] as Dictionary).get("J_radial_ns", 0.0))
+			var trace: Dictionary = ticks[w]
+			impulse[w] += float(trace.get("contact_vertical_impulse_ns", 0.0))
+			radial_imp[w] += float(trace.get("radial_J_imp_ns", 0.0))
 			if not is_finite(load) or not is_finite(comp) or not is_finite(float(hub_vy[w])):
 				finite_ok = false
 		tick_total.append(tot)
@@ -538,33 +503,7 @@ func _summarize_landing(cfg_name: String, hz: int, rep: int, order: int, verify:
 			if float((fr["loads"] as Array)[w]) <= SUPPORT_EPS_N:
 				support_recovered = false
 	var settled := settle_tick >= 0 and support_recovered
-	# Predicho vs observado (solo modo subpasos): error de la predicción del
-	# tick anterior frente al estado medido, con gravedad descontada aparte.
-	var pred_err_hub_max := 0.0
-	var pred_err_hub_mean := 0.0
-	var pred_err_chassis_max := 0.0
-	var pred_err_chassis_mean := 0.0
-	var pred_n := 0
-	for i in n_ticks:
-		var fr: Dictionary = frames[win_start + i]
-		var imp: Array = fr.get("imp", [])
-		for w in 4:
-			if w < imp.size():
-				var im: Dictionary = imp[w]
-				if im.has("pred_err_hub_v"):
-					var e := absf(float(im.get("pred_err_hub_v", 0.0)))
-					pred_err_hub_max = maxf(pred_err_hub_max, e)
-					pred_err_hub_mean += e
-					pred_n += 1
-		var im0: Dictionary = imp[0] if imp.size() > 0 else {}
-		if im0.has("pred_err_chassis_v"):
-			var ec := absf(float(im0.get("pred_err_chassis_v", 0.0)))
-			pred_err_chassis_max = maxf(pred_err_chassis_max, ec)
-			pred_err_chassis_mean += ec
-	if pred_n > 0:
-		pred_err_hub_mean /= float(pred_n)
-		pred_err_chassis_mean /= float(n_ticks)
-	var sub_n := int(sim.unsprung_rig.coupled_substeps)
+	var sub_n := int(sim.configured_substeps_per_tick)
 	return {
 		"config": cfg_name, "hz": hz, "rep": rep, "init_order": order,
 		"window_s": window_s, "window_ticks": n_ticks,
@@ -597,10 +536,6 @@ func _summarize_landing(cfg_name: String, hz: int, rep: int, order: int, verify:
 		"settled": settled,
 		"finite_ok": finite_ok,
 		"coupled_substeps": sub_n,
-		"pred_err_hub_v_max": pred_err_hub_max,
-		"pred_err_hub_v_mean": pred_err_hub_mean,
-		"pred_err_chassis_v_max": pred_err_chassis_max,
-		"pred_err_chassis_v_mean": pred_err_chassis_mean,
 		"verify": verify,
 		"tick_total_loads": tick_total,
 	}
@@ -612,14 +547,12 @@ func _write_substep_csv(cfg_name: String, hz: int, rep: int, substep_rows: Array
 	if f == null:
 		push_warning("no se pudo abrir " + path)
 		return
-	f.store_line("config,hz,rep,tick,sub,wheel,travel_m,vel_rel_m_s,comp_m,damper_app_n,elastic_n,bump_n,arb_n,droop_n,defl_m,Fz_n,loaded")
+	f.store_line("config,hz,rep,tick,sub,wheel,defl_m,Fz_n,loaded")
 	for r in substep_rows:
 		var d: Dictionary = r
-		f.store_line("%s,%d,%d,%d,%d,%d,%.5f,%.4f,%.5f,%.1f,%.1f,%.1f,%.1f,%.1f,%.5f,%.1f,%d" % [
+		f.store_line("%s,%d,%d,%d,%d,%d,%.5f,%.1f,%d" % [
 			cfg_name, hz, rep, int(d.get("tick", 0)), int(d.get("sub", 0)), int(d.get("wheel", 0)),
-			float(d.get("travel", 0.0)), float(d.get("vel_rel", 0.0)), float(d.get("comp", 0.0)),
-			float(d.get("damper", 0.0)), float(d.get("elastic", 0.0)), float(d.get("bump", 0.0)),
-			float(d.get("arb", 0.0)), float(d.get("droop", 0.0)), float(d.get("defl", 0.0)), float(d.get("Fz", 0.0)),
+			float(d.get("defl", 0.0)), float(d.get("Fz", 0.0)),
 			int(bool(d.get("loaded", false))),
 		])
 	f.close()
@@ -637,12 +570,10 @@ func _write_landing_csv(cfg_name: String, hz: int, rep: int, frames: Array, win_
 		var susp: Array = fr["susp"]
 		var ticks: Array = fr["ticks"]
 		var contacts: Array = fr["contacts"]
-		var imp: Array = fr["imp"]
 		for w in 4:
 			var s: Dictionary = susp[w]
 			var tk: Dictionary = ticks[w]
 			var ct: Dictionary = contacts[w] if w < contacts.size() else {}
-			var im: Dictionary = imp[w] if w < imp.size() else {}
 			var hv: Array = (tk.get("hub_vel", [0.0, 0.0, 0.0]) as Array)
 			f.store_line("%s,%d,%d,%d,%d,%.2f,%.5f,%.5f,%.4f,%d,%d,%.1f,%.1f,%.5f,%.5f,%.4f,%.4f,%.4f,%.1f,%d,%.1f,%d" % [
 				cfg_name, hz, rep, t - win_start, w,
@@ -653,9 +584,9 @@ func _write_landing_csv(cfg_name: String, hz: int, rep: int, frames: Array, win_
 				float(ct.get("radial_deflection_m", 0.0)),
 				float(fr["chassis_y"]), float(fr["chassis_vy_tick"]),
 				float(s.get("compression_velocity_m_s", 0.0)),
-				float(im.get("J_radial_ns", 0.0)), float(im.get("radial_F_mean_n", 0.0)),
+				float(tk.get("radial_J_imp_ns", 0.0)), float(tk.get("radial_F_mean_n", 0.0)),
 				int(fr.get("body_contacts", 0)), float(fr.get("body_impulse", 0.0)),
-				int(im.get("tick_seq", -1)),
+				int(tk.get("tick_id", -1)),
 			])
 	f.close()
 
@@ -777,7 +708,7 @@ func _max_of_arr(group: Array, key: String) -> float:
 func _run_handling(cfg_name: String, maneuver: String, rep: int = 0) -> void:
 	var cfg: Dictionary = CONFIGS[cfg_name]
 	var hz := int(cfg["hz"])
-	var env := await _prepare_scene(hz, bool(cfg["implicit"]), bool(cfg["limiter"]), int(cfg.get("substeps", opt_substeps)))
+	var env := await _prepare_scene(hz, int(cfg.get("substeps", opt_substeps)))
 	if env.is_empty():
 		check(false, "%s %s: escena preparada" % [cfg_name, maneuver])
 		return
@@ -798,14 +729,10 @@ func _run_handling(cfg_name: String, maneuver: String, rep: int = 0) -> void:
 	vehicle.freeze = false
 	vehicle._reset_pending = false
 	# Ventana de registro de manejo: activar subpasos acoplados.
-	sim.unsprung_rig.coupled_substeps = pending_substeps
+	sim.configured_substeps_per_tick = pending_substeps
 	var fwd: Vector3 = -vehicle.global_transform.basis.z
 	vehicle.linear_velocity = fwd * entry_speed
 	vehicle.angular_velocity = Vector3.ZERO
-	for hub in sim.unsprung_rig.hubs:
-		hub.freeze = false
-		hub.linear_velocity = fwd * entry_speed
-		hub.angular_velocity = Vector3.ZERO
 	sim.powertrain_model.set_gear(1)
 	var duration_s := 6.0 if maneuver == "corner" else 4.0
 	var ticks := int(round(duration_s * float(hz)))

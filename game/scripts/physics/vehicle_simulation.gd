@@ -258,7 +258,6 @@ func reload_tire_catalog_runtime() -> bool:
 	var tire_domains := resolve_tire_calibration_domains(cat)
 	domains["tires"] = tire_domains["tires"]
 	domains["tire_filters"] = tire_domains["tire_filters"]
-	TireRadialModel._geom_cache.clear()
 	TireRadialModel._model_cache.clear()
 	var prev_states := tire_model.states.duplicate(true)
 	_configure_tire_calibration_model(tire_model, tire_domains, cat)
@@ -753,8 +752,6 @@ func create_wheel_contact_casts(body: RigidBody3D) -> void:
 		cast.collide_with_bodies = true
 		body.add_child(cast)
 		cast.add_exception_rid(body.get_rid())
-		for hub in unsprung_rig.hubs:
-			cast.add_exception_rid(hub.get_rid())
 		wheel_contact_casts.append(cast)
 	# Paso 0.1/0.2 Jolt fix: diagnóstico rápido en consola. Firma de
 	# solapamiento (qué devuelven cast_motion/intersect/get_rest_info con la
@@ -901,8 +898,6 @@ func _run_overlap_signature_diagnostic(
 		wheel_positions_local[0] - chassis_up * OVERLAP_DIAGNOSTIC_BURY_M,
 	)
 	var excluded: Array[RID] = [body.get_rid()]
-	for hub in unsprung_rig.hubs:
-		excluded.append(hub.get_rid())
 	last_overlap_signature = debug_overlap_signature(
 		state.get_space_state(),
 		cast.shape,
@@ -1266,8 +1261,6 @@ func _query_shapecast_contact(
 	) * Basis(Vector3.BACK, PI * 0.5)
 	cast.collision_mask = body.collision_mask
 	var permanents: Array[RID] = [body.get_rid()]
-	for hub in unsprung_rig.hubs:
-		permanents.append(hub.get_rid())
 	# Paso 2.2 Jolt fix: separar solapamiento inicial del barrido normal.
 	# 1) Comprobar primero en el origen con intersect_shape. 2) Si hay
 	# solapamiento, el barrido se hace desde posición elevada (origin+up*lift)
@@ -1297,8 +1290,8 @@ func _query_shapecast_contact(
 	# vacío en malla ConcavePolygonShape3D), elevamos el origen manteniendo
 	# invariante el extremo inferior del barrido.
 	var phys_comp := (
-		unsprung_rig.compression_physical_m[index]
-		if index < unsprung_rig.compression_physical_m.size()
+		unsprung_rig.q[index]
+		if index < unsprung_rig.q.size()
 		else 0.0
 	)
 	var elev_1 := clampf(maxf(0.18, phys_comp - bump + 0.16), 0.18, 0.38)
@@ -1355,8 +1348,6 @@ func _query_tandem_contact(
 	var patch := float(tire_model.states[index].get("dynamic_contact_patch_m", tire_model.base_contact_patch_m[index]))
 	var supports := tandem_cam_supports(patch, tandem_cam_patch_scale)
 	var excluded: Array[RID] = [body.get_rid()]
-	for hub in unsprung_rig.hubs:
-		excluded.append(hub.get_rid())
 	var hits: Array[Dictionary] = []
 	for offset in supports:
 		var origin := center + forward * offset + up * bump
@@ -1412,7 +1403,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	if debug_overlap_signature_requested:
 		debug_overlap_signature_requested = false
 		_run_overlap_signature_diagnostic(body, state, chassis_up)
-	var com_world := state.transform * body.center_of_mass
 	var contacts: Array[Dictionary] = []
 	contact_query_count = 0
 	for i in 4:
@@ -1518,14 +1508,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		)
 
 	last_contacts = contacts.duplicate(true)
-	var normal_loads := unsprung_rig.solve(
-		state,
-		suspension_model,
-		contacts,
-		wheel_radii,
-		domains,
-		thermal_model,
-	)
 	var fade_factors: Array[float] = []
 	for i in 4:
 		fade_factors.append(thermal_model.brake_fade_factor(i))
@@ -1538,26 +1520,19 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	for i in 4:
 		brake_torques[i] *= (1.0 - brake_collision_loss[i]) * thermal_model.brake_wear_factor(i)
 	var tire_powers: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var rig_n := int(unsprung_rig.coupled_substeps)
 	var target_count := 1
 	if configured_substeps_per_tick > 0:
-		# Modo entero directo: p. ej. 2, 3 o 6 subpasos por tick
 		target_count = configured_substeps_per_tick
 	elif configured_substep_hz > 0:
-		# Modo por frecuencia entera: p. ej. 360 Hz / 60 Hz = 6 subpasos exactos
 		var base_hz := maxi(1, Engine.physics_ticks_per_second)
 		target_count = maxi(1, roundi(float(configured_substep_hz) / float(base_hz)))
 	else:
-		# Fallback legado con margen epsilon (-1e-5) para evitar saltos por error de float en ceili()
 		target_count = maxi(1, ceili((dt - 1.0e-5) / maximum_substep_seconds))
 
-	var count := maxi(rig_n, target_count)
+	var count := target_count
 	var h := dt / float(count)
-	var force_weight := 1.0 / float(count)
-
-	var substep_linear_vel := state.linear_velocity
-	var substep_angular_vel := state.angular_velocity
-	var effective_chassis_mass := maxf(body.mass, 100.0)
+	# Rig 1DOF: reconcilia u, ancla contactos y prepara coeficientes del tick.
+	unsprung_rig.begin_tick(state, suspension_model, contacts, wheel_radii, domains, thermal_model)
 
 	var tire_thermal_states: Array[Dictionary] = []
 	var thermal_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -1574,7 +1549,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 
 	for i in 4:
 		var contact: Dictionary = contacts[i]
-		var loaded_contact := bool(contact.get("hit", false)) and normal_loads[i] > 0.0
+		var loaded_contact := bool(contact.get("hit", false))
 		var local := _local_conditions_at_contact(str(contact.get("surface", "Unknown")), contact.get("position", wheel_contact_points[i]), loaded_contact)
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
 		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
@@ -1592,35 +1567,43 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		thermal_model.advance_tire_pressure(i, dt)
 		tire_thermal_states.append(thermal_model.get_tire_thermal_state_snapshot(i))
 
+	var effective_load_impulses := Vector4.ZERO
 	_tire_thermal_elapsed += dt
 	for _substep_index in count:
+		var pred_V: Vector3 = unsprung_rig.V_pred
+		var pred_R: Basis = unsprung_rig.R_pred
+		var pred_C: Vector3 = unsprung_rig.C_pred
+		var pred_up: Vector3 = (pred_R * Vector3.UP).normalized()
+		var F_body := Vector3.ZERO
+		var T_body := Vector3.ZERO
+		if pred_V.length_squared() > 0.01:
+			var spd := pred_V.length()
+			var drag_mag := aero_model.drag_force(spd) + thermal_model.cooling_drag_force_n
+			F_body += -pred_V.normalized() * drag_mag
+			for wing_effect in aero_model.wing_forces(pred_V, pred_R):
+				var Fw: Vector3 = wing_effect.force
+				var local_pos: Vector3 = wing_effect.position
+				var world_off: Vector3 = pred_R * local_pos
+				var com_off: Vector3 = pred_R * body.center_of_mass
+				F_body += Fw
+				T_body += (world_off - com_off).cross(Fw)
+		unsprung_rig.begin_substep(h, suspension_model, F_body, T_body)
+		unsprung_rig.solve_normal(h)
 		_prepare_powertrain(h, inputs)
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var substep_force_sum := Vector3.ZERO
-
+		var F_patch := Vector3.ZERO
+		var T_patch := Vector3.ZERO
 		for i in 4:
 			var contact: Dictionary = contacts[i]
-			tire_model.states[i].radial_deflection_m = unsprung_rig.radial_deflection_m[i]
-			# Paso 3.3: el tope duro Fz solo en recuperación de baja confianza.
+			tire_model.states[i].radial_deflection_m = unsprung_rig.s_defl[i]
 			tire_model.states[i]["recovery_low_confidence"] = bool(contact.get("low_confidence", contact.get("recovered_overlap", false)))
-			wheel_loads[i] = normal_loads[i]
-			# Subpasos acoplados Q5: alimentar el neumático con la Fz y la
-			# deflexión de ESE subpaso (mapeo rig_N/tire_N). Sin subpasos se
-			# conserva la Fz del tick (comportamiento de producción).
-			var tire_rig_n := int(unsprung_rig.coupled_substeps)
-			var normal_load := maxf(float(normal_loads[i]), 0.0)
-			if tire_rig_n > 1:
-				var rig_k: int = _substep_index * tire_rig_n / count
-				normal_load = maxf(float(unsprung_rig.substep_load(i, rig_k)), 0.0)
-				tire_model.states[i].radial_deflection_m = unsprung_rig.substep_defl(i, rig_k)
-				wheel_loads[i] = normal_load
-			# Paso 3.3: tope duro Fz solo en recuperación de baja confianza.
+			var normal_load := maxf(float(unsprung_rig.s_Fz[i]), 0.0)
 			if bool(contact.get("low_confidence", contact.get("recovered_overlap", false))):
 				var _ref := 3000.0
 				if i < tire_model.static_wheel_load_n.size():
 					_ref = maxf(float(tire_model.static_wheel_load_n[i]), 100.0)
 				normal_load = minf(normal_load, _ref * RECOVERY_FZ_CAP_MULT)
-				wheel_loads[i] = normal_load
+			effective_load_impulses[i] += normal_load * h
 			if not bool(contact.get("hit", false)) or normal_load <= 0.0:
 				var free_thermal_state := tire_thermal_states[i]
 				var free_result := tire_model.evaluate(
@@ -1642,45 +1625,35 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 					float(free_result.get("slip_angle_rad", 0.0)),
 				)
 				tire_powers[i] = 0.0
-				thermal_speeds[i] = substep_linear_vel.length()
+				thermal_speeds[i] = pred_V.length()
 				thermal_slip_speeds[i] = 0.0
 				thermal_surfaces[i] = "Gravel"
 				thermal_vx[i] = 0.0
 				thermal_fy[i] = 0.0
 				continue
-
-			var point: Vector3 = contact["position"]
 			var normal: Vector3 = contact["normal"]
+			var point := unsprung_rig.contact_patch_position(i, contact["position"])
 			var road_velocity := Vector3.ZERO
 			var collider: Object = contact.get("collider")
 			if collider is RigidBody3D:
 				var road_body := collider as RigidBody3D
 				road_velocity = road_body.linear_velocity + road_body.angular_velocity.cross(
-					point - road_body.global_position
+					point - road_body.to_global(road_body.center_of_mass)
 				)
-
-			var r_com := point - com_world
-			var point_velocity := substep_linear_vel + substep_angular_vel.cross(r_com) - road_velocity
+			var r_patch := point - pred_C
+			var point_velocity := unsprung_rig.V_pred + unsprung_rig.omega_pred.cross(r_patch) - road_velocity
 			var steer_angle := _wheel_steer_angle(i, float(inputs.get("steering", 0.0)))
 			var toe := _effective_toe(i)
 			var camber := suspension_model.dynamic_camber(i)
 			var wheel_camber := suspension_model.dynamic_wheel_camber(i)
-
-			var heading := (-state.transform.basis.z).rotated(chassis_up, steer_angle + toe)
+			var heading := (-pred_R.z).rotated(pred_up, steer_angle + toe)
 			var forward := (heading - normal * heading.dot(normal)).normalized()
 			if forward.length_squared() < 0.5:
-				forward = (-state.transform.basis.z).normalized()
+				forward = (-pred_R.z).normalized()
 			var right := forward.cross(normal).normalized()
-
 			var longitudinal_speed := point_velocity.dot(forward)
 			var lateral_speed := point_velocity.dot(right)
-			# (Q5) normal_load ya trae la Fz del subpaso (o del tick sin subpasos).
-			wheel_loads[i] = normal_load
 			var thermal_state := tire_thermal_states[i]
-			# Película fina vs charco §4.5: el agua total ya incluye el charco
-			# (max(water, puddle)); el soporte del charco lo aplica
-			# PuddleModel, así que al neumático solo va la película fina
-			# (total - charco) para no aplicar dos veces la misma pérdida.
 			var puddle_here := float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
 			var thin_water := maxf(thermal_water[i] - puddle_here, 0.0)
 			var local_water := thin_water
@@ -1724,31 +1697,25 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			fx *= sup_x
 			fy *= sup_y
 			mz *= sup_y
-
-			# Asymmetrical front wheel steering pull moment
 			if i < 2 and drag_n > 0.0:
 				var steer_sign := -1.0 if i == 0 else 1.0
 				mz += float(puddle_response.get("steering_pull_nm", 0.0)) * steer_sign
-
 			var tire_force := forward * (fx + flat_drag) + right * fy
 			tire_force -= point_velocity.slide(normal).normalized() * drag_n
 			var sat_torque := normal * mz
-
+			var vib := Vector3.ZERO
 			if normal_load > 0.0:
 				var spin := wheel_spins[i]
 				var phase := wheel_rotation_angles[i] + spin * h * 0.5
 				var vibration := float(thermal_state.rim_deformation) * minf(spin * spin * 0.025, normal_load * 0.12) * sin(phase)
-				state.apply_force((tire_force + normal * vibration) * force_weight, point - state.transform.origin)
-				state.apply_torque(sat_torque * force_weight)
-				substep_force_sum += tire_force
-
+				vib = normal * vibration
+				F_patch += tire_force + vib
+				T_patch += r_patch.cross(tire_force + vib) + sat_torque
 			wheel_slips[i] = Vector2(
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
-			# Radio efectivo coherente §4.5: la reacción usa el radio
-			# acoplado a deflexión, no el nominal del manifest.
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
 			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * eff_radius)) * signf(longitudinal_speed)
 			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
@@ -1758,7 +1725,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			thermal_surfaces[i] = str(contact["surface"])
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
-
+		var J_tang: Array[float] = [F_patch.x * h, F_patch.y * h, F_patch.z * h, T_patch.x * h, T_patch.y * h, T_patch.z * h, 0.0, 0.0, 0.0, 0.0]
+		unsprung_rig.apply_tangential(J_tang)
+		unsprung_rig.solve_hard_stops(h)
+		unsprung_rig.end_substep(h)
 		var rotation := powertrain_model.solve_rotation(
 			h,
 			wheel_spins,
@@ -1769,13 +1739,11 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var brake_work: Array = rotation.brake_work_j
 		for i in 4:
 			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * h, TAU)
-			var radial_power := unsprung_rig.radial_dissipation_w[i] if normal_loads[i] > 0.0 else 0.0
+			var radial_power := unsprung_rig.s_diss[i] if float(unsprung_rig.s_Fz[i]) > 0.0 else 0.0
 			_wheel_thermal_work[i] += Vector3(tire_powers[i] * h, float(brake_work[i]), radial_power * h)
-		substep_linear_vel += (substep_force_sum / effective_chassis_mass) * h
-		# The suspension and collision torques are solved by Jolt outside these
-		# substeps, so keep angular velocity fixed rather than integrating only
-		# the tire torques and creating an unbalanced prediction.
-
+	var normal_loads := unsprung_rig.end_tick(state, dt, suspension_model)
+	for i in 4:
+		wheel_loads[i] = effective_load_impulses[i] / dt
 	if _tire_thermal_elapsed + 1.0e-6 >= TIRE_THERMAL_PERIOD:
 		for i in 4:
 			var average_power := _wheel_thermal_work[i] / _tire_thermal_elapsed
@@ -1789,15 +1757,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 		_wheel_thermal_work.fill(Vector3.ZERO)
 		_tire_thermal_elapsed = 0.0
-
 	var velocity := state.linear_velocity
-	if velocity.length_squared() > 0.01:
-		var speed := velocity.length()
-		var drag := aero_model.drag_force(speed) + thermal_model.cooling_drag_force_n
-		state.apply_central_force(-velocity.normalized() * drag)
-		for wing_effect in aero_model.wing_forces(velocity, state.transform.basis):
-			var wing_position: Vector3 = state.transform.basis * (wing_effect.position as Vector3)
-			state.apply_force(wing_effect.force, wing_position)
 	var rpm := powertrain_model.engine_rpm
 	var torque := powertrain_model.engine_torque_nm
 	_engine_thermal_elapsed += dt
@@ -1981,11 +1941,10 @@ func update_wheel_visuals(steering_input: float) -> void:
 		var toe := _effective_toe(i)
 		var wheel_camber := suspension_model.dynamic_wheel_camber(i)
 		var pivot := wheel_visual_pivots[i]
-		var hub_travel := (
-			unsprung_rig.compression_physical_m[i]
-			if i < unsprung_rig.hubs.size() and i < unsprung_rig.compression_physical_m.size()
-			else suspension_model.compression[i]
-		)
+		# Muestra escalar 1DOF: recorrido físico q (sin nodos).
+		var hub_travel := suspension_model.compression[i]
+		if i < unsprung_rig.q.size():
+			hub_travel = unsprung_rig.q[i]
 		pivot.position = wheel_positions_local[i] + Vector3.UP * hub_travel
 		pivot.rotation.y = steer_angle + toe
 		if i < wheel_visuals.size():
@@ -2085,53 +2044,6 @@ static func tandem_cam_supports(patch_length_m: float, scale: float = 1.0) -> Ar
 
 
 ## Limpia el estado residual publicado sin tocar tren motriz ni combustible
-## (§2): misma limpieza de suspensión/hubs/contactos que reset_dynamics() para
-## la rama de rescate en _integrate_forces, donde solo se reubican los cuerpos
-## Jolt y debe garantizarse que la primera fuerza de amortiguador corresponda
-## a la velocidad relativa medida, no a muestras previas.
-func clear_teleport_residual() -> void:
-	# Paso 4.1/4.2: mismo pre-asentado que reset_dynamics + limpieza de
-	# historial para derivada 0 en el primer tick.
-	if unsprung_rig.chassis != null:
-		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
-	else:
-		unsprung_rig.reset()
-	suspension_model.clear_transient()
-	for i in 4:
-		if i < suspension_model.axle_parameters.size():
-			var p: Dictionary = suspension_model.axle_parameters[i]
-			# Paso 4.1: usar el q_eq efectivo de reset_at() (ya incluye -droop
-			# en esquinas sin suelo) en vez de recalcular el equilibrio.
-			var qe := unsprung_rig.last_reset_q_eq[i] if i < unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(p)
-			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
-			suspension_model.compression_velocity[i] = 0.0
-			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]
-			suspension_model.initialized[i] = true
-			suspension_model.previous_samples[i] = true
-			if i < unsprung_rig.compression_physical_m.size():
-				unsprung_rig.compression_physical_m[i] = qe
-	for i in 4:
-		unsprung_rig.spring_forces_n[i] = 0.0
-		wheel_loads[i] = 0.0
-		wheel_slips[i] = Vector2.ZERO
-		wheel_contact_points[i] = Vector3.ZERO
-		wheel_contact_normals[i] = Vector3.UP
-		wheel_surfaces[i] = "Unknown"
-		last_local_conditions[i] = {}
-		last_puddle_depths_mm[i] = 0.0
-	last_contacts = [{}, {}, {}, {}]
-	contact_query_count = 0
-
-
-## Muestra de consumo del vehículo (§1): recorrido, velocidad, carga y fuerza
-## de barra tal como los lee el vehículo tras el tick. Sirve para comparar
-## trazas antes/después en reposo, descarga, vuelo y recontacto, con tándem y
-## con ShapeCast.
-## Activa/desactiva el recorte de diagnóstico del damper (F1). Producción: OFF.
-func set_damper_impulse_limit(enabled: bool) -> void:
-	unsprung_rig.set_damper_impulse_limit(enabled)
-
-
 ## Muestra de consumo del vehículo (§1/F3): recorrido, velocidad, carga y fuerza
 ## de barra tal como los lee el vehículo tras el tick, más traza comparable por
 ## tick Jolt (id, dt, damper solicitado/aplicado, impulso en N·s). Sirve para
@@ -2144,7 +2056,7 @@ func sample_suspension_trace() -> Array[Dictionary]:
 		out.append(
 			{
 				"compression_m": suspension_model.compression[i],
-				"hub_travel_m": unsprung_rig.compression_physical_m[i] if i < unsprung_rig.compression_physical_m.size() else suspension_model.compression[i],
+				"hub_travel_m": unsprung_rig.q[i] if i < unsprung_rig.q.size() else suspension_model.compression[i],
 				"compression_velocity_m_s": suspension_model.compression_velocity[i],
 				"geometric_contact": suspension_model.geometric_contact[i],
 				"loaded_contact": suspension_model.contact_active[i],
@@ -2155,8 +2067,8 @@ func sample_suspension_trace() -> Array[Dictionary]:
 				"damper_requested_n": unsprung_rig.last_damper_requested_n[i],
 				"damper_applied_n": unsprung_rig.last_damper_applied_n[i],
 				"damper_impulse_ns": unsprung_rig.last_damper_impulse_ns[i],
-				"damper_clamped": unsprung_rig.last_damper_clamped[i],
-				"damper_clip_events": unsprung_rig.damper_clip_events[i],
+				"damper_clamped": false,
+				"damper_clip_events": 0,
 				"tick_id": unsprung_rig.last_tick_trace[i].get("tick_id", 0),
 				"tick_dt_s": unsprung_rig.last_tick_trace[i].get("dt_s", 0.0),
 				"bar_travel_m": suspension_model.filtered_arb_travel[i],
@@ -2256,27 +2168,10 @@ func reset_dynamics() -> void:
 	_wheel_thermal_work.fill(Vector3.ZERO)
 	_engine_thermal_elapsed = 0.0
 	_engine_thermal_inputs = Vector4.ZERO
-	# Paso 4.1: pre-asentar en equilibrio estático q_eq (no q=0 ni δ=0).
-	# reset_at() calcula q_eq por esquina y sincroniza servidor+nodo.
-	if unsprung_rig.chassis != null:
+	if is_instance_valid(unsprung_rig.chassis):
 		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
 	else:
-		unsprung_rig.reset()
-	suspension_model.clear_transient()
-	# Re-aplicar q_eq tras limpiar el transitorio (clear lo deja en 0).
-	for i in 4:
-		if i < suspension_model.axle_parameters.size():
-			var p: Dictionary = suspension_model.axle_parameters[i]
-			# Paso 4.1: usar el q_eq efectivo de reset_at() (ya incluye -droop
-			# en esquinas sin suelo) en vez de recalcular el equilibrio.
-			var qe := unsprung_rig.last_reset_q_eq[i] if i < unsprung_rig.last_reset_q_eq.size() else VehicleSuspensionModel.equilibrium_travel_m(p)
-			suspension_model.compression[i] = clampf(qe, -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
-			suspension_model.compression_velocity[i] = 0.0
-			suspension_model.filtered_arb_travel[i] = suspension_model.compression[i]
-			suspension_model.initialized[i] = true
-			suspension_model.previous_samples[i] = true
-			if i < unsprung_rig.compression_physical_m.size():
-				unsprung_rig.compression_physical_m[i] = qe
+		unsprung_rig.reset_at(Transform3D.IDENTITY, suspension_model)
 	session_generation += 1
 	simulation_time_s = 0.0
 	published_state = { }
@@ -2295,7 +2190,6 @@ func reset_dynamics() -> void:
 	brake_model.smoothed_handbrake_input = 0.0
 	for i in 4:
 		tire_model.reset_patch(i)
-		unsprung_rig.spring_forces_n[i] = 0.0
 		if i < wheel_visuals.size():
 			wheel_visuals[i].rotation = Vector3.ZERO
 	powertrain_model.current_gear = 0

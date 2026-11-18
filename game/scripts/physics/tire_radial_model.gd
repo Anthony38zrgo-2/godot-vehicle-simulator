@@ -6,7 +6,6 @@ const MIN_DAMPING_RAMP_M := 0.012
 
 # Caché de geometría/modelo por eje para evitar recomputar merges en el bucle
 # de subpasos (hasta 500 Hz x 4 ruedas). Clave: axle + hash ligero del dict.
-static var _geom_cache: Dictionary = {}
 static var _model_cache: Dictionary = {}
 
 
@@ -179,13 +178,24 @@ static func evaluate_prepared(
 	speed: float,
 	viscous_scale: float = 1.0,
 ) -> Dictionary:
-	var coeffs: Dictionary = state.get("coeffs", {})
-	var model: Dictionary = state.get("model", {})
-	var g: Dictionary = state.get("geometry", {})
-	var sidewall := float(coeffs.sidewall_m)
+	return _evaluate_prepared(state, unsprung_mass, deflection, speed, viscous_scale, true)
+
+
+static func prepared_force_n(
+	state: Dictionary, unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
+) -> float:
+	if deflection <= 0.0:
+		return 0.0
+	return _evaluate_prepared(state, unsprung_mass, deflection, speed, viscous_scale, false)
+
+
+static func _evaluate_prepared(
+	state: Dictionary, unsprung_mass: float, deflection: float, speed: float,
+	viscous_scale: float, include_details: bool
+) -> Variant:
+	var coeffs: Dictionary = state["coeffs"]
+	var model: Dictionary = state["model"]
 	var stiffness := float(coeffs.stiffness_n_m)
-	var carcass_k := float(coeffs.carcass_stiffness_n_m)
-	var pressure_k := float(coeffs.pressure_stiffness_n_m)
 	var delta := maxf(deflection, 0.0)
 
 	var seating_band := float(coeffs.seating_band_m)
@@ -213,7 +223,6 @@ static func evaluate_prepared(
 	damping *= contact_fraction * contact_fraction * (3.0 - 2.0 * contact_fraction)
 
 	var elastic := elastic_force_n(coeffs, delta)
-	var stop_force := elastic - stiffness * (delta - 0.35 * seating_band * (1.0 - exp(-delta / maxf(seating_band, 1.0e-6))))
 	var effective_speed := speed if speed >= 0.0 else speed * 0.45
 	# Escala de diagnóstico (segunda prueba Fulvia 60 Hz): 1.0 = producción,
 	# bit-idéntico. La sonda la pone a 0.0 en una variante para aislar el
@@ -223,6 +232,11 @@ static func evaluate_prepared(
 	# (maxf(..., 0.0), no 0.15x elástico). §4.3 verificado.
 	# §closure-2: fuerza unilateral cero => disipación radial cero.
 	var force := maxf(elastic + viscous, 0.0) if delta > 0.0 else 0.0
+	if not include_details:
+		return force
+
+	var g: Dictionary = state["geometry"]
+	var stop_force := elastic - stiffness * (delta - 0.35 * seating_band * (1.0 - exp(-delta / maxf(seating_band, 1.0e-6))))
 	var dissipation := 0.0
 	if delta > 0.0 and force > 0.0:
 		dissipation = maxf((force - elastic) * speed, 0.0)
@@ -243,10 +257,10 @@ static func evaluate_prepared(
 		"tangent_n_m": tangent,
 		"damping_ns_m": damping,
 		"damping_tangent_n_m": tangent_for_damping,
-		"carcass_stiffness_n_m": carcass_k,
-		"pressure_stiffness_n_m": pressure_k,
+		"carcass_stiffness_n_m": float(coeffs.carcass_stiffness_n_m),
+		"pressure_stiffness_n_m": float(coeffs.pressure_stiffness_n_m),
 		"rim_radius_m": g.rim_radius_m,
-		"sidewall_m": sidewall,
+		"sidewall_m": float(coeffs.sidewall_m),
 		"rim_stop_force_n": stop_force,
 		"dissipation_w": dissipation,
 	}
@@ -257,15 +271,3 @@ static func _merged(global_dict: Dictionary, axle_dict: Dictionary) -> Dictionar
 	for k in axle_dict:
 		out[k] = axle_dict[k]
 	return out
-
-
-## Paso 1.1 Jolt fix: rigidez semi-implícita para muelle radial y bumpstop.
-## k_eff = k / (1 + k*dt*dt/m_eff), F = -k_eff * penetración.
-## Misma forma que la suspensión; evita que bujes de 12-20 kg diverjan a
-## dt = 1/120 s sin recortes artificiales de velocidad/fuerza.
-static func semi_implicit_stiffness_n(k_stop: float, penetration_m: float, dt: float, m_eff: float) -> float:
-	var k := maxf(float(k_stop), 0.0)
-	var m := maxf(float(m_eff), 1.0)
-	var d := maxf(float(dt), 0.00001)
-	var k_eff := k / (1.0 + (k * d * d) / m)
-	return -k_eff * float(penetration_m)

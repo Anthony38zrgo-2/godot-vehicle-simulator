@@ -1,40 +1,21 @@
 class_name UnsprungSuspensionRig
 extends RefCounted
-## Rig no suspendido §SUSPENSION_CORRECTION_PLAN §§1,5.
-## Escritor único del estado físico por tick: `solve()` es la única vía que
-## escribe `suspension.compression/compression_velocity/filtered_arb_travel/`
-## `contact_active/geometric_contact` durante el tick. La simulación no escribe
-## recorrido ni velocidad; en la rama sin impacto solo registra ausencia de
-## contacto geométrico.
-##
-## Juntas (§5, inventario de ejes y límites efectivos): guías verticales.
-## - Y lineal: libre entre `-droop-margin` y `+bump+margin`.
-## - X/Z lineal: bloqueados a 0 (sin desplazamiento lateral/longitudinal).
-## - Angular X/Y/Z: bloqueados a 0 (el giro de rueda lo integra el modelo
-##   angular existente, no un cuerpo libre en Jolt).
-## Los topes progresivos de compresión se resuelven en la ley de fuerza; los
-## límites duros los resuelven estas juntas.
+## Migración suspensión 1DOF por rueda (§PLAN_MIGRACION_SUSPENSION_1DOF).
+## Cada buje es una masa puntual sobre un eje fijo en el espacio local del
+## chasis. Jolt integra carrocería y colisiones; el rig guarda 4 recorridos q
+## (m, +compresión) y 4 velocidades u (m/s). Sin RigidBody ni joints de buje.
 
 const JOINT_LIMIT_MARGIN_M := 0.10
-## Alcance efectivo de extensión (§2 + Paso 1.4 Jolt fix): el joint permite
-## `droop + JOINT_LIMIT_MARGIN_M` bajo el neutro. Las consultas de contacto
-## (tándem y ShapeCast) deben derivar su alcance de este mismo límite para
-## no recortar 30 mm de droop real. Distancias referidas al centro neutro.
 static func effective_droop_limit_m(droop_m: float) -> float:
 	return maxf(float(droop_m), 0.0) + JOINT_LIMIT_MARGIN_M
 
 
-## Recorrido de consulta desde el neutro: arranque `bump` sobre el neutro
-## más extensión efectiva. Mantiene la distancia referida al centro neutro.
 static func contact_query_travel_m(bump_m: float, droop_m: float, top_margin_m: float = 0.02) -> Dictionary:
 	var bump := maxf(float(bump_m), 0.0) + maxf(float(top_margin_m), 0.0)
 	var droop_eff := effective_droop_limit_m(droop_m)
 	return {"bump": bump, "droop_effective": droop_eff, "travel": bump + droop_eff}
 
 
-## Paso 4.1 Jolt fix: sonda de suelo bajo una rueda. Devuelve true si existe
-## geometría alcanzable dentro de `probe_m` (radio + droop + margen). Se usa
-## solo en reset: sin suelo, la esquina arranca en extensión máxima (-droop).
 static func has_ground_support_at(
 	space_state: PhysicsDirectSpaceState3D,
 	from: Vector3,
@@ -52,259 +33,98 @@ static func has_ground_support_at(
 	return not space_state.intersect_ray(query).is_empty()
 
 
-## Recorte de diagnóstico del impulso del amortiguador (§5, hallazgo F1).
-## DESACTIVADO POR DEFECTO: la ruta normal de producción aplica la fuerza de
-## la curva digresiva sin recortar. Cuando se activa (solo diagnóstico), recorta
-## el componente damper si su impulso invertiría la velocidad relativa del
-## tick: |F| <= fracción*|vel|/(dt*(1/M+1/m)).
-## Solo recorta el damper (no elástico, topes ni ARB).
-## Limitación conocida: la fórmula solo usa masas traslacionales (chasis + hub);
-## ignora la inercia rotacional del chasis y el acoplamiento entre esquinas vía
-## chasis/ARB. Cualquier propuesta de activarla en producción debe validar
-## rotación del chasis y acoplamiento entre esquinas, no solo caída vertical.
-const DAMPER_IMPULSE_LIMIT_FRACTION := 0.9
+const RADIAL_BISECTION_REL_TOL := 1.0e-4
 
+# Compat: retirados los nodos, se conservan vacíos para no romper lecturas externas.
 var chassis: RigidBody3D
-var hubs: Array[RigidBody3D] = []
-var joints: Array[Generic6DOFJoint3D] = []
 var neutral_positions: Array[Vector3] = []
-## Paso 4.1: radios aportados por la simulación para la sonda de suelo que
-## decide si el coche nace en el aire (q_eq = -droop) o asentado (q_eq estático).
 var wheel_radii_m: Array[float] = [0.30, 0.30, 0.30, 0.30]
-## Paso 4.1: q_eq efectivo del último reset (ya incluye -droop si no había
-## suelo). Los consumidores deben leerlo en vez de recalcular el equilibrio.
 var last_reset_q_eq: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_deflection_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
-## Recorrido físico del hub sin clampear (H1): desplazamiento real medido
-## hub-vs-chasis antes del clamp a [-droop, +bump]. Se usa SOLO para la
-## deformación radial del neumático; el resto de consumidores del modelo de
-## suspensión siguen leyendo el recorrido limitado (`suspension.compression`).
-var compression_physical_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var radial_dissipation_w: Array[float] = [0.0, 0.0, 0.0, 0.0]
-var radial_states: Array[Dictionary] = [{ }, { }, { }, { }]
+var radial_states: Array[Dictionary] = [{}, {}, {}, {}]
 var spring_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
-## Traza de diagnóstico de impulsos (segunda prueba Fulvia 60 Hz): registro
-## por rueda y tick leído en solve(), sin efecto físico. Permite cerrar el
-## balance axial m·Δv frente a ΣJ por término entre ticks consecutivos.
-var impulse_trace: Array[Dictionary] = [{ }, { }, { }, { }]
-## Multiplicador de diagnóstico del término viscoso radial (segunda prueba):
-## 1.0 = producción (bit-idéntico). La sonda lo pone a 0.0 en una variante
-## para aislar el aporte viscoso conservando elástica, tope y unilateralidad.
-## No se reinicia en reset_at para que la sonda lo fije una vez por pasada.
 var radial_viscous_scale := 1.0
-## Paso radial implícito (Paso 1.1 Jolt fix, producción): true =
-## impulso normal unilateral del intervalo desde la deformación y velocidad
-## predichas al final del paso, aplicado al buje una sola vez por tick como
-## fuerza equivalente J/dt.
-var radial_implicit_enabled := true
-## Tolerancia relativa de convergencia de la bisección de impulso radial.
-## 1e-4 sobre el impulso (N·s) es muy por debajo de la precisión útil del
-## modelo y evita las ~48 iteraciones fijas por rueda y tick.
-const RADIAL_BISECTION_REL_TOL := 1.0e-4
-## Subpasos acoplados (quinta prueba, solo sonda): 1 = producción.
-## 3/6 = integrador diagnóstico con N subpasos por tick de Jolt a 60 Hz
-## (paso efectivo 180/360 Hz). Predice chasis (traslación) y bujes (eje de
-## guía) con las mismas leyes de fuerza, acumula impulsos con el intervalo
-## de cada subpaso y los transfiere una vez por tick a los cuerpos de Jolt.
-## La orientación y la velocidad angular se congelan en el tick; la reacción
-## de las juntas NO se predice (va al residual). Tiene precedencia sobre el
-## paso radial implícito (avisa y usa radial explícito dentro del subpaso).
-var coupled_substeps := 1
-## Fz normal por rueda y subpaso del último tick (alimenta el bucle tangencial
-## del neumático con la Fz de ese subpaso). Recorrido físico por subpaso.
 var substep_loads_n: Array = [[], [], [], []]
 var substep_defl_m: Array = [[], [], [], []]
-## Traza por subpaso del último tick (diagnóstico Q5): un dict por rueda con
-## arrays de N valores (travel, vel_rel, comp, damper, elastic, bump, arb,
-## droop, defl, Fz, loaded) más J acumulados e impulsos transferidos.
-var substep_trace: Array = []
-## Predicción de fin de tick anterior (para error predicho vs observado en el
-## siguiente solve): {tick_seq, hub_v_axial: [], chassis_v, hub_travel: []}.
-var last_predicted := {}
-## Interruptor de diagnóstico (F1): `false` = producción (curva digresiva
-## íntegra). `true` = recorte activo para comparativas controladas.
-var damper_impulse_limit_enabled := false
-## Identificador monotónico de tick Jolt leído por el solver (F3). No se
-## reinicia en reset para que el último tick previo al rescate y los primeros
-## posteriores sean comparables con un vehículo recién colocado.
 var tick_sequence: int = 0
-## Traza del último tick (§5/F3): velocidad relativa, fuerza de amortiguador
-## solicitada/aplicada, impulso y potencias. Permite comparar ticks de Jolt y
-## detectar inversión de velocidad o desfase entre cuerpos. Ver `solve()` para
-## la convención de signo y las unidades (W vs J).
-var last_tick_trace: Array[Dictionary] = [{ }, { }, { }, { }]
-var last_damper_clamped: Array[bool] = [false, false, false, false]
-## Fuerza de damper solicitada (curva digresiva) y aplicada (tras recorte
-## opcional), por rueda. `suspension.last_damper_forces_n` conserva la
-## solicitada; aquí se conserva la aplicada para la traza.
+var last_tick_trace: Array[Dictionary] = [{}, {}, {}, {}]
 var last_damper_requested_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_damper_applied_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_damper_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
-## Contador de eventos de recorte por rueda (diagnóstico F1).
-var damper_clip_events: Array[int] = [0, 0, 0, 0]
+
+# Estado canónico 1DOF.
+var q: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var u: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var m_unsprung: Array[float] = [15.0, 15.0, 15.0, 15.0]
+var apoyo_previo: Array[bool] = [false, false, false, false]
+# Predictor del tick.
+var has_pred := false
+var C_pred := Vector3.ZERO
+var R_pred := Basis.IDENTITY
+var V_pred := Vector3.ZERO
+var omega_pred := Vector3.ZERO
+var w: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var w_free: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var w_normal: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var w_cand: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var M_factor: Array = _solver_rows(10)
+var _hub_jacobian: Array = _solver_rows(3)
+var _axis_response: Array = _solver_rows(4)
+var _normal_response: Array = _solver_rows(4)
+var _normal_rows: Array = _solver_rows(4)
+var _rhs: Array[float] = _solver_rows(1)[0]
+var _response: Array[float] = _solver_rows(1)[0]
+var _w_rad: Array[float] = _solver_rows(1)[0]
+var _relative_mass: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _normal_deflection: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _normal_road_speed: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _inertia_before: Array = []
+var capture_substeps := false
+var tick_r: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var tick_e := Vector3.UP
+var tick_m_s := 1000.0
+var tick_com_local := Vector3.ZERO
+var tick_inertia_diag := Vector3(500.0, 800.0, 1200.0)
+var tick_grav := Vector3(0.0, -9.80665, 0.0)
+# Datos anclados por tick.
+var t_hit: Array[bool] = [false, false, false, false]
+var t_H0: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var t_n: Array[Vector3] = [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
+var t_delta0: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var t_road_vel: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var t_radial_state: Array[Dictionary] = [{}, {}, {}, {}]
+var t_rim_max: Array[float] = [0.05, 0.05, 0.05, 0.05]
+var t_elapsed := 0.0
+var t_h := 0.008
+# Subpaso actual.
+var s_Fz: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var s_defl: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var s_diss: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var s_Jrad: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var s_Kn: Array[float] = [1.0, 1.0, 1.0, 1.0]
+# Acumuladores del tick.
+var acc_J := Vector3.ZERO
+var acc_L := Vector3.ZERO
+var acc_Fz: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var acc_defl: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _trace_axis := Vector3.UP
+var _trace_chassis_velocity := Vector3.ZERO
+var _trace_start_hub_velocity: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var _spring_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _suspension_axial_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _contact_axial_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _contact_vertical_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _radial_impulse_ns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var acc_diss: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
-## Deformación radial desde el recorrido FÍSICO del hub (H1): con
-## `road_compression = radio - distancia` (distancia neutro-superficie) y
-## `hub_travel` = desplazamiento real del hub (sin clamp), la penetración es
-## `(road_compression - hub_travel) * cos`, nunca negativa. Ejemplo: droop
-## nominal 180 mm, hub en -210 mm y superficie compatible con centro de rueda
-## en -200 mm → road_compression = -200 mm, hub_travel = -210 mm →
-## deformación 10 mm y carga positiva. Sin penetración (p. ej. distancia que
-## deja road_compression <= hub_travel) la deformación es 0 y la carga 0.
 static func radial_deflection_from_travel(
 	road_compression_m: float,
 	hub_travel_m: float,
 	cos_angle: float
 ) -> float:
 	return maxf((float(road_compression_m) - float(hub_travel_m)) * clampf(float(cos_angle), 0.25, 1.0), 0.0)
-
-
-## Impulso radial implícito (tercera prueba, variante de sonda): raíz acotada
-## de J = dt·cos·F(δf, cf) con δf = max(0, δ0 − dt·vf), cf = −vf,
-## vf = v_libre + J/m. v en separación (+up axial, positiva al separar);
-## c en compresión (positiva al cerrar). v_libre incluye los impulsos
-## conocidos de suspensión y gravedad. F es la curva radial vigente (misma
-## elástica, tope y unilateralidad) evaluada por el llamante vía Callable.
-## Si el contacto se abre dentro del paso (δf(0) <= 0), J = 0.
-## Devuelve {impulse_ns, iterations, fallback, opening}.
-static func solve_radial_impulse(
-	hub_mass_kg: float,
-	dt_s: float,
-	cos_angle: float,
-	deflection_0: float,
-	separation_0: float,
-	known_impulse_ns: float,
-	force_at: Callable,
-) -> Dictionary:
-	var m := maxf(float(hub_mass_kg), 1.0)
-	var dt := maxf(float(dt_s), 0.00001)
-	var cos_a := clampf(float(cos_angle), 0.25, 1.0)
-	var d0 := maxf(float(deflection_0), 0.0)
-	var v_free := float(separation_0) + float(known_impulse_ns) / m
-	# Apertura dentro del paso: aun sin impulso se separaría hasta δ <= 0.
-	if d0 - dt * v_free <= 0.0:
-		return {"impulse_ns": 0.0, "iterations": 0, "fallback": false, "opening": true}
-	var lo := 0.0
-	var f_lo: float = dt * cos_a * float(force_at.call(d0 - dt * v_free, -v_free))
-	var hi: float = maxf(f_lo + m * maxf(0.0, -v_free), 1.0) + 1.0
-	var grow := 0
-	while grow < 60:
-		var v_hi := v_free + hi / m
-		var f_hi: float = dt * cos_a * float(force_at.call(maxf(d0 - dt * v_hi, 0.0), -v_hi))
-		if f_hi - hi <= 0.0:
-			break
-		hi *= 2.0
-		grow += 1
-		if hi > dt * 2000000.0:
-			return {"impulse_ns": f_lo, "iterations": grow, "fallback": true, "opening": false}
-	if grow >= 60:
-		return {"impulse_ns": f_lo, "iterations": grow, "fallback": true, "opening": false}
-	var iters := 0
-	for k in 48:
-		var mid := 0.5 * (lo + hi)
-		var v_mid := v_free + mid / m
-		var f_mid: float = dt * cos_a * float(force_at.call(maxf(d0 - dt * v_mid, 0.0), -v_mid))
-		if f_mid - mid >= 0.0:
-			lo = mid
-		else:
-			hi = mid
-		iters += 1
-		# Tolerancia relativa sobre el impulso: la bisección converge muy rápido
-		# (la curva radial es suave) y 48 iteraciones fijas eran puro gasto.
-		# Se conserva el máximo de 48 como red de seguridad.
-		if hi - lo <= RADIAL_BISECTION_REL_TOL * maxf(absf(lo), 1.0):
-			break
-	return {"impulse_ns": 0.5 * (lo + hi), "iterations": iters, "fallback": false, "opening": false}
-
-
-## Masa efectiva traslacional+rotacional del chasis proyectada sobre +Y en el anclaje local.
-static func effective_corner_mass_kg(chassis_body: RigidBody3D, local_mount: Vector3) -> float:
-	var m := maxf(float(chassis_body.mass), 1.0)
-	var r := local_mount - chassis_body.center_of_mass
-	var rxu := r.cross(Vector3.UP)
-	var iner := chassis_body.inertia
-	var ix := maxf(float(iner.x), m * 0.25)
-	var iz := maxf(float(iner.z), m * 0.25)
-	var inv_m := 1.0 / m + (rxu.x * rxu.x) / ix + (rxu.z * rxu.z) / iz
-	return 1.0 / maxf(inv_m, 1.0e-6)
-
-
-## Restricción unilateral de llanta (P1: d >= r_rim + holgura mínima) resuelta en
-## velocidad por impulso no negativo + sesgo suave de Baumgarte.
-## Al acercarse a `bump_limit_m`, acopla la masa efectiva de esa esquina del chasis
-## y reparte el impulso entre buje y chasis sin teletransportar cuerpos de Jolt.
-static func compute_unilateral_rim_constraint(
-	wheel_radius_m: float,
-	rim_radius_m: float,
-	deflection_m: float,
-	cos_angle: float,
-	dt_s: float,
-	hub_mass_kg: float,
-	corner_chassis_mass_kg: float,
-	hub_vel_ax: float,
-	anchor_vel_ax: float,
-	comp_physical_m: float,
-	bump_limit_m: float,
-	known_hub_accel_ax: float,
-	known_tire_normal_n: float,
-	gravity_ax: float,
-	max_force_n: float,
-) -> Dictionary:
-	var dt := maxf(float(dt_s), 0.00001)
-	var cos_a := clampf(float(cos_angle), 0.25, 1.0)
-	var rim_r := clampf(float(rim_radius_m), float(wheel_radius_m) * 0.40, float(wheel_radius_m) - 0.03)
-	var sidewall := maxf(float(wheel_radius_m) - rim_r, 0.03)
-	var min_rubber_m := clampf(sidewall * 0.12, 0.010, 0.022)
-	var max_deflection_m := maxf(sidewall - min_rubber_m, 0.02)
-	var signed_err := float(deflection_m) - max_deflection_m
-	if signed_err < -maxf(25.0 * dt * cos_a, 0.05):
-		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
-	var beta := 0.18
-	var v_target_ax := (
-		minf(2.0, (beta / dt) * signed_err) / cos_a
-		if signed_err >= 0.0
-		else signed_err / (dt * cos_a)
-	)
-	var hub_m := maxf(float(hub_mass_kg), 1.0)
-	var corner_m := maxf(float(corner_chassis_mass_kg), hub_m)
-	var bump_blend := clampf((float(comp_physical_m) - (float(bump_limit_m) - 0.015)) / 0.020, 0.0, 1.0)
-	var v_hub_after := float(hub_vel_ax) + float(known_hub_accel_ax) * dt
-	var m_coupled := hub_m + corner_m
-	var v_pair_0 := (hub_m * float(hub_vel_ax) + corner_m * float(anchor_vel_ax)) / m_coupled
-	var a_pair_known := (float(known_tire_normal_n) * cos_a) / m_coupled + float(gravity_ax)
-	var v_pair_after := v_pair_0 + a_pair_known * dt
-	var v_after := lerpf(v_hub_after, v_pair_after, bump_blend)
-	if v_after >= v_target_ax:
-		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
-	var m_eff := hub_m + corner_m * bump_blend
-	var dv_needed := v_target_ax - v_after
-	var j_total_ax := minf(m_eff * dv_needed, maxf(float(max_force_n), 0.0) * cos_a * dt)
-	if j_total_ax <= 1.0e-6:
-		return {"active": false, "extra_hub_force_n": 0.0, "extra_chassis_force_n": 0.0, "extra_total_normal_n": 0.0}
-	var dv_clamped := j_total_ax / m_eff
-	var f_hub_ax := (hub_m * dv_clamped) / dt
-	var f_chas_ax := (corner_m * bump_blend * dv_clamped) / dt
-	var f_total_normal := (f_hub_ax + f_chas_ax) / cos_a
-	return {
-		"active": true,
-		"extra_hub_force_n": f_hub_ax,
-		"extra_chassis_force_n": f_chas_ax,
-		"extra_total_normal_n": f_total_normal,
-	}
-
-
-func substep_count() -> int:
-	return maxi(1, int(coupled_substeps))
-
-
-func substep_load(wheel: int, k: int) -> float:
-	if wheel < 0 or wheel >= substep_loads_n.size():
-		return 0.0
-	var arr: Array = substep_loads_n[wheel]
-	if arr.is_empty():
-		return 0.0
-	return float(arr[clampi(k, 0, arr.size() - 1)])
 
 
 func substep_defl(wheel: int, k: int) -> float:
@@ -316,14 +136,6 @@ func substep_defl(wheel: int, k: int) -> float:
 	return float(arr[clampi(k, 0, arr.size() - 1)])
 
 
-## Activa/desactiva el recorte de diagnóstico y reinicia contadores.
-func set_damper_impulse_limit(enabled: bool) -> void:
-	damper_impulse_limit_enabled = enabled
-	damper_clip_events = [0, 0, 0, 0]
-	for i in 4:
-		last_damper_clamped[i] = false
-
-
 func create(
 	body: RigidBody3D,
 	positions: Array[Vector3],
@@ -333,90 +145,34 @@ func create(
 ) -> void:
 	chassis = body
 	neutral_positions.assign(positions)
+	m_unsprung = [15.0, 15.0, 15.0, 15.0]
+	for i in 4:
+		if i < masses.size():
+			m_unsprung[i] = maxf(float(masses[i]), 1.0)
 	if wheel_radii.size() == 4:
 		wheel_radii_m.assign(wheel_radii)
-	for i in 4:
-		var hub := RigidBody3D.new()
-		hub.name = "UnsprungHub_" + str(i)
-		hub.top_level = true
-		hub.mass = masses[i]
-		hub.collision_layer = 0
-		hub.collision_mask = 0
-		hub.can_sleep = false
-		hub.linear_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
-		hub.angular_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
-		hub.linear_damp = 0.0
-		hub.angular_damp = 0.0
-		# Condicionar la inercia rotacional del buje (Jolt Constraint Stability):
-		# los 3 ejes angulares están bloqueados en Generic6DOFJoint3D; un radio mayor
-		# evita un ratio de inercia ~10,000:1 frente al chasis sin alterar hub.mass.
-		var shape_node := CollisionShape3D.new()
-		var shape := SphereShape3D.new()
-		shape.radius = 0.45
-		shape_node.shape = shape
-		hub.inertia = Vector3.ONE * (maxf(masses[i], 1.0) * 0.25)
-		hub.add_child(shape_node)
-		body.add_child(hub)
-		hub.global_transform = body.global_transform * Transform3D(Basis.IDENTITY, positions[i])
-		hubs.append(hub)
-		var joint := Generic6DOFJoint3D.new()
-		joint.name = "SuspensionGuide_" + str(i)
-		body.add_child(joint)
-		joint.global_transform = hub.global_transform
-		joint.node_a = joint.get_path_to(body)
-		joint.node_b = joint.get_path_to(hub)
-		# Eje Y: guía vertical libre en el recorrido. Resto de ejes: límites
-		# efectivos inventariados (§5) para que la junta no aporte grados de
-		# libertad ocultos.
-		joint.set_flag_y(
-			Generic6DOFJoint3D.FLAG_ENABLE_LINEAR_LIMIT, true
-		)
-		joint.set_param_y(
-			Generic6DOFJoint3D.PARAM_LINEAR_LOWER_LIMIT,
-			-float(suspension.axle_parameters[i].droop_m) - JOINT_LIMIT_MARGIN_M,
-		)
-		joint.set_param_y(
-			Generic6DOFJoint3D.PARAM_LINEAR_UPPER_LIMIT,
-			float(suspension.axle_parameters[i].bump_m) + JOINT_LIMIT_MARGIN_M,
-		)
-		joint.set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_LINEAR_LIMIT, true)
-		joint.set_param_x(Generic6DOFJoint3D.PARAM_LINEAR_LOWER_LIMIT, 0.0)
-		joint.set_param_x(Generic6DOFJoint3D.PARAM_LINEAR_UPPER_LIMIT, 0.0)
-		joint.set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_LINEAR_LIMIT, true)
-		joint.set_param_z(Generic6DOFJoint3D.PARAM_LINEAR_LOWER_LIMIT, 0.0)
-		joint.set_param_z(Generic6DOFJoint3D.PARAM_LINEAR_UPPER_LIMIT, 0.0)
-		joint.set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
-		joint.set_param_x(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, 0.0)
-		joint.set_param_x(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, 0.0)
-		joint.set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
-		joint.set_param_y(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, 0.0)
-		joint.set_param_y(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, 0.0)
-		joint.set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
-		joint.set_param_z(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, 0.0)
-		joint.set_param_z(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, 0.0)
-		joints.append(joint)
+	reset_at(body.global_transform, suspension)
 	print(
 		"RALLY_UNSPRUNG_READY ",
 		JSON.stringify(
-			{ "hub_masses_kg": masses, "sprung_mass_kg": body.mass, "hub_bodies": hubs.size() }
+			{"hub_masses_kg": masses, "sprung_mass_kg": body.mass, "mode": "1dof_scalar"}
 		),
 	)
 
 
 func reset() -> void:
-	reset_at(chassis.global_transform)
+	if chassis != null and is_instance_valid(chassis):
+		reset_at(chassis.global_transform, null)
+	else:
+		q = [0.0, 0.0, 0.0, 0.0]
+		u = [0.0, 0.0, 0.0, 0.0]
+		has_pred = false
 
 
 func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> void:
-	# Paso 4.1 Jolt fix: pre-asentar en el equilibrio estático q_eq donde el
-	# muelle soporta el peso suspendido de la esquina (Fs(q_eq)=W_sprung).
-	# Si no hay suelo alcanzable bajo la rueda (coche nacido en el aire),
-	# q_eq cae a -droop (extensión máxima). Sin suspensión se usa q=0.
-	# El origen local neutro de la junta sigue siendo q=0: NO se reconstruyen
-	# las juntas tras pre-asentar.
+	if suspension != null:
+		suspension.clear_transient()
 	var q_eq: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	# La sonda de suelo necesita el space state; fuera de un tick se obtiene
-	# directamente del espacio físico del chasis (si está en escena).
 	var space_state: PhysicsDirectSpaceState3D = null
 	if chassis != null and is_instance_valid(chassis) and chassis.is_inside_tree():
 		var world := chassis.get_world_3d()
@@ -427,857 +183,616 @@ func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> v
 	if chassis != null and is_instance_valid(chassis):
 		excluded.append(chassis.get_rid())
 		collision_mask = chassis.collision_mask
-	for hub in hubs:
-		if is_instance_valid(hub):
-			excluded.append(hub.get_rid())
 	var up := pose.basis.y.normalized()
 	if suspension != null and suspension.axle_parameters.size() == 4:
-		for w in 4:
-			var p: Dictionary = suspension.axle_parameters[w]
-			q_eq[w] = VehicleSuspensionModel.equilibrium_travel_m(p)
-			# Sonda Paso 4.1: radio + droop + margen. Sin geometría debajo,
-			# la esquina arranca en extensión máxima en vez de asentada.
+		for w_i in 4:
+			var p: Dictionary = suspension.axle_parameters[w_i]
+			q_eq[w_i] = VehicleSuspensionModel.equilibrium_travel_m(p)
 			if space_state != null:
 				var droop := maxf(float(p.get("droop_m", 0.18)), 0.0)
-				var radius := wheel_radii_m[w] if w < wheel_radii_m.size() else 0.30
-				var from := pose * neutral_positions[w]
+				var radius := wheel_radii_m[w_i] if w_i < wheel_radii_m.size() else 0.30
+				var from: Vector3 = pose * neutral_positions[w_i]
 				if not has_ground_support_at(space_state, from, -up, radius + droop + 0.03, collision_mask, excluded):
-					q_eq[w] = -droop
+					q_eq[w_i] = -droop
 	last_reset_q_eq = q_eq.duplicate()
-	for i in hubs.size():
-		var qi := q_eq[i] if i < q_eq.size() else 0.0
-		var target_transform := pose * Transform3D(
-			Basis.IDENTITY,
-			neutral_positions[i] + Vector3(0.0, qi, 0.0),
-		)
-		hubs[i].global_transform = target_transform
-		hubs[i].linear_velocity = Vector3.ZERO
-		hubs[i].angular_velocity = Vector3.ZERO
-		hubs[i].constant_force = Vector3.ZERO
-		# Paso 4.2: actualizar servidor físico Y nodo visual.
-		var hub_state := PhysicsServer3D.body_get_direct_state(hubs[i].get_rid())
-		if hub_state != null:
-			hub_state.transform = target_transform
-			hub_state.linear_velocity = Vector3.ZERO
-			hub_state.angular_velocity = Vector3.ZERO
-		hubs[i].reset_physics_interpolation()
+	for i in 4:
+		q[i] = q_eq[i]
+		u[i] = 0.0
+
 		radial_deflection_m[i] = 0.0
-		# Paso 4.2: igualar historial para que la derivada del amortiguador
-		# sea 0.0 en el primer tick.
-		compression_physical_m[i] = qi
 		radial_dissipation_w[i] = 0.0
-		radial_states[i] = { }
-		impulse_trace[i] = { }
-		if suspension != null and suspension.axle_parameters.size() == 4:
-			suspension.compression[i] = clampf(qi, -float(suspension.axle_parameters[i].droop_m), float(suspension.axle_parameters[i].bump_m))
+		radial_states[i] = {}
+		apoyo_previo[i] = false
+		spring_forces_n[i] = 0.0
+
+		acc_Fz[i] = 0.0
+		acc_defl[i] = 0.0
+		acc_diss[i] = 0.0
+		last_tick_trace[i] = {}
+		last_damper_requested_n[i] = 0.0
+		last_damper_applied_n[i] = 0.0
+		last_damper_impulse_ns[i] = 0.0
+		s_Jrad[i] = 0.0
+
+		s_Fz[i] = 0.0
+		s_defl[i] = 0.0
+		s_diss[i] = 0.0
+	if suspension != null and suspension.axle_parameters.size() == 4:
+		for i in 4:
+			var p2: Dictionary = suspension.axle_parameters[i]
+			var qc := clampf(q[i], -float(p2.get("droop_m", 0.18)), float(p2.get("bump_m", 0.22)))
+			suspension.compression[i] = qc
 			suspension.compression_velocity[i] = 0.0
-			suspension.filtered_arb_travel[i] = suspension.compression[i]
+			suspension.filtered_arb_travel[i] = qc
 			suspension.initialized[i] = true
 			suspension.previous_samples[i] = true
-		if i < spring_forces_n.size():
-			spring_forces_n[i] = 0.0
-		if i < last_tick_trace.size():
-			last_tick_trace[i] = { }
-		if i < last_damper_clamped.size():
-			last_damper_clamped[i] = false
-		if i < last_damper_requested_n.size():
-			last_damper_requested_n[i] = 0.0
-		if i < last_damper_applied_n.size():
-			last_damper_applied_n[i] = 0.0
-		if i < last_damper_impulse_ns.size():
-			last_damper_impulse_ns[i] = 0.0
-		if i < damper_clip_events.size():
-			damper_clip_events[i] = 0
-	# Nota §2: el estado transitorio de la suspensión (recorrido, velocidad,
-	# contactos, ARB filtrado) lo limpia FordRallyVehicleSimulation
-	# (reset_dynamics / clear_teleport_residual) junto a este reset de hubs,
-	# para que la primera muestra tras teletransporte no arrastre el estado
-	# previo.
-	# Paso 4.2: reset_physics_interpolation del chasis tras teletransportar.
-	if chassis != null and is_instance_valid(chassis):
-		chassis.reset_physics_interpolation()
-
-
-func sync_freeze() -> void:
-	for hub in hubs:
-		hub.freeze = chassis.freeze
-
-
-## Integrador acoplado por subpasos (quinta prueba, solo sonda).
-## N subpasos por tick de Jolt (h = dt/N; N=3 → 180 Hz, N=6 → 360 Hz).
-## Predice chasis (traslación) y bujes (restringidos al eje de la guía) con
-## las mismas leyes de fuerza de producción (muelle, digresiva, topes, ARB,
-## radial explícito + tope de llanta, unilateralidad). Soporte: consulta
-## ShapeCast del tick congelada + actualización analítica de la distancia
-## desde la pose predicha; apertura declarada cuando la deflexión llega a 0;
-## el recontacto se resuelve en la consulta del tick siguiente (retardo
-## acotado a 1 tick, igual que producción). Orientación y velocidad angular
-## congeladas en el tick; la reacción de las juntas NO se predice (residual).
-## Acumula impulsos lineales (chasis y bujes) y angulares (chasis) con el
-## intervalo h y los transfiere una vez por tick como fuerza/par equivalente.
-## La gravedad se incluye en la predicción pero NO en la transferencia
-## (Jolt la aplica por su cuenta); el residual la descuenta analíticamente.
-## Tiene precedencia sobre radial_implicit_enabled (avisa y usa explícito).
-func solve_coupled(
-	state: PhysicsDirectBodyState3D,
-	suspension: VehicleSuspensionModel,
-	contacts: Array[Dictionary],
-	radii: Array[float],
-	domains: Dictionary,
-	thermal: VehicleThermalModel,
-) -> Array[float]:
-	var dt := maxf(state.step, 0.00001)
-	var n := maxi(2, int(coupled_substeps))
-	var h := dt / float(n)
-	tick_sequence += 1
-	if radial_implicit_enabled:
-		push_warning("solve_coupled: radial implícito subordinado al subpaso explícito")
-	var up := state.transform.basis.y.normalized()
-	var R0: Basis = state.transform.basis
-	var Pc0: Vector3 = state.transform.origin
-	var omega: Vector3 = state.angular_velocity
-	var com_l: Vector3 = chassis.center_of_mass
-	var chassis_mass := maxf(chassis.mass, 1.0)
-	var grav_mag := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.80665))
-	var grav := Vector3(0.0, -grav_mag, 0.0)
-	var grav_axial := grav.dot(up)
-	var tires: Dictionary = domains.get("tires", { }).get("tires", { })
-	# Estado medido al inicio (resincronización desde Jolt cada tick).
-	var hub_mass: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var hub_pos0: Array[Vector3] = []
-	var hub_vel0: Array[Vector3] = []
-	var s_meas: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var v_meas: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	for i in 4:
-		hub_mass[i] = maxf(hubs[i].mass, 1.0)
-		var hs := PhysicsServer3D.body_get_direct_state(hubs[i].get_rid())
-		var hp: Vector3 = hs.transform.origin if hs != null else hubs[i].global_position
-		var hv: Vector3 = hs.linear_velocity if hs != null else hubs[i].linear_velocity
-		hub_pos0.append(hp)
-		hub_vel0.append(hv)
-		var neutral0: Vector3 = state.transform * neutral_positions[i]
-		s_meas[i] = (hp - neutral0).dot(up)
-		var anchor_v0: Vector3 = state.linear_velocity + omega.cross(neutral0 - (state.transform * com_l))
-		v_meas[i] = (hv - anchor_v0).dot(up)
-		compression_physical_m[i] = s_meas[i]
-		suspension.compression[i] = clampf(s_meas[i], -float(suspension.axle_parameters[i].droop_m), float(suspension.axle_parameters[i].bump_m))
-		suspension.compression_velocity[i] = v_meas[i]
-		suspension.filtered_arb_travel[i] = suspension.compression[i]
-		suspension.initialized[i] = true
-		suspension.previous_samples[i] = true
-		suspension.geometric_contact[i] = bool(contacts[i].get("hit", false))
-		suspension.contact_active[i] = bool(contacts[i].get("hit", false))
-	# Congelado del tick: suportes, normales y estado térmico.
-	var hit: Array[bool] = [false, false, false, false]
-	var nrm: Array[Vector3] = [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
-	var cos_a: Array[float] = [1.0, 1.0, 1.0, 1.0]
-	var dist_0: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var road_vel: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
-	var press_kpa: Array[float] = [180.0, 180.0, 180.0, 180.0]
-	var carc_c: Array[float] = [25.0, 25.0, 25.0, 25.0]
-	var opt_c: Array[float] = [60.0, 60.0, 60.0, 60.0]
-	for i in 4:
-		hit[i] = bool(contacts[i].get("hit", false))
-		if hit[i]:
-			var nn: Vector3 = (contacts[i].normal as Vector3).normalized()
-			nrm[i] = nn
-			cos_a[i] = clampf(nn.dot(up), 0.25, 1.0)
-			dist_0[i] = float(contacts[i].get("distance", 0.0))
-			var collider: Object = contacts[i].get("collider")
-			if collider is RigidBody3D:
-				var rb := collider as RigidBody3D
-				road_vel[i] = rb.linear_velocity + rb.angular_velocity.cross((contacts[i].position as Vector3) - rb.global_position)
-		var ts: Dictionary = thermal.get_tire_thermal_state_snapshot(i)
-		press_kpa[i] = float(ts.get("pressure_kpa_gauge", 180.0))
-		carc_c[i] = float(ts.get("carcass_c", 25.0))
-		opt_c[i] = float(thermal.optimal_carcass_temperature(i))
-	# Estado predicho (local al tick).
-	var Pc: Vector3 = Pc0
-	var Vc: Vector3 = state.linear_velocity
-	var zh: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var vh: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	for i in 4:
-		zh[i] = hub_pos0[i].dot(up)
-		vh[i] = hub_vel0[i].dot(up)
-	# Acumuladores de impulso (sin gravedad; Jolt la aplica).
-	var J_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var J_chas_lin := Vector3.ZERO
-	var J_ang := Vector3.ZERO
-	var J_susp_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var J_rad_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var pre_anchor_axial: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	for i in 4:
-		var anch0: Vector3 = state.transform * neutral_positions[i]
-		var com0: Vector3 = state.transform * com_l
-		pre_anchor_axial[i] = (state.linear_velocity + omega.cross(anch0 - com0)).dot(up)
-	var sub_rows: Array = []
-	for w in 4:
-		sub_rows.append({"travel": [], "vel_rel": [], "comp": [], "damper_app": [], "damper_req": [], "elastic": [], "bump": [], "arb": [], "droop": [], "defl": [], "Fz": [], "loaded": []})
-	var any_loaded := [false, false, false, false]
-	var mean_F: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_internal: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_comp: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_vel: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_defl: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_F: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_elastic: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_damp_app: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_damp_req: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_bump: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_arb: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var last_droop: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var loads_acc: Array = [[], [], [], []]
-	var defls_acc: Array = [[], [], [], []]
-	var clamp_events := [0, 0, 0, 0]
-	for k in n:
-		# Anclajes predichos y cinemática relativa axial.
-		var s_pred: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var u_rel: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var anchor_ax: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var comp_in: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		for i in 4:
-			var anch: Vector3 = Pc + R0 * neutral_positions[i]
-			var com_w: Vector3 = Pc + R0 * com_l
-			var anch_v: Vector3 = Vc + omega.cross(anch - com_w)
-			anchor_ax[i] = anch_v.dot(up)
-			s_pred[i] = zh[i] - anch.dot(up)
-			u_rel[i] = vh[i] - anchor_ax[i]
-			var dl := -float(suspension.axle_parameters[i].droop_m)
-			var bl := float(suspension.axle_parameters[i].bump_m)
-			comp_in[i] = clampf(s_pred[i], dl, bl)
-			suspension.compression[i] = comp_in[i]
-			suspension.compression_velocity[i] = u_rel[i]
-			suspension.filtered_arb_travel[i] = comp_in[i]
-		var _hm: Array = [hub_mass[0], hub_mass[1], hub_mass[2], hub_mass[3]]
-		var _cm: Array = [0.0, 0.0, 0.0, 0.0]
-		for _ci2 in 4:
-			_cm[_ci2] = effective_corner_mass_kg(chassis, neutral_positions[_ci2])
-		var forces: Array = suspension.suspension_forces_implicit(h, _hm, _cm)
-		for i in 4:
-			var p: Dictionary = suspension.axle_parameters[i]
-			var elastic_f: float = suspension.last_elastic_forces_n[i]
-			var damp_raw: float = suspension.last_damper_forces_n[i]
-			var bump_f: float = suspension.last_bump_forces_n[i]
-			var arb_f: float = float(forces[i]) - elastic_f - damp_raw - bump_f
-			var damp_app := damp_raw
-			var clamped := false
-			if damper_impulse_limit_enabled and absf(u_rel[i]) > 1.0e-6 and absf(damp_raw) > 1.0e-9:
-				var sum_inv := 1.0 / chassis_mass + 1.0 / hub_mass[i]
-				var max_damp := DAMPER_IMPULSE_LIMIT_FRACTION * absf(u_rel[i]) / (h * sum_inv)
-				if absf(damp_raw) > max_damp:
-					damp_app = signf(damp_raw) * max_damp
-					clamped = true
-					clamp_events[i] = int(clamp_events[i]) + 1
-			var droop_delta := 0.0
-			if comp_in[i] < -float(p.droop_m) + 0.025:
-				var pen := (-float(p.droop_m) + 0.025) - comp_in[i]
-				droop_delta = -(float(p.spring_rate) * 6.0 * pen - float(p.rebound_damping) * 2.5 * minf(u_rel[i], 0.0))
-			var internal: float = float(forces[i]) + (damp_app - damp_raw) + droop_delta
-			# Radial explícito de producción sobre el estado predicho.
-			var defl := 0.0
-			var F_n := 0.0
-			var damp_c := 0.0
-			var rim_f := 0.0
-			var elas_f := 0.0
-			var visc_f := 0.0
-			var rim_radius_sub := float(radii[i]) * 0.58
-			if hit[i]:
-				var dist_pred: float = dist_0[i] - (Pc - Pc0).dot(up)
-				var road_comp: float = float(radii[i]) - dist_pred
-				defl = maxf((road_comp - s_pred[i]) * cos_a[i], 0.0)
-				var cspeed := clampf(-(u_rel[i] - road_vel[i].dot(up)) * cos_a[i], -12.0, 12.0)
-				var axle_str := "front" if i < 2 else "rear"
-				var radial := TireRadialModel.evaluate(tires, axle_str, press_kpa[i], carc_c[i], hub_mass[i], defl, cspeed, opt_c[i], float(radial_viscous_scale))
-				F_n = maxf(float(radial.force_n), 0.0)
-				rim_radius_sub = float(radial.get("rim_radius_m", rim_radius_sub))
-				damp_c = float(radial.get("damping_ns_m", 0.0))
-				rim_f = float(radial.get("rim_stop_force_n", 0.0))
-				var eff := cspeed if cspeed >= 0.0 else cspeed * 0.45
-				visc_f = damp_c * clampf(eff, -8.0, 8.0) * float(radial_viscous_scale)
-				if F_n > 0.0 and defl > 0.0:
-					elas_f = F_n - visc_f
-				radial_states[i] = radial
-				radial_dissipation_w[i] = float(radial.get("dissipation_w", 0.0))
-			# Dinámica predicha (semi-implícita): el buje solo se mueve en el
-			# eje de la guía; el chasis solo traslada (rotación congelada).
-			var rad_hub_ax := F_n * cos_a[i]
-			var f_hub_ax := -internal + rad_hub_ax
-			var lat_vec: Vector3 = nrm[i] * F_n - up * (F_n * cos_a[i])
-			var f_chas: Vector3 = up * internal + lat_vec
-			if hit[i]:
-				var rim_sub := compute_unilateral_rim_constraint(
-					float(radii[i]),
-					rim_radius_sub,
-					defl,
-					cos_a[i],
-					h,
-					hub_mass[i],
-					effective_corner_mass_kg(chassis, neutral_positions[i]),
-					vh[i] - road_vel[i].dot(up),
-					anchor_ax[i] - road_vel[i].dot(up),
-					s_pred[i],
-					float(p.bump_m),
-					f_hub_ax / hub_mass[i] + grav_axial,
-					F_n,
-					grav_axial,
-					chassis_mass * grav_mag * 8.0,
-				)
-				if bool(rim_sub.get("active", false)):
-					var ex_hub_ax := float(rim_sub["extra_hub_force_n"])
-					var ex_chas_ax := float(rim_sub["extra_chassis_force_n"])
-					var ex_norm := float(rim_sub["extra_total_normal_n"])
-					rad_hub_ax += ex_hub_ax
-					f_hub_ax += ex_hub_ax
-					f_chas += up * ex_chas_ax + (nrm[i] * ex_norm - up * (ex_norm * cos_a[i]))
-					F_n += ex_norm
-			vh[i] = vh[i] + (f_hub_ax / hub_mass[i] + grav_axial) * h
-			zh[i] = zh[i] + vh[i] * h
-			Vc = Vc + (f_chas / chassis_mass + grav) * h
-			Pc = Pc + Vc * h
-			var mount_k: Vector3 = Pc + R0 * neutral_positions[i]
-			var com_k: Vector3 = Pc + R0 * com_l
-			J_hub[i] = float(J_hub[i]) + f_hub_ax * h
-			J_susp_acc[i] = float(J_susp_acc[i]) + (-internal) * h
-			J_rad_acc[i] = float(J_rad_acc[i]) + rad_hub_ax * h
-			J_chas_lin = J_chas_lin + f_chas * h
-			J_ang = J_ang + (mount_k - com_k).cross(f_chas) * h
-			mean_F[i] = float(mean_F[i]) + F_n
-			if F_n > 0.0:
-				any_loaded[i] = true
-			(sub_rows[i] as Dictionary)["travel"].append(s_pred[i])
-			(sub_rows[i] as Dictionary)["vel_rel"].append(u_rel[i])
-			(sub_rows[i] as Dictionary)["comp"].append(comp_in[i])
-			(sub_rows[i] as Dictionary)["damper_app"].append(damp_app)
-			(sub_rows[i] as Dictionary)["damper_req"].append(damp_raw)
-			(sub_rows[i] as Dictionary)["elastic"].append(elastic_f)
-			(sub_rows[i] as Dictionary)["bump"].append(bump_f)
-			(sub_rows[i] as Dictionary)["arb"].append(arb_f)
-			(sub_rows[i] as Dictionary)["droop"].append(droop_delta)
-			(sub_rows[i] as Dictionary)["defl"].append(defl)
-			(sub_rows[i] as Dictionary)["Fz"].append(F_n)
-			(sub_rows[i] as Dictionary)["loaded"].append(F_n > 0.0)
-			(loads_acc[i] as Array).append(F_n)
-			(defls_acc[i] as Array).append(defl)
-			last_internal[i] = internal
-			last_comp[i] = comp_in[i]
-			last_vel[i] = u_rel[i]
-			last_defl[i] = defl
-			last_F[i] = F_n
-			last_elastic[i] = elastic_f
-			last_damp_app[i] = damp_app
-			last_damp_req[i] = damp_raw
-			last_bump[i] = bump_f
-			last_arb[i] = arb_f
-			last_droop[i] = droop_delta
-			last_damper_requested_n[i] = damp_raw
-			last_damper_applied_n[i] = damp_app
-			last_damper_clamped[i] = clamped or bool(last_damper_clamped[i])
-			if clamped:
-				damper_clip_events[i] = int(damper_clip_events[i]) + 1
-			last_damper_impulse_ns[i] = damp_app * h
-	# Transferencia única por tick como fuerza/par equivalente J/dt.
-	for i in 4:
-		var hub := hubs[i]
-		var hs := PhysicsServer3D.body_get_direct_state(hub.get_rid())
-		var f_eq: Vector3 = up * (float(J_hub[i]) / dt)
-		if hs != null:
-			hs.apply_central_force(f_eq)
-		else:
-			hub.apply_central_force(f_eq)
-	state.apply_central_force(J_chas_lin / dt)
-	state.apply_torque(J_ang / dt)
-	# Publicación de fin de tick (último subpaso) para trazas y vehículo.
-	var normal_loads: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	for i in 4:
-		suspension.compression[i] = last_comp[i]
-		suspension.compression_velocity[i] = last_vel[i]
-		suspension.filtered_arb_travel[i] = last_comp[i]
-		compression_physical_m[i] = zh[i] - (Pc + R0 * neutral_positions[i]).dot(up)
-		radial_deflection_m[i] = last_defl[i]
-		spring_forces_n[i] = last_internal[i]
-		suspension.last_elastic_forces_n[i] = last_elastic[i]
-		suspension.last_damper_forces_n[i] = last_damp_req[i]
-		suspension.last_bump_forces_n[i] = last_bump[i]
-		mean_F[i] = float(mean_F[i]) / float(n)
-		normal_loads[i] = mean_F[i]
-		suspension.contact_active[i] = mean_F[i] > 0.0
-		substep_loads_n[i] = (loads_acc[i] as Array).duplicate()
-		substep_defl_m[i] = (defls_acc[i] as Array).duplicate()
-		var tr: Dictionary = impulse_trace[i]
-		tr["tick_seq"] = tick_sequence
-		tr["dt_s"] = dt
-		tr["hub_mass_kg"] = hub_mass[i]
-		tr["up"] = [up.x, up.y, up.z]
-		tr["pre_hub_vel_axial"] = hub_vel0[i].dot(up)
-		tr["pre_anchor_vel_axial"] = pre_anchor_axial[i]
-		tr["pre_chassis_vel_axial"] = state.linear_velocity.dot(up)
-		tr["hit"] = hit[i]
-		tr["contact_loaded_final"] = mean_F[i] > 0.0
-		tr["deflection_m"] = last_defl[i]
-		tr["radial_force_n"] = last_F[i]
-		tr["radial_F_mean_n"] = mean_F[i]
-		tr["radial_J_imp_ns"] = float(J_rad_acc[i])
-		tr["susp_elastic_n"] = last_elastic[i]
-		tr["susp_damper_req_n"] = last_damp_req[i]
-		tr["susp_damper_app_n"] = last_damp_app[i]
-		tr["susp_bump_n"] = last_bump[i]
-		tr["susp_arb_n"] = last_arb[i]
-		tr["susp_droop_n"] = last_droop[i]
-		tr["susp_internal_n"] = last_internal[i]
-		tr["hub_susp_axial_n"] = 0.0
-		tr["hub_radial_axial_n"] = 0.0
-		tr["hub_gravity_axial_n"] = grav_axial * hub_mass[i]
-		tr["J_susp_ns"] = float(J_susp_acc[i])
-		tr["J_radial_ns"] = float(J_rad_acc[i])
-		tr["J_gravity_ns"] = grav_axial * hub_mass[i] * dt
-		tr["J_sum_known_ns"] = float(J_susp_acc[i]) + float(J_rad_acc[i]) + grav_axial * hub_mass[i] * dt
-		tr["substep_mode"] = true
-		tr["substep_n"] = n
-	# Traza por subpaso + predicción para el error del tick siguiente.
-	substep_trace = [{"tick_seq": tick_sequence, "dt": dt, "h": h, "rows": sub_rows, "J_chassis_lin": [J_chas_lin.x, J_chas_lin.y, J_chas_lin.z], "J_chassis_ang": [J_ang.x, J_ang.y, J_ang.z]}]
-	var pred_hub_v: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var pred_travel: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	for i in 4:
-		var anch_end: Vector3 = Pc + R0 * neutral_positions[i]
-		pred_hub_v[i] = vh[i]
-		pred_travel[i] = zh[i] - anch_end.dot(up)
-	# Error predicho vs observado (usa la predicción del tick anterior).
-	if not last_predicted.is_empty() and int(last_predicted.get("tick_seq", -2)) == tick_sequence - 1:
-		var pv: Array = last_predicted.get("hub_v_axial", [])
-		var pcv: float = float(last_predicted.get("chassis_v_axial", 0.0))
-		var pt: Array = last_predicted.get("hub_travel", [])
-		for i in 4:
-			var tr2: Dictionary = impulse_trace[i]
-			tr2["pred_err_hub_v"] = v_meas[i] - float(pv[i] if i < pv.size() else 0.0)
-			tr2["pred_err_chassis_v"] = state.linear_velocity.dot(up) - pcv
-			tr2["pred_err_hub_travel"] = s_meas[i] - float(pt[i] if i < pt.size() else 0.0)
-	last_predicted = {
-		"tick_seq": tick_sequence,
-		"hub_v_axial": pred_hub_v.duplicate(),
-		"chassis_v_axial": Vc.dot(up),
-		"hub_travel": pred_travel.duplicate(),
-	}
-	# Traza comparable por tick Jolt (convención §5/F3).
-	for i in 4:
-		last_tick_trace[i] = {
-			"tick_id": tick_sequence,
-			"dt_s": dt,
-			"chassis_pos": [state.transform.origin.x, state.transform.origin.y, state.transform.origin.z],
-			"chassis_vel": [state.linear_velocity.x, state.linear_velocity.y, state.linear_velocity.z],
-			"chassis_angvel": [state.angular_velocity.x, state.angular_velocity.y, state.angular_velocity.z],
-			"hub_pos": [hub_pos0[i].x, hub_pos0[i].y, hub_pos0[i].z],
-			"hub_vel": [hub_vel0[i].x, hub_vel0[i].y, hub_vel0[i].z],
-			"hub_direct_state": true,
-			"anchor_world": [(state.transform * neutral_positions[i]).x, (state.transform * neutral_positions[i]).y, (state.transform * neutral_positions[i]).z],
-			"relative_velocity_m_s": v_meas[i],
-			"damper_requested_n": last_damp_req[i],
-			"damper_applied_n": last_damp_app[i],
-			"damper_clamped": bool(last_damper_clamped[i]),
-			"damper_impulse_ns": last_damp_app[i] * dt,
-			"damper_power_w": last_damp_app[i] * last_vel[i],
-			"damper_work_est_j": last_damp_app[i] * last_vel[i] * dt,
-			"elastic_force_n": last_elastic[i],
-			"internal_force_n": last_internal[i],
-			"internal_impulse_ns": last_internal[i] * dt,
-		}
-	return normal_loads
-
-
-func solve(
-	state: PhysicsDirectBodyState3D,
-	suspension: VehicleSuspensionModel,
-	contacts: Array[Dictionary],
-	radii: Array[float],
-	domains: Dictionary,
-	thermal: VehicleThermalModel,
-) -> Array[float]:
-	if int(coupled_substeps) > 1:
-		return solve_coupled(state, suspension, contacts, radii, domains, thermal)
-	var up := state.transform.basis.y.normalized()
-	var com := state.transform * chassis.center_of_mass
-	var hub_states: Array[PhysicsDirectBodyState3D] = []
-	var hub_positions: Array[Vector3] = []
-	var hub_velocities: Array[Vector3] = []
-	var neutral_world: Array[Vector3] = []
-	## Pre-estado axial para la traza de impulsos (segunda prueba): velocidades
-	## proyectadas sobre el eje de guía tomado al inicio del intervalo.
-	var pre_hub_axial: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var pre_anchor_axial: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var pre_chassis_axial: float = state.linear_velocity.dot(up)
-
-	for i in 4:
-		var hub := hubs[i]
-		var h_state := PhysicsServer3D.body_get_direct_state(hub.get_rid())
-		hub_states.append(h_state)
-		var h_pos := h_state.transform.origin if h_state != null else hub.global_position
-		var h_vel := h_state.linear_velocity if h_state != null else hub.linear_velocity
-		hub_positions.append(h_pos)
-		hub_velocities.append(h_vel)
-		var neutral := state.transform * neutral_positions[i]
-		neutral_world.append(neutral)
-		var body_point_velocity := state.linear_velocity + state.angular_velocity.cross(
-			neutral - com
-		)
-		var droop_limit := -float(suspension.axle_parameters[i].droop_m)
-		var bump_limit := float(suspension.axle_parameters[i].bump_m)
-		var raw_comp := (h_pos - neutral).dot(up)
-		var raw_vel := (h_vel - body_point_velocity).dot(up)
-		pre_hub_axial[i] = h_vel.dot(up)
-		pre_anchor_axial[i] = body_point_velocity.dot(up)
-		compression_physical_m[i] = raw_comp
-		suspension.compression[i] = clampf(raw_comp, droop_limit, bump_limit)
-		suspension.compression_velocity[i] = raw_vel
-		suspension.filtered_arb_travel[i] = suspension.compression[i]
-		suspension.initialized[i] = true
-		suspension.previous_samples[i] = true
-		# Impacto geométrico (ray/ShapeCast) vs carga positiva (§1): aquí se
-		# registra el impacto geométrico; `contact_active` se resuelve abajo
-		# a carga radial positiva para conservar la semántica que consume el
-		# vehículo (neumático, ARB, HUD, vuelo).
-		suspension.geometric_contact[i] = bool(contacts[i].get("hit", false))
-		suspension.contact_active[i] = bool(contacts[i].get("hit", false))
-
-	# Paso 1.1/1.2/1.3 Jolt fix: ley semi-implícita con velocidad relativa
-	# limpia (proyectada sobre el eje, ya calculada arriba como
-	# (h_vel - body_point_velocity).dot(up)) y masa reducida
-	# m_eff = 1/(1/m_u + 1/m_s_corner). Fuerza interna total UNA SOLA VEZ:
-	# +F al chasis, -F al buje, sin recortes asimétricos.
-	# La ley explícita NO se evalúa aquí: la ruta implícita ya publica la
-	# fuerza de amortiguador solicitada (last_damper_explicit_n) para la
-	# traza. Antes se ejecutaba suspension_forces() completo solo para leer
-	# ese valor, duplicando el coste de la ley de fuerza en cada tick.
-	tick_sequence += 1
-	var dt := maxf(state.step, 0.00001)
-	var chassis_mass := maxf(chassis.mass, 1.0)
-	var _hub_m: Array = [maxf(hubs[0].mass, 1.0), maxf(hubs[1].mass, 1.0), maxf(hubs[2].mass, 1.0), maxf(hubs[3].mass, 1.0)]
-	var _corner_m: Array = [chassis_mass, chassis_mass, chassis_mass, chassis_mass]
-	for _ci in 4:
-		_corner_m[_ci] = effective_corner_mass_kg(chassis, neutral_positions[_ci])
-	spring_forces_n = suspension.suspension_forces_implicit(dt, _hub_m, _corner_m)
-	for _ci in 4:
-		last_damper_requested_n[_ci] = suspension.last_damper_explicit_n[_ci]
-	# Recorte de diagnóstico del damper (F1, §5): DESACTIVADO POR DEFECTO.
-	# Ruta normal: se aplica la fuerza semi-implícita íntegra
-	# (`suspension.last_damper_forces_n` = aplicada). Con
-	# `damper_impulse_limit_enabled = true` se recorta solo el damper si su
-	# impulso invertiría la velocidad relativa del tick:
-	# J = F*dt (+ al chasis, − al hub): dvel_rel = −J*(1/M+1/m).
-	# Sin inversión: |F| <= fracción*|vel|/(dt*(1/M+1/m)).
-	# La fórmula solo usa masas traslacionales; ver limitación en la cabecera.
-	for i in 4:
-		var rel_vel_clamp: float = suspension.compression_velocity[i]
-		var damper_raw: float = suspension.last_damper_forces_n[i]
-		# last_damper_requested_n ya guarda la explícita (traza); aquí la
-		# aplicada semi-implícita.
-		last_damper_applied_n[i] = damper_raw
-		last_damper_clamped[i] = false
-		if damper_impulse_limit_enabled and absf(rel_vel_clamp) > 1.0e-6 and absf(damper_raw) > 1.0e-9:
-			var hub_mass := maxf(hubs[i].mass, 1.0)
-			var sum_inv := 1.0 / chassis_mass + 1.0 / hub_mass
-			var max_damper := DAMPER_IMPULSE_LIMIT_FRACTION * absf(rel_vel_clamp) / (dt * sum_inv)
-			if absf(damper_raw) > max_damper:
-				var clamped := signf(damper_raw) * max_damper
-				last_damper_applied_n[i] = clamped
-				last_damper_clamped[i] = true
-				damper_clip_events[i] += 1
-		var applied: float = last_damper_applied_n[i]
-		spring_forces_n[i] += applied - damper_raw
-		last_damper_impulse_ns[i] = applied * dt
-	var normal_loads: Array[float] = [0.0, 0.0, 0.0, 0.0]
-
-	for i in 4:
-		var hub := hubs[i]
-		var h_state := hub_states[i]
-		var p: Dictionary = suspension.axle_parameters[i]
-		var droop_m := float(p.droop_m)
-		var bump_m := float(p.bump_m)
-		var comp := suspension.compression[i]
-		var rel_vel := suspension.compression_velocity[i]
-		var internal_force_n := spring_forces_n[i]
-
-		if comp < -droop_m + 0.025:
-			var droop_penetration := (-droop_m + 0.025) - comp
-			var droop_stop_k := float(p.spring_rate) * 6.0
-			var droop_stop_c := float(p.rebound_damping) * 2.5
-			internal_force_n -= droop_stop_k * droop_penetration - droop_stop_c * minf(rel_vel, 0.0)
-			spring_forces_n[i] = internal_force_n
-
-		var spring_force := up * internal_force_n
-		var mount_offset := neutral_world[i] - state.transform.origin
-		state.apply_force(spring_force, mount_offset)
-		if h_state != null:
-			h_state.apply_central_force(-spring_force)
-		else:
-			hub.apply_central_force(-spring_force)
-		# Traza comparable por tick Jolt (§5/F3). Todo lo registrado es lo que
-		# el solver leyó en ESTA llamada (mismo paso): si chasis y hub
-		# respondieran a pasos distintos se vería como velocidad relativa
-		# incoherente con el impulso.
-		# Convención de signo: eje +Y del chasis (up). `relative_velocity > 0`
-		# = compresión (el hub sube respecto al anclaje del chasis).
-		# `damper >= 0` en compresión: empuja el chasis hacia +up y el hub
-		# hacia −up (se opone al movimiento relativo; `damper` lleva el signo
-		# de `relative_velocity` en la curva digresiva).
-		# Unidades: `damper_power_w` es potencia instantánea en W
-		# (F_aplicada * vel_rel); `damper_work_est_j` es trabajo estimado del
-		# tick en J (potencia * dt, Euler explícito; no es la integración
-		# interna de Jolt). Impulsos en N·s.
-		var damper_applied: float = last_damper_applied_n[i]
-		var damper_power_w := damper_applied * rel_vel
-		last_tick_trace[i] = {
-			"tick_id": tick_sequence,
-			"dt_s": dt,
-			"chassis_pos": [state.transform.origin.x, state.transform.origin.y, state.transform.origin.z],
-			"chassis_vel": [state.linear_velocity.x, state.linear_velocity.y, state.linear_velocity.z],
-			"chassis_angvel": [state.angular_velocity.x, state.angular_velocity.y, state.angular_velocity.z],
-			"hub_pos": [hub_positions[i].x, hub_positions[i].y, hub_positions[i].z],
-			"hub_vel": [hub_velocities[i].x, hub_velocities[i].y, hub_velocities[i].z],
-			"hub_direct_state": hub_states[i] != null,
-			"anchor_world": [neutral_world[i].x, neutral_world[i].y, neutral_world[i].z],
-			"relative_velocity_m_s": rel_vel,
-			"damper_requested_n": last_damper_requested_n[i],
-			"damper_applied_n": damper_applied,
-			"damper_clamped": last_damper_clamped[i],
-			"damper_impulse_ns": damper_applied * dt,
-			"damper_power_w": damper_power_w,
-			"damper_work_est_j": damper_power_w * dt,
-			"elastic_force_n": suspension.last_elastic_forces_n[i],
-			"internal_force_n": internal_force_n,
-			"internal_impulse_ns": internal_force_n * dt,
-		}
-		# Traza de impulsos (segunda prueba): descomposición exacta por término
-		# del solver con signo del buje sobre el eje de guía (+up). Permite
-		# cerrar m·Δv frente a ΣJ entre ticks consecutivos en la sonda.
-		var susp_elastic: float = suspension.last_elastic_forces_n[i]
-		var susp_bump: float = suspension.last_bump_forces_n[i]
-		var susp_droop_delta := 0.0
-		if comp < -droop_m + 0.025:
-			var droop_pen := (-droop_m + 0.025) - comp
-			susp_droop_delta = -(
-				float(p.spring_rate) * 6.0 * droop_pen - float(p.rebound_damping) * 2.5 * minf(rel_vel, 0.0)
-			)
-		var susp_arb: float = (internal_force_n - susp_droop_delta) - susp_elastic - damper_applied - susp_bump
-		var gravity_mag := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.80665))
-		var hub_gravity_axial: float = maxf(hub.mass, 1.0) * gravity_mag * Vector3.DOWN.dot(up)
-		var hub_susp_axial := -internal_force_n
-		impulse_trace[i] = {
-			"tick_seq": tick_sequence,
-			"dt_s": dt,
-			"hub_mass_kg": maxf(hub.mass, 1.0),
-			"up": [up.x, up.y, up.z],
-			"pre_hub_vel_axial": pre_hub_axial[i],
-			"pre_anchor_vel_axial": pre_anchor_axial[i],
-			"pre_chassis_vel_axial": pre_chassis_axial,
-			"pre_hub_vel": [hub_velocities[i].x, hub_velocities[i].y, hub_velocities[i].z],
-			"pre_chassis_vel": [state.linear_velocity.x, state.linear_velocity.y, state.linear_velocity.z],
-			"hit": bool(contacts[i].get("hit", false)),
-			"contact_loaded_final": false,
-			"distance_m": float(contacts[i].get("distance", 0.0)),
-			"safe_fraction": float(contacts[i].get("safe_fraction", 0.0)),
-			"road_compression_m": 0.0,
-			"hub_travel_physical_m": compression_physical_m[i],
-			"comp_raw_m": (hub_positions[i] - neutral_world[i]).dot(up),
-			"comp_clamped_m": comp,
-			"deflection_m": 0.0,
-			"compression_speed_raw": 0.0,
-			"compression_speed_used": 0.0,
-			"pressure_kpa": 0.0,
-			"carcass_c": 0.0,
-			"optimal_carcass_c": 0.0,
-			"radial_elastic_n": 0.0,
-			"radial_viscous_full_n": 0.0,
-			"radial_viscous_scale": float(radial_viscous_scale),
-			"radial_viscous_applied_n": 0.0,
-			"radial_rim_stop_n": 0.0,
-			"radial_force_n": 0.0,
-			"radial_clamped_zero": false,
-			"radial_damping_ns_m": 0.0,
-			"susp_elastic_n": susp_elastic,
-			"susp_damper_req_n": last_damper_requested_n[i],
-			"susp_damper_app_n": damper_applied,
-			"susp_damper_clamped": last_damper_clamped[i],
-			"susp_bump_n": susp_bump,
-			"susp_arb_n": susp_arb,
-			"susp_droop_n": susp_droop_delta,
-			"susp_internal_n": internal_force_n,
-			"hub_susp_axial_n": hub_susp_axial,
-			"hub_radial_axial_n": 0.0,
-			"hub_gravity_axial_n": hub_gravity_axial,
-			"J_susp_ns": hub_susp_axial * dt,
-			"J_radial_ns": 0.0,
-			"J_gravity_ns": hub_gravity_axial * dt,
-			"J_sum_known_ns": (hub_susp_axial + hub_gravity_axial) * dt,
-		}
-
-		radial_deflection_m[i] = 0.0
-		radial_dissipation_w[i] = 0.0
-		radial_states[i] = { }
-		if not bool(contacts[i].get("hit", false)):
 			suspension.contact_active[i] = false
 			suspension.geometric_contact[i] = false
+	has_pred = false
+	acc_J = Vector3.ZERO
+	acc_L = Vector3.ZERO
+	t_elapsed = 0.0
+	for i in 4:
+		substep_loads_n[i].clear()
+		substep_defl_m[i].clear()
+
+
+
+# ---- Álgebra 10x10 ----
+
+func _w_from_parts(V: Vector3, om: Vector3, uu: Array[float]) -> Array[float]:
+	return [V.x, V.y, V.z, om.x, om.y, om.z, float(uu[0]), float(uu[1]), float(uu[2]), float(uu[3])]
+
+
+func _w_to_V(ww: Array[float]) -> Vector3:
+	return Vector3(float(ww[0]), float(ww[1]), float(ww[2]))
+
+
+func _w_to_omega(ww: Array[float]) -> Vector3:
+	return Vector3(float(ww[3]), float(ww[4]), float(ww[5]))
+
+
+func _inertia_world(R: Basis, d: Vector3) -> Array:
+	var cx := R.x
+	var cy := R.y
+	var cz := R.z
+	# I[i][j] = sum_k Rcol_k[i]*d[k]*Rcol_k[j].
+	var out: Array = []
+	var colset := [cx, cy, cz]
+	for i in 3:
+		var row2: Array[float] = [0.0, 0.0, 0.0]
+		for j in 3:
+			var s := 0.0
+			for k in 3:
+				var dk := d.x if k == 0 else (d.y if k == 1 else d.z)
+				s += (colset[k] as Vector3)[i] * dk * (colset[k] as Vector3)[j]
+			row2[j] = s
+		out.append(row2)
+	return out
+
+
+func _mat3_vec(M: Array, v: Vector3) -> Vector3:
+	var vv := [v.x, v.y, v.z]
+	var o := [0.0, 0.0, 0.0]
+	for i in 3:
+		var s := 0.0
+		for j in 3:
+			s += float((M[i] as Array)[j]) * float(vv[j])
+		o[i] = s
+	return Vector3(o[0], o[1], o[2])
+
+
+static func _solver_rows(count: int) -> Array:
+	var rows: Array = []
+	for i in count:
+		var row: Array[float] = []
+		row.resize(10)
+		row.fill(0.0)
+		rows.append(row)
+	return rows
+
+
+func _factor_mass() -> void:
+	for i in 10:
+		var row: Array[float] = M_factor[i]
+		for j in (i + 1):
+			var other: Array[float] = M_factor[j]
+			var pivot := row[j]
+			for k in j:
+				pivot -= row[k] * other[k]
+			row[j] = sqrt(maxf(pivot, 1.0e-9)) if i == j else pivot / maxf(other[j], 1.0e-12)
+
+
+func _solve_chol(rhs: Array[float], result: Array[float]) -> void:
+	for i in 10:
+		var row: Array[float] = M_factor[i]
+		var value := rhs[i]
+		for k in i:
+			value -= row[k] * result[k]
+		result[i] = value / maxf(row[i], 1.0e-12)
+	for i in range(9, -1, -1):
+		var value := result[i]
+		for k in range(i + 1, 10):
+			value -= float(M_factor[k][i]) * result[k]
+		result[i] = value / maxf(float(M_factor[i][i]), 1.0e-12)
+
+
+func _dot10(a: Array[float], b: Array[float]) -> float:
+	var s := 0.0
+	for i in 10:
+		s += float(a[i]) * float(b[i])
+	return s
+
+
+func _fill_hub_jacobian(r: Vector3, e: Vector3, wheel: int) -> void:
+	var x: Array[float] = _hub_jacobian[0]
+	var y: Array[float] = _hub_jacobian[1]
+	var z: Array[float] = _hub_jacobian[2]
+	x.fill(0.0)
+	y.fill(0.0)
+	z.fill(0.0)
+	x[0] = 1.0
+	y[1] = 1.0
+	z[2] = 1.0
+	x[4] = r.z
+	x[5] = -r.y
+	y[3] = -r.z
+	y[5] = r.x
+	z[3] = r.y
+	z[4] = -r.x
+	x[6 + wheel] = e.x
+	y[6 + wheel] = e.y
+	z[6 + wheel] = e.z
+
+
+func _fill_normal_row(r: Vector3, e: Vector3, normal: Vector3, wheel: int) -> void:
+	var row: Array[float] = _normal_rows[wheel]
+	row[0] = normal.x
+	row[1] = normal.y
+	row[2] = normal.z
+	var torque := r.cross(normal)
+	row[3] = torque.x
+	row[4] = torque.y
+	row[5] = torque.z
+	row[6 + wheel] = e.dot(normal)
+
+
+# ---- Ciclo de tick ----
+
+func begin_tick(
+	state: PhysicsDirectBodyState3D,
+	suspension: VehicleSuspensionModel,
+	contacts: Array[Dictionary],
+	radii: Array[float],
+	domains: Dictionary,
+	thermal: VehicleThermalModel,
+) -> void:
+	tick_sequence += 1
+	_set_q_limits(suspension)
+	var com_l: Vector3 = chassis.center_of_mass
+	tick_com_local = com_l
+	tick_m_s = maxf(float(chassis.mass), 1.0)
+	tick_inertia_diag = chassis.inertia
+	tick_grav = state.total_gravity
+	var C: Vector3 = state.transform * com_l
+	var R: Basis = state.transform.basis
+	var V: Vector3 = state.linear_velocity
+	var om: Vector3 = state.angular_velocity
+	var e_act := (R * Vector3.UP)
+	if e_act.length_squared() > 1.0e-9:
+		e_act = e_act.normalized()
+	if has_pred:
+		var dV := V - V_pred
+		var dom := om - omega_pred
+		for i in 4:
+			var a: Vector3 = neutral_positions[i] - com_l
+			var r_act := R * a + e_act * q[i]
+			u[i] -= e_act.dot(dV + dom.cross(r_act))
+	C_pred = C
+	R_pred = R
+	V_pred = V
+	omega_pred = om
+	tick_e = e_act
+	w = _w_from_parts(V, om, u)
+	_trace_axis = e_act
+	_trace_chassis_velocity = V
+	_spring_impulse_ns.fill(0.0)
+	_suspension_axial_impulse_ns.fill(0.0)
+	_contact_axial_impulse_ns.fill(0.0)
+	_contact_vertical_impulse_ns.fill(0.0)
+	_radial_impulse_ns.fill(0.0)
+	last_damper_impulse_ns.fill(0.0)
+	# Anclar contactos.
+	var tires: Dictionary = domains.get("tires", {}).get("tires", {})
+	for i in 4:
+		var c: Dictionary = contacts[i] if i < contacts.size() else {}
+		var hit := bool(c.get("hit", false))
+		t_hit[i] = hit
+		var a2: Vector3 = neutral_positions[i] - com_l
+		var r2 := R * a2 + e_act * q[i]
+		tick_r[i] = r2
+		var H0 := C + r2
+		_trace_start_hub_velocity[i] = V + om.cross(r2) + e_act * u[i]
+		t_H0[i] = H0
+		if not hit:
+			t_n[i] = e_act
+			t_delta0[i] = 0.0
+			t_road_vel[i] = Vector3.ZERO
+			t_radial_state[i] = {}
+			t_rim_max[i] = 0.05
 			continue
-
-		var normal: Vector3 = (contacts[i].normal as Vector3).normalized()
-		var cos_angle := clampf(normal.dot(up), 0.25, 1.0)
-		var road_compression := radii[i] - float(contacts[i].distance)
-		# H1: la deformación usa el recorrido FÍSICO del hub, no el clamp.
-		# Con hub en -210 mm y superficie en -200 mm (droop 180): 10 mm.
-		var deflection := radial_deflection_from_travel(
-			road_compression, compression_physical_m[i], cos_angle
-		)
-		radial_deflection_m[i] = deflection
-
-		var road_velocity := Vector3.ZERO
-		var collider: Object = contacts[i].get("collider")
+		var nrm: Vector3 = (c.get("normal", Vector3.UP) as Vector3).normalized()
+		if nrm.length_squared() < 0.5:
+			nrm = Vector3.UP
+		t_n[i] = nrm
+		var dist := float(c.get("distance", 0.0))
+		var rad := float(radii[i]) if i < radii.size() else 0.30
+		t_delta0[i] = (rad - dist - q[i]) * nrm.dot(e_act)
+		var rv := Vector3.ZERO
+		var collider: Object = c.get("collider")
 		if collider is RigidBody3D:
-			var road_body := collider as RigidBody3D
-			road_velocity = road_body.linear_velocity + road_body.angular_velocity.cross(
-				(contacts[i].position as Vector3) - road_body.global_position
-			)
+			var rb := collider as RigidBody3D
+			rv = rb.linear_velocity + rb.angular_velocity.cross((c.get("position", H0) as Vector3) - rb.to_global(rb.center_of_mass))
+		t_road_vel[i] = rv
+		var axle := "front" if i < 2 else "rear"
+		var ts: Dictionary = thermal.get_tire_thermal_state_snapshot(i)
+		var press := float(ts.get("pressure_kpa_gauge", 180.0))
+		var carc := float(ts.get("carcass_c", 25.0))
+		var opt := float(thermal.optimal_carcass_temperature(i))
+		t_radial_state[i] = TireRadialModel.prepare_state(tires, axle, press, carc, opt)
+		var rim_r := rad * 0.58
+		var g: Dictionary = t_radial_state[i]["geometry"]
+		if float(g.get("rim_radius_m", 0.0)) > 0.01:
+			rim_r = float(g.get("rim_radius_m", rim_r))
+		var sidewall := maxf(rad - rim_r, 0.03)
+		var min_rub := clampf(sidewall * 0.12, 0.010, 0.022)
+		t_rim_max[i] = maxf(sidewall - min_rub, 0.02)
+		suspension.geometric_contact[i] = true
+	t_elapsed = 0.0
+	acc_J = Vector3.ZERO
+	acc_L = Vector3.ZERO
+	for i in 4:
+		acc_Fz[i] = 0.0
+		acc_defl[i] = 0.0
+		acc_diss[i] = 0.0
+		s_Fz[i] = 0.0
+		s_defl[i] = 0.0
+		s_diss[i] = 0.0
+		s_Jrad[i] = 0.0
 
-		var relative_hub_vel := hub_velocities[i] - road_velocity
-		var axial_compression_speed := -relative_hub_vel.dot(up) * cos_angle
-		var compression_speed := clampf(axial_compression_speed, -12.0, 12.0)
+	for i in 4:
+		substep_loads_n[i].clear()
+		substep_defl_m[i].clear()
 
-		var tire_state := thermal.get_tire_thermal_state_snapshot(i)
-		var tires: Dictionary = domains.get("tires", { }).get("tires", { })
-		var radial := TireRadialModel.evaluate(
-			tires,
-			"front" if i < 2 else "rear",
-			float(tire_state.get("pressure_kpa_gauge", 180.0)),
-			float(tire_state.get("carcass_c", 25.0)),
-			hub.mass,
-			deflection,
-			compression_speed,
-			thermal.optimal_carcass_temperature(i),
-			float(radial_viscous_scale),
-		)
-		radial_states[i] = radial
-		var tire_force := maxf(float(radial.force_n), 0.0)
-		radial_dissipation_w[i] = float(radial.dissipation_w)
-		normal_loads[i] = tire_force
-		suspension.contact_active[i] = tire_force > 0.0
-		# Cierre de la traza de impulsos (segunda prueba): desglose radial y
-		# suma axial conocida sobre el mismo eje de guía del intervalo.
-		var radial_damping: float = radial.get("damping_ns_m", 0.0)
-		var eff_speed := compression_speed if compression_speed >= 0.0 else compression_speed * 0.45
-		var viscous_full: float = radial_damping * clampf(eff_speed, -8.0, 8.0)
-		var viscous_applied := viscous_full * float(radial_viscous_scale)
-		var radial_elastic := 0.0
-		if tire_force > 0.0 and deflection > 0.0:
-			radial_elastic = tire_force - viscous_applied
-		var radial_axial: float = tire_force * cos_angle
-		var tr: Dictionary = impulse_trace[i]
-		tr["contact_loaded_final"] = tire_force > 0.0
-		tr["road_compression_m"] = road_compression
-		tr["deflection_m"] = deflection
-		tr["compression_speed_raw"] = axial_compression_speed
-		tr["compression_speed_used"] = compression_speed
-		tr["pressure_kpa"] = float(tire_state.get("pressure_kpa_gauge", 180.0))
-		tr["carcass_c"] = float(tire_state.get("carcass_c", 25.0))
-		tr["optimal_carcass_c"] = float(thermal.optimal_carcass_temperature(i))
-		tr["radial_elastic_n"] = radial_elastic
-		tr["radial_viscous_full_n"] = viscous_full
-		tr["radial_viscous_applied_n"] = viscous_applied
-		tr["radial_rim_stop_n"] = float(radial.get("rim_stop_force_n", 0.0))
-		tr["radial_force_n"] = tire_force
-		tr["radial_clamped_zero"] = tire_force <= 0.0 and deflection > 0.0
-		tr["radial_damping_ns_m"] = radial_damping
-		tr["hub_radial_axial_n"] = radial_axial
-		tr["J_radial_ns"] = radial_axial * dt
-		tr["J_sum_known_ns"] = float(tr["J_susp_ns"]) + radial_axial * dt + float(tr["J_gravity_ns"])
-		tr["radial_implicit"] = false
-		tr["radial_F_inst_n"] = tire_force
-		tr["radial_F_mean_n"] = tire_force
-		tr["radial_J_imp_ns"] = radial_axial * dt
-		tr["radial_iters"] = 0
-		tr["radial_fallback"] = false
-		tr["radial_opening"] = false
 
-		# Variante radial implícita (tercera prueba, solo sonda): resuelve el
-		# impulso normal unilateral del intervalo con la deformación y la
-		# velocidad predichas al final del paso y lo aplica al buje una sola
-		# vez por tick como fuerza equivalente J/dt. La carga media alimenta
-		# el modelo tangencial (normal_loads). Llamadas repetidas al modelo
-		# con la misma pose y velocidad: iteración de función, no subpasos.
-		var applied_normal_force := tire_force
-		if radial_implicit_enabled:
-			var axle_str := "front" if i < 2 else "rear"
-			var press_kpa := float(tire_state.get("pressure_kpa_gauge", 180.0))
-			var carc_c := float(tire_state.get("carcass_c", 25.0))
-			var opt_c := float(thermal.optimal_carcass_temperature(i))
-			var hub_m := maxf(hub.mass, 1.0)
-			var visc_scale := float(radial_viscous_scale)
-			# Los coeficientes radiales no dependen de la deflexión ni de la
-			# velocidad: se preparan UNA vez por rueda y tick y se reutilizan
-			# en las 48 iteraciones de la bisección. Antes se reconstruían
-			# (dict + hash del modelo) en cada iteración.
-			var radial_state := TireRadialModel.prepare_state(tires, axle_str, press_kpa, carc_c, opt_c)
-			var force_at := func(delta_m: float, speed_m_s: float) -> float:
-				var ev := TireRadialModel.evaluate_prepared(radial_state, hub_m, delta_m, speed_m_s, visc_scale)
-				return float(ev.get("force_n", 0.0))
-			var sep_0 := float(relative_hub_vel.dot(up))
-			var known_j: float = float(tr["J_susp_ns"]) + float(tr["J_gravity_ns"])
-			var solved := solve_radial_impulse(hub_m, dt, cos_angle, deflection, sep_0, known_j, force_at)
-			var j_ax: float = solved["impulse_ns"]
-			var f_mean := j_ax / maxf(dt, 0.00001) / cos_angle
-			tr["radial_implicit"] = true
-			tr["radial_F_mean_n"] = maxf(f_mean, 0.0)
-			tr["radial_J_imp_ns"] = j_ax
-			tr["radial_iters"] = int(solved["iterations"])
-			tr["radial_fallback"] = bool(solved["fallback"])
-			tr["radial_opening"] = bool(solved["opening"])
-			tr["hub_radial_axial_n"] = j_ax / maxf(dt, 0.00001)
-			tr["J_radial_ns"] = j_ax
-			tr["J_sum_known_ns"] = float(tr["J_susp_ns"]) + j_ax + float(tr["J_gravity_ns"])
-			applied_normal_force = maxf(f_mean, 0.0)
-			normal_loads[i] = applied_normal_force
-			suspension.contact_active[i] = applied_normal_force > 0.0
+func begin_substep(h: float, suspension: VehicleSuspensionModel, F_body: Vector3, T_body: Vector3) -> void:
+	t_h = maxf(h, 0.00001)
+	var e := (R_pred * Vector3.UP)
+	if e.length_squared() > 1.0e-9:
+		e = e.normalized()
+	tick_e = e
+	_inertia_before = _inertia_world(R_pred, tick_inertia_diag)
+	for row in M_factor:
+		row.fill(0.0)
+	for i in 3:
+		M_factor[i][i] = tick_m_s
+		for j in (i + 1):
+			M_factor[3 + i][3 + j] = _inertia_before[i][j]
+	var om := _w_to_omega(w)
+	for i in 4:
+		var r := R_pred * (neutral_positions[i] - tick_com_local) + e * q[i]
+		tick_r[i] = r
+		_fill_hub_jacobian(r, e, i)
+		var mass := m_unsprung[i]
+		var bx: Array[float] = _hub_jacobian[0]
+		var by: Array[float] = _hub_jacobian[1]
+		var bz: Array[float] = _hub_jacobian[2]
+		# Cada rueda afecta seis coordenadas de chasis y su propia coordenada axial.
+		for p in 7:
+			var row_index := p if p < 6 else 6 + i
+			var row: Array[float] = M_factor[row_index]
+			for j in (p + 1):
+				var col := j if j < 6 else 6 + i
+				var product := bx[row_index] * bx[col] + by[row_index] * by[col] + bz[row_index] * bz[col]
+				row[col] += mass * product
+	_factor_mass()
+	# Suspensión: q_nom y m_rel.
+	var q_nom: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for i in 4:
+		var p: Dictionary = suspension.axle_parameters[i]
+		q_nom[i] = clampf(q[i], -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
+	for i in 4:
+		suspension.compression[i] = q_nom[i]
+		suspension.compression_velocity[i] = u[i]
+		suspension.filtered_arb_travel[i] = q_nom[i]
+		suspension.contact_active[i] = apoyo_previo[i]
+	_rhs.fill(0.0)
+	for i in 4:
+		var axis := 6 + i
+		_rhs[axis] = 1.0
+		var response: Array[float] = _axis_response[i]
+		_solve_chol(_rhs, response)
+		_rhs[axis] = 0.0
+		_relative_mass[i] = 1.0 / maxf(response[axis], 1.0e-9)
+	var Fs: Array[float] = suspension.suspension_forces_1dof(t_h, _relative_mass)
+	# Resistencia al droop (ley calibrada existente).
+	for i in 4:
+		var p2: Dictionary = suspension.axle_parameters[i]
+		var droop := float(p2.get("droop_m", 0.18))
+		if q_nom[i] < -droop + 0.025:
+			var pen := (-droop + 0.025) - q_nom[i]
+			var droop_delta := -(float(p2.get("spring_rate", 20000.0)) * 6.0 * pen - float(p2.get("rebound_damping", 2000.0)) * 2.5 * minf(u[i], 0.0))
+			Fs[i] = float(Fs[i]) + droop_delta
 
-		var total_tire_vec := normal * applied_normal_force
-		var axial_tire_vec := up * total_tire_vec.dot(up)
-		var lateral_normal_vec := total_tire_vec - axial_tire_vec
-		var grav_ax := gravity_mag * Vector3.DOWN.dot(up)
-		var hub_m_i := maxf(hub.mass, 1.0)
-		var anchor_vel_world := state.linear_velocity + state.angular_velocity.cross(neutral_world[i] - com)
-		var rim_constraint := compute_unilateral_rim_constraint(
-			radii[i],
-			float(radial.get("rim_radius_m", radii[i] * 0.58)),
-			deflection,
-			cos_angle,
-			dt,
-			hub_m_i,
-			effective_corner_mass_kg(chassis, neutral_positions[i]),
-			relative_hub_vel.dot(up),
-			(anchor_vel_world - road_velocity).dot(up),
-			compression_physical_m[i],
-			bump_m,
-			(-internal_force_n + applied_normal_force * cos_angle) / hub_m_i + grav_ax,
-			applied_normal_force,
-			grav_ax,
-			maxf(chassis_mass, 100.0) * gravity_mag * 8.0,
-		)
-		var extra_chassis_axial := Vector3.ZERO
-		if bool(rim_constraint.get("active", false)):
-			var extra_hub_ax := float(rim_constraint["extra_hub_force_n"])
-			var extra_chas_ax := float(rim_constraint["extra_chassis_force_n"])
-			var extra_norm := float(rim_constraint["extra_total_normal_n"])
-			normal_loads[i] += extra_norm
-			suspension.contact_active[i] = normal_loads[i] > 0.0
-			axial_tire_vec += up * extra_hub_ax
-			extra_chassis_axial = up * extra_chas_ax
-			lateral_normal_vec += (normal * extra_norm) - up * (extra_norm * cos_angle)
-			tr["radial_rim_constraint_n"] = extra_norm
-			tr["hub_radial_axial_n"] = float(tr["hub_radial_axial_n"]) + extra_hub_ax
-			tr["J_radial_ns"] = float(tr["J_radial_ns"]) + extra_hub_ax * dt
-			tr["J_sum_known_ns"] = float(tr["J_susp_ns"]) + float(tr["J_radial_ns"]) + float(tr["J_gravity_ns"])
-		else:
-			tr["radial_rim_constraint_n"] = 0.0
+	spring_forces_n = Fs
+	for i in 4:
+		last_damper_requested_n[i] = suspension.last_damper_explicit_n[i]
+		last_damper_applied_n[i] = suspension.last_damper_forces_n[i]
+		last_damper_impulse_ns[i] += last_damper_applied_n[i] * t_h
+		var spring_impulse := Fs[i] * t_h
+		_spring_impulse_ns[i] += spring_impulse
+		_suspension_axial_impulse_ns[i] -= spring_impulse * e.dot(_trace_axis)
+	# Q generalizado.
+	var Qv := tick_m_s * tick_grav + F_body
+	var IwOm := _mat3_vec(_inertia_before, om)
+	var gyro := om.cross(IwOm)
+	var Qt := -gyro + T_body
+	for i in 4:
+		var r := tick_r[i]
+		var bias := om.cross(om.cross(r)) + om.cross(e * u[i]) * 2.0
+		var force := m_unsprung[i] * (tick_grav - bias)
+		Qv += force
+		Qt += r.cross(force)
+		_rhs[6 + i] = e.dot(force) - Fs[i]
+	for i in 3:
+		_rhs[i] = Qv[i]
+		_rhs[3 + i] = Qt[i]
+	_solve_chol(_rhs, _response)
+	for k in 10:
+		w_free[k] = w[k] + t_h * _response[k]
 
-		if h_state != null:
-			h_state.apply_central_force(axial_tire_vec)
-		else:
-			hub.apply_central_force(axial_tire_vec)
-		state.apply_force(lateral_normal_vec + extra_chassis_axial, mount_offset)
 
-	return normal_loads
+func solve_normal(h: float) -> void:
+	var hh := maxf(h, 0.00001)
+	for k in 10:
+		_w_rad[k] = w_free[k]
+	for i in 4:
+		s_Jrad[i] = 0.0
+		s_Fz[i] = 0.0
+		s_defl[i] = 0.0
+		s_diss[i] = 0.0
+		if not t_hit[i]:
+			radial_states[i] = {}
+			continue
+		_fill_normal_row(tick_r[i], tick_e, t_n[i], i)
+		var G: Array[float] = _normal_rows[i]
+		var response: Array[float] = _normal_response[i]
+		_solve_chol(G, response)
+		var Kn := maxf(_dot10(G, response), 1.0e-9)
+		s_Kn[i] = Kn
+		var H := C_pred + tick_r[i]
+		var delta := float(t_delta0[i]) - float(t_n[i].dot((H - t_H0[i]) - t_road_vel[i] * t_elapsed))
+		_normal_deflection[i] = delta
+		_normal_road_speed[i] = t_n[i].dot(t_road_vel[i])
+		var v_free := _dot10(G, w_free) - _normal_road_speed[i]
+		var mi := maxf(float(m_unsprung[i]), 1.0)
+		var rs: Dictionary = t_radial_state[i]
+		var v_scale := float(radial_viscous_scale)
+		var J := 0.0
+		var dfin := maxf(delta - hh * v_free, 0.0)
+		if dfin > 0.0:
+			var Jmax := maxf((delta / hh - v_free) / Kn, 0.0)
+			var lo := 0.0
+			var hi := Jmax
+			for it in 48:
+				var mid := 0.5 * (lo + hi)
+				var v_mid := v_free + Kn * mid
+				var d_mid := maxf(delta - hh * v_mid, 0.0)
+				var c_mid := clampf(-v_mid, -12.0, 12.0)
+				var f_mid := TireRadialModel.prepared_force_n(rs, mi, d_mid, c_mid, v_scale)
+				var res := mid - hh * f_mid
+				if res >= 0.0:
+					hi = mid
+				else:
+					lo = mid
+				if hi - lo <= RADIAL_BISECTION_REL_TOL * maxf(absf(lo), 1.0):
+					break
+			J = 0.5 * (lo + hi)
+		s_Jrad[i] = maxf(J, 0.0)
+		var v_fin := v_free + Kn * float(s_Jrad[i])
+		var d_fin := maxf(delta - hh * v_fin, 0.0)
+		var c_fin := clampf(-v_fin, -12.0, 12.0)
+		var evf := TireRadialModel.evaluate_prepared(rs, mi, d_fin, c_fin, v_scale)
+		s_defl[i] = d_fin
+		s_diss[i] = float(evf.get("dissipation_w", 0.0))
+		radial_states[i] = evf
+		for k in 10:
+			_w_rad[k] += response[k] * s_Jrad[i]
+
+	# Todas las correcciones de llanta leen la misma velocidad posterior al radial.
+	for k in 10:
+		w_normal[k] = _w_rad[k]
+	var rim_impulse_cap := 8.0 * maxf(tick_m_s, 100.0) * tick_grav.length() * hh
+	for i in 4:
+		if not t_hit[i]:
+			continue
+		var gap := t_rim_max[i] - _normal_deflection[i]
+		var target := -gap / hh if gap >= 0.0 else minf(2.0, -0.18 * gap / hh)
+		var normal_speed := _dot10(_normal_rows[i], _w_rad) - _normal_road_speed[i]
+		var impulse := clampf((target - normal_speed) / s_Kn[i], 0.0, rim_impulse_cap)
+		var normal_impulse := s_Jrad[i] + impulse
+		s_Fz[i] = normal_impulse / hh
+		_radial_impulse_ns[i] += s_Jrad[i]
+		_contact_axial_impulse_ns[i] += normal_impulse * t_n[i].dot(_trace_axis)
+		_contact_vertical_impulse_ns[i] += normal_impulse * t_n[i].y
+		if normal_impulse <= 0.0:
+			radial_states[i] = {}
+		var response: Array[float] = _normal_response[i]
+		for k in 10:
+			w_normal[k] += response[k] * impulse
+
+
+func contact_patch_position(wheel: int, initial_point: Vector3) -> Vector3:
+	var road_displacement := t_road_vel[wheel] * t_elapsed
+	var hub_displacement := C_pred + tick_r[wheel] - t_H0[wheel]
+	return initial_point + road_displacement + (hub_displacement - road_displacement).slide(t_n[wheel])
+
+
+func apply_tangential(J_tang: Array[float]) -> void:
+	_solve_chol(J_tang, _response)
+	for k in 10:
+		w_cand[k] = w_normal[k] + _response[k]
+
+
+func solve_hard_stops(h: float) -> void:
+	var hh := maxf(h, 0.00001)
+	var lo: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var hi: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var needs_stop := false
+	for i in 4:
+		lo[i] = (_qmin[i] - q[i]) / hh
+		hi[i] = (_qmax[i] - q[i]) / hh
+		needs_stop = needs_stop or w_cand[6 + i] < lo[i] or w_cand[6 + i] > hi[i]
+	if not needs_stop:
+		return
+	var lam: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for sweep in 20:
+		var maxd := 0.0
+		for i in 4:
+			var d: Array[float] = _axis_response[i]
+			var inverse_mass := maxf(d[6 + i], 1.0e-9)
+			var w_s := float(w_cand[6 + i]) - inverse_mass * lam[i]
+			var ul := clampf(w_s, float(lo[i]), float(hi[i]))
+			var lam_new := (ul - w_s) / maxf(inverse_mass, 1.0e-12)
+			var dl := lam_new - lam[i]
+			maxd = maxf(maxd, absf(dl))
+			if absf(dl) > 1.0e-12:
+				for k in 10:
+					w_cand[k] = float(w_cand[k]) + float(d[k]) * dl
+				lam[i] = lam_new
+		if maxd < 1.0e-9:
+			break
+
+
+var _qmin: Array[float] = [-0.28, -0.28, -0.28, -0.28]
+var _qmax: Array[float] = [0.32, 0.32, 0.32, 0.32]
+
+
+func end_substep(h: float) -> void:
+	var hh := maxf(h, 0.00001)
+	var V_old := _w_to_V(w)
+	var om_old := _w_to_omega(w)
+	var Iw_old := _inertia_before
+	var V_new := _w_to_V(w_cand)
+	var om_new := _w_to_omega(w_cand)
+	for i in 4:
+		u[i] = float(w_cand[6 + i])
+		q[i] += hh * u[i]
+		# Clamp numérico al intervalo efectivo.
+		q[i] = clampf(q[i], float(_qmin[i]), float(_qmax[i]))
+	# Avanzar pose predicha.
+	C_pred += hh * V_new
+	var om_len := om_new.length()
+	if om_len > 1.0e-9:
+		var axis := om_new / om_len
+		R_pred = Basis(axis, om_len * hh) * R_pred
+	# Acumular envío a Jolt (cambio de momento menos gravedad suspendida).
+	acc_J += tick_m_s * (V_new - V_old) - hh * tick_m_s * tick_grav
+	var Iw_new := _inertia_world(R_pred, tick_inertia_diag)
+	acc_L += _mat3_vec(Iw_new, om_new) - _mat3_vec(Iw_old, om_old)
+	var previous_w := w
+	w = w_cand
+	w_cand = previous_w
+	V_pred = V_new
+	omega_pred = om_new
+	for i in 4:
+		apoyo_previo[i] = float(s_Fz[i]) > 0.0
+		acc_Fz[i] = float(acc_Fz[i]) + float(s_Fz[i]) * hh
+		acc_defl[i] = float(acc_defl[i]) + float(s_defl[i]) * hh
+		acc_diss[i] = float(acc_diss[i]) + float(s_diss[i]) * hh
+		if capture_substeps:
+			substep_loads_n[i].append(s_Fz[i])
+			substep_defl_m[i].append(s_defl[i])
+	t_elapsed += hh
+
+
+# Fijar límites efectivos antes de resolver topes (llamado por begin_substep).
+func _set_q_limits(suspension: VehicleSuspensionModel) -> void:
+	for i in 4:
+		var p: Dictionary = suspension.axle_parameters[i]
+		_qmin[i] = -float(p.get("droop_m", 0.18)) - JOINT_LIMIT_MARGIN_M
+		_qmax[i] = float(p.get("bump_m", 0.22)) + JOINT_LIMIT_MARGIN_M
+
+
+func end_tick(state: PhysicsDirectBodyState3D, dt: float, suspension: VehicleSuspensionModel) -> Array[float]:
+	var dtt := maxf(dt, 0.00001)
+	state.apply_central_force(acc_J / dtt)
+	state.apply_torque(acc_L / dtt)
+	has_pred = true
+	_publish_tick(suspension, dtt)
+	var out: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for i in 4:
+		out[i] = float(acc_Fz[i]) / dtt
+	return out
+
+
+# ---- API §4 ----
+
+func muestra_de_rueda(i: int, t: Transform3D, V: Vector3, om: Vector3) -> Dictionary:
+	var com_l: Vector3 = chassis.center_of_mass if chassis != null else Vector3.ZERO
+	var R: Basis = t.basis
+	var e := (R * Vector3.UP)
+	if e.length_squared() > 1.0e-9:
+		e = e.normalized()
+	var C: Vector3 = t * com_l
+	var a: Vector3 = neutral_positions[i] - com_l if i < neutral_positions.size() else Vector3.ZERO
+	var r := R * a + e * float(q[i])
+	var H := C + r
+	var vH := V + om.cross(r) + e * float(u[i])
+	return {"travel": float(q[i]), "H": H, "vH": vH}
+
+
+func _publish_tick(suspension: VehicleSuspensionModel, dtt: float) -> void:
+	var end_axis := R_pred.y.normalized()
+	for i in 4:
+		var mean_F := float(acc_Fz[i]) / dtt
+		var mean_d := float(acc_defl[i]) / dtt
+		var mean_s := float(acc_diss[i]) / dtt
+		radial_deflection_m[i] = mean_d
+		radial_dissipation_w[i] = mean_s
+
+		var p: Dictionary = suspension.axle_parameters[i] if i < suspension.axle_parameters.size() else {}
+		var qn := clampf(q[i], -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
+		suspension.compression[i] = qn
+		suspension.compression_velocity[i] = u[i]
+		suspension.filtered_arb_travel[i] = qn
+		suspension.contact_active[i] = mean_F > 0.0
+		suspension.geometric_contact[i] = t_hit[i]
+
+		# El balance axial usa el eje del inicio del tick para todos los impulsos.
+		var end_arm := R_pred * (neutral_positions[i] - tick_com_local) + end_axis * q[i]
+		var end_velocity := V_pred + omega_pred.cross(end_arm) + end_axis * u[i]
+		var start_velocity := _trace_start_hub_velocity[i]
+		var gravity_impulse := m_unsprung[i] * tick_grav.dot(_trace_axis) * dtt
+		last_tick_trace[i] = {
+			"chassis_vel": [_trace_chassis_velocity.x, _trace_chassis_velocity.y, _trace_chassis_velocity.z],
+			"hub_vel": [start_velocity.x, start_velocity.y, start_velocity.z],
+			"hub_mass_kg": m_unsprung[i],
+			"pre_hub_vel_axial": start_velocity.dot(_trace_axis),
+			"post_hub_vel_axial": end_velocity.dot(_trace_axis),
+			"J_susp_ns": _suspension_axial_impulse_ns[i],
+			"J_radial_ns": _contact_axial_impulse_ns[i],
+			"contact_vertical_impulse_ns": _contact_vertical_impulse_ns[i],
+			"J_gravity_ns": gravity_impulse,
+			"J_sum_known_ns": _suspension_axial_impulse_ns[i] + _contact_axial_impulse_ns[i] + gravity_impulse,
+			"tick_id": tick_sequence,
+			"dt_s": dtt,
+			"relative_velocity_m_s": u[i],
+			"damper_requested_n": last_damper_requested_n[i],
+			"damper_applied_n": last_damper_applied_n[i],
+			"damper_impulse_ns": last_damper_impulse_ns[i],
+			"internal_force_n": spring_forces_n[i],
+			"internal_impulse_ns": _spring_impulse_ns[i],
+			"radial_F_mean_n": mean_F,
+			"radial_J_imp_ns": _radial_impulse_ns[i],
+		}

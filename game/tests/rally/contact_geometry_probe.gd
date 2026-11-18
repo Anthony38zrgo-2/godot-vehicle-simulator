@@ -1,6 +1,6 @@
 extends SceneTree
 ## contact_geometry_probe.gd — Sonda H2 + §§2-3: alcance y coherencia.
-## Fase A (plano): tándem vs ShapeCast en reposo; alcance efectivo 0.21.
+## Fase A (plano): tándem vs ShapeCast en reposo; alcance efectivo 0.28.
 ## Fase B (bordillo, ambos sentidos): caja bajo el borde de la huella FL con
 ##   tándem OFF; el barrido puede ver bordillo + suelo (dos apoyos).
 ## Fase C (pendiente de apoyo único): placa inclinada 15° que cubre la huella.
@@ -79,8 +79,10 @@ func run() -> void:
 		var susp: Array = vehicle.simulation.sample_suspension_trace()
 		var cont: Array = vehicle.simulation.sample_contact_trace()
 		var hubs: Array = []
-		for h in vehicle.simulation.unsprung_rig.hubs:
-			var p: Vector3 = (h as Node3D).global_position
+		for wheel in 4:
+			var p: Vector3 = vehicle.simulation.unsprung_rig.muestra_de_rueda(
+				wheel, vehicle.global_transform, vehicle.linear_velocity, vehicle.angular_velocity
+			)["H"]
 			hubs.append([p.x, p.y, p.z])
 		var entry := {"tandem": tandem, "hubs": hubs, "suspension": susp, "contacts": cont}
 		results["tandem" if tandem else "shapecast"] = entry
@@ -112,10 +114,12 @@ func run() -> void:
 			push_error("rueda %d ShapeCast no coherente en plano" % w)
 	check(ok, "tándem y ShapeCast coinciden en plano dentro de tolerancia")
 	var q := UnsprungSuspensionRig.contact_query_travel_m(0.22, 0.18)
-	check(absf(float(q["droop_effective"]) - 0.21) < 0.0001, "alcance efectivo 0.21 verificado en escena")
+	check(absf(float(q["droop_effective"]) - 0.28) < 0.0001, "alcance efectivo 0.28 verificado en escena")
 	# Fases B/C con ShapeCast (tándem OFF).
 	vehicle.simulation.tandem_cam_enabled = false
-	var fl_hub: Vector3 = (vehicle.simulation.unsprung_rig.hubs[0] as Node3D).global_position
+	var fl_hub: Vector3 = vehicle.simulation.unsprung_rig.muestra_de_rueda(
+		0, vehicle.global_transform, vehicle.linear_velocity, vehicle.angular_velocity
+	)["H"]
 	var fl_ground_y := float(((results["shapecast"] as Dictionary)["contacts"][0] as Dictionary).get("position", [0.0, 0.0, 0.0])[1])
 	var disagreement_observed := false
 	# B1/B2: bordillo a ambos lados de la huella (cruce en ambos sentidos).

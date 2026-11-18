@@ -54,7 +54,6 @@ func run_suite() -> void:
 		quit(1)
 		return
 	test_tangent_finite_differences(susp)
-	test_limiter_defaults()
 	test_tick_trace_shape()
 	if failures.is_empty():
 		print("\nALL SUSPENSION CORRECTION UNIT TESTS PASSED!")
@@ -122,18 +121,6 @@ func test_tangent_finite_differences(susp: VehicleSuspensionModel) -> void:
 			check(true, "%s bilateral sin cola (can_unseat=false)" % tag)
 
 
-func test_limiter_defaults() -> void:
-	print("\n[F1] Limitador desactivado por defecto / ruta digresiva íntegra...")
-	var rig := UnsprungSuspensionRig.new()
-	check(not rig.damper_impulse_limit_enabled, "F1 limiter OFF por defecto (producción = curva digresiva)")
-	check(rig.damper_clip_events == [0, 0, 0, 0], "F1 contadores a cero al crear")
-	rig.set_damper_impulse_limit(true)
-	check(rig.damper_impulse_limit_enabled, "F1 el diagnóstico se puede activar explícitamente")
-	check(rig.damper_clip_events == [0, 0, 0, 0], "F1 activar reinicia contadores")
-	rig.set_damper_impulse_limit(false)
-	check(not rig.damper_impulse_limit_enabled, "F1 se puede volver a desactivar")
-
-
 func test_tick_trace_shape() -> void:
 	print("\n[F3] Forma de la traza comparable por tick...")
 	var rig := UnsprungSuspensionRig.new()
@@ -148,4 +135,3 @@ func test_tick_trace_shape() -> void:
 	# No se configura el vehículo completo (requiere escena); se verifica que
 	# los métodos de muestreo existen y devuelven 4 esquinas.
 	check(sim.has_method("sample_suspension_trace") and sim.has_method("sample_tick_trace"), "F3 métodos de traza presentes")
-	check(sim.has_method("set_damper_impulse_limit"), "F3 interruptor de diagnóstico presente en simulación")

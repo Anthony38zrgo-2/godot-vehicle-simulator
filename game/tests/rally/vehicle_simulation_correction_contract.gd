@@ -403,7 +403,8 @@ func test_reset_ground_probe() -> void:
 	var q_air := rig.last_reset_q_eq.duplicate()
 	for w in 4:
 		check(absf(q_air[w] + float(susp.axle_parameters[w].droop_m)) < 0.0001, "sin suelo rueda %d q_eq=-droop (got %.3f)" % [w, q_air[w]])
-	check(absf(rig.hubs[0].global_transform.origin.y - (sim.wheel_positions_local[0].y - droop)) < 0.01, "hub colocado en extensión máxima")
+	# 1DOF: sin nodos; la extensión máxima es q=-droop físico.
+	check(absf(float(rig.q[0]) + droop) < 0.01, "q colocado en extensión máxima")
 	body.queue_free()
 	ground.queue_free()
 

@@ -19,7 +19,7 @@ extends SceneTree
 ## Uso:
 ##   godot --headless --path game --script res://tests/rally/fulvia_spawn_diagnostic.gd -- --hz=60 --ticks=240
 ##   godot --headless --path game --script res://tests/rally/fulvia_spawn_diagnostic.gd -- --hz=120 --ticks=240
-##   godot --headless --path game --script res://tests/rally/fulvia_spawn_diagnostic.gd -- --hz=both --ticks=240 --variants=base,limiter,implicit,implicit_limiter --reps=3
+##   godot --headless --path game --script res://tests/rally/fulvia_spawn_diagnostic.gd -- --hz=both --ticks=240 --variants=base,novisc,settled --reps=3
 ##   godot --headless --path game --script res://tests/rally/fulvia_spawn_diagnostic.gd -- --hz=both --variants=base,limiter,novisc,settled --reps=3
 ##
 ## Salidas: SUSPENSION_SPAWN_HEADER / SUSPENSION_IMPULSE_BALANCE /
@@ -67,7 +67,7 @@ func _parse_args() -> void:
 			var cleaned: Array[String] = []
 			for v2 in s.trim_prefix("--variants=").split(","):
 				var k := str(v2).strip_edges().to_lower()
-				if k in ["base", "limiter", "novisc", "settled", "implicit", "implicit_limiter"] and not cleaned.has(k):
+				if k in ["base", "novisc", "settled"] and not cleaned.has(k):
 					cleaned.append(k)
 			if not cleaned.is_empty():
 				opt_variants = cleaned
@@ -130,9 +130,7 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 	ctl.set_physics_process(false)
 	var sim = vehicle.simulation
 	sim.tandem_cam_enabled = false
-	sim.set_damper_impulse_limit(variant == "limiter" or variant == "implicit_limiter")
 	sim.unsprung_rig.radial_viscous_scale = 0.0 if variant == "novisc" else 1.0
-	sim.unsprung_rig.radial_implicit_enabled = variant == "implicit" or variant == "implicit_limiter"
 	var payload: Dictionary = sim.filter_garage_values(RallySetupCatalog.defaults(sim.domains))
 	payload["fuel.initial_kg"] = NOMINAL_FUEL_KG
 	var res: Dictionary = sim.apply_setup_values(payload)
@@ -142,9 +140,7 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 		await process_frame
 		return
 	vehicle.prepare_for_stage()
-	var hub_masses: Array = []
-	for hub in sim.unsprung_rig.hubs:
-		hub_masses.append(float((hub as RigidBody3D).mass))
+	var hub_masses: Array = sim.unsprung_rig.m_unsprung.duplicate()
 	var spawn_y := 0.0
 	if scene.has_method("spawn_position"):
 		spawn_y = (scene.spawn_position() as Vector3).y
@@ -177,9 +173,7 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 		"physics_hz_setting": int(Engine.physics_ticks_per_second),
 		"physics_engine": str(ProjectSettings.get_setting("physics/3d/physics_engine", "")),
 		"tandem_cam_enabled": bool(sim.tandem_cam_enabled),
-		"damper_limiter": bool(sim.unsprung_rig.damper_impulse_limit_enabled),
 		"radial_viscous_scale": float(sim.unsprung_rig.radial_viscous_scale),
-		"radial_implicit": bool(sim.unsprung_rig.radial_implicit_enabled),
 		"fuel_initial_kg": float(sim.mass_model.fuel_initial_kg),
 		"hub_masses_kg": hub_masses,
 		"maximum_substep_s": float(sim.maximum_substep_seconds),
@@ -203,7 +197,7 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 	if f != null:
 		f.store_line("tick,chassis_y,vy,wheel,comp,hub_travel,vel,geom,loaded,load,elastic,damper_app,bump,radial_defl,contact_dist,safe_frac,tick_id,dt")
 	if fi != null:
-		fi.store_line("tick_seq,wheel,hub_mass,up_y,pre_hub_v,pre_anchor_v,pre_chassis_v,hit,loaded,dist,road_comp,hub_travel,comp_raw,comp_clamped,defl,cspeed_raw,cspeed_used,press,carcass,rad_elas,rad_visc_full,rad_visc_scale,rad_visc_app,rad_rim,rad_force,rad_clamped,susp_elas,susp_damper_req,susp_damper_app,susp_clamped,susp_bump,susp_arb,susp_droop,susp_internal,hub_susp_ax,hub_rad_ax,hub_grav_ax,J_susp,J_rad,J_grav,J_sum,rad_implicit,rad_F_inst,rad_F_mean,rad_J_imp,rad_iters,rad_fallback,rad_opening")
+		fi.store_line("tick_seq,wheel,hub_mass,pre_hub_v,post_hub_v,J_susp,J_rad,J_grav,J_sum,rad_F_mean,rad_J_imp")
 	var first_anomaly := {"tick": -1, "wheel": -1, "channel": "", "detail": ""}
 	var ever_contact := [false, false, false, false]
 	var impulse_by_seq := {}
@@ -221,7 +215,6 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 		var contacts: Array = sim.sample_contact_trace()
 		var origin: Vector3 = vehicle.global_transform.origin
 		var lin: Vector3 = vehicle.linear_velocity
-		var rig = sim.unsprung_rig
 		for w in 4:
 			var s: Dictionary = susp[w]
 			var tk: Dictionary = ticks[w]
@@ -247,31 +240,15 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 					float(ct.get("distance_m", 0.0)), float(ct.get("safe_fraction", 0.0)),
 					int(tk.get("tick_id", 0)), float(tk.get("dt_s", 0.0)),
 				])
-			var im: Dictionary = (rig.impulse_trace[w] as Dictionary).duplicate(true)
-			var seq := int(im.get("tick_seq", -1))
-			if seq >= 0:
-				if not impulse_by_seq.has(seq):
-					impulse_by_seq[seq] = [{}, {}, {}, {}]
-				(impulse_by_seq[seq] as Array)[w] = im
+			var seq := int(tk.get("tick_id", -1))
+			if seq > 0:
+				if w == 0 and not impulse_by_seq.has(seq) and impulse_by_seq.size() < BALANCE_TICKS:
+					impulse_by_seq[seq] = tk
 				if fi != null:
-					fi.store_line("%d,%d,%.2f,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%.4f,%.5f,%.5f,%.5f,%.4f,%.4f,%.4f,%.1f,%.1f,%.1f,%.1f,%.2f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,%.1f,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.4f,%.4f,%.4f,%d,%.1f,%.1f,%.4f,%d,%d,%d" % [
-						seq, w, float(im.get("hub_mass_kg", 0.0)), float((im.get("up", [0, 1, 0]) as Array)[1]),
-						float(im.get("pre_hub_vel_axial", 0.0)), float(im.get("pre_anchor_vel_axial", 0.0)), float(im.get("pre_chassis_vel_axial", 0.0)),
-						int(bool(im.get("hit", false))), int(bool(im.get("contact_loaded_final", false))),
-						float(im.get("distance_m", 0.0)), float(im.get("road_compression_m", 0.0)), float(im.get("hub_travel_physical_m", 0.0)),
-						float(im.get("comp_raw_m", 0.0)), float(im.get("comp_clamped_m", 0.0)), float(im.get("deflection_m", 0.0)),
-						float(im.get("compression_speed_raw", 0.0)), float(im.get("compression_speed_used", 0.0)),
-						float(im.get("pressure_kpa", 0.0)), float(im.get("carcass_c", 0.0)),
-						float(im.get("radial_elastic_n", 0.0)), float(im.get("radial_viscous_full_n", 0.0)), float(im.get("radial_viscous_scale", 1.0)),
-						float(im.get("radial_viscous_applied_n", 0.0)), float(im.get("radial_rim_stop_n", 0.0)), float(im.get("radial_force_n", 0.0)),
-						int(bool(im.get("radial_clamped_zero", false))),
-						float(im.get("susp_elastic_n", 0.0)), float(im.get("susp_damper_req_n", 0.0)), float(im.get("susp_damper_app_n", 0.0)),
-						int(bool(im.get("susp_damper_clamped", false))),
-						float(im.get("susp_bump_n", 0.0)), float(im.get("susp_arb_n", 0.0)), float(im.get("susp_droop_n", 0.0)), float(im.get("susp_internal_n", 0.0)),
-						float(im.get("hub_susp_axial_n", 0.0)), float(im.get("hub_radial_axial_n", 0.0)), float(im.get("hub_gravity_axial_n", 0.0)),
-						float(im.get("J_susp_ns", 0.0)), float(im.get("J_radial_ns", 0.0)), float(im.get("J_gravity_ns", 0.0)), float(im.get("J_sum_known_ns", 0.0)),
-						int(bool(im.get("radial_implicit", false))), float(im.get("radial_F_inst_n", 0.0)), float(im.get("radial_F_mean_n", 0.0)),
-						float(im.get("radial_J_imp_ns", 0.0)), int(im.get("radial_iters", 0)), int(bool(im.get("radial_fallback", false))), int(bool(im.get("radial_opening", false))),
+					fi.store_line("%d,%d,%.2f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.1f,%.4f" % [
+						seq, w, float(tk["hub_mass_kg"]), float(tk["pre_hub_vel_axial"]), float(tk["post_hub_vel_axial"]),
+						float(tk["J_susp_ns"]), float(tk["J_radial_ns"]), float(tk["J_gravity_ns"]),
+						float(tk["J_sum_known_ns"]), float(tk["radial_F_mean_n"]), float(tk["radial_J_imp_ns"]),
 					])
 			if int(first_anomaly.get("tick", -1)) < 0:
 				if load > LOAD_SPIKE_N:
@@ -318,49 +295,31 @@ func _run_pass(hz: int, variant: String, rep: int) -> void:
 	await process_frame
 
 
-## Balance axial de FL entre ticks consecutivos (paso 3): m·Δv frente a ΣJ
-## por término leídos a la misma fase del callback; el residual incluye la
-## reacción de las restricciones y del solver. n = fuerza aplicada en el tick
-## n; Δv = pre(n+1) − pre(n).
+## Balance axial del buje delantero izquierdo dentro de cada tick predicho.
+## El residual incluye la guía, los topes y el error de integración.
 func _print_impulse_balance(impulse_by_seq: Dictionary, hz: int, variant: String, rep: int) -> void:
 	var seqs := impulse_by_seq.keys()
 	seqs.sort()
 	var rows: Array = []
-	var count := 0
-	for s in seqs:
-		if count >= BALANCE_TICKS:
-			break
-		var a: Array = impulse_by_seq[s]
-		var next_seq := -1
-		for c in seqs:
-			if int(c) == int(s) + 1:
-				next_seq = int(c)
-				break
-		if next_seq < 0 or not impulse_by_seq.has(next_seq):
-			continue
-		var b: Array = impulse_by_seq[next_seq]
-		var fa: Dictionary = a[0]
-		var fb: Dictionary = b[0]
-		if fa.is_empty() or fb.is_empty():
-			continue
-		var m := maxf(float(fa.get("hub_mass_kg", 19.0)), 1.0)
-		var dv := float(fb.get("pre_hub_vel_axial", 0.0)) - float(fa.get("pre_hub_vel_axial", 0.0))
+	for seq in seqs:
+		var trace: Dictionary = impulse_by_seq[seq]
+		var m := float(trace["hub_mass_kg"])
+		var dv := float(trace["post_hub_vel_axial"]) - float(trace["pre_hub_vel_axial"])
 		var mdv := m * dv
-		var j_susp := float(fa.get("J_susp_ns", 0.0))
-		var j_rad := float(fa.get("J_radial_ns", 0.0))
-		var j_grav := float(fa.get("J_gravity_ns", 0.0))
-		var j_sum := float(fa.get("J_sum_known_ns", 0.0))
+		var j_susp := float(trace.get("J_susp_ns", 0.0))
+		var j_rad := float(trace.get("J_radial_ns", 0.0))
+		var j_grav := float(trace.get("J_gravity_ns", 0.0))
+		var j_sum := float(trace.get("J_sum_known_ns", 0.0))
 		var resid := mdv - j_sum
 		var denom := maxf(absf(mdv), 1.0)
 		rows.append({
-			"n": int(s), "m": m,
-			"pre_v": float(fa.get("pre_hub_vel_axial", 0.0)),
-			"post_v": float(fb.get("pre_hub_vel_axial", 0.0)),
+			"n": int(seq), "m": m,
+			"pre_v": float(trace.get("pre_hub_vel_axial", 0.0)),
+			"post_v": float(trace["post_hub_vel_axial"]),
 			"dv": dv, "m_dv": mdv,
 			"J_susp": j_susp, "J_rad": j_rad, "J_grav": j_grav, "J_sum": j_sum,
 			"residual": resid, "res_pct": 100.0 * resid / denom,
 		})
-		count += 1
 	print("SUSPENSION_IMPULSE_BALANCE ", JSON.stringify({
-		"hz": hz, "variant": variant, "rep": rep, "wheel": 0, "rows": rows,
+		"hz": hz, "variant": variant, "rep": rep, "wheel": 0, "reference": "predicted_tick_start_axis", "rows": rows,
 	}))

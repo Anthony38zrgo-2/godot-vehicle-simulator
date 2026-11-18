@@ -598,20 +598,10 @@ func suspension_forces() -> Array[float]:
 	return forces
 
 
-## Variante semi-implícita (Paso 1.1 Jolt fix): misma ley que
-## suspension_forces() pero con amortiguador y bumpstop corregidos por
-## m_eff = 1/(1/m_u + 1/m_s_corner):
-##   c_eff = c/(1 + c*dt/m_eff), k_eff = k/(1 + k*dt*dt/m_eff).
-## `hub_masses_kg` y `corner_sprung_masses_kg` tienen 4 entradas. Si dt <= 0
-## o las masas están vacías, cae a la ruta explícita (bit-idéntica).
-## La fuerza interna total por esquina se calcula UNA SOLA VEZ (Paso 1.3) y
-## el llamante debe aplicar +F al chasis y -F al buje sin recortes asimétricos.
-func suspension_forces_implicit(
-	dt: float,
-	hub_masses_kg: Array = [],
-	corner_sprung_masses_kg: Array = [],
-) -> Array[float]:
-	if dt <= 0.0 or hub_masses_kg.size() != 4 or corner_sprung_masses_kg.size() != 4:
+## Ley semiimplícita de suspensión con las cuatro masas relativas del rig.
+## Aplica +F al chasis y −F al buje por la misma coordenada axial.
+func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
+	if dt <= 0.0 or m_rel_kg.size() != 4:
 		return suspension_forces()
 	var forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	for i in 4:
@@ -629,21 +619,11 @@ func suspension_forces_implicit(
 			damper_explicit = signf(speed) * damper_rate * (slow_part + fast_part)
 		else:
 			damper_explicit = damper_rate * speed
-		# Linealización local c = |F|/|v| para el factor implícito.
 		var c_lin := damper_rate
 		if abs_speed > 1.0e-4:
 			c_lin = absf(damper_explicit) / abs_speed
-		var m_eff := reduced_mass_kg(float(hub_masses_kg[i]), float(corner_sprung_masses_kg[i]))
-		var c_eff := c_lin / (1.0 + (c_lin * maxf(dt, 0.00001)) / maxf(m_eff, 1.0))
-		var damper_force := -c_eff * speed if abs_speed > 1.0e-9 else 0.0
-		# Conservar el signo digresivo exacto cuando la linealización coincide:
-		# si la curva era lineal, -c_eff*v == explícito/(1+c*dt/m). Si era
-		# digresiva, escala por el mismo factor para no cambiar la forma.
-		if abs_speed > 1.0e-9 and absf(damper_explicit) > 1.0e-9:
-			var scale := absf(damper_force) / maxf(absf(damper_explicit), 1.0e-9)
-			# scale ya es 1/(1+c*dt/m) por construcción; aplicar directo.
-			damper_force = damper_explicit * clampf(scale / maxf(absf(damper_explicit) / maxf(absf(damper_explicit), 1.0e-9), 1.0), 0.0, 1.0)
-			damper_force = damper_explicit / (1.0 + (c_lin * maxf(dt, 0.00001)) / maxf(m_eff, 1.0))
+		var m_eff := maxf(float(m_rel_kg[i]), 1.0)
+		var damper_force := damper_explicit / (1.0 + (c_lin * maxf(dt, 0.00001)) / m_eff) if abs_speed > 1.0e-9 else 0.0
 		var travel_delta := travel - float(p.get("rest_compression_offset", 0.0))
 		var max_range := maxf(float(p.bump_m), 0.05)
 		var norm_travel := clampf(travel_delta / max_range, -1.0, 1.5)
@@ -676,13 +656,9 @@ func suspension_forces_implicit(
 				1.0,
 			)
 			var bump_explicit := bump_elastic + bump_damp
-			# k linealizada local para el factor implícito.
 			var k_lin := float(p.bump_stop_stiffness) * norm_over * (0.5 + 0.5 * norm_over)
 			k_lin = maxf(k_lin, absf(bump_explicit) / maxf(overtravel, 1.0e-4))
-			var k_eff := k_lin / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
-			bump_force = k_eff * overtravel + bump_damp / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
-			# Conservar forma exacta escalando el explícito por el factor.
-			bump_force = bump_explicit / (1.0 + (k_lin * dt * dt) / maxf(m_eff, 1.0))
+			bump_force = bump_explicit / (1.0 + (k_lin * dt * dt) / m_eff)
 			force += bump_force
 		last_bump_forces_n[i] = bump_force
 		forces[i] = force
