@@ -85,6 +85,7 @@ var instance_scale := 1.0
 var ground_group: StringName = &""
 var collidable_bushes := false
 var fog_enabled := true
+var outline_bush_cards := false
 var visual_range_m := 0.0
 var reserved_points: Array[Vector3] = []
 var sector_stream: RallyVisualSectorStream
@@ -404,6 +405,14 @@ func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
 	material.disable_receive_shadows = true
 	material.disable_fog = not fog_enabled
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	if outline_bush_cards and material.albedo_texture != null:
+		var outlined := ShaderMaterial.new()
+		outlined.shader = preload("res://scripts/rally/cdi_bush_outline.gdshader")
+		outlined.set_shader_parameter("bush_texture", material.albedo_texture)
+		outlined.set_shader_parameter("bush_color", material.albedo_color)
+		outlined.set_shader_parameter("card_center", visual.mesh.get_aabb().get_center())
+		outlined.set_shader_parameter("alpha_cutoff", ALPHA_SCISSOR_THRESHOLD)
+		material.next_pass = outlined
 	return material
 
 

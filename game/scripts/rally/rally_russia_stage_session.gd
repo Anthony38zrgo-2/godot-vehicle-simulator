@@ -380,6 +380,7 @@ func _build_stage_grass() -> void:
 		bushes.density_scale = 0.018 * 0.60
 		bushes.reserved_points = occupied
 		bushes.fog_enabled = false
+		bushes.outline_bush_cards = true
 		bushes.custom_variants.assign([
 			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_beige_01.glb"),
 			load("res://assets/rally/cdi_stage1/vegetacion/arbusto_beige_02.glb"),

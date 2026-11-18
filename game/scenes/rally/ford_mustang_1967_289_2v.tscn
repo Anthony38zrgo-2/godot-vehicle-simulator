@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/ford_mustang_1967_289_2v/gt350_chassis.glb" id="2_chassis"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://assets/rally/ford_mustang_1967_289_2v/gt350_wheel_rear_right.glb" id="6_wheel_rear_right"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="8_vfx"]
+[ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="9_toon"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_mustang67"]
 friction = 0.9
@@ -28,6 +29,7 @@ rally_collision_path = "res://assets/rally/ford_mustang_1967_289_2v/ford_mustang
 cockpit_camera_enabled = false
 
 [node name="Chassis" parent="." instance=ExtResource("2_chassis")]
+script = ExtResource("9_toon")
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("8_vfx")

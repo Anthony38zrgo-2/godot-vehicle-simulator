@@ -41,6 +41,12 @@ func _verify() -> void:
 	var stream := session.get_node("TrackVisual/VisualSectorStream") as Node3D
 	var track := session.get_node("TrackCollision") as RallyTrackCollisionBuilder
 	var vehicle := session.vehicle as RallyEscortVehicle
+	var body_mesh := vehicle.find_child("Shelby_GT350", true, false) as MeshInstance3D
+	if body_mesh != null:
+		var toon := body_mesh.get_active_material(0) as ShaderMaterial
+		if not _require(toon != null and toon.next_pass == null,
+				"The GT350 body must keep toon lighting without an outline pass"):
+			return
 	if not _require(str(vehicle.rally_profile.get("profile_id", "")) == "ford_mustang_1967_289_2v",
 			"Rajuntay did not start with the Mustang"):
 		return
