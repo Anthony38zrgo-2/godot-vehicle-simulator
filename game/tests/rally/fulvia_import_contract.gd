@@ -62,37 +62,31 @@ func run() -> void:
 		var track: float = absf(vehicle.simulation.wheel_positions_local[axle + 1].x - vehicle.simulation.wheel_positions_local[axle].x)
 		check(absf(track - float(geometry.front_track if axle == 0 else geometry.rear_track)) < 0.0001, "measured track matches simulation")
 		check(absf(track - 1.2200001) < 0.0001, "native Rally Trophy wheel track")
-	check(vehicle.get_node_or_null("Chassis/CockpitEye") != null, "driver eye anchor exported")
-	var cockpit = vehicle.get_node("CockpitAnimation")
-	check(cockpit.arms.size() == 2 and cockpit._pose_indices[0].size() == 19, "original driver arm poses loaded")
-	# The Fulvia chassis bakes the column tilt into the wheel node, so the rim lies in
-	# local XZ and the shaft is local +Y (the Escort instead bakes the tilt into the mesh).
-	var wheel_size: Vector3 = (cockpit.steering_wheel as MeshInstance3D).get_aabb().size
-	var shaft_axis := 0
-	for axis_index in 3:
-		if wheel_size[axis_index] < wheel_size[shaft_axis]:
-			shaft_axis = axis_index
-	check(absf(cockpit.steering_wheel_axis.normalized()[shaft_axis]) > 0.99, "Fulvia steering axis follows the model shaft")
-	var rest_basis: Basis = cockpit.steering_wheel.basis
-	cockpit.update_steering_pose(0.8)
-	check(not cockpit.steering_wheel.basis.is_equal_approx(rest_basis), "steering wheel animates")
-	check(cockpit.steering_wheel.basis.y.is_equal_approx(rest_basis.y), "wheel turns about its shaft without tilting the rim")
-	check(cockpit.arms[0].get_blend_shape_value(cockpit._pose_indices[0][1]) > 0.0, "native steering morph selected")
-	cockpit.update_steering_pose(0.0)
-	check_damage(vehicle)
+	check_psx_mesh(vehicle.get_node_or_null("Chassis/FulviaPSXExterior") as MeshInstance3D, "chassis")
+	var wheel_nodes := ["WheelFrontLeft", "WheelFrontRight", "WheelRearLeft", "WheelRearRight"]
+	for i in wheel_nodes.size():
+		var node_name: String = wheel_nodes[i]
+		var pivot := vehicle.get_node(node_name) as Node3D
+		var hub: Vector3 = vehicle.simulation.wheel_positions_local[i]
+		hub.y += vehicle.simulation.unsprung_rig.q[i]
+		check(pivot.position.distance_to(hub) < 0.001, "visible wheel follows hub at spawn: " + node_name)
+		var wheel := pivot.get_node("WheelVisual/WheelMesh")
+		var meshes: Array[Node] = wheel.find_children("*", "MeshInstance3D", true, false)
+		check(meshes.size() == 1, "one PSX wheel mesh: " + node_name)
+		if meshes.size() == 1:
+			var tire := meshes[0] as MeshInstance3D
+			check_psx_mesh(tire, node_name)
+			check(tire.to_global(tire.get_aabb().get_center()).distance_to(pivot.global_position) < 0.001,
+				"tire mesh centered on spindle: " + node_name)
+	check(not vehicle.cockpit_camera_enabled, "PSX Fulvia cockpit temporarily disabled")
+	check(vehicle.get_node_or_null("CockpitAnimation") == null, "PSX chassis has no cockpit animation")
+	check(vehicle.get_node_or_null("VisualDamage") == null, "PSX Fulvia visual damage temporarily disabled")
 	check_audio(vehicle)
 	var rig = session.camera_rig
 	rig.camera_mode = rig.Mode.CHASE
-	for expected in [rig.Mode.BONNET, rig.Mode.COCKPIT, rig.Mode.CHASE, rig.Mode.BONNET]:
+	for expected in [rig.Mode.BONNET, rig.Mode.CHASE]:
 		rig.toggle_camera_mode()
-		check(rig.camera_mode == expected, "Fulvia camera cycle includes cockpit")
-	rig.camera_mode = rig.Mode.COCKPIT
-	rig.snap_to_target()
-	check(rig.camera_mode == rig.Mode.COCKPIT, "restored cockpit selection available")
-	check(not cockpit.driver_head.visible, "driver head hidden in first person")
-	rig.camera_mode = rig.Mode.CHASE
-	rig.snap_to_target()
-	check(cockpit.driver_head.visible, "driver head restored externally")
+		check(rig.camera_mode == expected, "PSX Fulvia skips cockpit view")
 	var escort = load("res://scenes/rally/ford_escort_rs2000_1971.tscn").instantiate()
 	root.add_child(escort)
 	escort.freeze = true
@@ -101,8 +95,7 @@ func run() -> void:
 	rig.toggle_camera_mode()
 	check(rig.camera_mode == rig.Mode.COCKPIT, "Escort retains cockpit")
 	rig.set_vehicle(vehicle)
-	check(rig.cockpit_eye_offset_metres.distance_to(vehicle.to_local(vehicle.get_node("Chassis/CockpitEye").global_position)) < 0.001, "camera rebinds Fulvia eye anchor")
-	check(rig.camera_mode == rig.Mode.COCKPIT, "switch to Fulvia retains cockpit")
+	check(rig.camera_mode == rig.Mode.CHASE, "switching to PSX Fulvia exits cockpit view")
 	escort.queue_free()
 	if session.awaiting_setup:
 		session.garage_panel.close_garage(true)
@@ -123,53 +116,23 @@ func run() -> void:
 		root.get_texture().get_image().save_png(path)
 		print("FULVIA_PREVIEW ", ProjectSettings.globalize_path(path))
 		camera.queue_free()
-		rig.camera.current = true
-		rig.camera_mode = rig.Mode.COCKPIT
-		rig.snap_to_target()
-		for i in 8:
-			await process_frame
-		await RenderingServer.frame_post_draw
-		path = "user://fulvia_cockpit_preview.png"
-		root.get_texture().get_image().save_png(path)
-		print("FULVIA_COCKPIT_PREVIEW ", ProjectSettings.globalize_path(path))
 	await session.load_event_stage("russia_stage2")
 	check(session.session_ready and session.session_track_id == "russia_stage2", "stage transition ready")
 	check(session.vehicle == vehicle and vehicle.rally_profile.profile_id == "lancia_fulvia_1600_hf", "stage transition preserves Fulvia")
 	print("FULVIA_IMPORT_CONTRACT ", JSON.stringify({"passed": failures.is_empty(), "failures": failures}))
 	quit(0 if failures.is_empty() else 1)
 
-func check_damage(vehicle: Node) -> void:
-	var damage = vehicle.get_node("VisualDamage")
-	check(damage.damage_meshes.resource_path.contains("lancia_fulvia"), "Fulvia crash meshes selected")
-	check(damage._healthy.size() == 4 and damage._damaged.size() == 4, "body hood trunk and interior variants bound")
-	check(damage.broken_glass != null and damage.broken_glass_inside != null and damage.broken_light != null, "native damage textures imported")
-	var body_mat: Material = damage._healthy.body.get_active_material(0)
-	var body_tex = body_mat.get_shader_parameter("albedo_tex") if body_mat is ShaderMaterial else body_mat.albedo_texture
-	check(body_tex != null, "native body texture exported")
-	var interior_mat: Material = damage._healthy.interior.get_active_material(0)
-	var interior_tex = interior_mat.get_shader_parameter("albedo_tex") if interior_mat is ShaderMaterial else interior_mat.albedo_texture
-	check(interior_tex != null, "native cockpit texture exported")
-	var cfg: Dictionary = vehicle.simulation.domains.damage.get("visual", {})
-	damage.register_impact(Vector3(-0.60, 0.45, -1.96), Vector3.BACK, 1.0, cfg)
-	damage.register_impact(Vector3(0.0, 0.5, 1.8), Vector3.FORWARD, 1.0, cfg)
-	damage._process(0.0)
-	var snapshot: Dictionary = damage.damage_snapshot()
-	for part in ["body", "hood", "trunk", "windshield", "headlight_left"]:
-		check(snapshot.has(part), "native damage registered: " + part)
-	for part in ["body", "hood", "trunk", "interior"]:
-		check(not damage._healthy[part].visible and damage._damaged[part].visible, "crash mesh replaces " + part)
-	check(damage._surfaces.get("windshield", []).size() > 0, "damaged interior glass bound")
-	var repair: Array[String] = ["body", "hood", "trunk", "windshield", "headlight_left", "headlight_right"]
-	damage.repair_parts(repair)
-	damage._process(0.0)
-	check(damage.damage_snapshot().is_empty(), "repair clears visual damage")
-	for part in ["body", "hood", "trunk", "interior"]:
-		check(damage._healthy[part].visible and not damage._damaged[part].visible, "repair restores " + part)
-	damage.restore_damage(snapshot)
-	damage._process(0.0)
-	check(damage._damaged.body.visible, "saved damage restores crash mesh")
-	damage.repair_parts(repair)
-	damage._process(0.0)
+func check_psx_mesh(instance: MeshInstance3D, label: String) -> void:
+	check(instance != null and instance.mesh != null, "PSX mesh imported: " + label)
+	if instance == null or instance.mesh == null:
+		return
+	var material := instance.get_active_material(0) as BaseMaterial3D
+	check(material != null and material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED,
+		"PSX baked lighting: " + label)
+	if material != null:
+		var atlas := material.albedo_texture
+		check(atlas != null and atlas.get_size() == Vector2(512, 512), "PSX atlas imported: " + label)
+		check(material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST, "PSX nearest sampling: " + label)
 
 func energy(voices: Array) -> float:
 	var sum := 0.0

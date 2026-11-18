@@ -554,6 +554,8 @@ func place_vehicle_on_stage() -> void:
 	vehicle.global_transform = Transform3D(start_basis, start_position)
 	vehicle.prepare_for_stage()
 	vehicle.simulation.unsprung_rig.reset()
+	vehicle.sync_wheel_visuals()
+	vehicle.reset_physics_interpolation()
 	vehicle.linear_velocity = Vector3.ZERO
 	vehicle.angular_velocity = Vector3.ZERO
 	vehicle.sleeping = false

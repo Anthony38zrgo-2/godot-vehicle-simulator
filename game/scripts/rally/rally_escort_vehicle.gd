@@ -268,6 +268,11 @@ func get_tire_compound() -> String:
 var wheel_rest_scales: Array[Vector3] = []
 
 
+func sync_wheel_visuals() -> void:
+	simulation.update_wheel_visuals(steering_amount)
+	_update_unseated_wheel_visuals()
+
+
 func _update_unseated_wheel_visuals() -> void:
 	for i in wheel_rest_scales.size():
 		var pivot := simulation.wheel_visual_pivots[i]
@@ -354,9 +359,7 @@ func _physics_process(delta: float) -> void:
 	if _blob_shadow_decal != null:
 		var target_mix := 0.35 if is_airborne() else 1.0
 		_blob_shadow_decal.albedo_mix = lerpf(_blob_shadow_decal.albedo_mix, target_mix, clampf(delta * 12.0, 0.0, 1.0))
-	# 1DOF: sin nodos de buje que congelar; la muestra visual sale de q.
-	simulation.update_wheel_visuals(steering_amount)
-	_update_unseated_wheel_visuals()
+	sync_wheel_visuals()
 	_sync_mass_from_fuel()
 	var smoothing_enabled := bool(_input_smoothing.get("enabled", false))
 	throttle_amount = _shape_input(throttle_amount, throttle_input, float(_input_smoothing.get("throttle", 0.0)), delta, smoothing_enabled)
@@ -779,7 +782,6 @@ func _reset_to_transform(pose: Transform3D) -> void:
 	# Sin nodos de buje: solo chasis.
 	can_sleep = false
 	sleeping = false
-	reset_physics_interpolation()
 	_log_teleport("post_reset", pose)
 	_teleport_trace_ticks = 3
 	throttle_input = 0.0
@@ -793,6 +795,8 @@ func _reset_to_transform(pose: Transform3D) -> void:
 	steering_amount = 0.0
 	true_steering_amount = 0.0
 	clutch_amount = 1.0
+	sync_wheel_visuals()
+	reset_physics_interpolation()
 	sleeping = false
 	_reset_pending = true
 	body_contact_audio.clear()
