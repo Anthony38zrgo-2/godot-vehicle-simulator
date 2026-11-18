@@ -87,10 +87,8 @@ vec3 zone_layers(float station) {
 
 vec3 zone_texture(vec2 uv, float first, float count, vec3 zone) {
 	vec3 primary = palette_layer(uv, first + mod(zone.x, count));
-	if (zone.z <= 0.0) {
-		return primary;
-	}
-	return mix(primary, palette_layer(uv, first + mod(zone.y, count)), zone.z);
+	vec3 secondary = palette_layer(uv, first + mod(zone.y, count));
+	return mix(primary, secondary, zone.z);
 }
 
 vec3 zone_shoulder(vec3 p, vec3 zone) {

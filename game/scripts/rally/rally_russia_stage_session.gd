@@ -376,6 +376,7 @@ func _build_stage_grass() -> void:
 		bushes.sector_stream = sector_stream
 		bushes.ground_group = &"RauraGrassGround"
 		bushes.collidable_bushes = true
+		bushes.instance_scale = 1.20
 		bushes.density_scale = 0.018 * 0.60
 		bushes.reserved_points = occupied
 		bushes.fog_enabled = false

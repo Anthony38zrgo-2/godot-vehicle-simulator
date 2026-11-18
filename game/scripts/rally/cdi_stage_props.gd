@@ -8,11 +8,11 @@ const ANIMAL := "animals"
 const STONE := "rocks"
 const STONE_COUNT := 200
 const STONE_PROFILES := [
-	{"offset": Vector2(3.55, 5.15), "size": Vector2(0.15, 0.38), "solid": false},
-	{"offset": Vector2(3.85, 6.20), "size": Vector2(0.32, 0.57), "solid": false},
-	{"offset": Vector2(4.50, 8.50), "size": Vector2(0.52, 0.99), "solid": false},
-	{"offset": Vector2(5.45, 10.0), "size": Vector2(1.16, 2.12), "solid": true},
-	{"offset": Vector2(11.0, 32.0), "size": Vector2(1.22, 2.75), "solid": true},
+	{"offset": Vector2(3.55, 5.15), "size": Vector2(0.15, 0.38), "wide_clearance": false},
+	{"offset": Vector2(3.85, 6.20), "size": Vector2(0.32, 0.57), "wide_clearance": false},
+	{"offset": Vector2(4.50, 8.50), "size": Vector2(0.52, 0.99), "wide_clearance": false},
+	{"offset": Vector2(5.45, 10.0), "size": Vector2(1.16, 2.12), "wide_clearance": true},
+	{"offset": Vector2(11.0, 32.0), "size": Vector2(1.22, 2.75), "wide_clearance": true},
 ]
 
 var _route: RallyStageProgress
@@ -135,13 +135,13 @@ func _place_rock(variant: Dictionary, profile: Dictionary, zone: Vector2) -> boo
 		var side := -1.0 if _rng.randf() < 0.5 else 1.0
 		var distance := _rng.randf_range(profile.offset.x, profile.offset.y)
 		var size := _rng.randf_range(profile.size.x, profile.size.y)
-		var hit := _ground(STONE, station, side * distance, size if profile.solid else 0.0)
+		var hit := _ground(STONE, station, side * distance, size if profile.wide_clearance else 0.0)
 		if hit.is_empty():
 			continue
 		var position: Vector3 = hit.position
 		_placements.append({"group": "Stones", "kind": STONE, "variant": variant, "point": position,
 			"size": size, "yaw": _rng.randf_range(0.0, TAU), "station": station,
-			"lateral": distance, "solid": profile.solid})
+			"lateral": distance})
 		_occupied.append(position)
 		return true
 	return false
@@ -158,7 +158,7 @@ func _spawn_placement(parent: Node3D, info: Dictionary) -> void:
 	instance.set_meta("station_m", info.station)
 	if info.has("lateral"):
 		instance.set_meta("lateral_m", info.lateral)
-	if info.get("solid", false):
+	if info.kind == STONE:
 		_add_rock_collision(instance, info.variant.hull, info.size)
 
 
