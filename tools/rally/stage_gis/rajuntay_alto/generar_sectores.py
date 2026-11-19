@@ -66,29 +66,26 @@ def regional_dem_colors(dem, east, south, center, cell_m):
     strata = smooth(0.12, 0.70, np.cos(2 * np.pi * bedding))
     warm = np.maximum(southwest * 0.90, east_patch * 0.78) * (0.23 + 0.77 * strata)
 
-    greenness = smooth(0.015, 0.14, curvature) * (1 - smooth(0.22, 0.45, slope))
-    # Ichu pajizo dorado a amarillo seco pálido, con oliva seco en vaguadas
-    grass = blend(linear_rgb("A38E58"), linear_rgb("C6B480"), smooth(-0.08, 0.01, -curvature))
-    grass = blend(grass, linear_rgb("696B45"), greenness * 0.60)
-    # Pizarra y pedregal más fríos (gris azulado / carbón en crestas abruptas)
-    rock = blend(linear_rgb("71757C"), linear_rgb("383C44"), smooth(0.38, 0.80, slope))
-    # Estratos rojo terracota / salmón andino y vetas de óxido más marcados
-    warm_rock = blend(linear_rgb("B4644E"), linear_rgb("763B30"), smooth(0.36, 0.78, slope))
-    rust_vein = smooth(0.32, 0.76, strata) * smooth(0.24, 0.62, slope)
-    warm_rock = blend(warm_rock, linear_rgb("B0623B"), rust_vein * 0.50)
-    # Exposición rocosa calibrada al DEM de 55 m (p50=0.35, p75=0.54, p90=0.70)
-    exposure = smooth(0.24, 0.52, slope + np.clip((dem - 4760) / 1100, -0.10, 0.28))
-    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.68))
+    # COLOR_0.rgb: albedo mineral puro (sin sombreado ni bruma: el shader ilumina
+    # con el sol dinámico y aplica la bruma por distancia a cámara).
+    # COLOR_0.a: exposición rocosa (pendiente + altitud - vaguadas) para el corte nítido en el shader.
+    # Paleta medida en fotos LM-116: roca gris neutra, escarpes salmón solo en cotas bajas/medias.
+    rock = blend(linear_rgb("7A7676"), linear_rgb("5E5C5D"), smooth(0.40, 0.85, slope))
+    rock = blend(rock, linear_rgb("6B6866"), smooth(0.30, 0.80, strata) * 0.35)
+    warm_rock = blend(linear_rgb("8F6655"), linear_rgb("7A5446"), smooth(0.35, 0.80, slope))
+    warm = warm * (1 - smooth(4950, 5150, dem))
+    color = blend(rock, warm_rock, np.clip(warm * 1.15, 0, 1))
+    # Oclusión ligera de quebradas (propiedad del material, no iluminación)
+    color *= np.clip(1.0 - curvature * 1.2, 0.80, 1.08)[..., None]
+
+    hollow = smooth(0.01, 0.10, curvature)
+    exposure = smooth(0.26, 0.62, slope + np.clip((dem - 4800) / 1000, -0.12, 0.30) - hollow * 0.22)
+    exposure = np.maximum(exposure, warm * smooth(0.18, 0.40, slope) * 0.85)
 
     snow = np.clip((dem - 5220) / 230 - slope * 0.38, 0, 0.78)
-    color = blend(color, np.array([0.65, 0.70, 0.75]), snow)
-    # Acentuación topográfica: oscurece quebradas profundas y realza filos/crestas
-    ridge_ao = np.clip(1.0 - curvature * 2.1, 0.64, 1.18)
-    color *= ridge_ao[..., None]
-    # Sombreo base moderado para que el micro-relieve del fragment shader aporte el contraste fino
-    color *= np.clip(0.92 - dx * 0.26 - dz * 0.30, 0.50, 1.12)[..., None]
-    haze = smooth(1300, 16000, np.hypot(x, z)) * 0.42
-    return blend(color, np.array([0.34, 0.43, 0.54]), haze)
+    color = blend(color, np.array([0.70, 0.72, 0.75]), snow)
+    exposure = np.maximum(exposure, snow)
+    return np.concatenate((color, exposure[..., None]), axis=-1)
 
 
 def terrain_proxy():
@@ -116,7 +113,7 @@ def terrain_proxy():
     faces = np.column_stack((i, i+width, i+1, i+1, i+width, i+width+1)).reshape(-1, 3)
     return ({"POSITION": positions.reshape(-1, 3).astype("<f4"),
              "NORMAL": normals.reshape(-1, 3).astype("<f4"),
-             "COLOR_0": color.reshape(-1, 3).astype("<f4")}, faces)
+             "COLOR_0": color.reshape(-1, 4).astype("<f4")}, faces)
 
 
 def route_stations(positions, route, stations, tree):

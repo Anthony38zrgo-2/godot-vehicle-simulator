@@ -37,8 +37,8 @@
   },
   "visual": {
     "path": "cdi_stage1_visual.glb",
-    "sha256": "729670c018015662d307ab3a9e0ae20e4b9e98896331e5efc5211841da3b8c26",
-    "size_bytes": 15025604
+    "sha256": "dfa3420bb409bf0763d052f9ab1f381a62546025242140b57a4cc2c59a8126e5",
+    "size_bytes": 15737940
   },
   "collision": {
     "path": "cdi_stage1_collision.glb",

@@ -126,6 +126,38 @@ func _process(_delta: float) -> void:
 	var point := _vehicle.global_position
 	var velocity := _vehicle.linear_velocity * LOOK_AHEAD_S
 	_tick(Vector2(point.x, point.z), Vector2(point.x + velocity.x, point.z + velocity.z))
+	_update_regional_lighting(_delta)
+
+
+var _light_refresh := 0.0
+var _lights: Array[Node] = []
+
+
+## Feeds the dynamic sun, sky ambient and horizon haze to the regional DEM shader,
+## which no longer bakes lighting into COLOR_0.
+func _update_regional_lighting(delta: float) -> void:
+	var material: ShaderMaterial = _terrain_materials.get(4)
+	if material == null:
+		return
+	_light_refresh -= delta
+	if _light_refresh <= 0.0 or _lights.any(func(l: Node) -> bool: return not is_instance_valid(l)):
+		_lights = get_tree().root.find_children("*", "DirectionalLight3D", true, false)
+		_light_refresh = 2.0
+	var sun: DirectionalLight3D = null
+	for node in _lights:
+		var light := node as DirectionalLight3D
+		if light != null and light.visible and (sun == null or light.light_energy > sun.light_energy):
+			sun = light
+	if sun != null:
+		var color := sun.light_color * sun.light_energy
+		material.set_shader_parameter("sun_dir", sun.global_basis.z.normalized())
+		material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
+	var env := get_world_3d().environment if get_world_3d() != null else null
+	if env != null:
+		var ambient := env.ambient_light_color * env.ambient_light_energy
+		material.set_shader_parameter("ambient_color", Vector3(ambient.r, ambient.g, ambient.b))
+		var haze := env.fog_light_color
+		material.set_shader_parameter("haze_color", Vector3(haze.r, haze.g, haze.b))
 
 
 func _distance_sq(point: Vector2, rect: Rect2) -> float:

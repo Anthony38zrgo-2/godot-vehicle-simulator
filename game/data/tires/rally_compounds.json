@@ -857,9 +857,9 @@
         "contact_patch_deflection_gain": 0.2,
         "surfaces": {
           "Gravel": {
-            "friction": 0.98,
+            "friction": 0.97,
             "stiffness": 0.9,
-            "rolling_resistance": 2.2,
+            "rolling_resistance": 2.15,
             "longitudinal_grip_ratio": 0.96,
             "lateral_grip_assist": 0.035
           },
@@ -872,10 +872,10 @@
           }
         },
         "combined_migration_v2_enabled": true,
-        "lateral_peak_slip_angle_rad": 0.14,
-        "longitudinal_peak_slip_ratio": 0.08,
-        "lateral_slide_mu_ratio": 0.97,
-        "longitudinal_slide_mu_ratio": 0.73,
+        "lateral_peak_slip_angle_rad": 0.13,
+        "longitudinal_peak_slip_ratio": 0.07,
+        "lateral_slide_mu_ratio": 0.99,
+        "longitudinal_slide_mu_ratio": 0.75,
         "falloff_sharpness": 1.05,
         "peak_load_sensitivity": 0.04,
         "budget_blend_width": 0.15
@@ -897,9 +897,9 @@
         "contact_patch_deflection_gain": 0.2,
         "surfaces": {
           "Gravel": {
-            "friction": 0.98,
+            "friction": 0.97,
             "stiffness": 0.9,
-            "rolling_resistance": 2.2,
+            "rolling_resistance": 2.15,
             "longitudinal_grip_ratio": 1.03,
             "lateral_grip_assist": 0.175
           },
@@ -911,10 +911,10 @@
             "rolling_resistance": 1.0
           }
         },
-        "lateral_peak_slip_angle_rad": 0.08,
-        "longitudinal_peak_slip_ratio": 0.14,
-        "lateral_slide_mu_ratio": 0.73,
-        "longitudinal_slide_mu_ratio": 0.97,
+        "lateral_peak_slip_angle_rad": 0.07,
+        "longitudinal_peak_slip_ratio": 0.13,
+        "lateral_slide_mu_ratio": 0.75,
+        "longitudinal_slide_mu_ratio": 0.99,
         "falloff_sharpness": 0.85,
         "peak_load_sensitivity": 0.075,
         "budget_blend_width": 0.25
