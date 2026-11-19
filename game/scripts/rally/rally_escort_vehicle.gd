@@ -267,11 +267,13 @@ func get_tire_compound() -> String:
 
 
 var wheel_rest_scales: Array[Vector3] = []
+const SHOW_UNSEATED_WHEEL_DEFORMATION := false
 
 
 func sync_wheel_visuals() -> void:
 	simulation.update_wheel_visuals(steering_amount)
-	_update_unseated_wheel_visuals()
+	if SHOW_UNSEATED_WHEEL_DEFORMATION:
+		_update_unseated_wheel_visuals()
 
 
 func _update_unseated_wheel_visuals() -> void:
