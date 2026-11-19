@@ -66,28 +66,29 @@ def regional_dem_colors(dem, east, south, center, cell_m):
     strata = smooth(0.12, 0.70, np.cos(2 * np.pi * bedding))
     warm = np.maximum(southwest * 0.90, east_patch * 0.78) * (0.23 + 0.77 * strata)
 
-    greenness = smooth(0.015, 0.14, curvature) * (1 - smooth(0.22, 0.48, slope))
+    greenness = smooth(0.015, 0.14, curvature) * (1 - smooth(0.22, 0.45, slope))
     # Ichu pajizo dorado a amarillo seco pálido, con oliva seco en vaguadas
-    grass = blend(linear_rgb("A9935B"), linear_rgb("CAB884"), smooth(-0.08, 0.01, -curvature))
-    grass = blend(grass, linear_rgb("6E7049"), greenness * 0.62)
+    grass = blend(linear_rgb("A38E58"), linear_rgb("C6B480"), smooth(-0.08, 0.01, -curvature))
+    grass = blend(grass, linear_rgb("696B45"), greenness * 0.60)
     # Pizarra y pedregal más fríos (gris azulado / carbón en crestas abruptas)
-    rock = blend(linear_rgb("787B80"), linear_rgb("43474E"), smooth(0.45, 0.92, slope))
+    rock = blend(linear_rgb("71757C"), linear_rgb("383C44"), smooth(0.38, 0.80, slope))
     # Estratos rojo terracota / salmón andino y vetas de óxido más marcados
-    warm_rock = blend(linear_rgb("B56D58"), linear_rgb("7E4338"), smooth(0.42, 0.88, slope))
-    rust_vein = smooth(0.35, 0.78, strata) * smooth(0.28, 0.72, slope)
-    warm_rock = blend(warm_rock, linear_rgb("AD6842"), rust_vein * 0.45)
-    exposure = smooth(0.17, 0.64, slope + np.clip((dem - 4850) / 1500, -0.12, 0.22))
-    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.64))
+    warm_rock = blend(linear_rgb("B4644E"), linear_rgb("763B30"), smooth(0.36, 0.78, slope))
+    rust_vein = smooth(0.32, 0.76, strata) * smooth(0.24, 0.62, slope)
+    warm_rock = blend(warm_rock, linear_rgb("B0623B"), rust_vein * 0.50)
+    # Exposición rocosa calibrada al DEM de 55 m (p50=0.35, p75=0.54, p90=0.70)
+    exposure = smooth(0.24, 0.52, slope + np.clip((dem - 4760) / 1100, -0.10, 0.28))
+    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.68))
 
-    snow = np.clip((dem - 5230) / 235 - slope * 0.42, 0, 0.75)
-    color = blend(color, np.array([0.62, 0.67, 0.72]), snow)
+    snow = np.clip((dem - 5220) / 230 - slope * 0.38, 0, 0.78)
+    color = blend(color, np.array([0.65, 0.70, 0.75]), snow)
     # Acentuación topográfica: oscurece quebradas profundas y realza filos/crestas
-    ridge_ao = np.clip(1.0 - curvature * 1.85, 0.68, 1.18)
+    ridge_ao = np.clip(1.0 - curvature * 2.1, 0.64, 1.18)
     color *= ridge_ao[..., None]
-    # Mayor contraste de relieve para que las caras rocosas oscuras destaquen
-    color *= np.clip(0.90 - dx * 0.34 - dz * 0.38, 0.42, 1.15)[..., None]
-    haze = smooth(1100, 15500, np.hypot(x, z)) * 0.46
-    return blend(color, np.array([0.33, 0.41, 0.52]), haze)
+    # Sombreo base moderado para que el micro-relieve del fragment shader aporte el contraste fino
+    color *= np.clip(0.92 - dx * 0.26 - dz * 0.30, 0.50, 1.12)[..., None]
+    haze = smooth(1300, 16000, np.hypot(x, z)) * 0.42
+    return blend(color, np.array([0.34, 0.43, 0.54]), haze)
 
 
 def terrain_proxy():
