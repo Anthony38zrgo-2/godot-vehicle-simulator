@@ -1,10 +1,10 @@
 uniform sampler2DArray terrain_palette : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D grass_gis : filter_linear, repeat_disable;
 uniform vec4 grass_gis_bounds;
-uniform vec3 grass_dense_tone : source_color = vec3(0.6078, 0.5373, 0.3294);
-uniform vec3 grass_sparse_tone : source_color = vec3(0.7608, 0.6902, 0.4902);
-uniform vec3 grass_olive_tone : source_color = vec3(0.5216, 0.5451, 0.2941);
-uniform vec3 grass_mineral_tone : source_color = vec3(0.4510, 0.4196, 0.2431);
+uniform vec3 grass_dense_tone : source_color = vec3(0.6510, 0.5686, 0.3529);
+uniform vec3 grass_sparse_tone : source_color = vec3(0.7882, 0.7176, 0.5255);
+uniform vec3 grass_olive_tone : source_color = vec3(0.4471, 0.4588, 0.2784);
+uniform vec3 grass_mineral_tone : source_color = vec3(0.5765, 0.3686, 0.2980);
 
 float hash_patch(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);

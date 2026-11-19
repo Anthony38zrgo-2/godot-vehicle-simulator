@@ -1,4 +1,5 @@
 """Split the authored GLB into XZ sectors without changing its triangles."""
+import argparse
 import copy
 import hashlib
 import json
@@ -66,18 +67,27 @@ def regional_dem_colors(dem, east, south, center, cell_m):
     warm = np.maximum(southwest * 0.90, east_patch * 0.78) * (0.23 + 0.77 * strata)
 
     greenness = smooth(0.015, 0.14, curvature) * (1 - smooth(0.22, 0.48, slope))
-    grass = blend(linear_rgb("9B8954"), linear_rgb("C2B07D"), smooth(-0.08, 0.01, -curvature))
-    grass = blend(grass, linear_rgb("737653"), greenness * 0.68)
-    rock = blend(linear_rgb("85847E"), linear_rgb("53565C"), smooth(0.50, 0.95, slope))
-    warm_rock = blend(linear_rgb("AB826C"), linear_rgb("805D50"), smooth(0.45, 0.90, slope))
-    exposure = smooth(0.19, 0.68, slope + np.clip((dem - 4850) / 1500, -0.12, 0.22))
-    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.56))
+    # Ichu pajizo dorado a amarillo seco pálido, con oliva seco en vaguadas
+    grass = blend(linear_rgb("A9935B"), linear_rgb("CAB884"), smooth(-0.08, 0.01, -curvature))
+    grass = blend(grass, linear_rgb("6E7049"), greenness * 0.62)
+    # Pizarra y pedregal más fríos (gris azulado / carbón en crestas abruptas)
+    rock = blend(linear_rgb("787B80"), linear_rgb("43474E"), smooth(0.45, 0.92, slope))
+    # Estratos rojo terracota / salmón andino y vetas de óxido más marcados
+    warm_rock = blend(linear_rgb("B56D58"), linear_rgb("7E4338"), smooth(0.42, 0.88, slope))
+    rust_vein = smooth(0.35, 0.78, strata) * smooth(0.28, 0.72, slope)
+    warm_rock = blend(warm_rock, linear_rgb("AD6842"), rust_vein * 0.45)
+    exposure = smooth(0.17, 0.64, slope + np.clip((dem - 4850) / 1500, -0.12, 0.22))
+    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.64))
 
     snow = np.clip((dem - 5230) / 235 - slope * 0.42, 0, 0.75)
-    color = blend(color, np.array([0.58, 0.64, 0.68]), snow)
-    color *= np.clip(0.88 - dx * 0.31 - dz * 0.35, 0.47, 1.13)[..., None]
-    haze = smooth(850, 14500, np.hypot(x, z)) * 0.56
-    return blend(color, np.array([0.30, 0.39, 0.49]), haze)
+    color = blend(color, np.array([0.62, 0.67, 0.72]), snow)
+    # Acentuación topográfica: oscurece quebradas profundas y realza filos/crestas
+    ridge_ao = np.clip(1.0 - curvature * 1.85, 0.68, 1.18)
+    color *= ridge_ao[..., None]
+    # Mayor contraste de relieve para que las caras rocosas oscuras destaquen
+    color *= np.clip(0.90 - dx * 0.34 - dz * 0.38, 0.42, 1.15)[..., None]
+    haze = smooth(1100, 15500, np.hypot(x, z)) * 0.46
+    return blend(color, np.array([0.33, 0.41, 0.52]), haze)
 
 
 def terrain_proxy():
@@ -94,12 +104,17 @@ def terrain_proxy():
     for x, y, _ in stage["route"][::4]:
         np.minimum(distance, (east - x) ** 2 + (south + y) ** 2, out=distance)
     clearance = 0.7 + 30 * np.clip(1 - np.sqrt(distance) / 165, 0, 1)
-    positions = np.stack((east, dem - stage["z0"] - clearance, south), axis=-1)
+    y_height = dem - stage["z0"] - clearance
+    positions = np.stack((east, y_height, south), axis=-1)
+    dz, dx = np.gradient(y_height / CELL_M)
+    normals = np.stack((-dx, np.ones_like(dx), -dz), axis=-1)
+    normals /= np.linalg.norm(normals, axis=-1, keepdims=True)
     color = regional_dem_colors(dem, east, south, center, CELL_M)
     i = np.arange(dem.size, dtype="<u4").reshape(dem.shape)[:-1, :-1].ravel()
     width = dem.shape[1]
     faces = np.column_stack((i, i+width, i+1, i+1, i+width, i+width+1)).reshape(-1, 3)
     return ({"POSITION": positions.reshape(-1, 3).astype("<f4"),
+             "NORMAL": normals.reshape(-1, 3).astype("<f4"),
              "COLOR_0": color.reshape(-1, 3).astype("<f4")}, faces)
 
 
@@ -259,5 +274,37 @@ def build():
     print(f"CDI_SECTORES count={len(entries)} detail_triangles={total} resident_bytes={runtime.stat().st_size}")
 
 
+def rebuild_resident_dem():
+    """Rebuild only the resident GLB (including Rajuntay Regional DEM colors and normals)."""
+    runtime = ASSETS / "cdi_stage1_visual.glb"
+    backup = OUT / "cdi_stage1_visual_autoria.glb"
+    source = backup if backup.exists() else runtime
+    doc, data = read_glb(source)
+    resident = defaultdict(list)
+    for node in doc["nodes"]:
+        name = node["name"]
+        if name in DETAIL or name == "Rajuntay Regional DEM":
+            continue
+        for primitive in doc["meshes"][node["mesh"]]["primitives"]:
+            attributes = {key: accessor(doc, data, index) for key, index in primitive["attributes"].items()}
+            faces = accessor(doc, data, primitive["indices"]).reshape(-1, 3)
+            resident[name].append((attributes, faces, primitive["material"]))
+    staged = OUT / "cdi_stage1_visual_residente.glb"
+    write_glb(staged, resident, doc, terrain_proxy())
+    staged.replace(runtime)
+    path = ASSETS / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["visual"].update(sha256=hashlib.sha256(runtime.read_bytes()).hexdigest(), size_bytes=runtime.stat().st_size)
+    path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"CDI_REGIONAL_DEM_ONLY resident_bytes={runtime.stat().st_size} sha256={manifest['visual']['sha256'][:12]}")
+
+
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--regional-only", action="store_true",
+                        help="Only rebuild Rajuntay Regional DEM (colors + normals) inside the resident GLB.")
+    args = parser.parse_args()
+    if args.regional_only:
+        rebuild_resident_dem()
+    else:
+        build()
