@@ -10,6 +10,7 @@ const GRAVEL_DUST := preload(CMR4_TEXTURES + "dust_01.png")
 const TIRE_SMOKE := preload(CMR4_TEXTURES + "smoke_01.png")
 const RAIN_SPLAT := preload(CMR2_TEXTURES + "splat.png")
 const RADIATOR_STEAM_ATLAS := preload("res://assets/vfx/free_retro_3d_effects/smoke-atlas-1bit.png")
+const ENGINE_VFX_STOP_SPEED_M_S := 0.05
 const ENGINE_FIRE_ATLAS := preload("res://assets/vfx/free_retro_3d_effects/flame-atlas-1bit.png")
 const RADIATOR_STEAM_FRAMES := 12
 const RADIATOR_STEAM_FPS := 12.0
@@ -90,6 +91,7 @@ var wetness_lookup_cooldown: float = 0.0
 var particle_materials: Array[ShaderMaterial] = []
 var radiator_steam: Sprite3D
 var engine_fire: Sprite3D
+var moving_steam: GPUParticles3D
 var steam_time: float = 0.0
 var current_steam_strength: float = 0.0
 var camera_rig: Node = null
@@ -159,6 +161,7 @@ func _ready() -> void:
 	landing_dust.offset = Vector2(0.0, 17.0)
 	radiator_steam = make_engine_vfx_sprite("RadiatorSteam", RADIATOR_STEAM_ATLAS)
 	engine_fire = make_engine_vfx_sprite("EngineFire", ENGINE_FIRE_ATLAS)
+	moving_steam = make_moving_steam()
 	last_position = vehicle.global_position
 	print("RALLY_VFX_READY wheel_particle_capacity=", WHEEL_PARTICLES.CAPACITY, " intensity=", intensity)
 
@@ -264,6 +267,8 @@ func _physics_process(delta: float) -> void:
 			radiator_steam.hide()
 		if engine_fire != null:
 			engine_fire.hide()
+		moving_steam.emitting = false
+		moving_steam.hide()
 		for clang in metal_clang_pool:
 			clang.stop()
 			clang.hide()
@@ -889,6 +894,9 @@ func reset_effects() -> void:
 	if engine_fire != null:
 		engine_fire.frame = 0
 		engine_fire.hide()
+	moving_steam.restart()
+	moving_steam.emitting = false
+	moving_steam.hide()
 	impact_busy.fill(0.0)
 	impact_cooldown = 0.0
 	current_steam_strength = 0.0
@@ -914,9 +922,67 @@ func make_engine_vfx_sprite(sprite_name: String, atlas: Texture2D) -> Sprite3D:
 	return sprite
 
 
+func make_moving_steam() -> GPUParticles3D:
+	var emitter := GPUParticles3D.new()
+	emitter.name = "MovingRadiatorSteam"
+	emitter.emitting = false
+	emitter.amount = 20
+	emitter.lifetime = 0.85
+	emitter.one_shot = false
+	emitter.explosiveness = 0.0
+	emitter.local_coords = false
+	emitter.visibility_aabb = AABB(Vector3(-8, -4, -8), Vector3(16, 12, 16))
+	emitter.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	var process := ParticleProcessMaterial.new()
+	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	process.emission_box_extents = Vector3(0.25, 0.10, 0.05)
+	process.direction = Vector3.UP
+	process.spread = 30.0
+	process.initial_velocity_min = 0.8
+	process.initial_velocity_max = 1.8
+	process.gravity = Vector3(0, 0.6, 0)
+	process.scale_min = 0.25
+	process.scale_max = 0.85
+	process.angle_min = -180.0
+	process.angle_max = 180.0
+
+	var curve := Curve.new()
+	curve.max_value = 2.0
+	curve.add_point(Vector2(0.0, 0.25))
+	curve.add_point(Vector2(0.3, 0.8))
+	curve.add_point(Vector2(1.0, 1.8))
+	var curve_texture := CurveTexture.new()
+	curve_texture.curve = curve
+	process.scale_curve = curve_texture
+
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(0.95, 0.96, 0.98, 0.0))
+	gradient.add_point(0.12, Color(0.95, 0.96, 0.98, 0.55))
+	gradient.add_point(0.65, Color(0.90, 0.92, 0.95, 0.25))
+	gradient.set_color(1, Color(0.90, 0.92, 0.95, 0.0))
+	var ramp := GradientTexture1D.new()
+	ramp.gradient = gradient
+	process.color_ramp = ramp
+	emitter.process_material = process
+
+	var material := ShaderMaterial.new()
+	material.shader = PARTICLE_SHADER
+	material.set_shader_parameter("soft_intersection_metres", 0.22)
+	material.set_shader_parameter("particle_texture", TIRE_SMOKE)
+	material.set_shader_parameter("body_exclusion_strength", 0.0)
+	material.set_shader_parameter("world_to_vehicle", vehicle.global_transform.affine_inverse())
+	particle_materials.append(material)
+
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.8, 0.8)
+	quad.material = material
+	emitter.draw_pass_1 = quad
+	add_child(emitter)
+	return emitter
+
+
 func update_radiator_steam(delta: float) -> void:
-	if radiator_steam == null or engine_fire == null or vehicle == null or vehicle.simulation == null:
-		return
 	steam_time += delta
 	var thermal_snap := vehicle.simulation.thermal_model.get_engine_thermal_state_snapshot()
 	var rad_damage := float(thermal_snap.get("radiator_damage", 0.0))
@@ -934,17 +1000,16 @@ func update_radiator_steam(delta: float) -> void:
 	var local_pos_arr: Array = steam_cfg.get("local_position", [0.0, 0.48, -1.76])
 	var local_pos := Vector3(float(local_pos_arr[0]), float(local_pos_arr[1]), float(local_pos_arr[2]))
 
-	if not enabled or intensity <= 0.0 or vehicle.freeze:
-		radiator_steam.hide()
-		engine_fire.hide()
-		current_steam_strength = move_toward(current_steam_strength, 0.0, delta * 2.0)
-		return
-
 	var outlet := vehicle.global_transform * local_pos
 	var frame := int(steam_time * RADIATOR_STEAM_FPS) % RADIATOR_STEAM_FRAMES
 	var engine_failed := float(thermal_snap.get("engine_damage", 0.0)) >= 1.0
-	engine_fire.visible = engine_failed
-	if engine_failed:
+	var speed := vehicle.linear_velocity.length()
+	var stopped := speed <= ENGINE_VFX_STOP_SPEED_M_S
+	engine_fire.visible = stopped and engine_failed
+	moving_steam.visible = not stopped
+	if stopped:
+		moving_steam.emitting = false
+	if engine_fire.visible:
 		var axes := engine_vfx_basis(outlet)
 		engine_fire.global_transform = Transform3D(axes, outlet)
 		engine_fire.frame = frame
@@ -953,13 +1018,16 @@ func update_radiator_steam(delta: float) -> void:
 		radiator_steam.show()
 		return
 
-	if rad_damage < start_dmg:
+	if rad_damage < start_dmg and not engine_failed:
 		radiator_steam.hide()
+		moving_steam.emitting = false
 		current_steam_strength = move_toward(current_steam_strength, 0.0, delta * 2.0)
 		return
 
 	var tier_strength := 0.0
-	if rad_damage < cont_dmg:
+	if engine_failed:
+		tier_strength = 1.0
+	elif rad_damage < cont_dmg:
 		var pulse := maxf(0.0, sin(steam_time * 11.0))
 		var norm := (rad_damage - start_dmg) / maxf(cont_dmg - start_dmg, 0.01)
 		tier_strength = lerpf(0.25, 0.55, norm) * pulse
@@ -977,6 +1045,20 @@ func update_radiator_steam(delta: float) -> void:
 	current_steam_strength = lerpf(current_steam_strength, target_strength, clampf(delta * 4.0, 0.0, 1.0))
 
 	var strength := clampf(current_steam_strength, 0.0, 1.0)
+	if not stopped:
+		radiator_steam.hide()
+		var stream_blend := clampf(speed / 18.0, 0.0, 0.85)
+		var travel_back := -vehicle.linear_velocity.slide(Vector3.UP).normalized()
+		var stream_dir := (Vector3.UP * (1.0 - stream_blend * 0.6) + travel_back * (stream_blend * 1.2)).normalized()
+		moving_steam.global_transform = Transform3D(Basis.IDENTITY, outlet)
+		var process := moving_steam.process_material as ParticleProcessMaterial
+		process.direction = stream_dir
+		process.initial_velocity_min = lerpf(0.8, 2.5, stream_blend)
+		process.initial_velocity_max = lerpf(1.8, 5.0, stream_blend)
+		moving_steam.amount_ratio = strength
+		moving_steam.emitting = strength > 0.03
+		return
+
 	var axes := engine_vfx_basis(outlet)
 	var size := lerpf(0.35, 1.35, strength)
 	radiator_steam.global_transform = Transform3D(axes.scaled(Vector3.ONE * size), outlet)
@@ -985,16 +1067,13 @@ func update_radiator_steam(delta: float) -> void:
 
 
 func engine_vfx_basis(outlet: Vector3) -> Basis:
-	# A horizontal speed of 25 m/s gives the maximum lean of 45 degrees.
-	var airflow := -vehicle.linear_velocity.slide(Vector3.UP)
-	var plume_up := (Vector3.UP + (airflow / 25.0).limit_length()).normalized()
 	var camera := get_viewport().get_camera_3d()
 	var toward_camera := camera.global_position - outlet if camera != null else Vector3.BACK
-	var right := plume_up.cross(toward_camera)
+	var right := Vector3.UP.cross(toward_camera)
 	if right.length_squared() < 0.0001:
-		right = plume_up.cross(Vector3.BACK)
+		right = Vector3.RIGHT
 	right = right.normalized()
-	return Basis(right, plume_up, right.cross(plume_up))
+	return Basis(right, Vector3.UP, right.cross(Vector3.UP))
 
 
 func is_bonnet_camera() -> bool:
