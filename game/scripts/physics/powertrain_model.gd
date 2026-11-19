@@ -1144,6 +1144,7 @@ func solve_rotation(
 	inertias: Array[float],
 	tire_torques: Array[float],
 	brakes: Array[float],
+	spin_damping: Array[float] = [],
 ) -> Dictionary:
 	var h := maxf(delta, 0.000001)
 	var ie := maxf(engine_inertia_kg_m2, 0.000001)
@@ -1169,9 +1170,13 @@ func solve_rotation(
 	var output_inverse := 1.0 / output_shaft_inertia_kg_m2
 	var gear_effective_inverse := 1.0 / shaft_inertia
 	for i in 4:
-		inverse.append(1.0 / maxf(inertias[i], 0.000001))
-		spins[i] -= h * tire_torques[i] * inverse[i]
-		carrier_inverse += weights[i] * weights[i] * inverse[i]
+		var i_wheel := maxf(float(inertias[i]), 0.000001)
+		var inv_wheel := 1.0 / i_wheel
+		inverse.append(inv_wheel)
+		var c_spin := maxf(float(spin_damping[i]), 0.0) if i < spin_damping.size() else 0.0
+		var tire_damping_scale := 1.0 / (1.0 + h * c_spin * inv_wheel)
+		spins[i] -= h * tire_torques[i] * inv_wheel * tire_damping_scale
+		carrier_inverse += weights[i] * weights[i] * inv_wheel
 	gear_effective_inverse += ratio * ratio * (
 		output_inverse if driveline_compliance_enabled else carrier_inverse
 	)

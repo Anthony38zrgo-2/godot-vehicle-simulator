@@ -91,6 +91,27 @@ var maximum_steering_angle_rad: float = 0.5585053606381855
 var steering_exponent: float = 1.1
 var front_steering_ratio: float = 1.0
 var rear_steering_ratio: float = 0.0
+# 1DOF cremallera/columna de dirección (inercia + muelle asistencia + amortiguación vs Mz + steering_pull).
+var steering_rack_enabled: bool = true
+var steering_rack_angle_rad: float = 0.0
+var steering_rack_vel_rad_s: float = 0.0
+var steering_ffb_torque_nm: float = 0.0
+var steering_rack_inertia_kg_m2: float = 0.18
+var steering_rack_stiffness_nm_per_rad: float = 900.0
+var steering_rack_damping_nms_per_rad: float = 36.0
+var steering_rack_torque_scale: float = 0.25
+var _last_front_road_torque_nm: float = 0.0
+# 1DOF torsión de carcasa del neumático (wind-up entre llanta y banda de rodadura).
+var carcass_windup_enabled: bool = true
+var tire_windup_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var tire_belt_spins: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var carcass_torsional_stiffness_nm_per_rad: float = 35000.0
+var carcass_torsional_damping_ratio: float = 0.55
+var carcass_belt_inertia_fraction: float = 0.25
+# Acoplamiento dinámico de masa de combustible (slosh) al chasis.
+var fuel_slosh_enabled: bool = true
+var _prev_chassis_vel_world: Vector3 = Vector3.ZERO
+var _has_prev_chassis_vel: bool = false
 var traction_control_enabled: bool = false
 var stability_enabled: bool = false
 var abs_enabled: bool = false
@@ -139,6 +160,12 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	if not bool(mass_result.get("ok", false)):
 		return mass_result
 	mass_state = mass_model.resolve(mass_model.fuel_initial_kg)
+	if mass_state.has("inertia_tensor") and mass_state["inertia_tensor"] is Basis:
+		unsprung_rig.set_local_inertia_tensor(mass_state["inertia_tensor"])
+	unsprung_rig.configure_chassis_torsion(
+		domains.get("chassis", { }).get("chassis", { }),
+		float((mass_state.get("inertia", Vector3(500.0, 800.0, 1200.0)) as Vector3).z),
+	)
 	var suspension_result := suspension_model.configure(
 		domains,
 		asset_manifest.get("geometry", { }),
@@ -171,6 +198,10 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	front_steering_ratio = float(steering.get("front_steering_ratio", 1.0))
 	rear_steering_ratio = float(steering.get("rear_steering_ratio", 0.0))
 	ackermann = float(steering.get("ackermann", 0.0))
+	steering_rack_inertia_kg_m2 = maxf(float(steering.get("rack_inertia_kg_m2", 0.18)), 0.005)
+	steering_rack_stiffness_nm_per_rad = maxf(float(steering.get("rack_stiffness_nm_per_rad", 900.0)), 1.0)
+	steering_rack_damping_nms_per_rad = maxf(float(steering.get("rack_damping_nms_per_rad", 36.0)), 0.1)
+	steering_rack_torque_scale = clampf(float(steering.get("rack_torque_scale", 0.25)), 0.0, 4.0)
 	var coupled: Dictionary = domains.get("coupled_world", { }).get("coupled_world", { })
 	var coupled_suspension: Dictionary = coupled.get("suspension", { })
 
@@ -587,6 +618,8 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	)
 	mass_model.fuel_initial_kg = fuel_kg
 	mass_state = mass_model.resolve(fuel_kg)
+	if mass_state.has("inertia_tensor") and mass_state["inertia_tensor"] is Basis:
+		unsprung_rig.set_local_inertia_tensor(mass_state["inertia_tensor"])
 	thermal_model.fuel_remaining_litres = fuel_kg / maxf(
 		mass_model.fuel_density_kg_per_litre,
 		0.000001,
@@ -1567,6 +1600,17 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		thermal_model.advance_tire_pressure(i, dt)
 		tire_thermal_states.append(thermal_model.get_tire_thermal_state_snapshot(i))
 
+	var current_fuel_kg := thermal_model.fuel_remaining_litres * mass_model.fuel_density_kg_per_litre
+	if fuel_slosh_enabled:
+		var world_accel := (state.linear_velocity - _prev_chassis_vel_world) / maxf(dt, 0.0001) if _has_prev_chassis_vel else Vector3.ZERO
+		_prev_chassis_vel_world = state.linear_velocity
+		_has_prev_chassis_vel = true
+		var inv_basis := state.transform.basis.transposed()
+		var local_accel := inv_basis * world_accel
+		var specific_local := inv_basis * (world_accel - state.total_gravity)
+		var slosh_accel_local := Vector3(specific_local.x, local_accel.y, specific_local.z)
+		mass_model.step_fuel_slosh(dt, slosh_accel_local, current_fuel_kg)
+
 	var effective_load_impulses := Vector4.ZERO
 	_tire_thermal_elapsed += dt
 	for _substep_index in count:
@@ -1576,6 +1620,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var pred_up: Vector3 = (pred_R * Vector3.UP).normalized()
 		var F_body := Vector3.ZERO
 		var T_body := Vector3.ZERO
+		if fuel_slosh_enabled:
+			var slosh_reaction := mass_model.fuel_slosh_forces_world(
+				pred_R,
+				body.center_of_mass,
+				state.total_gravity,
+				current_fuel_kg,
+			)
+			F_body += slosh_reaction["force"] as Vector3
+			T_body += slosh_reaction["torque"] as Vector3
 		if pred_V.length_squared() > 0.01:
 			var spd := pred_V.length()
 			var drag_mag := aero_model.drag_force(spd) + thermal_model.cooling_drag_force_n
@@ -1590,7 +1643,12 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		unsprung_rig.begin_substep(h, suspension_model, F_body, T_body)
 		unsprung_rig.solve_normal(h)
 		_prepare_powertrain(h, inputs)
+		if steering_rack_enabled:
+			_step_steering_rack_1dof(h, float(inputs.get("steering", 0.0)), _last_front_road_torque_nm)
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var spin_damping: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var J_tang_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var front_road_torque_nm := 0.0
 		var F_patch := Vector3.ZERO
 		var T_patch := Vector3.ZERO
 		for i in 4:
@@ -1605,6 +1663,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				normal_load = minf(normal_load, _ref * RECOVERY_FZ_CAP_MULT)
 			effective_load_impulses[i] += normal_load * h
 			if not bool(contact.get("hit", false)) or normal_load <= 0.0:
+				if carcass_windup_enabled:
+					tire_reactions[i] = _step_carcass_windup_1dof(i, h, 0.0)
+				else:
+					tire_belt_spins[i] = wheel_spins[i]
 				var free_thermal_state := tire_thermal_states[i]
 				var free_result := tire_model.evaluate(
 					i,
@@ -1697,9 +1759,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			fx *= sup_x
 			fy *= sup_y
 			mz *= sup_y
-			if i < 2 and drag_n > 0.0:
-				var steer_sign := -1.0 if i == 0 else 1.0
-				mz += float(puddle_response.get("steering_pull_nm", 0.0)) * steer_sign
+			if i < 2:
+				var puddle_pull := 0.0
+				if drag_n > 0.0:
+					var steer_sign := -1.0 if i == 0 else 1.0
+					puddle_pull = float(puddle_response.get("steering_pull_nm", 0.0)) * steer_sign
+					mz += puddle_pull
+				front_road_torque_nm += mz
 			var tire_force := forward * (fx + flat_drag) + right * fy
 			tire_force -= point_velocity.slide(normal).normalized() * drag_n
 			var sat_torque := normal * mz
@@ -1711,6 +1777,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				vib = normal * vibration
 				F_patch += tire_force + vib
 				T_patch += r_patch.cross(tire_force + vib) + sat_torque
+				J_tang_hub[i] = (tire_force + vib).dot(unsprung_rig.tick_e_wheel[i]) * h
 			wheel_slips[i] = Vector2(
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
@@ -1718,14 +1785,32 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
 			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * eff_radius)) * signf(longitudinal_speed)
-			tire_reactions[i] = (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
+			var raw_tire_torque := (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
+			# Amortiguamiento implícito de spin compatible con el estado brush (patch_pos.x):
+			# dT/domega en un subpaso h es h * k_x * R_eff^2 * (1 - util)^2, sin falsear la inercia
+			# del tren motriz ni ahogar el slip_ratio al acelerar.
+			var util := clampf(float(tire_model.states[i].get("combined_utilization", 0.0)), 0.0, 1.0)
+			var relax_m := maxf(float(tire_model.states[i].get("relaxation_length_m", 0.25)), 0.05)
+			var k_patch_x := (normal_load / relax_m) * (1.0 - util) * (1.0 - util)
+			var c_spin_i := h * k_patch_x * eff_radius * eff_radius
+			spin_damping[i] = c_spin_i
+			if carcass_windup_enabled:
+				tire_reactions[i] = _step_carcass_windup_1dof(i, h, raw_tire_torque)
+			else:
+				tire_reactions[i] = raw_tire_torque
+				tire_belt_spins[i] = wheel_spins[i]
 			thermal_speeds[i] = point_velocity.length()
 			thermal_cambers[i] = wheel_camber
-			thermal_slip_speeds[i] = wheel_spins[i] * eff_radius - longitudinal_speed
+			thermal_slip_speeds[i] = (tire_belt_spins[i] if carcass_windup_enabled else wheel_spins[i]) * eff_radius - longitudinal_speed
 			thermal_surfaces[i] = str(contact["surface"])
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
-		var J_tang: Array[float] = [F_patch.x * h, F_patch.y * h, F_patch.z * h, T_patch.x * h, T_patch.y * h, T_patch.z * h, 0.0, 0.0, 0.0, 0.0]
+		_last_front_road_torque_nm = front_road_torque_nm
+		var J_tang: Array[float] = [
+			F_patch.x * h, F_patch.y * h, F_patch.z * h,
+			T_patch.x * h, T_patch.y * h, T_patch.z * h,
+			J_tang_hub[0], J_tang_hub[1], J_tang_hub[2], J_tang_hub[3],
+		]
 		unsprung_rig.apply_tangential(J_tang)
 		unsprung_rig.solve_hard_stops(h)
 		unsprung_rig.end_substep(h)
@@ -1735,6 +1820,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			mass_model.wheel_spin_inertia,
 			tire_reactions,
 			brake_torques,
+			spin_damping,
 		)
 		var brake_work: Array = rotation.brake_work_j
 		for i in 4:
@@ -1962,9 +2048,59 @@ func _effective_toe(index: int) -> float:
 	return suspension_model.dynamic_toe(index) + inward * damage_offset
 
 
+func _step_steering_rack_1dof(h: float, input_value: float, road_torque_nm: float) -> void:
+	var dt_s := maxf(h, 0.00001)
+	var shaped := signf(input_value) * pow(absf(input_value), maxf(steering_exponent, 0.1))
+	var max_angle := maximum_steering_angle_rad * maxf(absf(front_steering_ratio), 0.01)
+	var target_angle := shaped * maximum_steering_angle_rad * front_steering_ratio
+	var k := maxf(steering_rack_stiffness_nm_per_rad, 1.0)
+	var c := maxf(steering_rack_damping_nms_per_rad, 0.1)
+	var inertia := maxf(steering_rack_inertia_kg_m2, 0.005)
+	# Convención de signo: en Godot +steer_angle rota -Z hacia -X (izquierda, +Y),
+	# donde fy < 0 y TireModel devuelve aligning_torque = -fy * trail > 0.
+	# El par físico autoalineante alrededor de +Y es -road_torque_nm (empuja hacia 0
+	# en giro y hacia el derrape en sobreviraje; charco en FL tira a +Y izquierda).
+	var kingpin_torque_nm := -road_torque_nm
+	var ext_torque := clampf(kingpin_torque_nm * steering_rack_torque_scale, -k * max_angle * 0.65, k * max_angle * 0.65)
+	# Integración semi-implícita 1DOF: (I + h*c + h^2*k) * dv = h * (k*(target - q) - c*v + ext_torque)
+	var denom := inertia + dt_s * c + dt_s * dt_s * k
+	var accel := (k * (target_angle - steering_rack_angle_rad) - c * steering_rack_vel_rad_s + ext_torque) / denom
+	steering_rack_vel_rad_s += accel * dt_s
+	steering_rack_angle_rad += steering_rack_vel_rad_s * dt_s
+	if steering_rack_angle_rad > max_angle:
+		steering_rack_angle_rad = max_angle
+		steering_rack_vel_rad_s = minf(steering_rack_vel_rad_s, 0.0)
+	elif steering_rack_angle_rad < -max_angle:
+		steering_rack_angle_rad = -max_angle
+		steering_rack_vel_rad_s = maxf(steering_rack_vel_rad_s, 0.0)
+	steering_ffb_torque_nm = kingpin_torque_nm
+
+
+func _step_carcass_windup_1dof(index: int, h: float, tire_torque_nm: float) -> float:
+	var dt_s := maxf(h, 0.00001)
+	var wheel_i := maxf(float(mass_model.wheel_spin_inertia[index]) if index < mass_model.wheel_spin_inertia.size() else 0.8, 0.05)
+	var belt_i := maxf(wheel_i * clampf(carcass_belt_inertia_fraction, 0.1, 0.6), 0.02)
+	var k_t := maxf(carcass_torsional_stiffness_nm_per_rad, 100.0)
+	var c_t := 2.0 * sqrt(k_t * belt_i) * clampf(carcass_torsional_damping_ratio, 0.05, 1.5)
+	var rim_spin := wheel_spins[index]
+	var belt_spin := tire_belt_spins[index]
+	var twist := tire_windup_rad[index]
+	# Par de carcasa desde llanta hacia banda: T_carcass = k*(theta_rim - theta_belt) + c*(omega_rim - omega_belt)
+	# Sin c_spin en el denominador para no frenar artificialmente la banda respecto al suelo.
+	var rel_spin := rim_spin - belt_spin
+	var denom := belt_i + dt_s * c_t + dt_s * dt_s * k_t
+	var net_belt_torque := k_t * twist + c_t * rel_spin - tire_torque_nm
+	var d_belt_spin := (dt_s * net_belt_torque) / maxf(denom, 1.0e-6)
+	belt_spin += d_belt_spin
+	twist = clampf(twist + (rim_spin - belt_spin) * dt_s, -0.08, 0.08)
+	tire_belt_spins[index] = belt_spin
+	tire_windup_rad[index] = twist
+	return k_t * twist + c_t * (rim_spin - belt_spin)
+
+
 func _wheel_steer_angle(index: int, input_value: float) -> float:
 	var shaped := signf(input_value) * pow(absf(input_value), maxf(steering_exponent, 0.1))
-	var center_angle := shaped * maximum_steering_angle_rad * front_steering_ratio
+	var center_angle := steering_rack_angle_rad if (steering_rack_enabled and index < 2) else (shaped * maximum_steering_angle_rad * front_steering_ratio)
 	if index >= 2:
 		return shaped * maximum_steering_angle_rad * rear_steering_ratio
 	if ackermann <= 0.0 or wheelbase_m <= 0.0:
@@ -2176,6 +2312,15 @@ func reset_dynamics() -> void:
 	simulation_time_s = 0.0
 	published_state = { }
 	wheel_spins.fill(0.0)
+	tire_windup_rad.fill(0.0)
+	tire_belt_spins.fill(0.0)
+	steering_rack_angle_rad = 0.0
+	steering_rack_vel_rad_s = 0.0
+	steering_ffb_torque_nm = 0.0
+	_last_front_road_torque_nm = 0.0
+	_prev_chassis_vel_world = Vector3.ZERO
+	_has_prev_chassis_vel = false
+	mass_model.reset_fuel_slosh()
 	wheel_slips.fill(Vector2.ZERO)
 	wheel_loads.fill(0.0)
 	wheel_rotation_angles.fill(0.0)
@@ -2238,7 +2383,7 @@ func _solve_contact_wheel(
 		surface,
 		vx,
 		vy,
-		wheel_spins[index],
+		tire_belt_spins[index] if carcass_windup_enabled else wheel_spins[index],
 		wheel_radii[index],
 		camber,
 		thermal_model.tire_grip_factor(index),

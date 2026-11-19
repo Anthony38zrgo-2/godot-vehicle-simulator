@@ -255,6 +255,12 @@ func configure(domains: Dictionary, asset_manifest: Dictionary) -> Dictionary:
 	return { "ok": true }
 
 
+## Resetea el estado transitorio del oleaje de combustible (slosh).
+func reset_fuel_slosh() -> void:
+	_fuel_slosh_offset = Vector3.ZERO
+	_fuel_slosh_velocity = Vector3.ZERO
+
+
 ## Optional step before resolve(): updates dynamic fuel slosh offset based on local chassis acceleration
 func step_fuel_slosh(dt: float, local_linear_accel_mps2: Vector3, fuel_mass_kg: float) -> void:
 	if dt <= 0.0 or fuel_capacity_kg <= 0.0 or fuel_mass_kg <= 0.5:
@@ -263,14 +269,49 @@ func step_fuel_slosh(dt: float, local_linear_accel_mps2: Vector3, fuel_mass_kg: 
 		return
 	var fill_ratio := clampf(fuel_mass_kg / fuel_capacity_kg, 0.0, 1.0)
 	var slosh_activity := 4.0 * fill_ratio * (1.0 - fill_ratio)
-	var inertial_force := -local_linear_accel_mps2 * (0.04 * slosh_activity)
-	var spring_force := -SLOSH_STIFFNESS * _fuel_slosh_offset - SLOSH_DAMPING * _fuel_slosh_velocity
-	_fuel_slosh_velocity += (inertial_force + spring_force) * dt
-	_fuel_slosh_offset += _fuel_slosh_velocity * dt
-	_fuel_slosh_offset = _fuel_slosh_offset.clamp(
-		-SLOSH_MAX_DISPLACEMENT_M,
-		SLOSH_MAX_DISPLACEMENT_M,
+	var clamped_accel := Vector3(
+		clampf(local_linear_accel_mps2.x, -35.0, 35.0),
+		clampf(local_linear_accel_mps2.y, -25.0, 25.0),
+		clampf(local_linear_accel_mps2.z, -35.0, 35.0),
 	)
+	var inertial_force := -clamped_accel * (0.22 * slosh_activity)
+	var spring_force := -SLOSH_STIFFNESS * _fuel_slosh_offset - SLOSH_DAMPING * _fuel_slosh_velocity
+	var denom := 1.0 + dt * SLOSH_DAMPING + dt * dt * SLOSH_STIFFNESS
+	_fuel_slosh_velocity += ((inertial_force + spring_force) / denom) * dt
+	var next_offset := _fuel_slosh_offset + _fuel_slosh_velocity * dt
+	_fuel_slosh_offset = next_offset.clamp(-SLOSH_MAX_DISPLACEMENT_M, SLOSH_MAX_DISPLACEMENT_M)
+	if absf(_fuel_slosh_offset.x) >= SLOSH_MAX_DISPLACEMENT_M.x and signf(_fuel_slosh_velocity.x) == signf(_fuel_slosh_offset.x):
+		_fuel_slosh_velocity.x = 0.0
+	if absf(_fuel_slosh_offset.y) >= SLOSH_MAX_DISPLACEMENT_M.y and signf(_fuel_slosh_velocity.y) == signf(_fuel_slosh_offset.y):
+		_fuel_slosh_velocity.y = 0.0
+	if absf(_fuel_slosh_offset.z) >= SLOSH_MAX_DISPLACEMENT_M.z and signf(_fuel_slosh_velocity.z) == signf(_fuel_slosh_offset.z):
+		_fuel_slosh_velocity.z = 0.0
+
+
+## Fuerza y par en espacio de mundo ejercidos por el oleaje de combustible (slosh)
+## sobre las paredes del depósito y el desplazamiento del peso respecto al COM.
+func fuel_slosh_forces_world(
+	basis_world: Basis,
+	com_local: Vector3,
+	gravity_world: Vector3,
+	fuel_mass_kg: float,
+) -> Dictionary:
+	if fuel_capacity_kg <= 0.0 or fuel_mass_kg <= 0.5:
+		return { "force": Vector3.ZERO, "torque": Vector3.ZERO }
+	var fuel_mass := clampf(fuel_mass_kg, 0.0, fuel_capacity_kg)
+	var fill_ratio := clampf(fuel_mass / fuel_capacity_kg, 0.0, 1.0)
+	var slosh_activity := 4.0 * fill_ratio * (1.0 - fill_ratio)
+	var slosh_mass := fuel_mass * 0.55 * slosh_activity
+	if slosh_mass <= 0.05:
+		return { "force": Vector3.ZERO, "torque": Vector3.ZERO }
+	# 3ª ley de Newton: fuerza que ejerce la masa oscilante sobre las paredes del tanque.
+	var force_local := slosh_mass * (SLOSH_STIFFNESS * _fuel_slosh_offset + SLOSH_DAMPING * _fuel_slosh_velocity)
+	var force_world := basis_world * force_local
+	var arm_world := basis_world * (fuel_tank_position_local + _fuel_slosh_offset - com_local)
+	var weight_shift_world := basis_world * _fuel_slosh_offset
+	# Par total = brazo del tanque x fuerza de oleaje + desplazamiento de masa x peso del combustible.
+	var torque_world := arm_world.cross(force_world) + weight_shift_world.cross(fuel_mass * gravity_world)
+	return { "force": force_world, "torque": torque_world }
 
 
 func set_carried_spares(count: int, policy: Dictionary) -> void:

@@ -348,6 +348,10 @@ func configure(
 				"camber_gain": float(corner_tune.get("camber_gain_rad_per_m", 0.0)),
 				"toe": float(corner_tune.get("toe", 0.0)),
 				"toe_gain": float(corner_tune.get("toe_gain_rad_per_m", 0.0)),
+				"axis_pitch_rad": float(values.get("axis_pitch_rad", values.get("anti_dive_rad" if i < 2 else "anti_squat_rad", corner_tune.get("axis_pitch_rad", 0.0)))),
+				"axis_roll_rad": float(values.get("axis_roll_rad", values.get("jacking_rad", corner_tune.get("axis_roll_rad", 0.0)))),
+				"axis_pitch_gain_rad_per_m": float(values.get("axis_pitch_gain_rad_per_m", corner_tune.get("axis_pitch_gain_rad_per_m", 0.0))),
+				"axis_roll_gain_rad_per_m": float(values.get("axis_roll_gain_rad_per_m", corner_tune.get("axis_roll_gain_rad_per_m", 0.0))),
 				"static_load": static_load,
 				"rest_compression_offset": 0.0,
 			}
@@ -664,8 +668,15 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 		forces[i] = force
 	var front_roll := filtered_arb_travel[0] - filtered_arb_travel[1]
 	var rear_roll := filtered_arb_travel[2] - filtered_arb_travel[3]
-	var front_arb := front_arb_stiffness_n_per_m * front_roll
-	var rear_arb := rear_arb_stiffness_n_per_m * rear_roll
+	# ARB semi-implícita con acoplamiento 2x2 izquierda-derecha:
+	# masa reducida del modo rollo m_roll = 1 / (1/m_L + 1/m_R).
+	var dt_safe := maxf(dt, 0.00001)
+	var m_roll_front := 1.0 / (1.0 / maxf(float(m_rel_kg[0]), 1.0) + 1.0 / maxf(float(m_rel_kg[1]), 1.0))
+	var m_roll_rear := 1.0 / (1.0 / maxf(float(m_rel_kg[2]), 1.0) + 1.0 / maxf(float(m_rel_kg[3]), 1.0))
+	var k_arb_front_eff := front_arb_stiffness_n_per_m / (1.0 + (front_arb_stiffness_n_per_m * dt_safe * dt_safe) / m_roll_front)
+	var k_arb_rear_eff := rear_arb_stiffness_n_per_m / (1.0 + (rear_arb_stiffness_n_per_m * dt_safe * dt_safe) / m_roll_rear)
+	var front_arb := k_arb_front_eff * front_roll
+	var rear_arb := k_arb_rear_eff * rear_roll
 	var f_weight_0 := clampf(
 		forces[0] / maxf(float(axle_parameters[0].static_load) * 0.25, 1.0),
 		0.0,
@@ -723,3 +734,20 @@ func dynamic_toe(index: int) -> float:
 func maximum_wheel_travel(index: int) -> float:
 	var p: Dictionary = axle_parameters[index]
 	return float(p.free_length) + float(p.droop_m) + float(p.bump_m)
+
+
+## Eje cinemático local e_i(q) en espacio de chasis para modelar anti-dive,
+## anti-squat y efecto jacking sin añadir DOFs adicionales.
+## Con ángulos cero devuelve exactamente Vector3.UP.
+func suspension_axis_local(index: int, travel_m: float) -> Vector3:
+	if index < 0 or index >= axle_parameters.size():
+		return Vector3.UP
+	var p: Dictionary = axle_parameters[index]
+	var travel_delta := travel_m - float(p.get("rest_compression_offset", 0.0))
+	var pitch := float(p.get("axis_pitch_rad", 0.0)) + float(p.get("axis_pitch_gain_rad_per_m", 0.0)) * travel_delta
+	var side_sign := 1.0 if index in [0, 2] else -1.0
+	var roll := side_sign * (float(p.get("axis_roll_rad", 0.0)) + float(p.get("axis_roll_gain_rad_per_m", 0.0)) * travel_delta)
+	if absf(pitch) < 1.0e-7 and absf(roll) < 1.0e-7:
+		return Vector3.UP
+	var axis := Vector3(sin(roll), cos(pitch) * cos(roll), sin(pitch))
+	return axis.normalized() if axis.length_squared() > 1.0e-9 else Vector3.UP
