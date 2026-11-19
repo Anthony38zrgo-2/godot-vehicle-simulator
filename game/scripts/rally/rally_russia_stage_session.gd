@@ -355,7 +355,7 @@ func _build_stage_grass() -> void:
 		occupied = props.occupied_points()
 		grass.ground_group = &"RauraGrassGround"
 		grass.use_standard_variant_profile = true
-		grass.density_scale = 0.45
+		grass.density_scale = 0.45 * 0.70
 		grass.instance_scale = 0.575
 		grass.sector_stream = sector_stream
 		grass.reserved_points = occupied
@@ -377,6 +377,7 @@ func _build_stage_grass() -> void:
 		bushes.ground_group = &"RauraGrassGround"
 		bushes.collidable_bushes = true
 		bushes.instance_scale = 1.20
+		bushes.extra_height_variation_m = 0.05
 		bushes.density_scale = 0.018 * 0.60
 		bushes.reserved_points = occupied
 		bushes.fog_enabled = false

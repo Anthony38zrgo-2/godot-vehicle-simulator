@@ -82,6 +82,7 @@ var custom_variant_weights: Array[float] = []
 var use_standard_variant_profile := false
 var density_scale := 1.0
 var instance_scale := 1.0
+var extra_height_variation_m := 0.0
 var ground_group: StringName = &""
 var collidable_bushes := false
 var fog_enabled := true
@@ -367,6 +368,11 @@ func _load_variant_entries() -> Array[Dictionary]:
 			weight = custom_variant_weights[index]
 		if aged_only and custom_variants.is_empty():
 			scale_range = Vector2(1.5, 2.6)
+		if extra_height_variation_m > 0.0:
+			var height := visual.mesh.get_aabb().size.y * instance_scale
+			if height > 0.0:
+				var extra_scale := extra_height_variation_m / height
+				scale_range = Vector2(maxf(0.01, scale_range.x - extra_scale), scale_range.y + extra_scale)
 		entries.append({
 			"variant": index,
 			"mesh": visual.mesh,

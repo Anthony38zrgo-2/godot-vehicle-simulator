@@ -7,6 +7,11 @@ const SPECTATOR := "people"
 const ANIMAL := "animals"
 const STONE := "rocks"
 const STONE_COUNT := 200
+const ROUTE_SPECTATOR_GROUPS := 9
+const SPECTATORS_PER_GROUP := 5
+const TALUS_STONE_PROFILE := {
+	"offset": Vector2(5.0, 17.0), "size": Vector2(0.80, 1.85), "wide_clearance": true, "talus": true,
+}
 const STONE_PROFILES := [
 	{"offset": Vector2(3.55, 5.15), "size": Vector2(0.15, 0.38), "wide_clearance": false},
 	{"offset": Vector2(3.85, 6.20), "size": Vector2(0.32, 0.57), "wide_clearance": false},
@@ -40,9 +45,11 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 	_rng.seed = stage_seed
 	var people := _group(SPECTATOR, 9, Vector2(-4, 23), Vector2(8, 17), "StartBank")
 	people += _group(SPECTATOR, 6, Vector2(-34, -12), Vector2(8, 17), "BehindStart")
-	for i in range(7):
-		var zone := _zone(i, 7, 150, length - 95)
-		people += _group(SPECTATOR, 5, zone, Vector2(8, 21), "Spectators%02d" % i)
+	for i in range(ROUTE_SPECTATOR_GROUPS):
+		var zone := _zone(i, ROUTE_SPECTATOR_GROUPS, 150, length - 95)
+		people += _group(SPECTATOR, SPECTATORS_PER_GROUP, zone, Vector2(8, 21), "Spectators%02d" % i)
+	people += _group(SPECTATOR, SPECTATORS_PER_GROUP, Vector2(length - 30.0, length + 10.0),
+		Vector2(8, 21), "FinishSpectators")
 	_rng.seed = stage_seed + 601
 	var animals := 0
 	for i in range(6):
@@ -58,7 +65,7 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 			factory.call(self)
 	set_meta("counts", {"people": people, "animals": animals, "rocks": rocks})
 	print("CDI_PROPS_READY people=", people, " animals=", animals, " rocks=", rocks)
-	if people != 50 or animals != 30 or rocks != STONE_COUNT:
+	if people != 15 + (ROUTE_SPECTATOR_GROUPS + 1) * SPECTATORS_PER_GROUP or animals != 30 or rocks != STONE_COUNT:
 		push_warning("Rajuntay props could not fill one or more safe placement zones")
 
 
@@ -119,6 +126,9 @@ func _scatter_rocks(length: float) -> int:
 		var variant: Dictionary = variants[i % variants.size()]
 		var chosen: Dictionary = profiles[i % profiles.size()]
 		var zone := _zone(i, STONE_COUNT, 8, length - 20)
+		if i % 5 == 0 and _place_rock(variant, TALUS_STONE_PROFILE, zone):
+			placed += 1
+			continue
 		if _place_rock(variant, chosen, zone):
 			placed += 1
 		else:
@@ -130,16 +140,19 @@ func _scatter_rocks(length: float) -> int:
 
 
 func _place_rock(variant: Dictionary, profile: Dictionary, zone: Vector2) -> bool:
-	for attempt in range(220):
+	var talus: bool = profile.get("talus", false)
+	for attempt in range(80 if talus else 220):
 		var station := _rng.randf_range(zone.x, zone.y)
 		var side := -1.0 if _rng.randf() < 0.5 else 1.0
 		var distance := _rng.randf_range(profile.offset.x, profile.offset.y)
 		var size := _rng.randf_range(profile.size.x, profile.size.y)
-		var hit := _ground(STONE, station, side * distance, size if profile.wide_clearance else 0.0)
+		var hit := _ground(STONE, station, side * distance, size if profile.wide_clearance else 0.0, talus)
 		if hit.is_empty():
 			continue
 		var position: Vector3 = hit.position
-		_placements.append({"group": "Stones", "kind": STONE, "variant": variant, "point": position,
+		var group := "TalusStones" if talus else "Stones"
+		var base := position - Vector3.UP * (size * 0.12 if talus else 0.0)
+		_placements.append({"group": group, "kind": STONE, "variant": variant, "point": base,
 			"size": size, "yaw": _rng.randf_range(0.0, TAU), "station": station,
 			"lateral": distance})
 		_occupied.append(position)
@@ -206,7 +219,7 @@ func _add_rock_collision(rock: MeshInstance3D, hull: PackedVector3Array, size: f
 	body.add_child(collider)
 
 
-func _ground(kind: String, station: float, offset: float, solid_diameter: float = 0.0) -> Dictionary:
+func _ground(kind: String, station: float, offset: float, solid_diameter: float = 0.0, talus: bool = false) -> Dictionary:
 	var distances := _route.route_distances
 	var points := _route.points
 	var index := clampi(distances.bsearch(station) - 1, 0, points.size() - 2)
@@ -239,7 +252,12 @@ func _ground(kind: String, station: float, offset: float, solid_diameter: float 
 			if height > -1.5 or hit.normal.y < 0.87:
 				return {}
 		STONE:
-			if height > (-0.12 if solid_diameter > 0.0 else 1.4) or hit.normal.y < 0.67:
+			if hit.normal.y < 0.67:
+				return {}
+			if talus:
+				if ground.is_in_group("RauraGrassGround") or height < 0.4 or hit.normal.y > 0.97:
+					return {}
+			elif height > (-0.12 if solid_diameter > 0.0 else 1.4):
 				return {}
 	if not _spaced(hit.position, _occupied, 1.2 if kind != ANIMAL else 1.9):
 		return {}
