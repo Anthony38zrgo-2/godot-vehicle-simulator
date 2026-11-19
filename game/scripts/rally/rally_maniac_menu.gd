@@ -123,12 +123,17 @@ const COUNTRY_STAGE_COUNTS := {
 	"switzerland": 8,
 }
 const EVENT_PATH_BY_COUNTRY := {
+	"cdi": "res://data/competition/events/cdi_rally.json",
 	"russia": "res://data/competition/events/russia_rally.json",
 	"kenya": "res://data/competition/events/kenya_rally.json",
 	"finland": "res://data/competition/events/finland_rally.json",
 	"sweden": "res://data/competition/events/sweden_rally.json",
 	"switzerland": "res://data/competition/events/switzerland_rally.json",
 }
+
+const CDI_START_STAGE := "cdi_stage1"
+const CDI_TITLE := "Caminos del Inca · SS01 Rajuntay Alto"
+const CDI_CARS := ["fulvia", "mustang67"]
 
 const VIGNETTE_SHADER_CODE := """
 shader_type canvas_item;
@@ -237,6 +242,7 @@ var selected_mode: String = "championship"
 var selected_stage_id: String = "russia_stage1"
 var selected_country: String = "russia"
 var selected_car_key: String = "fulvia"
+var _cdi_launch: bool = false
 var vehicle_registry: Dictionary = {}
 var vehicle_specs_cache: Dictionary = {}
 var stage_routes_cache: Dictionary = {}
@@ -390,12 +396,20 @@ var current_screen: String = "menu"
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_cdi_launch = "--rally-cdi" in OS.get_cmdline_user_args()
+	if _cdi_launch:
+		selected_mode = "rally"
+		selected_stage_id = CDI_START_STAGE
+		selected_car_key = CDI_CARS[0]
 	_load_registry()
 	_load_all_vehicle_specs()
 	_load_all_stage_routes()
 	_build_ui()
 	_ensure_menu_music()
-	show_main_menu()
+	if _cdi_launch:
+		show_car_select()
+	else:
+		show_main_menu()
 
 
 func _ensure_menu_music() -> void:
@@ -426,7 +440,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			show_car_select()
 			get_viewport().set_input_as_handled()
 		elif current_screen == "car_select":
-			show_stage_select()
+			if not _cdi_launch:
+				show_stage_select()
 			get_viewport().set_input_as_handled()
 		elif current_screen == "stage_select":
 			show_main_menu()
@@ -1138,11 +1153,11 @@ func _build_car_select_screen() -> void:
 	content_container.add_child(screen_car_select)
 
 	var car_header := HBoxContainer.new()
-	car_header.hide()
+	car_header.visible = _cdi_launch
 	screen_car_select.add_child(car_header)
 
 	var car_title := Label.new()
-	car_title.text = "Select Car"
+	car_title.text = CDI_TITLE if _cdi_launch else "Select Car"
 	car_title.add_theme_font_override("font", FONT_TITLE)
 	car_title.add_theme_font_size_override("font_size", 18)
 	car_title.add_theme_color_override("font_color", C_GOLD)
@@ -1150,6 +1165,7 @@ func _build_car_select_screen() -> void:
 
 	var car_sub := Label.new()
 	car_sub.text = "   · Selección de vehículo y especificaciones de homologación"
+	car_sub.visible = not _cdi_launch
 	car_sub.add_theme_font_override("font", FONT_SUBTITLE)
 	car_sub.add_theme_font_size_override("font_size", 13)
 	car_sub.add_theme_color_override("font_color", C_CHROME_DIM)
@@ -1201,6 +1217,8 @@ func _build_car_select_screen() -> void:
 	car_buttons.clear()
 	var vehicles: Dictionary = vehicle_registry.get("vehicles", {})
 	for car_key in vehicles:
+		if _cdi_launch and car_key not in CDI_CARS:
+			continue
 		var v_data: Dictionary = vehicles[car_key]
 		var display_name := str(v_data.get("DisplayName", car_key))
 		var btn := Button.new()
@@ -1340,6 +1358,7 @@ func _build_car_select_screen() -> void:
 	_style_flat_button(btn_car_back)
 	btn_car_back.pressed.connect(show_stage_select)
 	bottom_bar.add_child(btn_car_back)
+	btn_car_back.visible = not _cdi_launch
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1710,6 +1729,8 @@ func _on_stage_selected(stage_id: String) -> void:
 func _on_car_selected(car_key: String) -> void:
 	if is_loading:
 		return
+	if _cdi_launch and car_key not in CDI_CARS:
+		return
 	selected_car_key = car_key
 	show_weather_select()
 
@@ -1786,6 +1807,12 @@ func _launch_session() -> void:
 	session.set("session_mode", selected_mode)
 	session.set("selected_vehicle_key", selected_car_key)
 	session.set("selected_weather", selected_weather)
+	if selected_stage_id == CDI_START_STAGE:
+		session.stage_place = "Rajuntay Alto"
+		session.stage_country = "Perú"
+		var stage_camera := session.get_node_or_null("RallyCameraRig/Camera3D") as Camera3D
+		if stage_camera != null:
+			stage_camera.far = 18000.0
 
 	if selected_mode in ["rally", "championship"]:
 		var manager := EventManagerScript.new()
@@ -1797,6 +1824,8 @@ func _launch_session() -> void:
 		}
 		if selected_mode == "championship":
 			choices["save_path"] = "user://championship_event_v1.json"
+		elif country == "cdi":
+			choices["save_path"] = "user://cdi_rally_event_v1.json"
 		if not manager.begin_event(choices):
 			if loading_overlay != null and loading_overlay.has_method("hide_loading"):
 				loading_overlay.call("hide_loading")

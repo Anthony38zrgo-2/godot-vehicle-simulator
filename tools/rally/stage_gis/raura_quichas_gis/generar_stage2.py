@@ -110,7 +110,7 @@ def godot(point):
     return [point[0], point[2], -point[1]]
 
 
-def main():
+def main(stage=None):
     corrected_stage = "--stage-sr" in sys.argv
     earth_trial = "--pilot-start-earth" in sys.argv
     start_survey = "--pilot-start-survey" in sys.argv
@@ -140,6 +140,10 @@ def main():
     source_path = pilot_dir / "scene_input.json" if earth_trial else SOURCE
     if corrected_stage:
         source_path = OUT / "scene_input_sr.json"
+    if stage:
+        track = stage["track"]
+        assets = GAME / "assets/rally" / track
+        source_path = stage["output"] / "scene_input.json"
     data = json.loads(source_path.read_text(encoding="utf8"))
     assert all(p is not None for p in data["route"]), "The approved axis contains missing elevations"
     source = [Vector(p) for p in data["route"]]
@@ -150,8 +154,19 @@ def main():
     start_pk = 0.0
     samples = []
     j = 0
-    for i in range(math.ceil(distances[-1] / 2) + 1):
-        pk = min(distances[-1], start_pk + 2 * i)
+    sample_pks = [min(distances[-1], 2 * i) for i in range(math.ceil(distances[-1] / 2) + 1)]
+    if stage:
+        from bisect import bisect_left
+        source_pks = data["source_pks"]
+        gate_indices = []
+        for gate_pk in data["timing_pks"]:
+            k = bisect_left(source_pks, gate_pk)
+            weight = (gate_pk - source_pks[k-1]) / (source_pks[k] - source_pks[k-1])
+            gate_distance = distances[k-1] + weight * (distances[k] - distances[k-1])
+            index = min(range(1, len(sample_pks)-1), key=lambda i: abs(sample_pks[i] - gate_distance))
+            sample_pks[index] = gate_distance
+            gate_indices.append(index)
+    for pk in sample_pks:
         while distances[j + 1] < pk:
             j += 1
         span = distances[j + 1] - distances[j]
@@ -338,6 +353,11 @@ def main():
     compacted = textured_material("road_gravel_compacted_raura", "dirt.png") if pilot else visual_gravel
     scree = textured_material("raura_cascajo", "dirt_stones.png" if pilot else "dirt.png")
     exposed_rock = textured_material("raura_roca_expuesta", "stone.png" if pilot else "argentina_talud.png")
+    if stage:
+        scree = textured_material("rajuntay_tierra", stage["output"] / "tierra.png")
+        exposed_rock = textured_material("rajuntay_pedregal", stage["output"] / "pedregal.png")
+        for mat in (scree, exposed_rock):
+            next(n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE").interpolation = "Closest"
     stations = [0.0]
     for a, b in zip(axis, axis[1:]):
         stations.append(stations[-1] + (b - a).length)
@@ -354,6 +374,8 @@ def main():
             obj.data.materials.append(mat)
         uv = obj.data.uv_layers.new(name="Metros")
         for face in obj.data.polygons:
+            if stage and name == "Road":
+                face.use_smooth = True
             i, k = divmod(face.index, width - 1)
             face.material_index = choose_material(i, k)
             for loop_index in face.loop_indices:
@@ -383,7 +405,9 @@ def main():
             pk.append(pk[-1] + (b-a).xy.length)
         if pilot:
             pk = proposal["pk_m"]
-        if pilot:
+        if stage:
+            road_relief = detail.RoadRelief(rows, stations, pk, stage["wear"])
+        elif pilot:
             road_relief = detail.RoadRelief(rows, stations, pk, BASE / "desgaste_inicio.json" if start_pilot else None)
         else:
             road_relief = detail.StartWear(rows, stations, pk, BASE / "desgaste_inicio_stage2.json",
@@ -392,6 +416,8 @@ def main():
         inventory = inventory_dir / "baches_resueltos.json" if pilot else OUT / "baches_stage2_resueltos.json"
         if corrected_stage:
             inventory = OUT / "baches_raurasr_resueltos.json"
+        if stage:
+            inventory = stage["output"] / "baches_resueltos.json"
         write_json(inventory, {"seed":road_relief.seed,"features":road_relief.features})
         road_sections, road_stations, road_originals = detail.densify(rows, stations, road_relief)
         width = len(road_sections[0])
@@ -464,6 +490,13 @@ def main():
             side_vertices = [p for row in detailed for p in row]
             side_uvs = [((p - row[0]).length / 2.5, stations[i] / 2.5)
                         for i, row in enumerate(detailed) for p in row]
+            if stage:
+                # Distance from the racing surface as a fraction of the cut.
+                side_mask = [
+                    (p - row[-1 if side == "Left" else 0]).xy.length
+                    / max((row[-1] - row[0]).xy.length, 0.001)
+                    for row in detailed for p in row
+                ]
             side_faces, side_materials = [], []
             columns = len(detailed[0])
             shoulder_col = columns - 2 if side == "Left" else 0
@@ -486,6 +519,8 @@ def main():
                         a = side_uvs[i*columns+road_col][0]
                         b = side_uvs[(i+1)*columns+road_col][0]
                         side_uvs.append((a+(b-a)*t, road_stations[d]/2.5))
+                        if stage:
+                            side_mask.append(0.0)
                     chain.append((i+1)*columns+road_col)
                     if side == "Left":
                         fan = [(j,a,b) for a,b in zip(chain,chain[1:])]
@@ -498,11 +533,15 @@ def main():
             obj = mesh("Terrain_Dirt_" + side, side_vertices, side_faces, scree, visual)
             obj.data.materials.append(exposed_rock)
             uv = obj.data.uv_layers.new(name="Metros")
+            cut_uv = obj.data.uv_layers.new(name="Mezcla") if stage else None
             for face in obj.data.polygons:
                 face.use_smooth = True
                 face.material_index = side_materials[face.index]
                 for loop in face.loop_indices:
-                    uv.data[loop].uv = side_uvs[obj.data.loops[loop].vertex_index]
+                    index = obj.data.loops[loop].vertex_index
+                    uv.data[loop].uv = side_uvs[index]
+                    if cut_uv is not None:
+                        cut_uv.data[loop].uv = (min(1.0, side_mask[index]), 0.0)
             shoulder_meshes.append((side_vertices, side_faces))
             side_caps[side] = (detailed[0], detailed[-1])
         else:
@@ -540,7 +579,7 @@ def main():
               max(x for x,y in polygon)+360, max(y for x,y in polygon)+360)
     west,south,east,north = bounds
     # Grade the surrounding terrain from the same edge used by both meshes.
-    blend_radius = 72.0
+    blend_radius = 36.0 if stage else 72.0
     bin_size = 18.0
     edge_bins = defaultdict(list)
 
@@ -583,9 +622,18 @@ def main():
         t = max(0.0, (distance - 18.0) / (blend_radius - 18.0))
         return graded + (dsm_z - graded) * t * t * (3 - 2 * t)
 
+    outer = []
+    outer_bands = defaultdict(list)
+    if stage:
+        outer = [tuple(Vector((x - origin.x, y - origin.y))) for x, y in data["terrain_ring"]]
+        for a, b in zip(outer, outer[1:] + outer[:1]):
+            for band in range(math.floor(min(a[1], b[1]) / 20), math.floor(max(a[1], b[1]) / 20) + 1):
+                outer_bands[band].append((a, b))
     vertices = boundary[:]
+    vertices.extend((x, y, ground(x, y)) for x, y in outer)
     for p in terrain:
-        if west <= p.x <= east and south <= p.y <= north and not inside(p.xy, edge_bands):
+        if (west <= p.x <= east and south <= p.y <= north and not inside(p.xy, edge_bands)
+                and (not outer or inside(p.xy, outer_bands))):
             z = grade_terrain(p.x, p.y, p.z)
             if z is not None:
                 vertices.append((p.x, p.y, z))
@@ -601,7 +649,7 @@ def main():
             x = (a[0] + b[0]) * 0.5 - vy / length * distance
             y = (a[1] + b[1]) * 0.5 + vx / length * distance
             key = (round(x / 3), round(y / 3))
-            if key in occupied or inside((x, y), edge_bands):
+            if key in occupied or inside((x, y), edge_bands) or (outer and not inside((x, y), outer_bands)):
                 continue
             z = grade_terrain(x, y, ground(x, y))
             if z is not None:
@@ -609,18 +657,29 @@ def main():
                 vertices.append((x, y, z))
 
     edges = [(i, (i + 1) % len(boundary)) for i in range(len(boundary))]
+    outer_edges = [(len(boundary) + i, len(boundary) + (i + 1) % len(outer)) for i in range(len(outer))]
     pts, _, triangles, origins, _, _ = delaunay_2d_cdt(
-        [Vector(v[:2]) for v in vertices], edges, [], 0, 0.0001)
+        [Vector(v[:2]) for v in vertices], edges + outer_edges, [], 0, 0.0001)
     assert all(origins), "Terrain triangulation split a corridor edge"
     ground_vertices = [(p.x, p.y, vertices[ids[0]][2]) for p, ids in zip(pts, origins)]
-    outside = [f for f in triangles if not inside(sum((pts[i] for i in f), Vector((0,0))) / len(f), edge_bands)]
+    outside = []
+    for face in triangles:
+        if outer and all(any(len(boundary) <= i < len(boundary) + len(outer) for i in origins[v]) for v in face):
+            a, b, c = (pts[v] for v in face)
+            if abs((b - a).cross(c - a)) < 0.001:
+                continue
+        center = tuple(sum(float(pts[i][coordinate]) for i in face) / len(face) for coordinate in (0, 1))
+        if not inside(center, edge_bands) and (not outer or inside(center, outer_bands)):
+            outside.append(face)
     edge_counts = {}
     for f in outside:
         for a,b in zip(f, f[1:] + f[:1]):
             key = tuple(sorted((a,b)))
             edge_counts[key] = edge_counts.get(key, 0) + 1
     by_input = {i:j for j, ids in enumerate(origins) for i in ids}
-    assert all(edge_counts.get(tuple(sorted((by_input[a],by_input[b])))) == 1 for a,b in edges), "Unsealed corridor"
+    missing_edges = [(a, b) for a, b in edges
+                     if edge_counts.get(tuple(sorted((by_input[a], by_input[b])))) != 1]
+    assert not missing_edges, f"Unsealed corridor: {[(i, vertices[i], vertices[j]) for i,j in missing_edges[:8]]}"
     active = sorted({i for face in outside for i in face})
     compact_index = {old: new for new,old in enumerate(active)}
     compact_ground = [ground_vertices[i] for i in active]
@@ -636,21 +695,18 @@ def main():
         collision_vertices.extend(strip_vertices)
         collision_faces.extend(tuple(index + v for v in f) for f in strip_faces)
     mesh("Collision_Terrain_Dirt", collision_vertices, collision_faces, dirt, collision)
-    photo = material("Sentinel Raura", (0.3,0.3,0.3))
-    photo.use_nodes = True
-    nt = photo.node_tree
-    tex = nt.nodes.new("ShaderNodeTexImage")
-    satellite_texture = "sentinel_raura_fotorrealista.jpg" if corrected_stage else "sentinel.png"
-    tex.image = bpy.data.images.load(str(OUT / satellite_texture))
-    tex.image.pack()
-    shader = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    nt.links.new(tex.outputs["Color"], shader.inputs["Base Color"])
-    background.data.materials[0] = photo
     uv = background.data.uv_layers.new()
-    w,s,e,n = data["bounds"]
-    for loop in background.data.loops:
-        x,y,_ = compact_ground[loop.vertex_index]
-        uv.data[loop.index].uv = ((x+origin.x-w)/(e-w), (y+origin.y-s)/(n-s))
+    if stage:
+        from rajuntay_terrain import paint_ground
+        paint_ground(background, uv, compact_ground, stage["output"], textured_material)
+    else:
+        photo = textured_material("Sentinel Raura", OUT / ("sentinel_raura_fotorrealista.jpg" if corrected_stage else "sentinel.png"))
+        next(n for n in photo.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Roughness"].default_value = 0.5
+        background.data.materials[0] = photo
+        w,s,e,n = data["bounds"]
+        for loop in background.data.loops:
+            x,y,_ = compact_ground[loop.vertex_index]
+            uv.data[loop.index].uv = ((x+origin.x-w)/(e-w), (y+origin.y-s)/(n-s))
 
     if relief_enabled:
         from auditar_costuras import audit
@@ -659,6 +715,21 @@ def main():
                     if count == 1 and (a,b) not in inner]
         for group in (visual, collision):
             audit(group.objects, exterior, axis, pk)
+    if stage:
+        from rajuntay_terrain import build_barrier, build_backdrop
+        barrier_metrics = build_barrier(data["wall_ring"], origin, compact_ground, outside, ground, mesh, dirt, collision)
+        build_backdrop(outer, outer_bands, origin, data["distant_terrain"], ground, inside,
+                       mesh, background.data.materials[0], visual)
+
+    first, last = gate_indices if stage else (0, len(timed_axis) - 1)
+    sample_indices = list(range(first, last + 1, 4))
+    if sample_indices[-1] != last:
+        sample_indices.append(last)
+    points = [timed_axis[i] for i in sample_indices]
+    finish_forward = (points[-1] - points[-2]).xy.normalized()
+    if stage:
+        from rajuntay_terrain import build_finish_boards
+        build_finish_boards(points[-1], finish_forward, rows[last+6], mesh, material, visual)
 
     assets.mkdir(parents=True, exist_ok=True)
     manifest = {"contract_version":1, "track_id":track,
@@ -688,6 +759,13 @@ def main():
     )
     if not pilot:
         manifest["source"]["slope_texture"] = {"file":"argentina_talud.png","minimum_cross_slope_degrees":15}
+    if stage:
+        manifest["source"].update(
+            blend=track + ".blend", generator="generar_ss01.py", approved_axis="SS01_Carretera_Spline_3D_Nodes.csv",
+            source_pk_m=[0, data["source_pks"][-1]], timed_source_pk_m=data["timing_pks"],
+            surface_texture_pack="Raura gravel / Rajuntay PS1",
+            slope_texture={"file":"pedregal.png","minimum_cross_slope_degrees":15},
+            side_room_m=30, barrier=barrier_metrics)
     exports = [("visual", visual)] if visual_only else [("visual", visual), ("collision", collision)]
     staged_glbs = []
     for kind, group in exports:
@@ -702,7 +780,8 @@ def main():
                 bpy.ops.export_scene.gltf(filepath=str(local_export), export_format="GLB", use_selection=True)
                 shutil.copyfile(local_export, staged)
         else:
-            bpy.ops.export_scene.gltf(filepath=str(staged), export_format="GLB", use_selection=True)
+            bpy.ops.export_scene.gltf(filepath=str(staged), export_format="GLB", use_selection=True,
+                                      export_normals=not (stage and kind == "collision"))
         with staged.open("rb") as stream:
             digest = hashlib.file_digest(stream, "sha256").hexdigest()
         manifest[kind] = {"path":path.name, "sha256":digest, "size_bytes":staged.stat().st_size}
@@ -727,6 +806,8 @@ def main():
         manifest["source"]["approved_axis"] = "osm_corregido_sr_z_preservado"
     if lateral_trial:
         blend = assets / blend.name
+    if stage:
+        blend = stage["output"] / manifest["source"]["blend"]
     for screen in bpy.data.screens:
         for area in screen.areas:
             if area.type == "VIEW_3D":
@@ -756,10 +837,6 @@ def main():
         previous["visual"] = manifest["visual"]
         write_json(assets / "manifest.json", previous)
         return
-    sample_indices = list(range(0, len(timed_axis), 4))
-    if sample_indices[-1] != len(timed_axis) - 1:
-        sample_indices.append(len(timed_axis) - 1)
-    points = [timed_axis[i] for i in sample_indices]
     surface_probes = []
     for i in sample_indices:
         row = [Vector(p) for p in rows[i + 6]]
@@ -793,16 +870,22 @@ def main():
     write_json(assets / "manifest.json", manifest)
     route = f"res://data/rally/{track}_route.json"
     gates = f"res://data/competition/stages/{track}_timing_gates.json"
-    write_json(GAME / route.removeprefix("res://"), {"points":[godot(p) for p in points],
+    route_document = {"points":[godot(p) for p in points],
         "point_count":len(points),"total_route_length_m":lengths[-1],"checkpoint_radius_m":8,
-        "surface_probes":surface_probes, **({"pothole_probes":pothole_probes} if relief_enabled else {})})
+        "surface_probes":surface_probes, **({"pothole_probes":pothole_probes} if relief_enabled else {})}
+    if stage:
+        route_document["runout_probes"] = [
+            godot(road_sections[road_originals[i+6]][detail.ROAD_COLUMNS // 2])
+            for i in range(last + 1, len(timed_axis), 4)
+        ]
+    write_json(GAME / route.removeprefix("res://"), route_document)
     gate_list = []
     split_indices = [min(range(len(points)), key=lambda i: abs(lengths[i] - lengths[-1] * fraction))
                      for fraction in (0.25, 0.5, 0.75)]
     control_indices = [*split_indices, len(points) - 1]
     for number, i in enumerate(control_indices, 1):
         kind = "finish" if i == len(points) - 1 else "split"
-        tangent = (points[min(i+1,len(points)-1)]-points[i-1]).xy.normalized()
+        tangent = finish_forward if kind == "finish" else (points[i+1]-points[i-1]).xy.normalized()
         gate_list.append({"id":kind if kind == "finish" else f"split_{number:02d}","kind":kind,"origin":godot(points[i]),"forward":godot((*tangent,0)),
             "right":godot((tangent.y,-tangent.x,0)),"up":[0,1,0],"half_width_m":6,"half_height_m":5,
             "route_position":godot(points[i]),"route_distance_m":lengths[i],"route_index":i})
@@ -812,7 +895,7 @@ def main():
     write_json(GAME / baseline.removeprefix("res://"), {
         "basis":"Synthetic standalone defaults at 50 km/h",
         "values_seconds":{f"CPUSplit{i}":[length / 13.89] for i, length in enumerate(sectors)}})
-    write_json(GAME / f"data/competition/stages/{track}.json", {"id":track,"name":"Rally Raura — Piloto con relieve" if pilot_relief else ("Rally Raura — Piloto OSQP" if pilot else "Rally Raura — Stage 2"),
+    write_json(GAME / f"data/competition/stages/{track}.json", {"id":track,"name":stage["name"] if stage else ("Rally Raura — Piloto con relieve" if pilot_relief else ("Rally Raura — Piloto OSQP" if pilot else "Rally Raura — Stage 2")),
         "route_path":route,"timing_gates_path":gates,"surface":"gravel_mud",
         "fallback_path":baseline,"difficulty":0,"reference_scale":1.0,
         "roughness":0.1,"jumps":0,"visibility":1,"wetness":0,"blind_route":False,
@@ -821,7 +904,7 @@ def main():
         "total_distance_m":lengths[-1],"calls":[]})
     manifest["source"]["blend_sha256"] = hashlib.sha256(blend.read_bytes()).hexdigest()
     write_json(assets / "manifest.json", manifest)
-    print("RAURA STAGE 2", start_pk, distances[-1], lengths[-1], len(outside), max_grade_adjustment)
+    print(track.upper(), start_pk, distances[-1], lengths[-1], len(outside), max_grade_adjustment)
 
 
 if __name__ == "__main__":

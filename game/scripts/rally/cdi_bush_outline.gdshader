@@ -6,7 +6,7 @@ uniform vec4 bush_color : source_color = vec4(1.0);
 uniform vec3 card_center;
 uniform float alpha_cutoff = 0.38;
 uniform float outline_width = 0.2;
-uniform vec3 outline_color : source_color = vec3(0.19, 0.15, 0.18);
+uniform vec3 outline_color : source_color = vec3(0.2745, 0.2510, 0.1647);
 varying float outline_fade;
 
 float tile_mask(vec2 uv) {

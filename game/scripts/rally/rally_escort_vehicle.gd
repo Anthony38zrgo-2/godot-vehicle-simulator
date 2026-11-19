@@ -598,6 +598,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			"impulse_ns": impulse, "speed_ms": closing_speed, "tangent_ms": tangent_speed,
 			"surface": vfx_surface,
 			"collision_role": role,
+			"wood_impact": vfx_collider != null and bool(vfx_collider.get_meta("wood_impact", false)),
 			"collider_name": str(vfx_collider.name).to_lower() if vfx_collider != null else "",
 		})
 		var force := impulse / maxf(state.step, 0.0001)

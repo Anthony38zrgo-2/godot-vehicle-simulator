@@ -82,6 +82,8 @@ var custom_variant_weights: Array[float] = []
 var use_standard_variant_profile := false
 var density_scale := 1.0
 var instance_scale := 1.0
+var outer_offset_scale := 1.0
+var side_bias_strength := 0.0
 var extra_height_variation_m := 0.0
 var ground_group: StringName = &""
 var collidable_bushes := false
@@ -160,9 +162,10 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 			_scatter_transform(position, scale_y, _sample_base, rng))
 
 	var count := _commit_batches(buckets, entries, collision_mask)
+	var outer_offset := bins[0].x + (bins[-1].y - bins[0].x) * outer_offset_scale
 	print("RALLY_BUSHES_READY" if collidable_bushes else "RALLY_GRASS_READY",
 		" instances=", count, " batches=", buckets.size(),
-		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", bins[0].x, "-", bins[-1].y,
+		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", bins[0].x, "-", outer_offset,
 		" build_ms=", Time.get_ticks_msec() - started_at)
 
 
@@ -223,10 +226,17 @@ func _sample_point(rng: RandomNumberGenerator, route: Array[Vector3],
 		return false
 	lateral = lateral.normalized()
 	var bin: Vector2 = bins[rng.randi_range(0, bins.size() - 1)]
-	var side := -1.0 if rng.randf() < 0.5 else 1.0
+	var left_chance := 0.5
+	if side_bias_strength > 0.0:
+		var bias := _value_noise(travelled / 64.0, 19.6)
+		left_chance += lerpf(-side_bias_strength, side_bias_strength, bias)
+	var side := -1.0 if rng.randf() < left_chance else 1.0
 	_sample_base = start + delta * ((travelled - cumulative[index]) / segment)
 	_sample_sector = int(travelled / SECTOR_LENGTH)
-	_sample_position = _sample_base + lateral * (rng.randf_range(bin.x, bin.y) * side)
+	var offset := rng.randf_range(bin.x, bin.y)
+	if outer_offset_scale != 1.0:
+		offset += (offset - bins[0].x) * (outer_offset_scale - 1.0)
+	_sample_position = _sample_base + lateral * (offset * side)
 	return true
 
 

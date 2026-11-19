@@ -39,6 +39,47 @@ def accessor(doc, data, index):
                          count=field["count"] * width, offset=offset).reshape((-1, width))
 
 
+def regional_dem_colors(dem, east, south, center, cell_m):
+    def linear_rgb(hex_color):
+        srgb = np.array(list(bytes.fromhex(hex_color))) / 255.0
+        return ((srgb + 0.055) / 1.055) ** 2.4
+
+    def smooth(low, high, values):
+        t = np.clip((values - low) / (high - low), 0, 1)
+        return t * t * (3 - 2 * t)
+
+    def blend(a, b, weight):
+        return a + (b - a) * weight[..., None]
+
+    dz, dx = np.gradient(dem / cell_m)
+    slope = np.hypot(dx, dz)
+    curvature = np.gradient(dx, axis=1) + np.gradient(dz, axis=0)
+    x = east - center[0]
+    z = south + center[1]
+
+    # Interpret the aerial reference in route-relative coordinates: broad
+    # southwest beds, a smaller warm patch to the east, and gray eastern ridges.
+    southwest = np.exp(-((x + 1200) / 1850) ** 2 - ((z - 780) / 2400) ** 2)
+    east_patch = np.exp(-((x - 3200) / 1100) ** 2 - ((z + 1450) / 2000) ** 2)
+    bedding = (z - 0.55 * x + 0.8 * (dem - 4800) + 95 * np.sin(x / 430)) / 560
+    strata = smooth(0.12, 0.70, np.cos(2 * np.pi * bedding))
+    warm = np.maximum(southwest * 0.90, east_patch * 0.78) * (0.23 + 0.77 * strata)
+
+    greenness = smooth(0.015, 0.14, curvature) * (1 - smooth(0.22, 0.48, slope))
+    grass = blend(linear_rgb("9B8954"), linear_rgb("C2B07D"), smooth(-0.08, 0.01, -curvature))
+    grass = blend(grass, linear_rgb("737653"), greenness * 0.68)
+    rock = blend(linear_rgb("85847E"), linear_rgb("53565C"), smooth(0.50, 0.95, slope))
+    warm_rock = blend(linear_rgb("AB826C"), linear_rgb("805D50"), smooth(0.45, 0.90, slope))
+    exposure = smooth(0.19, 0.68, slope + np.clip((dem - 4850) / 1500, -0.12, 0.22))
+    color = blend(grass, blend(rock, warm_rock, warm), np.maximum(exposure, warm * 0.56))
+
+    snow = np.clip((dem - 5230) / 235 - slope * 0.42, 0, 0.75)
+    color = blend(color, np.array([0.58, 0.64, 0.68]), snow)
+    color *= np.clip(0.88 - dx * 0.31 - dz * 0.35, 0.47, 1.13)[..., None]
+    haze = smooth(850, 14500, np.hypot(x, z)) * 0.56
+    return blend(color, np.array([0.30, 0.39, 0.49]), haze)
+
+
 def terrain_proxy():
     """Resident valley mesh with clearance below the detailed road cut."""
     from generar_horizonte import CELL_M
@@ -54,16 +95,7 @@ def terrain_proxy():
         np.minimum(distance, (east - x) ** 2 + (south + y) ** 2, out=distance)
     clearance = 0.7 + 30 * np.clip(1 - np.sqrt(distance) / 165, 0, 1)
     positions = np.stack((east, dem - stage["z0"] - clearance, south), axis=-1)
-    dz, dx = np.gradient(dem / CELL_M)
-    slope = np.hypot(dx, dz)
-    rock = np.clip((slope - 0.20) * 1.6 + (dem - 4950) / 900, 0, 1)[..., None]
-    snow = np.clip((dem - 5230) / 235 - slope * 0.42, 0, 0.75)[..., None]
-    grass = np.array([0.23, 0.175, 0.088])
-    color = grass + (np.array([0.19, 0.17, 0.18]) - grass) * rock
-    color += (np.array([0.58, 0.64, 0.68]) - color) * snow
-    color *= np.clip(0.77 - dx * 0.29 - dz * 0.34, 0.45, 1.13)[..., None]
-    haze = np.clip(np.hypot(east - center[0], south + center[1]) / 18000, 0.03, 0.56)
-    color += (np.array([0.30, 0.39, 0.49]) - color) * haze[..., None]
+    color = regional_dem_colors(dem, east, south, center, CELL_M)
     i = np.arange(dem.size, dtype="<u4").reshape(dem.shape)[:-1, :-1].ravel()
     width = dem.shape[1]
     faces = np.column_stack((i, i+width, i+1, i+1, i+width, i+width+1)).reshape(-1, 3)

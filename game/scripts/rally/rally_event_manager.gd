@@ -70,11 +70,12 @@ func load_event(event_path: String = "") -> bool:
 	if event_doc.is_empty():
 		return false
 	event_path_used = path
-	stage_order = (event_doc.get("stages_explicit_order", []) as Array).duplicate()
-	# Rusia lista 10 especiales; Kenia/Finlandia/Suecia/Suiza listan 8.
-	if stage_order.size() != 10 and stage_order.size() != 8:
-		error = "El evento debe listar ocho o diez especiales"
+	stage_order.clear()
+	var configured_stages: Variant = event_doc.get("stages_explicit_order")
+	if not (configured_stages is Array) or configured_stages.is_empty():
+		error = "El evento debe listar al menos una especial"
 		return false
+	stage_order = configured_stages.duplicate()
 	return true
 
 func begin_event(choices: Dictionary = {}) -> bool:

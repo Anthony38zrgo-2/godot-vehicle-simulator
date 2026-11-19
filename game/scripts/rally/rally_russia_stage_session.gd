@@ -357,6 +357,8 @@ func _build_stage_grass() -> void:
 		grass.use_standard_variant_profile = true
 		grass.density_scale = 0.45 * 0.70
 		grass.instance_scale = 0.575
+		grass.outer_offset_scale = 1.12
+		grass.side_bias_strength = 0.18
 		grass.sector_stream = sector_stream
 		grass.reserved_points = occupied
 		grass.fog_enabled = false

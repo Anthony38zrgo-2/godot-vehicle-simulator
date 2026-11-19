@@ -565,7 +565,7 @@ static func forecast_for_half(schedule: Array, from_stage: int, count: int = 5) 
 
 static func validate_schedule(schedule: Array, stage_order: Array, rules: Dictionary) -> Dictionary:
 	if schedule.size() != stage_order.size():
-		return {"ok": false, "error": "El cronograma debe cubrir las diez especiales"}
+		return {"ok": false, "error": "El cronograma debe cubrir todas las especiales del evento"}
 	var within_allowed: Array = rules.get("within_stage_allowed_steps", [-1, 1]).map(func(value): return int(value))
 	var between_allowed: Array = rules.get("between_stages_allowed_steps", [-2, -1, 1, 2]).map(func(value): return int(value))
 	var prev_last_idx := -1

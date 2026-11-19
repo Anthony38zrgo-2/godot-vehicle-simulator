@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = Join-Path $repositoryRoot 'game'
 $track = 'cdi_stage1'
-$scene = "res://scenes/rally/$track.tscn"
+$scene = 'res://scenes/rally/rally_maniac_menu.tscn'
 
 if (-not $GodotPath) { $GodotPath = $env:GODOT_BIN }
 if (-not $GodotPath) { $GodotPath = [Environment]::GetEnvironmentVariable('GODOT_BIN', 'User') }
@@ -57,5 +57,5 @@ if ($Import) {
 $arguments = @('--path', $gameRoot)
 if ($Headless) { $arguments += '--headless' }
 if ($QuitAfterFrames -gt 0) { $arguments += @('--quit-after', $QuitAfterFrames) }
-& $godot @arguments $scene
+& $godot @arguments $scene -- --rally-cdi
 exit $LASTEXITCODE

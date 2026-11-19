@@ -8,7 +8,12 @@ const ANIMAL := "animals"
 const STONE := "rocks"
 const STONE_COUNT := 200
 const ROUTE_SPECTATOR_GROUPS := 9
-const SPECTATORS_PER_GROUP := 5
+const START_SPECTATORS := 8
+const BEHIND_START_SPECTATORS := 5
+const SPECTATORS_PER_GROUP := 6
+const FINISH_SPECTATORS := 5
+const HERD_COUNT := 9
+const ANIMALS_PER_HERD := 5
 const TALUS_STONE_PROFILE := {
 	"offset": Vector2(5.0, 17.0), "size": Vector2(0.80, 1.85), "wide_clearance": true, "talus": true,
 }
@@ -43,18 +48,18 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 		return
 	var length := route.route_distances[-1]
 	_rng.seed = stage_seed
-	var people := _group(SPECTATOR, 9, Vector2(-4, 23), Vector2(8, 17), "StartBank")
-	people += _group(SPECTATOR, 6, Vector2(-34, -12), Vector2(8, 17), "BehindStart")
+	var people := _group(SPECTATOR, START_SPECTATORS, Vector2(-4, 23), Vector2(8, 17), "StartBank")
+	people += _group(SPECTATOR, BEHIND_START_SPECTATORS, Vector2(-34, -12), Vector2(8, 17), "BehindStart")
 	for i in range(ROUTE_SPECTATOR_GROUPS):
 		var zone := _zone(i, ROUTE_SPECTATOR_GROUPS, 150, length - 95)
 		people += _group(SPECTATOR, SPECTATORS_PER_GROUP, zone, Vector2(8, 21), "Spectators%02d" % i)
-	people += _group(SPECTATOR, SPECTATORS_PER_GROUP, Vector2(length - 30.0, length + 10.0),
+	people += _group(SPECTATOR, FINISH_SPECTATORS, Vector2(length - 30.0, length + 10.0),
 		Vector2(8, 21), "FinishSpectators")
 	_rng.seed = stage_seed + 601
 	var animals := 0
-	for i in range(6):
-		var zone := _zone(i, 6, 210, length - 115)
-		animals += _group(ANIMAL, 5, zone, Vector2(21, 49), "Herd%02d" % i)
+	for i in range(HERD_COUNT):
+		var zone := _zone(i, HERD_COUNT, 210, length - 115)
+		animals += _group(ANIMAL, ANIMALS_PER_HERD, zone, Vector2(21, 49), "Herd%02d" % i)
 	_rng.seed = stage_seed + 1093
 	var rocks := _scatter_rocks(length)
 	for placement in _placements:
@@ -65,7 +70,9 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 			factory.call(self)
 	set_meta("counts", {"people": people, "animals": animals, "rocks": rocks})
 	print("CDI_PROPS_READY people=", people, " animals=", animals, " rocks=", rocks)
-	if people != 15 + (ROUTE_SPECTATOR_GROUPS + 1) * SPECTATORS_PER_GROUP or animals != 30 or rocks != STONE_COUNT:
+	var expected_people := START_SPECTATORS + BEHIND_START_SPECTATORS + FINISH_SPECTATORS \
+		+ ROUTE_SPECTATOR_GROUPS * SPECTATORS_PER_GROUP
+	if people != expected_people or animals != HERD_COUNT * ANIMALS_PER_HERD or rocks != STONE_COUNT:
 		push_warning("Rajuntay props could not fill one or more safe placement zones")
 
 

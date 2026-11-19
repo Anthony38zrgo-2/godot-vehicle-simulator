@@ -19,6 +19,10 @@ const SURFACE_GROUP_BY_NODE := {
 	"collision_terrain_dirt_raura_exterior": "Dirt",
 	"collision_terrain_sand": "Sand",
 }
+const WOOD_IMPACT_MATERIALS := [
+	"fence_1_1", "fence_1_2", "fence_gate_1", "fin_fence_1_1", "fin_fence_1_2",
+	"fin_puuaita", "village_fence", "woodpile", "sign_wooden1",
+]
 
 # River lid removal: the imported Kenya collision closes the river channel
 # with a flat cap at water level, so the channel has no bed to flood and the
@@ -82,13 +86,48 @@ func build_collision(visual_root: Node = null) -> bool:
 				part.mesh = subset
 				build_static_body(part, rel_transform)
 				part.free()
-		else:
+		elif "terrain" in node_name or "road" in node_name or not _build_mixed_wood_collision(mesh_instance, rel_transform):
 			build_static_body(mesh_instance, rel_transform)
 	if visual_root != null:
 		build_erosion_bank_collision(visual_root)
 	collision_source.free()
 	print("RALLY_COLLISION_READY bodies=", generated_body_count, " shapes=", generated_shape_count, " triangles=", generated_triangle_count)
 	return generated_shape_count > 0
+
+
+func _is_wood_impact_material(material: Material) -> bool:
+	if material == null:
+		return false
+	var label := material.resource_name.to_lower()
+	return label in WOOD_IMPACT_MATERIALS or label.begins_with("wood_")
+
+
+func _build_mixed_wood_collision(source: MeshInstance3D, relative: Transform3D) -> bool:
+	var mesh := source.mesh
+	if mesh == null or mesh.get_surface_count() < 2:
+		return false
+	var wood: Array[int] = []
+	var other: Array[int] = []
+	for i in mesh.get_surface_count():
+		if _is_wood_impact_material(mesh.surface_get_material(i)):
+			wood.append(i)
+		else:
+			other.append(i)
+	if wood.is_empty() or other.is_empty():
+		return false
+	# A collision mesh can contain wood fences, metal barriers and rock in the
+	# same node. Keep a separate body for just the wood faces.
+	for surfaces: Array[int] in [other, wood]:
+		var subset := ArrayMesh.new()
+		for i in surfaces:
+			subset.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh.surface_get_arrays(i))
+			subset.surface_set_material(subset.get_surface_count() - 1, mesh.surface_get_material(i))
+		var part := MeshInstance3D.new()
+		part.name = source.name
+		part.mesh = subset
+		build_static_body(part, relative)
+		part.free()
+	return true
 
 
 ## Nivel del agua importada por celda (XZ).
@@ -442,6 +481,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 		(shape as ConcavePolygonShape3D).backface_collision = true
 	static_body.set_meta("collision_role", role)
 	static_body.set_meta("is_stage_road", source_name.begins_with("collision_road"))
+	if role != "terrain" and _is_wood_impact_material(mesh_instance.mesh.surface_get_material(0)):
+		static_body.set_meta("wood_impact", true)
 	var surface_group := str(SURFACE_GROUP_BY_NODE.get(source_name, ""))
 	var winter_layer_id := ""
 	var material_names: Array[String] = []

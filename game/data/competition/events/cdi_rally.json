@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "event_id": "cdi_rally",
+  "event_name": "Caminos del Inca",
+  "base_date": "2026-11-18",
+  "stages_explicit_order": ["cdi_stage1"],
+  "itinerary_default": {
+    "days": [
+      {
+        "label": "Día 1",
+        "date": "2026-11-18",
+        "starts": ["08:00"],
+        "stage_ids": ["cdi_stage1"]
+      }
+    ]
+  },
+  "sunday_stage_ids": [],
+  "power_stage_id": "",
+  "weather_rules": {
+    "regional_profile_id": "switzerland_alpine",
+    "ordered_states": [
+      "sunny",
+      "clear",
+      "partly_cloudy",
+      "cloudy",
+      "overcast",
+      "mist_fog",
+      "drizzle",
+      "light_precipitation",
+      "medium_precipitation",
+      "heavy_precipitation"
+    ],
+    "within_stage_allowed_steps": [-1, 0, 1],
+    "between_stages_allowed_steps": [-2, -1, 0, 1, 2]
+  },
+  "tire_rules": {
+    "allowed_compound_ids": ["gravel_normal", "gravel_wet"],
+    "default_compound_id": "gravel_normal"
+  },
+  "setup_windows": [
+    {
+      "before_stage_id": "cdi_stage1",
+      "initial_tab": "tires",
+      "confirmation_required": true
+    }
+  ]
+}

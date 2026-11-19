@@ -9,16 +9,16 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 GRASS = HERE.parents[3] / "game/assets/rally/grass/CDI"
 PALETTES = {
-    "scn_p07_x000_y224_80x32_sprite": ("665C52", "B5AD93", "E4DAC2"),
-    "scn_p07_x000_y000_96x64_sprite": ("64564C", "A79B83", "D5C8AD"),
-    "scn_p08_x192_y160_64x64_sprite": ("565E53", "9FA58F", "CED1B9"),
-    "scn_p11_x192_y128_64x64_sprite": ("665C52", "BBB49C", "E9E0CB"),
-    "arbusto_beige_01": ("84706F", "B8A09A", "E2CABE"),
-    "arbusto_beige_02": ("897471", "C1A69B", "E8D2C4"),
-    "arbusto_verde_01": ("304B43", "658575", "A1B3A0"),
-    "arbusto_verde_02": ("344F46", "6D8D7C", "A7B9A6"),
-    "arbusto_verde_03": ("2D4842", "5D7E70", "98AD9E"),
-    "cactus_01": ("2D5452", "4F8C7E", "A5C8AE"),
+    "scn_p07_x000_y224_80x32_sprite": ("46402A", "9B8954", "C2B07D"),
+    "scn_p07_x000_y000_96x64_sprite": ("46402A", "9B8954", "C2B07D"),
+    "scn_p08_x192_y160_64x64_sprite": ("736B3E", "858B4B", "A49E64"),
+    "scn_p11_x192_y128_64x64_sprite": ("46402A", "9B8954", "C2B07D"),
+    "arbusto_beige_01": ("46402A", "877A49", "C2B07D"),
+    "arbusto_beige_02": ("46402A", "91814E", "C2B07D"),
+    "arbusto_verde_01": ("56533D", "7B7E68", "A5A38B"),
+    "arbusto_verde_02": ("5B5741", "7B7E68", "ADAA8E"),
+    "arbusto_verde_03": ("514F38", "7B7E68", "9F9F85"),
+    "cactus_01": ("484D34", "777E60", "A1A688"),
 }
 
 

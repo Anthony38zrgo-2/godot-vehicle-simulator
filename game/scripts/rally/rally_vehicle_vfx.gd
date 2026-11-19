@@ -27,6 +27,8 @@ const METAL_CLANG_ATLAS := preload("res://assets/vfx/pvfx_foundry/metal-clang.pn
 const HIT_SPARK_ATLAS := preload("res://assets/vfx/pvfx_foundry/hit-spark.png")
 # PVFX Foundry strict/grid Landing Dust, converted to grayscale for surface tinting.
 const LANDING_DUST_ATLAS := preload("res://assets/vfx/pvfx_foundry/landing-dust-neutral.png")
+const WATER_RIPPLE_ATLAS := preload("res://assets/vfx/pvfx_foundry/ripple.png")
+const WOOD_SPLINTER_ATLAS := preload("res://assets/vfx/pvfx_foundry/wood-splinter.png")
 const LANDING_DUST_MIN_STRENGTH := 0.45
 const METAL_CLANG_FRAME_COUNT := 13
 const METAL_CLANG_FRAME_SECONDS := 0.06
@@ -78,6 +80,9 @@ var wheel_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var wheel_snow_haze: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var impact_pool: Array[GPUParticles3D] = []
 var metal_clang_pool: Array[AnimatedSprite3D] = []
+var wood_splinter_pool: Array[AnimatedSprite3D] = []
+var water_ripple_pool: Array[AnimatedSprite3D] = []
+var last_ripple_points: Array[Vector3] = [Vector3.INF, Vector3.INF, Vector3.INF, Vector3.INF]
 var tire_sparks: Array[AnimatedSprite3D] = []
 var landing_dust: AnimatedSprite3D
 var tire_was_unseated: Array[bool] = [false, false, false, false]
@@ -129,6 +134,21 @@ func _ready() -> void:
 	vehicle.tyre_contact_impact.connect(emit_landing_dust)
 	var metal_clang_frames := SpriteFrames.new()
 	add_impact_animation(metal_clang_frames, &"default", METAL_CLANG_ATLAS, Vector2(58, 44), METAL_CLANG_FRAME_COUNT, METAL_CLANG_FRAME_SECONDS)
+	var wood_frames := SpriteFrames.new()
+	add_impact_animation(wood_frames, &"default", WOOD_SPLINTER_ATLAS, Vector2(50, 40), 14, 0.060)
+	var ripple_frames := SpriteFrames.new()
+	add_impact_animation(ripple_frames, &"default", WATER_RIPPLE_ATLAS, Vector2(96, 52), 24, 0.075)
+	for i in 16:
+		var ripple := make_impact_sprite("WaterRipple%d" % i, ripple_frames)
+		ripple.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		ripple.modulate = Color(0.74, 0.72, 0.62, 0.70)
+		ripple.offset = Vector2(0.0, 4.0)
+		water_ripple_pool.append(ripple)
+	for i in 4:
+		var splinters := make_impact_sprite("WoodSplinter%d" % i, wood_frames)
+		splinters.offset = Vector2(3.0, 6.0)
+		splinters.modulate = Color(0.78, 0.72, 0.62)
+		wood_splinter_pool.append(splinters)
 	for i in 6:
 		impact_pool.append(
 			make_emitter(
@@ -272,6 +292,7 @@ func _physics_process(delta: float) -> void:
 		for clang in metal_clang_pool:
 			clang.stop()
 			clang.hide()
+		clear_impact_sprites(wood_splinter_pool)
 		reset_tire_sparks()
 		clear_landing_dust()
 		return
@@ -440,6 +461,7 @@ func update_wheel(index: int, wetness: float) -> void:
 		wheel_has_previous_point[index] = false
 		wheel_previous_surface[index] = ""
 		wheel_was_wet[index] = false
+		last_ripple_points[index] = Vector3.INF
 		return
 
 	var point := sim.wheel_contact_points[index]
@@ -447,9 +469,10 @@ func update_wheel(index: int, wetness: float) -> void:
 	wheel_previous_point[index] = point
 	wheel_has_previous_point[index] = true
 	var entered_grass := surface == "grass" and wheel_previous_surface[index] != "grass"
-	var wet := maxf(clampf(wetness, 0.0, 1.0), clampf(float(wheel_conditions(index).get("water_mm", 0.0)) / 4.0, 0.0, 1.0))
 	var conditions := wheel_conditions(index)
-	var in_water := float(conditions.get("puddle_depth_mm", 0.0)) >= 1.0 if conditions.has("puddle_depth_mm") else wet >= 0.55
+	var wet := maxf(clampf(wetness, 0.0, 1.0), clampf(float(conditions.get("water_mm", 0.0)) / 4.0, 0.0, 1.0))
+	var puddle_depth := float(conditions.get("puddle_depth_mm", 0.0))
+	var in_water := puddle_depth >= 1.0 if conditions.has("puddle_depth_mm") else wet >= 0.55
 	var entered_water := in_water and not wheel_was_wet[index]
 	if wheel_cooldowns[index] > 0.0 and not entered_grass and not entered_water:
 		return
@@ -481,6 +504,12 @@ func update_wheel(index: int, wetness: float) -> void:
 	# es Gravel con snow_packed aunque snow_mm meteorologico sea 0.
 	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
 	var snowy := snow_mm >= SNOW_MIN_MM or surface == "snowdeep" or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]
+	if puddle_depth >= 1.0 and not snowy:
+		if entered_water or point.distance_squared_to(last_ripple_points[index]) >= 6.25:
+			if emit_water_ripple(point, normal, puddle_depth, strength):
+				last_ripple_points[index] = point
+	else:
+		last_ripple_points[index] = Vector3.INF
 	if snowy:
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SNOW, snow_texture_variant(index), source + normal * 0.09, velocity + normal * 1.3, point, normal)
 		if surface == "snowdeep" or winter_layer != "":
@@ -686,6 +715,7 @@ func update_impacts(wetness: float) -> void:
 	var selected: Dictionary = { }
 	var largest := 0.0
 	var selected_sparks := false
+	var selected_wood := false
 	for contact in vehicle.body_contact_vfx:
 		var impulse := float(contact.impulse_ns)
 		var closing := float(contact.speed_ms)
@@ -693,6 +723,7 @@ func update_impacts(wetness: float) -> void:
 		var surface := str(contact.surface).to_lower()
 		var collider_name := str(contact.collider_name).to_lower()
 		var role := str(contact.get("collision_role", ""))
+		var wood := bool(contact.get("wood_impact", false))
 		var soft_surface := surface in ["gravel", "grass", "dirt", "sand", "mud"] or "tree" in collider_name
 		var obstacle := (
 			role in ["barrier", "obstacle"]
@@ -704,25 +735,28 @@ func update_impacts(wetness: float) -> void:
 		var impact := impulse >= vehicle.mass * 0.20 and (
 			closing >= 1.8 or scrape >= 4.0 or impulse >= vehicle.mass * 0.8
 		)
-		if not impact and not (hard_scrape and impulse >= vehicle.mass * 0.025):
+		if not impact and not (hard_scrape and not wood and impulse >= vehicle.mass * 0.025):
 			continue
 		if impulse > largest:
 			largest = impulse
 			selected = contact
 			selected_sparks = hard_scrape or hard_hit
+			selected_wood = wood
 	if selected.is_empty():
 		return
 	var surface := str(selected.surface).to_lower()
 	var collider_name := str(selected.collider_name)
 	var severity := clampf(largest / maxf(vehicle.mass * 3.0, 1.0), 0.15, 1.0)
-	if selected_sparks:
+	if selected_wood:
+		emit_wood_splinters(selected.position, selected.normal, severity)
+	elif selected_sparks:
 		var normal: Vector3 = selected.normal
 		var direction := normal * 0.32 - vehicle.linear_velocity.slide(normal).normalized()
 		emit_metal_clang(selected.position, normal, direction, severity)
 	else:
 		var effect := classify_impact(surface, collider_name, wetness)
 		emit_impact_effect(selected.position, selected.normal, effect, severity)
-	impact_cooldown = 0.22 if selected_sparks else 0.35
+	impact_cooldown = 0.22 if selected_sparks and not selected_wood else 0.35
 
 
 ## Chooses the debris sprite for a contact that does not produce metal sparks.
@@ -849,6 +883,44 @@ func impact_sprite_basis(direction: Vector3) -> Basis:
 	return Basis(right, toward_camera.cross(right), toward_camera)
 
 
+func emit_water_ripple(point: Vector3, normal: Vector3, depth_mm: float, strength: float) -> bool:
+	for ripple in water_ripple_pool:
+		if ripple.visible:
+			continue
+		var right := Vector3.RIGHT.slide(normal).normalized()
+		var basis := Basis(right, normal.cross(right), normal)
+		# Keep the ripple on the shallow water surface, with a small depth bias.
+		var lift := clampf(depth_mm * 0.001, 0.0, 0.20) + 0.025
+		ripple.global_transform = Transform3D(basis, point + normal * lift)
+		ripple.pixel_size = lerpf(0.010, 0.024, strength)
+		ripple.stop()
+		ripple.show()
+		ripple.play()
+		return true
+	return false
+
+
+func emit_wood_splinters(point: Vector3, normal: Vector3, severity: float) -> void:
+	for splinters in wood_splinter_pool:
+		if splinters.visible:
+			continue
+		var direction := normal * 0.32 - vehicle.linear_velocity.slide(normal).normalized()
+		splinters.global_transform = Transform3D(impact_sprite_basis(direction), point + normal * 0.07)
+		splinters.pixel_size = lerpf(0.017, 0.038, severity)
+		splinters.stop()
+		splinters.show()
+		splinters.play()
+		emitted_impacts += 1
+		return
+
+
+func clear_impact_sprites(sprites: Array[AnimatedSprite3D]) -> void:
+	for sprite in sprites:
+		if sprite.visible:
+			sprite.stop()
+			sprite.hide()
+
+
 func emit_metal_clang(point: Vector3, normal: Vector3, direction: Vector3, severity: float) -> void:
 	for i in metal_clang_pool.size():
 		var clang := metal_clang_pool[i]
@@ -874,6 +946,8 @@ func clear_wheel_bursts() -> void:
 	wheel_previous_surface.fill("")
 	wheel_was_wet.fill(false)
 	wheel_has_previous_point.fill(false)
+	last_ripple_points.fill(Vector3.INF)
+	clear_impact_sprites(water_ripple_pool)
 
 
 func reset_effects() -> void:
@@ -885,9 +959,8 @@ func reset_effects() -> void:
 	for emitter in impact_pool:
 		emitter.restart()
 		emitter.emitting = false
-	for clang in metal_clang_pool:
-		clang.stop()
-		clang.hide()
+	clear_impact_sprites(metal_clang_pool)
+	clear_impact_sprites(wood_splinter_pool)
 	if radiator_steam != null:
 		radiator_steam.frame = 0
 		radiator_steam.hide()
