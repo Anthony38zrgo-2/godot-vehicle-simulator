@@ -112,7 +112,7 @@ func _process(_delta: float) -> bool:
 		var before: int = repair_session.competition.player_penalty_ms
 		assert(repair_session.on_quick_repair_radiator_requested(false))
 		assert(is_equal_approx(thermal.radiator_damage,0.6))
-		assert(repair_session.competition.player_penalty_ms == before + 30000)
+		assert(repair_session.competition.player_penalty_ms == before)
 		thermal.radiator_damage = 0.6
 		assert(repair_session.on_quick_repair_radiator_requested(true))
 		assert(is_equal_approx(thermal.radiator_damage,0.1))
@@ -123,11 +123,11 @@ func _process(_delta: float) -> bool:
 		var restored = preload("res://scripts/rally/rally_tire_inventory.gd").new()
 		assert(restored.restore(saved))
 		assert(restored.repair_kits == [false,false])
-		# A new kit still charges the full cost when only ten health points are missing.
+		# Live-stage repairs defer the single +30s rescue penalty until resuming from pause.
 		vehicle.tire_inventory.repair_kits[1] = true
 		assert(repair_session.on_quick_repair_radiator_requested(true))
 		assert(is_zero_approx(thermal.radiator_damage))
-		assert(repair_session.competition.player_penalty_ms == before + 150000)
+		assert(repair_session.competition.player_penalty_ms == before)
 		var manager = preload("res://scripts/rally/rally_event_manager.gd").new()
 		manager.save_path = ""
 		manager.status = "running"
@@ -158,8 +158,8 @@ func _process(_delta: float) -> bool:
 		assert(manager.tire_inventory_state.repair_kits == [false, false])
 		var results: Dictionary = repair_session.get_competition_panel_state()
 		var player: Dictionary = results.rows.filter(func(row): return row.player)[0]
-		assert(player.penalty_ms == before + 180000)
-		assert(repair_session.competition.player_penalty_ms == before + 150000)
+		assert(player.penalty_ms == before + 30000)
+		assert(repair_session.competition.player_penalty_ms == before)
 		pause_menu.modal.hide()
 		var original_session: Node = pause_menu.session
 		pause_menu.session = repair_session

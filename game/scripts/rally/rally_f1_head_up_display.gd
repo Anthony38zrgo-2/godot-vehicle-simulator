@@ -83,6 +83,12 @@ func show_partial(index: int, delta_ms: Variant) -> void:
 	partial_banner.call("show_delta", index, delta_ms)
 
 
+func show_penalty(penalty_ms: int) -> void:
+	if partial_banner == null:
+		return
+	partial_banner.call("show_penalty", penalty_ms)
+
+
 func _process(_delta: float) -> void:
 	if vehicle == null and not vehicle_path.is_empty():
 		vehicle = get_node_or_null(vehicle_path) as RallyEscortVehicle

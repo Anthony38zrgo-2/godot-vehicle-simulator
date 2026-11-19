@@ -89,11 +89,13 @@ func _build() -> void:
 		bin.custom_minimum_size = Vector2(120,130)
 	else:
 		if tool_available(7):
-			_tool_slot(7, "RÁPIDA · 1 USO\n+20 salud · 30 s", Vector2(.10,.27), Color("eadcc0"))
+			var quick_cost := "30 s" if host.opened_from_results else "+30 s al reanudar"
+			_tool_slot(7, "RÁPIDA · 1 USO\n+20 salud · %s" % quick_cost, Vector2(.10,.27), Color("eadcc0"))
 		else:
 			_caption("Rápida: agotada", .10, .27)
 		if tool_available(8):
-			_tool_slot(8, "GRAVE · 1 USO\n+50 salud · 60 s", Vector2(.10,.74), Color("f28b87"))
+			var heavy_cost := "60 s" if host.opened_from_results else "+30 s al reanudar"
+			_tool_slot(8, "GRAVE · 1 USO\n+50 salud · %s" % heavy_cost, Vector2(.10,.74), Color("f28b87"))
 		else:
 			_caption("Grave: agotada", .10, .74)
 		var radiator := _slot(4, "RADIADOR\nSalud %d%%" % roundi((1-host.get_radiator_damage())*100), Vector2(.50,.14))
@@ -298,7 +300,11 @@ func activate() -> void:
 		held = -1
 		if selected == 4:
 			if host.session.on_quick_repair_radiator_requested(source == 8):
-				host.notice = "Radiador reparado · +%d s. Caja consumida." % (60 if source == 8 else 30)
+				if host.opened_from_results:
+					host.notice = "Radiador reparado · +%d s. Caja consumida." % (60 if source == 8 else 30)
+				else:
+					host.mark_service_change()
+					host.notice = "Radiador reparado · Caja consumida (+30 s al reanudar)."
 				host.persist()
 			_build()
 		elif selected == 9:
@@ -306,7 +312,10 @@ func activate() -> void:
 			var dialog := ConfirmationDialog.new()
 			dialog.dialog_text = "¿Descartar repuesto #%d?" % id
 			add_child(dialog)
-			dialog.confirmed.connect(func(): host.session.vehicle.discard_spare(id); host.persist(); host.show_inventory())
+			dialog.confirmed.connect(func():
+				if host.session.vehicle.discard_spare(id):
+					host._finish_wheel_action()
+				host.show_inventory())
 			dialog.canceled.connect(dialog.queue_free)
 			dialog.popup_centered()
 		else:

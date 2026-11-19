@@ -11,11 +11,13 @@ const FADE_OUT_S := 0.40
 const BOX_SIZE := Vector2(292.0, 68.0)
 const CENTER_Y_RATIO := 0.48
 const BACKGROUND_ALPHA := 0.72
+const PENALTY_COLOR := Color("#eab308")
 
 var sector_index: int = 0
 var delta_ms: Variant = null
 var formatted_text: String = "--:--.--"
 var remaining_seconds: float = 0.0
+var is_penalty: bool = false
 
 
 func _ready() -> void:
@@ -25,6 +27,7 @@ func _ready() -> void:
 
 
 func show_delta(index: int, next_delta_ms: Variant, duration_seconds: float = DISPLAY_DURATION_S) -> void:
+	is_penalty = false
 	sector_index = index
 	delta_ms = next_delta_ms
 	formatted_text = Cmr2Style.format_gap_ms(next_delta_ms)
@@ -33,9 +36,22 @@ func show_delta(index: int, next_delta_ms: Variant, duration_seconds: float = DI
 	queue_redraw()
 
 
+func show_penalty(penalty_ms: int, duration_seconds: float = DISPLAY_DURATION_S) -> void:
+	is_penalty = true
+	sector_index = 0
+	delta_ms = penalty_ms
+	var seconds := int(round(float(maxi(0, penalty_ms)) / 1000.0))
+	formatted_text = "Penalty +%ds" % seconds
+	remaining_seconds = maxf(duration_seconds, 0.01)
+	visible = true
+	queue_redraw()
+
+
 func box_color() -> Color:
 	var base := Cmr2Style.PANEL_BG
-	if delta_ms != null and (delta_ms is int or delta_ms is float):
+	if is_penalty:
+		base = PENALTY_COLOR
+	elif delta_ms != null and (delta_ms is int or delta_ms is float):
 		base = Cmr2Style.AHEAD_COLOR if int(delta_ms) <= 0 else Cmr2Style.BEHIND_COLOR
 	return Color(base.r, base.g, base.b, BACKGROUND_ALPHA)
 
@@ -69,7 +85,11 @@ func _draw() -> void:
 	var border := Color(1.0, 1.0, 1.0, 0.34 * fade)
 	Cmr2Style.draw_panel(self, rect, bg, border)
 
-	var digit_h := 44.0 * factor
-	var text_y := rect.position.y + (rect.size.y - digit_h) * 0.5
 	var fg := Color(1.0, 1.0, 1.0, 0.94 * fade)
-	Cmr2Style.draw_lcd_text(self, Vector2(rect.position.x, text_y), formatted_text, digit_h, fg, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER, 0.06)
+	if is_penalty:
+		var font_px := maxi(14, int(roundf(28.0 * factor)))
+		Cmr2Style.draw_box_text(self, rect, formatted_text, font_px, fg, true, HORIZONTAL_ALIGNMENT_CENTER)
+	else:
+		var digit_h := 44.0 * factor
+		var text_y := rect.position.y + (rect.size.y - digit_h) * 0.5
+		Cmr2Style.draw_lcd_text(self, Vector2(rect.position.x, text_y), formatted_text, digit_h, fg, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER, 0.06)

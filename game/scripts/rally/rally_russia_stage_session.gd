@@ -746,8 +746,9 @@ func on_vehicle_reset_requested() -> void:
 	if competition.complete or not _reposition_vehicle_on_course():
 		return
 	if course.running:
-		competition.add_penalty("player", int(competition.balance.reset_penalty_ms), "Rescate")
-		head_up_display.show_status("RESCATE +%.0f s" % (float(competition.balance.reset_penalty_ms) / 1000.0), Color(0.95, 0.72, 0.24), 2.2)
+		var penalty_ms := int(competition.balance.reset_penalty_ms)
+		competition.add_penalty("player", penalty_ms, "Rescate")
+		head_up_display.show_penalty(penalty_ms)
 	else:
 		head_up_display.show_status("COCHE RESTABLECIDO", Color(0.95, 0.72, 0.24), 2.2)
 
@@ -772,8 +773,6 @@ func on_quick_repair_radiator_requested(heavy: bool = false) -> bool:
 		charges[session_track_id] = int(charges.get(session_track_id, 0)) + penalty
 		_save_mounted_tire_condition()
 		event_manager.save()
-	else:
-		competition.add_penalty("player", penalty, "Herramientas radiador")
 	if repair_sound != null:
 		repair_sound.play()
 	return true

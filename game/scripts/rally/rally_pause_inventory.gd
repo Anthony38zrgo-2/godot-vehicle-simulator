@@ -394,9 +394,18 @@ func open_from_results() -> void:
 	show_inventory()
 
 
+var _pending_rescue_on_resume: bool = false
+
+
+func mark_service_change() -> void:
+	if not opened_from_results:
+		_pending_rescue_on_resume = true
+
+
 func toggle() -> void:
 	if opened_from_results:
 		opened_from_results = false
+		_pending_rescue_on_resume = false
 		modal.hide()
 		backdrop.hide()
 		clear()
@@ -404,6 +413,8 @@ func toggle() -> void:
 		results_workshop_closed.emit()
 		return
 	if modal.visible:
+		var should_rescue := _pending_rescue_on_resume
+		_pending_rescue_on_resume = false
 		modal.hide()
 		backdrop.hide()
 		pause_button.hide()
@@ -413,9 +424,12 @@ func toggle() -> void:
 			_pause_out.call("on_pause_closed")
 		if session != null and session.get("pacenotes") != null:
 			session.pacenotes.on_pause(false)
+		if should_rescue and session != null and session.has_method("on_vehicle_reset_requested"):
+			session.on_vehicle_reset_requested()
 		return
 	if not allowed() or get_tree().paused:
 		return
+	_pending_rescue_on_resume = false
 	if session != null and session.get("vehicle") != null:
 		session.vehicle.ensure_tire_inventory()
 		session.vehicle.sync_tire_inventory()
@@ -525,7 +539,7 @@ func show_menu() -> void:
 
 	# Acción de rescate (penalización moderada)
 	button("Pedir rescate", request_rescue)
-	_add_hint_label("Reubica el vehículo sobre el trazado oficial (+15 s penalización fija).")
+	_add_hint_label("Reubica el vehículo sobre el trazado oficial (+30 s penalización fija).")
 
 	# Acción destructiva: Abandonar etapa
 	button("Abandonar etapa", abandon_stage)
@@ -544,13 +558,15 @@ func show_quick_repairs() -> void:
 func repair_radiator() -> void:
 	if not modal.visible or not allowed():
 		return
+	if session.on_quick_repair_radiator_requested():
+		mark_service_change()
 	toggle()
-	session.on_quick_repair_radiator_requested()
 
 
 func request_rescue() -> void:
 	if not modal.visible or not allowed():
 		return
+	_pending_rescue_on_resume = false
 	toggle()
 	session.on_vehicle_reset_requested()
 
@@ -558,6 +574,7 @@ func request_rescue() -> void:
 func abandon_stage() -> void:
 	if not modal.visible or not allowed():
 		return
+	_pending_rescue_on_resume = false
 	toggle()
 	session.retire_competition_player()
 
@@ -627,7 +644,7 @@ func show_inventory() -> void:
 		var nav_spacer := Control.new()
 		nav_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		nav.add_child(nav_spacer)
-		button("Pedir rescate (+15 s)", request_rescue, nav)
+		button("Pedir rescate (+30 s)", request_rescue, nav)
 		button("Abandonar etapa (+300 s)", abandon_stage, nav)
 
 
@@ -873,6 +890,7 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 func _finish_wheel_action() -> void:
 	persist()
 	if modal.visible and not opened_from_results:
+		mark_service_change()
 		wheel_action_sound.play()
 
 
