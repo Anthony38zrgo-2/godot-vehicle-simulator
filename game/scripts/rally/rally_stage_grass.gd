@@ -83,13 +83,20 @@ var custom_variant_scales: Array[Vector2] = []
 var snowy_variants: Array[PackedScene] = []
 var use_standard_variant_profile := false
 var density_scale := 1.0
+var density_floor := DENSITY_FLOOR
 var instance_scale := 1.0
 var outer_offset_scale := 1.0
 var side_bias_strength := 0.0
 var extra_height_variation_m := 0.0
 var ground_group: StringName = &""
+var grass_gis: Callable
 var snow_coverage: Callable
+var parking_covers: Callable
 var collidable_bushes := false
+var cluster_scatter := false
+var min_spacing_m := 0.0
+var variant_group_size := 1
+var face_camera := false
 var fog_enabled := true
 var outline_bush_cards := false
 var visual_range_m := 0.0
@@ -122,21 +129,31 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		return
 
 	var budget := maxi(1, roundi(total_length * TUFTS_PER_METRE * density_scale))
-	var max_attempts := maxi(budget, roundi(float(budget) * MAX_ATTEMPT_FACTOR))
+	var attempt_factor := 10.0 if (cluster_scatter or grass_gis.is_valid()) else MAX_ATTEMPT_FACTOR
+	var max_attempts := maxi(budget, roundi(float(budget) * attempt_factor))
 	var bins := _offset_bins()
 	if collidable_bushes:
 		bins = bins.slice(4)
 	var arc_table := _arc_table(cumulative, total_length)
 	var buckets: Dictionary = {}
-	var placed := 0
-	var snow_skipped := 0
-	var snow_placed := 0
+	var stats := {
+		"placed": 0,
+		"clusters": 0,
+		"snow_skipped": 0,
+		"snow_placed": 0,
+		"gis_skipped": 0,
+		"min_height_m": INF,
+		"max_height_m": 0.0,
+		"min_delta_m": INF,
+		"max_delta_m": -INF,
+	}
 	var attempts := 0
-	var bush_cells := {}
+	var spacing_cells := {}
+	var spacing_m := 3.5 if collidable_bushes else min_spacing_m
 	var reservation_radius := 1.25 if collidable_bushes else 0.46
 	var reserved := _reservation_grid(reservation_radius)
 
-	while placed < budget and attempts < max_attempts:
+	while int(stats["placed"]) < budget and attempts < max_attempts:
 		attempts += 1
 		if not _sample_point(rng, route, cumulative, arc_table, total_length, bins):
 			continue
@@ -150,41 +167,121 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		if hit.is_empty():
 			continue
 		var position: Vector3 = hit.position
+		var normal: Vector3 = hit.normal
+		var habitat := _evaluate_habitat(position, normal, _sample_base)
+		if cluster_scatter or grass_gis.is_valid():
+			if rng.randf() > float(habitat["accept"]):
+				stats["gis_skipped"] = int(stats["gis_skipped"]) + 1
+				continue
 		if not reserved.is_empty() and _near_reserved_point(reserved, position, reservation_radius):
 			continue
-		if collidable_bushes and not _reserve_bush_position(bush_cells, position):
+		if spacing_m > 0.0 and not _reserve_position(spacing_cells, position, spacing_m):
 			continue
-		placed += 1
-		var snow := 0.0
-		if snow_coverage.is_valid():
-			snow = float(snow_coverage.call(position))
-			if rng.randf() < smoothstep(0.18, 0.75, snow):
-				snow_skipped += 1
+
+		var lushness: float = habitat["lushness"]
+		var parent_slot := _emit_tuft(rng, entries, buckets, stats, position, normal,
+			_sample_base, _sample_sector, density, lushness, 0.0, -1)
+		if not cluster_scatter or parent_slot < 0:
+			continue
+		stats["clusters"] = int(stats["clusters"]) + 1
+		var parent_group := parent_slot / maxi(1, variant_group_size)
+		var cluster_size := clampi(
+			roundi(lerpf(2.0, 7.0, density * 0.50 + lushness * 0.50) + rng.randf_range(-1.2, 1.2)),
+			2, 7)
+		var radius := rng.randf_range(0.65, 2.35)
+		var elongation := rng.randf_range(1.0, 1.75)
+		var contour := Vector3.UP.cross(normal)
+		if contour.length_squared() < 0.01:
+			var angle := rng.randf_range(0.0, TAU)
+			contour = Vector3(cos(angle), 0.0, sin(angle))
+		else:
+			contour = contour.normalized()
+		var across := Vector3.UP.cross(contour).normalized()
+
+		for _member in range(1, cluster_size):
+			if int(stats["placed"]) >= budget:
+				break
+			var r_frac := (rng.randf() + rng.randf()) * 0.5
+			var theta := rng.randf_range(0.0, TAU)
+			var offset_vec := (contour * (cos(theta) * r_frac * radius * elongation)
+				+ across * (sin(theta) * r_frac * radius))
+			var d_hit := _raycast_ground(space, collision_mask, position + offset_vec)
+			if d_hit.is_empty():
 				continue
-		var slot := _pick_variant(rng, entries)
-		var scale_range: Vector2 = entries[slot]["scale"]
-		var snowy := (snow > 0.0 and entries[slot].has("snow_material")
-			and rng.randf() < smoothstep(0.13, 0.62, snow))
-		if snowy:
-			snow_placed += 1
-		var key := Vector2i(_sample_sector, slot + entries.size() if snowy else slot)
-		if not buckets.has(key):
-			buckets[key] = [] as Array[Transform3D]
-		var bell := (rng.randf() + rng.randf()) * 0.5
-		var t := clampf(lerpf(bell, density, 0.25), 0.0, 1.0)
-		var scale_y := lerpf(scale_range.x, scale_range.y, t) * instance_scale
-		(buckets[key] as Array[Transform3D]).append(
-			_scatter_transform(position, scale_y, _sample_base, rng))
+			var d_pos: Vector3 = d_hit.position
+			if absf(d_pos.y - position.y) > 1.35:
+				continue
+			var d_normal: Vector3 = d_hit.normal
+			var d_habitat := _evaluate_habitat(d_pos, d_normal, _sample_base)
+			if rng.randf() > float(d_habitat["accept"]):
+				stats["gis_skipped"] = int(stats["gis_skipped"]) + 1
+				continue
+			if not reserved.is_empty() and _near_reserved_point(reserved, d_pos, reservation_radius):
+				continue
+			if spacing_m > 0.0 and not _reserve_position(spacing_cells, d_pos, spacing_m):
+				continue
+			_emit_tuft(rng, entries, buckets, stats, d_pos, d_normal,
+				_sample_base, _sample_sector, density, float(d_habitat["lushness"]), r_frac, parent_group)
 
 	if snow_coverage.is_valid():
-		set_meta("snow_skipped", snow_skipped)
-		set_meta("snow_placed", snow_placed)
+		set_meta("snow_skipped", int(stats["snow_skipped"]))
+		set_meta("snow_placed", int(stats["snow_placed"]))
+	if float(stats["min_height_m"]) < INF:
+		set_meta("height_stats", {
+			"instance_scale": instance_scale,
+			"min_height_m": float(stats["min_height_m"]),
+			"max_height_m": float(stats["max_height_m"]),
+			"min_delta_m": float(stats["min_delta_m"]),
+			"max_delta_m": float(stats["max_delta_m"]),
+			"clusters": int(stats["clusters"]),
+			"gis_skipped": int(stats["gis_skipped"]),
+			"min_spacing_m": spacing_m,
+		})
 	var count := _commit_batches(buckets, entries, collision_mask)
 	var outer_offset := bins[0].x + (bins[-1].y - bins[0].x) * outer_offset_scale
 	print("RALLY_BUSHES_READY" if collidable_bushes else "RALLY_GRASS_READY",
 		" instances=", count, " batches=", buckets.size(),
-		" variants=", entries.size(), " budget=", budget, " attempts=", attempts, " band_m=", bins[0].x, "-", outer_offset,
+		" variants=", entries.size(), " budget=", budget, " attempts=", attempts,
+		" clusters=", int(stats["clusters"]), " band_m=", bins[0].x, "-", outer_offset,
 		" build_ms=", Time.get_ticks_msec() - started_at)
+
+
+func _emit_tuft(rng: RandomNumberGenerator, entries: Array[Dictionary], buckets: Dictionary,
+		stats: Dictionary, position: Vector3, normal: Vector3, base: Vector3, sector: int,
+		density: float, lushness: float, radial_frac: float, forced_group: int) -> int:
+	stats["placed"] = int(stats["placed"]) + 1
+	if parking_covers.is_valid() and bool(parking_covers.call(position)):
+		return -1
+	var snow := 0.0
+	if snow_coverage.is_valid():
+		snow = float(snow_coverage.call(position))
+		if rng.randf() < smoothstep(0.18, 0.75, snow):
+			stats["snow_skipped"] = int(stats["snow_skipped"]) + 1
+			return -1
+	var slot := (_pick_habitat_slot(rng, entries, position, lushness, forced_group)
+		if cluster_scatter else _pick_variant(rng, entries))
+	var scale_range: Vector2 = entries[slot]["scale"]
+	var snowy := (snow > 0.0 and entries[slot].has("snow_material")
+		and rng.randf() < smoothstep(0.13, 0.62, snow))
+	if snowy:
+		stats["snow_placed"] = int(stats["snow_placed"]) + 1
+	var key := Vector2i(sector, slot + entries.size() if snowy else slot)
+	if not buckets.has(key):
+		buckets[key] = [] as Array[Transform3D]
+	var bell := (rng.randf() + rng.randf()) * 0.5
+	var vigor := clampf(density * 0.45 + lushness * 0.35 + (1.0 - radial_frac) * 0.20, 0.0, 1.0)
+	var t := clampf(lerpf(bell, vigor if cluster_scatter else density, 0.25), 0.0, 1.0)
+	var scale_y := lerpf(scale_range.x, scale_range.y, t) * instance_scale
+	var mesh_h: float = entries[slot]["mesh_height"]
+	var actual_h := mesh_h * scale_y
+	var delta_h := actual_h - mesh_h * instance_scale
+	stats["min_height_m"] = minf(float(stats["min_height_m"]), actual_h)
+	stats["max_height_m"] = maxf(float(stats["max_height_m"]), actual_h)
+	stats["min_delta_m"] = minf(float(stats["min_delta_m"]), delta_h)
+	stats["max_delta_m"] = maxf(float(stats["max_delta_m"]), delta_h)
+	(buckets[key] as Array[Transform3D]).append(
+		_scatter_transform(position, scale_y, base, rng, normal))
+	return slot
 
 
 func _cumulative_lengths(route: Array[Vector3]) -> PackedFloat64Array:
@@ -246,27 +343,62 @@ func _sample_point(rng: RandomNumberGenerator, route: Array[Vector3],
 	var bin: Vector2 = bins[rng.randi_range(0, bins.size() - 1)]
 	var left_chance := 0.5
 	if side_bias_strength > 0.0:
-		var bias := _value_noise(travelled / 64.0, 19.6)
+		var bias := (_value_noise(travelled / 73.0, 19.6) * 0.62
+			+ _value_noise(travelled / 191.0 + 13.4, 41.2) * 0.38)
 		left_chance += lerpf(-side_bias_strength, side_bias_strength, bias)
 	var side := -1.0 if rng.randf() < left_chance else 1.0
 	_sample_base = start + delta * ((travelled - cumulative[index]) / segment)
 	_sample_sector = int(travelled / SECTOR_LENGTH)
 	var offset := rng.randf_range(bin.x, bin.y)
-	if outer_offset_scale != 1.0:
-		offset += (offset - bins[0].x) * (outer_offset_scale - 1.0)
+	var effective_outer := outer_offset_scale
+	if cluster_scatter:
+		var side_seed := 17.0 if side < 0.0 else 61.0
+		var reach_wave := _value_noise(travelled / 89.0 + side_seed, 27.1)
+		effective_outer *= lerpf(0.68, 1.22, reach_wave)
+		var setback_wave := smoothstep(0.42, 0.88, _value_noise(travelled / 53.0 + side_seed * 1.7, 9.4))
+		offset += setback_wave * 3.4
+	if effective_outer != 1.0:
+		offset += (offset - bins[0].x) * (effective_outer - 1.0)
 	_sample_position = _sample_base + lateral * (offset * side)
 	return true
 
 
-## Two octaves of value noise shaped into a field with real contrast, so tufts
-## clump into patches and leave bare gaps instead of spreading evenly. A raw
-## bilinear value noise clusters near 0.5, which reads as uniform static; the
-## smoothstep stretches it back across the full range.
+## Domain-warped 3-octave value noise (macro + broad + fine) shaped into organic
+## patches with real bare gaps instead of a periodic roadside rhythm.
 func _density_chance(x: float, z: float) -> float:
-	var broad := _value_noise(x / NOISE_WAVELENGTH_M, z / NOISE_WAVELENGTH_M)
-	var fine := _value_noise(x / (NOISE_WAVELENGTH_M * 0.4) + 31.7, z / (NOISE_WAVELENGTH_M * 0.4) + 17.3)
-	var shaped := smoothstep(0.28, 0.72, clampf(broad * 0.72 + fine * 0.28, 0.0, 1.0))
-	return lerpf(DENSITY_FLOOR, 1.0, shaped)
+	var warp_x := (_value_noise(x / 37.0 + 11.3, z / 37.0 + 47.9) - 0.5) * 18.0
+	var warp_z := (_value_noise(x / 37.0 + 83.1, z / 37.0 + 19.7) - 0.5) * 18.0
+	var wx := x + warp_x
+	var wz := z + warp_z
+	var macro := _value_noise(wx / 118.0 + 5.2, wz / 118.0 + 23.4)
+	var broad := _value_noise(wx / 29.0, wz / 29.0)
+	var fine := _value_noise(wx / 11.5 + 31.7, wz / 11.5 + 17.3)
+	var combined := clampf(macro * 0.38 + broad * 0.40 + fine * 0.22, 0.0, 1.0)
+	var shaped := smoothstep(0.26, 0.74, combined)
+	return lerpf(density_floor, 1.0, shaped)
+
+
+func _evaluate_habitat(position: Vector3, normal: Vector3, base: Vector3) -> Dictionary:
+	var sparse := 0.45
+	var olive := 0.06
+	var mineral := 0.15
+	var gis_density := 1.0
+	if grass_gis.is_valid():
+		var sample: Color = grass_gis.call(position)
+		sparse = lerpf(0.45, sample.r, sample.a)
+		olive = lerpf(0.06, sample.g, sample.a)
+		mineral = lerpf(0.15, sample.b, sample.a)
+		var mineral_penalty := smoothstep(0.22, 0.68, mineral)
+		gis_density = clampf(lerpf(1.0, 0.30, sparse) * (1.0 - mineral_penalty * 0.90) + olive * 0.20, 0.04, 1.15)
+	var slope_factor := lerpf(0.25, 1.0, smoothstep(MIN_SURFACE_UP, 0.94, normal.y))
+	var elevation_above_road := position.y - base.y
+	var bank_factor := lerpf(1.0, 0.38, smoothstep(1.8, 5.5, elevation_above_road))
+	var accept := clampf(gis_density * slope_factor * bank_factor, 0.0, 1.0)
+	var lushness := clampf(
+		(1.0 - sparse) * 0.45 + olive * 0.30 - mineral * 0.35 + slope_factor * 0.35
+		+ clampf(0.20 - elevation_above_road * 0.06, -0.15, 0.20),
+		0.0, 1.0)
+	return {"accept": accept, "lushness": lushness}
 
 
 func _value_noise(x: float, z: float) -> float:
@@ -318,14 +450,14 @@ func _raycast_ground(space: PhysicsDirectSpaceState3D, collision_mask: int, poin
 	return hit
 
 
-func _reserve_bush_position(cells: Dictionary, position: Vector3) -> bool:
-	const SPACING_M := 3.5
+func _reserve_position(cells: Dictionary, position: Vector3, spacing_m: float) -> bool:
 	var point := Vector2(position.x, position.z)
-	var cell := Vector2i(floori(point.x / SPACING_M), floori(point.y / SPACING_M))
+	var cell := Vector2i(floori(point.x / spacing_m), floori(point.y / spacing_m))
+	var min_sq := spacing_m * spacing_m
 	for x in range(cell.x - 1, cell.x + 2):
 		for y in range(cell.y - 1, cell.y + 2):
 			var neighbour := Vector2i(x, y)
-			if cells.has(neighbour) and point.distance_squared_to(cells[neighbour]) < SPACING_M * SPACING_M:
+			if cells.has(neighbour) and point.distance_squared_to(cells[neighbour]) < min_sq:
 				return false
 	if cells.has(cell):
 		return false
@@ -354,16 +486,27 @@ func _near_reserved_point(grid: Dictionary, position: Vector3, radius: float) ->
 	return false
 
 
-func _scatter_transform(position: Vector3, scale_y: float, base: Vector3, rng: RandomNumberGenerator) -> Transform3D:
+func _scatter_transform(position: Vector3, scale_y: float, base: Vector3,
+		rng: RandomNumberGenerator, normal: Vector3 = Vector3.UP) -> Transform3D:
 	var scale_xz := scale_y * rng.randf_range(0.82, 1.22)
 	var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale_xz, scale_y, scale_xz))
 	# Sources are anchored at y = 0, so tilting pivots on the ground and the
 	# tuft never floats or sinks.
-	var tilt_axis := Vector3(position.x - base.x, 0.0, position.z - base.z)
-	if tilt_axis.length() < 0.05:
-		tilt_axis = Vector3.RIGHT
-	var tilt := deg_to_rad(rng.randf_range(-MAX_TILT_DEGREES, MAX_TILT_DEGREES))
-	basis = Basis(tilt_axis.normalized(), tilt) * basis
+	if cluster_scatter:
+		var wind_angle := (_value_noise(position.x / 95.0 + 7.1, position.z / 95.0 + 53.3) - 0.5) * 1.4 + 0.65
+		var wind_dir := Vector3(cos(wind_angle), 0.0, sin(wind_angle))
+		var wind_lean := deg_to_rad(rng.randf_range(1.5, 6.5))
+		var jitter_angle := rng.randf_range(0.0, TAU)
+		var jitter := Vector3(cos(jitter_angle), 0.0, sin(jitter_angle)) * deg_to_rad(rng.randf_range(0.0, 3.0))
+		var target_up := (Vector3.UP.lerp(normal, 0.28) + wind_dir * sin(wind_lean) + jitter).normalized()
+		if target_up.y > 0.70:
+			basis = Basis(Quaternion(Vector3.UP, target_up)) * basis
+	else:
+		var tilt_axis := Vector3(position.x - base.x, 0.0, position.z - base.z)
+		if tilt_axis.length() < 0.05:
+			tilt_axis = Vector3.RIGHT
+		var tilt := deg_to_rad(rng.randf_range(-MAX_TILT_DEGREES, MAX_TILT_DEGREES))
+		basis = Basis(tilt_axis.normalized(), tilt) * basis
 	return Transform3D(basis, to_local(position - Vector3.UP * TERRAIN_CLEARANCE))
 
 
@@ -398,14 +541,16 @@ func _load_variant_entries() -> Array[Dictionary]:
 			scale_range = custom_variant_scales[index]
 		if aged_only and custom_variants.is_empty():
 			scale_range = Vector2(1.5, 2.6)
+		var mesh_height := visual.mesh.get_aabb().size.y
 		if extra_height_variation_m > 0.0:
-			var height := visual.mesh.get_aabb().size.y * instance_scale
+			var height := mesh_height * instance_scale
 			if height > 0.0:
 				var extra_scale := extra_height_variation_m / height
 				scale_range = Vector2(maxf(0.01, scale_range.x - extra_scale), scale_range.y + extra_scale)
 		var entry := {
 			"variant": index,
 			"mesh": visual.mesh,
+			"mesh_height": mesh_height,
 			"material": _make_material(visual),
 			"scale": scale_range,
 			"weight": weight,
@@ -418,6 +563,15 @@ func _load_variant_entries() -> Array[Dictionary]:
 			snow_instance.free()
 		entries.append(entry)
 		instance.free()
+	var min_h := INF
+	var max_h := 0.0
+	for entry in entries:
+		var mh: float = entry["mesh_height"]
+		min_h = minf(min_h, mh)
+		max_h = maxf(max_h, mh)
+	var span := maxf(0.001, max_h - min_h)
+	for entry in entries:
+		entry["height_norm"] = clampf((float(entry["mesh_height"]) - min_h) / span, 0.0, 1.0)
 	return entries
 
 
@@ -438,6 +592,9 @@ func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 	material.alpha_scissor_threshold = ALPHA_SCISSOR_THRESHOLD
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if face_camera:
+		material.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+		material.billboard_keep_scale = true
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
 	material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
@@ -455,6 +612,7 @@ func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
 		outlined.set_shader_parameter("bush_color", material.albedo_color)
 		outlined.set_shader_parameter("card_center", visual.mesh.get_aabb().get_center())
 		outlined.set_shader_parameter("alpha_cutoff", ALPHA_SCISSOR_THRESHOLD)
+		outlined.set_shader_parameter("face_camera", face_camera)
 		material.next_pass = outlined
 	return material
 
@@ -475,28 +633,81 @@ func _pick_variant(rng: RandomNumberGenerator, entries: Array[Dictionary]) -> in
 	return entries.size() - 1
 
 
+## Picks a variant group coherently across 30-60 m stands modulated by terrain
+## lushness, while keeping cluster daughters mostly inside their parent's group.
+func _pick_habitat_slot(rng: RandomNumberGenerator, entries: Array[Dictionary],
+		position: Vector3, lushness: float, forced_group: int) -> int:
+	var group_size := maxi(1, variant_group_size)
+	var group_count := entries.size() / group_size
+	if group_count <= 1 or entries.size() % group_size != 0:
+		return _pick_variant(rng, entries)
+	if forced_group >= 0 and forced_group < group_count and rng.randf() < 0.75:
+		return forced_group * group_size + rng.randi_range(0, group_size - 1)
+	var warp_x := (_value_noise(position.x / 58.0 + 21.1, position.z / 58.0 + 67.3) - 0.5) * 22.0
+	var warp_z := (_value_noise(position.x / 58.0 + 91.7, position.z / 58.0 + 14.9) - 0.5) * 22.0
+	var stand_field := _value_noise((position.x + warp_x) / 48.0 + 3.7, (position.z + warp_z) / 48.0 + 29.5)
+	var dominant := stand_field * float(group_count)
+	var group_weights: Array[float] = []
+	var total := 0.0
+	for g in group_count:
+		var rep: Dictionary = entries[g * group_size]
+		var base_w := maxf(0.01, float(rep["weight"]))
+		var dist := absf(float(g) + 0.5 - dominant)
+		var stand_affinity := lerpf(0.18, 1.0, exp(-dist * dist * 1.9))
+		var h_norm: float = rep["height_norm"]
+		var habitat_affinity := lerpf(0.55, 1.45, 1.0 - absf(h_norm - lushness))
+		var w := base_w * stand_affinity * habitat_affinity
+		group_weights.append(w)
+		total += w
+	var chosen_group := group_count - 1
+	var roll := rng.randf() * total
+	for g in group_count:
+		roll -= group_weights[g]
+		if roll <= 0.0:
+			chosen_group = g
+			break
+	return chosen_group * group_size + rng.randi_range(0, group_size - 1)
+
+
 func _commit_batches(buckets: Dictionary, entries: Array[Dictionary], collision_layer: int) -> int:
 	var count := 0
+	if sector_stream == null:
+		for key: Vector2i in buckets:
+			var transforms: Array[Transform3D] = buckets[key]
+			if transforms.is_empty():
+				continue
+			var entry: Dictionary = entries[key.y % entries.size()]
+			if key.y >= entries.size():
+				entry = entry.duplicate()
+				entry["material"] = entry["snow_material"]
+			_create_batch(self, key, entry, transforms, collision_layer)
+			count += transforms.size()
+		return count
+
+	var by_sector_variant := {}
 	for key: Vector2i in buckets:
 		var transforms: Array[Transform3D] = buckets[key]
-		if transforms.is_empty():
-			continue
-		var entry: Dictionary = entries[key.y % entries.size()]
-		if key.y >= entries.size():
-			entry = entry.duplicate()
-			entry["material"] = entry["snow_material"]
-		if sector_stream == null:
-			_create_batch(self, key, entry, transforms, collision_layer)
-		else:
-			var by_sector := {}
-			for transform in transforms:
-				var path := sector_stream.sector_for_point(to_global(transform.origin))
-				if not by_sector.has(path):
-					by_sector[path] = [] as Array[Transform3D]
-				by_sector[path].append(transform)
-			for path in by_sector:
-				sector_stream.register_content(path, _create_batch.bind(key, entry, by_sector[path], collision_layer))
-		count += transforms.size()
+		for transform in transforms:
+			var path := sector_stream.sector_for_point(to_global(transform.origin))
+			if not by_sector_variant.has(path):
+				by_sector_variant[path] = {}
+			var sector_variants: Dictionary = by_sector_variant[path]
+			if not sector_variants.has(key.y):
+				sector_variants[key.y] = [] as Array[Transform3D]
+			(sector_variants[key.y] as Array[Transform3D]).append(transform)
+			count += 1
+	var sector_index := 0
+	for path: String in by_sector_variant:
+		var sector_variants: Dictionary = by_sector_variant[path]
+		for variant_slot: int in sector_variants:
+			var entry: Dictionary = entries[variant_slot % entries.size()]
+			if variant_slot >= entries.size():
+				entry = entry.duplicate()
+				entry["material"] = entry["snow_material"]
+			var batch_key := Vector2i(sector_index, variant_slot)
+			var list: Array[Transform3D] = sector_variants[variant_slot]
+			sector_stream.register_content(path, _create_batch.bind(batch_key, entry, list, collision_layer))
+		sector_index += 1
 	return count
 
 
@@ -506,8 +717,22 @@ func _create_batch(parent: Node3D, key: Vector2i, entry: Dictionary,
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.mesh = entry["mesh"]
 	multimesh.instance_count = transforms.size()
+	var mesh_bounds := multimesh.mesh.get_aabb()
+	var billboard_bounds := AABB()
 	for index in transforms.size():
-		multimesh.set_instance_transform(index, transforms[index])
+		var instance := transforms[index]
+		multimesh.set_instance_transform(index, instance)
+		if face_camera:
+			var scale := instance.basis.get_scale()
+			var expansion := 1.6 if outline_bush_cards else 1.0
+			var radius := mesh_bounds.size.x * scale.x * 0.5 * expansion
+			var half_height := mesh_bounds.size.y * scale.y * 0.5 * expansion
+			var center := instance.origin + Vector3.UP * mesh_bounds.get_center().y * scale.y
+			var extent := Vector3(radius, half_height, radius)
+			var bounds := AABB(center - extent, extent * 2.0)
+			billboard_bounds = bounds if index == 0 else billboard_bounds.merge(bounds)
+	if face_camera:
+		multimesh.custom_aabb = billboard_bounds
 	var batch := MultiMeshInstance3D.new()
 	batch.name = ("BushSector%02dVariant%d" if collidable_bushes else "GrassSector%02dVariant%d") % [key.x, key.y]
 	batch.multimesh = multimesh
@@ -518,7 +743,7 @@ func _create_batch(parent: Node3D, key: Vector2i, entry: Dictionary,
 		batch.visibility_range_end_margin = 24.0
 	parent.add_child(batch)
 	if collidable_bushes:
-		_add_bush_colliders(batch, transforms, multimesh.mesh.get_aabb(), collision_layer)
+		_add_bush_colliders(batch, transforms, mesh_bounds, collision_layer)
 
 
 func _add_bush_colliders(batch: MultiMeshInstance3D, transforms: Array[Transform3D],
@@ -532,7 +757,9 @@ func _add_bush_colliders(batch: MultiMeshInstance3D, transforms: Array[Transform
 	for instance in transforms:
 		var scale := instance.basis.get_scale()
 		var shape := CapsuleShape3D.new()
-		shape.radius = maxf(0.12, minf(bounds.size.x * scale.x, bounds.size.z * scale.z) * 0.29)
+		# The old crossed cards spanned the same width on both horizontal axes.
+		var depth := bounds.size.x if face_camera else bounds.size.z
+		shape.radius = maxf(0.12, minf(bounds.size.x * scale.x, depth * scale.z) * 0.29)
 		shape.height = maxf(shape.radius * 2.0, bounds.size.y * scale.y * 0.80)
 		var collider := CollisionShape3D.new()
 		collider.shape = shape

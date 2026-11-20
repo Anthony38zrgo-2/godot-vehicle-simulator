@@ -76,6 +76,23 @@ func _verify() -> void:
 			and session.get_node("StageGrass").get_child_count() == 0,
 			"Procedural scenery was not assigned to the terrain sectors"):
 		return
+	var grass_stats: Dictionary = session.get_node("StageGrass").get_meta("height_stats", {})
+	var bush_stats: Dictionary = session.get_node("StageBushes").get_meta("height_stats", {})
+	print("CDI_GRASS_HEIGHT_CHECK ", grass_stats)
+	print("CDI_BUSH_HEIGHT_CHECK ", bush_stats)
+	if not _require(not grass_stats.is_empty()
+			and session.get_node("StageGrass").custom_variants.size() == 4
+			and is_equal_approx(float(grass_stats.get("instance_scale", 0.0)), 0.575)
+			and float(grass_stats.get("max_height_m", 0.0)) > float(grass_stats.get("min_height_m", 0.0)) + 0.35
+			and int(grass_stats.get("clusters", 0)) > 200
+			and int(grass_stats.get("gis_skipped", 0)) > 50
+			and float(grass_stats.get("min_spacing_m", 0.0)) >= 0.30,
+			"CDI grass must use the 4 2D cards at 0.575x with GIS filtering, spacing and clusters"):
+		return
+	if not _require(not bush_stats.is_empty()
+			and is_equal_approx(float(bush_stats.get("instance_scale", 0.0)), 1.32),
+			"CDI bushes must be scaled 1.32x"):
+		return
 	var has_rock_texture := false
 	for slope in stream.find_children("Terrain_Dirt_*", "MeshInstance3D", true, false):
 		for i in slope.mesh.get_surface_count():

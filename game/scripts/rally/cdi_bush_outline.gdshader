@@ -4,6 +4,7 @@ render_mode unshaded, cull_disabled, fog_disabled, depth_draw_never, shadows_dis
 uniform sampler2D bush_texture : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform vec4 bush_color : source_color = vec4(1.0);
 uniform vec3 card_center;
+uniform bool face_camera = false;
 uniform float alpha_cutoff = 0.38;
 uniform float outline_width = 0.2;
 uniform vec3 outline_color : source_color = vec3(0.2745, 0.2510, 0.1647);
@@ -15,6 +16,16 @@ float tile_mask(vec2 uv) {
 }
 
 void vertex() {
+	if (face_camera) {
+		vec3 up = vec3(0.0, 1.0, 0.0);
+		vec3 right = normalize(cross(up, MAIN_CAM_INV_VIEW_MATRIX[2].xyz));
+		vec3 forward = normalize(cross(MAIN_CAM_INV_VIEW_MATRIX[0].xyz, up));
+		MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+			vec4(right * length(MODEL_MATRIX[0].xyz), 0.0),
+			vec4(up * length(MODEL_MATRIX[1].xyz), 0.0),
+			vec4(forward * length(MODEL_MATRIX[2].xyz), 0.0),
+			MODEL_MATRIX[3]);
+	}
 	float distance_m = length((MODELVIEW_MATRIX * vec4(card_center, 1.0)).xyz);
 	outline_fade = 1.0 - smoothstep(18.0, 48.0, distance_m);
 	VERTEX = card_center + (VERTEX - card_center) * 1.6;

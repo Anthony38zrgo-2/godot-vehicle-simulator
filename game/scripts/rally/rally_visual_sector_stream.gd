@@ -10,6 +10,12 @@ const MAX_REQUESTS := 2
 const CDI_TERRAIN := preload("res://scripts/rally/cdi_terrain_blend.gdshader")
 const CDI_BACKDROP := preload("res://scripts/rally/cdi_terrain_backdrop.gdshader")
 const CDI_REGIONAL := preload("res://scripts/rally/cdi_terrain_regional.gdshader")
+const CDI_ASPHALT := preload("res://scripts/rally/cdi_asfalto_estepa.gdshader")
+const CDI_ASPHALT_TEXTURES := "res://assets/rally/CDI/asfalto_estepa/"
+const ASPHALT_LAYERS := [
+	"j_tm1", "j_tm6", "j_tml1", "j_tml2", "j_tml3", "j_tml4", "j_tml5", "j_tml6",
+	"j_tm1_nieve_parches", "j_tm1_nieve_roderas",
+]
 const CDI_TEXTURES := "res://assets/rally/cdi_stage1/puna_seca/"
 const CDI_LAYERS := [
 	"carretera", "carretera_compacta", "carretera_fina", "carretera_gruesa",
@@ -28,15 +34,28 @@ var _content := {}
 var _sector_dir := ""
 var _cell_m := 256.0
 var terrain_palette: Texture2DArray
+var use_cdi_gravel_road := true
+var road_wetness: RallyTerrainWetness
+var _asphalt_material: ShaderMaterial
+var _ticlio_snow_textures: Texture2DArray
+var _ticlio_snow_coverage: Texture2D
+var _ticlio_snow_pixels: Image
+var _guardrail_materials := {}
+var sky_node: Node = null
 var _grass_gis: Texture2D
+var _grass_gis_pixels: Image
 var _grass_gis_bounds: Vector4
 var _terrain_materials := {}
 
 
-func load_rajuntay_palette() -> bool:
-	_grass_gis = load(CDI_TEXTURES + "pastizal_gis.png") as Texture2D
-	var bounds: Variant = JSON.parse_string(FileAccess.get_file_as_string(CDI_TEXTURES + "pastizal_gis.json"))
+func load_cdi_palette(stage_dir: String) -> bool:
+	var mask_dir := stage_dir.path_join("puna_seca")
+	_grass_gis = load(mask_dir.path_join("pastizal_gis.png")) as Texture2D
+	var bounds: Variant = JSON.parse_string(FileAccess.get_file_as_string(mask_dir.path_join("pastizal_gis.json")))
 	if _grass_gis == null or not bounds is Array or bounds.size() != 4 or bounds[2] <= 0 or bounds[3] <= 0:
+		return false
+	_grass_gis_pixels = _grass_gis.get_image()
+	if _grass_gis_pixels == null or (_grass_gis_pixels.is_compressed() and _grass_gis_pixels.decompress() != OK):
 		return false
 	_grass_gis_bounds = Vector4(bounds[0], bounds[1], bounds[2], bounds[3])
 	var layers: Array[Image] = []
@@ -57,6 +76,107 @@ func load_rajuntay_palette() -> bool:
 		return false
 	terrain_palette = palette
 	return true
+
+
+func _load_surface_layers(paths: Array[String], size: int = 0) -> Texture2DArray:
+	var layers: Array[Image] = []
+	for path in paths:
+		var texture := load(path) as Texture2D
+		if texture == null:
+			return null
+		var pixels := texture.get_image()
+		if pixels.is_compressed() and pixels.decompress() != OK:
+			return null
+		pixels.clear_mipmaps()
+		pixels.convert(Image.FORMAT_RGBA8)
+		if size > 0 and pixels.get_size() != Vector2i(size, size):
+			pixels.resize(size, size, Image.INTERPOLATE_LANCZOS)
+		pixels.generate_mipmaps()
+		layers.append(pixels)
+	var textures := Texture2DArray.new()
+	return textures if textures.create_from_images(layers) == OK else null
+
+
+func load_cdi_asphalt(snow_station: float) -> bool:
+	var asphalt_paths: Array[String] = []
+	for layer in ASPHALT_LAYERS:
+		asphalt_paths.append(CDI_ASPHALT_TEXTURES + layer + ".png")
+	var textures := _load_surface_layers(asphalt_paths)
+	if textures == null:
+		return false
+	if snow_station >= 0.0:
+		var ice_paths: Array[String] = []
+		for index in range(1, 8):
+			ice_paths.append("res://assets/rally/CDI/nieve_ticlio/terreno_%02d.png" % index)
+		for index in range(1, 3):
+			ice_paths.append("res://assets/rally/sweden_stage2/sweden_stage2_visual_terrain_snow_%d.png" % index)
+		_ticlio_snow_textures = _load_surface_layers(ice_paths, 128)
+		_ticlio_snow_coverage = load("res://assets/rally/cdi_stage4/puna_seca/nieve_gis.png") as Texture2D
+		if _ticlio_snow_textures == null or _ticlio_snow_coverage == null:
+			return false
+		_ticlio_snow_pixels = _ticlio_snow_coverage.get_image()
+		if _ticlio_snow_pixels.is_compressed() and _ticlio_snow_pixels.decompress() != OK:
+			return false
+	_asphalt_material = ShaderMaterial.new()
+	_asphalt_material.shader = CDI_ASPHALT
+	_asphalt_material.set_shader_parameter("surface_textures", textures)
+	_asphalt_material.set_shader_parameter("snow_station_m", snow_station)
+	for layer in ["arm_1a", "arm_1b", "arm_1a_reverse"]:
+		var texture := load(CDI_ASPHALT_TEXTURES + layer + ".png") as Texture2D
+		if texture == null:
+			return false
+		var rail := StandardMaterial3D.new()
+		rail.albedo_texture = texture
+		rail.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		rail.alpha_scissor_threshold = 0.5
+		rail.cull_mode = BaseMaterial3D.CULL_DISABLED
+		rail.disable_fog = true
+		rail.roughness = 0.64
+		_guardrail_materials[layer] = rail
+	return true
+
+
+func snow_coverage_at(point: Vector3) -> float:
+	if _ticlio_snow_pixels == null:
+		return 0.0
+	var uv := (Vector2(point.x, point.z) - Vector2(_grass_gis_bounds.x, _grass_gis_bounds.y)) 		/ Vector2(_grass_gis_bounds.z, _grass_gis_bounds.w)
+	var edge := minf(minf(uv.x, uv.y), minf(1.0 - uv.x, 1.0 - uv.y))
+	if edge <= 0.0:
+		return 0.0
+	# Match the shader's bilinear sampling at texel centers.
+	var size := _ticlio_snow_pixels.get_size()
+	var texel := uv * Vector2(size) - Vector2(0.5, 0.5)
+	var base := Vector2i(texel.floor())
+	var a := base.clamp(Vector2i.ZERO, size - Vector2i.ONE)
+	var b := (base + Vector2i.ONE).clamp(Vector2i.ZERO, size - Vector2i.ONE)
+	var fraction := texel - texel.floor()
+	var top := lerpf(_ticlio_snow_pixels.get_pixel(a.x, a.y).r, _ticlio_snow_pixels.get_pixel(b.x, a.y).r, fraction.x)
+	var bottom := lerpf(_ticlio_snow_pixels.get_pixel(a.x, b.y).r, _ticlio_snow_pixels.get_pixel(b.x, b.y).r, fraction.x)
+	return lerpf(top, bottom, fraction.y) * smoothstep(0.0, 0.025, edge)
+
+
+## Bilinear sample of pastizal_gis.png matching cdi_terrain_layers.gdshaderinc.
+## R = dense(0)->sparse(1), G = olive/moist, B = mineral/scree, A = in-bounds weight.
+func grass_gis_at(point: Vector3) -> Color:
+	if _grass_gis_pixels == null:
+		return Color(0.45, 0.06, 0.15, 0.0)
+	var uv := (Vector2(point.x, point.z) - Vector2(_grass_gis_bounds.x, _grass_gis_bounds.y)) \
+		/ Vector2(_grass_gis_bounds.z, _grass_gis_bounds.w)
+	var edge_m := minf(minf(uv.x, 1.0 - uv.x) * _grass_gis_bounds.z,
+		minf(uv.y, 1.0 - uv.y) * _grass_gis_bounds.w)
+	if edge_m <= 0.0:
+		return Color(0.45, 0.06, 0.15, 0.0)
+	var size := _grass_gis_pixels.get_size()
+	var texel := uv * Vector2(size) - Vector2(0.5, 0.5)
+	var base := Vector2i(texel.floor())
+	var a := base.clamp(Vector2i.ZERO, size - Vector2i.ONE)
+	var b := (base + Vector2i.ONE).clamp(Vector2i.ZERO, size - Vector2i.ONE)
+	var fraction := texel - texel.floor()
+	var top := _grass_gis_pixels.get_pixel(a.x, a.y).lerp(_grass_gis_pixels.get_pixel(b.x, a.y), fraction.x)
+	var bottom := _grass_gis_pixels.get_pixel(a.x, b.y).lerp(_grass_gis_pixels.get_pixel(b.x, b.y), fraction.x)
+	var sample := top.lerp(bottom, fraction.y)
+	sample.a = smoothstep(0.0, 180.0, edge_m)
+	return sample
 
 
 func configure(index_path: String, vehicle: RigidBody3D, spawn: Vector3, cell_m: float) -> bool:
@@ -90,6 +210,7 @@ func configure(index_path: String, vehicle: RigidBody3D, spawn: Vector3, cell_m:
 			if _active.has(required[i]):
 				required.remove_at(i)
 		await get_tree().process_frame
+	_update_regional_lighting(0.0)
 	set_process(true)
 	print("RALLY_VISUAL_STREAM_READY active=", _active.size(), " total=", _sectors.size())
 	return true
@@ -123,6 +244,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if _asphalt_material != null and is_instance_valid(road_wetness):
+		_asphalt_material.set_shader_parameter("wetness", road_wetness.get_wetness())
 	var point := _vehicle.global_position
 	var velocity := _vehicle.linear_velocity * LOOK_AHEAD_S
 	_tick(Vector2(point.x, point.z), Vector2(point.x + velocity.x, point.z + velocity.z))
@@ -134,25 +257,51 @@ var _lights: Array[Node] = []
 
 
 ## Feeds the dynamic sun, sky ambient and horizon haze to the regional DEM shader,
-## which no longer bakes lighting into COLOR_0.
+## reading directly from the stage's tropospheric sky so isolated SubViewport preview
+## lights (pause workshop, garage, tire strategy) can never hijack the mountain lighting.
 func _update_regional_lighting(delta: float) -> void:
 	var material: ShaderMaterial = _terrain_materials.get(4)
 	if material == null:
 		return
-	_light_refresh -= delta
-	if _light_refresh <= 0.0 or _lights.any(func(l: Node) -> bool: return not is_instance_valid(l)):
-		_lights = get_tree().root.find_children("*", "DirectionalLight3D", true, false)
-		_light_refresh = 2.0
+	var sky: Node = sky_node if is_instance_valid(sky_node) else null
+	if sky == null:
+		var root := get_tree().current_scene if get_tree() != null else null
+		if root != null:
+			sky = root.find_child("RallyTroposphericSky", true, false)
+			sky_node = sky
 	var sun: DirectionalLight3D = null
-	for node in _lights:
-		var light := node as DirectionalLight3D
-		if light != null and light.visible and (sun == null or light.light_energy > sun.light_energy):
-			sun = light
-	if sun != null:
+	var env: Environment = null
+	if sky != null:
+		var sky_sun := sky.get("sun") as DirectionalLight3D
+		var sky_moon := sky.get("moon") as DirectionalLight3D
+		if sky_sun != null and is_instance_valid(sky_sun):
+			sun = sky_sun
+		if sky_moon != null and is_instance_valid(sky_moon) and (sun == null or sky_moon.light_energy > sun.light_energy):
+			sun = sky_moon
+		env = sky.get("environment") as Environment
+	else:
+		_light_refresh -= delta
+		if _light_refresh <= 0.0 or _lights.any(func(l: Node) -> bool: return not is_instance_valid(l)):
+			var scope := get_tree().current_scene if get_tree() != null else null
+			_lights = scope.find_children("*", "DirectionalLight3D", true, false) if scope != null else []
+			_light_refresh = 2.0
+		var my_world := get_world_3d()
+		for node in _lights:
+			var light := node as DirectionalLight3D
+			if light == null or light.is_queued_for_deletion() or not light.is_visible_in_tree():
+				continue
+			if my_world != null and light.get_world_3d() != my_world:
+				continue
+			if sun == null or light.light_energy > sun.light_energy:
+				sun = light
+	if sun != null and is_instance_valid(sun):
+		var dir := sun.global_basis.z
+		if not dir.is_zero_approx():
+			material.set_shader_parameter("sun_dir", dir.normalized())
 		var color := sun.light_color * sun.light_energy
-		material.set_shader_parameter("sun_dir", sun.global_basis.z.normalized())
 		material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
-	var env := get_world_3d().environment if get_world_3d() != null else null
+	if env == null and get_world_3d() != null:
+		env = get_world_3d().environment
 	if env != null:
 		var ambient := env.ambient_light_color * env.ambient_light_energy
 		material.set_shader_parameter("ambient_color", Vector3(ambient.r, ambient.g, ambient.b))
@@ -237,6 +386,13 @@ func _attach_sector(path: String, packed: PackedScene) -> void:
 
 func tune_materials(root: Node) -> void:
 	for terrain in root.find_children("*", "MeshInstance3D", true, false):
+		if terrain.name == "Guardarrail":
+			for surface in terrain.mesh.get_surface_count():
+				var original: Material = terrain.mesh.surface_get_material(surface)
+				var rail: Material = _guardrail_materials.get(original.resource_name) if original != null else null
+				if rail != null:
+					terrain.set_surface_override_material(surface, rail)
+			continue
 		var blend := _terrain_blend_for(str(terrain.name)) if terrain_palette != null else null
 		if blend != null:
 			for surface in terrain.mesh.get_surface_count():
@@ -259,12 +415,14 @@ func tune_materials(root: Node) -> void:
 
 
 func _terrain_blend_for(mesh_name: String) -> ShaderMaterial:
+	if mesh_name == "Road" and _asphalt_material != null:
+		return _asphalt_material
 	var mode := -1
 	if mesh_name == "Ladera DSM":
 		mode = 0
 	elif mesh_name.begins_with("Terrain_Dirt_"):
 		mode = 1
-	elif mesh_name == "Road":
+	elif mesh_name == "Road" and use_cdi_gravel_road:
 		mode = 2
 	elif mesh_name == "Rajuntay DEM fondo":
 		mode = 3
@@ -279,6 +437,10 @@ func _terrain_blend_for(mesh_name: String) -> ShaderMaterial:
 	material.set_shader_parameter("terrain_palette", terrain_palette)
 	material.set_shader_parameter("grass_gis", _grass_gis)
 	material.set_shader_parameter("grass_gis_bounds", _grass_gis_bounds)
+	material.set_shader_parameter("ticlio_snow_enabled", _ticlio_snow_textures != null)
+	if _ticlio_snow_textures != null:
+		material.set_shader_parameter("ticlio_snow_textures", _ticlio_snow_textures)
+		material.set_shader_parameter("ticlio_snow_coverage", _ticlio_snow_coverage)
 	if mode < 3:
 		material.set_shader_parameter("terrain_mode", mode)
 	_terrain_materials[mode] = material
