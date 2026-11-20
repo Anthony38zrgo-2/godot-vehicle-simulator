@@ -116,6 +116,7 @@ const COUNTRY_LABELS := {
 	"switzerland": "Switzerland",
 }
 const COUNTRY_STAGE_COUNTS := {
+	"cdi": 4,
 	"russia": 10,
 	"kenya": 8,
 	"finland": 8,
@@ -132,7 +133,12 @@ const EVENT_PATH_BY_COUNTRY := {
 }
 
 const CDI_START_STAGE := "cdi_stage1"
-const CDI_TITLE := "Caminos del Inca · SS01 Rajuntay Alto"
+const CDI_STAGES := {
+	"cdi_stage1": {"name": "Rajuntay Alto", "surface": "Grava"},
+	"cdi_stage2": {"name": "Quebrada Chinchán", "surface": "Grava"},
+	"cdi_stage3": {"name": "Chinchán Asfalto", "surface": "Asfalto"},
+	"cdi_stage4": {"name": "Abra Ticlio", "surface": "Asfalto / nieve"},
+}
 const CDI_CARS := ["fulvia", "mustang67"]
 
 const VIGNETTE_SHADER_CODE := """
@@ -278,6 +284,7 @@ var main_menu_title: Label
 
 var screen_main_menu: VBoxContainer
 var screen_stage_select: VBoxContainer
+var car_title: Label
 var screen_car_select: VBoxContainer
 var status_banner: PanelContainer
 var status_label: Label
@@ -399,6 +406,7 @@ func _ready() -> void:
 	_cdi_launch = "--rally-cdi" in OS.get_cmdline_user_args()
 	if _cdi_launch:
 		selected_mode = "rally"
+		selected_country = "cdi"
 		selected_stage_id = CDI_START_STAGE
 		selected_car_key = CDI_CARS[0]
 	_load_registry()
@@ -407,7 +415,7 @@ func _ready() -> void:
 	_build_ui()
 	_ensure_menu_music()
 	if _cdi_launch:
-		show_car_select()
+		show_stage_select()
 	else:
 		show_main_menu()
 
@@ -440,10 +448,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			show_car_select()
 			get_viewport().set_input_as_handled()
 		elif current_screen == "car_select":
-			if not _cdi_launch:
-				show_stage_select()
+			show_stage_select()
 			get_viewport().set_input_as_handled()
-		elif current_screen == "stage_select":
+		elif current_screen == "stage_select" and not _cdi_launch:
 			show_main_menu()
 			get_viewport().set_input_as_handled()
 
@@ -788,7 +795,7 @@ func _build_stage_select_screen() -> void:
 	content_container.add_child(screen_stage_select)
 
 	var stage_header := HBoxContainer.new()
-	stage_header.hide()
+	stage_header.visible = _cdi_launch
 	screen_stage_select.add_child(stage_header)
 
 	var stage_title := Label.new()
@@ -810,6 +817,7 @@ func _build_stage_select_screen() -> void:
 	var country_row := HBoxContainer.new()
 	country_row.add_theme_constant_override("separation", 6)
 	screen_stage_select.add_child(country_row)
+	country_row.visible = not _cdi_launch
 	country_buttons.clear()
 	for i in COUNTRY_ORDER.size():
 		var country: String = COUNTRY_ORDER[i]
@@ -880,6 +888,10 @@ func _build_stage_select_screen() -> void:
 		var s_text := "%s Stage %d" % [country_label, i]
 		var meta_info: Dictionary = STAGE_METADATA.get(sid, {"km": "5.0 KM", "surface": "Grava", "tag": "Tramo"})
 
+		if _cdi_launch:
+			meta_info = CDI_STAGES[sid]
+			s_text = str(meta_info.name)
+
 		var btn := Button.new()
 		btn.text = s_text
 		btn.set_meta("stage_id", sid)
@@ -913,7 +925,7 @@ func _build_stage_select_screen() -> void:
 		card_vbox.add_child(card_top_row)
 
 		var lbl_stage_num := Label.new()
-		lbl_stage_num.text = "STAGE %02d" % i
+		lbl_stage_num.text = ("SS%02d" if _cdi_launch else "STAGE %02d") % i
 		lbl_stage_num.add_theme_font_override("font", FONT_SUBTITLE)
 		lbl_stage_num.add_theme_font_size_override("font_size", 12)
 		lbl_stage_num.add_theme_color_override("font_color", C_GOLD)
@@ -925,6 +937,14 @@ func _build_stage_select_screen() -> void:
 
 		var lbl_km := Label.new()
 		lbl_km.text = str(meta_info.get("km", "5.0 KM"))
+		if _cdi_launch:
+			var config: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/competition/stages/%s.json" % sid))
+			lbl_km.text = ""
+			if config is Dictionary:
+				var distance := 0.0
+				for sector in config.get("sector_lengths_km", []):
+					distance += float(sector)
+				lbl_km.text = "%.2f KM" % distance
 		lbl_km.add_theme_font_override("font", FONT_UI_BOLD_TIGHT)
 		lbl_km.add_theme_font_size_override("font_size", 15)
 		lbl_km.add_theme_color_override("font_color", C_CHROME_TEXT)
@@ -970,7 +990,7 @@ func _build_stage_select_screen() -> void:
 		bottom_info_row.add_child(spacer_bot)
 
 		var lbl_tag := Label.new()
-		lbl_tag.text = str(meta_info.get("tag", "Rally")).to_upper()
+		lbl_tag.text = "" if _cdi_launch else str(meta_info.get("tag", "Rally")).to_upper()
 		lbl_tag.add_theme_font_override("font", FONT_SUBTITLE)
 		lbl_tag.add_theme_font_size_override("font_size", 11)
 		lbl_tag.add_theme_color_override("font_color", C_GOLD_HI)
@@ -1005,6 +1025,7 @@ func _build_stage_select_screen() -> void:
 	_style_flat_button(btn_stage_back)
 	btn_stage_back.pressed.connect(show_main_menu)
 	bottom_bar.add_child(btn_stage_back)
+	btn_stage_back.visible = not _cdi_launch
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1030,6 +1051,8 @@ func _country_stage_ids() -> Array[String]:
 
 
 func _stage_select_title() -> String:
+	if _cdi_launch:
+		return "Caminos del Inca"
 	var count := int(COUNTRY_STAGE_COUNTS.get(selected_country, 10))
 	var label := str(COUNTRY_LABELS.get(selected_country, selected_country.capitalize()))
 	return "%s Stages · Especiales 1 a %d" % [label, count]
@@ -1156,8 +1179,8 @@ func _build_car_select_screen() -> void:
 	car_header.visible = _cdi_launch
 	screen_car_select.add_child(car_header)
 
-	var car_title := Label.new()
-	car_title.text = CDI_TITLE if _cdi_launch else "Select Car"
+	car_title = Label.new()
+	car_title.text = "Select Car"
 	car_title.add_theme_font_override("font", FONT_TITLE)
 	car_title.add_theme_font_size_override("font_size", 18)
 	car_title.add_theme_color_override("font_color", C_GOLD)
@@ -1358,7 +1381,7 @@ func _build_car_select_screen() -> void:
 	_style_flat_button(btn_car_back)
 	btn_car_back.pressed.connect(show_stage_select)
 	bottom_bar.add_child(btn_car_back)
-	btn_car_back.visible = not _cdi_launch
+	btn_car_back.show()
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1618,6 +1641,10 @@ func _focus_stage_button() -> void:
 
 
 func show_car_select() -> void:
+	if _cdi_launch:
+		car_title.text = "Caminos del Inca · SS%02d %s" % [
+			int(selected_stage_id.get_slice("_stage", 1)), CDI_STAGES[selected_stage_id].name,
+		]
 	current_screen = "car_select"
 	screen_main_menu.hide()
 	screen_stage_select.hide()
@@ -1807,8 +1834,8 @@ func _launch_session() -> void:
 	session.set("session_mode", selected_mode)
 	session.set("selected_vehicle_key", selected_car_key)
 	session.set("selected_weather", selected_weather)
-	if selected_stage_id == CDI_START_STAGE:
-		session.stage_place = "Rajuntay Alto"
+	if CDI_STAGES.has(selected_stage_id):
+		session.stage_place = str(CDI_STAGES[selected_stage_id].name)
 		session.stage_country = "Perú"
 		var stage_camera := session.get_node_or_null("RallyCameraRig/Camera3D") as Camera3D
 		if stage_camera != null:
@@ -2001,6 +2028,8 @@ func _load_all_stage_routes() -> void:
 		var count := int(COUNTRY_STAGE_COUNTS.get(country, 0))
 		for i in range(1, count + 1):
 			all_ids.append("%s_stage%d" % [country, i])
+	if _cdi_launch:
+		all_ids = _country_stage_ids()
 	for sid in all_ids:
 		var path := "res://data/rally/%s_route.json" % sid
 		if not FileAccess.file_exists(path):

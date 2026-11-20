@@ -27,6 +27,8 @@ const FIELDS: Array[Dictionary] = [
 	{"page": -1, "label": "Ala delantera", "path": "aero.model.front_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
 	{"page": -1, "label": "Ala trasera", "path": "aero.model.rear_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
 	{"page": 1, "label": "Reparto de frenada delantero", "path": "brakes.front_brake_bias", "min": 0.30, "max": 0.80, "step": 0.005, "suffix": "%", "scale": 100.0, "digits": 1, "group": "FRENOS"},
+	{"page": 0, "label": "Conducto de freno delantero", "path": "brakes.thermal.front_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
+	{"page": 0, "label": "Conducto de freno trasero", "path": "brakes.thermal.rear_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
 	{"page": 1, "label": "Par máximo de freno", "path": "brakes.max_brake_torque", "min": 500.0, "max": 8000.0, "step": 50.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "FRENOS"},
 	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 5000.0, "max": 7200.0, "step": 50.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR", "default": 7200.0},
 	{"page": 2, "label": "Relación final", "path": "powertrain.final_drive", "min": 2.0, "max": 6.0, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN"},
@@ -120,7 +122,7 @@ static func validate(values: Dictionary) -> Dictionary:
 			# Los 4 números del diferencial son opcionales: en historic los
 			# resuelve el catálogo de presets; en modern pueden actualizarse
 			# por separado sin reenviar el reglaje completo.
-			if str(field.path) in LEGACY_DIFFERENTIAL_PATHS:
+			if bool(field.get("optional", false)) or str(field.path) in LEGACY_DIFFERENTIAL_PATHS:
 				continue
 			return {"ok": false, "error": "El reglaje no incluye " + str(field.path)}
 	return {"ok": true, "values": result}

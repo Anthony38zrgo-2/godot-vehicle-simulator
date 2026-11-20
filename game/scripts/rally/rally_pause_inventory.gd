@@ -418,6 +418,7 @@ func toggle() -> void:
 		modal.hide()
 		backdrop.hide()
 		pause_button.hide()
+		clear()
 		get_tree().paused = false
 		var _pause_out := get_node_or_null("/root/RallyMusic")
 		if _pause_out != null and _pause_out.has_method("on_pause_closed"):

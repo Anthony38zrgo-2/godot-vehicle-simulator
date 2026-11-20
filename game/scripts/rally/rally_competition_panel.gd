@@ -1106,6 +1106,8 @@ func _next_label(state: Dictionary) -> String:
 		return "REPETIR ESPECIAL (PRÁCTICA)"
 	if bool(state.get("event_is_last", false)) or _stage_number(state) >= int(state.get("event_total", 10)):
 		return "VER RESULTADO FINAL ▶"
+	if bool(state.get("event_next_is_service", false)):
+		return "CONTINUAR AL SERVICIO ▶"
 	var nxt := _stage_number(state) + 1
 	return "CONTINUAR A STAGE %d ▶" % nxt
 
@@ -1124,7 +1126,9 @@ func _event_notice(state: Dictionary) -> String:
 		var sid := _stage_id(state)
 		var sched: Dictionary = state.get("event_schedule", {})
 		var next_info := ""
-		if not bool(state.get("event_is_last", false)):
+		if bool(state.get("event_next_is_service", false)):
+			next_info = " Área de servicio antes de la próxima especial."
+		elif not bool(state.get("event_is_last", false)):
 			next_info = " Próxima especial: Stage %d." % (_stage_number(state) + 1)
 		else:
 			next_info = " Última especial completada: selecciona «Ver resultado final» para la clasificación definitiva."

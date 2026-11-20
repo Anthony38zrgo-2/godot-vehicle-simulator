@@ -81,6 +81,7 @@ const PANEL := Rect2(24.0, 100.0, 1232.0, 586.0)
 const PAGE_TOP := 156.0
 const PAGE_BOTTOM := 674.0
 
+const BRAKE_DUCT_PATHS := ["brakes.thermal.front_duct.opening", "brakes.thermal.rear_duct.opening"]
 const QUICK_PATHS: Array[String] = [
 	"balance",
 	"brakes.front_brake_bias",
@@ -1034,7 +1035,10 @@ func _set_page(next_page: int, play_sound: bool = true) -> void:
 	var source: Array[String] = []
 	match page:
 		0:
-			source = QUICK_PATHS
+			source = QUICK_PATHS.duplicate()
+			for path in BRAKE_DUCT_PATHS:
+				if draft_values.has(path):
+					source.append(path)
 		1:
 			match advanced_section:
 				0:
@@ -1870,6 +1874,18 @@ func _draw_quick_page() -> void:
 			"value": "%0.2f" % float(draft_values.get("powertrain.final_drive", 4.0)),
 		},
 	]
+	for path in BRAKE_DUCT_PATHS:
+		if not draft_values.has(path):
+			continue
+		var field := RallySetupCatalog.field_for_path(path)
+		rows.append({
+			"key": path,
+			"name": str(field.label).to_upper(),
+			"hint": "APERTURA",
+			"left": "CERRADO",
+			"right": "ABIERTO",
+			"value": "%d %%" % roundi(float(draft_values[path]) * 100.0),
+		})
 	var inner := _group_inner(section)
 	var height := floorf(inner.size.y / float(rows.size()))
 	var offset := (inner.size.y - height * float(rows.size())) * 0.5
