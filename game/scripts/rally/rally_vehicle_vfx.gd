@@ -326,13 +326,17 @@ func update_tire_track(index: int) -> void:
 	var normal: Vector3 = contact["normal"]
 	var offset := point - vehicle.global_position
 	var velocity := vehicle.linear_velocity + vehicle.angular_velocity.cross(offset)
-	if velocity.slide(normal).length_squared() < 1.0:
+	var planar_speed := velocity.slide(normal).length()
+	if planar_speed < 1.0:
 		tire_tracks.break_track(index)
 		return
 	var load := clampf(load_n / (vehicle.mass * 9.81 * 0.25), 0.0, 1.0)
-	var strength: float = intensity * load * tire_tracks.opacity_for(surface, variant, sim.wheel_slips[index])
+	var slip: Vector2 = sim.wheel_slips[index]
+	var rim_speed := absf(sim.wheel_spins[index]) * sim.wheel_radii[index]
+	var slip_speed := maxf(planar_speed, rim_speed) * clampf(maxf(absf(slip.x), absf(sin(slip.y))), 0.0, 1.5)
+	var strength: float = intensity * load * tire_tracks.opacity_for(surface, variant, slip, slip_speed)
 	var excluded: Array[RID] = [vehicle.get_rid()]
-	tire_tracks.add_contact(index, contact, sim.wheel_widths[index], variant, strength, surface, sim.wheel_slips[index], vehicle.collision_mask, excluded)
+	tire_tracks.add_contact(index, contact, sim.wheel_widths[index], variant, strength, surface, slip, vehicle.collision_mask, excluded)
 
 
 func _process(_delta: float) -> void:
