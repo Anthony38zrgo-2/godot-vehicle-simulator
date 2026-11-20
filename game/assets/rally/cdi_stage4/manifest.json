@@ -75,17 +75,17 @@
     },
     "snow_road_station_m": 3162.034743010791,
     "snow_start_m_from_start": 3100.02221562467,
-    "blend_sha256": "af1b841ff2fe04fb0742e25779323d73b14c639e6d10bc83e731aca9b8fe91a6"
+    "blend_sha256": "579204566a817d7c7be485111edd98eafb42871573162473aaf71977d27cdc25"
   },
   "visual": {
     "path": "cdi_stage4_visual.glb",
-    "sha256": "56ba1d51368e85c4ab42df1708950b79de38bb0cb97365b9de321506a8b8fad8",
-    "size_bytes": 14583244
+    "sha256": "f75c9b304d675ad9a97663a8a3691bcb6f837a6b95c16b7780eda19e05f2f6c2",
+    "size_bytes": 14583436
   },
   "collision": {
     "path": "cdi_stage4_collision.glb",
-    "sha256": "7d12e76b1eadcd8afa4f2599bd12fe8f3bb7d0cf83b50386e7f4e4a807ad7e7a",
-    "size_bytes": 17456900
+    "sha256": "30cb73f909f64add8b02c754e09e3163d4a6880d9b27c66070a6f6c758c7b4a9",
+    "size_bytes": 17686724
   },
   "start_pose": {
     "ground_godot": [
@@ -106,6 +106,6 @@
     "index": "sectores/index.json",
     "cell_m": 192,
     "sector_count": 47,
-    "detail_triangles": 957537
+    "detail_triangles": 970309
   }
 }

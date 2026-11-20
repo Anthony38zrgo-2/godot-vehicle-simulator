@@ -46,6 +46,7 @@ var _grass_gis: Texture2D
 var _grass_gis_pixels: Image
 var _grass_gis_bounds: Vector4
 var _terrain_materials := {}
+var _ticlio_drainage_material: StandardMaterial3D
 
 
 func load_cdi_palette(stage_dir: String) -> bool:
@@ -396,7 +397,16 @@ func tune_materials(root: Node) -> void:
 		var blend := _terrain_blend_for(str(terrain.name)) if terrain_palette != null else null
 		if blend != null:
 			for surface in terrain.mesh.get_surface_count():
-				terrain.set_surface_override_material(surface, blend)
+				var original: Material = terrain.mesh.surface_get_material(surface)
+				if original != null and original.resource_name == "ticlio_v_drainage":
+					if _ticlio_drainage_material == null:
+						_ticlio_drainage_material = StandardMaterial3D.new()
+						_ticlio_drainage_material.albedo_texture = load("res://assets/rally/cdi_stage4/cuneta_v.png") as Texture2D
+						_ticlio_drainage_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+						_ticlio_drainage_material.roughness = 0.95
+					terrain.set_surface_override_material(surface, _ticlio_drainage_material)
+				else:
+					terrain.set_surface_override_material(surface, blend)
 			continue
 		for surface in terrain.mesh.get_surface_count():
 			var original := terrain.get_active_material(surface) as StandardMaterial3D

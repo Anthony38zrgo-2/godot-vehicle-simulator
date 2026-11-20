@@ -368,6 +368,21 @@ def slope_section(shoulder, outer, station, total, side):
         result.append(point)
     return result
 
+def add_rock_cut_relief(points, shoulder, outer, station, total, side, amplitude):
+    reach = (outer - shoulder).xy.length
+    rise = outer.z - shoulder.z
+    grade = rise / max(reach, 0.01)
+    strength = amplitude * smoothstep((grade - 0.30) / 0.55)
+    strength *= smoothstep((rise - 0.45) / 1.05) * end_fade(station, total)
+    for index, point in enumerate(points, 1):
+        cross = index / (len(points) + 1)
+        tie_fade = math.sin(math.pi * cross) ** 2
+        phase = 0.72 * station + 8.0 * cross + side * 1.9
+        blocks = math.tanh(1.8 * math.sin(phase + 0.8 * math.sin(0.24 * station)))
+        ledges = math.tanh(2.0 * math.sin(18.0 * cross - 0.21 * station + side))
+        point.z += strength * tie_fade * (0.65 * blocks + 0.35 * ledges)
+
+
 def bank_sections(rows, stations):
     """Apply gradual signed crossfall without moving the center or tie lines."""
     headings = []

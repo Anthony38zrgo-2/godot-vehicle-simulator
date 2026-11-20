@@ -459,6 +459,10 @@ def main(stage=None):
         visual_strip("Road", road_sections, (visual_gravel, compacted),
                      lambda _i, k: int(k in (1, 4)), 1.0)
 
+    ticlio_drainage = track == "cdi_stage4"
+    if ticlio_drainage:
+        drainage = material("ticlio_v_drainage", (0.40, 0.40, 0.40))
+    rock_cut_amplitude = 0.35 if track in {"cdi_stage1", "cdi_stage2", "cdi_stage3", "cdi_stage4"} else 0.0
     side_caps = {}
     for side, indices in (("Left", (0, 1, 2)), ("Right", (4, 5, 6))):
         sections = [[Vector(row[k]) for k in indices] for row in rows]
@@ -490,8 +494,21 @@ def main(stage=None):
             detailed = []
             for i, row in enumerate(sections):
                 shoulder = row[1]
+                if ticlio_drainage:
+                    edge = row[inner]
+                    lateral = (shoulder - edge).xy
+                    width_m = min(0.80, lateral.length)
+                    outward = lateral.normalized()
+                    shoulder = edge + Vector((outward.x, outward.y, 0.0)) * width_m
+                    bottom = edge.lerp(shoulder, 0.5)
+                    bottom.z -= 0.25 * width_m / 0.80
+                    row[1] = shoulder
                 rounded = detail.slope_section(shoulder, row[outer], stations[i], stations[-1],
                                                -1 if side == "Left" else 1)
+                if rock_cut_amplitude > 0.0:
+                    detail.add_rock_cut_relief(rounded, shoulder, row[outer], stations[i],
+                                               stations[-1], -1 if side == "Left" else 1,
+                                               rock_cut_amplitude)
                 if lateral_trial:
                     reach = (row[outer] - shoulder).xy.length
                     pk = stations[i] - stations[6]
@@ -515,6 +532,8 @@ def main(stage=None):
                         point.z += weight * (target - point.z)
                 detailed.append([row[0], *reversed(rounded), *row[1:]] if side == "Left"
                                 else [*row[:2], *rounded, row[2]])
+                if ticlio_drainage:
+                    detailed[-1].insert(-1 if side == "Left" else 1, bottom)
             side_vertices = [p for row in detailed for p in row]
             side_uvs = [((p - row[0]).length / 2.5, stations[i] / 2.5)
                         for i, row in enumerate(detailed) for p in row]
@@ -529,13 +548,18 @@ def main(stage=None):
             columns = len(detailed[0])
             shoulder_col = columns - 2 if side == "Left" else 0
             road_col = columns - 1 if side == "Left" else 0
+            ditch_outer_col = shoulder_col - 1 if side == "Left" else shoulder_col + 1
+            if ticlio_drainage:
+                for i, row in enumerate(detailed):
+                    for k in (shoulder_col, shoulder_col + 1, ditch_outer_col, ditch_outer_col + 1):
+                        side_uvs[i * columns + k] = ((row[k] - row[road_col]).xy.length, stations[i])
             road_edge = 0 if side == "Left" else -1
             for i in range(len(detailed)-1):
                 for k in range(columns-1):
                     j = i*columns+k
                     if k != shoulder_col:
                         side_faces.append((j,j+1,j+columns+1,j+columns))
-                        side_materials.append(rock_cut(i,k))
+                        side_materials.append(2 if ticlio_drainage and k == ditch_outer_col else rock_cut(i,k))
                         continue
                     start, end = road_originals[i:i+2]
                     chain = [i*columns+road_col]
@@ -546,7 +570,7 @@ def main(stage=None):
                         t = (road_stations[d]-stations[i])/(stations[i+1]-stations[i])
                         a = side_uvs[i*columns+road_col][0]
                         b = side_uvs[(i+1)*columns+road_col][0]
-                        side_uvs.append((a+(b-a)*t, road_stations[d]/2.5))
+                        side_uvs.append((a+(b-a)*t, road_stations[d] / (1.0 if ticlio_drainage else 2.5)))
                         if stage:
                             side_mask.append(0.0)
                     chain.append((i+1)*columns+road_col)
@@ -557,14 +581,16 @@ def main(stage=None):
                         fan = [(j+1,b,a) for a,b in zip(chain,chain[1:])]
                         fan.append((j+1,j+columns+1,chain[-1]))
                     side_faces.extend(fan)
-                    side_materials.extend([0]*len(fan))
+                    side_materials.extend([2 if ticlio_drainage else 0] * len(fan))
             obj = mesh("Terrain_Dirt_" + side, side_vertices, side_faces, scree, visual)
             obj.data.materials.append(exposed_rock)
+            if ticlio_drainage:
+                obj.data.materials.append(drainage)
             uv = obj.data.uv_layers.new(name="Metros")
             cut_uv = obj.data.uv_layers.new(name="Mezcla") if stage else None
             for face in obj.data.polygons:
-                face.use_smooth = True
                 face.material_index = side_materials[face.index]
+                face.use_smooth = face.material_index != 2
                 for loop in face.loop_indices:
                     index = obj.data.loops[loop].vertex_index
                     uv.data[loop].uv = side_uvs[index]

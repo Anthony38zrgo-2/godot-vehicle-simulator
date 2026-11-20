@@ -16,6 +16,7 @@ void fragment() {
 	ALBEDO = ground_cover(world_point, patch) * terrain_macro_tone(world_point.xz);
 	vec3 n = normalize(cross(dFdx(world_point), dFdy(world_point)));
 	ALBEDO = ticlio_winter_ground(ALBEDO, world_point, n, length(VERTEX), 0.0);
-	ALPHA = 1.0 - smoothstep(125.0, 340.0, length(VERTEX));
+	float horizontal_distance = distance(world_point.xz, CAMERA_POSITION_WORLD.xz);
+	ALPHA = 1.0 - smoothstep(125.0, 340.0, horizontal_distance);
 	ROUGHNESS = 0.95;
 }

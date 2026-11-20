@@ -78,7 +78,7 @@
       ],
       "length_m": 3243.68
     },
-    "blend_sha256": "7b55552c0dd0a6f512ce28bf4586ba02e6bec16d62147bec113ade9e858e5e12"
+    "blend_sha256": "58c5136c447c8d544c5e33c04ec0c9968cbb905b97043e60752b7e04e32600f5"
   },
   "visual": {
     "path": "cdi_stage3_visual.glb",
@@ -87,7 +87,7 @@
   },
   "collision": {
     "path": "cdi_stage3_collision.glb",
-    "sha256": "2d59096da9bac8be3fd93eb12dab95dc4590cf02ce8e7cf2a9b38febcc6bba18",
+    "sha256": "778772b4faff5a008e73b38a2dcb881e15cc760a786ec1f67fbc62900df3fae5",
     "size_bytes": 17669676
   },
   "start_pose": {

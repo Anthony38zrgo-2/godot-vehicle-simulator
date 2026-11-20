@@ -33,7 +33,7 @@
       "segments": 4901,
       "open_steep_slope_m": 45.69
     },
-    "blend_sha256": "2c68147d1a5304b80248a777abb5a27bcf76997ddaad1f769c153ebd6e8ef78b"
+    "blend_sha256": "0d1eeef77cff65c3d4d07d13b752e1f3aa719523077aca1e2f1bef069f39c4bb"
   },
   "visual": {
     "path": "cdi_stage1_visual.glb",
@@ -42,7 +42,7 @@
   },
   "collision": {
     "path": "cdi_stage1_collision.glb",
-    "sha256": "ed9dd0ab36ec86566f477367bfe6aa3d5803202fd9d6be725d1d9899baac8c3d",
+    "sha256": "d52c51ab3252b015d867a772920fe3850767cdb259292ffb4962d052f41943af",
     "size_bytes": 26138932
   },
   "start_pose": {
