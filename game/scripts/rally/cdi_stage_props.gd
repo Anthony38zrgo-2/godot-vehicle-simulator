@@ -34,6 +34,7 @@ var _road_cells := {}
 var _occupied: Array[Vector3] = []
 var _placements: Array[Dictionary] = []
 var sector_stream: RallyVisualSectorStream
+var finish_spectator_approach_m := 30.0
 
 func occupied_points() -> Array[Vector3]:
 	return _occupied
@@ -53,7 +54,7 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 	for i in range(ROUTE_SPECTATOR_GROUPS):
 		var zone := _zone(i, ROUTE_SPECTATOR_GROUPS, 150, length - 95)
 		people += _group(SPECTATOR, SPECTATORS_PER_GROUP, zone, Vector2(8, 21), "Spectators%02d" % i)
-	people += _group(SPECTATOR, FINISH_SPECTATORS, Vector2(length - 30.0, length + 10.0),
+	people += _group(SPECTATOR, FINISH_SPECTATORS, Vector2(length - finish_spectator_approach_m, length + 10.0),
 		Vector2(8, 21), "FinishSpectators")
 	_rng.seed = stage_seed + 601
 	var animals := 0
@@ -73,7 +74,33 @@ func build(route: RallyStageProgress, stage_seed: int, collision_mask: int) -> v
 	var expected_people := START_SPECTATORS + BEHIND_START_SPECTATORS + FINISH_SPECTATORS \
 		+ ROUTE_SPECTATOR_GROUPS * SPECTATORS_PER_GROUP
 	if people != expected_people or animals != HERD_COUNT * ANIMALS_PER_HERD or rocks != STONE_COUNT:
-		push_warning("Rajuntay props could not fill one or more safe placement zones")
+		push_warning("CDI props could not fill one or more safe placement zones")
+
+
+func add_parking_spectators(center: Vector3, away: Vector3, along: Vector3, vehicle_half_width: float,
+		station: float, parking_covers: Callable) -> int:
+	if sector_stream == null or not _variants.has(SPECTATOR):
+		return 0
+	var added := 0
+	for along_offset in [-2.0, 0.0, 2.0, -3.6, 3.6]:
+		var point := center + away * (vehicle_half_width + 2.2) + along * float(along_offset)
+		if parking_covers.call(point) or not _clear_of_road(point, 7.0) or not _spaced(point, _occupied, 1.1):
+			continue
+		var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 2.0, point - Vector3.UP * 3.0, _collision_mask)
+		var hit := _space.intersect_ray(query)
+		if hit.is_empty() or not hit.collider.is_in_group("RauraGrassGround") or (hit.normal as Vector3).y < 0.89:
+			continue
+		var ground: Vector3 = hit.position
+		var variants: Array = _variants[SPECTATOR]
+		var variant: Dictionary = variants[_rng.randi_range(0, variants.size() - 1)]
+		var placement := {"group": "PublicoRellano", "kind": SPECTATOR, "variant": variant,
+			"point": ground, "size": _rng.randf_range(0.82, 0.98), "yaw": 0.0, "station": station}
+		sector_stream.register_content(sector_stream.sector_for_point(ground), _spawn_placement.bind(placement))
+		_occupied.append(ground)
+		added += 1
+		if added == 3:
+			break
+	return added
 
 
 func _zone(index: int, count: int, first: float, last: float) -> Vector2:

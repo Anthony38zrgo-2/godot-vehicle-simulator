@@ -8,14 +8,16 @@ import struct
 from collections import defaultdict
 from pathlib import Path
 
+from generar_ss01 import OUT, TRACK
+
 import numpy as np
 from scipy.spatial import cKDTree
 
 BASE = Path(__file__).resolve().parent
-ASSETS = BASE.parents[3] / "game/assets/rally/cdi_stage1"
-OUT = BASE / "output"
+ASSETS = BASE.parents[3] / "game/assets/rally" / TRACK
 SIZE_M = 192
-DETAIL = {"Road", "Ladera DSM", "Terrain_Dirt_Left", "Terrain_Dirt_Right"}
+REQUIRED_DETAIL = {"Road", "Ladera DSM", "Terrain_Dirt_Left", "Terrain_Dirt_Right"}
+DETAIL = REQUIRED_DETAIL | {"Guardarrail"}
 DTYPES = {5123: "<u2", 5125: "<u4", 5126: "<f4"}
 COMPONENTS = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}
 
@@ -83,6 +85,8 @@ def regional_dem_colors(dem, east, south, center, cell_m):
     exposure = np.maximum(exposure, warm * smooth(0.18, 0.40, slope) * 0.85)
 
     snow = np.clip((dem - 5220) / 230 - slope * 0.38, 0, 0.78)
+    if TRACK == "cdi_stage4":
+        snow.fill(0.0)  # Ticlio uses the same runtime snow field as the close terrain.
     color = blend(color, np.array([0.70, 0.72, 0.75]), snow)
     exposure = np.maximum(exposure, snow)
     return np.concatenate((color, exposure[..., None]), axis=-1)
@@ -191,14 +195,14 @@ def write_glb(path, meshes, source, terrain=None):
 
 
 def build():
-    runtime = ASSETS / "cdi_stage1_visual.glb"
-    backup = OUT / "cdi_stage1_visual_autoria.glb"
+    runtime = ASSETS / f"{TRACK}_visual.glb"
+    backup = OUT / f"{TRACK}_visual_autoria.glb"
     doc, data = read_glb(runtime)
     source = runtime
-    if not DETAIL <= {node["name"] for node in doc["nodes"]}:
+    if not REQUIRED_DETAIL <= {node["name"] for node in doc["nodes"]}:
         source = backup
         doc, data = read_glb(source)
-    assert DETAIL <= {node["name"] for node in doc["nodes"]}
+    assert REQUIRED_DETAIL <= {node["name"] for node in doc["nodes"]}
     assert all(set(node) <= {"name", "mesh"} for node in doc["nodes"])
     textures = ASSETS / "texturas_sectores"
     sectors = ASSETS / "sectores"
@@ -227,13 +231,18 @@ def build():
                 resident[name].append((attributes, faces, material))
                 continue
             expected += len(faces)
-            if name != "Ladera DSM":
+            if name not in {"Ladera DSM", "Guardarrail"}:
                 secondary_uv = attributes.get("TEXCOORD_1")
                 if secondary_uv is None:
                     secondary_uv = np.zeros((len(attributes["POSITION"]), 2), dtype="<f4")
                 else:
                     secondary_uv = secondary_uv.copy()
-                secondary_uv[:, 1] = route_stations(attributes["POSITION"], route, stations, tree)
+                if name == "Road" and TRACK in {"cdi_stage3", "cdi_stage4"}:
+                    # Blender's glTF exporter flips V. Recover exact road stations,
+                    # including at tight bends where nearest-point projection can jump.
+                    secondary_uv[:, 1] = (1.0 - attributes["TEXCOORD_0"][:, 1]) * 4.0
+                else:
+                    secondary_uv[:, 1] = route_stations(attributes["POSITION"], route, stations, tree)
                 attributes["TEXCOORD_1"] = secondary_uv
             centers = attributes["POSITION"][faces].mean(axis=1)
             keys = np.floor(centers[:, [0, 2]] / SIZE_M).astype(int)
@@ -251,7 +260,7 @@ def build():
                             maximum=points.max(axis=0).tolist(), triangles=count))
     total = sum(entry["triangles"] for entry in entries)
     assert total == expected
-    staged = OUT / "cdi_stage1_visual_residente.glb"
+    staged = OUT / f"{TRACK}_visual_residente.glb"
     write_glb(staged, resident, doc, terrain_proxy())
     if source != backup:
         shutil.copyfile(source, backup)
@@ -274,8 +283,8 @@ def build():
 
 def rebuild_resident_dem():
     """Rebuild only the resident GLB (including Rajuntay Regional DEM colors and normals)."""
-    runtime = ASSETS / "cdi_stage1_visual.glb"
-    backup = OUT / "cdi_stage1_visual_autoria.glb"
+    runtime = ASSETS / f"{TRACK}_visual.glb"
+    backup = OUT / f"{TRACK}_visual_autoria.glb"
     source = backup if backup.exists() else runtime
     doc, data = read_glb(source)
     resident = defaultdict(list)
@@ -287,7 +296,7 @@ def rebuild_resident_dem():
             attributes = {key: accessor(doc, data, index) for key, index in primitive["attributes"].items()}
             faces = accessor(doc, data, primitive["indices"]).reshape(-1, 3)
             resident[name].append((attributes, faces, primitive["material"]))
-    staged = OUT / "cdi_stage1_visual_residente.glb"
+    staged = OUT / f"{TRACK}_visual_residente.glb"
     write_glb(staged, resident, doc, terrain_proxy())
     staged.replace(runtime)
     path = ASSETS / "manifest.json"
@@ -301,6 +310,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--regional-only", action="store_true",
                         help="Only rebuild Rajuntay Regional DEM (colors + normals) inside the resident GLB.")
+    stages = parser.add_mutually_exclusive_group()
+    stages.add_argument("--ss03", action="store_true", help="Use Chinchán Asfalto.")
+    stages.add_argument("--ss04", action="store_true", help="Use Abra Ticlio.")
+    stages.add_argument("--ss02", action="store_true", help="Build Quebrada Chinchán.")
     args = parser.parse_args()
     if args.regional_only:
         rebuild_resident_dem()

@@ -1,0 +1,114 @@
+{
+  "contract_version": 1,
+  "track_id": "cdi_stage3",
+  "source": {
+    "blend": "cdi_stage3.blend",
+    "generator": "generar_ss01.py",
+    "approved_axis": "SS03_Carretera_Spline_3D_Nodes.csv",
+    "road_width_m": [
+      4.163693417497788,
+      6.0
+    ],
+    "maximum_design_grade": 0.22,
+    "terrain_blend_radius_m": 36.0,
+    "max_grade_adjustment_m": 0.0,
+    "source_pk_m": [
+      0,
+      6353.218
+    ],
+    "timed_source_pk_m": [
+      50.0,
+      6303.218
+    ],
+    "relief_seed": 20261117,
+    "pothole_count": 0,
+    "maximum_road_depression_m": 0.12,
+    "surface_texture_pack": "asfalto_estepa",
+    "slope_texture": {
+      "file": "pedregal.png",
+      "minimum_cross_slope_degrees": 15
+    },
+    "side_room_m": 30,
+    "barrier": {
+      "segments": 4782,
+      "open_steep_slope_m": 1722.66
+    },
+    "guardrails": {
+      "runs": [
+        {
+          "side": "right",
+          "start_m": 2136.69,
+          "length_m": 678.3
+        },
+        {
+          "side": "right",
+          "start_m": 2873.02,
+          "length_m": 22.04
+        },
+        {
+          "side": "right",
+          "start_m": 2967.2,
+          "length_m": 167.83
+        },
+        {
+          "side": "right",
+          "start_m": 3216.81,
+          "length_m": 1931.84
+        },
+        {
+          "side": "right",
+          "start_m": 5398.5,
+          "length_m": 202.24
+        },
+        {
+          "side": "right",
+          "start_m": 5624.74,
+          "length_m": 84.03
+        },
+        {
+          "side": "right",
+          "start_m": 5744.82,
+          "length_m": 54.08
+        },
+        {
+          "side": "right",
+          "start_m": 6259.27,
+          "length_m": 103.32
+        }
+      ],
+      "length_m": 3243.68
+    },
+    "blend_sha256": "7b55552c0dd0a6f512ce28bf4586ba02e6bec16d62147bec113ade9e858e5e12"
+  },
+  "visual": {
+    "path": "cdi_stage3_visual.glb",
+    "sha256": "c9135767d8b99f3264bbd8558429f14b48775081c4d75a6ed87dc585849217ca",
+    "size_bytes": 16709896
+  },
+  "collision": {
+    "path": "cdi_stage3_collision.glb",
+    "sha256": "2d59096da9bac8be3fd93eb12dab95dc4590cf02ce8e7cf2a9b38febcc6bba18",
+    "size_bytes": 17669676
+  },
+  "start_pose": {
+    "ground_godot": [
+      47.0674934387207,
+      0.798376739025116,
+      -15.96403980255127
+    ],
+    "heading_radians": -1.5832863664820582
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0
+  },
+  "streaming": {
+    "index": "sectores/index.json",
+    "cell_m": 192,
+    "sector_count": 64,
+    "detail_triangles": 970617
+  }
+}

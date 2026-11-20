@@ -275,6 +275,18 @@ def main(stage=None):
             rows.append(row)
         return rows
 
+    def folded_sections(rows):
+        def signed_area(a, b, c):
+            return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+        folds = []
+        for i, (row, following) in enumerate(zip(rows, rows[1:])):
+            for k in range(6):
+                a, b, c, d = row[k], row[k+1], following[k+1], following[k]
+                if min(signed_area(a,b,c), signed_area(a,c,d)) <= 0:
+                    folds.append((i,k))
+        return folds
+
     for attempt in range(20):
         rows = cross_sections()
         boundary = [r[0] for r in rows] + rows[-1][1:] + [r[-1] for r in rows[-2::-1]] + rows[0][-2:0:-1]
@@ -283,9 +295,11 @@ def main(stage=None):
         probe, _, _, source_ids, _, _ = delaunay_2d_cdt(
             [Vector(v) for v in polygon], edges, [], 0, 0.0001)
         crossings = [point for point, ids in zip(probe, source_ids) if not ids]
-        if not crossings:
+        folds = folded_sections(rows) if stage and not crossings else []
+        if not crossings and not folds:
             break
-        print(f"Corridor pass {attempt + 1}: {len(crossings)} intersections", flush=True)
+        crossings.extend((axis[i].xy + axis[i + 1].xy) / 2 for i, _ in folds)
+        print(f"Corridor pass {attempt + 1}: {len(crossings) - len(folds)} intersections, {len(folds)} folded quads", flush=True)
         for i, p in enumerate(axis):
             nearest = min((p.xy - c).length for c in crossings)
             if nearest < 18.0:
@@ -321,14 +335,7 @@ def main(stage=None):
     min_road_width = min(math.dist(row[2][:2], row[4][:2]) for row in rows)
     assert min_road_width >= 2.2, f"Road is too narrow: {min_road_width:.2f} m"
     print(f"Minimum road width: {min_road_width:.2f} m", flush=True)
-    def signed_area(a, b, c):
-        return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
-    folds = []
-    for i, (row, following) in enumerate(zip(rows, rows[1:])):
-        for k in range(6):
-            a, b, c, d = row[k], row[k+1], following[k+1], following[k]
-            if min(signed_area(a,b,c), signed_area(a,c,d)) <= 0:
-                folds.append((i,k))
+    folds = folded_sections(rows)
     assert not folds, f"Folded cross-sections: {folds[:20]}"
 
 
@@ -421,12 +428,33 @@ def main(stage=None):
         write_json(inventory, {"seed":road_relief.seed,"features":road_relief.features})
         road_sections, road_stations, road_originals = detail.densify(rows, stations, road_relief)
         width = len(road_sections[0])
-        _, road_faces = visual_strip(
-            "Road", road_sections, (visual_gravel, compacted) if pilot else (visual_gravel,),
-            lambda _i, k: int(pilot and 0.35 < abs(2 * (k+0.5) / (width-1) - 1) < 0.63),
-            1.0, road_stations,
-        )
-        mesh("Collision_Road", [p for row in road_sections for p in row], road_faces, gravel, collision)
+        asphalt = stage and stage.get("asphalt")
+        snow_row = len(road_sections) - 1
+        if asphalt:
+            road_materials = (material("road_asphalt_cdi", (0.22, 0.22, 0.23)),)
+            if stage.get("snow_second_half"):
+                from bisect import bisect_left
+
+                first_gate, last_gate = gate_indices
+                snow_station = (stations[first_gate + 6] + stations[last_gate + 6]) / 2
+                snow_row = bisect_left(road_stations, snow_station)
+            choose_material = lambda _i, _k: 0
+        else:
+            road_materials = (visual_gravel, compacted) if pilot else (visual_gravel,)
+            choose_material = lambda _i, k: int(pilot and 0.35 < abs(2 * (k+0.5) / (width-1) - 1) < 0.63)
+        _, road_faces = visual_strip("Road", road_sections, road_materials, choose_material, 1.0, road_stations)
+        road_vertices = [p for row in road_sections for p in row]
+        if asphalt:
+            boundary = snow_row * (width - 1)
+            asphalt_mat = material("road_asphalt_cdi", (0.22, 0.22, 0.23))
+            mesh("Collision_Road", road_vertices[:(snow_row + 1) * width], road_faces[:boundary], asphalt_mat, collision)
+            if boundary < len(road_faces):
+                offset = snow_row * width
+                snow_faces = [tuple(v - offset for v in face) for face in road_faces[boundary:]]
+                snow_mat = material("road_snow_cdi", (0.78, 0.82, 0.87))
+                mesh("Collision_Road_Snow", road_vertices[offset:], snow_faces, snow_mat, collision)
+        else:
+            mesh("Collision_Road", road_vertices, road_faces, gravel, collision)
     else:
         visual_strip("Road", road_sections, (visual_gravel, compacted),
                      lambda _i, k: int(k in (1, 4)), 1.0)
@@ -718,6 +746,9 @@ def main(stage=None):
     if stage:
         from rajuntay_terrain import build_barrier, build_backdrop
         barrier_metrics = build_barrier(data["wall_ring"], origin, compact_ground, outside, ground, mesh, dirt, collision)
+        if asphalt:
+            from guardarrailes import build_guardrails
+            guardrail_metrics = build_guardrails(rows, stations, ground, mesh, material, visual, collision)
         build_backdrop(outer, outer_bands, origin, data["distant_terrain"], ground, inside,
                        mesh, background.data.materials[0], visual)
 
@@ -761,11 +792,17 @@ def main(stage=None):
         manifest["source"]["slope_texture"] = {"file":"argentina_talud.png","minimum_cross_slope_degrees":15}
     if stage:
         manifest["source"].update(
-            blend=track + ".blend", generator="generar_ss01.py", approved_axis="SS01_Carretera_Spline_3D_Nodes.csv",
+            blend=track + ".blend", generator="generar_ss01.py", approved_axis=stage["axis_source"],
             source_pk_m=[0, data["source_pks"][-1]], timed_source_pk_m=data["timing_pks"],
             surface_texture_pack="Raura gravel / Rajuntay PS1",
             slope_texture={"file":"pedregal.png","minimum_cross_slope_degrees":15},
             side_room_m=30, barrier=barrier_metrics)
+        if stage.get("asphalt"):
+            manifest["source"]["surface_texture_pack"] = "asfalto_estepa"
+            manifest["source"]["guardrails"] = guardrail_metrics
+            if stage.get("snow_second_half"):
+                manifest["source"]["snow_road_station_m"] = road_stations[snow_row]
+                manifest["source"]["snow_start_m_from_start"] = road_stations[snow_row] - stations[gate_indices[0] + 6]
     exports = [("visual", visual)] if visual_only else [("visual", visual), ("collision", collision)]
     staged_glbs = []
     for kind, group in exports:
@@ -896,7 +933,7 @@ def main(stage=None):
         "basis":"Synthetic standalone defaults at 50 km/h",
         "values_seconds":{f"CPUSplit{i}":[length / 13.89] for i, length in enumerate(sectors)}})
     write_json(GAME / f"data/competition/stages/{track}.json", {"id":track,"name":stage["name"] if stage else ("Rally Raura — Piloto con relieve" if pilot_relief else ("Rally Raura — Piloto OSQP" if pilot else "Rally Raura — Stage 2")),
-        "route_path":route,"timing_gates_path":gates,"surface":"gravel_mud",
+        "route_path":route,"timing_gates_path":gates,"surface":"asphalt" if stage and stage.get("asphalt") else "gravel_mud",
         "fallback_path":baseline,"difficulty":0,"reference_scale":1.0,
         "roughness":0.1,"jumps":0,"visibility":1,"wetness":0,"blind_route":False,
         "sector_checkpoint_indices":control_indices,"sector_lengths_km":[length/1000 for length in sectors]})

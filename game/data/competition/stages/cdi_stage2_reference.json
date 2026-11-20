@@ -1,0 +1,17 @@
+{
+  "basis": "Synthetic standalone defaults at 50 km/h",
+  "values_seconds": {
+    "CPUSplit0": [
+      89.92193225787102
+    ],
+    "CPUSplit1": [
+      89.46221335485457
+    ],
+    "CPUSplit2": [
+      89.45803801801044
+    ],
+    "CPUSplit3": [
+      89.73771133790802
+    ]
+  }
+}

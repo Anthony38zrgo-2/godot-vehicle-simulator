@@ -2,18 +2,20 @@ shader_type spatial;
 render_mode unshaded, fog_disabled, cull_disabled;
 
 #include "res://scripts/rally/cdi_terrain_layers.gdshaderinc"
+#include "res://scripts/rally/cdi_ticlio_snow.gdshaderinc"
 
 // Luz dinámica de la escena (RallyVisualSectorStream._update_regional_lighting)
 uniform vec3 sun_dir = vec3(-0.52, 0.66, -0.54);
 uniform vec3 sun_color = vec3(1.24, 1.17, 1.02);
 uniform vec3 ambient_color = vec3(0.48, 0.54, 0.63);
 uniform vec3 haze_color = vec3(0.68, 0.76, 0.86);
-uniform float sun_gain = 0.82;
-uniform float ambient_gain = 0.60;
+uniform float sun_gain = 0.88;
+uniform float ambient_gain = 0.56;
 // Aire fino de 4800 m: bruma ligera y tardía
-uniform float haze_start = 2500.0;
+uniform float haze_start = 3000.0;
 uniform float haze_end = 18000.0;
-uniform float haze_max = 0.30;
+uniform float haze_max = 0.24;
+uniform float color_saturation = 1.16;
 
 varying vec3 world_point;
 varying vec3 world_normal;
@@ -34,9 +36,9 @@ float ridge_aa(vec2 p, float f, float fp) {
 	float r2 = 1.0 - abs(patch_noise(p * f * 2.25 + vec2(19.3, 41.7)) * 2.0 - 1.0);
 	float r3 = 1.0 - abs(patch_noise(p * f * 4.95 + vec2(73.1, 11.9)) * 2.0 - 1.0);
 	float r4 = 1.0 - abs(patch_noise(p * f * 10.4 + vec2(7.1, 83.4)) * 2.0 - 1.0);
-	r1 = mix(r1, r1 * r1, 0.55);
-	r2 = mix(r2, r2 * r2, 0.55);
-	r3 = mix(r3, r3 * r3, 0.50);
+	r1 = mix(r1, r1 * r1, 0.38);
+	r2 = mix(r2, r2 * r2, 0.38);
+	r3 = mix(r3, r3 * r3, 0.32);
 	return mix(0.45, r1, octave_weight(f, fp)) * 0.46
 		+ mix(0.45, r2, octave_weight(f * 2.25, fp)) * 0.28
 		+ mix(0.45, r3, octave_weight(f * 4.95, fp)) * 0.17
@@ -101,7 +103,7 @@ void fragment() {
 
 	float dist = length(VERTEX);
 	float xz_fp = max(max(length(dFdx(p.xz)), length(dFdy(p.xz))), 0.25);
-	float detail_fade = 1.0 - smoothstep(1600.0, 7200.0, dist);
+	float detail_fade = 1.0 - smoothstep(1350.0, 6000.0, dist);
 	float near_fade = 1.0 - smoothstep(400.0, 2300.0, dist);
 
 	float grade = length(base_normal.xz) / max(base_normal.y, 0.05);
@@ -118,7 +120,7 @@ void fragment() {
 	float hy = macro_height(p + vec3(0.0, eps, 0.0), steep, cliff, slope_dir, xz_fp);
 	float hz = macro_height(p + vec3(0.0, 0.0, eps), steep, cliff, slope_dir, xz_fp);
 	vec3 grad = vec3(hx - h0, hy - h0, hz - h0) / eps;
-	float bump = mix(0.95, 5.4, steep) * (1.0 + 0.55 * cliff) * detail_fade;
+	float bump = mix(0.75, 3.9, steep) * (1.0 + 0.42 * cliff) * detail_fade;
 	vec3 n = normalize(base_normal - grad * bump);
 
 	// --- C. Máscara de afloramientos con borde definido ---
@@ -128,17 +130,18 @@ void fragment() {
 	// Lenguas de pasto que suben por las canaletas entre crestones
 	float t = COLOR.a + (crest - 0.5) * 0.38 + macro_break * 0.22 + mid_break * 0.10
 		- smoothstep(0.55, 0.85, gully) * 0.16 * steep + gis.b * 0.12;
-	float edge_w = 0.045 + clamp(xz_fp * 0.006, 0.0, 0.18); // borde nítido cerca, suave lejos (sin aliasing)
+	float edge_w = 0.075 + clamp(xz_fp * 0.006, 0.0, 0.18); // borde suave pero definido
 	float rock_mask = smoothstep(0.50 - edge_w, 0.50 + edge_w, t);
 	float scree_mask = smoothstep(0.30, 0.46, t) * (1.0 - rock_mask);
 
 	// --- B. Albedo: roca gris neutra / salmón de COLOR_0 + detalle ---
 	float rock_luma = mix(triplanar_luma(p, base_normal, 10.0, 17.0),
 		mix(triplanar_luma(p, base_normal, 45.0, 15.0), triplanar_luma(p, base_normal, 13.0, 14.0), 0.55), cliff);
-	float rock_detail = clamp(1.0 + (rock_luma - 0.35) * 1.05, 0.72, 1.30);
+	float rock_detail = clamp(1.0 + (rock_luma - 0.35) * 0.82, 0.78, 1.22);
 	float strata = geological_strata(p);
-	float cavity = clamp(0.80 + (h0 - 0.58) * 0.30, 0.68, 1.14);
-	vec3 rock_albedo = COLOR.rgb * mix(1.0, rock_detail * cavity * (1.0 + strata * 0.10 * cliff), detail_fade);
+	float cavity = clamp(0.84 + (h0 - 0.58) * 0.24, 0.74, 1.12);
+	vec3 strata_tint = mix(vec3(0.95, 0.97, 1.02), vec3(1.07, 0.97, 0.92), strata * 0.5 + 0.5);
+	vec3 rock_albedo = COLOR.rgb * mix(vec3(1.0), strata_tint * rock_detail * cavity * (1.0 + strata * 0.08 * cliff), detail_fade);
 
 	vec3 grass_weights = mix(vec3(0.45, 0.12, 0.10), gis.rgb, gis.a);
 	float patch_macro = fbm_aa(p.xz, 0.026, xz_fp) * 0.70 + (mid_break + 0.5) * 0.30;
@@ -149,11 +152,15 @@ void fragment() {
 	vec3 scree_albedo = mix(rock_albedo * vec3(1.08, 1.04, 1.00), grass_albedo * vec3(0.92, 0.86, 0.80), 0.45);
 	vec3 albedo = mix(grass_albedo, scree_albedo, scree_mask * 0.85);
 	albedo = mix(albedo, rock_albedo, rock_mask);
+	float albedo_luma = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
+	albedo = clamp(mix(vec3(albedo_luma), albedo, color_saturation), 0.0, 1.0);
+
+	albedo = ticlio_winter_ground(albedo, p, base_normal, dist, 0.0);
 
 	// --- A. Iluminación con el sol dinámico (wrap) + cielo ---
 	vec3 L = normalize(sun_dir);
-	vec3 shade_n = normalize(mix(base_normal, n, mix(0.45, 1.0, rock_mask)));
-	float ndl = clamp(dot(shade_n, L) * 0.78 + 0.22, 0.0, 1.0);
+	vec3 shade_n = normalize(mix(base_normal, n, mix(0.35, 0.88, rock_mask)));
+	float ndl = clamp(dot(shade_n, L) * 0.72 + 0.28, 0.0, 1.0);
 	float sky = 0.72 + 0.28 * shade_n.y;
 	float occl = mix(1.0, cavity, rock_mask * detail_fade);
 	vec3 light = sun_color * (ndl * sun_gain) + ambient_color * (sky * ambient_gain * occl);

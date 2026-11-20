@@ -21,7 +21,7 @@ La malla regional usa el recorte ampliado de Copernicus DEM GLO-30, muestreado c
 
 `generar_sectores.py` toma el GLB de Blender y divide únicamente el detalle visual en celdas XZ de 192 m. Conserva triángulos, posiciones, normales, UV de textura y la máscara lateral de talud. Añade el PK en `UV2.y` para elegir variantes de carretera, talud y cuneta por tramos de 215 m, con fundidos de 20 m centrados en cada límite. Godot mantiene cargados los sectores a 450 m del coche o su posición prevista tres segundos más adelante. Los sectores salen al superar 690 m, mientras que la colisión, el cronometraje y los carteles de meta permanecen residentes.
 
-Rajuntay usa 15 matas de ichu de tarjetas cruzadas, compartidas en `game/assets/rally/cdi_stage1/ichu`. Las variantes secas, envejecidas y altas usan ocres y las frescas usan el oliva del ichu anterior. Cada variante tiene una pareja con nieve en las hojas altas que el dispersor puede seleccionar mediante una máscara de nieve. Los seis PNG de `arbustos_png/` se exportan como GLB. Los pesos de arbustos y cactus son 40% beige, 18% cactus y 42% verde. Su dispersión usa una semilla independiente, con una cápsula de colisión por planta.
+Las 15 matas de ichu del FBX Grass Pack se exportan con tarjetas cruzadas y se comparten entre las cuatro especiales. Las variantes secas, envejecidas y altas usan los ocres del ichu de Rajuntay. Las frescas usan el oliva del anterior pasto_03. Cada variante tiene una pareja con nieve horneada a partir de la altura de sus hojas. El SS04 alterna ambas versiones según su máscara de nieve y reduce la densidad en las acumulaciones. Los arbustos y cactus mantienen sus tarjetas y sus pesos de dispersión.
 
 Rajuntay aplica un factor de densidad de 0,45 al pasto y 0,60 a los arbustos. Las matas tienen una altura base de 0,29 a 0,56 m y se ajustan por familia. La dispersión reserva un pequeño radio alrededor del público, los animales y las rocas. Las instancias de todos estos objetos, incluidas las colisiones de arbustos y rocas, se crean y se liberan con sus sectores de terreno.
 
@@ -64,3 +64,40 @@ Las celdas de 128 × 128 se usan como materiales independientes. La mezcla de pa
 1. El piloto de 700 m permitió revisar baches, colisión y margen lateral antes de extender el generador al eje completo.
 2. Revisar la transición entre el terreno detallado y la malla regional desde persecución y mirada lateral en una pasada completa. Medir el coste de renderizado al cargar sectores.
 3. La escena completa integra ruta, cronometraje y tres parciales. La prueba `res://tests/rally/cdi_finish_contract.gd` verifica que el cronómetro y la competición sigan abiertos hasta cruzar la puerta y que haya grava con colisión tras la meta. Queda la conducción de aceptación para revisar las caídas, las recuperaciones y el horizonte a lo largo de la especial.
+
+## SS02 Quebrada Chinchán
+
+El evento de `run_cdi.ps1` empieza en Rajuntay Alto. Al cruzar su puerta de meta, el panel de resultados permite continuar a Quebrada Chinchán con la clasificación acumulada. La salida del SS02 está programada a las 08:20 en el itinerario del juego.
+
+El SS02 usa la spline y los rásteres de Quebrada Chinchán. El proceso genera la calzada de grava, la colisión residente, el terreno regional y los sectores de 192 m. La máscara Sentinel/DEM se alinea al origen del SS02. Las texturas de terreno y los modelos de vegetación y utilería se comparten con Rajuntay, y su dispersión se calcula sobre la nueva ruta. Las puertas quedan a 50 m de los extremos del eje de origen.
+
+```powershell
+$gis = 'tools/rally/stage_gis/rajuntay_alto'
+$source = 'D:\RallyManiacAssets\stages\SS02_Quebrada_Chinchan\SS02_Quebrada_Chinchan'
+python "$gis/generar_ss01.py" --ss02 --prepare $source
+python "$gis/generar_horizonte.py" --ss02 --prepare
+python "$gis/generar_ss01.py" --ss02 --prepare $source --extend-valley
+blender -b --factory-startup --python-exit-code 1 --python "$gis/generar_ss01.py" -- --ss02
+python "$gis/generar_sectores.py" --ss02
+python "$gis/generar_mascara_pastizal.py" --ss02 $source game/assets/rally/cdi_stage2/puna_seca
+./scripts/run_cdi.ps1 -Import
+```
+
+Godot ejecuta el contrato de cronometraje y transición con `godot --headless --path game --script res://tests/rally/cdi_finish_contract.gd`.
+
+## SS03 Chinchán Asfalto y SS04 Abra Ticlio
+
+La secuencia del evento es SS01, SS02, área de servicio, SS03 y SS04. El servicio reserva 30 minutos de reparación y abre después el garaje para confirmar reglajes y cambiar neumáticos del inventario. Las horas de salida de SS03 y SS04 son 09:15 y 09:40.
+
+Chinchán Asfalto tiene 6,24 km cronometrados sobre asfalto. Abra Ticlio tiene 6,19 km cronometrados. En Ticlio, la calzada cambia de asfalto a nieve compactada en el km 3,10 del recorrido cronometrado. El generador corta allí los cuerpos de colisión. El material visual de asfalto se mezcla con nieve a lo largo de unos 90 m, con acumulación desde los bordes y huellas visibles. La nieve de la calzada se mantiene después de la meta.
+
+Los materiales de calzada y acero usan las texturas de game/assets/rally/CDI/asfalto_estepa. En SS03 y SS04, el generador detecta arcenes con caída sostenida hacia afuera a 8 y 20 m de la calzada. Los tramos de al menos 14 m reciben guardarraíles con módulos y terminales texturizados. Su visual se carga por sectores y su colisión continua queda residente.
+
+En Ticlio, el terreno de detalle, el fondo local y el DEM regional comparten la distribución de nieve por altitud, pendiente y exposición. Las siete texturas de roca y nieve viven en `game/assets/rally/CDI/nieve_ticlio`. Las acumulaciones crecen en cunetas y zonas suaves y dejan expuestos los cortes empinados. En la calzada, la cobertura sigue creciendo al ascender después de la transición visual y es mayor junto al arcén. Los guardarraíles de SS03 y SS04 tienen una escala vertical de 0,70 aplicada desde la base de cada módulo, también en la colisión.
+
+Para regenerar estos tramos, usa la receta del SS02 con la bandera y la carpeta de origen correspondientes. La carpeta de la última orden de Python es `game/assets/rally/cdi_stage3/puna_seca` o `game/assets/rally/cdi_stage4/puna_seca`.
+
+| Bandera | Carpeta de origen bajo `D:\RallyManiacAssets\stages` |
+| --- | --- |
+| `--ss03` | `SS03_Chinchan_Asfalto\SS03_Chinchan_Asfalto` |
+| `--ss04` | `SS04_Abra_Ticlio\SS04_Abra_Ticlio` |

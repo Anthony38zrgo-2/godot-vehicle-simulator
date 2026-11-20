@@ -2,6 +2,7 @@ shader_type spatial;
 render_mode fog_disabled, specular_disabled;
 
 #include "res://scripts/rally/cdi_terrain_layers.gdshaderinc"
+#include "res://scripts/rally/cdi_ticlio_snow.gdshaderinc"
 
 uniform int terrain_mode = 0;
 varying vec3 world_point;
@@ -43,5 +44,9 @@ void fragment() {
 		}
 	}
 	ALBEDO *= terrain_macro_tone(p.xz);
+	if (terrain_mode != 2) {
+		float ditch = terrain_mode == 1 ? 1.0 - smoothstep(0.24, 0.73, UV2.x) : 0.0;
+		ALBEDO = ticlio_winter_ground(ALBEDO, p, n, length(VERTEX), ditch);
+	}
 	ROUGHNESS = 0.95;
 }

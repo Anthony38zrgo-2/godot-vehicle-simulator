@@ -4,9 +4,10 @@ import math
 import sys
 from pathlib import Path
 
+from generar_ss01 import OUT, TRACK
+
 BASE = Path(__file__).resolve().parent
-OUT = BASE / "output"
-ASSETS = BASE.parents[3] / "game/assets/rally/cdi_stage1/horizonte"
+ASSETS = BASE.parents[3] / "game/assets/rally" / TRACK / "horizonte"
 TILE = "Copernicus_DSM_COG_10_S12_00_W077_00_DEM"
 DEM_URL = f"https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/{TILE}/{TILE}.tif"
 PANORAMA = "rajuntay_panorama.png"

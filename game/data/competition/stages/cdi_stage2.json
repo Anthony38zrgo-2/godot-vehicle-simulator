@@ -1,0 +1,27 @@
+{
+  "id": "cdi_stage2",
+  "name": "Caminos del Inca · SS02 Quebrada Chinchán",
+  "route_path": "res://data/rally/cdi_stage2_route.json",
+  "timing_gates_path": "res://data/competition/stages/cdi_stage2_timing_gates.json",
+  "surface": "gravel_mud",
+  "fallback_path": "res://data/competition/stages/cdi_stage2_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    159,
+    318,
+    477,
+    634
+  ],
+  "sector_lengths_km": [
+    1.2490156390618286,
+    1.24263014349893,
+    1.242572148070165,
+    1.2464568104835425
+  ]
+}

@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/rally/russia_stage1_ford_mustang_1967_289_2v.tscn" id="1_session"]
+
+[node name="CaminosDelIncaAbraTiclio" instance=ExtResource("1_session")]
+track_id = "cdi_stage4"
+stage_place = "Abra Ticlio"
+stage_country = "Perú"
+practice_mode = true
+single_stage_weather = "cloudy"
+
+[node name="Camera3D" parent="RallyCameraRig" index="0"]
+far = 18000.0

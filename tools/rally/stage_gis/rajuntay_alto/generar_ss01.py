@@ -1,4 +1,4 @@
-"""Prepare SS01 with Python/Pillow/Shapely, then build it with Blender."""
+"""Prepare a CDI stage with Python/Pillow/Shapely, then build it with Blender."""
 import csv
 import json
 import math
@@ -7,8 +7,13 @@ from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 RAURA = BASE.parent / "raura_quichas_gis"
+STAGE_NAMES = ("Rajuntay Alto", "Quebrada Chinchán", "Chinchán Asfalto", "Abra Ticlio")
+STAGE_NUMBER = next((i for i in range(2, 5) if f"--ss0{i}" in sys.argv), 1)
+STAGE_ID = f"SS{STAGE_NUMBER:02d}"
+TRACK = f"cdi_stage{STAGE_NUMBER}"
 OUT = BASE / "output"
-TRACK = "cdi_stage1"
+if STAGE_NUMBER > 1:
+    OUT /= STAGE_ID.lower()
 END_RUNWAY_M = 50.0
 
 
@@ -19,7 +24,7 @@ def prepare(source, extend_valley=False):
 
     OUT.mkdir(parents=True, exist_ok=True)
     rows = []
-    with (source / "SS01_Carretera_Spline_3D_Nodes.csv").open(newline="", encoding="utf-8-sig") as stream:
+    with (source / f"{STAGE_ID}_Carretera_Spline_3D_Nodes.csv").open(newline="", encoding="utf-8-sig") as stream:
         for row in csv.DictReader(stream):
             point = tuple(float(row[key]) for key in ("x_utm_corr", "y_utm_corr", "z_corr_m"))
             pk = float(row["s_corrected_m"])
@@ -38,9 +43,9 @@ def prepare(source, extend_valley=False):
 
     terrain_ring = ring(58.0, 5.0)
     wall_ring = ring(33.0, 3.0)
-    metadata = json.loads((source / "SS01_metadata.json").read_text(encoding="utf-8"))
+    metadata = json.loads((source / f"{STAGE_ID}_metadata.json").read_text(encoding="utf-8"))
     west, step, _, north, _, _ = metadata["grid_2p5m"]["transform_gdal"]
-    with Image.open(source / "SS01_DEM_GLO30_suavizado_2p5m.tif") as dem:
+    with Image.open(source / f"{STAGE_ID}_DEM_GLO30_suavizado_2p5m.tif") as dem:
         xs, ys = zip(*terrain_ring)
         left = math.floor((min(xs) + x0 - west) / step) - 3
         right = math.ceil((max(xs) + x0 - west) / step) + 3
@@ -90,6 +95,9 @@ def prepare(source, extend_valley=False):
     wear.update(seed=20261117, zones=[], manual_features=[],
                 exclusion_zones=[{"from_pk_m": 0, "to_pk_m": 65},
                                  {"from_pk_m": finish_pk - 10, "to_pk_m": end_pk}])
+    if STAGE_NUMBER >= 3:
+        wear.update(exclusion_zones=[{"from_pk_m": 0, "to_pk_m": end_pk}],
+                    corrugations=[], crests=[], settlements=[], undulation_m=0.0)
     (OUT / "desgaste.json").write_text(json.dumps(wear), encoding="utf-8")
 
 
@@ -101,4 +109,6 @@ if __name__ == "__main__":
         from generar_stage2 import main
 
         main(dict(track=TRACK, output=OUT, wear=OUT / "desgaste.json",
-                  name="Caminos del Inca · SS01 Rajuntay Alto"))
+                  axis_source=f"{STAGE_ID}_Carretera_Spline_3D_Nodes.csv",
+                  asphalt=STAGE_NUMBER >= 3, snow_second_half=STAGE_NUMBER == 4,
+                  name=f"Caminos del Inca · {STAGE_ID} {STAGE_NAMES[STAGE_NUMBER - 1]}"))

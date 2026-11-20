@@ -9,7 +9,6 @@ param(
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = Join-Path $repositoryRoot 'game'
-$track = 'cdi_stage1'
 $scene = 'res://scenes/rally/rally_maniac_menu.tscn'
 
 if (-not $GodotPath) { $GodotPath = $env:GODOT_BIN }
@@ -22,21 +21,35 @@ if (-not $GodotPath -or -not (Test-Path -LiteralPath $GodotPath -PathType Leaf))
     throw 'No se encontro Godot. Indica -GodotPath o configura GODOT_BIN.'
 }
 $godot = (Resolve-Path -LiteralPath $GodotPath).Path
-$assetsRoot = Join-Path $gameRoot "assets/rally/$track"
-$sectorRoot = Join-Path $assetsRoot 'sectores'
-$sectorIndexPath = Join-Path $sectorRoot 'index.json'
-if (-not (Test-Path -LiteralPath $sectorIndexPath -PathType Leaf)) {
-    throw 'Falta el indice de sectores de Rajuntay. Consulta PLAN_SS01.md para regenerarlo.'
+$assetPaths = foreach ($track in @('cdi_stage1', 'cdi_stage2', 'cdi_stage3', 'cdi_stage4')) {
+    $assetsRoot = Join-Path $gameRoot "assets/rally/$track"
+    $sectorRoot = Join-Path $assetsRoot 'sectores'
+    $sectorIndexPath = Join-Path $sectorRoot 'index.json'
+    if (-not (Test-Path -LiteralPath $sectorIndexPath -PathType Leaf)) {
+        throw "Falta el indice de sectores de $track. Consulta PLAN_SS01.md para regenerarlo."
+    }
+    $sectorIndex = Get-Content -LiteralPath $sectorIndexPath -Raw | ConvertFrom-Json
+    Join-Path $assetsRoot "${track}_visual.glb"
+    Join-Path $assetsRoot "${track}_collision.glb"
+    foreach ($sector in $sectorIndex.sectors) { Join-Path $sectorRoot $sector.file }
+    Join-Path $assetsRoot 'puna_seca/pastizal_gis.png'
+    if ($track -eq 'cdi_stage4') { Join-Path $assetsRoot 'puna_seca/nieve_gis.png' }
 }
-$sectorIndex = Get-Content -LiteralPath $sectorIndexPath -Raw | ConvertFrom-Json
-$assetPaths = @(
-    (Join-Path $assetsRoot "${track}_visual.glb")
-    (Join-Path $assetsRoot "${track}_collision.glb")
-)
-$assetPaths += @($sectorIndex.sectors | ForEach-Object { Join-Path $sectorRoot $_.file })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $assetsRoot 'puna_seca') -Filter '*.png' -File |
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage1/puna_seca') -Filter '*.png' -File |
     ForEach-Object { $_.FullName })
 
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/CDI/asfalto_estepa') -Filter '*.png' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/CDI/nieve_ticlio') -Filter '*.png' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage4/parked') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/CDI/senaletica/caras_mtc') -Filter '*.png' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage4/monumentos') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage4/construcciones') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage1/ichu') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
 foreach ($assetPath in $assetPaths) {

@@ -1,0 +1,69 @@
+{
+  "contract_version": 1,
+  "track_id": "cdi_stage2",
+  "source": {
+    "blend": "cdi_stage2.blend",
+    "generator": "generar_ss01.py",
+    "approved_axis": "SS02_Carretera_Spline_3D_Nodes.csv",
+    "road_width_m": [
+      5.9998458852446,
+      6.0
+    ],
+    "maximum_design_grade": 0.22,
+    "terrain_blend_radius_m": 36.0,
+    "max_grade_adjustment_m": 0.0,
+    "source_pk_m": [
+      0,
+      5166.816
+    ],
+    "timed_source_pk_m": [
+      50.0,
+      5116.816
+    ],
+    "relief_seed": 20261117,
+    "pothole_count": 479,
+    "maximum_road_depression_m": 0.12,
+    "surface_texture_pack": "Raura gravel / Rajuntay PS1",
+    "slope_texture": {
+      "file": "pedregal.png",
+      "minimum_cross_slope_degrees": 15
+    },
+    "side_room_m": 30,
+    "barrier": {
+      "segments": 3600,
+      "open_steep_slope_m": 321.81
+    },
+    "blend_sha256": "6337dd4789efef8176bce8bfbc026c9dded3a441e44a2eca28b904ee69635fa6"
+  },
+  "visual": {
+    "path": "cdi_stage2_visual.glb",
+    "sha256": "a2725c3934943dfeffd527ce44e4b0035cedda327d235a63bcd045b8aa237b19",
+    "size_bytes": 14252344
+  },
+  "collision": {
+    "path": "cdi_stage2_collision.glb",
+    "sha256": "90887592847189e95a186569d9fe38199d6559c4eda4b358b63088b17fa7e5af",
+    "size_bytes": 25815592
+  },
+  "start_pose": {
+    "ground_godot": [
+      27.7504940032959,
+      -1.0512264966964722,
+      41.48140335083008
+    ],
+    "heading_radians": -2.57455536028126
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "unit_scale": 1.0
+  },
+  "streaming": {
+    "index": "sectores/index.json",
+    "cell_m": 192,
+    "sector_count": 34,
+    "detail_triangles": 1413232
+  }
+}
