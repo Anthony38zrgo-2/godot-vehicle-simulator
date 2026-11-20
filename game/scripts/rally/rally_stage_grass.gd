@@ -79,6 +79,8 @@ const BACKLIGHT_COLOR := Color(0.65, 0.65, 0.65)
 var aged_only := false
 var custom_variants: Array[PackedScene] = []
 var custom_variant_weights: Array[float] = []
+var custom_variant_scales: Array[Vector2] = []
+var snowy_variants: Array[PackedScene] = []
 var use_standard_variant_profile := false
 var density_scale := 1.0
 var instance_scale := 1.0
@@ -86,6 +88,7 @@ var outer_offset_scale := 1.0
 var side_bias_strength := 0.0
 var extra_height_variation_m := 0.0
 var ground_group: StringName = &""
+var snow_coverage: Callable
 var collidable_bushes := false
 var fog_enabled := true
 var outline_bush_cards := false
@@ -126,6 +129,8 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 	var arc_table := _arc_table(cumulative, total_length)
 	var buckets: Dictionary = {}
 	var placed := 0
+	var snow_skipped := 0
+	var snow_placed := 0
 	var attempts := 0
 	var bush_cells := {}
 	var reservation_radius := 1.25 if collidable_bushes else 0.46
@@ -150,9 +155,19 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		if collidable_bushes and not _reserve_bush_position(bush_cells, position):
 			continue
 		placed += 1
+		var snow := 0.0
+		if snow_coverage.is_valid():
+			snow = float(snow_coverage.call(position))
+			if rng.randf() < smoothstep(0.18, 0.75, snow):
+				snow_skipped += 1
+				continue
 		var slot := _pick_variant(rng, entries)
 		var scale_range: Vector2 = entries[slot]["scale"]
-		var key := Vector2i(_sample_sector, slot)
+		var snowy := (snow > 0.0 and entries[slot].has("snow_material")
+			and rng.randf() < smoothstep(0.13, 0.62, snow))
+		if snowy:
+			snow_placed += 1
+		var key := Vector2i(_sample_sector, slot + entries.size() if snowy else slot)
 		if not buckets.has(key):
 			buckets[key] = [] as Array[Transform3D]
 		var bell := (rng.randf() + rng.randf()) * 0.5
@@ -161,6 +176,9 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		(buckets[key] as Array[Transform3D]).append(
 			_scatter_transform(position, scale_y, _sample_base, rng))
 
+	if snow_coverage.is_valid():
+		set_meta("snow_skipped", snow_skipped)
+		set_meta("snow_placed", snow_placed)
 	var count := _commit_batches(buckets, entries, collision_mask)
 	var outer_offset := bins[0].x + (bins[-1].y - bins[0].x) * outer_offset_scale
 	print("RALLY_BUSHES_READY" if collidable_bushes else "RALLY_GRASS_READY",
@@ -376,6 +394,8 @@ func _load_variant_entries() -> Array[Dictionary]:
 		var weight: float = VARIANT_WEIGHT[index] if standard_profile else 1.0
 		if index < custom_variant_weights.size():
 			weight = custom_variant_weights[index]
+		if index < custom_variant_scales.size():
+			scale_range = custom_variant_scales[index]
 		if aged_only and custom_variants.is_empty():
 			scale_range = Vector2(1.5, 2.6)
 		if extra_height_variation_m > 0.0:
@@ -383,13 +403,20 @@ func _load_variant_entries() -> Array[Dictionary]:
 			if height > 0.0:
 				var extra_scale := extra_height_variation_m / height
 				scale_range = Vector2(maxf(0.01, scale_range.x - extra_scale), scale_range.y + extra_scale)
-		entries.append({
+		var entry := {
 			"variant": index,
 			"mesh": visual.mesh,
 			"material": _make_material(visual),
 			"scale": scale_range,
 			"weight": weight,
-		})
+		}
+		if index < snowy_variants.size() and snowy_variants[index] != null:
+			var snow_instance := snowy_variants[index].instantiate()
+			var meshes := snow_instance.find_children("*", "MeshInstance3D", true, false)
+			if not meshes.is_empty():
+				entry["snow_material"] = _make_material(meshes[0] as MeshInstance3D)
+			snow_instance.free()
+		entries.append(entry)
 		instance.free()
 	return entries
 
@@ -452,9 +479,12 @@ func _commit_batches(buckets: Dictionary, entries: Array[Dictionary], collision_
 	var count := 0
 	for key: Vector2i in buckets:
 		var transforms: Array[Transform3D] = buckets[key]
-		if transforms.is_empty() or key.y < 0 or key.y >= entries.size():
+		if transforms.is_empty():
 			continue
-		var entry: Dictionary = entries[key.y]
+		var entry: Dictionary = entries[key.y % entries.size()]
+		if key.y >= entries.size():
+			entry = entry.duplicate()
+			entry["material"] = entry["snow_material"]
 		if sector_stream == null:
 			_create_batch(self, key, entry, transforms, collision_layer)
 		else:

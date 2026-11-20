@@ -354,16 +354,22 @@ func _build_stage_grass() -> void:
 		props.build(course, hash(session_track_id + "_props"), track_collision.collision_layer)
 		occupied = props.occupied_points()
 		grass.ground_group = &"RauraGrassGround"
-		grass.use_standard_variant_profile = true
 		grass.density_scale = 0.45 * 0.70
-		grass.instance_scale = 0.575
 		grass.outer_offset_scale = 1.12
 		grass.side_bias_strength = 0.18
 		grass.sector_stream = sector_stream
 		grass.reserved_points = occupied
 		grass.fog_enabled = false
-		for number in range(1, 5):
-			grass.custom_variants.append(load("res://assets/rally/cdi_stage1/vegetacion/pasto_%02d.glb" % number) as PackedScene)
+		var weights := [1.25, 1.65, 0.75, 0.70, 0.24]
+		var scales := [Vector2(0.78, 1.18), Vector2(0.83, 1.18), Vector2(0.77, 1.12),
+			Vector2(0.78, 1.12), Vector2(0.76, 1.13)]
+		for index in range(15):
+			var path := "res://assets/rally/cdi_stage1/ichu/ichu_%02d" % (index + 1)
+			grass.custom_variants.append(load(path + ".glb") as PackedScene)
+			grass.custom_variant_weights.append(weights[index / 3])
+			grass.custom_variant_scales.append(scales[index / 3])
+			if grass.snow_coverage.is_valid():
+				grass.snowy_variants.append(load(path + "_nieve.glb") as PackedScene)
 	if session_track_id == "raurasr_stage2":
 		grass.density_scale = 0.5
 		for variant in ["hierba-seca-florida", "matorral-bajo-oliva", "pasto-alto-dorado", "planta-hojas-verdes"]:
