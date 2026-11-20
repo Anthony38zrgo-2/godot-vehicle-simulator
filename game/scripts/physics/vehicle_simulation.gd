@@ -112,6 +112,13 @@ var carcass_belt_inertia_fraction: float = 0.25
 var fuel_slosh_enabled: bool = true
 var _prev_chassis_vel_world: Vector3 = Vector3.ZERO
 var _has_prev_chassis_vel: bool = false
+# Cinemática de centros instantáneos: Roll Centers, Anti-Dive, Anti-Squat/Anti-Lift y Jacking Forces.
+var instant_center_kinematics_enabled: bool = true
+var last_kinematic_jacking_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var last_geometric_load_transfer_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var last_roll_center_heights_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
+# Elastocinemática filtrada de silentblocks y brazos (compliance steer y compliance camber bajo Fy/Fx).
+var elastokinematics_enabled: bool = true
 var traction_control_enabled: bool = false
 var stability_enabled: bool = false
 var abs_enabled: bool = false
@@ -677,6 +684,10 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 				spring_rate, float(arb.get("ratio", 0.0))
 			)
 	var brakes: Dictionary = domains.get("brakes", { }).get("brakes", { })
+	var thermal_brakes: Dictionary = brakes.get("thermal", {})
+	for key in ["front_duct", "rear_duct"]:
+		if thermal_brakes.has(key):
+			thermal_model.brake_thermal_config[key] = (thermal_brakes[key] as Dictionary).duplicate()
 	brake_model.front_brake_bias = clampf(float(brakes.get("front_brake_bias", 0.5)), 0.0, 1.0)
 	brake_model.maximum_brake_torque_nm = float(
 		brakes.get("max_brake_torque", brake_model.maximum_brake_torque_nm)
@@ -1612,12 +1623,17 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		mass_model.step_fuel_slosh(dt, slosh_accel_local, current_fuel_kg)
 
 	var effective_load_impulses := Vector4.ZERO
+	var acc_kin_jacking_imp := Vector4.ZERO
+	var acc_geo_transfer_imp := Vector4.ZERO
+	var acc_rc_heights := Vector4.ZERO
 	_tire_thermal_elapsed += dt
 	for _substep_index in count:
 		var pred_V: Vector3 = unsprung_rig.V_pred
 		var pred_R: Basis = unsprung_rig.R_pred
 		var pred_C: Vector3 = unsprung_rig.C_pred
 		var pred_up: Vector3 = (pred_R * Vector3.UP).normalized()
+		var pred_right_chassis: Vector3 = pred_R.x.normalized()
+		var pred_fwd_chassis: Vector3 = (-pred_R.z).normalized()
 		var F_body := Vector3.ZERO
 		var T_body := Vector3.ZERO
 		if fuel_slosh_enabled:
@@ -1648,6 +1664,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var spin_damping: Array[float] = [0.0, 0.0, 0.0, 0.0]
 		var J_tang_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var substep_lat_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var substep_lon_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+		var substep_cg_h: Array[float] = [0.5, 0.5, 0.5, 0.5]
 		var front_road_torque_nm := 0.0
 		var F_patch := Vector3.ZERO
 		var T_patch := Vector3.ZERO
@@ -1778,6 +1797,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				F_patch += tire_force + vib
 				T_patch += r_patch.cross(tire_force + vib) + sat_torque
 				J_tang_hub[i] = (tire_force + vib).dot(unsprung_rig.tick_e_wheel[i]) * h
+				substep_lat_n[i] = tire_force.dot(pred_right_chassis)
+				substep_lon_n[i] = tire_force.dot(pred_fwd_chassis)
+				substep_cg_h[i] = clampf(-r_patch.dot(pred_up), 0.15, 1.5)
 			wheel_slips[i] = Vector2(
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
@@ -1806,6 +1828,27 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			thermal_vx[i] = longitudinal_speed
 			thermal_fy[i] = fy
 		_last_front_road_torque_nm = front_road_torque_nm
+		if instant_center_kinematics_enabled:
+			var ic := suspension_model.instant_center_jacking_forces(
+				substep_lat_n,
+				substep_lon_n,
+				unsprung_rig.q,
+				wheel_positions_local,
+				substep_cg_h,
+			)
+			var ic_hub: Array = ic["hub_forces_n"]
+			var ic_geo: Array = ic["geometric_load_transfer_n"]
+			var ic_rc: Array = ic["roll_center_heights_m"]
+			for i in 4:
+				var q_kin := float(ic_hub[i])
+				J_tang_hub[i] += q_kin * h
+				acc_kin_jacking_imp[i] += q_kin * h
+				acc_geo_transfer_imp[i] += float(ic_geo[i]) * h
+				acc_rc_heights[i] += float(ic_rc[i]) * h
+		if elastokinematics_enabled:
+			suspension_model.step_elastokinematics(h, substep_lat_n, substep_lon_n)
+		else:
+			suspension_model.clear_compliance_state()
 		var J_tang: Array[float] = [
 			F_patch.x * h, F_patch.y * h, F_patch.z * h,
 			T_patch.x * h, T_patch.y * h, T_patch.z * h,
@@ -1830,6 +1873,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var normal_loads := unsprung_rig.end_tick(state, dt, suspension_model)
 	for i in 4:
 		wheel_loads[i] = effective_load_impulses[i] / dt
+		last_kinematic_jacking_forces_n[i] = acc_kin_jacking_imp[i] / dt
+		last_geometric_load_transfer_n[i] = acc_geo_transfer_imp[i] / dt
+		last_roll_center_heights_m[i] = acc_rc_heights[i] / dt
 	if _tire_thermal_elapsed + 1.0e-6 >= TIRE_THERMAL_PERIOD:
 		for i in 4:
 			var average_power := _wheel_thermal_work[i] / _tire_thermal_elapsed
@@ -1912,6 +1958,11 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"radial_deflection_m": unsprung_rig.radial_deflection_m[index],
 				"radial": unsprung_rig.radial_states[index].duplicate(),
 				"suspension_force_n": unsprung_rig.spring_forces_n[index],
+				"kinematic_jacking_n": last_kinematic_jacking_forces_n[index],
+				"geometric_load_transfer_n": last_geometric_load_transfer_n[index],
+				"roll_center_height_m": last_roll_center_heights_m[index],
+				"compliance_toe_rad": suspension_model.compliance_toe_rad[index],
+				"compliance_camber_rad": suspension_model.compliance_camber_rad[index],
 			}
 		)
 		wheels.append(wheel)
@@ -2283,6 +2334,16 @@ func suspension_calibration_report() -> Dictionary:
 				"rebound_damping_ns_m": float(p.get("rebound_damping", 0.0)),
 				"static_load_n": float(p.get("static_load", 0.0)),
 				"static_corner_load_n": suspension_model.static_corner_loads_n[axle],
+				"roll_center_height_m": float(p.get("roll_center_height_m", 0.0)),
+				"roll_center_height_gain": float(p.get("roll_center_height_gain", 0.0)),
+				"anti_dive_ratio": float(p.get("anti_dive_ratio", 0.0)),
+				"anti_squat_ratio": float(p.get("anti_squat_ratio", 0.0)),
+				"anti_lift_ratio": float(p.get("anti_lift_ratio", 0.0)),
+				"solid_axle": bool(p.get("solid_axle", false)),
+				"compliance_steer_lat_rad_per_n": float(p.get("compliance_steer_lat_rad_per_n", 0.0)),
+				"compliance_toe_lon_rad_per_n": float(p.get("compliance_toe_lon_rad_per_n", 0.0)),
+				"compliance_camber_lat_rad_per_n": float(p.get("compliance_camber_lat_rad_per_n", 0.0)),
+				"compliance_tau_s": float(p.get("compliance_tau_s", 0.022)),
 			}
 		)
 	var front_track := 0.0
@@ -2323,6 +2384,9 @@ func reset_dynamics() -> void:
 	mass_model.reset_fuel_slosh()
 	wheel_slips.fill(Vector2.ZERO)
 	wheel_loads.fill(0.0)
+	last_kinematic_jacking_forces_n.fill(0.0)
+	last_geometric_load_transfer_n.fill(0.0)
+	last_roll_center_heights_m.fill(0.0)
 	wheel_rotation_angles.fill(0.0)
 	wheel_contact_points.fill(Vector3.ZERO)
 	wheel_contact_normals.fill(Vector3.UP)

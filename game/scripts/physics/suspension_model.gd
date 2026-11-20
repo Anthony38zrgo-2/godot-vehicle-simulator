@@ -75,6 +75,15 @@ var last_damper_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 ## este valor de telemetría.
 var last_damper_explicit_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var last_bump_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+## Elastocinemática (flexión elástica filtrada de silentblocks y brazos bajo Fy y Fx):
+## - `compliance_toe_rad[i]`: desvío de convergencia en marco de rueda (rad, +izquierda -X / -derecha +X).
+## - `compliance_camber_rad[i]`: desvío de caída en marco de eje (rad, +parte alta hacia fuera).
+const MAX_COMPLIANCE_TOE_RAD := 0.025
+const MAX_COMPLIANCE_CAMBER_RAD := 0.045
+var compliance_toe_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var compliance_camber_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var compliance_toe_target_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var compliance_camber_target_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
 
 ## Calibración de muelle y reparto (§3 + §6):
@@ -236,6 +245,149 @@ static func stability_metrics(p: Dictionary, hub_mass_kg: float, corner_sprung_m
 	}
 
 
+## Parámetros por defecto de cinemática de centros instantáneos según la
+## arquitectura de suspensión declarada en el perfil (`spring_architecture`).
+## - `roll_center_height_m`: altura estática del centro de alabeo sobre el suelo.
+## - `roll_center_height_gain`: migración d(h_RC)/dq con la compresión (negativa
+##   cuando el RC desciende al comprimirse la suspensión).
+## - `anti_dive_ratio`: fracción geométrica de transferencia delantera en frenada.
+## - `anti_squat_ratio`: fracción geométrica de transferencia trasera en tracción.
+## - `anti_lift_ratio`: fracción geométrica anti-elevación (tracción delante en
+##   FWD/AWD, frenada detrás).
+## - `solid_axle`: true en ejes rígidos (live/dead axle), donde el centro de alabeo
+##   acopla las dos ruedas del eje en par puro sin expansión de vía en bote simétrico.
+static func default_instant_center_kinematics(
+	spring_architecture: String,
+	is_front: bool,
+) -> Dictionary:
+	var arch := spring_architecture.strip_edges().to_lower()
+	match arch:
+		"macpherson_coil":
+			return {
+				"roll_center_height_m": 0.085,
+				"roll_center_height_gain": -0.50,
+				"anti_dive_ratio": 0.22 if is_front else 0.0,
+				"anti_squat_ratio": 0.0 if is_front else 0.25,
+				"anti_lift_ratio": 0.12 if is_front else 0.16,
+				"solid_axle": false,
+			}
+		"double_wishbone_transverse_leaf", "sla_coil_over_upper_arm", "double_wishbone":
+			return {
+				"roll_center_height_m": 0.065 if is_front else 0.11,
+				"roll_center_height_gain": -0.35,
+				"anti_dive_ratio": 0.25 if is_front else 0.0,
+				"anti_squat_ratio": 0.0 if is_front else 0.28,
+				"anti_lift_ratio": 0.14 if is_front else 0.18,
+				"solid_axle": false,
+			}
+		"live_axle_leaf":
+			return {
+				"roll_center_height_m": 0.22,
+				"roll_center_height_gain": -0.15,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.35,
+				"anti_lift_ratio": 0.22,
+				"solid_axle": true,
+			}
+		"dead_axle_longitudinal_leaf":
+			return {
+				"roll_center_height_m": 0.20,
+				"roll_center_height_gain": -0.15,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.25,
+				"anti_lift_ratio": 0.20,
+				"solid_axle": true,
+			}
+		_:
+			if is_front:
+				return {
+					"roll_center_height_m": 0.075,
+					"roll_center_height_gain": -0.40,
+					"anti_dive_ratio": 0.20,
+					"anti_squat_ratio": 0.0,
+					"anti_lift_ratio": 0.12,
+					"solid_axle": false,
+				}
+			return {
+				"roll_center_height_m": 0.16,
+				"roll_center_height_gain": -0.25,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.30,
+				"anti_lift_ratio": 0.18,
+				"solid_axle": false,
+			}
+
+
+## Parámetros por defecto de elastocinemática (flexión de silentblocks y brazos)
+## según la arquitectura de suspensión. Unidades en rad/N (1 deg/kN = 1.7453e-5 rad/N).
+## - `compliance_steer_lat_rad_per_n > 0`: subviraje elástico estabilizador bajo Fy
+##   (delante abre ligeramente hacia fuera de la curva; detrás acompaña hacia dentro).
+## - `compliance_toe_lon_rad_per_n`:
+##     * Independiente: d(axle_toe)/d(Fx_lon). Positivo => toe-out al frenar (Fx < 0,
+##       radio de pivotamiento positivo); negativo => toe-in estabilizador al frenar.
+##     * Eje rígido (`solid_axle = true`): guiñada elástica del puente bajo asimetría
+##       longitudinal (Fx_L - Fx_R), nula en frenada simétrica.
+## - `compliance_camber_lat_rad_per_n > 0`: pérdida elástica de caída negativa (+camber
+##   en marco de eje en la rueda exterior cargada) al flexionarse mangueta/silentblocks.
+## - `compliance_camber_lon_rad_per_n`: flexión menor de caída bajo par de frenada/tracción.
+## - `compliance_tau_s`: constante de tiempo viscoelástica de los silentblocks (15–30 ms).
+static func default_elastokinematics(
+	spring_architecture: String,
+	is_front: bool,
+) -> Dictionary:
+	const DEG_PER_KN := PI / 180000.0
+	var arch := spring_architecture.strip_edges().to_lower()
+	match arch:
+		"macpherson_coil":
+			return {
+				"compliance_steer_lat_rad_per_n": (0.11 if is_front else 0.06) * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": (0.055 if is_front else -0.04) * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.24 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": (-0.025 if is_front else 0.0) * DEG_PER_KN,
+				"compliance_tau_s": 0.022,
+			}
+		"double_wishbone_transverse_leaf", "sla_coil_over_upper_arm", "double_wishbone":
+			return {
+				"compliance_steer_lat_rad_per_n": (0.09 if is_front else 0.06) * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": (0.045 if is_front else -0.04) * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": (0.17 if is_front else 0.15) * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": (-0.020 if is_front else 0.0) * DEG_PER_KN,
+				"compliance_tau_s": 0.020,
+			}
+		"live_axle_leaf":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.055 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.035 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.05 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.024,
+			}
+		"dead_axle_longitudinal_leaf":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.050 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.030 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.045 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.024,
+			}
+		_:
+			if is_front:
+				return {
+					"compliance_steer_lat_rad_per_n": 0.10 * DEG_PER_KN,
+					"compliance_toe_lon_rad_per_n": 0.05 * DEG_PER_KN,
+					"compliance_camber_lat_rad_per_n": 0.20 * DEG_PER_KN,
+					"compliance_camber_lon_rad_per_n": -0.020 * DEG_PER_KN,
+					"compliance_tau_s": 0.022,
+				}
+			return {
+				"compliance_steer_lat_rad_per_n": 0.06 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": -0.04 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.16 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.022,
+			}
+
+
 ## Barra estabilizadora: rigidez = wheel rate * ratio geométrico.
 static func arb_stiffness_n_per_m(wheel_rate_n_per_m: float, ratio: float) -> float:
 	return maxf(float(wheel_rate_n_per_m), 0.0) * float(ratio)
@@ -266,7 +418,18 @@ func configure(
 	var front_z := float(chassis_geometry.get("front_axle_z", -1.205))
 	var rear_z := float(chassis_geometry.get("rear_axle_z", 1.205))
 	var wheelbase := maxf(absf(rear_z - front_z), 0.1)
+	var domain_geom: Dictionary = domains.get("chassis", { }).get("geometry", { })
+	var kin_wheelbase := maxf(
+		float(domain_geom.get("wheelbase", absf(float(domain_geom.get("rear_axle_z", rear_z)) - float(domain_geom.get("front_axle_z", front_z))))),
+		0.5,
+	)
 	var center: Vector3 = resolved_mass.get("center_of_mass", Vector3.ZERO)
+	var kin_cg_height_m := clampf(center.y if center.y > 0.15 else 0.50, 0.20, 1.20)
+	var brakes_doc: Dictionary = domains.get("brakes", { }).get("brakes", { })
+	var nominal_front_brake_bias := clampf(float(brakes_doc.get("front_brake_bias", 0.65)), 0.30, 0.85)
+	var powertrain_doc: Dictionary = domains.get("powertrain", { }).get("powertrain", { })
+	var nominal_front_drive_split := clampf(float(powertrain_doc.get("front_torque_split", 0.0)), 0.0, 1.0)
+	var pitch_aspect := kin_cg_height_m / kin_wheelbase
 	var front_fraction := clampf((rear_z - center.z) / wheelbase, 0.05, 0.95)
 	var total_mass := float(resolved_mass.get("mass_kg", 0.0))
 	var gravity := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.80665))
@@ -322,6 +485,39 @@ func configure(
 		var spring_rate: float = rates["spring_rate"]
 		var unsprung: Array = resolved_mass.get("unsprung_mass_kg", [0.0, 0.0, 0.0, 0.0])
 		static_corner_loads_n[i] = static_load + float(unsprung[i]) * gravity
+		var is_front := i < 2
+		var kin_defaults := default_instant_center_kinematics(
+			str(corner_tune.get("spring_architecture", "")),
+			is_front,
+		)
+		var elasto_defaults := default_elastokinematics(
+			str(corner_tune.get("spring_architecture", "")),
+			is_front,
+		)
+		var rc_height_m := float(values.get("roll_center_height_m", corner_tune.get("roll_center_height_m", kin_defaults["roll_center_height_m"])))
+		var rc_gain := float(values.get("roll_center_height_gain", corner_tune.get("roll_center_height_gain", kin_defaults["roll_center_height_gain"])))
+		var anti_dive_ratio := float(values.get("anti_dive_ratio", corner_tune.get("anti_dive_ratio", kin_defaults["anti_dive_ratio"])))
+		var anti_squat_ratio := float(values.get("anti_squat_ratio", corner_tune.get("anti_squat_ratio", kin_defaults["anti_squat_ratio"])))
+		var anti_lift_ratio := float(values.get("anti_lift_ratio", corner_tune.get("anti_lift_ratio", kin_defaults["anti_lift_ratio"])))
+		var is_solid_axle := bool(values.get("solid_axle", corner_tune.get("solid_axle", kin_defaults["solid_axle"])))
+		var comp_steer_lat := float(values.get("compliance_steer_lat_rad_per_n", corner_tune.get("compliance_steer_lat_rad_per_n", elasto_defaults["compliance_steer_lat_rad_per_n"])))
+		var comp_toe_lon := float(values.get("compliance_toe_lon_rad_per_n", corner_tune.get("compliance_toe_lon_rad_per_n", elasto_defaults["compliance_toe_lon_rad_per_n"])))
+		var comp_camber_lat := float(values.get("compliance_camber_lat_rad_per_n", corner_tune.get("compliance_camber_lat_rad_per_n", elasto_defaults["compliance_camber_lat_rad_per_n"])))
+		var comp_camber_lon := float(values.get("compliance_camber_lon_rad_per_n", corner_tune.get("compliance_camber_lon_rad_per_n", elasto_defaults["compliance_camber_lon_rad_per_n"])))
+		var comp_tau_s := clampf(float(values.get("compliance_tau_s", corner_tune.get("compliance_tau_s", elasto_defaults["compliance_tau_s"]))), 0.005, 0.12)
+		var anti_dive_tan := 0.0
+		var anti_squat_tan := 0.0
+		var anti_lift_tan := 0.0
+		if is_front:
+			anti_dive_tan = clampf((anti_dive_ratio / maxf(nominal_front_brake_bias, 0.30)) * pitch_aspect, -0.35, 0.35)
+			var front_drive_denom := maxf(nominal_front_drive_split, 0.35) if nominal_front_drive_split > 0.01 else 1.0
+			anti_lift_tan = clampf((anti_lift_ratio / front_drive_denom) * pitch_aspect, -0.35, 0.35)
+		else:
+			var rear_drive_split := 1.0 - nominal_front_drive_split
+			var rear_drive_denom := maxf(rear_drive_split, 0.35) if rear_drive_split > 0.01 else 1.0
+			anti_squat_tan = clampf((anti_squat_ratio / rear_drive_denom) * pitch_aspect, -0.35, 0.35)
+			var rear_brake_bias := maxf(1.0 - nominal_front_brake_bias, 0.25)
+			anti_lift_tan = clampf((anti_lift_ratio / rear_brake_bias) * pitch_aspect, -0.35, 0.35)
 		axle_parameters.append(
 			{
 				"spring_rate": spring_rate,
@@ -352,6 +548,20 @@ func configure(
 				"axis_roll_rad": float(values.get("axis_roll_rad", values.get("jacking_rad", corner_tune.get("axis_roll_rad", 0.0)))),
 				"axis_pitch_gain_rad_per_m": float(values.get("axis_pitch_gain_rad_per_m", corner_tune.get("axis_pitch_gain_rad_per_m", 0.0))),
 				"axis_roll_gain_rad_per_m": float(values.get("axis_roll_gain_rad_per_m", corner_tune.get("axis_roll_gain_rad_per_m", 0.0))),
+				"roll_center_height_m": rc_height_m,
+				"roll_center_height_gain": rc_gain,
+				"anti_dive_ratio": anti_dive_ratio,
+				"anti_squat_ratio": anti_squat_ratio,
+				"anti_lift_ratio": anti_lift_ratio,
+				"anti_dive_tan": anti_dive_tan,
+				"anti_squat_tan": anti_squat_tan,
+				"anti_lift_tan": anti_lift_tan,
+				"solid_axle": is_solid_axle,
+				"compliance_steer_lat_rad_per_n": comp_steer_lat,
+				"compliance_toe_lon_rad_per_n": comp_toe_lon,
+				"compliance_camber_lat_rad_per_n": comp_camber_lat,
+				"compliance_camber_lon_rad_per_n": comp_camber_lon,
+				"compliance_tau_s": comp_tau_s,
 				"static_load": static_load,
 				"rest_compression_offset": 0.0,
 			}
@@ -385,6 +595,7 @@ func configure(
 			}
 		),
 	)
+	clear_compliance_state()
 	return { "ok": true }
 
 
@@ -432,6 +643,10 @@ func clear_transient() -> void:
 		last_damper_forces_n[i] = 0.0
 		last_damper_explicit_n[i] = 0.0
 		last_bump_forces_n[i] = 0.0
+		compliance_toe_rad[i] = 0.0
+		compliance_camber_rad[i] = 0.0
+		compliance_toe_target_rad[i] = 0.0
+		compliance_camber_target_rad[i] = 0.0
 
 
 ## Ley elástica de referencia (§4): curva actual preservada para comparar
@@ -715,7 +930,8 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 func dynamic_camber(index: int) -> float:
 	var p: Dictionary = axle_parameters[index]
 	var travel_delta := compression[index] - float(p.get("rest_compression_offset", 0.0))
-	return float(p.camber) + float(p.camber_gain) * travel_delta
+	var compliance_delta := compliance_camber_rad[index] if index < compliance_camber_rad.size() else 0.0
+	return float(p.camber) + float(p.camber_gain) * travel_delta + compliance_delta
 
 
 func dynamic_wheel_camber(index: int) -> float:
@@ -728,7 +944,93 @@ func dynamic_toe(index: int) -> float:
 	var side_sign := 1.0 if index in [0, 2] else -1.0
 	var travel_delta := compression[index] - float(p.get("rest_compression_offset", 0.0))
 	var axle_toe := float(p.toe) + float(p.toe_gain) * travel_delta
-	return clampf(-side_sign * axle_toe, -0.05, 0.05)
+	var compliance_delta := compliance_toe_rad[index] if index < compliance_toe_rad.size() else 0.0
+	return clampf(-side_sign * axle_toe + compliance_delta, -0.06, 0.06)
+
+
+func clear_compliance_state() -> void:
+	for i in 4:
+		compliance_toe_rad[i] = 0.0
+		compliance_camber_rad[i] = 0.0
+		compliance_toe_target_rad[i] = 0.0
+		compliance_camber_target_rad[i] = 0.0
+
+
+## Avanza el filtro viscoelástico de primer orden (silentblocks/brazos, τ ≈ 20-24 ms)
+## para convergencia (`compliance_toe_rad`) y caída (`compliance_camber_rad`) bajo
+## cargas horizontales en marco de chasis (`chassis_lat_forces_n` +X derecha,
+## `chassis_lon_forces_n` -Z avance).
+## - Suspensión independiente: cada esquina flexiona según su propia carga Fy y Fx.
+## - Eje rígido (`solid_axle = true`): el puente gira coherentemente como un bloque
+##   bajo la media lateral del eje y bajo la diferencia longitudinal izq-der (nula
+##   en frenada simétrica), con flexión de caída mínima por tubo/rodamiento.
+func step_elastokinematics(
+	dt: float,
+	chassis_lat_forces_n: Array[float],
+	chassis_lon_forces_n: Array[float],
+) -> void:
+	if axle_parameters.size() < 4:
+		return
+	var target_toe: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var target_camber: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for axle in 2:
+		var left := axle * 2
+		var right := left + 1
+		var p_l: Dictionary = axle_parameters[left]
+		var p_r: Dictionary = axle_parameters[right]
+		var fy_l := float(chassis_lat_forces_n[left]) if left < chassis_lat_forces_n.size() else 0.0
+		var fy_r := float(chassis_lat_forces_n[right]) if right < chassis_lat_forces_n.size() else 0.0
+		var fx_l := float(chassis_lon_forces_n[left]) if left < chassis_lon_forces_n.size() else 0.0
+		var fx_r := float(chassis_lon_forces_n[right]) if right < chassis_lon_forces_n.size() else 0.0
+		var is_front := axle == 0
+		var lat_steer_sign := 1.0 if is_front else -1.0
+		var is_solid := bool(p_l.get("solid_axle", false)) or bool(p_r.get("solid_axle", false))
+		if is_solid:
+			var k_lat_s := 0.5 * (
+				float(p_l.get("compliance_steer_lat_rad_per_n", 0.0))
+				+ float(p_r.get("compliance_steer_lat_rad_per_n", 0.0))
+			)
+			var k_lon_s := 0.5 * (
+				float(p_l.get("compliance_toe_lon_rad_per_n", 0.0))
+				+ float(p_r.get("compliance_toe_lon_rad_per_n", 0.0))
+			)
+			var fy_avg := 0.5 * (fy_l + fy_r)
+			var fx_diff := 0.5 * (fx_l - fx_r)
+			var beam_steer := lat_steer_sign * k_lat_s * fy_avg - k_lon_s * fx_diff
+			target_toe[left] = beam_steer
+			target_toe[right] = beam_steer
+		else:
+			for idx in [left, right]:
+				var p: Dictionary = axle_parameters[idx]
+				var fy_i := fy_l if idx == left else fy_r
+				var fx_i := fx_l if idx == left else fx_r
+				var side_sign := 1.0 if idx == left else -1.0
+				var k_lat_s := float(p.get("compliance_steer_lat_rad_per_n", 0.0))
+				var k_lon_t := float(p.get("compliance_toe_lon_rad_per_n", 0.0))
+				# Lateral: +k_lat*Fy delante (abre fuera de curva), -k_lat*Fy detrás (acompaña).
+				# Longitudinal: axle_toe = k_lon*Fx -> en marco de rueda es -side_sign * axle_toe.
+				target_toe[idx] = lat_steer_sign * k_lat_s * fy_i - side_sign * (k_lon_t * fx_i)
+
+		for idx in [left, right]:
+			var p: Dictionary = axle_parameters[idx]
+			var fy_i := fy_l if idx == left else fy_r
+			var fx_i := fx_l if idx == left else fx_r
+			var side_sign := 1.0 if idx == left else -1.0
+			var k_cam_lat := float(p.get("compliance_camber_lat_rad_per_n", 0.0))
+			var k_cam_lon := float(p.get("compliance_camber_lon_rad_per_n", 0.0))
+			# Convenio AXLE-FRAME: rueda exterior cargada (ej. FR con side_sign=-1 y Fy<0)
+			# gana camber positivo (+side_sign * k_cam_lat * Fy > 0).
+			target_camber[idx] = side_sign * k_cam_lat * fy_i + k_cam_lon * fx_i
+
+	for i in 4:
+		var t_toe := clampf(target_toe[i], -MAX_COMPLIANCE_TOE_RAD, MAX_COMPLIANCE_TOE_RAD)
+		var t_cam := clampf(target_camber[i], -MAX_COMPLIANCE_CAMBER_RAD, MAX_COMPLIANCE_CAMBER_RAD)
+		compliance_toe_target_rad[i] = t_toe
+		compliance_camber_target_rad[i] = t_cam
+		var tau := maxf(float(axle_parameters[i].get("compliance_tau_s", 0.022)), 0.001)
+		var alpha := 1.0 if dt <= 0.0 else (1.0 - exp(-dt / tau))
+		compliance_toe_rad[i] = lerpf(compliance_toe_rad[i], t_toe, alpha)
+		compliance_camber_rad[i] = lerpf(compliance_camber_rad[i], t_cam, alpha)
 
 
 func maximum_wheel_travel(index: int) -> float:
@@ -751,3 +1053,125 @@ func suspension_axis_local(index: int, travel_m: float) -> Vector3:
 		return Vector3.UP
 	var axis := Vector3(sin(roll), cos(pitch) * cos(roll), sin(pitch))
 	return axis.normalized() if axis.length_squared() > 1.0e-9 else Vector3.UP
+
+
+## Altura dinámica del centro de alabeo (Roll Center) sobre el plano de apoyo,
+## incluyendo migración con la compresión de suspensión (`roll_center_height_gain`).
+## Se acota por debajo de 0.70 * h_CG para garantizar estabilidad numérica y física.
+func dynamic_roll_center_height_m(
+	index: int,
+	travel_m: float,
+	cg_height_m: float = 0.50,
+) -> float:
+	if index < 0 or index >= axle_parameters.size():
+		return 0.0
+	var p: Dictionary = axle_parameters[index]
+	var travel_delta := travel_m - float(p.get("rest_compression_offset", 0.0))
+	var rc_raw := float(p.get("roll_center_height_m", 0.0)) + float(p.get("roll_center_height_gain", 0.0)) * travel_delta
+	var max_rc := clampf(maxf(cg_height_m, 0.20) * 0.70, 0.14, 0.45)
+	return clampf(rc_raw, -0.15, max_rc)
+
+
+## Cinemática de centros instantáneos (trabajo virtual exacto sobre q_0..q_3):
+## Descompone las fuerzas horizontales de contacto (en marco de chasis:
+## `chassis_lat_forces_n` a lo largo de +X derecha, `chassis_lon_forces_n` a lo
+## largo de -Z avance) en la componente geométrica instantánea transmitida por
+## los brazos de suspensión (Roll Center, Anti-Dive, Anti-Squat, Anti-Lift y
+## Jacking Forces) y deja el remanente (h_CG - h_RC) sobre muelles y ARB.
+##
+## Convención de signo:
+## - `hub_forces_n[i]` es la fuerza generalizada Q_{q_i} sobre la coordenada
+##   axial q_i (+compresión, buje hacia arriba). Un valor negativo empuja el
+##   buje hacia el suelo, generando transferencia geométrica instantánea +Fz y
+##   reduciendo el momento elástico de alabeo/cabeceo sobre el chasis.
+## - `geometric_load_transfer_n[i] = -hub_forces_n[i]` (+carga geométrica
+##   añadida al neumático).
+## - En ejes rígidos (`solid_axle = true`), la fuerza lateral del eje genera un
+##   par puro entre izquierda y derecha (sin jacking neto de expansión de vía).
+## - En suspensiones independientes (`solid_axle = false`), cada rueda reacciona
+##   hacia su centro de alabeo generando además jacking neto vertical al cargar
+##   más la rueda exterior que la interior.
+func instant_center_jacking_forces(
+	chassis_lat_forces_n: Array[float],
+	chassis_lon_forces_n: Array[float],
+	wheel_travels_m: Array[float],
+	wheel_positions_local: Array[Vector3],
+	cg_heights_m: Array[float],
+) -> Dictionary:
+	var hub_forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var geo_transfer: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var rc_heights: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var lat_jack: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var lon_jack: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	if axle_parameters.size() < 4:
+		return {
+			"hub_forces_n": hub_forces,
+			"geometric_load_transfer_n": geo_transfer,
+			"roll_center_heights_m": rc_heights,
+			"lateral_jacking_n": lat_jack,
+			"longitudinal_jacking_n": lon_jack,
+		}
+	var half_tracks: Array[float] = [0.65, 0.65, 0.65, 0.65]
+	for i in 4:
+		var travel := float(wheel_travels_m[i]) if i < wheel_travels_m.size() else compression[i]
+		var cg_h := float(cg_heights_m[i]) if i < cg_heights_m.size() else 0.50
+		rc_heights[i] = dynamic_roll_center_height_m(i, travel, cg_h)
+		if i < wheel_positions_local.size():
+			half_tracks[i] = maxf(absf((wheel_positions_local[i] as Vector3).x), 0.25)
+
+	# 1. Vista frontal/trasera: Roll Center y fuerzas de jacking lateral.
+	for axle in 2:
+		var left := axle * 2
+		var right := left + 1
+		var p_l: Dictionary = axle_parameters[left]
+		var p_r: Dictionary = axle_parameters[right]
+		var skip_lat := (
+			absf(float(p_l.get("axis_roll_rad", 0.0))) > 1.0e-6
+			or absf(float(p_r.get("axis_roll_rad", 0.0))) > 1.0e-6
+		)
+		if skip_lat:
+			continue
+		var fy_l := float(chassis_lat_forces_n[left]) if left < chassis_lat_forces_n.size() else 0.0
+		var fy_r := float(chassis_lat_forces_n[right]) if right < chassis_lat_forces_n.size() else 0.0
+		if bool(p_l.get("solid_axle", false)) or bool(p_r.get("solid_axle", false)):
+			var rc_axle := 0.5 * (rc_heights[left] + rc_heights[right])
+			var b_axle := 0.5 * (half_tracks[left] + half_tracks[right])
+			var tan_rc_axle := clampf(rc_axle / maxf(b_axle, 0.25), -0.55, 0.55)
+			var fy_avg := 0.5 * (fy_l + fy_r)
+			lat_jack[left] = -fy_avg * tan_rc_axle
+			lat_jack[right] = fy_avg * tan_rc_axle
+		else:
+			var tan_rc_l := clampf(rc_heights[left] / half_tracks[left], -0.55, 0.55)
+			var tan_rc_r := clampf(rc_heights[right] / half_tracks[right], -0.55, 0.55)
+			lat_jack[left] = -fy_l * tan_rc_l
+			lat_jack[right] = fy_r * tan_rc_r
+
+	# 2. Vista lateral: Pitch Center (Anti-Dive delante, Anti-Squat detrás, Anti-Lift).
+	for i in 4:
+		var p: Dictionary = axle_parameters[i]
+		if absf(float(p.get("axis_pitch_rad", 0.0))) > 1.0e-6:
+			continue
+		var fx_c := float(chassis_lon_forces_n[i]) if i < chassis_lon_forces_n.size() else 0.0
+		if absf(fx_c) <= 1.0e-9:
+			continue
+		if i < 2:
+			# Eje delantero: frenada (fx < 0) -> anti-dive; tracción (fx > 0) -> anti-lift.
+			var tan_front := float(p.get("anti_dive_tan", 0.0)) if fx_c < 0.0 else float(p.get("anti_lift_tan", 0.0))
+			lon_jack[i] = fx_c * clampf(tan_front, -0.35, 0.35)
+		else:
+			# Eje trasero: tracción (fx > 0) -> anti-squat; frenada (fx < 0) -> anti-lift.
+			var tan_rear := float(p.get("anti_squat_tan", 0.0)) if fx_c > 0.0 else float(p.get("anti_lift_tan", 0.0))
+			lon_jack[i] = -fx_c * clampf(tan_rear, -0.35, 0.35)
+
+	for i in 4:
+		var q_kin := lat_jack[i] + lon_jack[i]
+		hub_forces[i] = q_kin
+		geo_transfer[i] = -q_kin
+
+	return {
+		"hub_forces_n": hub_forces,
+		"geometric_load_transfer_n": geo_transfer,
+		"roll_center_heights_m": rc_heights,
+		"lateral_jacking_n": lat_jack,
+		"longitudinal_jacking_n": lon_jack,
+	}

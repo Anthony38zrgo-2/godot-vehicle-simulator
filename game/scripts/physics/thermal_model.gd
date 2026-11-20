@@ -605,7 +605,8 @@ func accumulate_tire_damage(state: Dictionary, friction_power_w: float, dt: floa
 
 
 func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_c: float, irradiance_w_m2: float = 0.0) -> Dictionary:
-	var rotor: Dictionary = brake_thermal_config.get("front" if index < 2 else "rear", {})
+	var axle := "front" if index < 2 else "rear"
+	var rotor: Dictionary = brake_thermal_config.get(axle, {})
 	var length_m := maxf(float(rotor.get("rotor_outer_diameter_m", 0.245)), 0.01)
 	var area := brake_disc_area_m2[index]
 	var disc_k := temperature_c + 273.15
@@ -630,6 +631,10 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_
 	# Churchill-Chu vertical-surface approximation for stationary cooling.
 	var natural_nusselt := pow(0.825 + 0.387 * pow(rayleigh, 1.0 / 6.0) / pow(1.0 + pow(0.492 / prandtl, 9.0 / 16.0), 8.0 / 27.0), 2.0)
 	var conductance := area * conductivity / length_m * maxf(natural_nusselt, forced_nusselt)
+	var duct: Dictionary = brake_thermal_config.get(axle + "_duct", {})
+	if float(duct.get("opening", 0.0)) > 0.0:
+		var flow := _cooling_duct(duct, 101325.0 / maxf(287.05 * air_k, 1.0), speed_m_s)
+		conductance += float(flow.conductance) * clampf(float(duct.get("rotor_cooling_fraction", 1.0)), 0.0, 1.0)
 	var view_factor := clampf(float(rotor.get("rotor_radiation_ambient_view_factor", 0.4)), 0.0, 1.0)
 	var radiation := brake_disc_emissivity[index] * 5.670374419e-8 * area * view_factor * (pow(disc_k, 4.0) - pow(air_k, 4.0))
 	# Soak solar del disco: relevante parado o a baja velocidad; con flujo
@@ -810,13 +815,13 @@ func _cooling_duct(duct: Dictionary, density: float, speed: float) -> Dictionary
 	var rho := clampf(density, 0.5, 1.6)
 	var vehicle_speed := absf(speed)
 	var opening := clampf(float(duct.get("opening", 0.0)), 0.0, 1.0)
-	var area := maxf(float(duct.get("maximum_inlet_area_square_meters", 0.0)), 0.0) * pow(opening, clampf(float(duct.get("area_response_exponent", 1.0)), 0.05, 5.0))
+	var area := maxf(float(duct.get("maximum_inlet_area_square_meters", duct.get("max_inlet_area_m2_per_wheel", 0.0))), 0.0) * pow(opening, clampf(float(duct.get("area_response_exponent", 1.0)), 0.05, 5.0))
 	var dynamic_pressure := 0.5 * rho * vehicle_speed * vehicle_speed
 	var pressure_delta := dynamic_pressure * maxf(float(duct.get("pressure_recovery", 0.0)), 0.0)
 	var discharge := maxf(float(duct.get("discharge_coefficient", 0.0)), 0.0)
 	var mass_flow := discharge * area * sqrt(2.0 * rho * pressure_delta) if area > 0.0 and pressure_delta > 0.0 else 0.0
-	var capacity_rate := mass_flow * maxf(float(duct.get("air_specific_heat_joules_per_kilogram_kelvin", 0.0)), 0.0)
-	var exchanger := maxf(float(duct.get("heat_exchanger_conductance_watts_per_kelvin", 0.0)), 0.0)
+	var capacity_rate := mass_flow * maxf(float(duct.get("air_specific_heat_joules_per_kilogram_kelvin", duct.get("air_specific_heat_j_kg_k", 0.0))), 0.0)
+	var exchanger := maxf(float(duct.get("heat_exchanger_conductance_watts_per_kelvin", duct.get("heat_exchanger_ua_w_k", 0.0))), 0.0)
 	var conductance := capacity_rate * (1.0 - exp(-exchanger / capacity_rate)) if capacity_rate > 1.0e-9 and exchanger > 0.0 else 0.0
 	var drag := dynamic_pressure * maxf(float(duct.get("drag_coefficient", 0.0)), 0.0) * area
 	return {"conductance": conductance, "drag": drag}
