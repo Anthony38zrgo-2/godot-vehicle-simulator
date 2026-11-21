@@ -321,7 +321,10 @@ func update_tire_track(index: int) -> void:
 	elif surface == "unknown" and is_instance_valid(collider):
 		surface = str(collider.get_meta("surface", surface)).to_lower()
 	var track_winter := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
-	var variant: int = tire_tracks.variant_for(surface, float(wheel_conditions(index).get("snow_mm", 0.0)), index, track_winter)
+	var track_cond := wheel_conditions(index)
+	var track_snow_cov := float(track_cond.get("snow_coverage", -1.0))
+	var track_ice_cov := float(track_cond.get("ice_coverage", -1.0))
+	var variant: int = tire_tracks.variant_for(surface, float(track_cond.get("snow_mm", 0.0)), index, track_winter, track_snow_cov, track_ice_cov)
 	var point: Vector3 = contact["position"]
 	var normal: Vector3 = contact["normal"]
 	var offset := point - vehicle.global_position
@@ -503,12 +506,17 @@ func update_wheel(index: int, wetness: float) -> void:
 	var source := previous.lerp(point, wheel_particles.rng.randf())
 	var velocity := rearward * clampf(corner_speed.length() * 0.16 + slip, 0.6, 4.0) + side * slip * 0.5
 	var paved := surface in ["road", "asphalt", "tarmac"]
-	var snow_mm := float(wheel_conditions(index).get("snow_mm", 0.0))
+	var cond := wheel_conditions(index)
+	var snow_mm := float(cond.get("snow_mm", 0.0))
+	var snow_cov := float(cond.get("snow_coverage", -1.0))
+	var ice_cov := float(cond.get("ice_coverage", -1.0))
 	# La capa invernal manda sobre la superficie base: en Suecia la carretera
 	# es Gravel con snow_packed aunque snow_mm meteorologico sea 0.
 	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
-	var snowy := snow_mm >= SNOW_MIN_MM or surface == "snowdeep" or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]
-	if puddle_depth >= 1.0 and not snowy:
+	var proc_snow := snow_cov >= 0.12 if snow_cov >= 0.0 else snow_mm >= SNOW_MIN_MM
+	var snowy := proc_snow or surface == "snowdeep" or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]
+	var icy := ice_cov >= 0.25 and not proc_snow and winter_layer.is_empty()
+	if puddle_depth >= 1.0 and not snowy and not icy:
 		if entered_water or point.distance_squared_to(last_ripple_points[index]) >= 6.25:
 			if emit_water_ripple(point, normal, puddle_depth, strength):
 				last_ripple_points[index] = point
@@ -571,7 +579,7 @@ func update_wheel(index: int, wetness: float) -> void:
 				var puff_offset := source + side * wheel_particles.rng.randf_range(-0.22, 0.22) + normal * wheel_particles.rng.randf_range(0.0, 0.12)
 				var puff_velocity := velocity * wheel_particles.rng.randf_range(0.85, 1.1) + normal * 0.28
 				wheel_particles.emit_particle(kind, TIRE_SMOKE if paved else DUST_CORE, puff_offset, puff_velocity, point, normal)
-	if snow_mm < SNOW_MIN_MM and winter_layer == "" and surface != "snowdeep":
+	if not snowy:
 		var cutting_grass := surface == "grass" and index >= 2 and (slip > 0.55 or corner_speed.length() > 8.0)
 		if entered_grass or cutting_grass:
 			for leaf in 2:
@@ -667,7 +675,9 @@ func emit_landing_dust(index: int, strength: float) -> void:
 	var surface := sim.wheel_surfaces[index].to_lower()
 	var conditions := wheel_conditions(index)
 	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
-	if surface == "snowdeep" or float(conditions.get("snow_mm", 0.0)) >= SNOW_MIN_MM or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
+	var snow_cov := float(conditions.get("snow_coverage", -1.0))
+	var proc_snow := snow_cov >= 0.12 if snow_cov >= 0.0 else float(conditions.get("snow_mm", 0.0)) >= SNOW_MIN_MM
+	if surface == "snowdeep" or proc_snow or winter_layer in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
 		surface = "snow"
 	elif surface in ["dirt", "gravel"] and float(conditions.get("water_mm", 0.0)) >= 1.4:
 		surface = "mud"

@@ -98,12 +98,12 @@ func run() -> void:
 		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.24), "snow uses the configured size")
 	await process_frame
 	await process_frame
-	check(not is_instance_valid(rain), "old rain system freed after the switch")
+	check(is_instance_valid(rain) and not rain.emitting and not rain.visible, "inactive rain emitter is retained without rendering")
 
 	force_weather(ctl, "rain", 6.0)
 	ctl.apply_to_adapters(scene.weather_sky_node, tca, scene.terrain_wetness, 12.0)
 	var rain_again = tca.particle_system as GPUParticles3D
-	check(rain_again != null and rain_again != snow, "rain returns after snow")
+	check(is_instance_valid(rain_again) and rain_again == rain and rain_again.emitting and rain_again.visible, "rain emitter is reused after snow")
 	if rain_again != null:
 		check(rain_again.draw_passes == 1, "rain returns with one drop pass")
 	print("WEATHER_PRECIPITATION_SPRITE_CONTRACT ", "PASS" if failures.is_empty() else failures)

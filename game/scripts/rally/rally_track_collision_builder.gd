@@ -5,6 +5,7 @@ extends Node3D
 @export var terrain_surface_group: String = "Gravel"
 @export var collision_layer: int = 1
 @export var body_friction: float = 0.9
+@export var procedural_ss04_asphalt_mode: bool = false
 
 # Material-aware road classification. The stage's terrain_surface_group
 # is used only when the imported mesh has no identifiable road material.
@@ -499,6 +500,8 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 	# rocks keep their loose tag.
 	var snow_deep := false
 	for mat_name in material_names:
+		if procedural_ss04_asphalt_mode and mat_name.begins_with("road_snow_cdi"):
+			continue
 		if mat_name.begins_with("road_snow_") or mat_name == "road_snow" \
 		or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 			winter_layer_id = "snow_packed"
@@ -524,6 +527,9 @@ func build_static_body(mesh_instance: MeshInstance3D, override_transform: Transf
 		push_warning("RallyTrackCollisionBuilder: material-less Sweden road body, tagging snow_packed as fallback")
 	if source_name.begins_with("collision_road"):
 		for mat_name in material_names:
+			if procedural_ss04_asphalt_mode and mat_name.begins_with("road_snow_cdi"):
+				surface_group = "Road"
+				break
 			if mat_name.begins_with("road_snow_") or mat_name == "road_snow" \
 			or mat_name.begins_with("railroad_snow") or mat_name.begins_with("bridge_snow"):
 				surface_group = "Gravel"

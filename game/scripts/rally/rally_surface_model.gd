@@ -15,11 +15,18 @@ var zones: Array = []
 var surface_profiles: Dictionary = {}
 var regional_id: String = "russia_summer"
 var valid: bool = false
+var procedural_mode: bool = false
+var fixed_snapshot_mode: bool = false
+var procedural_engine: RefCounted = null
+var procedural_surface_type: String = "asphalt"
 
 
 func configure_from_schedule(entry: Dictionary, catalog: Dictionary) -> bool:
 	zones.clear()
 	surface_profiles.clear()
+	procedural_mode = false
+	fixed_snapshot_mode = false
+	procedural_engine = null
 	valid = false
 	if entry.is_empty():
 		return false
@@ -48,6 +55,43 @@ func configure_from_schedule(entry: Dictionary, catalog: Dictionary) -> bool:
 	return valid
 
 
+func configure_procedural(engine: RefCounted, surface_type: String = "asphalt") -> bool:
+	zones.clear()
+	surface_profiles.clear()
+	valid = false
+	procedural_mode = false
+	fixed_snapshot_mode = false
+	procedural_engine = null
+	if engine == null or not bool(engine.call("is_configured")):
+		return false
+	var res: Variant = engine.call("configure_surface", surface_type)
+	if not res is Dictionary or not bool((res as Dictionary).get("ok", false)):
+		return false
+	procedural_engine = engine
+	procedural_surface_type = surface_type
+	procedural_mode = true
+	fixed_snapshot_mode = false
+	valid = true
+	return true
+
+
+func configure_five_sector_snapshot(engine: RefCounted, surface_type: String = "asphalt") -> bool:
+	zones.clear()
+	surface_profiles.clear()
+	valid = false
+	procedural_mode = false
+	fixed_snapshot_mode = false
+	procedural_engine = null
+	if engine == null or not bool(engine.call("is_configured")):
+		return false
+	procedural_engine = engine
+	procedural_surface_type = surface_type
+	procedural_mode = true
+	fixed_snapshot_mode = true
+	valid = true
+	return true
+
+
 func zone_count() -> int:
 	return zones.size()
 
@@ -60,7 +104,9 @@ func state_for_zone(zi: int) -> Dictionary:
 
 ## Interpolación espacial continua en límites de zona (smoothstep sobre la franja de
 ## mezcla). Las franjas son interpolación progresiva, no otra zona.
-func blended_state_at_distance(dist_m: float) -> Dictionary:
+func blended_state_at_distance(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
+	if procedural_mode and procedural_engine != null:
+		return _procedural_state_at(dist_m, lateral_t)
 	if zones.is_empty():
 		return {}
 	var zi := zone_index_at_distance(dist_m)
@@ -82,6 +128,8 @@ func blended_state_at_distance(dist_m: float) -> Dictionary:
 
 
 func zone_index_at_distance(dist_m: float) -> int:
+	if procedural_mode or zones.is_empty():
+		return 0
 	for i in zones.size():
 		var z: Dictionary = zones[i]
 		if dist_m < float(z.get("end_distance_m", INF)) or i == zones.size() - 1:
@@ -120,8 +168,66 @@ static func _lerp_states(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 
 ## Avanza todas las zonas según el reloj ambiental común. Llamar solo cuando
 ## el reloj avanza (no en pausa/reglaje/carga). Usa pasos acotados.
+func _procedural_state_at(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
+	var s_var: Variant = procedural_engine.call("sample_surface_at", dist_m, lateral_t)
+	if not s_var is Dictionary:
+		return {}
+	var s := s_var as Dictionary
+	if not bool(s.get("ok", false)):
+		return {}
+	var cloud := float(s.get("cloud_cover", 0.3))
+	var precip_total := float(s.get("precip_total_mm_h", 0.0))
+	var air_c := float(s.get("air_c", 10.0))
+	var irr := float(s.get("irradiance_w_m2", 0.0))
+	var wind_spd := float(s.get("wind_m_s", 0.0))
+	var wind_deg := float(s.get("wind_direction_deg", 0.0))
+	var fog_est := clampf(cloud * 0.002 + (0.002 if precip_total > 0.5 else 0.0), 0.0001, 0.01)
+	return {
+		"zone_index": 0,
+		"progress_m": float(s.get("progress_m", dist_m)),
+		"shader_station_m": float(s.get("shader_station_m", dist_m)),
+		"lateral_t": float(s.get("lateral_t", lateral_t)),
+		"altitude_m": float(s.get("altitude_m", 0.0)),
+		"air_c": air_c,
+		"ground_c": float(s.get("ground_c", air_c)),
+		"water_mm": float(s.get("water_mm", 0.0)),
+		"snow_mm": float(s.get("snow_mm", 0.0)),
+		"ice_mm": float(s.get("ice_mm", 0.0)),
+		"saturation": float(s.get("saturation", 0.0)),
+		"water_coverage": float(s.get("water_coverage", 0.0)),
+		"snow_coverage": float(s.get("snow_coverage", 0.0)),
+		"ice_coverage": float(s.get("ice_coverage", 0.0)),
+		"dry_weight": float(s.get("dry_weight", 1.0)),
+		"snow_weight": float(s.get("snow_weight", 0.0)),
+		"ice_weight": float(s.get("ice_weight", 0.0)),
+		"water_mm_effective": float(s.get("water_mm_effective", 0.0)),
+		"snow_mm_effective": float(s.get("snow_mm_effective", 0.0)),
+		"rain_mm_h": float(s.get("rain_mm_h", 0.0)),
+		"snow_mm_h": float(s.get("snow_mm_h", 0.0)),
+		"precipitation_kind": str(s.get("precip_kind", "none")),
+		"climate": {
+			"cumulus_coverage": cloud,
+			"cirrus_coverage": cloud * 0.65,
+			"irradiance_w_m2": irr,
+			"air_temperature_c": air_c,
+			"precipitation_mm_h": precip_total,
+			"rain_mm_h": float(s.get("rain_mm_h", 0.0)),
+			"snow_mm_h": float(s.get("snow_mm_h", 0.0)),
+			"fog_density": fog_est,
+			"wind_m_s": wind_spd,
+			"wind_direction_deg": wind_deg,
+			"humidity": float(s.get("humidity", 0.6)),
+		},
+	}
+
+
 func advance_ambient(delta_s: float, solar_factor: float = 1.0) -> void:
 	if not valid or delta_s <= 0.0:
+		return
+	if fixed_snapshot_mode:
+		return
+	if procedural_mode and procedural_engine != null:
+		procedural_engine.call("advance_surface", delta_s)
 		return
 	var max_step := 5.0
 	var remaining := delta_s
@@ -200,13 +306,43 @@ func _profile_for_surface(surface: String) -> Dictionary:
 
 ## Nieve efectiva sobre el contacto (mm): limita por dibujo disponible.
 func effective_snow_mm(state: Dictionary) -> float:
+	if state.has("snow_mm_effective"):
+		return float(state.get("snow_mm_effective", 0.0))
 	return clampf(float(state.get("snow_mm", 0.0)), 0.0, 8.0)
 
 
-func snapshot() -> Array:
+func telemetry_profile(step_m: float = 250.0) -> Dictionary:
+	if procedural_mode and procedural_engine != null:
+		var res: Variant = procedural_engine.call("surface_telemetry_samples", step_m)
+		return res as Dictionary if res is Dictionary else {"ok": false}
+	return {"ok": false}
+
+
+func surface_field_packet(known_revision: int = -1) -> Dictionary:
+	if procedural_mode and procedural_engine != null:
+		var res: Variant
+		if procedural_engine.has_method("surface_field_packet_since"):
+			res = procedural_engine.call("surface_field_packet_since", known_revision)
+		else:
+			res = procedural_engine.call("surface_field_packet")
+		return res as Dictionary if res is Dictionary else {"ok": false}
+	return {"ok": false}
+
+
+func snapshot() -> Variant:
+	if procedural_mode and procedural_engine != null:
+		var snap: Variant = procedural_engine.call("snapshot_surface")
+		return {"mode": "procedural", "rust": snap}
 	return zones.duplicate(true)
 
 
-func restore_snapshot(data: Array) -> void:
-	zones = (data as Array).duplicate(true)
-	valid = zones.size() == 3
+func restore_snapshot(data: Variant) -> void:
+	if data is Dictionary and str((data as Dictionary).get("mode", "")) == "procedural":
+		if procedural_mode and procedural_engine != null:
+			var rust_snap: Variant = (data as Dictionary).get("rust", {})
+			if rust_snap is Dictionary:
+				valid = bool(procedural_engine.call("restore_surface_snapshot", rust_snap))
+		return
+	if data is Array:
+		zones = (data as Array).duplicate(true)
+		valid = zones.size() == 3

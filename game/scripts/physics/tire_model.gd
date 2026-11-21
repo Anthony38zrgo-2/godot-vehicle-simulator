@@ -192,6 +192,14 @@ func compound_water_snow_ground_factor(water_mm: float, snow_mm: float, ground_c
 	return {"water": wf, "snow": sf, "ground": gf, "combined": clampf(wf * sf * gf, 0.35, 1.0)}
 
 
+static func footprint_weights(snow_coverage: float, ice_coverage: float) -> Vector3:
+	var w_snow := clampf(snow_coverage, 0.0, 1.0)
+	var w_ice := clampf(ice_coverage * (1.0 - w_snow * 0.7), 0.0, maxf(1.0 - w_snow, 0.0))
+	var w_dry := maxf(1.0 - w_snow - w_ice, 0.0)
+	var total := maxf(w_dry + w_snow + w_ice, 1.0e-6)
+	return Vector3(w_dry / total, w_snow / total, w_ice / total)
+
+
 static func effective_radius_m(nominal_m: float, deflection_m: float, sidewall_m: float) -> float:
 	var rim := maxf(nominal_m - maxf(sidewall_m, 0.03), 0.05)
 	return maxf(nominal_m - maxf(deflection_m, 0.0) * EFFECTIVE_RADIUS_COMPRESSION_GAIN, rim + EFFECTIVE_RADIUS_RIM_MARGIN_M)
@@ -423,6 +431,9 @@ func evaluate(
 	snow_mm: float = 0.0,
 	ground_temperature_c: float = 30.0,
 	winter_layer_id: String = "",
+	ice_mm: float = 0.0,
+	snow_coverage: float = -1.0,
+	ice_coverage: float = -1.0,
 ) -> Dictionary:
 	var state: Dictionary = states[index]
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
@@ -623,9 +634,44 @@ func evaluate(
 	var compound_mult := 1.0
 	var compound_detail := {"water": 1.0, "snow": 1.0, "ground": 1.0, "combined": 1.0}
 	var compound: Dictionary = wheel_compounds[index] if index >= 0 and index < wheel_compounds.size() else active_compound
+	var procedural_blend := winter_layer_id.is_empty() and (snow_coverage >= 0.0 or ice_coverage >= 0.0)
+	var fp_weights := Vector3(1.0, 0.0, 0.0)
 
 	if not compound.is_empty():
-		if winter_layer_id in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
+		if procedural_blend:
+			fp_weights = footprint_weights(maxf(snow_coverage, 0.0), maxf(ice_coverage, 0.0))
+			var wet_only := compound_water_snow_ground_factor(
+				water_mm, 0.0, ground_temperature_c, index, planar_speed
+			)
+			var wf := float(wet_only.get("water", 1.0))
+			var gf := float(wet_only.get("ground", 1.0))
+			var base_surface_scale := 1.0
+			if surface_name == "Road":
+				base_surface_scale = float(compound.get("road_grip_scale", 1.0))
+			elif surface_name in ["Gravel", "Dirt", "Sand"]:
+				base_surface_scale = float(compound.get("loose_grip_scale", 1.0))
+			if str(compound.get("id", "")) == "snow_studded":
+				base_surface_scale *= float(compound.get("uncovered_grip_scale", 1.0))
+			var exposed_comp := wf * gf * base_surface_scale
+			var snow_packed_scale := float(compound.get("snow_packed_grip_scale", 0.45))
+			var snow_loose_scale := float(compound.get("snow_loose_grip_scale", snow_packed_scale))
+			var snow_depth_t := clampf((snow_mm - 2.0) / 4.0, 0.0, 1.0)
+			var snow_scale := lerpf(snow_packed_scale, snow_loose_scale, snow_depth_t)
+			var snow_comp := snow_scale * gf * lerpf(1.0, wf, 0.35)
+			var ice_scale := float(compound.get("ice_grip_scale", 0.18))
+			var ice_comp := ice_scale * wf * gf
+			compound_mult = clampf(
+				fp_weights.x * exposed_comp + fp_weights.y * snow_comp + fp_weights.z * ice_comp,
+				0.05,
+				1.25,
+			)
+			compound_detail = {
+				"water": wf,
+				"snow": snow_scale if fp_weights.y >= fp_weights.z else ice_scale,
+				"ground": gf,
+				"combined": compound_mult,
+			}
+		elif winter_layer_id in ["snow_packed", "snow_loose", "snow_deep", "ice"]:
 			var snow_base := 1.0
 			match winter_layer_id:
 				"snow_packed":
@@ -657,9 +703,13 @@ func evaluate(
 	state["compound_water_factor"] = float(compound_detail.get("water", 1.0))
 	state["compound_snow_factor"] = float(compound_detail.get("snow", 1.0))
 	state["compound_ground_factor"] = float(compound_detail.get("ground", 1.0))
+	state["snow_coverage"] = maxf(snow_coverage, 0.0) if snow_coverage >= 0.0 else -1.0
+	state["ice_coverage"] = maxf(ice_coverage, 0.0) if ice_coverage >= 0.0 else -1.0
+	state["local_ice_mm"] = ice_mm
+	state["footprint_weights"] = fp_weights
 	# Additional compound/surface compatibility.
-	# Do not apply over physical snow or ice overlays.
-	if winter_layer_id.is_empty():
+	# Do not apply over physical snow/ice overlays or procedural footprint blend (already folded into exposed_comp).
+	if winter_layer_id.is_empty() and not procedural_blend:
 		if surface_name == "Road":
 			compound_mult *= float(
 				compound.get("road_grip_scale", 1.0)

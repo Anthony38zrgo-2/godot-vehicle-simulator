@@ -411,8 +411,8 @@ func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 
 func _local_conditions_base(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
-		"water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name,
-		"puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
+		"water_mm": 0.0, "snow_mm": 0.0, "ice_mm": 0.0, "snow_coverage": -1.0, "ice_coverage": -1.0,
+		"surface_name": surface_name, "puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
 	if weather_controller != null and weather_controller.get("calendar_active"):
 		var weather: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, position) if loaded else weather_controller.current_blend
 		local.merge(weather, true)
@@ -426,28 +426,57 @@ func _local_conditions_base(surface_name: String, position: Vector3, loaded: boo
 	return local
 
 
+func _apply_water_overlays_to_local(
+	local: Dictionary,
+	surface_name: String,
+	has_puddle: bool,
+	puddle_depth: float,
+	puddle_drag: float,
+	has_river: bool,
+	river_depth: float,
+	river_drag: float,
+	river_channel_id: String,
+) -> Dictionary:
+	if has_puddle:
+		local["puddle_depth_mm"] = puddle_depth
+		local["puddle_drag"] = puddle_drag
+		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), puddle_depth)
+	if has_river:
+		if river_depth > float(local.get("puddle_depth_mm", 0.0)):
+			local["puddle_depth_mm"] = river_depth
+			local["puddle_drag"] = river_drag
+		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), river_depth)
+		local["river_depth_mm"] = river_depth
+		local["river_channel_id"] = river_channel_id
+	local["surface_name"] = surface_name
+	return local
+
+
 func _local_conditions_at_contact(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := _local_conditions_base(surface_name, position, loaded)
+	var has_puddle := false
+	var p_depth := 0.0
+	var p_drag := 0.0
 	if loaded and is_instance_valid(puddle_system):
 		var puddle: Dictionary = puddle_system.sample_contact(position)
-		local["puddle_depth_mm"] = float(puddle.depth_mm)
-		local["puddle_drag"] = float(puddle.drag)
-		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), float(puddle.depth_mm))
+		has_puddle = true
+		p_depth = float(puddle.depth_mm)
+		p_drag = float(puddle.drag)
+	var has_river := false
+	var r_depth := 0.0
+	var r_drag := 1.25
+	var r_channel := ""
 	if loaded and is_instance_valid(river_system):
 		# Agua de cauce y parche se combinan tomando el máximo; se propagan
 		# los parámetros del origen elegido. Se conserva el máximo con el
 		# agua climática para los consumidores actuales (neumáticos,
 		# telemetría, VFX leen puddle_depth_mm/puddle_drag).
 		var river: Dictionary = river_system.sample_contact(position)
-		var river_depth := float(river.get("depth_mm", 0.0))
-		if river_depth > float(local.get("puddle_depth_mm", 0.0)):
-			local["puddle_depth_mm"] = river_depth
-			local["puddle_drag"] = float(river.get("drag_scale", 1.25))
-		local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), river_depth)
-		local["river_depth_mm"] = river_depth
-		local["river_channel_id"] = str(river.get("channel_id", ""))
-	local["surface_name"] = surface_name
-	return local
+		has_river = true
+		r_depth = float(river.get("depth_mm", 0.0))
+		r_drag = float(river.get("drag_scale", 1.25))
+		r_channel = str(river.get("channel_id", ""))
+	return _apply_water_overlays_to_local(local, surface_name, has_puddle, p_depth, p_drag, has_river, r_depth, r_drag, r_channel)
 
 
 func surface_temperature_for_hud() -> Dictionary:
@@ -1593,6 +1622,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_ice: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var thermal_snow_cov: Array[float] = [-1.0, -1.0, -1.0, -1.0]
+	var thermal_ice_cov: Array[float] = [-1.0, -1.0, -1.0, -1.0]
 	var thermal_ground: Array[float] = [30.0, 30.0, 30.0, 30.0]
 	var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
 	var thermal_irradiance: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -1628,22 +1660,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		var local: Dictionary
 		if (not has_puddles or use_puddle_batch) and (not has_rivers or use_river_batch):
 			local = _local_conditions_base(surface_str, contact_pos, loaded_contact)
-			if loaded_contact:
-				if puddle_batch.size() >= (i + 1) * 2:
-					var p_depth: float = puddle_batch[i * 2]
-					local["puddle_depth_mm"] = p_depth
-					local["puddle_drag"] = puddle_batch[i * 2 + 1]
-					local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), p_depth)
-				if river_batch.size() >= (i + 1) * 4:
-					var r_depth: float = river_batch[i * 4]
-					if r_depth > float(local.get("puddle_depth_mm", 0.0)):
-						local["puddle_depth_mm"] = r_depth
-						local["puddle_drag"] = river_batch[i * 4 + 2]
-					local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), r_depth)
-					local["river_depth_mm"] = r_depth
-					var r_ch_idx: int = int(river_batch[i * 4 + 3])
-					local["river_channel_id"] = river_system.channel_id_at(r_ch_idx) if (r_ch_idx >= 0 and river_system.has_method(&"channel_id_at")) else ""
-			local["surface_name"] = surface_str
+			var batch_has_p := loaded_contact and puddle_batch.size() >= (i + 1) * 2
+			var batch_p_depth := puddle_batch[i * 2] if batch_has_p else 0.0
+			var batch_p_drag := puddle_batch[i * 2 + 1] if batch_has_p else 0.0
+			var batch_has_r := loaded_contact and river_batch.size() >= (i + 1) * 4
+			var batch_r_depth := river_batch[i * 4] if batch_has_r else 0.0
+			var batch_r_drag := river_batch[i * 4 + 2] if batch_has_r else 1.25
+			var batch_r_ch_idx := int(river_batch[i * 4 + 3]) if batch_has_r else -1
+			var batch_r_ch: String = str(river_system.channel_id_at(batch_r_ch_idx)) if (batch_has_r and batch_r_ch_idx >= 0 and river_system.has_method(&"channel_id_at")) else ""
+			local = _apply_water_overlays_to_local(local, surface_str, batch_has_p, batch_p_depth, batch_p_drag, batch_has_r, batch_r_depth, batch_r_drag, batch_r_ch)
 		else:
 			local = _local_conditions_at_contact(surface_str, contact_pos, loaded_contact)
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
@@ -1652,6 +1677,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		local["puddle_depth_rate"] = depth_rate
 		thermal_water[i] = float(local.get("water_mm", 0.0))
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
+		thermal_ice[i] = float(local.get("ice_mm", 0.0))
+		thermal_snow_cov[i] = float(local.get("snow_coverage", -1.0))
+		thermal_ice_cov[i] = float(local.get("ice_coverage", -1.0))
 		thermal_ground[i] = float(local.get("ground_c", 30.0))
 		thermal_air[i] = float(local.get("air_c", thermal_model.ambient_temperature_c))
 		thermal_irradiance[i] = float(local.get("irradiance_w_m2", 0.0))
@@ -1806,6 +1834,9 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				local_snow,
 				local_ground,
 				str(contact.get("winter_layer_id", "")),
+				thermal_ice[i],
+				thermal_snow_cov[i],
+				thermal_ice_cov[i],
 			)
 			var fx := float(tire_result.get("longitudinal_force_n", 0.0))
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
@@ -2502,6 +2533,9 @@ func _solve_contact_wheel(
 	snow_mm: float = 0.0,
 	ground_c: float = 30.0,
 	winter_layer_id: String = "",
+	ice_mm: float = 0.0,
+	snow_coverage: float = -1.0,
+	ice_coverage: float = -1.0,
 ) -> Dictionary:
 	return tire_model.evaluate(
 		index,
@@ -2520,4 +2554,7 @@ func _solve_contact_wheel(
 		snow_mm,
 		ground_c,
 		winter_layer_id,
+		ice_mm,
+		snow_coverage,
+		ice_coverage,
 	)

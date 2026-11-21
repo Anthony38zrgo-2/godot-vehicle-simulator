@@ -30,6 +30,191 @@ var visual_state: Dictionary = {}
 var last_vehicle_pos: Vector3 = Vector3.ZERO
 var has_position: bool = false
 var calendar_active: bool = false
+var procedural_active: bool = false
+var five_sector_snapshot_active: bool = false
+var procedural_road_half_width_m: float = 3.0
+var procedural_atmosphere: RefCounted = null
+var procedural_atmosphere_summary: Dictionary = {}
+
+
+func configure_procedural_atmosphere(
+	for_stage_id: String,
+	rally_seed: int,
+	season_or_date: String = "",
+	start_hour: float = 9.6667,
+	regime_override: String = "",
+) -> Dictionary:
+	var built := SchedulerScript.build_procedural_atmosphere_for_stage(
+		for_stage_id, rally_seed, season_or_date, start_hour, regime_override
+	)
+	if not bool(built.get("ok", false)):
+		procedural_atmosphere = null
+		procedural_atmosphere_summary = {}
+		return built
+	procedural_atmosphere = built.get("engine") as RefCounted
+	procedural_atmosphere_summary = (built.get("summary", {}) as Dictionary).duplicate(true)
+	return built
+
+
+func sample_procedural_atmosphere(progress_m: float, elapsed_race_s: float) -> Dictionary:
+	if procedural_atmosphere == null:
+		return {"ok": false}
+	var res: Variant = procedural_atmosphere.call("sample_atmosphere_at", progress_m, elapsed_race_s)
+	return res as Dictionary if res is Dictionary else {"ok": false}
+
+
+func progress_to_shader_station(progress_m: float) -> float:
+	if procedural_atmosphere == null:
+		return progress_m
+	return float(procedural_atmosphere.call("progress_to_shader_station", progress_m))
+
+
+func configure_procedural(
+	for_stage_id: String,
+	route_path: String,
+	rally_seed: int,
+	season_or_date: String = "",
+	start_hour: float = 9.6667,
+	surface_type: String = "asphalt",
+	regime_override: String = "",
+) -> bool:
+	error = ""
+	stage_id = for_stage_id
+	procedural_active = false
+	five_sector_snapshot_active = false
+	if catalog.is_empty():
+		catalog = _read_json(SchedulerScript.PRESET_CATALOG_PATH)
+	var built := configure_procedural_atmosphere(
+		for_stage_id, rally_seed, season_or_date, start_hour, regime_override
+	)
+	if not bool(built.get("ok", false)):
+		error = str(built.get("error", "Fallo al configurar atmosfera procedural"))
+		return false
+	if not surface.configure_procedural(procedural_atmosphere, surface_type):
+		error = "Fallo al configurar modelo de superficie procedural para " + for_stage_id
+		return false
+	route_points.clear()
+	if FileAccess.file_exists(route_path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(route_path))
+		if parsed is Dictionary:
+			for p in (parsed as Dictionary).get("points", []):
+				if p is Array and (p as Array).size() >= 3:
+					route_points.append(Vector3(float(p[0]), float(p[1]), float(p[2])))
+	if route_points.size() < 2:
+		error = "Ruta sin puntos para proyeccion: " + route_path
+		return false
+	route_distances = PackedFloat64Array([0.0])
+	for i in range(1, route_points.size()):
+		route_distances.append(route_distances[-1] + route_points[i - 1].distance_to(route_points[i]))
+	route_total_m = route_distances[-1]
+	route_segment = 0
+	route_progress_m = 0.0
+	current_zone = 0
+	procedural_active = true
+	five_sector_snapshot_active = false
+	calendar_active = true
+	current_blend = surface.blended_state_at_distance(0.0)
+	visual_state = current_blend.duplicate(true)
+	visual_smoothing_s = 0.0
+	has_position = false
+	return true
+
+
+func configure_five_sector_snapshot(
+	for_stage_id: String,
+	route_path: String,
+	rally_seed: int,
+	season_or_date: String = "",
+	base_abs_seconds: float = 34800.0,
+	effective_abs_seconds: float = -1.0,
+	surface_type: String = "asphalt",
+	regime_override: String = "",
+) -> bool:
+	error = ""
+	stage_id = for_stage_id
+	procedural_active = false
+	five_sector_snapshot_active = false
+	procedural_atmosphere = null
+	procedural_atmosphere_summary = {}
+	if catalog.is_empty():
+		catalog = _read_json(SchedulerScript.PRESET_CATALOG_PATH)
+	var built := SchedulerScript.build_five_sector_snapshot_for_stage(
+		for_stage_id,
+		rally_seed,
+		season_or_date,
+		base_abs_seconds,
+		effective_abs_seconds,
+		surface_type,
+		regime_override,
+	)
+	if not bool(built.get("ok", false)):
+		error = str(built.get("error", "Fallo al configurar clima de cinco sectores"))
+		return false
+	procedural_atmosphere = built.get("engine") as RefCounted
+	procedural_atmosphere_summary = (built.get("summary", {}) as Dictionary).duplicate(true)
+	if not surface.configure_five_sector_snapshot(procedural_atmosphere, surface_type):
+		error = "Fallo al configurar instantanea de superficie para " + for_stage_id
+		return false
+	route_points.clear()
+	if FileAccess.file_exists(route_path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(route_path))
+		if parsed is Dictionary:
+			for p in (parsed as Dictionary).get("points", []):
+				if p is Array and (p as Array).size() >= 3:
+					route_points.append(Vector3(float(p[0]), float(p[1]), float(p[2])))
+	if route_points.size() < 2:
+		error = "Ruta sin puntos para proyeccion: " + route_path
+		return false
+	route_distances = PackedFloat64Array([0.0])
+	for i in range(1, route_points.size()):
+		route_distances.append(route_distances[-1] + route_points[i - 1].distance_to(route_points[i]))
+	route_total_m = route_distances[-1]
+	route_segment = 0
+	route_progress_m = 0.0
+	current_zone = 0
+	procedural_active = true
+	five_sector_snapshot_active = true
+	calendar_active = true
+	current_blend = surface.blended_state_at_distance(0.0)
+	visual_state = current_blend.duplicate(true)
+	visual_smoothing_s = 0.0
+	has_position = false
+	return true
+
+
+func compute_puddle_fills(
+	distances: PackedFloat32Array,
+	twis: PackedFloat32Array,
+	min_waters: PackedFloat32Array,
+	retentions: PackedFloat32Array,
+) -> PackedFloat32Array:
+	if five_sector_snapshot_active and procedural_atmosphere != null and procedural_atmosphere.has_method("compute_puddle_fills"):
+		return procedural_atmosphere.call("compute_puddle_fills", distances, twis, min_waters, retentions) as PackedFloat32Array
+	return PackedFloat32Array()
+
+
+func sector_summary() -> Array:
+	if five_sector_snapshot_active and procedural_atmosphere != null and procedural_atmosphere.has_method("sector_summary"):
+		return procedural_atmosphere.call("sector_summary") as Array
+	return []
+
+
+func local_surface_state_at_distance(distance: float, lateral_t: float = 0.0) -> Dictionary:
+	if not calendar_active or not surface.valid:
+		return {}
+	return surface.blended_state_at_distance(distance, lateral_t)
+
+
+func procedural_telemetry(step_m: float = 250.0) -> Dictionary:
+	if not procedural_active:
+		return {"ok": false}
+	return surface.telemetry_profile(step_m)
+
+
+func surface_field_packet(known_revision: int = -1) -> Dictionary:
+	if not procedural_active:
+		return {"ok": false}
+	return surface.surface_field_packet(known_revision)
 
 
 func _read_json(path: String) -> Dictionary:
@@ -46,6 +231,10 @@ func _read_json(path: String) -> Dictionary:
 func configure(for_stage_id: String, entry: Dictionary, route_path: String) -> bool:
 	error = ""
 	stage_id = for_stage_id
+	procedural_active = false
+	five_sector_snapshot_active = false
+	procedural_atmosphere = null
+	procedural_atmosphere_summary = {}
 	schedule_entry = (entry as Dictionary).duplicate(true)
 	catalog = _read_json(SchedulerScript.PRESET_CATALOG_PATH)
 	if catalog.is_empty():
@@ -204,8 +393,9 @@ func tick_visual(delta_s: float) -> void:
 		new_climate["wind_direction_deg"] = fposmod(float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + diff * clampf(alpha_precip, 0.0, 1.0), 360.0)
 
 	visual_state["climate"] = new_climate
-	for k in ["air_c", "ground_c", "water_mm", "saturation", "snow_mm"]:
-		visual_state[k] = current_blend.get(k, visual_state.get(k, 0.0))
+	for k in ["air_c", "ground_c", "water_mm", "saturation", "snow_mm", "ice_mm", "rain_mm_h", "snow_mm_h", "precipitation_kind"]:
+		if current_blend.has(k) or visual_state.has(k):
+			visual_state[k] = current_blend.get(k, visual_state.get(k, 0.0))
 
 
 ## Rescate/teletransporte: suavizar visualmente para no provocar un salto
@@ -224,6 +414,8 @@ func on_rescue(world_pos: Vector3) -> void:
 ## acotados. No llamar en pausa/reglaje/carga.
 func advance_ambient(delta_s: float, solar_factor: float) -> void:
 	surface.advance_ambient(delta_s, solar_factor)
+	if procedural_active and surface.valid:
+		current_blend = surface.blended_state_at_distance(route_progress_m)
 
 
 ## Factor solar por hora: Soleado de noche no crea luz solar.
@@ -241,19 +433,32 @@ func solar_factor_for_hour(hour: float) -> float:
 func local_conditions_for_contact(surface_name: String, vehicle_pos: Vector3) -> Dictionary:
 	# Query contacts without changing the vehicle/HUD projection cursor.
 	var distance := route_progress_m
+	var lateral_t := 0.0
 	var best := INF
 	for i in range(maxi(0, route_segment - 4), mini(route_points.size() - 1, route_segment + 5)):
 		var a := route_points[i]
 		var ab := route_points[i + 1] - a
 		var t := clampf((vehicle_pos - a).dot(ab) / maxf(ab.length_squared(), 0.0001), 0.0, 1.0)
-		var d := vehicle_pos.distance_squared_to(a + ab * t)
+		var proj := a + ab * t
+		if absf(vehicle_pos.y - proj.y) > 12.0:
+			continue
+		var d := vehicle_pos.distance_squared_to(proj)
 		if d < best:
 			best = d
 			distance = lerpf(route_distances[i], route_distances[i + 1], t)
-	var st := surface.blended_state_at_distance(distance)
+			if procedural_active:
+				var fwd := Vector2(ab.x, ab.z).normalized()
+				if fwd.length_squared() > 0.01:
+					var right := Vector2(-fwd.y, fwd.x)
+					var signed_lat := Vector2(vehicle_pos.x - proj.x, vehicle_pos.z - proj.z).dot(right)
+					lateral_t = clampf(signed_lat / maxf(procedural_road_half_width_m, 0.5), -1.0, 1.0)
+	var st := surface.blended_state_at_distance(distance, lateral_t)
 	st["surface_name"] = surface_name
-	st["water_mm_effective"] = float(st.get("water_mm", 0.0))
-	st["snow_mm_effective"] = float(st.get("snow_mm", 0.0))
+	st["procedural_active"] = procedural_active
+	if not st.has("water_mm_effective"):
+		st["water_mm_effective"] = float(st.get("water_mm", 0.0))
+	if not st.has("snow_mm_effective"):
+		st["snow_mm_effective"] = float(st.get("snow_mm", 0.0))
 	st["route_progress_m"] = distance
 	st["zone_index"] = surface.zone_index_at_distance(distance)
 	return st
@@ -315,8 +520,13 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 		return
 	var climate: Dictionary = (visual_state.get("climate", current_blend.get("climate", {})) as Dictionary)
 	var visual: Dictionary = catalog.get("visual_response", {})
+	var raw_kind := str(visual_state.get("precipitation_kind", current_blend.get("precipitation_kind", "rain")))
+	if not procedural_active and current_blend.has("blend_to") and float(current_blend.get("blend_t", 0.0)) >= 0.5:
+		var bto := int(current_blend.blend_to)
+		if bto >= 0 and bto < surface.zones.size():
+			raw_kind = str(surface.zones[bto].get("precipitation_kind", raw_kind))
 	if sky != null and sky.has_method("apply_climate"):
-		sky.call("apply_climate", climate, visual)
+		sky.call("apply_climate", climate, visual, raw_kind)
 	if tca_controller != null and is_instance_valid(tca_controller):
 		tca_controller.set_process(false)
 		# Fuente unica: congelar el avance autonomo y la ruleta de climas.
@@ -327,60 +537,71 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 		# Exponer intensidad a los adaptadores que la lean (sonido/particulas).
 		tca_controller.set_meta("calendar_precip_mm_h", precip)
 		tca_controller.set_meta("calendar_raining", raining)
-		var kind := str(current_blend.get("precipitation_kind", "rain"))
-		if current_blend.has("blend_to") and float(current_blend.get("blend_t", 0.0)) >= 0.5:
-			kind = str(surface.zones[int(current_blend.blend_to)].get("precipitation_kind", kind))
+		tca_controller.set_meta("calendar_precip_kind", raw_kind)
+		var kind := raw_kind
 		if kind == "mixed":
 			kind = "snow"
 		var adapter: Dictionary = catalog.get("precipitation_adapter", {})
 		var particles := tca_controller.get("particle_system") as GPUParticles3D
 		if precip > 0.01 and kind != "none" and str(tca_controller.get_meta("calendar_particle_kind", "")) != kind:
-			if particles != null:
-				# Stop the old system before it is freed so two precipitation
-				# sources never emit during the same frame.
+			var previous_kind := str(tca_controller.get_meta("calendar_particle_kind", ""))
+			var emitters: Dictionary = tca_controller.get_meta("calendar_emitters", {})
+			if is_instance_valid(particles):
 				particles.emitting = false
-				particles.queue_free()
-			particles = null
-			var path := str(adapter.get(kind + "_scene", ""))
-			if ResourceLoader.exists(path):
-				var packed := load(path) as PackedScene
-				particles = packed.instantiate() as GPUParticles3D
+				if emitters.get(previous_kind) == particles:
+					particles.hide()
+				else:
+					particles.queue_free()
+			var cached_emitter: Variant = emitters.get(kind)
+			particles = cached_emitter as GPUParticles3D if is_instance_valid(cached_emitter) else null
+			if not is_instance_valid(particles) or particles.is_queued_for_deletion():
+				particles = null
+				var path := str(adapter.get(kind + "_scene", ""))
+				if ResourceLoader.exists(path):
+					var packed := load(path) as PackedScene
+					particles = packed.instantiate() as GPUParticles3D
+					if particles != null:
+						if kind == "rain":
+							particles.trail_enabled = false
+							particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+							particles.draw_passes = 1
+							particles.lifetime = float(visual.get("rain_lifetime_s", 0.9))
+							particles.draw_pass_1 = _make_precipitation_pass(
+								RAIN_SPRITE,
+								Vector2(
+									float(visual.get("raindrop_width_m", 0.05)),
+									float(visual.get("raindrop_height_m", 0.55)),
+								),
+								float(visual.get("raindrop_opacity", 0.70)),
+								float(visual.get("raindrop_near_fade_start_m", 0.05)),
+								float(visual.get("raindrop_near_fade_end_m", 0.4)),
+								float(visual.get("raindrop_far_fade_start_m", 24.0)),
+								float(visual.get("raindrop_far_fade_end_m", 42.0)),
+								Color(0.90, 0.94, 1.0),
+							)
+						elif kind == "snow":
+							particles.trail_enabled = false
+							particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+							particles.draw_passes = 1
+							var snow_size := float(visual.get("snow_size_m", 0.16))
+							particles.draw_pass_1 = _make_precipitation_pass(
+								SNOW_SPRITE,
+								Vector2(snow_size, snow_size),
+								float(visual.get("snow_opacity", 0.65)),
+								float(visual.get("rain_near_fade_start_m", 0.9)),
+								float(visual.get("rain_near_fade_end_m", 3.6)),
+								float(visual.get("snow_far_fade_start_m", 24.0)),
+								float(visual.get("snow_far_fade_end_m", 45.0)),
+								Color(1.0, 1.0, 1.0),
+							)
+						particles.amount = 400
+						tca_controller.add_child(particles)
 				if particles != null:
-					if kind == "rain":
-						particles.trail_enabled = false
-						particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-						particles.draw_passes = 1
-						particles.lifetime = float(visual.get("rain_lifetime_s", 0.9))
-						particles.draw_pass_1 = _make_precipitation_pass(
-							RAIN_SPRITE,
-							Vector2(
-								float(visual.get("raindrop_width_m", 0.05)),
-								float(visual.get("raindrop_height_m", 0.55)),
-							),
-							float(visual.get("raindrop_opacity", 0.70)),
-							float(visual.get("raindrop_near_fade_start_m", 0.05)),
-							float(visual.get("raindrop_near_fade_end_m", 0.4)),
-							float(visual.get("raindrop_far_fade_start_m", 24.0)),
-							float(visual.get("raindrop_far_fade_end_m", 42.0)),
-							Color(0.90, 0.94, 1.0),
-						)
-					elif kind == "snow":
-						particles.trail_enabled = false
-						particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-						particles.draw_passes = 1
-						var snow_size := float(visual.get("snow_size_m", 0.16))
-						particles.draw_pass_1 = _make_precipitation_pass(
-							SNOW_SPRITE,
-							Vector2(snow_size, snow_size),
-							float(visual.get("snow_opacity", 0.65)),
-							float(visual.get("rain_near_fade_start_m", 0.9)),
-							float(visual.get("rain_near_fade_end_m", 3.6)),
-							float(visual.get("snow_far_fade_start_m", 24.0)),
-							float(visual.get("snow_far_fade_end_m", 45.0)),
-							Color(1.0, 1.0, 1.0),
-						)
-					particles.amount = 400
-					tca_controller.add_child(particles)
+					emitters[kind] = particles
+					tca_controller.set_meta("calendar_emitters", emitters)
+			if particles != null:
+				particles.show()
+				particles.restart()
 			tca_controller.set("particle_system", particles)
 			tca_controller.set_meta("calendar_particle_kind", kind)
 		if particles != null:

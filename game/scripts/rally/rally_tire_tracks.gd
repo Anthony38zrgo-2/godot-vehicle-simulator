@@ -63,10 +63,11 @@ func _process(delta: float) -> void:
 			ribbons[block].mesh = null
 
 
-func variant_for(surface: String, snow_mm: float, wheel: int, winter_layer_id: String = "") -> int:
-	if winter_layer_id == "ice" or surface == "ice":
+func variant_for(surface: String, snow_mm: float, wheel: int, winter_layer_id: String = "", snow_coverage: float = -1.0, ice_coverage: float = -1.0) -> int:
+	if winter_layer_id == "ice" or surface == "ice" or (ice_coverage >= 0.25 and snow_coverage < 0.25):
 		return 4
-	if snow_mm >= 0.25 or surface in ["snow", "snowdeep"] or winter_layer_id in ["snow_packed", "snow_loose", "snow_deep"]:
+	var has_snow := (snow_coverage >= 0.12) if snow_coverage >= 0.0 else (snow_mm >= 0.25)
+	if has_snow or surface in ["snow", "snowdeep"] or winter_layer_id in ["snow_packed", "snow_loose", "snow_deep"]:
 		return 2 + wheel % 2
 	if surface in ["road", "asphalt", "tarmac", "curb"]:
 		return wheel % 2

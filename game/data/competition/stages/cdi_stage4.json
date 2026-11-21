@@ -23,5 +23,11 @@
     1.550906963882759,
     1.544362444643306,
     1.5519035928848852
-  ]
+  ],
+  "procedural_climate": {
+    "enabled": true,
+    "mode": "five_sector_snapshot",
+    "climate_profile_path": "res://data/weather/cdi_ss04_climate.json",
+    "route_profile_path": "res://assets/rally/cdi_stage4/climate_route_profile.json"
+  }
 }

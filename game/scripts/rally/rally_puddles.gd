@@ -4,6 +4,15 @@ extends Node3D
 ## Stable route-seeded virtual depressions with smooth circular-biased organic contours,
 ## topographic wetness index (TWI), Poisson cluster generation, bimodal lateral distribution,
 ## conformal adaptive mesh, prefabricated PNG masks, physical hydrodynamic retarding drag and aquaplaning.
+##
+## Depth & liquid-feed contract:
+## - `background_water(distance)` reads the single local liquid supply `water_mm`
+##   (which already integrates rain + snow/ice melt - freezing - evaporation - drainage).
+## - Reported `depth_mm` is the total basin water depth INCLUDING the base water film
+##   filling the depression; downstream wheel fusion (`vehicle_simulation.gd`) takes
+##   `max(base_water_mm, puddle_depth_mm)` so the base film is never added twice.
+## - Water that has frozen into `ice_mm` does NOT contribute to liquid `fill`, ensuring
+##   hydrodynamic puddle drag is never applied to frozen puddle ice.
 
 const WATER_SHADER = preload("res://scripts/rally/rally_puddle.gdshader")
 const WATER_DETAIL_TEX = preload("res://assets/rally/water/water_detail.jpg")
@@ -79,6 +88,7 @@ const TYPES := [
 static var _mask_images: Dictionary = {}
 
 var use_rust_backend: bool = true
+var fixed_snapshot_mode: bool = false
 var provider = null
 var sky_node: Node
 var wetness_node: Node
@@ -92,6 +102,10 @@ var _rust_field: RefCounted = null
 var _rust_mask_ids: Dictionary = {}
 var _rust_next_mask_id: int = 1
 var _rust_fills: PackedFloat32Array = PackedFloat32Array()
+var _cand_distances: PackedFloat32Array = PackedFloat32Array()
+var _cand_twis: PackedFloat32Array = PackedFloat32Array()
+var _cand_min_waters: PackedFloat32Array = PackedFloat32Array()
+var _cand_retentions: PackedFloat32Array = PackedFloat32Array()
 static var _rust_static_helper: RefCounted = null
 
 
@@ -119,22 +133,34 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed = 0.0
 
+	if fixed_snapshot_mode:
+		_refresh_visible_reflections_only()
+		return
+
 	for patch in patches:
 		var profile: Dictionary = patch.profile
-		var water := background_water(float(patch.distance))
+		var local_state := _local_liquid_state(float(patch.distance))
+		var water := float(local_state.get("water_mm", 0.0))
+		var ice := float(local_state.get("ice_mm", 0.0))
 		var min_w := float(profile.get("min_water", 0.75))
 
-		# Zero puddles in dry conditions (water below basin threshold):
+		# Zero puddles in dry conditions (liquid water below basin threshold).
+		# Frozen water (`ice_mm`) is excluded from liquid fill so puddle drag never acts on ice.
 		if water <= min_w:
 			patch.fill = 0.0
 		else:
 			var ret := float(profile.get("retention", 1.0))
-			patch.fill = clampf((water - min_w) * ret / 3.0, 0.0, 1.0)
+			var liquid_fraction := water / (water + ice) if ice > 0.001 else 1.0
+			patch.fill = clampf((water - min_w) * ret / 3.0, 0.0, 1.0) * liquid_fraction
 
-		var patch_depth := float(patch.get("depth_mm", profile.depth_mm))
+		var mesh := patch.mesh as MeshInstance3D
+		var filled := float(patch.fill) > 0.005
+		if mesh.visible != filled:
+			mesh.visible = filled
+		if not filled:
+			continue
 		var material: ShaderMaterial = patch.material
 		material.set_shader_parameter("fill", patch.fill)
-		material.set_shader_parameter("max_depth_mm", patch_depth)
 
 		if is_instance_valid(sky_node):
 			material.set_shader_parameter("has_sky", true)
@@ -144,14 +170,8 @@ func _physics_process(delta: float) -> void:
 			]:
 				material.set_shader_parameter(parameter, sky_node.material.get_shader_parameter(parameter))
 
-		var rain := 0.0
-		if provider != null and provider.calendar_active:
-			var state: Dictionary = provider.surface.blended_state_at_distance(float(patch.distance))
-			rain = clampf(float(state.get("climate", {}).get("precipitation_mm_h", 0.0)) / 10.0, 0.0, 1.0)
-		elif is_instance_valid(wetness_node):
-			rain = float(wetness_node.rain_intensity)
+		var rain := float(local_state.get("rain_ratio", 0.0))
 		material.set_shader_parameter("rain", rain)
-		(patch.mesh as MeshInstance3D).visible = float(patch.fill) > 0.005
 
 	if _rust_field != null:
 		var count: int = patches.size()
@@ -162,10 +182,27 @@ func _physics_process(delta: float) -> void:
 		_rust_field.call("update_fills", _rust_fills)
 
 
-func background_water(distance: float) -> float:
+func _local_liquid_state(distance: float) -> Dictionary:
 	if provider != null and provider.calendar_active:
-		return float(provider.surface.blended_state_at_distance(distance).get("water_mm", 0.0))
-	return float(wetness_node.wetness) * 4.0 if is_instance_valid(wetness_node) else 0.0
+		var state: Dictionary = provider.local_surface_state_at_distance(distance) if provider.has_method("local_surface_state_at_distance") else provider.surface.blended_state_at_distance(distance)
+		var climate: Dictionary = state.get("climate", {})
+		var rain_mm_h := float(state.get("rain_mm_h", climate.get("rain_mm_h", -1.0)))
+		if rain_mm_h < 0.0:
+			var kind := str(state.get("precipitation_kind", "rain"))
+			var total_p := float(climate.get("precipitation_mm_h", 0.0))
+			rain_mm_h = total_p if kind == "rain" else (total_p * 0.6 if kind == "mixed" else 0.0)
+		return {
+			"water_mm": maxf(float(state.get("water_mm", 0.0)), 0.0),
+			"ice_mm": maxf(float(state.get("ice_mm", 0.0)), 0.0),
+			"rain_ratio": clampf(rain_mm_h / 10.0, 0.0, 1.0),
+		}
+	var w := float(wetness_node.wetness) * 4.0 if is_instance_valid(wetness_node) else 0.0
+	var r := float(wetness_node.rain_intensity) if is_instance_valid(wetness_node) else 0.0
+	return {"water_mm": maxf(w, 0.0), "ice_mm": 0.0, "rain_ratio": clampf(r, 0.0, 1.0)}
+
+
+func background_water(distance: float) -> float:
+	return float(_local_liquid_state(distance).get("water_mm", 0.0))
 
 
 func road_hit(pos: Vector3) -> Dictionary:
@@ -505,6 +542,7 @@ func build() -> void:
 					"size": size,
 					"profile": profile,
 					"distance": next_cluster_dist,
+					"twi": twi,
 					"fill": 0.0,
 					"material": material,
 					"mesh": mesh_instance,
@@ -536,7 +574,77 @@ func build() -> void:
 		distance += seg_len
 
 	_sync_patches_to_rust()
+	_rebuild_candidate_arrays()
+	if provider != null and bool(provider.get("five_sector_snapshot_active")):
+		apply_fixed_snapshot_fills()
 	print("RALLY_PUDDLES_READY count=", patches.size(), " seed=", stage_seed, " clusters=", cluster_id)
+
+
+func _rebuild_candidate_arrays() -> void:
+	var n := patches.size()
+	_cand_distances.resize(n)
+	_cand_twis.resize(n)
+	_cand_min_waters.resize(n)
+	_cand_retentions.resize(n)
+	for i in n:
+		var p: Dictionary = patches[i]
+		var prof: Dictionary = p["profile"] as Dictionary
+		_cand_distances[i] = float(p.get("distance", 0.0))
+		_cand_twis[i] = float(p.get("twi", 1.0))
+		_cand_min_waters[i] = float(prof.get("min_water", 0.75))
+		_cand_retentions[i] = float(prof.get("retention", 1.0))
+
+
+func apply_fixed_snapshot_fills() -> bool:
+	if not built:
+		build()
+	if provider == null or not bool(provider.get("five_sector_snapshot_active")):
+		fixed_snapshot_mode = false
+		return false
+	if _cand_distances.size() != patches.size():
+		_rebuild_candidate_arrays()
+	var fills: PackedFloat32Array = provider.call(
+		"compute_puddle_fills", _cand_distances, _cand_twis, _cand_min_waters, _cand_retentions
+	)
+	var count := patches.size()
+	if _rust_fills.size() != count:
+		_rust_fills.resize(count)
+	for i in count:
+		var fill := fills[i] if i < fills.size() else 0.0
+		var patch: Dictionary = patches[i]
+		patch["fill"] = fill
+		_rust_fills[i] = fill
+		var mesh := patch["mesh"] as MeshInstance3D
+		var filled := fill > 0.005
+		if mesh != null and mesh.visible != filled:
+			mesh.visible = filled
+		var mat := patch["material"] as ShaderMaterial
+		if mat != null:
+			mat.set_shader_parameter("fill", fill)
+	if _rust_field != null:
+		_rust_field.call("update_fills", _rust_fills)
+	fixed_snapshot_mode = true
+	_refresh_visible_reflections_only()
+	return true
+
+
+func _refresh_visible_reflections_only() -> void:
+	var has_sky := is_instance_valid(sky_node) and sky_node.get("material") != null
+	for patch in patches:
+		if float(patch["fill"]) <= 0.005:
+			continue
+		var material: ShaderMaterial = patch["material"]
+		if material == null:
+			continue
+		if has_sky:
+			material.set_shader_parameter("has_sky", true)
+			for parameter in [
+				"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
+				"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color"
+			]:
+				material.set_shader_parameter(parameter, sky_node.material.get_shader_parameter(parameter))
+		var local_state := _local_liquid_state(float(patch["distance"]))
+		material.set_shader_parameter("rain", float(local_state.get("rain_ratio", 0.0)))
 
 
 ## Smooth rounded organic procedural mask without sharp pinches

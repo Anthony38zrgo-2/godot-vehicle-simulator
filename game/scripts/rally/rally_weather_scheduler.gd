@@ -10,8 +10,143 @@ const GENERATOR_VERSION := 2
 const CLIMATE_PURPOSE := "rally_weather_v1"
 const RIVAL_PURPOSE := "rally_weather_rival_v1"
 const PRESET_CATALOG_PATH := "res://data/weather/rally_weather_presets.json"
+const STAGE_CONFIG_ROOT := "res://data/competition/stages"
+const STAGE_ASSETS_ROOT := "res://assets/rally"
 
 var error: String = ""
+
+
+## Resuelve la configuracion de clima procedural declarada en el tramo y su manifiesto.
+static func resolve_procedural_climate_config(stage_id: String) -> Dictionary:
+	var cfg_path := "%s/%s.json" % [STAGE_CONFIG_ROOT, stage_id]
+	if not FileAccess.file_exists(cfg_path):
+		return {}
+	var stage_cfg: Variant = JSON.parse_string(FileAccess.get_file_as_string(cfg_path))
+	if not stage_cfg is Dictionary:
+		return {}
+	var proc: Variant = (stage_cfg as Dictionary).get("procedural_climate", {})
+	if not proc is Dictionary or (proc as Dictionary).is_empty():
+		return {}
+	var out: Dictionary = (proc as Dictionary).duplicate(true)
+	var route_profile_path := str(out.get("route_profile_path", ""))
+	if route_profile_path.is_empty():
+		var manifest_path := "%s/%s/manifest.json" % [STAGE_ASSETS_ROOT, stage_id]
+		if FileAccess.file_exists(manifest_path):
+			var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(manifest_path))
+			if manifest is Dictionary:
+				var rel := str((manifest as Dictionary).get("climate_route_profile", ""))
+				if not rel.is_empty():
+					route_profile_path = "%s/%s/%s" % [STAGE_ASSETS_ROOT, stage_id, rel]
+	out["route_profile_path"] = route_profile_path
+	return out
+
+
+## Construye y precalcula la tabla atmosferica procedural en Rust a partir de los
+## perfiles locales del tramo (sin dependencia de datos externos).
+static func build_procedural_atmosphere_for_stage(
+	stage_id: String,
+	rally_seed: int,
+	season_or_date: String = "",
+	start_hour: float = 9.6667,
+	regime_override: String = "",
+	pre_start_hours: float = -1.0,
+	race_horizon_hours: float = -1.0,
+) -> Dictionary:
+	var cfg := resolve_procedural_climate_config(stage_id)
+	if cfg.is_empty():
+		return {"ok": false, "error": "Sin configuracion procedural_climate para " + stage_id}
+	var climate_path := str(cfg.get("climate_profile_path", ""))
+	var route_path := str(cfg.get("route_profile_path", ""))
+	if climate_path.is_empty() or not FileAccess.file_exists(climate_path):
+		return {"ok": false, "error": "Perfil climatico ausente: " + climate_path}
+	if route_path.is_empty() or not FileAccess.file_exists(route_path):
+		return {"ok": false, "error": "Perfil geografico ausente: " + route_path}
+	if not ClassDB.class_exists(&"RustProceduralWeather"):
+		return {"ok": false, "error": "Clase nativa RustProceduralWeather no disponible"}
+	var engine := ClassDB.instantiate(&"RustProceduralWeather") as RefCounted
+	if engine == null:
+		return {"ok": false, "error": "No se pudo instanciar RustProceduralWeather"}
+	var climate_json := FileAccess.get_file_as_string(climate_path)
+	var route_json := FileAccess.get_file_as_string(route_path)
+	var res_var: Variant = engine.call(
+		"configure_from_json",
+		climate_json,
+		route_json,
+		rally_seed,
+		season_or_date,
+		start_hour,
+		pre_start_hours,
+		race_horizon_hours,
+		regime_override,
+	)
+	if not res_var is Dictionary:
+		return {"ok": false, "error": "Respuesta invalida de RustProceduralWeather"}
+	var res := res_var as Dictionary
+	if not bool(res.get("ok", false)):
+		return {"ok": false, "error": str(res.get("error", "Error de configuracion Rust"))}
+	return {
+		"ok": true,
+		"enabled_by_default": bool(cfg.get("enabled", false)),
+		"climate_profile_path": climate_path,
+		"route_profile_path": route_path,
+		"engine": engine,
+		"summary": res,
+	}
+
+
+## Construye y precalcula la jornada en cinco sectores y la instantánea fija
+## a la hora efectiva de salida mediante RustFiveSectorWeather.
+static func build_five_sector_snapshot_for_stage(
+	stage_id: String,
+	rally_seed: int,
+	season_or_date: String = "",
+	base_abs_seconds: float = 34800.0,
+	effective_abs_seconds: float = -1.0,
+	surface_type: String = "asphalt",
+	regime_override: String = "",
+) -> Dictionary:
+	var cfg := resolve_procedural_climate_config(stage_id)
+	if cfg.is_empty():
+		return {"ok": false, "error": "Sin configuracion procedural_climate para " + stage_id}
+	var climate_path := str(cfg.get("climate_profile_path", ""))
+	var route_path := str(cfg.get("route_profile_path", ""))
+	if climate_path.is_empty() or not FileAccess.file_exists(climate_path):
+		return {"ok": false, "error": "Perfil climatico ausente: " + climate_path}
+	if route_path.is_empty() or not FileAccess.file_exists(route_path):
+		return {"ok": false, "error": "Perfil geografico ausente: " + route_path}
+	if not ClassDB.class_exists(&"RustFiveSectorWeather"):
+		return {"ok": false, "error": "Clase nativa RustFiveSectorWeather no disponible"}
+	var engine := ClassDB.instantiate(&"RustFiveSectorWeather") as RefCounted
+	if engine == null:
+		return {"ok": false, "error": "No se pudo instanciar RustFiveSectorWeather"}
+	var climate_json := FileAccess.get_file_as_string(climate_path)
+	var route_json := FileAccess.get_file_as_string(route_path)
+	var eff_abs := effective_abs_seconds if effective_abs_seconds >= 0.0 else base_abs_seconds
+	var res_var: Variant = engine.call(
+		"configure_and_precompute_from_json",
+		climate_json,
+		route_json,
+		rally_seed,
+		season_or_date,
+		base_abs_seconds,
+		eff_abs,
+		surface_type,
+		regime_override,
+	)
+	if not res_var is Dictionary:
+		return {"ok": false, "error": "Respuesta invalida de RustFiveSectorWeather"}
+	var res := res_var as Dictionary
+	if not bool(res.get("ok", false)):
+		return {"ok": false, "error": str(res.get("error", "Error de configuracion RustFiveSectorWeather"))}
+	return {
+		"ok": true,
+		"mode": "five_sector_snapshot",
+		"enabled_by_default": bool(cfg.get("enabled", false)),
+		"climate_profile_path": climate_path,
+		"route_profile_path": route_path,
+		"engine": engine,
+		"summary": res,
+	}
 
 
 static func climate_seed(rally_seed: int) -> int:

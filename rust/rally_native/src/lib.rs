@@ -1,3 +1,4 @@
+mod procedural_weather;
 mod puddles;
 mod river_channels;
 mod rng;

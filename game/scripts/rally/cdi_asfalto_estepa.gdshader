@@ -1,6 +1,8 @@
 shader_type spatial;
 render_mode fog_disabled;
 
+#include "res://scripts/rally/cdi_procedural_surface.gdshaderinc"
+
 uniform sampler2DArray surface_textures : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float snow_station_m = -1.0;
 uniform float wetness : hint_range(0.0, 1.0) = 0.0;
@@ -45,7 +47,14 @@ void fragment() {
 	pavement = mix(pavement, marked, stripe);
 
 	float coverage = 0.0;
-	if (snow_station_m >= 0.0) {
+	float eff_wetness = wetness;
+	float ice_cov = 0.0;
+	if (procedural_surface_enabled) {
+		vec3 proc = proc_sample_surface(station, lateral);
+		eff_wetness = proc.x;
+		coverage = proc.y;
+		ice_cov = proc.z;
+	} else if (snow_station_m >= 0.0) {
 		float d = station - snow_station_m;
 		float patch = noise2(vec2(station * 0.20, lateral * 9.0)) - 0.5;
 		float phase = d + edge * 16.0 + patch * 20.0;
@@ -65,8 +74,13 @@ void fragment() {
 	vec3 winter_asphalt = clamp(unmarked_pavement + deposits, vec3(0.0), vec3(1.0));
 	float snow_mask = smoothstep(0.065, 0.30, dot(winter_asphalt, vec3(0.2126, 0.7152, 0.0722)));
 	winter_asphalt = mix(winter_asphalt, marked, stripe * (1.0 - snow_mask));
-	float asphalt_wetness = 1.0 - 0.24 * wetness;
-	ALBEDO = mix(pavement * asphalt_wetness,
+	float asphalt_wetness = 1.0 - 0.26 * eff_wetness;
+	vec3 lit_road = mix(pavement * asphalt_wetness,
 		winter_asphalt * mix(asphalt_wetness, 1.0, snow_mask), coverage);
-	ROUGHNESS = mix(mix(0.92, 0.46, wetness), 0.97, coverage * snow_mask);
+	float ice_glaze = ice_cov * (1.0 - coverage * 0.85);
+	lit_road = mix(lit_road, mix(lit_road * 1.08, vec3(0.70, 0.80, 0.90), 0.32), ice_glaze);
+	ALBEDO = lit_road;
+	float base_rough = mix(0.92, procedural_surface_enabled ? 0.30 : 0.46, eff_wetness);
+	float road_rough = mix(base_rough, 0.97, coverage * snow_mask);
+	ROUGHNESS = mix(road_rough, 0.16, ice_glaze);
 }

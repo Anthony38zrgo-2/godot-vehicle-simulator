@@ -210,8 +210,11 @@ func _process(delta: float) -> void:
 func _sync_from_provider() -> void:
 	if shared_provider == null:
 		return
-	var snap: Array = shared_provider.surface.snapshot() if shared_provider.surface != null else []
-	if snap.size() == 3:
+	var snap_raw: Variant = []
+	if not bool(shared_provider.get("procedural_active")) and shared_provider.surface != null:
+		snap_raw = shared_provider.surface.snapshot()
+	if snap_raw is Array and (snap_raw as Array).size() == 3:
+		var snap := snap_raw as Array
 		var changed := false
 		for i in 3:
 			var w := clampf(float((snap[i] as Dictionary).get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
@@ -225,6 +228,7 @@ func _sync_from_provider() -> void:
 			_applied_zone_wetness = zone_wetness.duplicate(true)
 			apply_zoned_wetness()
 	else:
+		wetness = clampf(float(shared_provider.current_blend.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 		if absf(wetness - _applied_wetness) >= 0.002:
 			_applied_wetness = wetness
 			apply_wetness()

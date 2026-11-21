@@ -1,0 +1,207 @@
+{
+  "format_version": 1,
+  "profile_id": "cdi_ticlio_high_andes",
+  "description": "Perfil de simulacion climatica editable para SS04 Abra Ticlio y tramos altoandinos afines. Parametros aproximados de juego, sin dependencia de servicios ni series externas.",
+  "units": {
+    "temperature": "celsius",
+    "altitude": "m",
+    "lapse_rate": "celsius_per_km",
+    "humidity": "fraction_0_1",
+    "cloud_cover": "fraction_0_1",
+    "precipitation_rate": "mm_per_hour",
+    "wind_speed": "m_per_s",
+    "wind_direction": "degrees_from_north_clockwise",
+    "duration": "s",
+    "distance": "m",
+    "hour": "hour_of_day_0_24"
+  },
+  "reference_altitude_m": 4650.0,
+  "default_season": "transition",
+  "month_to_season": {
+    "1": "wet",
+    "2": "wet",
+    "3": "wet",
+    "4": "transition",
+    "5": "dry",
+    "6": "dry",
+    "7": "dry",
+    "8": "dry",
+    "9": "transition",
+    "10": "transition",
+    "11": "transition",
+    "12": "wet"
+  },
+  "seasons": {
+    "dry": {
+      "label": "Estiaje altoandino",
+      "base_temp_c": 2.5,
+      "diurnal_amplitude_c": 6.0,
+      "diurnal_peak_hour": 14.0,
+      "lapse_rate_c_per_km": 6.5,
+      "lapse_rate_front_c_per_km": 5.8,
+      "background_humidity": 0.46,
+      "diurnal_humidity_amplitude": 0.12,
+      "background_cloud_cover": 0.22,
+      "dry_day_probability": 0.65,
+      "front_frequency_per_day": 1.0,
+      "front_duration_s_range": [2400.0, 7200.0],
+      "front_radius_m_range": [1800.0, 4200.0],
+      "front_speed_m_s_range": [3.0, 7.5],
+      "front_temp_anomaly_c_range": [-3.5, -1.0],
+      "front_humidity_boost_range": [0.18, 0.34],
+      "front_cloud_boost_range": [0.35, 0.55],
+      "precip_intensity_bands": [
+        {"id": "light", "min_mm_h": 0.4, "max_mm_h": 1.6, "weight": 0.6},
+        {"id": "moderate", "min_mm_h": 1.6, "max_mm_h": 3.8, "weight": 0.32},
+        {"id": "heavy", "min_mm_h": 3.8, "max_mm_h": 6.5, "weight": 0.08}
+      ],
+      "orographic_wind": {
+        "enabled": true,
+        "prevailing_direction_deg": 65.0,
+        "direction_jitter_deg": 35.0,
+        "wind_speed_m_s_range": [2.5, 8.5],
+        "orographic_precip_gain": 0.22
+      }
+    },
+    "transition": {
+      "label": "Transicion andina",
+      "base_temp_c": 3.2,
+      "diurnal_amplitude_c": 5.2,
+      "diurnal_peak_hour": 13.8,
+      "lapse_rate_c_per_km": 6.4,
+      "lapse_rate_front_c_per_km": 5.6,
+      "background_humidity": 0.66,
+      "diurnal_humidity_amplitude": 0.11,
+      "background_cloud_cover": 0.44,
+      "dry_day_probability": 0.3,
+      "front_frequency_per_day": 2.2,
+      "front_duration_s_range": [2700.0, 9000.0],
+      "front_radius_m_range": [1600.0, 4500.0],
+      "front_speed_m_s_range": [2.5, 7.0],
+      "front_temp_anomaly_c_range": [-3.8, -1.2],
+      "front_humidity_boost_range": [0.16, 0.3],
+      "front_cloud_boost_range": [0.32, 0.52],
+      "precip_intensity_bands": [
+        {"id": "light", "min_mm_h": 0.6, "max_mm_h": 2.2, "weight": 0.45},
+        {"id": "moderate", "min_mm_h": 2.2, "max_mm_h": 5.5, "weight": 0.4},
+        {"id": "heavy", "min_mm_h": 5.5, "max_mm_h": 9.5, "weight": 0.15}
+      ],
+      "orographic_wind": {
+        "enabled": true,
+        "prevailing_direction_deg": 60.0,
+        "direction_jitter_deg": 40.0,
+        "wind_speed_m_s_range": [3.0, 9.5],
+        "orographic_precip_gain": 0.25
+      }
+    },
+    "wet": {
+      "label": "Temporada humeda altoandina",
+      "base_temp_c": 2.6,
+      "diurnal_amplitude_c": 4.0,
+      "diurnal_peak_hour": 13.5,
+      "lapse_rate_c_per_km": 6.0,
+      "lapse_rate_front_c_per_km": 5.4,
+      "background_humidity": 0.78,
+      "diurnal_humidity_amplitude": 0.09,
+      "background_cloud_cover": 0.62,
+      "dry_day_probability": 0.12,
+      "front_frequency_per_day": 3.2,
+      "front_duration_s_range": [3000.0, 10800.0],
+      "front_radius_m_range": [1800.0, 4800.0],
+      "front_speed_m_s_range": [2.2, 6.5],
+      "front_temp_anomaly_c_range": [-4.2, -1.5],
+      "front_humidity_boost_range": [0.14, 0.24],
+      "front_cloud_boost_range": [0.28, 0.42],
+      "precip_intensity_bands": [
+        {"id": "light", "min_mm_h": 0.8, "max_mm_h": 2.8, "weight": 0.3},
+        {"id": "moderate", "min_mm_h": 2.8, "max_mm_h": 6.8, "weight": 0.48},
+        {"id": "heavy", "min_mm_h": 6.8, "max_mm_h": 12.0, "weight": 0.22}
+      ],
+      "orographic_wind": {
+        "enabled": true,
+        "prevailing_direction_deg": 55.0,
+        "direction_jitter_deg": 40.0,
+        "wind_speed_m_s_range": [3.2, 10.5],
+        "orographic_precip_gain": 0.28
+      }
+    }
+  },
+  "precipitation_phase": {
+    "wet_bulb_rain_above_c": 1.6,
+    "wet_bulb_snow_below_c": 0.2
+  },
+  "precompute": {
+    "node_spacing_m": 250.0,
+    "time_step_s": 45.0,
+    "pre_start_hours": 6.0,
+    "race_horizon_hours": 1.5,
+    "surface_step_s": 5.0,
+    "surface_cell_spacing_m": 50.0
+  },
+  "five_sector_model": {
+    "sector_count": 5,
+    "boundaries_fraction": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    "pre_start_hours": 4.0,
+    "race_horizon_hours": 2.0,
+    "episode_lag_total_s": 360.0,
+    "max_substep_s": 300.0,
+    "slope_drainage_gain": 3.5,
+    "puddle_twi_base": 0.85,
+    "puddle_twi_gain": 1.15,
+    "puddle_fill_divisor_mm": 2.2
+  },
+  "surface_balance": {
+    "snow_stick_below_c": -0.5,
+    "snow_stick_above_c": 2.5,
+    "snow_melt_start_c": 0.15,
+    "snow_melt_band_c": 2.0,
+    "snow_melt_rate_mm_h_per_c": 0.55,
+    "snow_solar_melt_mm_h_per_kw": 0.85,
+    "ice_melt_start_c": 0.15,
+    "ice_melt_band_c": 1.8,
+    "ice_melt_rate_mm_h_per_c": 0.70,
+    "freeze_below_c": -0.15,
+    "freeze_band_c": 1.5,
+    "freeze_rate_mm_h_per_c": 1.80,
+    "snow_coverage_full_mm": 3.5,
+    "ice_coverage_full_mm": 1.8,
+    "water_coverage_full_mm": 3.0,
+    "max_water_mm": 18.0,
+    "max_snow_mm": 60.0,
+    "max_ice_mm": 15.0,
+    "tire_effective_water_cap_mm": 12.0,
+    "tire_effective_snow_cap_mm": 8.0
+  },
+  "surface_profiles": {
+    "asphalt": {
+      "thermal_capacity_kj_m2_k": 95.0,
+      "solar_absorption": 0.78,
+      "snow_albedo_absorption": 0.28,
+      "air_exchange_w_m2_k": 18.0,
+      "evaporation_mm_h_per_100w": 0.40,
+      "drainage_mm_h": 8.5,
+      "retention_film_mm": 0.15,
+      "porosity_saturation_scale": 0.0
+    },
+    "gravel": {
+      "thermal_capacity_kj_m2_k": 115.0,
+      "solar_absorption": 0.62,
+      "snow_albedo_absorption": 0.25,
+      "air_exchange_w_m2_k": 16.0,
+      "evaporation_mm_h_per_100w": 0.35,
+      "drainage_mm_h": 6.0,
+      "retention_film_mm": 0.35,
+      "porosity_saturation_scale": 0.08
+    },
+    "dirt": {
+      "thermal_capacity_kj_m2_k": 120.0,
+      "solar_absorption": 0.65,
+      "snow_albedo_absorption": 0.25,
+      "air_exchange_w_m2_k": 15.0,
+      "evaporation_mm_h_per_100w": 0.32,
+      "drainage_mm_h": 4.2,
+      "retention_film_mm": 0.50,
+      "porosity_saturation_scale": 0.12
+    }
+  }
+}

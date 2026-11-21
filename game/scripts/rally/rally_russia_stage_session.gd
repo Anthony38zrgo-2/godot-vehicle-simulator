@@ -29,6 +29,9 @@ const FALL_DISTANCE_BELOW_STAGE_METRES := 50.0
 @export var weather_speed_multiplier: float = 1.0
 @export var selected_weather: String = "random"
 @export var single_stage_weather: String = ""
+@export var procedural_climate_override: int = -1
+@export var procedural_regime_override: String = ""
+@export var procedural_mode_override: String = ""
 @export_group("Tropospheric Sky")
 @export_range(0.0, 23.99) var sky_start_hour: float = 11.0
 @export var weather_minutes_per_day: float = 24.0
@@ -138,8 +141,14 @@ func _ready() -> void:
 			competition.retire_player("Abandono — sesión interrumpida")
 	build_environment()
 	event_clock.attach_adapters(weather_sky_node, weather_controller_node)
-	if not practice_mode and event_manager != null:
-		start_clock_for_stage(event_manager.schedule_for(session_track_id))
+	var use_procedural_env := _is_procedural_climate_active(resolved_stage)
+	if (not practice_mode and event_manager != null) or use_procedural_env:
+		if not practice_mode and event_manager != null:
+			start_clock_for_stage(event_manager.schedule_for(session_track_id))
+		else:
+			vehicle.set_stage_headlights(sky_start_hour)
+			event_clock.configure(event_clock.event_date, sky_start_hour * 3600.0, 1.0)
+			event_clock.set_paused(false)
 		_setup_event_weather()
 	else:
 		vehicle.set_stage_headlights(sky_start_hour)
@@ -150,7 +159,7 @@ func _ready() -> void:
 	# Single Stage/práctica: sin calendario no hay proveedor climático; se fija
 	# el entorno térmico desde el perfil regional para que Kenia soleado sea
 	# caliente y Suecia fría también fuera del modo evento.
-	if (practice_mode or session_mode == "single_stage") and event_manager == null:
+	if not event_weather.calendar_active and (practice_mode or session_mode == "single_stage") and event_manager == null:
 		var practice_choice := single_stage_weather if not single_stage_weather.is_empty() else selected_weather
 		var practice_thermal := RallyWeatherScheduler.practice_thermal_for_stage(
 			session_track_id, practice_choice, sky_start_hour
@@ -442,6 +451,9 @@ func _build_puddles() -> void:
 	puddles.configure(course.points, hash(session_track_id), event_weather, terrain_wetness)
 	add_child(puddles)
 	vehicle.simulation.puddle_system = puddles
+	if event_weather != null and event_weather.five_sector_snapshot_active:
+		puddles.build()
+		puddles.apply_fixed_snapshot_fills()
 
 
 func _practice_weather_choice() -> String:
@@ -517,7 +529,7 @@ func _advance_rivers(dt_sim: float) -> void:
 func _on_tca_weather_changed(weather) -> void:
 	# Con calendario activo la selección aleatoria autónoma de TCA está
 	# desactivada: la fuente única es el cronograma (no una segunda secuencia).
-	if not practice_mode and event_weather.calendar_active:
+	if event_weather.calendar_active:
 		return
 	var description := describe_tca_weather(weather)
 	var precipitation: Variant = weather.get("precipitation")
@@ -832,15 +844,17 @@ func _physics_process(delta: float) -> void:
 	var clock_advancing: bool = driving_window and not get_tree().paused
 	event_clock.tick(delta, clock_advancing)
 	# Controlador climático: proyección + evolución + adaptadores (fuente única).
-	if not practice_mode and event_weather.calendar_active:
+	if event_weather.calendar_active and (not practice_mode or event_weather.procedural_active):
 		event_weather.update_vehicle_position(vehicle.global_position)
-		if clock_advancing:
+		if clock_advancing and not event_weather.five_sector_snapshot_active:
 			event_weather.advance_ambient(delta * maxf(event_clock.rate, 0.0), event_weather.solar_factor_for_hour(event_clock.hour_of_day()))
 		event_weather.tick_visual(delta)
 		_weather_visual_elapsed += delta
 		if _weather_visual_elapsed >= 0.1:
 			_weather_visual_elapsed = fmod(_weather_visual_elapsed, 0.1)
 			event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
+			if not event_weather.five_sector_snapshot_active:
+				_sync_procedural_shader_field()
 		# Cauces: mismo tiempo simulado y ventana de avance que el ambiente.
 		# La posición del coche no modifica el clima asignado a ningún río.
 		if clock_advancing:
@@ -1259,25 +1273,31 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 			push_error("Could not load the terrain palette for " + str(resolved.track_id))
 			stream.free()
 			return false
+		var proc_active := _is_procedural_climate_active(resolved)
 		var source: Dictionary = resolved.manifest.get("source", {})
 		if source.get("surface_texture_pack") == "asfalto_estepa":
-			if not stream.load_cdi_asphalt(float(source.get("snow_road_station_m", -1.0))):
+			var snow_station := -1.0 if proc_active else float(source.get("snow_road_station_m", -1.0))
+			var keep_ticlio := proc_active and float(source.get("snow_road_station_m", -1.0)) >= 0.0
+			if not stream.load_cdi_asphalt(snow_station, keep_ticlio):
 				push_error("Could not load asfalto_estepa textures for " + str(resolved.track_id))
 				stream.free()
 				return false
 			stream.road_wetness = terrain_wetness
 		stream.tune_materials(track_visual)
+		if proc_active and event_weather.procedural_active and event_weather.stage_id == str(resolved.get("track_id", session_track_id)):
+			stream.sync_procedural_surface(event_weather.surface_field_packet())
 		track_visual.add_child(stream)
 		var index_path := visual_path.get_base_dir().path_join(str(streaming.index))
 		if not await stream.configure(index_path, vehicle, start_position, float(streaming.cell_m)):
 			return false
 	if terrain_wetness != null:
 		terrain_wetness.bind_visual_root(track_visual)
-		if not practice_mode and event_weather.calendar_active and event_manager != null:
+		if not _is_procedural_climate_active(resolved) and not practice_mode and event_weather.calendar_active and event_manager != null:
 			_assign_wetness_zones(event_manager.weather_entry_for(session_track_id))
 	# Stage metadata is a fallback for road meshes with no material labels.
 	# Individual collision road materials can still override it.
 	var stage_data: Dictionary = resolved.get("stage_config", {})
+	track_collision.procedural_ss04_asphalt_mode = _is_procedural_climate_active(resolved) and str(resolved.get("track_id", session_track_id)) == "cdi_stage4"
 	track_collision.terrain_surface_group = "Road" if str(stage_data.get("surface", "")).to_lower() == "asphalt" else "Gravel"
 	track_collision.collision_scene_path = collision_path
 	return await track_collision.build_collision(track_visual)
@@ -1346,14 +1366,123 @@ func _update_panel_for_stage() -> void:
 	panel.present(get_competition_panel_state(), get_viewport().get_visible_rect().size)
 
 
+func _is_procedural_climate_active(resolved: Dictionary = {}) -> bool:
+	if procedural_climate_override == 0:
+		return false
+	var target: Dictionary = resolved if not resolved.is_empty() else resolved_stage
+	var target_id := str(target.get("track_id", session_track_id))
+	var cfg := RallyWeatherScheduler.resolve_procedural_climate_config(target_id)
+	if cfg.is_empty():
+		return false
+	if procedural_climate_override == 1:
+		return true
+	var stage_cfg: Dictionary = target.get("stage_config", {})
+	var inline_proc: Variant = stage_cfg.get("procedural_climate", {})
+	if inline_proc is Dictionary and bool((inline_proc as Dictionary).get("enabled", false)):
+		return true
+	return bool(cfg.get("enabled", false))
+
+
+func _resolve_procedural_climate_mode(resolved: Dictionary = {}) -> String:
+	var ovr := procedural_mode_override.strip_edges().to_lower()
+	if not ovr.is_empty():
+		return ovr
+	if event_manager != null and not practice_mode:
+		var mgr_mode := str(event_manager.climate_mode).strip_edges().to_lower()
+		if not mgr_mode.is_empty():
+			return mgr_mode
+		if int(event_manager.save_mode_version) < 2:
+			return "procedural_v1"
+	var target: Dictionary = resolved if not resolved.is_empty() else resolved_stage
+	var stage_cfg: Dictionary = target.get("stage_config", {})
+	var inline_proc: Variant = stage_cfg.get("procedural_climate", {})
+	if inline_proc is Dictionary and (inline_proc as Dictionary).has("mode"):
+		return str((inline_proc as Dictionary).get("mode", "five_sector_snapshot")).strip_edges().to_lower()
+	return "five_sector_snapshot"
+
+
+func _sync_procedural_shader_field(force: bool = false) -> void:
+	if not event_weather.procedural_active or track_visual == null:
+		return
+	var stream := track_visual.get_node_or_null("VisualSectorStream") as RallyVisualSectorStream
+	if stream != null:
+		var known_revision := -1 if force else stream.surface_field_revision()
+		stream.sync_procedural_surface(event_weather.surface_field_packet(known_revision), force)
+
+
 func _setup_event_weather() -> void:
+	var proc_active := _is_procedural_climate_active(resolved_stage)
+	var route_path: String = (resolved_stage.get("paths", {}) as Dictionary).get("route", "res://data/rally/%s_route.json" % session_track_id)
+	if proc_active:
+		var seed_val: int = int(event_manager.seed_value) if event_manager != null else event_seed
+		var schedule: Dictionary = event_manager.schedule_for(session_track_id) if event_manager != null else {}
+		var date_str := str(schedule.get("effective_date", schedule.get("date", event_clock.event_date)))
+		var hour_val := sky_start_hour
+		if schedule.has("effective_hour"):
+			hour_val = float(schedule.get("effective_hour", sky_start_hour))
+		elif schedule.has("start"):
+			var parts := str(schedule.get("start", "09:40")).split(":")
+			if parts.size() >= 2:
+				hour_val = float(int(parts[0])) + float(int(parts[1])) / 60.0
+		var raw_surface := str((resolved_stage.get("stage_config", {}) as Dictionary).get("surface", "asphalt")).to_lower()
+		var surface_type := "gravel" if "gravel" in raw_surface else ("dirt" if ("dirt" in raw_surface or "mud" in raw_surface) else "asphalt")
+		var regime := procedural_regime_override.strip_edges()
+		if regime.is_empty():
+			var choice := ""
+			if event_manager == null:
+				choice = _practice_weather_choice()
+			elif event_manager.cursor == 0:
+				choice = event_manager.initial_weather
+			match choice.strip_edges().to_lower():
+				"sunny", "clear", "soleado", "despejado":
+					regime = "clear"
+				"cloudy", "nublado", "overcast", "cubierto":
+					regime = "cloudy"
+				"drizzle", "llovizna", "light_precipitation", "medium_precipitation", "heavy_precipitation", "light_rain", "medium_rain", "heavy_rain", "lluvia", "rain", "tormenta":
+					regime = "wet_front"
+		var proc_mode := _resolve_procedural_climate_mode(resolved_stage)
+		var configured_ok := false
+		if proc_mode == "procedural_v1":
+			configured_ok = event_weather.configure_procedural(session_track_id, route_path, seed_val, date_str, hour_val, surface_type, regime)
+		else:
+			var base_abs := float(schedule.get("base_abs_seconds", -1.0))
+			var eff_abs := float(schedule.get("effective_abs_seconds", -1.0))
+			if base_abs < 0.0:
+				base_abs = float(EventManagerScript.datetime_to_abs_seconds(event_clock.event_date, "00:00")) + sky_start_hour * 3600.0
+				eff_abs = base_abs
+			if eff_abs < 0.0:
+				eff_abs = base_abs
+			var season_arg := str(schedule.get("base_date", date_str))
+			configured_ok = event_weather.configure_five_sector_snapshot(
+				session_track_id, route_path, seed_val, season_arg, base_abs, eff_abs, surface_type, regime
+			)
+		if not configured_ok:
+			push_warning("Clima procedural del evento: " + event_weather.error)
+			return
+		if event_manager != null and not practice_mode and event_manager.climate_mode.is_empty():
+			event_manager.climate_mode = proc_mode
+		vehicle.simulation.set_weather_controller(event_weather)
+		if terrain_wetness != null and terrain_wetness.has_method("bind_shared_provider"):
+			terrain_wetness.bind_shared_provider(event_weather)
+		var snap_p: Dictionary = event_manager.stage_surface_snapshot(session_track_id) if event_manager != null else {}
+		if not snap_p.is_empty() and snap_p.has("surface"):
+			event_weather.restore_snapshot(snap_p)
+		else:
+			event_weather.reset_projection()
+		_sync_procedural_shader_field(true)
+		if vehicle != null and vehicle.simulation != null and vehicle.simulation.puddle_system != null:
+			var pud: Node = vehicle.simulation.puddle_system
+			if event_weather.five_sector_snapshot_active and pud.has_method("apply_fixed_snapshot_fills"):
+				pud.call("apply_fixed_snapshot_fills")
+		if river_channels != null and is_instance_valid(river_channels):
+			_init_rivers_from_snapshot()
+		return
 	if practice_mode or event_manager == null:
 		return
 	var entry: Dictionary = event_manager.weather_entry_for(session_track_id)
 	if entry.is_empty():
 		push_warning("Sin cronograma climático para " + session_track_id)
 		return
-	var route_path: String = (resolved_stage.get("paths", {}) as Dictionary).get("route", "res://data/rally/%s_route.json" % session_track_id)
 	if not event_weather.configure(session_track_id, entry, route_path):
 		push_warning("Clima del evento: " + event_weather.error)
 		return
@@ -1373,12 +1502,44 @@ func _setup_event_weather() -> void:
 		_init_rivers_from_snapshot()
 
 
+func _player_setup_forecast() -> Dictionary:
+	var sectors := event_weather.sector_summary()
+	if sectors.is_empty():
+		return event_manager.forecast_for_half(event_manager.cursor, 5)
+	var wet := 0
+	var winter := 0
+	for row: Dictionary in sectors:
+		if float(row.get("snow_mm", 0.0)) >= 0.3 or float(row.get("ice_mm", 0.0)) >= 0.1 or float(row.get("snow_mm_h", 0.0)) >= 0.4:
+			winter += 1
+		elif float(row.get("water_mm", 0.0)) >= 0.3 or float(row.get("rain_mm_h", 0.0)) >= 0.4:
+			wet += 1
+	var surface_name := str((resolved_stage.get("stage_config", {}) as Dictionary).get("surface", "asphalt"))
+	var asphalt := surface_name == "asphalt"
+	var compound := "asphalt_dry" if asphalt else "gravel_normal"
+	if winter >= 2:
+		compound = "snow_studded"
+	elif winter >= 1 and asphalt:
+		compound = "asphalt_mixed"
+	elif wet > 0:
+		compound = "asphalt_wet" if asphalt else "gravel_wet"
+	var allowed: Array = event_manager.get_allowed_compound_ids()
+	if not allowed.is_empty() and compound not in allowed:
+		compound = event_manager.confirmed_compound_id
+	return {
+		"summary": "Este SS · Seco %d/%d · Húmedo %d/%d · Nieve/hielo %d/%d" % [
+			sectors.size() - wet - winter, sectors.size(), wet, sectors.size(), winter, sectors.size()
+		],
+		"suggested_compound": compound,
+	}
+
+
 func _refresh_stage_weather() -> void:
 	if not event_weather.calendar_active:
 		return
 	event_weather.update_vehicle_position(vehicle.global_position)
 	event_weather.tick_visual(2.0)
 	event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
+	_sync_procedural_shader_field()
 	if river_channels != null and is_instance_valid(river_channels):
 		river_channels.refresh_render()
 	weather_sky_node.update_visuals(0.0)
@@ -1406,6 +1567,35 @@ func _resolve_tca_rain_weather_index() -> int:
 						if not particles_path.contains("snow"):
 							return i
 	return 3
+
+
+func _activate_single_stage_dry(cover: float) -> void:
+	weather_is_raining = false
+	if terrain_wetness != null:
+		terrain_wetness.set_rain_intensity(0.0)
+	if weather_controller_node == null:
+		return
+	var seasons: Array = weather_controller_node.get("seasons")
+	if seasons.is_empty():
+		return
+	var weathers: Array = seasons[0].get("weathers")
+	var closest := -1
+	var distance := INF
+	for i in weathers.size():
+		var weather: Resource = weathers[i].get("weather")
+		if weather == null or weather.get("precipitation") != null:
+			continue
+		var delta := absf(float(weather.get("large_cloud_cover")) - cover)
+		if delta < distance:
+			distance = delta
+			closest = i
+	if closest >= 0:
+		weather_start_weather = closest
+		weather_controller_node.call("set_weather", closest)
+	else:
+		var particles := weather_controller_node.get("particle_system") as GPUParticles3D
+		if particles != null:
+			particles.emitting = false
 
 
 func _activate_single_stage_rain(precip_mm_h: float) -> void:
@@ -1446,18 +1636,16 @@ func _apply_single_stage_weather(w: String) -> void:
 			var bounds: Variant = preset.get(k, [])
 			if bounds is Array and (bounds as Array).size() >= 2:
 				climate[k] = (float(bounds[0]) + float(bounds[1])) * 0.5
+		var precip := float(climate.get("precipitation_mm_h", 0.0))
+		if weather_controller_node != null:
+			weather_controller_node.set("time_speed_multiplier", 0.0)
+		if precip >= 0.4:
+			_activate_single_stage_rain(precip)
+		else:
+			_activate_single_stage_dry(float(climate.get("cumulus_coverage", 0.0)))
 		if weather_sky_node != null and weather_sky_node.has_method("apply_climate"):
 			weather_sky_node.apply_climate(climate, visual_response)
 			weather_sky_node.update_visuals(0.0)
-		var precip := float(climate.get("precipitation_mm_h", 0.0))
-		var cover := float(climate.get("cumulus_coverage", 0.0))
-		var fog_density := float(climate.get("fog_density", 0.0))
-		if precip >= 0.4:
-			_activate_single_stage_rain(precip)
-		elif cover >= 0.45 or fog_density >= 0.002:
-			weather_start_weather = 1
-		else:
-			weather_start_weather = 0
 		return
 	match state_id:
 		"sunny":
@@ -1648,13 +1836,19 @@ func _open_setup_window() -> void:
 		input_controller.set_controls_enabled(false)
 		event_clock.set_paused(true)
 		reset_start_sequence()
-		var forecast: Dictionary = event_manager.forecast_for_half(event_manager.cursor, 5)
+		var forecast := _player_setup_forecast()
+		var start_summary: String = event_manager.player_start_summary_text(session_track_id) if event_manager.has_method("player_start_summary_text") else ""
+		var forecast_text := str(forecast.get("summary", ""))
+		if not start_summary.is_empty():
+			forecast_text = start_summary + ("  ·  " + forecast_text if not forecast_text.is_empty() else "")
 		var label := "SERVICIO"
 		if str(window.get("window_key", "initial")) == "initial":
 			var num := _get_stage_number(session_track_id)
 			label = "INICIO · STAGE %d" % num
 		elif window.has("before_stage_id"):
 			label = "SERVICIO · " + str(window.get("before_stage_id", "")).to_upper()
+		if not start_summary.is_empty():
+			label += " · " + start_summary.split(" · ")[0]
 		garage_panel.circuit_name = label
 		var open_tab := str(window.get("initial_tab", "tires"))
 		# Si venimos de estrategia inicial o servicio, restaurar paused = false
@@ -1667,8 +1861,9 @@ func _open_setup_window() -> void:
 			"compound_id": event_manager.draft_compound_id,
 			"compound_change_allowed": true,
 			"confirmation_required": bool(window.get("confirmation_required", true)),
-			"forecast_summary": str(forecast.get("summary", "")),
+			"forecast_summary": forecast_text,
 			"forecast_advice": "Nieve con clavos" if str(session_track_id).begins_with("sweden_") else str(forecast.get("suggested_compound", "")),
+			"start_order_summary": start_summary,
 			"window_label": label,
 			"allowed_compound_ids": event_manager.get_allowed_compound_ids(),
 			"default_compound_id": str(
@@ -1807,6 +2002,8 @@ func _on_garage_closed(applied: bool) -> void:
 			return
 		vehicle.apply_tire_inventory()
 		_save_mounted_tire_condition()
+		if event_manager.has_method("mark_stage_started"):
+			event_manager.mark_stage_started(session_track_id)
 		event_manager.save()
 		start_clock_for_stage(event_manager.schedule_for(session_track_id))
 		_setup_event_weather()

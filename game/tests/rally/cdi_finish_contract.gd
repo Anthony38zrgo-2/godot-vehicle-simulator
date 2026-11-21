@@ -264,7 +264,8 @@ func _verify_service_and_final_stages(
 			"Could not continue directly to SS04"):
 		return false
 	await physics_frame
-	if not await _verify_asphalt_pack(session, track, true):
+	var ss04_proc := track.procedural_ss04_asphalt_mode
+	if not await _verify_asphalt_pack(session, track, true, ss04_proc):
 		return false
 	route = session.course.points
 	var transition := float(session.resolved_stage.manifest.source.get("snow_start_m_from_start", 0.0))
@@ -273,16 +274,20 @@ func _verify_service_and_final_stages(
 		return false
 	for i in range(0, route.size(), 4):
 		var distance := session.course.route_distances[i]
-		if absf(distance - transition) < 12.0:
+		if not ss04_proc and absf(distance - transition) < 12.0:
 			continue
 		var road := _road_at(track, route[i])
-		var snowy := distance > transition
+		var snowy := not ss04_proc and distance > transition
 		if not _require(road != null and (road.get_meta("winter_layer_id", "") == "snow_packed" if snowy
 				else road.is_in_group("Road") and str(road.get_meta("winter_layer_id", "")).is_empty()),
 				"Unexpected SS04 road surface around %d m" % roundi(distance)):
 			return false
 	var finish_road := _road_at(track, route[-1])
-	if not _require(finish_road != null and finish_road.get_meta("winter_layer_id", "") == "snow_packed",
+	if ss04_proc:
+		if not _require(finish_road != null and finish_road.is_in_group("Road") and str(finish_road.get_meta("winter_layer_id", "")).is_empty(),
+				"Procedural SS04 finish must use base Road collision"):
+			return false
+	elif not _require(finish_road != null and finish_road.get_meta("winter_layer_id", "") == "snow_packed",
 			"Snow must continue through the SS04 finish"):
 		return false
 	if not _require(_drive_finish(session.course, session.competition), "SS04 finish did not register"):
@@ -294,12 +299,12 @@ func _verify_service_and_final_stages(
 	print("CDI_SERVICE_AND_SURFACES_OK snow_m=", transition, " race_m=", length)
 	return true
 
-func _verify_asphalt_pack(session: RallyRussiaStageSession, track: RallyTrackCollisionBuilder, has_snow: bool) -> bool:
+func _verify_asphalt_pack(session: RallyRussiaStageSession, track: RallyTrackCollisionBuilder, has_snow: bool, procedural_asphalt: bool = false) -> bool:
 	var stream := session.get_node("TrackVisual/VisualSectorStream") as RallyVisualSectorStream
 	var road := stream.find_child("Road", true, false) as MeshInstance3D
 	var surface := road.get_active_material(0) as ShaderMaterial if road != null else null
-	if not _require(surface != null and surface.shader.resource_path.ends_with("cdi_asfalto_estepa.gdshader")
-			and (float(surface.get_shader_parameter("snow_station_m")) > 0.0) == has_snow,
+	var snow_station_ok := (bool(surface.get_shader_parameter("procedural_surface_enabled")) and float(surface.get_shader_parameter("snow_station_m")) < 0.0) if (surface != null and procedural_asphalt) else (surface != null and (float(surface.get_shader_parameter("snow_station_m")) > 0.0) == has_snow)
+	if not _require(surface != null and surface.shader.resource_path.ends_with("cdi_asfalto_estepa.gdshader") and snow_station_ok,
 			"Missing asphalt pack or incorrect snow transition"):
 		return false
 	var textures := surface.get_shader_parameter("surface_textures") as Texture2DArray

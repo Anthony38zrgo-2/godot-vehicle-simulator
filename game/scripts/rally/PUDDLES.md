@@ -55,9 +55,11 @@ Puddles avoid artificial "single-file centerline" placement and unrealistic slop
   - `puddle_lobe_triple.png`: 3-lobed rounded ponds
 - GPU samples `texture(puddle_mask, uv).r`; CPU samples the cached `Image` memory (`sample_image_mask`) with identical UV coordinates and random flips.
 
-## Dry Weather Protection
+## Dry Weather Protection & Liquid/Ice Contract
 - In dry weather (`precipitation_mm_h < 0.05` without antecedent rain), initial surface water is strictly `0.0 mm`.
-- Each puddle profile defines a minimum activation threshold (`min_water`). When background water is below the threshold, `fill` is `0.0` and the mesh is hidden (`visible = false`). No puddles appear on dry roads.
+- Each puddle profile defines a minimum activation threshold (`min_water`). When background liquid water (`water_mm`) is below the threshold, `fill` is `0.0` and the mesh is hidden (`visible = false`). No puddles appear on dry roads.
+- **Single liquid feed & depth definition**: `background_water(distance)` reads the single unified liquid supply `water_mm` (including snow/ice melt, never added twice). Reported `depth_mm` includes the base water film occupying the depression (`vehicle_simulation.gd` fuses contacts via `max(base_water_mm, puddle_depth_mm)`).
+- **Frozen fraction exclusion**: When surface water freezes into `ice_mm`, liquid `fill` decreases and excludes the frozen fraction so hydrodynamic puddle drag never applies to frozen puddle ice.
 
 ## Physics: Impact, Drag & Handling Instability
 1. **Two-Phase Hydrodynamic Resistance**:

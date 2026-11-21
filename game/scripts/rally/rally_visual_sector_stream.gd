@@ -47,6 +47,11 @@ var _grass_gis_pixels: Image
 var _grass_gis_bounds: Vector4
 var _terrain_materials := {}
 var _ticlio_drainage_material: StandardMaterial3D
+var _procedural_surface_enabled: bool = false
+var _surface_field_image: Image
+var _surface_field_texture: ImageTexture
+var _surface_field_revision: int = -1
+var _last_procedural_packet: Dictionary = {}
 var use_rust_backend: bool = true
 var _rust_gis: RefCounted = null
 
@@ -107,14 +112,14 @@ func _load_surface_layers(paths: Array[String], size: int = 0) -> Texture2DArray
 	return textures if textures.create_from_images(layers) == OK else null
 
 
-func load_cdi_asphalt(snow_station: float) -> bool:
+func load_cdi_asphalt(snow_station: float, keep_ticlio_roadside_snow: bool = false) -> bool:
 	var asphalt_paths: Array[String] = []
 	for layer in ASPHALT_LAYERS:
 		asphalt_paths.append(CDI_ASPHALT_TEXTURES + layer + ".png")
 	var textures := _load_surface_layers(asphalt_paths)
 	if textures == null:
 		return false
-	if snow_station >= 0.0:
+	if snow_station >= 0.0 or keep_ticlio_roadside_snow:
 		var ice_paths: Array[String] = []
 		for index in range(1, 8):
 			ice_paths.append("res://assets/rally/CDI/nieve_ticlio/terreno_%02d.png" % index)
@@ -134,7 +139,10 @@ func load_cdi_asphalt(snow_station: float) -> bool:
 	_asphalt_material = ShaderMaterial.new()
 	_asphalt_material.shader = CDI_ASPHALT
 	_asphalt_material.set_shader_parameter("surface_textures", textures)
-	_asphalt_material.set_shader_parameter("snow_station_m", snow_station)
+	_asphalt_material.set_shader_parameter("snow_station_m", -1.0 if keep_ticlio_roadside_snow else snow_station)
+	_asphalt_material.set_shader_parameter("procedural_surface_enabled", _procedural_surface_enabled)
+	if _surface_field_texture != null:
+		_asphalt_material.set_shader_parameter("surface_field_tex", _surface_field_texture)
 	for layer in ["arm_1a", "arm_1b", "arm_1a_reverse"]:
 		var texture := load(CDI_ASPHALT_TEXTURES + layer + ".png") as Texture2D
 		if texture == null:
@@ -148,6 +156,71 @@ func load_cdi_asphalt(snow_station: float) -> bool:
 		rail.roughness = 0.64
 		_guardrail_materials[layer] = rail
 	return true
+
+
+func _apply_procedural_uniforms(mat: ShaderMaterial, packet: Dictionary) -> void:
+	if mat == null or packet.is_empty():
+		return
+	var width := int(packet.get("width", 0))
+	mat.set_shader_parameter("procedural_surface_enabled", true)
+	if mat == _asphalt_material:
+		mat.set_shader_parameter("snow_station_m", -1.0)
+	if _surface_field_texture != null:
+		mat.set_shader_parameter("surface_field_tex", _surface_field_texture)
+	mat.set_shader_parameter(
+		"surface_station_range_m",
+		Vector2(float(packet.get("station_min_m", 0.0)), float(packet.get("station_max_m", 1.0))),
+	)
+	mat.set_shader_parameter("surface_field_width", float(width))
+	mat.set_shader_parameter("surface_max_encode_mm", float(packet.get("max_encode_mm", 3.5)))
+	mat.set_shader_parameter(
+		"surface_full_mm",
+		Vector3(
+			float(packet.get("water_full_mm", 3.0)),
+			float(packet.get("snow_full_mm", 3.5)),
+			float(packet.get("ice_full_mm", 1.8)),
+		),
+	)
+	var snow_off: Vector2 = packet.get("snow_seed_offset", Vector2.ZERO) as Vector2
+	var ice_off: Vector2 = packet.get("ice_seed_offset", Vector2(17.3, 9.7)) as Vector2
+	mat.set_shader_parameter(
+		"surface_seed_offsets",
+		Vector4(snow_off.x, snow_off.y, ice_off.x, ice_off.y),
+	)
+
+
+func surface_field_revision() -> int:
+	return _surface_field_revision if _surface_field_texture != null else -1
+
+
+func sync_procedural_surface(packet: Dictionary, force: bool = false) -> void:
+	if packet.is_empty() or not bool(packet.get("ok", false)):
+		return
+	var rev := int(packet.get("revision", -1))
+	if not force and rev == surface_field_revision():
+		return
+	var width := int(packet.get("width", 0))
+	var rgba := packet.get("rgba8", PackedByteArray()) as PackedByteArray
+	if width < 2 or rgba.size() != width * 4:
+		return
+	_procedural_surface_enabled = true
+	_last_procedural_packet = packet
+	_surface_field_revision = rev
+	if _surface_field_image == null or _surface_field_image.get_width() != width:
+		_surface_field_image = Image.create_from_data(width, 1, false, Image.FORMAT_RGBA8, rgba)
+		_surface_field_texture = ImageTexture.create_from_image(_surface_field_image)
+	else:
+		_surface_field_image.set_data(width, 1, false, Image.FORMAT_RGBA8, rgba)
+		_surface_field_texture.update(_surface_field_image)
+	if _asphalt_material != null:
+		_apply_procedural_uniforms(_asphalt_material, packet)
+	var gravel_road: ShaderMaterial = _terrain_materials.get(2)
+	if gravel_road != null:
+		_apply_procedural_uniforms(gravel_road, packet)
+
+
+func is_procedural_surface_enabled() -> bool:
+	return _procedural_surface_enabled
 
 
 static func _to_rgba8_image(img: Image) -> Image:
@@ -321,7 +394,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _asphalt_material != null and is_instance_valid(road_wetness):
+	if _asphalt_material != null and not _procedural_surface_enabled and is_instance_valid(road_wetness):
 		_asphalt_material.set_shader_parameter("wetness", road_wetness.get_wetness())
 	var point := _vehicle.global_position
 	var velocity := _vehicle.linear_velocity * LOOK_AHEAD_S
@@ -529,5 +602,7 @@ func _terrain_blend_for(mesh_name: String) -> ShaderMaterial:
 		material.set_shader_parameter("ticlio_snow_coverage", _ticlio_snow_coverage)
 	if mode < 3:
 		material.set_shader_parameter("terrain_mode", mode)
+	if mode == 2 and _procedural_surface_enabled and not _last_procedural_packet.is_empty():
+		_apply_procedural_uniforms(material, _last_procedural_packet)
 	_terrain_materials[mode] = material
 	return material
