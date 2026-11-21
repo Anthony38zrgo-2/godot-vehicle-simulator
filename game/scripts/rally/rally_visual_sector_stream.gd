@@ -47,6 +47,8 @@ var _grass_gis_pixels: Image
 var _grass_gis_bounds: Vector4
 var _terrain_materials := {}
 var _ticlio_drainage_material: StandardMaterial3D
+var use_rust_backend: bool = true
+var _rust_gis: RefCounted = null
 
 
 func load_cdi_palette(stage_dir: String) -> bool:
@@ -59,6 +61,13 @@ func load_cdi_palette(stage_dir: String) -> bool:
 	if _grass_gis_pixels == null or (_grass_gis_pixels.is_compressed() and _grass_gis_pixels.decompress() != OK):
 		return false
 	_grass_gis_bounds = Vector4(bounds[0], bounds[1], bounds[2], bounds[3])
+	var sampler := _ensure_rust_gis()
+	if sampler != null:
+		var rgba_grass := _to_rgba8_image(_grass_gis_pixels)
+		sampler.call("set_grass_gis", rgba_grass.get_width(), rgba_grass.get_height(), rgba_grass.get_data(), _grass_gis_bounds)
+		if _ticlio_snow_pixels != null:
+			var rgba_snow := _to_rgba8_image(_ticlio_snow_pixels)
+			sampler.call("set_snow_coverage", rgba_snow.get_width(), rgba_snow.get_height(), rgba_snow.get_data(), _grass_gis_bounds)
 	var layers: Array[Image] = []
 	for layer in CDI_LAYERS:
 		var texture := load(CDI_TEXTURES + layer + ".png") as Texture2D
@@ -118,6 +127,10 @@ func load_cdi_asphalt(snow_station: float) -> bool:
 		_ticlio_snow_pixels = _ticlio_snow_coverage.get_image()
 		if _ticlio_snow_pixels.is_compressed() and _ticlio_snow_pixels.decompress() != OK:
 			return false
+		var sampler := _ensure_rust_gis()
+		if sampler != null and _grass_gis_bounds.z > 0.0 and _grass_gis_bounds.w > 0.0:
+			var rgba_snow := _to_rgba8_image(_ticlio_snow_pixels)
+			sampler.call("set_snow_coverage", rgba_snow.get_width(), rgba_snow.get_height(), rgba_snow.get_data(), _grass_gis_bounds)
 	_asphalt_material = ShaderMaterial.new()
 	_asphalt_material.shader = CDI_ASPHALT
 	_asphalt_material.set_shader_parameter("surface_textures", textures)
@@ -137,9 +150,70 @@ func load_cdi_asphalt(snow_station: float) -> bool:
 	return true
 
 
+static func _to_rgba8_image(img: Image) -> Image:
+	var out: Image = img
+	if out.is_compressed() or out.get_format() != Image.FORMAT_RGBA8:
+		out = img.duplicate() as Image
+		if out.is_compressed():
+			out.decompress()
+		if out.get_format() != Image.FORMAT_RGBA8:
+			out.convert(Image.FORMAT_RGBA8)
+	return out
+
+
+func _ensure_rust_gis() -> RefCounted:
+	if not use_rust_backend or not ClassDB.class_exists(&"RustGisSampler"):
+		return null
+	if _rust_gis == null:
+		_rust_gis = ClassDB.instantiate(&"RustGisSampler") as RefCounted
+	return _rust_gis
+
+
+func get_rust_gis() -> RefCounted:
+	return _rust_gis if use_rust_backend else null
+
+
+func get_sectors_for_rust() -> Dictionary:
+	var paths: Array[String] = []
+	var grid_coords := PackedInt32Array()
+	var rects_flat := PackedFloat32Array()
+	var count: int = _sectors.size()
+	paths.resize(count)
+	grid_coords.resize(count * 2)
+	rects_flat.resize(count * 4)
+	for i in count:
+		var s: Dictionary = _sectors[i] as Dictionary
+		var path: String = str(s["path"])
+		paths[i] = path
+		var fname: String = path.get_file()
+		var gx: int = -2147483648
+		var gz: int = -2147483648
+		if fname.begins_with("sector_") and fname.ends_with(".glb"):
+			var stem: String = fname.substr(7, fname.length() - 11)
+			var parts: PackedStringArray = stem.split("_")
+			if parts.size() == 2 and parts[0].is_valid_int() and parts[1].is_valid_int():
+				gx = int(parts[0])
+				gz = int(parts[1])
+		grid_coords[i * 2] = gx
+		grid_coords[i * 2 + 1] = gz
+		var r: Rect2 = s["rect"] as Rect2
+		rects_flat[i * 4] = r.position.x
+		rects_flat[i * 4 + 1] = r.position.y
+		rects_flat[i * 4 + 2] = r.size.x
+		rects_flat[i * 4 + 3] = r.size.y
+	return {
+		"cell_m": _cell_m,
+		"paths": paths,
+		"grid_coords": grid_coords,
+		"rects_flat": rects_flat,
+	}
+
+
 func snow_coverage_at(point: Vector3) -> float:
 	if _ticlio_snow_pixels == null:
 		return 0.0
+	if use_rust_backend and _rust_gis != null:
+		return float(_rust_gis.call("snow_coverage_at", point))
 	var uv := (Vector2(point.x, point.z) - Vector2(_grass_gis_bounds.x, _grass_gis_bounds.y)) 		/ Vector2(_grass_gis_bounds.z, _grass_gis_bounds.w)
 	var edge := minf(minf(uv.x, uv.y), minf(1.0 - uv.x, 1.0 - uv.y))
 	if edge <= 0.0:
@@ -161,6 +235,8 @@ func snow_coverage_at(point: Vector3) -> float:
 func grass_gis_at(point: Vector3) -> Color:
 	if _grass_gis_pixels == null:
 		return Color(0.45, 0.06, 0.15, 0.0)
+	if use_rust_backend and _rust_gis != null:
+		return _rust_gis.call("grass_gis_at", point) as Color
 	var uv := (Vector2(point.x, point.z) - Vector2(_grass_gis_bounds.x, _grass_gis_bounds.y)) \
 		/ Vector2(_grass_gis_bounds.z, _grass_gis_bounds.w)
 	var edge_m := minf(minf(uv.x, 1.0 - uv.x) * _grass_gis_bounds.z,

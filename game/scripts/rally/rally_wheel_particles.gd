@@ -355,10 +355,13 @@ class Particle:
 	var visual_data := Color()
 
 
+@export var use_rust_backend: bool = true
 @export var look: Look = Look.VRALLY2:
 	set(value):
 		look = value
 		_cfg = LOOKS[value]
+		if _rust_core != null:
+			_rust_core.call("set_look", int(value))
 		_restyle_batches()
 		for particle in particles:
 			particle.visual_dirty = true
@@ -373,6 +376,13 @@ var rng := RandomNumberGenerator.new()
 var style_rng := RandomNumberGenerator.new()
 var _cfg: Dictionary = LOOKS[Look.CMR2]
 var _shader_uniforms: Dictionary = { }
+var _rust_core: RefCounted = null
+var _batch_ids: Dictionary = { }
+var _batch_list: Array[MultiMesh] = []
+var _batch_kinds_list: Array[Kind] = []
+var _batch_materials: Array[ShaderMaterial] = []
+var _batch_last_soft: Array[float] = []
+var _slot_active_pos: PackedInt32Array = PackedInt32Array()
 
 
 func _ready() -> void:
@@ -386,6 +396,9 @@ func _ready() -> void:
 	for i in CAPACITY:
 		particles.append(Particle.new())
 	_reset_slots()
+	if use_rust_backend and ClassDB.class_exists(&"RustWheelParticles"):
+		_rust_core = ClassDB.instantiate(&"RustWheelParticles")
+		_rust_core.call("set_look", int(look))
 	_restyle_batches()
 
 
@@ -398,6 +411,32 @@ func emit_particle(
 	floor_normal: Vector3,
 	intensity: float = 1.0,
 ) -> void:
+	if _rust_core != null:
+		if not batches.has(texture):
+			_make_batch(texture, kind)
+		var bid: int = _batch_ids[texture]
+		var res: PackedInt32Array = _rust_core.call(
+			"emit_particle",
+			int(kind),
+			bid,
+			texture.resource_path == GRAVEL_DUST_PATH,
+			point,
+			velocity,
+			floor_point,
+			floor_normal,
+			intensity,
+		)
+		var slot_r: int = res[0]
+		if _slot_active_pos[slot_r] < 0:
+			_slot_active_pos[slot_r] = active_slots.size()
+			active_slots.append(slot_r)
+		var pr := particles[slot_r]
+		pr.kind = kind
+		pr.texture = texture
+		pr.max_ticks = res[2]
+		pr.ticks = res[2]
+		pr.frame_offset = res[3]
+		return
 	var slot: int
 	if free_slots.is_empty():
 		slot = active_slots[0]
@@ -444,6 +483,24 @@ func emit_particle(
 
 
 func step(wind: Vector3) -> void:
+	if _rust_core != null:
+		if active_slots.is_empty():
+			return
+		var expired: PackedInt32Array = _rust_core.call("step", wind)
+		for s in active_slots:
+			particles[s].ticks -= 1
+		for s in expired:
+			particles[s].ticks = 0
+			var pos: int = _slot_active_pos[s]
+			if pos >= 0:
+				var last_idx: int = active_slots.size() - 1
+				if pos != last_idx:
+					var moved: int = active_slots[last_idx]
+					active_slots[pos] = moved
+					_slot_active_pos[moved] = pos
+				active_slots.remove_at(last_idx)
+				_slot_active_pos[s] = -1
+		return
 	for index in active_slots:
 		var p := particles[index]
 		p.ticks -= 1
@@ -486,6 +543,28 @@ func dust_frame(p: Particle) -> int:
 
 
 func draw_particles(fraction: float, world_to_vehicle: Transform3D, soften: bool) -> void:
+	if _rust_core != null:
+		var mask_info: int = int(_rust_core.call("draw_to_rendering_server", fraction))
+		if (mask_info & (1 << 31)) != 0:
+			for bid in _batch_list.size():
+				var count: int = int(_rust_core.call("get_batch_visible_count", bid))
+				var batch_r: MultiMesh = _batch_list[bid]
+				if batch_r.visible_instance_count != count:
+					batch_r.visible_instance_count = count
+		var active_mask: int = mask_info & 0x7FFFFFFF
+		if active_mask == 0:
+			return
+		var soft_allowed: bool = soften and bool(_cfg.soft_particles)
+		for bid in _batch_list.size():
+			if (active_mask & (1 << bid)) == 0:
+				continue
+			var material_r: ShaderMaterial = _batch_materials[bid]
+			material_r.set_shader_parameter("world_to_vehicle", world_to_vehicle)
+			var soft_val: float = 0.15 if (soft_allowed or (soften and _batch_kinds_list[bid] == Kind.SPLASH)) else 0.0
+			if _batch_last_soft[bid] != soft_val:
+				_batch_last_soft[bid] = soft_val
+				material_r.set_shader_parameter("soft_intersection_metres", soft_val)
+		return
 	var snap: float = _cfg.snap
 	var fraction_steps: int = _cfg.fraction_steps
 
@@ -596,6 +675,8 @@ func _update_particle_visual(p: Particle) -> void:
 
 
 func clear() -> void:
+	if _rust_core != null:
+		_rust_core.call("clear")
 	for p in particles:
 		p.ticks = 0
 	for batch in batches.values():
@@ -608,6 +689,9 @@ func clear() -> void:
 func _reset_slots() -> void:
 	active_slots.clear()
 	free_slots.clear()
+	if _slot_active_pos.size() != CAPACITY:
+		_slot_active_pos.resize(CAPACITY)
+	_slot_active_pos.fill(-1)
 	for slot in range(particles.size() - 1, -1, -1):
 		free_slots.append(slot)
 
@@ -678,6 +762,8 @@ func _set_optional(material: ShaderMaterial, uniform_name: String, value: Varian
 
 
 static var _proc_cache: Dictionary = {}
+static var _rust_proc_helper: RefCounted = null
+static var _rust_proc_checked: bool = false
 
 
 ## Sprites procedurales blancos: el tinte por Kind (TYPES/RAMPS) pone el
@@ -689,20 +775,29 @@ static func proc_sprite(kind: String, variant: int = 0) -> Texture2D:
 	var key := "%s:%d" % [kind, variant]
 	if _proc_cache.has(key):
 		return _proc_cache[key] as Texture2D
+	if not _rust_proc_checked:
+		_rust_proc_checked = true
+		if ClassDB.class_exists(&"RustWheelParticles"):
+			_rust_proc_helper = ClassDB.instantiate(&"RustWheelParticles")
 	var img: Image
-	match kind:
-		"dot":
-			img = _proc_soft_dot(128, 1000 + variant)
-		"speck":
-			img = _proc_speck(16, 2000 + variant)
-		"square":
-			img = _proc_square(16, 2100 + variant)
-		"disc":
-			img = _proc_disc(16, 2200 + variant)
-		"leaf":
-			img = _proc_leaf(32, 3000 + variant)
-		_:
-			img = _proc_soft_dot(64, 4000 + variant)
+	if _rust_proc_helper != null:
+		var size := 128 if kind == "dot" else (32 if kind == "leaf" else (16 if kind in ["speck", "square", "disc"] else 64))
+		var bytes: PackedByteArray = _rust_proc_helper.call("generate_proc_sprite_rgba8", kind, variant)
+		img = Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, bytes)
+	else:
+		match kind:
+			"dot":
+				img = _proc_soft_dot(128, 1000 + variant)
+			"speck":
+				img = _proc_speck(16, 2000 + variant)
+			"square":
+				img = _proc_square(16, 2100 + variant)
+			"disc":
+				img = _proc_disc(16, 2200 + variant)
+			"leaf":
+				img = _proc_leaf(32, 3000 + variant)
+			_:
+				img = _proc_soft_dot(64, 4000 + variant)
 	img.generate_mipmaps()
 	var tex := ImageTexture.create_from_image(img)
 	tex.set_meta("proc_sprite", true)
@@ -840,3 +935,10 @@ func _make_batch(texture: Texture2D, kind: Kind) -> void:
 	add_child(instance)
 	batches[texture] = batch
 	batch_kinds[texture] = kind
+	if _rust_core != null:
+		var bid: int = int(_rust_core.call("register_batch_rid", batch.get_rid()))
+		_batch_ids[texture] = bid
+		_batch_list.append(batch)
+		_batch_kinds_list.append(kind)
+		_batch_materials.append(material)
+		_batch_last_soft.append(-1.0)

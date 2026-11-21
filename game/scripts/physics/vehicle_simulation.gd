@@ -134,6 +134,7 @@ var tire_sources: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
 var _ambient_irradiance_w_m2: float = 0.0
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _water_wheel_positions: PackedVector3Array = PackedVector3Array()
 # §closure-6: prototipo de envolvente espacial tandem-cam (comparación).
 # Dos apoyos geométricos longitudinales separados por la longitud de huella.
 # Mantener separados: distancia de detección, radio geométrico y radio
@@ -408,7 +409,7 @@ func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 	return _local_conditions_at_contact(surface_name, wheel_contact_points[index], wheel_loads[index] > 0.0)
 
 
-func _local_conditions_at_contact(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
+func _local_conditions_base(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
 		"water_mm": 0.0, "snow_mm": 0.0, "surface_name": surface_name,
 		"puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
@@ -422,6 +423,11 @@ func _local_conditions_at_contact(surface_name: String, position: Vector3, loade
 		local["water_mm"] = practice_water_mm
 		local["snow_mm"] = practice_snow_mm
 		local["irradiance_w_m2"] = practice_irradiance_w_m2
+	return local
+
+
+func _local_conditions_at_contact(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
+	var local := _local_conditions_base(surface_name, position, loaded)
 	if loaded and is_instance_valid(puddle_system):
 		var puddle: Dictionary = puddle_system.sample_contact(position)
 		local["puddle_depth_mm"] = float(puddle.depth_mm)
@@ -1591,10 +1597,55 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var thermal_air: Array[float] = [25.0, 25.0, 25.0, 25.0]
 	var thermal_irradiance: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
+	var has_puddles: bool = is_instance_valid(puddle_system)
+	var has_rivers: bool = is_instance_valid(river_system)
+	var use_puddle_batch: bool = has_puddles and puddle_system.has_method(&"sample_4wheels")
+	var use_river_batch: bool = has_rivers and river_system.has_method(&"sample_4wheels")
+	var puddle_batch := PackedFloat32Array()
+	var river_batch := PackedFloat32Array()
+	if use_puddle_batch or use_river_batch:
+		if _water_wheel_positions.size() != 4:
+			_water_wheel_positions.resize(4)
+		var loaded_mask: int = 0
+		for wi in 4:
+			var cw: Dictionary = contacts[wi]
+			if bool(cw.get("hit", false)):
+				loaded_mask |= (1 << wi)
+				_water_wheel_positions[wi] = cw.get("position", wheel_contact_points[wi]) as Vector3
+			else:
+				_water_wheel_positions[wi] = wheel_contact_points[wi]
+		if loaded_mask != 0:
+			if use_puddle_batch:
+				puddle_batch = puddle_system.sample_4wheels(_water_wheel_positions, loaded_mask)
+			if use_river_batch:
+				river_batch = river_system.sample_4wheels(_water_wheel_positions, loaded_mask)
+
 	for i in 4:
 		var contact: Dictionary = contacts[i]
 		var loaded_contact := bool(contact.get("hit", false))
-		var local := _local_conditions_at_contact(str(contact.get("surface", "Unknown")), contact.get("position", wheel_contact_points[i]), loaded_contact)
+		var contact_pos: Vector3 = contact.get("position", wheel_contact_points[i])
+		var surface_str := str(contact.get("surface", "Unknown"))
+		var local: Dictionary
+		if (not has_puddles or use_puddle_batch) and (not has_rivers or use_river_batch):
+			local = _local_conditions_base(surface_str, contact_pos, loaded_contact)
+			if loaded_contact:
+				if puddle_batch.size() >= (i + 1) * 2:
+					var p_depth: float = puddle_batch[i * 2]
+					local["puddle_depth_mm"] = p_depth
+					local["puddle_drag"] = puddle_batch[i * 2 + 1]
+					local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), p_depth)
+				if river_batch.size() >= (i + 1) * 4:
+					var r_depth: float = river_batch[i * 4]
+					if r_depth > float(local.get("puddle_depth_mm", 0.0)):
+						local["puddle_depth_mm"] = r_depth
+						local["puddle_drag"] = river_batch[i * 4 + 2]
+					local["water_mm"] = maxf(float(local.get("water_mm", 0.0)), r_depth)
+					local["river_depth_mm"] = r_depth
+					var r_ch_idx: int = int(river_batch[i * 4 + 3])
+					local["river_channel_id"] = river_system.channel_id_at(r_ch_idx) if (r_ch_idx >= 0 and river_system.has_method(&"channel_id_at")) else ""
+			local["surface_name"] = surface_str
+		else:
+			local = _local_conditions_at_contact(surface_str, contact_pos, loaded_contact)
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
 		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
 		last_puddle_depths_mm[i] = current_puddle_depth
@@ -1760,19 +1811,30 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var fy := float(tire_result.get("lateral_force_n", 0.0))
 			var mz := float(tire_result.get("aligning_torque_nm", 0.0))
 			var flat_drag := -clampf(longitudinal_speed, -1.0, 1.0) * normal_load * 0.045 * float(thermal_state.pressure_loss_fraction)
-			var puddle_response := PuddleModel.contact_response(
-				float(last_local_conditions[i].get("puddle_depth_mm", 0.0)),
-				point_velocity.slide(normal).length(),
-				float(tire_model.wheel_compounds[i].get("water_evacuation_reference_speed_m_s", 16.0)),
-				normal_load,
-				wheel_widths[i],
-				float(last_local_conditions[i].get("puddle_drag", 0.0)),
-				float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
-				wheel_radii[i]
-			)
-			var sup_x := float(puddle_response.get("support_longitudinal", puddle_response.support))
-			var sup_y := float(puddle_response.get("support_lateral", puddle_response.support))
-			var drag_n := float(puddle_response.drag_n)
+			var puddle_depth_here: float = float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
+			var sup_x: float = 1.0
+			var sup_y: float = 1.0
+			var drag_n: float = 0.0
+			var steering_pull_mag: float = 0.0
+			var hydro_wheel_torque_mag: float = 0.0
+			if puddle_depth_here > 0.001:
+				var point_surf_speed: float = point_velocity.slide(normal).length()
+				if point_surf_speed > 0.001:
+					var pres: PackedFloat32Array = PuddleModel.contact_response_packed(
+						puddle_depth_here,
+						point_surf_speed,
+						float(tire_model.wheel_compounds[i].get("water_evacuation_reference_speed_m_s", 16.0)),
+						normal_load,
+						wheel_widths[i],
+						float(last_local_conditions[i].get("puddle_drag", 0.0)),
+						float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
+						wheel_radii[i]
+					)
+					sup_x = pres[1]
+					sup_y = pres[2]
+					drag_n = pres[3]
+					hydro_wheel_torque_mag = pres[6]
+					steering_pull_mag = pres[7]
 			last_local_conditions[i]["puddle_support"] = sup_x
 			last_local_conditions[i]["puddle_drag_n"] = drag_n
 			fx *= sup_x
@@ -1782,7 +1844,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				var puddle_pull := 0.0
 				if drag_n > 0.0:
 					var steer_sign := -1.0 if i == 0 else 1.0
-					puddle_pull = float(puddle_response.get("steering_pull_nm", 0.0)) * steer_sign
+					puddle_pull = steering_pull_mag * steer_sign
 					mz += puddle_pull
 				front_road_torque_nm += mz
 			var tire_force := forward * (fx + flat_drag) + right * fy
@@ -1806,7 +1868,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
-			var hydro_wheel_torque := float(puddle_response.get("wheel_torque_nm", drag_n * 0.75 * eff_radius)) * signf(longitudinal_speed)
+			var hydro_wheel_torque: float = (hydro_wheel_torque_mag if puddle_depth_here > 0.001 else 0.0) * signf(longitudinal_speed)
 			var raw_tire_torque := (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
 			# Amortiguamiento implícito de spin compatible con el estado brush (patch_pos.x):
 			# dT/domega en un subpaso h es h * k_x * R_eff^2 * (1 - util)^2, sin falsear la inercia

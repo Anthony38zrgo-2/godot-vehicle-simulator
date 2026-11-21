@@ -5,10 +5,14 @@ extends Node
 @export var sample_every_physics_ticks: int = 4
 @export var flush_every_seconds: float = 2.0
 @export var measurement_start_delay_seconds: float = 0.5
+@export var use_rust_backend: bool = true
 
 var vehicle: RallyEscortVehicle
 var telemetry_enabled: bool = false
 var telemetry_file: FileAccess
+var _rust_writer: RefCounted = null
+var _sample_floats: PackedFloat32Array = PackedFloat32Array()
+var _sample_ints: PackedInt32Array = PackedInt32Array()
 var telemetry_file_path: String = ""
 var summary_file_path: String = ""
 var run_identifier: String = ""
@@ -43,12 +47,29 @@ func _ready() -> void:
 		telemetry_file_path = "user://rally_logs/rally_telemetry_" + Time.get_datetime_string_from_system().replace(":", "-") + ".csv"
 	summary_file_path = telemetry_file_path.get_basename() + "_summary.json"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(telemetry_file_path.get_base_dir()))
+	_sample_floats.resize(33)
+	_sample_ints.resize(4)
+	started_at_utc = Time.get_datetime_string_from_system(true)
+	if use_rust_backend and ClassDB.class_exists(&"RustAsyncTelemetryWriter"):
+		var writer: RefCounted = ClassDB.instantiate(&"RustAsyncTelemetryWriter") as RefCounted
+		var csv_abs := ProjectSettings.globalize_path(telemetry_file_path)
+		var meta_abs := ProjectSettings.globalize_path(telemetry_file_path.get_basename() + "_metadata.json")
+		if writer != null and writer.call(
+			"start_session",
+			csv_abs,
+			_build_header_line(),
+			run_identifier,
+			meta_abs,
+			_build_metadata_json(),
+			flush_every_seconds,
+		):
+			_rust_writer = writer
+			return
 	telemetry_file = FileAccess.open(telemetry_file_path, FileAccess.WRITE)
 	if telemetry_file == null:
 		push_error("Rally telemetry cannot open " + telemetry_file_path)
 		set_physics_process(false)
 		return
-	started_at_utc = Time.get_datetime_string_from_system(true)
 	write_header()
 	write_metadata()
 
@@ -66,10 +87,8 @@ func configure_from_command_line() -> void:
 			run_identifier = argument.trim_prefix("--rally-run-id=")
 
 
-func write_header() -> void:
-	if telemetry_file == null:
-		return
-	telemetry_file.store_line(",".join([
+func _build_header_line() -> String:
+	return ",".join([
 		"run_id",
 		"utc_time",
 		"elapsed_seconds",
@@ -117,10 +136,16 @@ func write_header() -> void:
 		"steering_slip_assist",
 		"anti_lock_brake_threshold",
 		"automatic_transmission",
-	]))
+	])
 
 
-func write_metadata() -> void:
+func write_header() -> void:
+	if telemetry_file == null:
+		return
+	telemetry_file.store_line(_build_header_line())
+
+
+func _build_metadata_json() -> String:
 	var track_id_val := ""
 	if get_parent() != null and "session_track_id" in get_parent():
 		track_id_val = str(get_parent().session_track_id)
@@ -140,9 +165,13 @@ func write_metadata() -> void:
 		"godot_version": Engine.get_version_info()["string"],
 		"os": OS.get_name(),
 	}
+	return JSON.stringify(metadata, "  ")
+
+
+func write_metadata() -> void:
 	var metadata_file := FileAccess.open(telemetry_file_path.get_basename() + "_metadata.json", FileAccess.WRITE)
 	if metadata_file != null:
-		metadata_file.store_string(JSON.stringify(metadata, "  "))
+		metadata_file.store_string(_build_metadata_json())
 
 
 func _physics_process(delta: float) -> void:
@@ -156,12 +185,13 @@ func _physics_process(delta: float) -> void:
 	var state := vehicle.get_rally_state()
 	update_extremes(state)
 
-	if telemetry_file != null and physics_tick_index % sample_every_physics_ticks == 0:
+	if (_rust_writer != null or telemetry_file != null) and physics_tick_index % sample_every_physics_ticks == 0:
 		write_sample(state)
-		flush_accumulator += delta * sample_every_physics_ticks
-		if flush_accumulator >= flush_every_seconds:
-			flush_accumulator = 0.0
-			telemetry_file.flush()
+		if telemetry_file != null:
+			flush_accumulator += delta * sample_every_physics_ticks
+			if flush_accumulator >= flush_every_seconds:
+				flush_accumulator = 0.0
+				telemetry_file.flush()
 
 
 func update_extremes(state: Dictionary = {}) -> void:
@@ -183,7 +213,7 @@ func update_extremes(state: Dictionary = {}) -> void:
 
 
 func write_sample(state: Dictionary = {}) -> void:
-	if telemetry_file == null:
+	if _rust_writer == null and telemetry_file == null:
 		return
 	if state.is_empty() and vehicle != null:
 		state = vehicle.get_rally_state()
@@ -196,6 +226,69 @@ func write_sample(state: Dictionary = {}) -> void:
 	var pos: Vector3 = state.get("position", Vector3.ZERO)
 	var lin_vel: Vector3 = state.get("linear_velocity", Vector3.ZERO)
 	var ang_vel: Vector3 = state.get("angular_velocity", Vector3.ZERO)
+
+	if _rust_writer != null:
+		_sample_floats[0] = elapsed_seconds
+		_sample_floats[1] = pos.x
+		_sample_floats[2] = pos.y
+		_sample_floats[3] = pos.z
+		_sample_floats[4] = lin_vel.x
+		_sample_floats[5] = lin_vel.y
+		_sample_floats[6] = lin_vel.z
+		_sample_floats[7] = ang_vel.x
+		_sample_floats[8] = ang_vel.y
+		_sample_floats[9] = ang_vel.z
+		_sample_floats[10] = float(state.get("speed_kilometres_per_hour", 0.0))
+		_sample_floats[11] = float(state.get("engine_revolutions_per_minute", 0.0))
+		_sample_floats[12] = float(state.get("throttle", 0.0))
+		_sample_floats[13] = float(state.get("brake", 0.0))
+		_sample_floats[14] = float(state.get("clutch", 0.0))
+		_sample_floats[15] = float(state.get("steering_amount", 0.0))
+		_sample_floats[16] = float(state.get("true_steering_amount", 0.0))
+		_sample_floats[17] = float(compressions[0] if compressions.size() > 0 else 0.0)
+		_sample_floats[18] = float(compressions[1] if compressions.size() > 1 else 0.0)
+		_sample_floats[19] = float(compressions[2] if compressions.size() > 2 else 0.0)
+		_sample_floats[20] = float(compressions[3] if compressions.size() > 3 else 0.0)
+		_sample_floats[21] = float(slips[0].x if slips.size() > 0 else 0.0)
+		_sample_floats[22] = float(slips[0].y if slips.size() > 0 else 0.0)
+		_sample_floats[23] = float(slips[1].x if slips.size() > 1 else 0.0)
+		_sample_floats[24] = float(slips[1].y if slips.size() > 1 else 0.0)
+		_sample_floats[25] = float(slips[2].x if slips.size() > 2 else 0.0)
+		_sample_floats[26] = float(slips[2].y if slips.size() > 2 else 0.0)
+		_sample_floats[27] = float(slips[3].x if slips.size() > 3 else 0.0)
+		_sample_floats[28] = float(slips[3].y if slips.size() > 3 else 0.0)
+		_sample_floats[29] = float(state.get("traction_control_max_slip", 0.0))
+		_sample_floats[30] = float(state.get("countersteer_assist", 0.0))
+		_sample_floats[31] = float(state.get("steering_slip_assist", 0.0))
+		_sample_floats[32] = float(state.get("anti_lock_brake_spin_difference_threshold", 0.0))
+
+		var flags := 0
+		if bool(state.get("airborne", false)):
+			flags |= 1
+		if bool(state.get("overturned", false)):
+			flags |= 2
+		if bool(state.get("sleeping", false)):
+			flags |= 4
+		if bool(state.get("stability_enabled", false)):
+			flags |= 8
+		if bool(state.get("automatic_transmission", false)):
+			flags |= 16
+		_sample_ints[0] = physics_tick_index
+		_sample_ints[1] = int(state.get("current_gear", 0))
+		_sample_ints[2] = int(state.get("number_of_contacting_wheels", 0))
+		_sample_ints[3] = flags
+
+		_rust_writer.call(
+			"push_sample",
+			Time.get_datetime_string_from_system(true),
+			_sample_floats,
+			_sample_ints,
+			str(surfaces[0] if surfaces.size() > 0 else ""),
+			str(surfaces[1] if surfaces.size() > 1 else ""),
+			str(surfaces[2] if surfaces.size() > 2 else ""),
+			str(surfaces[3] if surfaces.size() > 3 else ""),
+		)
+		return
 
 	var values := [
 		run_identifier,
@@ -255,6 +348,9 @@ func _exit_tree() -> void:
 		telemetry_file.close()
 		telemetry_file = null
 	if not telemetry_enabled:
+		if _rust_writer != null:
+			_rust_writer.call("finish_session", "", "")
+			_rust_writer = null
 		return
 	var track_id_val := ""
 	if get_parent() != null and "session_track_id" in get_parent():
@@ -281,6 +377,11 @@ func _exit_tree() -> void:
 			vehicle.global_position.z if vehicle != null else 0.0,
 		],
 	}
+	var summary_json := JSON.stringify(summary, "  ")
+	if _rust_writer != null:
+		_rust_writer.call("finish_session", ProjectSettings.globalize_path(summary_file_path), summary_json)
+		_rust_writer = null
+		return
 	var summary_file := FileAccess.open(summary_file_path, FileAccess.WRITE)
 	if summary_file != null:
-		summary_file.store_string(JSON.stringify(summary, "  "))
+		summary_file.store_string(summary_json)

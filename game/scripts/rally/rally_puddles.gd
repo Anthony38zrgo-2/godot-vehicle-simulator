@@ -78,6 +78,7 @@ const TYPES := [
 
 static var _mask_images: Dictionary = {}
 
+var use_rust_backend: bool = true
 var provider = null
 var sky_node: Node
 var wetness_node: Node
@@ -87,6 +88,11 @@ var patches: Array[Dictionary] = []
 var buckets: Dictionary = {}
 var elapsed := 0.0
 var built := false
+var _rust_field: RefCounted = null
+var _rust_mask_ids: Dictionary = {}
+var _rust_next_mask_id: int = 1
+var _rust_fills: PackedFloat32Array = PackedFloat32Array()
+static var _rust_static_helper: RefCounted = null
 
 
 static func get_mask_image(tex: Texture2D) -> Image:
@@ -147,6 +153,14 @@ func _physics_process(delta: float) -> void:
 		material.set_shader_parameter("rain", rain)
 		(patch.mesh as MeshInstance3D).visible = float(patch.fill) > 0.005
 
+	if _rust_field != null:
+		var count: int = patches.size()
+		if _rust_fills.size() != count:
+			_rust_fills.resize(count)
+		for pi in count:
+			_rust_fills[pi] = float(patches[pi]["fill"])
+		_rust_field.call("update_fills", _rust_fills)
+
 
 func background_water(distance: float) -> float:
 	if provider != null and provider.calendar_active:
@@ -176,7 +190,23 @@ func road_hit(pos: Vector3) -> Dictionary:
 
 ## Topographic Wetness Index (TWI) along the stage centerline:
 ## Computes slope, vertical concavity (valleys vs crests) and curve turn direction.
-static func _compute_route_topography(route_pts: Array[Vector3]) -> Array[Dictionary]:
+static func _compute_route_topography(route_pts: Array[Vector3], allow_rust: bool = true) -> Array[Dictionary]:
+	var helper: RefCounted = _get_rust_static_helper() if allow_rust else null
+	if helper != null:
+		var flat: PackedFloat32Array = helper.call("compute_route_topography_packed", PackedVector3Array(route_pts))
+		var count_r: int = flat.size() / 4
+		var fast_res: Array[Dictionary] = []
+		fast_res.resize(count_r)
+		for ri in count_r:
+			var base_i: int = ri * 4
+			fast_res[ri] = {
+				"slope": flat[base_i],
+				"concavity": flat[base_i + 1],
+				"turn_signed": flat[base_i + 2],
+				"twi": flat[base_i + 3],
+			}
+		return fast_res
+
 	var result: Array[Dictionary] = []
 	var n := route_pts.size()
 	if n == 0:
@@ -348,7 +378,7 @@ func build() -> void:
 		total_length += route[i - 1].distance_to(route[i])
 	var is_short_test_route := total_length < 320.0
 
-	var topo := _compute_route_topography(route)
+	var topo := _compute_route_topography(route, use_rust_backend)
 	var distance := 0.0
 	var next_cluster_dist := 14.0
 	var cluster_id := 0
@@ -505,6 +535,7 @@ func build() -> void:
 
 		distance += seg_len
 
+	_sync_patches_to_rust()
 	print("RALLY_PUDDLES_READY count=", patches.size(), " seed=", stage_seed, " clusters=", cluster_id)
 
 
@@ -537,6 +568,29 @@ static func sample_image_mask(img: Image, uv: Vector2, uv_scale: Vector2) -> flo
 
 
 func sample_contact(position: Vector3) -> Dictionary:
+	if use_rust_backend and _rust_field != null:
+		var packed: PackedFloat32Array = _rust_field.call("sample_contact_packed", position)
+		var depth_mm: float = packed[0]
+		if depth_mm <= 0.0:
+			return {
+				"depth_mm": 0.0,
+				"drag": 0.0,
+				"fill": 0.0,
+				"max_depth_mm": 0.0,
+				"profile_id": "none",
+			}
+		var idx: int = int(packed[4])
+		var pid: String = "none"
+		if idx >= 0 and idx < patches.size():
+			pid = str((patches[idx]["profile"] as Dictionary)["id"])
+		return {
+			"depth_mm": depth_mm,
+			"drag": packed[1],
+			"fill": packed[2],
+			"max_depth_mm": packed[3],
+			"profile_id": pid,
+		}
+
 	var result := {
 		"depth_mm": 0.0,
 		"drag": 0.0,
@@ -573,6 +627,127 @@ func sample_contact(position: Vector3) -> Dictionary:
 				"profile_id": str(patch.profile.id),
 			}
 	return result
+
+
+static func _get_rust_static_helper() -> RefCounted:
+	if _rust_static_helper == null and ClassDB.class_exists(&"RustPuddleField"):
+		_rust_static_helper = ClassDB.instantiate(&"RustPuddleField") as RefCounted
+	return _rust_static_helper
+
+
+func _ensure_rust_mask_id(img: Image) -> int:
+	if img == null or _rust_field == null:
+		return 0
+	var key: String = img.resource_path
+	if key.is_empty():
+		key = str(img.get_instance_id())
+	if _rust_mask_ids.has(key):
+		return int(_rust_mask_ids[key])
+	var send_img: Image = img
+	if send_img.is_compressed():
+		send_img = img.duplicate() as Image
+		send_img.decompress()
+	var fmt: Image.Format = send_img.get_format()
+	if fmt != Image.FORMAT_RGBA8 and fmt != Image.FORMAT_R8:
+		send_img = send_img.duplicate() as Image
+		send_img.convert(Image.FORMAT_RGBA8)
+	var mask_id: int = _rust_next_mask_id
+	_rust_next_mask_id += 1
+	_rust_field.call("register_mask", mask_id, send_img.get_width(), send_img.get_height(), send_img.get_data())
+	_rust_mask_ids[key] = mask_id
+	return mask_id
+
+
+func _sync_patches_to_rust() -> void:
+	if not use_rust_backend or not ClassDB.class_exists(&"RustPuddleField"):
+		_rust_field = null
+		return
+	if _rust_field == null:
+		_rust_field = ClassDB.instantiate(&"RustPuddleField") as RefCounted
+	else:
+		_rust_field.call("clear_patches")
+	var n: int = patches.size()
+	if n == 0:
+		_rust_fills.resize(0)
+		return
+	var inv_bx := PackedVector3Array()
+	var inv_by := PackedVector3Array()
+	var inv_bz := PackedVector3Array()
+	var inv_origins := PackedVector3Array()
+	var world_centers := PackedVector3Array()
+	var sizes := PackedVector2Array()
+	var uv_scales := PackedVector2Array()
+	var shape_params := PackedFloat32Array()
+	var max_depths := PackedFloat32Array()
+	var drags := PackedFloat32Array()
+	var mask_ids := PackedInt32Array()
+	var fills := PackedFloat32Array()
+	inv_bx.resize(n)
+	inv_by.resize(n)
+	inv_bz.resize(n)
+	inv_origins.resize(n)
+	world_centers.resize(n)
+	sizes.resize(n)
+	uv_scales.resize(n)
+	shape_params.resize(n * 4)
+	max_depths.resize(n)
+	drags.resize(n)
+	mask_ids.resize(n)
+	fills.resize(n)
+	for i in n:
+		var patch: Dictionary = patches[i]
+		var xf: Transform3D = patch["transform"] as Transform3D
+		var inv_xf: Transform3D = xf.affine_inverse()
+		inv_bx[i] = inv_xf.basis.x
+		inv_by[i] = inv_xf.basis.y
+		inv_bz[i] = inv_xf.basis.z
+		inv_origins[i] = inv_xf.origin
+		var normal: Vector3 = xf.basis.y.normalized()
+		world_centers[i] = xf.origin - normal * 0.014
+		sizes[i] = patch["size"] as Vector2
+		uv_scales[i] = patch.get("uv_scale", Vector2.ONE) as Vector2
+		var sp: Vector4 = patch["shape_params"] as Vector4
+		var base_sp: int = i * 4
+		shape_params[base_sp] = sp.x
+		shape_params[base_sp + 1] = sp.y
+		shape_params[base_sp + 2] = sp.z
+		shape_params[base_sp + 3] = sp.w
+		var prof: Dictionary = patch["profile"] as Dictionary
+		max_depths[i] = float(patch.get("depth_mm", prof["depth_mm"]))
+		drags[i] = float(prof["drag"])
+		mask_ids[i] = _ensure_rust_mask_id(patch.get("mask_image") as Image)
+		fills[i] = float(patch.get("fill", 0.0))
+	_rust_fills = fills
+	_rust_field.call(
+		"set_patches",
+		inv_bx,
+		inv_by,
+		inv_bz,
+		inv_origins,
+		world_centers,
+		sizes,
+		uv_scales,
+		shape_params,
+		max_depths,
+		drags,
+		mask_ids,
+		fills,
+	)
+
+
+func sample_4wheels(positions: PackedVector3Array, loaded_mask: int) -> PackedFloat32Array:
+	if use_rust_backend and _rust_field != null:
+		return _rust_field.call("sample_4wheels", positions, loaded_mask) as PackedFloat32Array
+	var out := PackedFloat32Array()
+	out.resize(8)
+	var count: int = mini(positions.size(), 4)
+	for i in count:
+		if (loaded_mask & (1 << i)) == 0:
+			continue
+		var c: Dictionary = sample_contact(positions[i])
+		out[i * 2] = float(c["depth_mm"])
+		out[i * 2 + 1] = float(c["drag"])
+	return out
 
 
 ## Computes physical hydrodynamic response: retarding drag force, entry slam,
@@ -653,3 +828,42 @@ static func contact_response(
 		"steering_pull_nm": steering_pull_nm,
 		"vertical_dip_m": vertical_dip_m,
 	}
+
+
+static func contact_response_packed(
+	depth_mm: float,
+	speed: float,
+	evacuation: Variant,
+	load_n: float,
+	width: float,
+	drag_scale: float,
+	delta_depth_s: float = 0.0,
+	wheel_radius: float = 0.28
+) -> PackedFloat32Array:
+	var evac_speed: float = (28.0 if evacuation else 16.0) if evacuation is bool else maxf(float(evacuation), 0.1)
+	var helper: RefCounted = _get_rust_static_helper()
+	if helper != null:
+		return helper.call(
+			"contact_response_packed",
+			depth_mm,
+			speed,
+			evac_speed,
+			load_n,
+			width,
+			drag_scale,
+			delta_depth_s,
+			wheel_radius,
+		) as PackedFloat32Array
+	var d: Dictionary = contact_response(depth_mm, speed, evac_speed, load_n, width, drag_scale, delta_depth_s, wheel_radius)
+	var out := PackedFloat32Array()
+	out.resize(9)
+	out[0] = float(d.get("support", 1.0))
+	out[1] = float(d.get("support_longitudinal", 1.0))
+	out[2] = float(d.get("support_lateral", 1.0))
+	out[3] = float(d.get("drag_n", 0.0))
+	out[4] = float(d.get("slam_n", 0.0))
+	out[5] = float(d.get("continuous_drag_n", 0.0))
+	out[6] = float(d.get("wheel_torque_nm", 0.0))
+	out[7] = float(d.get("steering_pull_nm", 0.0))
+	out[8] = float(d.get("vertical_dip_m", 0.0))
+	return out

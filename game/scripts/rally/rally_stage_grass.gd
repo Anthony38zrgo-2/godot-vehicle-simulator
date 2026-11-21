@@ -76,6 +76,7 @@ const MIN_SURFACE_UP := 0.72
 const ALPHA_SCISSOR_THRESHOLD := 0.38
 const BACKLIGHT_COLOR := Color(0.65, 0.65, 0.65)
 
+var use_rust_backend := true
 var aged_only := false
 var custom_variants: Array[PackedScene] = []
 var custom_variant_weights: Array[float] = []
@@ -134,6 +135,8 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 	var bins := _offset_bins()
 	if collidable_bushes:
 		bins = bins.slice(4)
+	if _try_build_with_rust(route, stage_seed, collision_mask, entries, started_at, space, total_length, budget, max_attempts, bins):
+		return
 	var arc_table := _arc_table(cumulative, total_length)
 	var buckets: Dictionary = {}
 	var stats := {
@@ -244,6 +247,331 @@ func build(route: Array[Vector3], stage_seed: int, collision_mask: int) -> void:
 		" variants=", entries.size(), " budget=", budget, " attempts=", attempts,
 		" clusters=", int(stats["clusters"]), " band_m=", bins[0].x, "-", outer_offset,
 		" build_ms=", Time.get_ticks_msec() - started_at)
+
+
+func _resolve_rust_gis() -> Dictionary:
+	var sampler: RefCounted = null
+	for cb: Callable in [grass_gis, snow_coverage]:
+		if not cb.is_valid():
+			continue
+		var obj: Object = cb.get_object()
+		if obj == null or not obj.has_method(&"get_rust_gis"):
+			return {"ok": false, "sampler": null}
+		var s: RefCounted = obj.call(&"get_rust_gis") as RefCounted
+		if s == null:
+			return {"ok": false, "sampler": null}
+		sampler = s
+	return {"ok": true, "sampler": sampler}
+
+
+func _resolve_parking_rects() -> Dictionary:
+	if not parking_covers.is_valid():
+		return {"ok": true, "rects": PackedFloat32Array()}
+	var obj: Object = parking_covers.get_object()
+	if obj == null:
+		return {"ok": false, "rects": PackedFloat32Array()}
+	var raw_spaces: Variant = obj.get(&"_spaces")
+	if not (raw_spaces is Array):
+		return {"ok": false, "rects": PackedFloat32Array()}
+	var spaces: Array = raw_spaces as Array
+	var flat := PackedFloat32Array()
+	flat.resize(spaces.size() * 11)
+	for i in spaces.size():
+		var site: Dictionary = spaces[i] as Dictionary
+		var pt: Vector3 = site["point"] as Vector3
+		var fwd: Vector3 = site["forward"] as Vector3
+		var rgt: Vector3 = site["right"] as Vector3
+		var base_i: int = i * 11
+		flat[base_i] = pt.x
+		flat[base_i + 1] = pt.y
+		flat[base_i + 2] = pt.z
+		flat[base_i + 3] = fwd.x
+		flat[base_i + 4] = fwd.y
+		flat[base_i + 5] = fwd.z
+		flat[base_i + 6] = rgt.x
+		flat[base_i + 7] = rgt.y
+		flat[base_i + 8] = rgt.z
+		flat[base_i + 9] = float(site["length"])
+		flat[base_i + 10] = float(site["width"])
+	return {"ok": true, "rects": flat}
+
+
+func _batch_raycast(
+	space: PhysicsDirectSpaceState3D,
+	candidates: PackedVector3Array,
+	query: PhysicsRayQueryParameters3D,
+	required_group: StringName,
+	collider_cache: Dictionary,
+	up_lift: Vector3,
+	down_reach: Vector3,
+) -> Array:
+	var count: int = candidates.size()
+	var hit_pos := PackedVector3Array()
+	var hit_norm := PackedVector3Array()
+	var hit_flags := PackedByteArray()
+	hit_pos.resize(count)
+	hit_norm.resize(count)
+	hit_flags.resize(count)
+	for i in count:
+		var pt: Vector3 = candidates[i]
+		query.from = pt + up_lift
+		query.to = pt - down_reach
+		var hit: Dictionary = space.intersect_ray(query)
+		if hit.is_empty():
+			continue
+		var nrm: Vector3 = hit["normal"] as Vector3
+		if nrm.y < MIN_SURFACE_UP:
+			continue
+		var col_obj: Variant = hit.get("collider")
+		if col_obj == null or not (col_obj is Node):
+			continue
+		var cid: int = (col_obj as Object).get_instance_id()
+		var accepted: Variant = collider_cache.get(cid)
+		if accepted == null:
+			var cnode := col_obj as Node
+			accepted = cnode.is_in_group(required_group) and not bool(cnode.get_meta("is_stage_road", false))
+			collider_cache[cid] = accepted
+		if not bool(accepted):
+			continue
+		hit_pos[i] = hit["position"] as Vector3
+		hit_norm[i] = nrm
+		hit_flags[i] = 1
+	return [hit_pos, hit_norm, hit_flags]
+
+
+func _try_build_with_rust(
+	route: Array[Vector3],
+	stage_seed: int,
+	collision_mask: int,
+	entries: Array[Dictionary],
+	started_at: int,
+	space: PhysicsDirectSpaceState3D,
+	_total_length: float,
+	budget: int,
+	max_attempts: int,
+	bins: Array[Vector2],
+) -> bool:
+	if not use_rust_backend or not ClassDB.class_exists(&"RustStageGrassPlanner"):
+		return false
+	var gis_info: Dictionary = _resolve_rust_gis()
+	if not bool(gis_info["ok"]):
+		return false
+	var parking_info: Dictionary = _resolve_parking_rects()
+	if not bool(parking_info["ok"]):
+		return false
+
+	var planner: RefCounted = ClassDB.instantiate(&"RustStageGrassPlanner") as RefCounted
+	var bins_flat := PackedFloat32Array()
+	bins_flat.resize(bins.size() * 2)
+	for bi in bins.size():
+		bins_flat[bi * 2] = bins[bi].x
+		bins_flat[bi * 2 + 1] = bins[bi].y
+	planner.call("set_route", PackedVector3Array(route), bins_flat, stage_seed, budget, max_attempts)
+
+	var spacing_m := 3.5 if collidable_bushes else min_spacing_m
+	var reservation_radius := 1.25 if collidable_bushes else 0.46
+	var params := PackedFloat32Array([
+		density_floor,
+		instance_scale,
+		outer_offset_scale,
+		side_bias_strength,
+		spacing_m,
+		reservation_radius,
+		MAX_TILT_DEGREES,
+		TERRAIN_CLEARANCE,
+		SECTOR_LENGTH,
+		MIN_SURFACE_UP,
+	])
+	var flags := PackedInt32Array([
+		1 if cluster_scatter else 0,
+		1 if grass_gis.is_valid() else 0,
+		1 if snow_coverage.is_valid() else 0,
+		1 if face_camera else 0,
+		1 if outline_bush_cards else 0,
+		1 if collidable_bushes else 0,
+		maxi(1, variant_group_size),
+	])
+	planner.call("set_scatter_params", params, flags, global_transform.affine_inverse())
+
+	var v_count: int = entries.size()
+	var v_weights := PackedFloat32Array()
+	var v_scales := PackedFloat32Array()
+	var v_heights := PackedFloat32Array()
+	var v_hnorms := PackedFloat32Array()
+	var v_snow := PackedInt32Array()
+	var v_aabb_pos := PackedVector3Array()
+	var v_aabb_size := PackedVector3Array()
+	v_weights.resize(v_count)
+	v_scales.resize(v_count * 2)
+	v_heights.resize(v_count)
+	v_hnorms.resize(v_count)
+	v_snow.resize(v_count)
+	v_aabb_pos.resize(v_count)
+	v_aabb_size.resize(v_count)
+	for vi in v_count:
+		var entry: Dictionary = entries[vi]
+		v_weights[vi] = float(entry["weight"])
+		var sc: Vector2 = entry["scale"] as Vector2
+		v_scales[vi * 2] = sc.x
+		v_scales[vi * 2 + 1] = sc.y
+		v_heights[vi] = float(entry["mesh_height"])
+		v_hnorms[vi] = float(entry["height_norm"])
+		v_snow[vi] = 1 if entry.has("snow_material") else 0
+		var mesh_aabb: AABB = (entry["mesh"] as Mesh).get_aabb()
+		v_aabb_pos[vi] = mesh_aabb.position
+		v_aabb_size[vi] = mesh_aabb.size
+	planner.call("set_variants", v_weights, v_scales, v_heights, v_hnorms, v_snow, v_aabb_pos, v_aabb_size)
+
+	if not reserved_points.is_empty():
+		planner.call("set_reserved_points", PackedVector3Array(reserved_points))
+	var sampler_ref: RefCounted = gis_info["sampler"] as RefCounted
+	if sampler_ref != null:
+		planner.call("set_gis_sampler", sampler_ref)
+	var p_rects: PackedFloat32Array = parking_info["rects"] as PackedFloat32Array
+	if not p_rects.is_empty():
+		planner.call("set_parking_rects", p_rects)
+
+	var sector_paths: Array[String] = []
+	if sector_stream != null:
+		var sinfo: Dictionary = sector_stream.get_sectors_for_rust()
+		sector_paths = sinfo["paths"] as Array[String]
+		if not sector_paths.is_empty():
+			planner.call("set_sectors", float(sinfo["cell_m"]), sinfo["grid_coords"] as PackedInt32Array, sinfo["rects_flat"] as PackedFloat32Array)
+
+	var query := PhysicsRayQueryParameters3D.new()
+	query.collision_mask = collision_mask
+	var required_group: StringName = ground_group
+	if required_group.is_empty():
+		required_group = &"RauraGrassGround" if aged_only else &"Grass"
+	var up_lift := Vector3.UP * RAY_ORIGIN_LIFT
+	var down_reach := Vector3.UP * RAY_REACH_BELOW
+	var collider_cache := {}
+
+	while not bool(planner.call("is_done")):
+		var candidates: PackedVector3Array = planner.call("generate_parent_candidates", 2048) as PackedVector3Array
+		if candidates.is_empty():
+			break
+		var hits: Array = _batch_raycast(space, candidates, query, required_group, collider_cache, up_lift, down_reach)
+		var d_candidates: PackedVector3Array = planner.call("process_parent_hits", hits[0], hits[1], hits[2]) as PackedVector3Array
+		if not d_candidates.is_empty():
+			var d_hits: Array = _batch_raycast(space, d_candidates, query, required_group, collider_cache, up_lift, down_reach)
+			planner.call("process_daughter_hits", d_hits[0], d_hits[1], d_hits[2])
+
+	var st: PackedFloat32Array = planner.call("get_stats_array") as PackedFloat32Array
+	var total_instances: int = int(st[0])
+	var attempts_done: int = int(st[2])
+	var clusters_done: int = int(st[3])
+	if snow_coverage.is_valid():
+		set_meta("snow_skipped", int(st[4]))
+		set_meta("snow_placed", int(st[5]))
+	if st[7] >= 0.0:
+		set_meta("height_stats", {
+			"instance_scale": instance_scale,
+			"min_height_m": float(st[7]),
+			"max_height_m": float(st[8]),
+			"min_delta_m": float(st[9]),
+			"max_delta_m": float(st[10]),
+			"clusters": clusters_done,
+			"gis_skipped": int(st[6]),
+			"min_spacing_m": spacing_m,
+		})
+
+	var keys_flat: PackedInt32Array = planner.call("finalize_buckets") as PackedInt32Array
+	var num_buckets: int = keys_flat.size() / 2
+	if sector_stream == null or sector_paths.is_empty():
+		for bi in num_buckets:
+			var kx: int = keys_flat[bi * 2]
+			var ky: int = keys_flat[bi * 2 + 1]
+			var buf: PackedFloat32Array = planner.call("get_bucket_multimesh_buffer", bi) as PackedFloat32Array
+			if buf.is_empty():
+				continue
+			var entry: Dictionary = _resolve_variant_entry(entries, ky)
+			var b_aabb: AABB = planner.call("get_bucket_aabb", bi) as AABB
+			var coll_flat: PackedFloat32Array = planner.call("get_bucket_bush_colliders", bi) as PackedFloat32Array if collidable_bushes else PackedFloat32Array()
+			_create_batch_from_buffer(self, Vector2i(kx, ky), entry, buf, b_aabb, coll_flat, collision_mask)
+	else:
+		var last_kx: int = -1
+		var sector_counter: int = -1
+		for bi in num_buckets:
+			var kx: int = keys_flat[bi * 2]
+			var ky: int = keys_flat[bi * 2 + 1]
+			var buf: PackedFloat32Array = planner.call("get_bucket_multimesh_buffer", bi) as PackedFloat32Array
+			if buf.is_empty() or kx < 0 or kx >= sector_paths.size():
+				continue
+			if kx != last_kx:
+				last_kx = kx
+				sector_counter += 1
+			var entry: Dictionary = _resolve_variant_entry(entries, ky)
+			var b_aabb: AABB = planner.call("get_bucket_aabb", bi) as AABB
+			var coll_flat: PackedFloat32Array = planner.call("get_bucket_bush_colliders", bi) as PackedFloat32Array if collidable_bushes else PackedFloat32Array()
+			var batch_key := Vector2i(sector_counter, ky)
+			sector_stream.register_content(
+				sector_paths[kx],
+				_create_batch_from_buffer.bind(batch_key, entry, buf, b_aabb, coll_flat, collision_mask),
+			)
+
+	var outer_offset := bins[0].x + (bins[-1].y - bins[0].x) * outer_offset_scale
+	print("RALLY_BUSHES_READY" if collidable_bushes else "RALLY_GRASS_READY",
+		" instances=", total_instances, " batches=", num_buckets,
+		" variants=", entries.size(), " budget=", budget, " attempts=", attempts_done,
+		" clusters=", clusters_done, " band_m=", bins[0].x, "-", outer_offset,
+		" build_ms=", Time.get_ticks_msec() - started_at)
+	return true
+
+
+func _resolve_variant_entry(entries: Array[Dictionary], variant_slot: int) -> Dictionary:
+	var entry: Dictionary = entries[variant_slot % entries.size()]
+	if variant_slot >= entries.size():
+		entry = entry.duplicate()
+		entry["material"] = entry["snow_material"]
+	return entry
+
+
+func _create_batch_from_buffer(
+	parent: Node3D,
+	key: Vector2i,
+	entry: Dictionary,
+	buffer: PackedFloat32Array,
+	billboard_bounds: AABB,
+	colliders_flat: PackedFloat32Array,
+	collision_layer: int,
+) -> void:
+	var inst_count: int = buffer.size() / 12
+	if inst_count <= 0:
+		return
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = entry["mesh"]
+	multimesh.instance_count = inst_count
+	multimesh.buffer = buffer
+	if face_camera:
+		multimesh.custom_aabb = billboard_bounds
+	var batch := MultiMeshInstance3D.new()
+	batch.name = ("BushSector%02dVariant%d" if collidable_bushes else "GrassSector%02dVariant%d") % [key.x, key.y]
+	batch.multimesh = multimesh
+	batch.material_override = entry["material"]
+	batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if visual_range_m > 0.0:
+		batch.visibility_range_end = visual_range_m
+		batch.visibility_range_end_margin = 24.0
+	parent.add_child(batch)
+	if collidable_bushes and not colliders_flat.is_empty():
+		var body := StaticBody3D.new()
+		body.name = "BushCollision"
+		body.collision_layer = collision_layer
+		body.collision_mask = 0
+		body.set_meta("collision_role", "obstacle")
+		batch.add_child(body)
+		var c_count: int = colliders_flat.size() / 5
+		for i in c_count:
+			var b_i: int = i * 5
+			var shape := CapsuleShape3D.new()
+			shape.radius = colliders_flat[b_i + 3]
+			shape.height = colliders_flat[b_i + 4]
+			var collider := CollisionShape3D.new()
+			collider.shape = shape
+			collider.position = Vector3(colliders_flat[b_i], colliders_flat[b_i + 1], colliders_flat[b_i + 2])
+			body.add_child(collider)
 
 
 func _emit_tuft(rng: RandomNumberGenerator, entries: Array[Dictionary], buckets: Dictionary,

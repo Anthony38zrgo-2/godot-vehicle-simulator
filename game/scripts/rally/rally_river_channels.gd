@@ -25,6 +25,7 @@ const MAX_FIT_SAMPLES := 16384
 # Solo para ganar el test de profundidad; no cuenta en la profundidad.
 const WATER_RENDER_BIAS_M := 0.05
 
+var use_rust_backend: bool = true
 var stage_id: String = ""
 var valid: bool = false
 var error: String = ""
@@ -37,6 +38,8 @@ var practice_rain_override: float = -1.0
 var initial_state: Dictionary = {}
 # Mallas importadas por instance_id (para la partición por cauce).
 var _mesh_registry: Dictionary = {}
+var _rust_rivers: RefCounted = null
+var _rust_rises: PackedFloat32Array = PackedFloat32Array()
 
 # channel runtime: {
 #  id, kind, active, pilot, surfaces, progress_m, max_rise_m, reference_rain_mm_h,
@@ -131,6 +134,7 @@ func configure(for_stage_id: String, visual_root: Node, weather_provider, choice
 		if ((ch as Dictionary).get("nodes", []) as Array).is_empty():
 			continue
 		_apply_materials((ch as Dictionary))
+	_sync_channels_to_rust()
 	valid = true
 	return true
 
@@ -483,6 +487,7 @@ func add_test_channel(cfg: Dictionary) -> Dictionary:
 	ch["tris"] = [[a, b, c], [a, c, d]]
 	_build_buckets(ch)
 	channels.append(ch)
+	_sync_channels_to_rust()
 	valid = true
 	return ch
 
@@ -597,50 +602,80 @@ func _fit_base_plane(ch: Dictionary) -> void:
 	if pts.is_empty():
 		_log_channel(str(ch.get("id", "?")), "sin vértices de agua en la huella: plano base sin ajustar")
 		return
-	# Rango vertical real de la lámina en la zona de ajuste: define la
-	# ventana del horneado del lecho (cascadas y tramos con desnivel).
 	var ymin := INF
 	var ymax := -INF
-	for p in pts:
-		ymin = minf(ymin, (p as Vector3).y)
-		ymax = maxf(ymax, (p as Vector3).y)
-	ch["surface_min_y"] = ymin
-	ch["surface_max_y"] = ymax
 	var cx := 0.0
 	var cz := 0.0
 	var cy := 0.0
-	for p in pts:
-		cx += (p as Vector3).x
-		cz += (p as Vector3).z
-		cy += (p as Vector3).y
-	cx /= pts.size()
-	cz /= pts.size()
-	cy /= pts.size()
-	var sxx := 0.0
-	var sxz := 0.0
-	var szz := 0.0
-	var sxy := 0.0
-	var szy := 0.0
-	for p in pts:
-		var dx := (p as Vector3).x - cx
-		var dz := (p as Vector3).z - cz
-		var dy := (p as Vector3).y - cy
-		sxx += dx * dx
-		sxz += dx * dz
-		szz += dz * dz
-		sxy += dx * dy
-		szy += dz * dy
-	var det := sxx * szz - sxz * sxz
 	var gx := 0.0
 	var gz := 0.0
-	if absf(det) > 0.000001:
-		gx = (sxy * szz - szy * sxz) / det
-		gz = (sxx * szy - sxz * sxy) / det
-	ch["base_cx"] = cx
-	ch["base_cz"] = cz
-	ch["base_b0"] = cy
-	ch["base_gx"] = clampf(gx, -0.25, 0.25)
-	ch["base_gz"] = clampf(gz, -0.25, 0.25)
+	var used_rust_fit := false
+	var helper := _ensure_rust_rivers()
+	if helper != null:
+		var pvec := PackedVector3Array()
+		pvec.resize(pts.size())
+		for pi in pts.size():
+			pvec[pi] = pts[pi] as Vector3
+		var fit: PackedFloat32Array = helper.call("fit_base_plane_pts", pvec)
+		if fit.size() >= 11:
+			cx = fit[0]
+			cz = fit[1]
+			cy = fit[2]
+			gx = fit[3]
+			gz = fit[4]
+			ymin = fit[5]
+			ymax = fit[6]
+			ch["surface_min_y"] = ymin
+			ch["surface_max_y"] = ymax
+			ch["base_cx"] = cx
+			ch["base_cz"] = cz
+			ch["base_b0"] = cy
+			ch["base_gx"] = gx
+			ch["base_gz"] = gz
+			if not bool(ch.get("has_footprint", false)):
+				ch["min_x"] = fit[7]
+				ch["min_z"] = fit[8]
+				ch["max_x"] = fit[9]
+				ch["max_z"] = fit[10]
+			used_rust_fit = true
+	if not used_rust_fit:
+		# Rango vertical real de la lámina en la zona de ajuste: define la
+		# ventana del horneado del lecho (cascadas y tramos con desnivel).
+		for p in pts:
+			ymin = minf(ymin, (p as Vector3).y)
+			ymax = maxf(ymax, (p as Vector3).y)
+		ch["surface_min_y"] = ymin
+		ch["surface_max_y"] = ymax
+		for p in pts:
+			cx += (p as Vector3).x
+			cz += (p as Vector3).z
+			cy += (p as Vector3).y
+		cx /= pts.size()
+		cz /= pts.size()
+		cy /= pts.size()
+		var sxx := 0.0
+		var sxz := 0.0
+		var szz := 0.0
+		var sxy := 0.0
+		var szy := 0.0
+		for p in pts:
+			var dx := (p as Vector3).x - cx
+			var dz := (p as Vector3).z - cz
+			var dy := (p as Vector3).y - cy
+			sxx += dx * dx
+			sxz += dx * dz
+			szz += dz * dz
+			sxy += dx * dy
+			szy += dz * dy
+		var det := sxx * szz - sxz * sxz
+		if absf(det) > 0.000001:
+			gx = (sxy * szz - szy * sxz) / det
+			gz = (sxx * szy - sxz * sxy) / det
+		ch["base_cx"] = cx
+		ch["base_cz"] = cz
+		ch["base_b0"] = cy
+		ch["base_gx"] = clampf(gx, -0.25, 0.25)
+		ch["base_gz"] = clampf(gz, -0.25, 0.25)
 	if ch.has("level_anchor"):
 		# Anclar el plano al nivel medido en el vado: exacto donde pisan las
 		# ruedas; la pendiente de la malla se conserva alrededor y se guarda
@@ -654,6 +689,8 @@ func _fit_base_plane(ch: Dictionary) -> void:
 		ch["base_b0"] = cy + delta_y
 		ch["visual_base_offset_m"] = delta_y
 	if bool(ch.get("has_footprint", false)):
+		return
+	if used_rust_fit:
 		return
 	ch["min_x"] = INF
 	ch["min_z"] = INF
@@ -1042,6 +1079,100 @@ func _update_render() -> void:
 		if not bool((ch as Dictionary).get("active", false)):
 			continue
 		_update_channel_material((ch as Dictionary))
+	_sync_rises_to_rust()
+
+
+func _ensure_rust_rivers() -> RefCounted:
+	if not use_rust_backend or not ClassDB.class_exists(&"RustRiverChannels"):
+		return null
+	if _rust_rivers == null:
+		_rust_rivers = ClassDB.instantiate(&"RustRiverChannels") as RefCounted
+	return _rust_rivers
+
+
+func _sync_channels_to_rust() -> void:
+	var helper := _ensure_rust_rivers()
+	if helper == null:
+		_rust_rivers = null
+		_rust_rises.resize(0)
+		return
+	helper.call("clear")
+	var count: int = channels.size()
+	_rust_rises.resize(count)
+	for i in count:
+		var ch: Dictionary = channels[i] as Dictionary
+		var tris: Array = ch.get("tris", []) as Array
+		var tri_verts := PackedVector2Array()
+		tri_verts.resize(tris.size() * 3)
+		for ti in tris.size():
+			var tri: Array = tris[ti] as Array
+			tri_verts[ti * 3] = tri[0] as Vector2
+			tri_verts[ti * 3 + 1] = tri[1] as Vector2
+			tri_verts[ti * 3 + 2] = tri[2] as Vector2
+		var rise: float = float(ch.get("rise_m", 0.0))
+		_rust_rises[i] = rise
+		helper.call(
+			"add_channel",
+			bool(ch.get("active", false)),
+			float(ch.get("min_x", -5.0)),
+			float(ch.get("min_z", -5.0)),
+			float(ch.get("max_x", 5.0)),
+			float(ch.get("max_z", 5.0)),
+			float(ch.get("base_cx", 0.0)),
+			float(ch.get("base_cz", 0.0)),
+			float(ch.get("base_b0", 0.0)),
+			float(ch.get("base_gx", 0.0)),
+			float(ch.get("base_gz", 0.0)),
+			float(ch.get("drag_scale", 1.25)),
+			rise,
+			tri_verts,
+		)
+
+
+func _sync_rises_to_rust() -> void:
+	if not use_rust_backend or _rust_rivers == null:
+		return
+	var count: int = channels.size()
+	if _rust_rises.size() != count:
+		_sync_channels_to_rust()
+		return
+	for i in count:
+		_rust_rises[i] = float((channels[i] as Dictionary).get("rise_m", 0.0))
+	_rust_rivers.call("update_rises", _rust_rises)
+
+
+func channel_id_at(ch_idx: int) -> String:
+	if ch_idx < 0 or ch_idx >= channels.size():
+		return ""
+	return str((channels[ch_idx] as Dictionary).get("id", ""))
+
+
+func sample_4wheels(positions: PackedVector3Array, loaded_mask: int) -> PackedFloat32Array:
+	if use_rust_backend and _rust_rivers != null:
+		return _rust_rivers.call("sample_4wheels", positions, loaded_mask) as PackedFloat32Array
+	var out := PackedFloat32Array()
+	out.resize(16)
+	for wi in 4:
+		out[wi * 4 + 1] = -INF
+		out[wi * 4 + 3] = -1.0
+	var count: int = mini(positions.size(), 4)
+	for i in count:
+		if (loaded_mask & (1 << i)) == 0:
+			continue
+		var r: Dictionary = sample_contact(positions[i])
+		var base_i: int = i * 4
+		out[base_i] = float(r.get("depth_mm", 0.0))
+		out[base_i + 1] = float(r.get("surface_y", -INF))
+		out[base_i + 2] = float(r.get("drag_scale", 0.0))
+		var cid: String = str(r.get("channel_id", ""))
+		var found_idx: float = -1.0
+		if not cid.is_empty():
+			for ci in channels.size():
+				if str((channels[ci] as Dictionary).get("id", "")) == cid:
+					found_idx = float(ci)
+					break
+		out[base_i + 3] = found_idx
+	return out
 
 
 func sample_contact(world_position: Vector3) -> Dictionary:
@@ -1051,6 +1182,19 @@ func sample_contact(world_position: Vector3) -> Dictionary:
 	## Dentro de una zona válida y mojada devuelve
 	## max(0, surface_y - contact_y) * 1000 en mm. El puente queda seco
 	## mientras el contacto esté sobre la lámina (contacto por encima).
+	if use_rust_backend and _rust_rivers != null:
+		var packed: PackedFloat32Array = _rust_rivers.call("sample_contact_packed", world_position)
+		var ch_idx: int = int(packed[3])
+		if ch_idx < 0 or ch_idx >= channels.size():
+			return {"depth_mm": 0.0, "surface_y": -INF, "channel_id": "", "drag_scale": 0.0, "wet": false}
+		var depth_mm: float = packed[0]
+		return {
+			"depth_mm": depth_mm,
+			"surface_y": packed[1],
+			"channel_id": str((channels[ch_idx] as Dictionary).get("id", "")),
+			"drag_scale": packed[2],
+			"wet": depth_mm > 0.001,
+		}
 	var best := {"depth_mm": 0.0, "surface_y": -INF, "channel_id": "", "drag_scale": 0.0, "wet": false}
 	for ch in channels:
 		if not bool((ch as Dictionary).get("active", false)):
