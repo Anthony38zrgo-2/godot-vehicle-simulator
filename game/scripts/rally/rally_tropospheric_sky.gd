@@ -33,10 +33,10 @@ func _pick(ids: Array, hour: float) -> String:
 	return nearest if eligible.is_empty() else str(eligible[posmod(event_seed, eligible.size())])
 
 func _select_hour(hour: float) -> void:
-	variants["day"] = _pick(["day_1", "day_4", "day_5", "day_6", "day_3", "dusk_1", "dusk_3"], hour)
-	variants["cloudy"] = _pick(["cloudy_1", "cloudy_3", "cloudy_4", "cloudy_5", "cloudy_6", "cloudy_2"], hour)
-	variants["verycloudy"] = _pick(["verycloudy_1", "verycloudy_2", "verycloudy_3", "verycloudy_4", "verycloudy_5", "dusk_6", "verycloudy_6", "dusk_5"], hour)
-	variants["dusk"] = "dusk_4" if float(climate.get("cumulus_coverage", 0.2)) >= 0.55 else _pick(["day_2", "dusk_2"], hour)
+	variants["day"] = _pick(["day_1", "day_4", "day_5"], hour)
+	variants["cloudy"] = _pick(["cloudy_1", "cloudy_3", "cloudy_4", "cloudy_5", "cloudy_6"], hour)
+	variants["verycloudy"] = _pick(["verycloudy_4", "verycloudy_5", "dusk_6"], hour)
+	variants["dusk"] = _pick(["day_2", "dusk_2"], hour)
 
 
 var environment := Environment.new()
@@ -92,9 +92,11 @@ func _ready() -> void:
 	environment.adjustment_saturation = float(visual.get("saturation_clear", 1.08))
 	update_visuals(0.0)
 
-func apply_climate(next_climate: Dictionary, next_visual: Dictionary) -> void:
+func apply_climate(next_climate: Dictionary, next_visual: Dictionary, precipitation_kind: String = "") -> void:
 	_practice_target.clear()
 	climate = next_climate.duplicate()
+	if not precipitation_kind.is_empty():
+		climate["precipitation_kind"] = precipitation_kind
 	if not next_visual.is_empty():
 		visual = next_visual
 
@@ -124,22 +126,29 @@ func update_visuals(delta: float) -> void:
 	var cover := clampf(float(climate.get("cumulus_coverage", 0.2)), 0.0, 1.0)
 	var cirrus := clampf(float(climate.get("cirrus_coverage", 0.0)), 0.0, 1.0)
 	var precip := float(climate.get("precipitation_mm_h", 0.0))
-	cover = maxf(cover, smoothstep(0.0, 12.0, precip) * 0.95)
+	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0052)), 0.00001), 0.0, 1.0)
+	var precipitation_cover := smoothstep(0.01, 0.40, precip) * lerpf(0.80, 0.97, smoothstep(0.4, 8.0, precip))
+	cover = maxf(cover, maxf(precipitation_cover, fog_weight * 0.84))
 	var overcast := smoothstep(0.28, 0.95, cover)
 	var sun_clarity := clampf(1.0 - smoothstep(0.06, 0.90, cover) * 0.88 - cirrus * 0.14, 0.0, 1.0)
+	var phase := str(climate.get("precipitation_kind", "rain"))
+	var snow_light := phase == "snow" or phase == "mixed"
+	var weather_tint := Vector3.ONE.lerp(
+		Vector3(0.89, 0.93, 0.98) if snow_light else Vector3(0.66, 0.72, 0.80),
+		smoothstep(0.05, 6.0, precip)
+	)
 	var twilight_id: String = "day_2" if morning else variants["dusk"]
 	var twilight_yaw := 0.0 if morning else PI
-	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast)
-	var day_mix := smoothstep(5.5, 8.5, current_time) if morning else 1.0 - smoothstep(18.0, 19.5, current_time)
+	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast) * weather_tint
 	if altitude < 0.02:
-		_bind_sky(variants["night"], twilight_id, variants["night"], smoothstep(-0.25, 0.02, altitude), 1.0,
-			0.0, twilight_yaw, Vector3.ONE.lerp(Vector3(0.15, 0.20, 0.28), overcast), twilight_tint, Vector3.ONE)
+		_bind_sky(variants["night"], twilight_id, variants["verycloudy"], smoothstep(-0.25, 0.02, altitude),
+			1.0 - overcast * 0.85 * (1.0 - smoothstep(-0.25, 0.02, altitude)),
+			0.0, twilight_yaw, Vector3.ONE, twilight_tint, Vector3(0.045, 0.06, 0.09))
 	else:
 		var cloudy := cover >= 0.55
-		var blend := smoothstep(0.55, 0.95, cover) if cloudy else smoothstep(0.15, 0.55, cover)
+		var blend := smoothstep(0.55, 0.84, cover) if cloudy else smoothstep(0.15, 0.55, cover)
 		_bind_sky(variants["cloudy"] if cloudy else variants["day"], variants["verycloudy"] if cloudy else variants["cloudy"], twilight_id,
-			blend, day_mix, twilight_yaw, 0.0, Vector3.ONE, Vector3.ONE, twilight_tint)
-	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0052)), 0.00001), 0.0, 1.0)
+			blend, smoothstep(0.02, 0.35, altitude), twilight_yaw, 0.0, weather_tint, weather_tint, twilight_tint)
 	var mist_boost := fog_weight * (1.0 - smoothstep(0.5, 4.0, precip))
 	var clear_col: Array = visual.get("fog_color_clear", [0.68, 0.76, 0.86])
 	var storm_col: Array = visual.get("fog_color_overcast", [0.57, 0.61, 0.66])
