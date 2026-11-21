@@ -149,6 +149,7 @@ const CDI_CARS := [
 	"f10070",
 	"mustang67",
 	"fiat131",
+	"golfmk1",
 ]
 
 const VIGNETTE_SHADER_CODE := """

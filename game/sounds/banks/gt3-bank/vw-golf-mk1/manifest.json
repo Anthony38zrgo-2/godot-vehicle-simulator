@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "vw_golf_mk1_gti",
+  "whine": [
+    "res://sounds/banks/commons/whinelo.wav",
+    "res://sounds/banks/commons/whinehi.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.48,
+    -0.95
+  ],
+  "exhaust_position": [
+    -0.38,
+    0.2,
+    1.75
+  ],
+  "source": "Gran Turismo 3: A-Spec USA v1.10 (banks/33801 - Mazda MX-5 Miata LS (+2): engine + exhaust_normal0_turbo0)",
+  "sound_id": 33801,
+  "samples": [
+    {
+      "file": "engine/engine_layer00_00800rpm.wav",
+      "sha256": "447916201213a4706c50b924411877fb6dafb82718a13be6217cfbdc84484cd5",
+      "rate_hz": 35960,
+      "base_rpm": 800,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.243416295884316
+      },
+      "key": "engine_layer00_00800rpm"
+    },
+    {
+      "file": "engine/engine_layer01_01500rpm.wav",
+      "sha256": "b3308f73c13f3c963031695b70b7745b927bbc37266d17d4c6a5d166bfa2b87c",
+      "rate_hz": 42658,
+      "base_rpm": 1500,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8255251066622907
+      },
+      "key": "engine_layer01_01500rpm"
+    },
+    {
+      "file": "engine/engine_layer02_02000rpm.wav",
+      "sha256": "7952054af5322e1d06e3c645b5e1b79534cf56b17699727c894efee12f5a4110",
+      "rate_hz": 43152,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.0069579625509826
+      },
+      "key": "engine_layer02_02000rpm"
+    },
+    {
+      "file": "engine/engine_layer03_03000rpm.wav",
+      "sha256": "64c99a8ef90443e8ab1e50cadb5b63c0f346ae69f4cf5680621de8930d4886ad",
+      "rate_hz": 43884,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.9074207000273449
+      },
+      "key": "engine_layer03_03000rpm"
+    },
+    {
+      "file": "engine/engine_layer04_04000rpm.wav",
+      "sha256": "8a83003be4aeb7a4bb16912b93c9f3e3e428cef4495df0ca32ae918b6768ce06",
+      "rate_hz": 22093,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8214479699452315
+      },
+      "key": "engine_layer04_04000rpm"
+    },
+    {
+      "file": "engine/engine_layer05_05000rpm.wav",
+      "sha256": "bf1c06c7ebf3f41c840ebee7ce0de8752c37d78b39eb2864c0097e4b5ecdec8b",
+      "rate_hz": 22061,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.6221046190109243
+      },
+      "key": "engine_layer05_05000rpm"
+    },
+    {
+      "file": "engine/engine_layer06_06000rpm.wav",
+      "sha256": "a9edb2f9043b6b98082d5d46320b05dd6ffc8be8e99a8eada4539899098bfd8e",
+      "rate_hz": 22050,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5716213151927437
+      },
+      "key": "engine_layer06_06000rpm"
+    },
+    {
+      "file": "engine/engine_layer07_07000rpm.wav",
+      "sha256": "e728164335ea0c8b46f4627b3e9d51179cd9e7709be5f450dc871521176a701d",
+      "rate_hz": 22502,
+      "base_rpm": 7000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5703159719136077
+      },
+      "key": "engine_layer07_07000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer00_00800rpm.wav",
+      "sha256": "71240d30d84635afa27cdfb336e48d1e6469cc29165bead2573d4abde04e1f6d",
+      "rate_hz": 42808,
+      "base_rpm": 800,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.9429137077181835
+      },
+      "key": "exhaust_layer00_00800rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer01_01500rpm.wav",
+      "sha256": "637b52a061869cdf1991f1ea2763614b24fb4ffeb60481d282aef5ac007ba1a8",
+      "rate_hz": 41774,
+      "base_rpm": 1500,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.46378728395652796
+      },
+      "key": "exhaust_layer01_01500rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer02_02000rpm.wav",
+      "sha256": "21bea35a5e4ee579130113f6bd38d77fe3e25fd9cb0e0cbc0b0b0a750f552272",
+      "rate_hz": 42764,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5013621270227294
+      },
+      "key": "exhaust_layer02_02000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer03_03000rpm.wav",
+      "sha256": "1f9f9d5ea82571672463db6f53e614961e4744ba18c394bf594638223b638c3a",
+      "rate_hz": 43712,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.6137273517569546
+      },
+      "key": "exhaust_layer03_03000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer04_04000rpm.wav",
+      "sha256": "cc34fb35b020e0cba15c4b096934904b3ca0f23793974b0465472150168c8ce3",
+      "rate_hz": 44056,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5772482749228255
+      },
+      "key": "exhaust_layer04_04000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer05_05000rpm.wav",
+      "sha256": "049f9f6a30629a71a4a7a0284c42a37ddbbc3fe57564329f9a1e12e551a548c0",
+      "rate_hz": 44078,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.4516822451109397
+      },
+      "key": "exhaust_layer05_05000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer06_06000rpm.wav",
+      "sha256": "e5bf0b9e731400e57e40f29669d5a32f25fa5f68dd0fa6cfe4c4957b41388785",
+      "rate_hz": 44078,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.6430248650120242
+      },
+      "key": "exhaust_layer06_06000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer07_07000rpm.wav",
+      "sha256": "464f407e591081015973f92c8c8187c904b6b29c9f47ff2ff88fdde995f2f8a8",
+      "rate_hz": 22491,
+      "base_rpm": 7000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.683884664977102
+      },
+      "key": "exhaust_layer07_07000rpm"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer00_00800rpm.wav",
+      "reference": 800,
+      "lower": 0,
+      "upper": 1500,
+      "mode": "idle",
+      "gain": 0.1883133089635127
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer01_01500rpm.wav",
+      "reference": 1500,
+      "lower": 800,
+      "upper": 2000,
+      "mode": "continuous",
+      "gain": 0.25743506226129775
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer02_02000rpm.wav",
+      "reference": 2000,
+      "lower": 1500,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.2634630850790761
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer03_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.2594894572014857
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer04_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.3100340484622406
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer05_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.3258670770587237
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer06_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 7000,
+      "mode": "continuous",
+      "gain": 0.36171919542615444
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/engine/engine_layer07_07000rpm.wav",
+      "reference": 7000,
+      "lower": 6000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.4075599045708122
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer00_00800rpm.wav",
+      "reference": 800,
+      "lower": 0,
+      "upper": 1500,
+      "mode": "idle",
+      "gain": 0.36854153009651214
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer01_01500rpm.wav",
+      "reference": 1500,
+      "lower": 800,
+      "upper": 2000,
+      "mode": "continuous",
+      "gain": 0.36229119509806385
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer02_02000rpm.wav",
+      "reference": 2000,
+      "lower": 1500,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.29348402501614357
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer03_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.387029072934298
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer04_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.3636025018125201
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer05_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.48104046719523036
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer06_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 7000,
+      "mode": "continuous",
+      "gain": 0.45313098715744765
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/vw-golf-mk1/exhaust/exhaust_layer07_07000rpm.wav",
+      "reference": 7000,
+      "lower": 6000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.5153708536570397
+    }
+  ]
+}

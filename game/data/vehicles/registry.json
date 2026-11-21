@@ -181,6 +181,18 @@
       "SoundBank": "gt3-bank/fiat-131-abarth",
       "ValidateSoundHashes": true,
       "DisplayName": "Fiat 131 Abarth Gr.4"
+    },
+    "golfmk1": {
+      "Id": "vw_golf_mk1_gti",
+      "Assets": "vw_golf_mk1",
+      "Profile": "vw-golf-mk1",
+      "Scene": "vw_golf_mk1",
+      "Stage": "russia_stage1_vw_golf_mk1",
+      "Proving": "vw_golf_mk1_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/vw-golf-mk1",
+      "ValidateSoundHashes": true,
+      "DisplayName": "VW Golf Mk1 GTI Gr.2"
     }
   }
 }

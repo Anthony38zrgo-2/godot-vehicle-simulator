@@ -757,6 +757,76 @@
     },
     "fiat-131-abarth": {
       "alias_of": "fiat_131_abarth"
+    },
+    "vw_golf_mk1_gti": {
+      "default_preset_id": "golfmk1_tierra",
+      "presets": [
+        {
+          "id": "golfmk1_tierra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "ZF / VW Motorsport 020 Grupo 2",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 6,
+          "ramp_deg": {
+            "power": 45,
+            "coast": 65
+          },
+          "bench_preload_nm": {
+            "min": 30,
+            "max": 50,
+            "initial_simulation_seed": 40.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 20
+          },
+          "historical_confidence": "documented_family_ramp_seed_estimated",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "golfmk1_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "ZF / VW Motorsport 020 Grupo 2",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 6,
+          "ramp_deg": {
+            "power": 50,
+            "coast": 80
+          },
+          "bench_preload_nm": {
+            "min": 20,
+            "max": 40,
+            "initial_simulation_seed": 30.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 35,
+            "coast": 10
+          },
+          "historical_confidence": "documented_family_ramp_seed_estimated",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "vw-golf-mk1": {
+      "alias_of": "vw_golf_mk1_gti"
     }
   }
 }

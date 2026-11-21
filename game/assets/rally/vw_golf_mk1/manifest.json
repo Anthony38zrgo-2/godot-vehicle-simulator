@@ -1,0 +1,136 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "vw_golf_mk1_gti",
+  "source": {
+    "fbx": "D:\\RallyManiacAssets\\vw-golf-mk1-low-poly\\source\\VW Golf Mk1.zip!VW Golf Mk1.fbx",
+    "texture": "VW Golf Mk1_VW Golf_BaseColor.png",
+    "blender_version": "5.2.0 LTS",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\vw-golf-mk1-low-poly\\source\\VW Golf Mk1.zip!VW Golf Mk1.fbx",
+      "texture": "VW Golf Mk1_VW Golf_BaseColor.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Scaled and fitted to VW Golf Mk1 GTI Group 2 (FIA 5584/5731/5732) wheelbase (2.400 m) and length (3.741 m) with 185/70 R14 gravel wheels (R=0.305 m, W=0.195 m) and 1.420/1.410 m tracks.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "conversion": "Blender Z-up rotated 180 deg around Z and exported with glTF +Y up",
+    "visual_physics_offset_metres": 0.0
+  },
+  "geometry": {
+    "wheelbase": 2.4,
+    "front_track": 1.42,
+    "rear_track": 1.41,
+    "front_axle_z": -1.2,
+    "rear_axle_z": 1.2
+  },
+  "chassis": {
+    "path": "vw_golf_mk1_chassis.glb",
+    "sha256": "ff45a1a0bfa96e77f30daba932bd83aabb8dfdacf01ac489f15326e14d7fc9be",
+    "size_bytes": 11571164,
+    "exported_nodes": [
+      "VWGolfMk1Exterior"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "vw_golf_mk1_wheel_front_left.glb",
+      "sha256": "10a98b015462064ad7678d2de75654e56be9482fc32244d13a273684d235efd9",
+      "size_bytes": 11504828
+    },
+    "front_right": {
+      "path": "vw_golf_mk1_wheel_front_right.glb",
+      "sha256": "59d9f92fafcfc1028e371236b38fccd47e687c550aa5f7661326f2a32194c01e",
+      "size_bytes": 11504828
+    },
+    "rear_left": {
+      "path": "vw_golf_mk1_wheel_rear_left.glb",
+      "sha256": "44cf6e4719536f636718303a44666ccfe1e24b3f44ecf45a18fdd1a3081453b8",
+      "size_bytes": 11504828
+    },
+    "rear_right": {
+      "path": "vw_golf_mk1_wheel_rear_right.glb",
+      "sha256": "f33639f37de946661bce8047fd8acdb30b77e20610249a1e25c377ed4b16b6e3",
+      "size_bytes": 11504828
+    }
+  },
+  "collision": {
+    "path": "vw_golf_mk1_collision.json",
+    "sha256": "cfaa39bb23c67a36842aac5320be4359f471b7c316c3b2a941d08c82dfa4880b"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "tire_fl",
+      "center_metres": {
+        "x": -0.71,
+        "y": 0.305,
+        "z": -1.2
+      },
+      "radius_metres": 0.305,
+      "width_metres": 0.195
+    },
+    "front_right": {
+      "blender_object": "tire_fr",
+      "center_metres": {
+        "x": 0.71,
+        "y": 0.305,
+        "z": -1.2
+      },
+      "radius_metres": 0.305,
+      "width_metres": 0.195
+    },
+    "rear_left": {
+      "blender_object": "tire_rl",
+      "center_metres": {
+        "x": -0.705,
+        "y": 0.305,
+        "z": 1.2
+      },
+      "radius_metres": 0.305,
+      "width_metres": 0.195
+    },
+    "rear_right": {
+      "blender_object": "tire_rr",
+      "center_metres": {
+        "x": 0.705,
+        "y": 0.305,
+        "z": 1.2
+      },
+      "radius_metres": 0.305,
+      "width_metres": 0.195
+    }
+  },
+  "bounds_world_metres": {
+    "min_blender": [
+      -0.922988,
+      -1.826,
+      0.185
+    ],
+    "max_blender": [
+      0.922988,
+      1.915,
+      1.425
+    ],
+    "min_godot": [
+      -0.922988,
+      0.185,
+      -1.915
+    ],
+    "max_godot": [
+      0.922988,
+      1.425,
+      1.826
+    ]
+  },
+  "capabilities": {
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
+    "damage_variants": 0
+  }
+}

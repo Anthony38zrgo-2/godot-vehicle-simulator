@@ -1,0 +1,44 @@
+{
+  "vehicle": "VW Golf Mk1 GTI 1.6 (FIA Group 2 Rally, Homologation No. 5584/5731)",
+  "sources": [
+    {
+      "id": "FIA Form 5584 / 5731 / 5732 (Group 1/2, 1975-1978)",
+      "facts": [
+        "1,588 cc EA827 inline-4 8V SOHC transverse front engine driving front wheels (FF)",
+        "Wheelbase 2,400 mm, Typ 17 3-door hatchback body (~3,705-3,815 mm length, 1,404 / 1,358 mm base tracks)",
+        "VW 020 5-speed close-ratio rally gearbox [3.455, 1.944, 1.370, 1.080, 0.890] with ZF clutch LSD and 4.46 gravel final drive",
+        "Group 2 rally tune: ~155-165 HP @ ~7,200 rpm, ~170-183 Nm @ ~6,000 rpm; 239 mm front vented discs"
+      ]
+    }
+  ],
+  "estimated": [
+    "Group 2 competition non-wheel mass budget set to 895 kg including 150 kg crew + 25 kg spare/tools (~792 kg uncrewed vehicle)",
+    "Component inertias, ~62:38 F/R FF balance, damper curves, tire/thermal/cooling coefficients and Cd 0.42 / 1.88 m^2 aerodynamics are engineering estimates",
+    "Visual exterior derived from RallyManiacAssets vw-golf-mk1-low-poly FBX + 2048x2048 PBR textures, scaled to 2.400 m wheelbase / 3.741 m length"
+  ],
+  "shared_calibration": [
+    "coupled_world",
+    "damage",
+    "driving_assistance",
+    "steering",
+    "suspension_filters",
+    "underfloor_contact"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "7428403847475bd5a9bc67177f006d8648e834abb24dd3ad18c05b5d69a208b3",
+    "brakes.json": "fa200f03a655a14775904c73351c7189212d9e0ad65d341ca6ef776e1f32089a",
+    "chassis.json": "0884173c9503d2ebc7a864493c3beab35335ecb1b9abcc561ab84a49ff58d437",
+    "coupled_world.json": "92276a3e4363a19058fb003da21eb9f35d124780d89e8797642906a1a7113417",
+    "damage.json": "de51008fe4bda93d8bc9e7d15dae9142664551bc42dc8c4eb0a96dc416ae37ea",
+    "driving_assistance.json": "8224d6be0f4aa5b7eadeba843b6012d3841d0da0f75249ee857efcc4eeb8bf6d",
+    "fuel.json": "8445c15f048673b22c44bf9a88af6b2a8b23606c62133d8d7f6d9bcd44f2f84e",
+    "powertrain.json": "0c021d5a14924116fcfb68c32696bed25b2ef075f503f8a3bea910c53950acc6",
+    "steering.json": "2c2cc68325b8e0d552264876ff877702198bbc0a56e820ec731c1ef95893ab01",
+    "suspension.json": "446b24c1217d91efa025dd6566a0dc70dfda7a6dfabf9551efb5c64f7402e4f1",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "3493ed20c9836cebf17a5a1b7921fcac6f01579623b1e8ece775e5d299c181f9",
+    "underfloor_contact.json": "822455b438cac816394ddd8d5e21c2632348e1a3a1354f6759b0e226dec9f286",
+    "vehicle.json": "5e304f4c88c60476b2551d6d8158bc03504dab6bad48f48343e767f8c4a60c5a"
+  },
+  "audio_source": "Dedicated GT3 bank gt3-bank/vw-golf-mk1 built from engine (8 layers 800-7000 rpm) and exhaust_normal0_turbo0 (8 layers 800-7000 rpm) of bank 33801 (1.8L L4 DOHC NA) + shared res://sounds/banks/commons/ audio."
+}

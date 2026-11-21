@@ -1,0 +1,107 @@
+{
+  "aero": {
+    "air_density": 1.225,
+    "blend_full_speed_mps": 35.0,
+    "blend_min_speed_mps": 5.0,
+    "drag_coefficient": 0.42,
+    "frontal_area": 1.88,
+    "lag_tau_s": 0.04,
+    "model": {
+      "body": {
+        "drag_coefficient_scope": "whole_vehicle_reference",
+        "wheel_reference_drag_area_m2": 0.08
+      },
+      "front_wing": {
+        "area_m2": 0.12,
+        "incidence_deg": 3.0,
+        "max_angle_deg": 8.0,
+        "min_angle_deg": 0.0,
+        "polar": [
+          {
+            "angle_deg": 0.0,
+            "cd": 0.012,
+            "cl": 0.03
+          },
+          {
+            "angle_deg": 4.0,
+            "cd": 0.025,
+            "cl": 0.09
+          },
+          {
+            "angle_deg": 8.0,
+            "cd": 0.045,
+            "cl": 0.15
+          }
+        ],
+        "position_m": [
+          0.0,
+          -0.24,
+          -1.78
+        ],
+        "yaw_decay_exponent": 1.0
+      },
+      "limits": {
+        "hard_max_downforce_n": 420.0,
+        "hard_max_load_ratio": 1.06,
+        "profile": "saloon_rally",
+        "soft_max_load_ratio": 1.02
+      },
+      "rear_wing": {
+        "area_m2": 0.08,
+        "incidence_deg": 2.0,
+        "max_angle_deg": 6.0,
+        "min_angle_deg": 0.0,
+        "polar": [
+          {
+            "angle_deg": 0.0,
+            "cd": 0.01,
+            "cl": 0.02
+          },
+          {
+            "angle_deg": 3.0,
+            "cd": 0.02,
+            "cl": 0.06
+          },
+          {
+            "angle_deg": 6.0,
+            "cd": 0.035,
+            "cl": 0.1
+          }
+        ],
+        "position_m": [
+          0.0,
+          0.55,
+          1.75
+        ],
+        "yaw_decay_exponent": 1.0
+      },
+      "underfloor": {
+        "bottoming_factor": 0.1,
+        "choke_height_m": 0.03,
+        "floor_clearance_front_m": 0.17,
+        "floor_clearance_rear_m": 0.2,
+        "high_height_m": 0.36,
+        "induced_drag_ratio": 0.05,
+        "lift_area_m2": 0.0,
+        "optimal_height_m": 0.18,
+        "optimal_rake_deg": 0.5,
+        "position_m": [
+          0.0,
+          -0.15,
+          0.0
+        ],
+        "rake_window_deg": 5.0,
+        "seal_asymmetry_m": 0.1,
+        "seal_roll_rad": 0.2,
+        "stall_attack_tau_s": 0.08,
+        "stall_recovery_tau_s": 0.12,
+        "throat_probe_offset_m": 0.0,
+        "yaw_decay_exponent": 1.0
+      },
+      "wheels": {
+        "front_drag_coefficient": 0.04,
+        "rear_drag_coefficient": 0.04
+      }
+    }
+  }
+}
