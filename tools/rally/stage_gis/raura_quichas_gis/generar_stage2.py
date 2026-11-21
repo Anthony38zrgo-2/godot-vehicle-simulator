@@ -110,6 +110,114 @@ def godot(point):
     return [point[0], point[2], -point[1]]
 
 
+def build_climate_route_profile(track, data, origin, timed_axis, stations, gate_indices, stage=None, spacing_m=23.5):
+    """Build the versioned geographic & station correspondence profile for procedural weather."""
+    from bisect import bisect_left
+
+    first, last = gate_indices if stage else (0, len(timed_axis) - 1)
+    apron_offset = 6 if not stage else 6
+    sample_indices = list(range(first, last + 1, 4))
+    if sample_indices[-1] != last:
+        sample_indices.append(last)
+    points = [timed_axis[i] for i in sample_indices]
+    lengths = [0.0]
+    for a, b in zip(points, points[1:]):
+        lengths.append(lengths[-1] + (b - a).length)
+
+    dense_pairs = [
+        (lengths[k], stations[idx + apron_offset], idx)
+        for k, idx in enumerate(sample_indices)
+    ]
+
+    # Sample approximately every `spacing_m` along controller progress, always including start and finish.
+    selected_positions = [0]
+    last_d = 0.0
+    for k in range(1, len(dense_pairs) - 1):
+        if dense_pairs[k][0] - last_d >= spacing_m:
+            selected_positions.append(k)
+            last_d = dense_pairs[k][0]
+    if selected_positions[-1] != len(dense_pairs) - 1:
+        selected_positions.append(len(dense_pairs) - 1)
+
+    z_origin_m = float(data["z0"] + origin.z)
+    utm_origin_xy = [float(data["origin"][0] + origin.x), float(data["origin"][1] + origin.y)]
+
+    samples = []
+    for k in selected_positions:
+        progress_m, shader_station_m, idx = dense_pairs[k]
+        p = timed_axis[idx]
+        prev_idx = max(0, idx - 1)
+        next_idx = min(len(timed_axis) - 1, idx + 1)
+        tangent = timed_axis[next_idx] - timed_axis[prev_idx]
+        horiz_len = max(tangent.xy.length, 1e-6)
+        grade = tangent.z / horiz_len
+        # Heading in radians clockwise from North (+Y in UTM / -Z in Godot), matching start_pose convention.
+        heading_rad = math.atan2(tangent.x, tangent.y)
+        samples.append({
+            "progress_m": round(float(progress_m), 4),
+            "shader_station_m": round(float(shader_station_m), 4),
+            "altitude_m": round(z_origin_m + float(p.z), 3),
+            "local_x_m": round(float(p.x), 3),
+            "local_z_m": round(float(-p.y), 3),
+            "grade": round(float(grade), 5),
+            "heading_rad": round(float(heading_rad), 5),
+        })
+
+    # Verify piecewise-linear station correspondence residual against all dense ~8 m points.
+    sample_progs = [s["progress_m"] for s in samples]
+    sample_stats = [s["shader_station_m"] for s in samples]
+    max_residual_m = 0.0
+    for prog, exact_stat, _ in dense_pairs:
+        idx = bisect_left(sample_progs, prog)
+        if idx <= 0:
+            interp = sample_stats[0]
+        elif idx >= len(sample_progs):
+            interp = sample_stats[-1]
+        else:
+            p0, p1 = sample_progs[idx - 1], sample_progs[idx]
+            w = (prog - p0) / max(p1 - p0, 1e-9)
+            interp = sample_stats[idx - 1] + w * (sample_stats[idx] - sample_stats[idx - 1])
+        max_residual_m = max(max_residual_m, abs(interp - exact_stat))
+
+    dem_meta = (stage or {}).get("geography", {})
+    altitudes = [s["altitude_m"] for s in samples]
+    return {
+        "format_version": 1,
+        "track_id": track,
+        "units": {
+            "progress_m": "m (3D cumulative along route.json timed axis)",
+            "shader_station_m": "m (3D cumulative along Road UV2.y from pre-start apron)",
+            "altitude_m": "m (absolute orthometric elevation)",
+            "local_x_m": "m (Godot +X, East relative to UTM origin)",
+            "local_z_m": "m (Godot -Z, South relative to UTM origin)",
+            "grade": "dz / ds_horizontal (dimensionless)",
+            "heading_rad": "radians clockwise from North (+Y UTM / -Z Godot)",
+        },
+        "geography": {
+            "crs": dem_meta.get("crs", "EPSG:32718"),
+            "dem_source": dem_meta.get("dem_source", "Copernicus DEM GLO-30 (cop-dem-glo-30)"),
+            "vertical_datum": dem_meta.get("vertical_datum", "EGM2008 orthometric"),
+            "vertical_datum_verified": bool(dem_meta.get("vertical_datum_verified", True)),
+            "utm_origin_xy": [round(utm_origin_xy[0], 3), round(utm_origin_xy[1], 3)],
+            "z_origin_m": round(z_origin_m, 4),
+            "min_altitude_m": min(altitudes),
+            "max_altitude_m": max(altitudes),
+            "start_altitude_m": altitudes[0],
+            "finish_altitude_m": altitudes[-1],
+            "osm_observations": dem_meta.get("osm_observations", []),
+        },
+        "station_correspondence": {
+            "timed_start_progress_m": samples[0]["progress_m"],
+            "timed_finish_progress_m": samples[-1]["progress_m"],
+            "timed_start_shader_station_m": round(float(stations[first + apron_offset]), 4),
+            "timed_finish_shader_station_m": round(float(stations[last + apron_offset]), 4),
+            "max_piecewise_linear_residual_m": round(float(max_residual_m), 5),
+        },
+        "sample_count": len(samples),
+        "samples": samples,
+    }
+
+
 def main(stage=None):
     corrected_stage = "--stage-sr" in sys.argv
     earth_trial = "--pilot-start-earth" in sys.argv
@@ -368,6 +476,20 @@ def main(stage=None):
     stations = [0.0]
     for a, b in zip(axis, axis[1:]):
         stations.append(stations[-1] + (b - a).length)
+    if "--climate-profile-only" in sys.argv:
+        profile_name = "climate_route_profile.json"
+        profile = build_climate_route_profile(
+            track, data, origin, timed_axis, stations,
+            gate_indices if stage else (0, len(timed_axis) - 1), stage=stage,
+        )
+        write_json(assets / profile_name, profile)
+        manifest_path = assets / "manifest.json"
+        if manifest_path.exists():
+            existing_manifest = json.loads(manifest_path.read_text(encoding="utf8"))
+            existing_manifest["climate_route_profile"] = profile_name
+            write_json(manifest_path, existing_manifest)
+        print(f"CLIMATE_ROUTE_PROFILE {track} samples={profile['sample_count']} residual_m={profile['station_correspondence']['max_piecewise_linear_residual_m']}")
+        return
 
     def visual_strip(name, sections, materials, choose_material, period, strip_stations=stations):
         width = len(sections[0])
@@ -930,6 +1052,12 @@ def main(stage=None):
     heading = (points[1]-points[0]).xy.normalized()
     manifest["start_pose"] = {"ground_godot":godot(points[0]), "heading_radians":math.atan2(-heading.x,heading.y)}
     manifest["coordinate_system"] = {"engine":"Godot","forward":"-Z","right":"+X","up":"+Y","unit_scale":1.0}
+    climate_profile = build_climate_route_profile(
+        track, data, origin, timed_axis, stations,
+        gate_indices if stage else (0, len(timed_axis) - 1), stage=stage,
+    )
+    write_json(assets / "climate_route_profile.json", climate_profile)
+    manifest["climate_route_profile"] = "climate_route_profile.json"
     write_json(assets / "manifest.json", manifest)
     route = f"res://data/rally/{track}_route.json"
     gates = f"res://data/competition/stages/{track}_timing_gates.json"
@@ -958,11 +1086,17 @@ def main(stage=None):
     write_json(GAME / baseline.removeprefix("res://"), {
         "basis":"Synthetic standalone defaults at 50 km/h",
         "values_seconds":{f"CPUSplit{i}":[length / 13.89] for i, length in enumerate(sectors)}})
-    write_json(GAME / f"data/competition/stages/{track}.json", {"id":track,"name":stage["name"] if stage else ("Rally Raura — Piloto con relieve" if pilot_relief else ("Rally Raura — Piloto OSQP" if pilot else "Rally Raura — Stage 2")),
+    stage_config_path = GAME / f"data/competition/stages/{track}.json"
+    stage_config = {"id":track,"name":stage["name"] if stage else ("Rally Raura — Piloto con relieve" if pilot_relief else ("Rally Raura — Piloto OSQP" if pilot else "Rally Raura — Stage 2")),
         "route_path":route,"timing_gates_path":gates,"surface":"asphalt" if stage and stage.get("asphalt") else "gravel_mud",
         "fallback_path":baseline,"difficulty":0,"reference_scale":1.0,
         "roughness":0.1,"jumps":0,"visibility":1,"wetness":0,"blind_route":False,
-        "sector_checkpoint_indices":control_indices,"sector_lengths_km":[length/1000 for length in sectors]})
+        "sector_checkpoint_indices":control_indices,"sector_lengths_km":[length/1000 for length in sectors]}
+    if stage_config_path.exists():
+        existing_stage = json.loads(stage_config_path.read_text(encoding="utf8"))
+        if "procedural_climate" in existing_stage:
+            stage_config["procedural_climate"] = existing_stage["procedural_climate"]
+    write_json(stage_config_path, stage_config)
     write_json(GAME / f"data/rally/pacenotes/{track}.json", {"stage_id":track,"route_point_count":len(points),
         "total_distance_m":lengths[-1],"calls":[]})
     manifest["source"]["blend_sha256"] = hashlib.sha256(blend.read_bytes()).hexdigest()

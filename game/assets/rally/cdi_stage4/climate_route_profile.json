@@ -1,0 +1,2320 @@
+{
+  "format_version": 1,
+  "track_id": "cdi_stage4",
+  "units": {
+    "progress_m": "m (3D cumulative along route.json timed axis)",
+    "shader_station_m": "m (3D cumulative along Road UV2.y from pre-start apron)",
+    "altitude_m": "m (absolute orthometric elevation)",
+    "local_x_m": "m (Godot +X, East relative to UTM origin)",
+    "local_z_m": "m (Godot -Z, South relative to UTM origin)",
+    "grade": "dz / ds_horizontal (dimensionless)",
+    "heading_rad": "radians clockwise from North (+Y UTM / -Z Godot)"
+  },
+  "geography": {
+    "crs": "EPSG:32718",
+    "dem_source": "Copernicus DEM GLO-30 (cop-dem-glo-30, Copernicus_DSM_COG_10_S12_00_W077_00_DEM)",
+    "vertical_datum": "EGM2008 orthometric (shared by DEM origin z0 and approved axis)",
+    "vertical_datum_verified": true,
+    "utm_origin_xy": [
+      367993.138,
+      8715882.684
+    ],
+    "z_origin_m": 4516.3104,
+    "min_altitude_m": 4517.197,
+    "max_altitude_m": 4808.585,
+    "start_altitude_m": 4517.197,
+    "finish_altitude_m": 4808.585,
+    "osm_observations": [
+      "SS04_OSM_Recorte.osm provides highway geometry without ele or mountain_pass point elevation tags.",
+      "SS04_Carretera_Spline_3D_Nodes.csv z_osm_m matches z_corr_m (0.0 m diff), derived from GLO-30 DEM 2.5m (mean abs diff 0.44 m, range -3.14..+1.93 m).",
+      "External signage/map references near Abra Ticlio (~4818 m, uncertain vertical datum) differ by ~9 m from the GLO-30 smoothed finish axis (~4808.6 m); approved DEM-consistent axis elevations are preserved."
+    ]
+  },
+  "station_correspondence": {
+    "timed_start_progress_m": 0.0,
+    "timed_finish_progress_m": 6194.9054,
+    "timed_start_shader_station_m": 62.0125,
+    "timed_finish_shader_station_m": 6261.438,
+    "max_piecewise_linear_residual_m": 0.22688
+  },
+  "sample_count": 253,
+  "samples": [
+    {
+      "progress_m": 0.0,
+      "shader_station_m": 62.0125,
+      "altitude_m": 4517.197,
+      "local_x_m": 19.258,
+      "local_z_m": -46.143,
+      "grade": 0.0272,
+      "heading_rad": 0.39398
+    },
+    {
+      "progress_m": 24.0131,
+      "shader_station_m": 86.0256,
+      "altitude_m": 4517.986,
+      "local_x_m": 28.442,
+      "local_z_m": -68.316,
+      "grade": 0.03876,
+      "heading_rad": 0.39221
+    },
+    {
+      "progress_m": 48.0367,
+      "shader_station_m": 110.0493,
+      "altitude_m": 4519.056,
+      "local_x_m": 37.674,
+      "local_z_m": -90.469,
+      "grade": 0.05005,
+      "heading_rad": 0.40241
+    },
+    {
+      "progress_m": 72.0676,
+      "shader_station_m": 134.0804,
+      "altitude_m": 4520.349,
+      "local_x_m": 47.414,
+      "local_z_m": -112.397,
+      "grade": 0.05656,
+      "heading_rad": 0.44626
+    },
+    {
+      "progress_m": 96.0707,
+      "shader_station_m": 158.0863,
+      "altitude_m": 4521.709,
+      "local_x_m": 59.346,
+      "local_z_m": -133.152,
+      "grade": 0.05554,
+      "heading_rad": 0.60755
+    },
+    {
+      "progress_m": 120.0675,
+      "shader_station_m": 182.0859,
+      "altitude_m": 4522.954,
+      "local_x_m": 74.628,
+      "local_z_m": -151.58,
+      "grade": 0.04743,
+      "heading_rad": 0.77196
+    },
+    {
+      "progress_m": 144.0731,
+      "shader_station_m": 206.0926,
+      "altitude_m": 4523.961,
+      "local_x_m": 92.318,
+      "local_z_m": -167.761,
+      "grade": 0.03665,
+      "heading_rad": 0.87364
+    },
+    {
+      "progress_m": 168.0845,
+      "shader_station_m": 230.1041,
+      "altitude_m": 4524.742,
+      "local_x_m": 110.958,
+      "local_z_m": -182.877,
+      "grade": 0.02959,
+      "heading_rad": 0.89503
+    },
+    {
+      "progress_m": 192.0931,
+      "shader_station_m": 254.1127,
+      "altitude_m": 4525.447,
+      "local_x_m": 129.63,
+      "local_z_m": -197.952,
+      "grade": 0.03065,
+      "heading_rad": 0.90032
+    },
+    {
+      "progress_m": 216.1024,
+      "shader_station_m": 278.1224,
+      "altitude_m": 4526.275,
+      "local_x_m": 148.867,
+      "local_z_m": -212.289,
+      "grade": 0.0393,
+      "heading_rad": 0.95149
+    },
+    {
+      "progress_m": 240.1249,
+      "shader_station_m": 302.145,
+      "altitude_m": 4527.353,
+      "local_x_m": 168.29,
+      "local_z_m": -226.383,
+      "grade": 0.05033,
+      "heading_rad": 0.92549
+    },
+    {
+      "progress_m": 264.1553,
+      "shader_station_m": 326.1758,
+      "altitude_m": 4528.656,
+      "local_x_m": 187.038,
+      "local_z_m": -241.353,
+      "grade": 0.05708,
+      "heading_rad": 0.86477
+    },
+    {
+      "progress_m": 288.1892,
+      "shader_station_m": 350.2101,
+      "altitude_m": 4530.024,
+      "local_x_m": 204.837,
+      "local_z_m": -257.441,
+      "grade": 0.05547,
+      "heading_rad": 0.80661
+    },
+    {
+      "progress_m": 312.2119,
+      "shader_station_m": 374.2334,
+      "altitude_m": 4531.255,
+      "local_x_m": 221.541,
+      "local_z_m": -274.654,
+      "grade": 0.04607,
+      "heading_rad": 0.72974
+    },
+    {
+      "progress_m": 336.2272,
+      "shader_station_m": 398.2489,
+      "altitude_m": 4532.207,
+      "local_x_m": 237.086,
+      "local_z_m": -292.933,
+      "grade": 0.03323,
+      "heading_rad": 0.69623
+    },
+    {
+      "progress_m": 360.1996,
+      "shader_station_m": 422.2233,
+      "altitude_m": 4532.867,
+      "local_x_m": 252.817,
+      "local_z_m": -311.002,
+      "grade": 0.02275,
+      "heading_rad": 0.7949
+    },
+    {
+      "progress_m": 391.4677,
+      "shader_station_m": 453.5496,
+      "altitude_m": 4533.484,
+      "local_x_m": 280.921,
+      "local_z_m": -322.31,
+      "grade": 0.01864,
+      "heading_rad": 1.65649
+    },
+    {
+      "progress_m": 422.5522,
+      "shader_station_m": 484.7077,
+      "altitude_m": 4534.154,
+      "local_x_m": 305.548,
+      "local_z_m": -305.382,
+      "grade": 0.02587,
+      "heading_rad": 2.63471
+    },
+    {
+      "progress_m": 446.1925,
+      "shader_station_m": 508.3768,
+      "altitude_m": 4534.885,
+      "local_x_m": 310.616,
+      "local_z_m": -282.563,
+      "grade": 0.03634,
+      "heading_rad": -3.12626
+    },
+    {
+      "progress_m": 470.1877,
+      "shader_station_m": 532.3735,
+      "altitude_m": 4535.907,
+      "local_x_m": 308.647,
+      "local_z_m": -258.676,
+      "grade": 0.04929,
+      "heading_rad": -3.04215
+    },
+    {
+      "progress_m": 494.2255,
+      "shader_station_m": 556.4113,
+      "altitude_m": 4537.252,
+      "local_x_m": 306.273,
+      "local_z_m": -234.793,
+      "grade": 0.06255,
+      "heading_rad": -3.04343
+    },
+    {
+      "progress_m": 518.281,
+      "shader_station_m": 580.4668,
+      "altitude_m": 4538.884,
+      "local_x_m": 303.937,
+      "local_z_m": -210.907,
+      "grade": 0.0725,
+      "heading_rad": -3.04431
+    },
+    {
+      "progress_m": 542.3477,
+      "shader_station_m": 604.5336,
+      "altitude_m": 4540.675,
+      "local_x_m": 301.606,
+      "local_z_m": -187.021,
+      "grade": 0.07532,
+      "heading_rad": -3.04431
+    },
+    {
+      "progress_m": 566.4115,
+      "shader_station_m": 628.5973,
+      "altitude_m": 4542.425,
+      "local_x_m": 299.306,
+      "local_z_m": -163.131,
+      "grade": 0.06901,
+      "heading_rad": -3.04851
+    },
+    {
+      "progress_m": 590.4586,
+      "shader_station_m": 652.6444,
+      "altitude_m": 4543.928,
+      "local_x_m": 297.115,
+      "local_z_m": -139.232,
+      "grade": 0.05529,
+      "heading_rad": -3.0501
+    },
+    {
+      "progress_m": 614.4856,
+      "shader_station_m": 676.6715,
+      "altitude_m": 4545.063,
+      "local_x_m": 294.855,
+      "local_z_m": -115.338,
+      "grade": 0.03957,
+      "heading_rad": -3.04547
+    },
+    {
+      "progress_m": 638.4851,
+      "shader_station_m": 700.6719,
+      "altitude_m": 4545.862,
+      "local_x_m": 293.117,
+      "local_z_m": -91.42,
+      "grade": 0.02816,
+      "heading_rad": -3.1232
+    },
+    {
+      "progress_m": 662.4391,
+      "shader_station_m": 724.6301,
+      "altitude_m": 4546.471,
+      "local_x_m": 295.012,
+      "local_z_m": -67.586,
+      "grade": 0.02389,
+      "heading_rad": 2.95969
+    },
+    {
+      "progress_m": 686.3995,
+      "shader_station_m": 748.5942,
+      "altitude_m": 4547.043,
+      "local_x_m": 301.589,
+      "local_z_m": -44.585,
+      "grade": 0.02407,
+      "heading_rad": 2.77212
+    },
+    {
+      "progress_m": 710.3848,
+      "shader_station_m": 772.5809,
+      "altitude_m": 4547.614,
+      "local_x_m": 311.72,
+      "local_z_m": -22.864,
+      "grade": 0.02294,
+      "heading_rad": 2.66785
+    },
+    {
+      "progress_m": 734.3895,
+      "shader_station_m": 796.5856,
+      "altitude_m": 4548.112,
+      "local_x_m": 322.639,
+      "local_z_m": -1.492,
+      "grade": 0.01811,
+      "heading_rad": 2.6755
+    },
+    {
+      "progress_m": 758.3348,
+      "shader_station_m": 820.5351,
+      "altitude_m": 4548.489,
+      "local_x_m": 331.905,
+      "local_z_m": 20.55,
+      "grade": 0.01421,
+      "heading_rad": 2.85979
+    },
+    {
+      "progress_m": 782.2466,
+      "shader_station_m": 844.4539,
+      "altitude_m": 4548.859,
+      "local_x_m": 335.262,
+      "local_z_m": 44.159,
+      "grade": 0.01857,
+      "heading_rad": 3.11542
+    },
+    {
+      "progress_m": 806.2483,
+      "shader_station_m": 868.4559,
+      "altitude_m": 4549.461,
+      "local_x_m": 335.245,
+      "local_z_m": 68.152,
+      "grade": 0.03295,
+      "heading_rad": -3.13724
+    },
+    {
+      "progress_m": 830.2692,
+      "shader_station_m": 892.4768,
+      "altitude_m": 4550.461,
+      "local_x_m": 335.268,
+      "local_z_m": 92.152,
+      "grade": 0.04987,
+      "heading_rad": 3.13619
+    },
+    {
+      "progress_m": 854.3058,
+      "shader_station_m": 916.5135,
+      "altitude_m": 4551.791,
+      "local_x_m": 335.541,
+      "local_z_m": 116.15,
+      "grade": 0.05898,
+      "heading_rad": 3.12489
+    },
+    {
+      "progress_m": 878.3469,
+      "shader_station_m": 940.5545,
+      "altitude_m": 4553.195,
+      "local_x_m": 335.947,
+      "local_z_m": 140.146,
+      "grade": 0.05621,
+      "heading_rad": 3.1261
+    },
+    {
+      "progress_m": 902.3785,
+      "shader_station_m": 964.5862,
+      "altitude_m": 4554.429,
+      "local_x_m": 336.214,
+      "local_z_m": 164.145,
+      "grade": 0.04602,
+      "heading_rad": 3.13336
+    },
+    {
+      "progress_m": 926.3958,
+      "shader_station_m": 988.6037,
+      "altitude_m": 4555.406,
+      "local_x_m": 336.237,
+      "local_z_m": 188.141,
+      "grade": 0.03595,
+      "heading_rad": -3.12009
+    },
+    {
+      "progress_m": 950.3854,
+      "shader_station_m": 1012.595,
+      "altitude_m": 4556.188,
+      "local_x_m": 334.285,
+      "local_z_m": 212.023,
+      "grade": 0.02998,
+      "heading_rad": -2.9911
+    },
+    {
+      "progress_m": 974.3712,
+      "shader_station_m": 1036.5827,
+      "altitude_m": 4556.869,
+      "local_x_m": 329.066,
+      "local_z_m": 235.408,
+      "grade": 0.02715,
+      "heading_rad": -2.8587
+    },
+    {
+      "progress_m": 998.3732,
+      "shader_station_m": 1060.5851,
+      "altitude_m": 4557.494,
+      "local_x_m": 321.585,
+      "local_z_m": 258.204,
+      "grade": 0.0249,
+      "heading_rad": -2.81109
+    },
+    {
+      "progress_m": 1022.3798,
+      "shader_station_m": 1084.5917,
+      "altitude_m": 4558.066,
+      "local_x_m": 313.751,
+      "local_z_m": 280.889,
+      "grade": 0.02304,
+      "heading_rad": -2.80375
+    },
+    {
+      "progress_m": 1046.3864,
+      "shader_station_m": 1108.5983,
+      "altitude_m": 4558.634,
+      "local_x_m": 305.685,
+      "local_z_m": 303.493,
+      "grade": 0.02564,
+      "heading_rad": -2.79717
+    },
+    {
+      "progress_m": 1070.3985,
+      "shader_station_m": 1132.6104,
+      "altitude_m": 4559.391,
+      "local_x_m": 297.582,
+      "local_z_m": 326.083,
+      "grade": 0.04008,
+      "heading_rad": -2.79719
+    },
+    {
+      "progress_m": 1094.4343,
+      "shader_station_m": 1156.6463,
+      "altitude_m": 4560.696,
+      "local_x_m": 289.59,
+      "local_z_m": 348.713,
+      "grade": 0.07148,
+      "heading_rad": -2.81201
+    },
+    {
+      "progress_m": 1118.5302,
+      "shader_station_m": 1180.7428,
+      "altitude_m": 4562.916,
+      "local_x_m": 282.064,
+      "local_z_m": 371.493,
+      "grade": 0.11447,
+      "heading_rad": -2.85473
+    },
+    {
+      "progress_m": 1142.2788,
+      "shader_station_m": 1204.5261,
+      "altitude_m": 4566.109,
+      "local_x_m": 280.613,
+      "local_z_m": 394.685,
+      "grade": 0.15264,
+      "heading_rad": 2.87214
+    },
+    {
+      "progress_m": 1165.8079,
+      "shader_station_m": 1228.1158,
+      "altitude_m": 4569.776,
+      "local_x_m": 294.437,
+      "local_z_m": 412.722,
+      "grade": 0.15549,
+      "heading_rad": 2.09246
+    },
+    {
+      "progress_m": 1196.6136,
+      "shader_station_m": 1259.0367,
+      "altitude_m": 4573.812,
+      "local_x_m": 322.886,
+      "local_z_m": 409.873,
+      "grade": 0.09505,
+      "heading_rad": 0.85159
+    },
+    {
+      "progress_m": 1220.1563,
+      "shader_station_m": 1282.6202,
+      "altitude_m": 4575.262,
+      "local_x_m": 334.203,
+      "local_z_m": 389.674,
+      "grade": 0.02958,
+      "heading_rad": 0.2289
+    },
+    {
+      "progress_m": 1244.0928,
+      "shader_station_m": 1306.5611,
+      "altitude_m": 4575.374,
+      "local_x_m": 336.898,
+      "local_z_m": 365.911,
+      "grade": -0.01456,
+      "heading_rad": 0.07283
+    },
+    {
+      "progress_m": 1268.0946,
+      "shader_station_m": 1330.563,
+      "altitude_m": 4574.859,
+      "local_x_m": 338.78,
+      "local_z_m": 341.989,
+      "grade": -0.02206,
+      "heading_rad": 0.10062
+    },
+    {
+      "progress_m": 1292.0766,
+      "shader_station_m": 1354.5466,
+      "altitude_m": 4574.556,
+      "local_x_m": 342.632,
+      "local_z_m": 318.335,
+      "grade": 0.00024,
+      "heading_rad": 0.22027
+    },
+    {
+      "progress_m": 1316.065,
+      "shader_station_m": 1378.5362,
+      "altitude_m": 4574.94,
+      "local_x_m": 349.129,
+      "local_z_m": 295.258,
+      "grade": 0.03135,
+      "heading_rad": 0.32763
+    },
+    {
+      "progress_m": 1340.0795,
+      "shader_station_m": 1402.5514,
+      "altitude_m": 4575.971,
+      "local_x_m": 357.763,
+      "local_z_m": 272.878,
+      "grade": 0.05149,
+      "heading_rad": 0.39757
+    },
+    {
+      "progress_m": 1364.1122,
+      "shader_station_m": 1426.5841,
+      "altitude_m": 4577.242,
+      "local_x_m": 367.235,
+      "local_z_m": 250.827,
+      "grade": 0.05069,
+      "heading_rad": 0.40218
+    },
+    {
+      "progress_m": 1388.1323,
+      "shader_station_m": 1450.6044,
+      "altitude_m": 4578.241,
+      "local_x_m": 376.392,
+      "local_z_m": 228.644,
+      "grade": 0.02973,
+      "heading_rad": 0.37912
+    },
+    {
+      "progress_m": 1412.1352,
+      "shader_station_m": 1474.6073,
+      "altitude_m": 4578.588,
+      "local_x_m": 385.114,
+      "local_z_m": 206.286,
+      "grade": -0.00125,
+      "heading_rad": 0.36631
+    },
+    {
+      "progress_m": 1436.1365,
+      "shader_station_m": 1498.6088,
+      "altitude_m": 4578.229,
+      "local_x_m": 393.408,
+      "local_z_m": 183.767,
+      "grade": -0.02624,
+      "heading_rad": 0.34753
+    },
+    {
+      "progress_m": 1460.1466,
+      "shader_station_m": 1522.6189,
+      "altitude_m": 4577.489,
+      "local_x_m": 401.877,
+      "local_z_m": 161.313,
+      "grade": -0.03137,
+      "heading_rad": 0.37361
+    },
+    {
+      "progress_m": 1484.1523,
+      "shader_station_m": 1546.6248,
+      "altitude_m": 4576.91,
+      "local_x_m": 410.974,
+      "local_z_m": 139.107,
+      "grade": -0.01337,
+      "heading_rad": 0.40572
+    },
+    {
+      "progress_m": 1508.1454,
+      "shader_station_m": 1570.6183,
+      "altitude_m": 4576.967,
+      "local_x_m": 420.769,
+      "local_z_m": 117.206,
+      "grade": 0.01955,
+      "heading_rad": 0.40498
+    },
+    {
+      "progress_m": 1531.8995,
+      "shader_station_m": 1594.3924,
+      "altitude_m": 4577.871,
+      "local_x_m": 426.169,
+      "local_z_m": 94.267,
+      "grade": 0.05645,
+      "heading_rad": -0.01589
+    },
+    {
+      "progress_m": 1555.7187,
+      "shader_station_m": 1618.2308,
+      "altitude_m": 4579.601,
+      "local_x_m": 420.214,
+      "local_z_m": 71.436,
+      "grade": 0.08792,
+      "heading_rad": -0.4333
+    },
+    {
+      "progress_m": 1579.8212,
+      "shader_station_m": 1642.3343,
+      "altitude_m": 4582.023,
+      "local_x_m": 409.383,
+      "local_z_m": 50.042,
+      "grade": 0.11287,
+      "heading_rad": -0.44312
+    },
+    {
+      "progress_m": 1603.8816,
+      "shader_station_m": 1666.4033,
+      "altitude_m": 4584.913,
+      "local_x_m": 402.075,
+      "local_z_m": 27.384,
+      "grade": 0.12586,
+      "heading_rad": -0.15993
+    },
+    {
+      "progress_m": 1628.0315,
+      "shader_station_m": 1690.5553,
+      "altitude_m": 4587.874,
+      "local_x_m": 400.25,
+      "local_z_m": 3.498,
+      "grade": 0.11742,
+      "heading_rad": -0.04297
+    },
+    {
+      "progress_m": 1652.1608,
+      "shader_station_m": 1714.6847,
+      "altitude_m": 4590.361,
+      "local_x_m": 399.27,
+      "local_z_m": -20.482,
+      "grade": 0.08636,
+      "heading_rad": -0.03695
+    },
+    {
+      "progress_m": 1676.2128,
+      "shader_station_m": 1738.7369,
+      "altitude_m": 4591.917,
+      "local_x_m": 398.462,
+      "local_z_m": -44.468,
+      "grade": 0.04279,
+      "heading_rad": -0.03264
+    },
+    {
+      "progress_m": 1700.2204,
+      "shader_station_m": 1762.7447,
+      "altitude_m": 4592.476,
+      "local_x_m": 397.71,
+      "local_z_m": -68.457,
+      "grade": 0.00673,
+      "heading_rad": -0.02884
+    },
+    {
+      "progress_m": 1724.1895,
+      "shader_station_m": 1786.7156,
+      "altitude_m": 4592.431,
+      "local_x_m": 397.524,
+      "local_z_m": -92.419,
+      "grade": -0.00583,
+      "heading_rad": 0.06661
+    },
+    {
+      "progress_m": 1747.7687,
+      "shader_station_m": 1810.3278,
+      "altitude_m": 4592.4,
+      "local_x_m": 404.742,
+      "local_z_m": -114.567,
+      "grade": 0.00686,
+      "heading_rad": 0.62482
+    },
+    {
+      "progress_m": 1779.1106,
+      "shader_station_m": 1841.7223,
+      "altitude_m": 4593.144,
+      "local_x_m": 431.553,
+      "local_z_m": -129.027,
+      "grade": 0.04052,
+      "heading_rad": 1.43712
+    },
+    {
+      "progress_m": 1803.0378,
+      "shader_station_m": 1865.6548,
+      "altitude_m": 4594.359,
+      "local_x_m": 455.351,
+      "local_z_m": -131.121,
+      "grade": 0.05994,
+      "heading_rad": 1.39245
+    },
+    {
+      "progress_m": 1833.9511,
+      "shader_station_m": 1896.6534,
+      "altitude_m": 4596.398,
+      "local_x_m": 477.604,
+      "local_z_m": -150.146,
+      "grade": 0.06604,
+      "heading_rad": 0.34929
+    },
+    {
+      "progress_m": 1857.9483,
+      "shader_station_m": 1920.6538,
+      "altitude_m": 4597.928,
+      "local_x_m": 483.465,
+      "local_z_m": -173.354,
+      "grade": 0.06178,
+      "heading_rad": 0.21613
+    },
+    {
+      "progress_m": 1881.991,
+      "shader_station_m": 1944.6965,
+      "altitude_m": 4599.36,
+      "local_x_m": 488.602,
+      "local_z_m": -196.798,
+      "grade": 0.05772,
+      "heading_rad": 0.21435
+    },
+    {
+      "progress_m": 1906.0283,
+      "shader_station_m": 1968.7338,
+      "altitude_m": 4600.703,
+      "local_x_m": 493.578,
+      "local_z_m": -220.276,
+      "grade": 0.05409,
+      "heading_rad": 0.20456
+    },
+    {
+      "progress_m": 1930.0602,
+      "shader_station_m": 1992.7657,
+      "altitude_m": 4601.942,
+      "local_x_m": 498.385,
+      "local_z_m": -243.789,
+      "grade": 0.04873,
+      "heading_rad": 0.19722
+    },
+    {
+      "progress_m": 1954.0844,
+      "shader_station_m": 2016.7899,
+      "altitude_m": 4603.019,
+      "local_x_m": 503.047,
+      "local_z_m": -267.332,
+      "grade": 0.04068,
+      "heading_rad": 0.195
+    },
+    {
+      "progress_m": 1978.1002,
+      "shader_station_m": 2040.8057,
+      "altitude_m": 4603.888,
+      "local_x_m": 507.693,
+      "local_z_m": -290.878,
+      "grade": 0.03184,
+      "heading_rad": 0.19513
+    },
+    {
+      "progress_m": 2002.0847,
+      "shader_station_m": 2064.7918,
+      "altitude_m": 4604.561,
+      "local_x_m": 512.992,
+      "local_z_m": -314.252,
+      "grade": 0.02461,
+      "heading_rad": 0.29576
+    },
+    {
+      "progress_m": 2025.8648,
+      "shader_station_m": 2088.5899,
+      "altitude_m": 4605.081,
+      "local_x_m": 523.77,
+      "local_z_m": -335.276,
+      "grade": 0.01934,
+      "heading_rad": 0.70358
+    },
+    {
+      "progress_m": 2049.3739,
+      "shader_station_m": 2112.1386,
+      "altitude_m": 4605.486,
+      "local_x_m": 543.304,
+      "local_z_m": -347.727,
+      "grade": 0.01529,
+      "heading_rad": 1.3241
+    },
+    {
+      "progress_m": 2073.1549,
+      "shader_station_m": 2135.9362,
+      "altitude_m": 4605.823,
+      "local_x_m": 566.958,
+      "local_z_m": -348.072,
+      "grade": 0.01402,
+      "heading_rad": 1.6946
+    },
+    {
+      "progress_m": 2097.1523,
+      "shader_station_m": 2159.9339,
+      "altitude_m": 4606.215,
+      "local_x_m": 590.699,
+      "local_z_m": -344.594,
+      "grade": 0.02015,
+      "heading_rad": 1.70509
+    },
+    {
+      "progress_m": 2121.0947,
+      "shader_station_m": 2183.8813,
+      "altitude_m": 4606.863,
+      "local_x_m": 614.566,
+      "local_z_m": -343.555,
+      "grade": 0.03539,
+      "heading_rad": 1.49158
+    },
+    {
+      "progress_m": 2145.029,
+      "shader_station_m": 2207.8231,
+      "altitude_m": 4607.946,
+      "local_x_m": 637.868,
+      "local_z_m": -348.616,
+      "grade": 0.05523,
+      "heading_rad": 1.22553
+    },
+    {
+      "progress_m": 2169.0419,
+      "shader_station_m": 2231.8385,
+      "altitude_m": 4609.467,
+      "local_x_m": 659.575,
+      "local_z_m": -358.728,
+      "grade": 0.06997,
+      "heading_rad": 1.08863
+    },
+    {
+      "progress_m": 2193.1027,
+      "shader_station_m": 2255.8994,
+      "altitude_m": 4611.196,
+      "local_x_m": 680.955,
+      "local_z_m": -369.627,
+      "grade": 0.07153,
+      "heading_rad": 1.11249
+    },
+    {
+      "progress_m": 2217.1399,
+      "shader_station_m": 2279.9375,
+      "altitude_m": 4612.783,
+      "local_x_m": 702.309,
+      "local_z_m": -380.54,
+      "grade": 0.05881,
+      "heading_rad": 1.04624
+    },
+    {
+      "progress_m": 2241.0971,
+      "shader_station_m": 2303.9004,
+      "altitude_m": 4613.95,
+      "local_x_m": 721.561,
+      "local_z_m": -394.67,
+      "grade": 0.03819,
+      "heading_rad": 0.81421
+    },
+    {
+      "progress_m": 2264.9907,
+      "shader_station_m": 2327.8033,
+      "altitude_m": 4614.617,
+      "local_x_m": 736.217,
+      "local_z_m": -413.426,
+      "grade": 0.0184,
+      "heading_rad": 0.51634
+    },
+    {
+      "progress_m": 2288.8891,
+      "shader_station_m": 2351.71,
+      "altitude_m": 4614.887,
+      "local_x_m": 745.006,
+      "local_z_m": -435.572,
+      "grade": 0.00563,
+      "heading_rad": 0.23276
+    },
+    {
+      "progress_m": 2312.7707,
+      "shader_station_m": 2375.6013,
+      "altitude_m": 4614.964,
+      "local_x_m": 746.932,
+      "local_z_m": -459.295,
+      "grade": 0.00259,
+      "heading_rad": -0.0723
+    },
+    {
+      "progress_m": 2336.6811,
+      "shader_station_m": 2399.5185,
+      "altitude_m": 4615.094,
+      "local_x_m": 741.887,
+      "local_z_m": -482.607,
+      "grade": 0.01002,
+      "heading_rad": -0.32536
+    },
+    {
+      "progress_m": 2360.6468,
+      "shader_station_m": 2423.487,
+      "altitude_m": 4615.512,
+      "local_x_m": 732.269,
+      "local_z_m": -504.526,
+      "grade": 0.02581,
+      "heading_rad": -0.48513
+    },
+    {
+      "progress_m": 2384.6584,
+      "shader_station_m": 2447.4988,
+      "altitude_m": 4616.352,
+      "local_x_m": 721.082,
+      "local_z_m": -525.755,
+      "grade": 0.04393,
+      "heading_rad": -0.46832
+    },
+    {
+      "progress_m": 2408.6651,
+      "shader_station_m": 2471.507,
+      "altitude_m": 4617.577,
+      "local_x_m": 710.95,
+      "local_z_m": -547.477,
+      "grade": 0.05703,
+      "heading_rad": -0.36601
+    },
+    {
+      "progress_m": 2432.2601,
+      "shader_station_m": 2495.1368,
+      "altitude_m": 4618.996,
+      "local_x_m": 708.133,
+      "local_z_m": -570.562,
+      "grade": 0.06156,
+      "heading_rad": 0.20356
+    },
+    {
+      "progress_m": 2463.0618,
+      "shader_station_m": 2526.0383,
+      "altitude_m": 4620.805,
+      "local_x_m": 728.431,
+      "local_z_m": -591.422,
+      "grade": 0.05342,
+      "heading_rad": 1.35356
+    },
+    {
+      "progress_m": 2494.18,
+      "shader_station_m": 2557.2309,
+      "altitude_m": 4622.282,
+      "local_x_m": 757.156,
+      "local_z_m": -583.076,
+      "grade": 0.04229,
+      "heading_rad": 2.34329
+    },
+    {
+      "progress_m": 2517.8538,
+      "shader_station_m": 2580.9312,
+      "altitude_m": 4623.233,
+      "local_x_m": 768.587,
+      "local_z_m": -562.615,
+      "grade": 0.03941,
+      "heading_rad": 2.83042
+    },
+    {
+      "progress_m": 2541.8632,
+      "shader_station_m": 2604.9414,
+      "altitude_m": 4624.239,
+      "local_x_m": 774.79,
+      "local_z_m": -539.445,
+      "grade": 0.04608,
+      "heading_rad": 2.8955
+    },
+    {
+      "progress_m": 2565.8969,
+      "shader_station_m": 2628.9752,
+      "altitude_m": 4625.509,
+      "local_x_m": 780.633,
+      "local_z_m": -516.168,
+      "grade": 0.06072,
+      "heading_rad": 2.89582
+    },
+    {
+      "progress_m": 2589.9543,
+      "shader_station_m": 2653.0326,
+      "altitude_m": 4627.165,
+      "local_x_m": 786.47,
+      "local_z_m": -492.888,
+      "grade": 0.07678,
+      "heading_rad": 2.89611
+    },
+    {
+      "progress_m": 2614.0346,
+      "shader_station_m": 2677.1129,
+      "altitude_m": 4629.129,
+      "local_x_m": 792.286,
+      "local_z_m": -469.604,
+      "grade": 0.08482,
+      "heading_rad": 2.89733
+    },
+    {
+      "progress_m": 2638.1071,
+      "shader_station_m": 2701.186,
+      "altitude_m": 4631.124,
+      "local_x_m": 797.79,
+      "local_z_m": -446.256,
+      "grade": 0.07915,
+      "heading_rad": 2.95436
+    },
+    {
+      "progress_m": 2662.0483,
+      "shader_station_m": 2725.1367,
+      "altitude_m": 4632.827,
+      "local_x_m": 798.988,
+      "local_z_m": -422.489,
+      "grade": 0.06203,
+      "heading_rad": -3.03045
+    },
+    {
+      "progress_m": 2685.9121,
+      "shader_station_m": 2749.0142,
+      "altitude_m": 4634.064,
+      "local_x_m": 792.124,
+      "local_z_m": -399.792,
+      "grade": 0.04204,
+      "heading_rad": -2.66751
+    },
+    {
+      "progress_m": 2709.8319,
+      "shader_station_m": 2772.9416,
+      "altitude_m": 4634.889,
+      "local_x_m": 778.278,
+      "local_z_m": -380.384,
+      "grade": 0.02875,
+      "heading_rad": -2.40039
+    },
+    {
+      "progress_m": 2733.8278,
+      "shader_station_m": 2796.9383,
+      "altitude_m": 4635.535,
+      "local_x_m": 761.151,
+      "local_z_m": -363.598,
+      "grade": 0.02715,
+      "heading_rad": -2.32355
+    },
+    {
+      "progress_m": 2757.5396,
+      "shader_station_m": 2820.6706,
+      "altitude_m": 4636.281,
+      "local_x_m": 746.066,
+      "local_z_m": -345.494,
+      "grade": 0.03776,
+      "heading_rad": -2.70884
+    },
+    {
+      "progress_m": 2788.4785,
+      "shader_station_m": 2851.698,
+      "altitude_m": 4637.792,
+      "local_x_m": 749.067,
+      "local_z_m": -316.142,
+      "grade": 0.06045,
+      "heading_rad": 2.49296
+    },
+    {
+      "progress_m": 2819.3885,
+      "shader_station_m": 2882.7017,
+      "altitude_m": 4639.949,
+      "local_x_m": 776.461,
+      "local_z_m": -305.489,
+      "grade": 0.07671,
+      "heading_rad": 1.37874
+    },
+    {
+      "progress_m": 2850.6281,
+      "shader_station_m": 2914.0073,
+      "altitude_m": 4642.279,
+      "local_x_m": 799.186,
+      "local_z_m": -325.226,
+      "grade": 0.0682,
+      "heading_rad": 0.47645
+    },
+    {
+      "progress_m": 2874.6391,
+      "shader_station_m": 2938.0208,
+      "altitude_m": 4643.718,
+      "local_x_m": 808.235,
+      "local_z_m": -347.401,
+      "grade": 0.05095,
+      "heading_rad": 0.33087
+    },
+    {
+      "progress_m": 2898.6584,
+      "shader_station_m": 2962.0401,
+      "altitude_m": 4644.712,
+      "local_x_m": 815.607,
+      "local_z_m": -370.239,
+      "grade": 0.0325,
+      "heading_rad": 0.30526
+    },
+    {
+      "progress_m": 2922.6665,
+      "shader_station_m": 2986.0483,
+      "altitude_m": 4645.335,
+      "local_x_m": 822.763,
+      "local_z_m": -393.147,
+      "grade": 0.02113,
+      "heading_rad": 0.30139
+    },
+    {
+      "progress_m": 2946.6711,
+      "shader_station_m": 3010.0529,
+      "altitude_m": 4645.811,
+      "local_x_m": 829.909,
+      "local_z_m": -416.058,
+      "grade": 0.02023,
+      "heading_rad": 0.30606
+    },
+    {
+      "progress_m": 2970.6767,
+      "shader_station_m": 3034.0586,
+      "altitude_m": 4646.374,
+      "local_x_m": 837.408,
+      "local_z_m": -438.855,
+      "grade": 0.0278,
+      "heading_rad": 0.33212
+    },
+    {
+      "progress_m": 2994.6888,
+      "shader_station_m": 3058.0708,
+      "altitude_m": 4647.176,
+      "local_x_m": 845.59,
+      "local_z_m": -461.415,
+      "grade": 0.03922,
+      "heading_rad": 0.36378
+    },
+    {
+      "progress_m": 3018.7112,
+      "shader_station_m": 3082.0933,
+      "altitude_m": 4648.247,
+      "local_x_m": 854.267,
+      "local_z_m": -483.79,
+      "grade": 0.04948,
+      "heading_rad": 0.36114
+    },
+    {
+      "progress_m": 3042.6925,
+      "shader_station_m": 3106.0784,
+      "altitude_m": 4649.506,
+      "local_x_m": 861.2,
+      "local_z_m": -506.682,
+      "grade": 0.05441,
+      "heading_rad": 0.18469
+    },
+    {
+      "progress_m": 3066.6262,
+      "shader_station_m": 3130.02,
+      "altitude_m": 4650.786,
+      "local_x_m": 862.172,
+      "local_z_m": -530.491,
+      "grade": 0.05136,
+      "heading_rad": -0.0906
+    },
+    {
+      "progress_m": 3090.6326,
+      "shader_station_m": 3154.028,
+      "altitude_m": 4651.923,
+      "local_x_m": 858.318,
+      "local_z_m": -554.147,
+      "grade": 0.04309,
+      "heading_rad": -0.2029
+    },
+    {
+      "progress_m": 3114.6509,
+      "shader_station_m": 3178.0463,
+      "altitude_m": 4652.863,
+      "local_x_m": 853.359,
+      "local_z_m": -577.629,
+      "grade": 0.03597,
+      "heading_rad": -0.20905
+    },
+    {
+      "progress_m": 3138.6653,
+      "shader_station_m": 3202.0607,
+      "altitude_m": 4653.695,
+      "local_x_m": 848.379,
+      "local_z_m": -601.107,
+      "grade": 0.03436,
+      "heading_rad": -0.20854
+    },
+    {
+      "progress_m": 3162.6734,
+      "shader_station_m": 3226.0692,
+      "altitude_m": 4654.542,
+      "local_x_m": 843.119,
+      "local_z_m": -624.514,
+      "grade": 0.03631,
+      "heading_rad": -0.25765
+    },
+    {
+      "progress_m": 3186.6588,
+      "shader_station_m": 3250.057,
+      "altitude_m": 4655.413,
+      "local_x_m": 835.302,
+      "local_z_m": -647.151,
+      "grade": 0.03537,
+      "heading_rad": -0.41018
+    },
+    {
+      "progress_m": 3210.6385,
+      "shader_station_m": 3274.0395,
+      "altitude_m": 4656.188,
+      "local_x_m": 824.074,
+      "local_z_m": -668.299,
+      "grade": 0.0285,
+      "heading_rad": -0.57067
+    },
+    {
+      "progress_m": 3234.6117,
+      "shader_station_m": 3298.0154,
+      "altitude_m": 4656.768,
+      "local_x_m": 809.506,
+      "local_z_m": -687.3,
+      "grade": 0.02039,
+      "heading_rad": -0.73341
+    },
+    {
+      "progress_m": 3258.5961,
+      "shader_station_m": 3322.0013,
+      "altitude_m": 4657.225,
+      "local_x_m": 792.315,
+      "local_z_m": -704.0,
+      "grade": 0.01962,
+      "heading_rad": -0.8548
+    },
+    {
+      "progress_m": 3282.5954,
+      "shader_station_m": 3346.0012,
+      "altitude_m": 4657.801,
+      "local_x_m": 773.622,
+      "local_z_m": -719.032,
+      "grade": 0.03005,
+      "heading_rad": -0.9254
+    },
+    {
+      "progress_m": 3306.4727,
+      "shader_station_m": 3369.8882,
+      "altitude_m": 4658.718,
+      "local_x_m": 755.693,
+      "local_z_m": -734.688,
+      "grade": 0.04746,
+      "heading_rad": -0.67379
+    },
+    {
+      "progress_m": 3337.3934,
+      "shader_station_m": 3400.8987,
+      "altitude_m": 4660.494,
+      "local_x_m": 750.657,
+      "local_z_m": -763.654,
+      "grade": 0.06393,
+      "heading_rad": 0.40888
+    },
+    {
+      "progress_m": 3368.2655,
+      "shader_station_m": 3431.8662,
+      "altitude_m": 4662.436,
+      "local_x_m": 775.168,
+      "local_z_m": -779.674,
+      "grade": 0.05837,
+      "heading_rad": 1.53311
+    },
+    {
+      "progress_m": 3399.4101,
+      "shader_station_m": 3463.0801,
+      "altitude_m": 4663.992,
+      "local_x_m": 801.685,
+      "local_z_m": -765.804,
+      "grade": 0.0399,
+      "heading_rad": 2.46518
+    },
+    {
+      "progress_m": 3423.393,
+      "shader_station_m": 3487.0651,
+      "altitude_m": 4664.785,
+      "local_x_m": 815.062,
+      "local_z_m": -745.928,
+      "grade": 0.02676,
+      "heading_rad": 2.58535
+    },
+    {
+      "progress_m": 3447.3987,
+      "shader_station_m": 3511.0707,
+      "altitude_m": 4665.307,
+      "local_x_m": 827.667,
+      "local_z_m": -725.504,
+      "grade": 0.01752,
+      "heading_rad": 2.58935
+    },
+    {
+      "progress_m": 3471.4015,
+      "shader_station_m": 3535.0735,
+      "altitude_m": 4665.672,
+      "local_x_m": 840.243,
+      "local_z_m": -705.063,
+      "grade": 0.0141,
+      "heading_rad": 2.59155
+    },
+    {
+      "progress_m": 3495.4044,
+      "shader_station_m": 3559.0765,
+      "altitude_m": 4666.047,
+      "local_x_m": 852.764,
+      "local_z_m": -684.588,
+      "grade": 0.0186,
+      "heading_rad": 2.59464
+    },
+    {
+      "progress_m": 3519.402,
+      "shader_station_m": 3583.0742,
+      "altitude_m": 4666.632,
+      "local_x_m": 865.058,
+      "local_z_m": -663.988,
+      "grade": 0.03183,
+      "heading_rad": 2.63215
+    },
+    {
+      "progress_m": 3543.0913,
+      "shader_station_m": 3607.2163,
+      "altitude_m": 4668.024,
+      "local_x_m": 879.245,
+      "local_z_m": -661.362,
+      "grade": 0.06344,
+      "heading_rad": 0.09652
+    },
+    {
+      "progress_m": 3574.1884,
+      "shader_station_m": 3638.3572,
+      "altitude_m": 4670.175,
+      "local_x_m": 868.362,
+      "local_z_m": -689.857,
+      "grade": 0.07752,
+      "heading_rad": -0.53126
+    },
+    {
+      "progress_m": 3597.8882,
+      "shader_station_m": 3662.0781,
+      "altitude_m": 4672.14,
+      "local_x_m": 860.832,
+      "local_z_m": -712.055,
+      "grade": 0.08848,
+      "heading_rad": -0.08223
+    },
+    {
+      "progress_m": 3628.9388,
+      "shader_station_m": 3693.177,
+      "altitude_m": 4674.901,
+      "local_x_m": 872.155,
+      "local_z_m": -740.035,
+      "grade": 0.08521,
+      "heading_rad": 0.64051
+    },
+    {
+      "progress_m": 3652.9542,
+      "shader_station_m": 3717.1957,
+      "altitude_m": 4676.845,
+      "local_x_m": 888.322,
+      "local_z_m": -757.652,
+      "grade": 0.07594,
+      "heading_rad": 0.79578
+    },
+    {
+      "progress_m": 3676.9746,
+      "shader_station_m": 3741.2178,
+      "altitude_m": 4678.503,
+      "local_x_m": 905.116,
+      "local_z_m": -774.739,
+      "grade": 0.06272,
+      "heading_rad": 0.70232
+    },
+    {
+      "progress_m": 3705.6387,
+      "shader_station_m": 3770.1006,
+      "altitude_m": 4680.152,
+      "local_x_m": 902.582,
+      "local_z_m": -798.881,
+      "grade": 0.04359,
+      "heading_rad": -0.99161
+    },
+    {
+      "progress_m": 3729.5362,
+      "shader_station_m": 3794.0027,
+      "altitude_m": 4681.057,
+      "local_x_m": 881.29,
+      "local_z_m": -809.678,
+      "grade": 0.0348,
+      "heading_rad": -1.09942
+    },
+    {
+      "progress_m": 3753.5377,
+      "shader_station_m": 3818.0048,
+      "altitude_m": 4681.904,
+      "local_x_m": 860.464,
+      "local_z_m": -821.568,
+      "grade": 0.03769,
+      "heading_rad": -1.027
+    },
+    {
+      "progress_m": 3777.4844,
+      "shader_station_m": 3841.9554,
+      "altitude_m": 4682.939,
+      "local_x_m": 840.489,
+      "local_z_m": -834.7,
+      "grade": 0.05003,
+      "heading_rad": -0.8801
+    },
+    {
+      "progress_m": 3801.078,
+      "shader_station_m": 3865.5703,
+      "altitude_m": 4684.303,
+      "local_x_m": 825.157,
+      "local_z_m": -852.419,
+      "grade": 0.06791,
+      "heading_rad": -0.4507
+    },
+    {
+      "progress_m": 3831.8028,
+      "shader_station_m": 3896.3622,
+      "altitude_m": 4686.519,
+      "local_x_m": 821.456,
+      "local_z_m": -882.624,
+      "grade": 0.07588,
+      "heading_rad": -0.33653
+    },
+    {
+      "progress_m": 3862.5706,
+      "shader_station_m": 3927.2142,
+      "altitude_m": 4688.781,
+      "local_x_m": 798.03,
+      "local_z_m": -900.334,
+      "grade": 0.06974,
+      "heading_rad": -1.36716
+    },
+    {
+      "progress_m": 3886.4903,
+      "shader_station_m": 3951.1401,
+      "altitude_m": 4690.419,
+      "local_x_m": 774.241,
+      "local_z_m": -901.753,
+      "grade": 0.06947,
+      "heading_rad": -1.57888
+    },
+    {
+      "progress_m": 3910.4079,
+      "shader_station_m": 3975.064,
+      "altitude_m": 4692.192,
+      "local_x_m": 750.457,
+      "local_z_m": -900.157,
+      "grade": 0.08341,
+      "heading_rad": -1.75683
+    },
+    {
+      "progress_m": 3934.501,
+      "shader_station_m": 3999.5573,
+      "altitude_m": 4695.08,
+      "local_x_m": 743.716,
+      "local_z_m": -911.028,
+      "grade": 0.10566,
+      "heading_rad": 0.83112
+    },
+    {
+      "progress_m": 3958.4488,
+      "shader_station_m": 4023.5123,
+      "altitude_m": 4697.587,
+      "local_x_m": 759.729,
+      "local_z_m": -928.648,
+      "grade": 0.10707,
+      "heading_rad": 0.72188
+    },
+    {
+      "progress_m": 3982.3091,
+      "shader_station_m": 4047.3852,
+      "altitude_m": 4700.136,
+      "local_x_m": 776.477,
+      "local_z_m": -945.369,
+      "grade": 0.10768,
+      "heading_rad": 0.98852
+    },
+    {
+      "progress_m": 4006.0887,
+      "shader_station_m": 4071.1811,
+      "altitude_m": 4702.545,
+      "local_x_m": 798.598,
+      "local_z_m": -953.521,
+      "grade": 0.09707,
+      "heading_rad": 1.2973
+    },
+    {
+      "progress_m": 4030.0709,
+      "shader_station_m": 4095.1683,
+      "altitude_m": 4704.832,
+      "local_x_m": 821.734,
+      "local_z_m": -959.348,
+      "grade": 0.09722,
+      "heading_rad": 1.44717
+    },
+    {
+      "progress_m": 4059.8417,
+      "shader_station_m": 4125.0479,
+      "altitude_m": 4707.949,
+      "local_x_m": 850.745,
+      "local_z_m": -960.321,
+      "grade": 0.11297,
+      "heading_rad": 0.97203
+    },
+    {
+      "progress_m": 4090.7841,
+      "shader_station_m": 4156.04,
+      "altitude_m": 4711.369,
+      "local_x_m": 875.75,
+      "local_z_m": -977.39,
+      "grade": 0.1129,
+      "heading_rad": 1.33367
+    },
+    {
+      "progress_m": 4114.7437,
+      "shader_station_m": 4180.0081,
+      "altitude_m": 4714.064,
+      "local_x_m": 898.942,
+      "local_z_m": -982.664,
+      "grade": 0.1146,
+      "heading_rad": 1.20203
+    },
+    {
+      "progress_m": 4138.6205,
+      "shader_station_m": 4203.8992,
+      "altitude_m": 4716.675,
+      "local_x_m": 918.684,
+      "local_z_m": -995.681,
+      "grade": 0.10403,
+      "heading_rad": 0.89949
+    },
+    {
+      "progress_m": 4162.7285,
+      "shader_station_m": 4228.0073,
+      "altitude_m": 4718.997,
+      "local_x_m": 937.418,
+      "local_z_m": -1010.675,
+      "grade": 0.08863,
+      "heading_rad": 0.87538
+    },
+    {
+      "progress_m": 4186.7762,
+      "shader_station_m": 4252.0566,
+      "altitude_m": 4720.913,
+      "local_x_m": 954.75,
+      "local_z_m": -1027.214,
+      "grade": 0.07166,
+      "heading_rad": 0.7633
+    },
+    {
+      "progress_m": 4210.8283,
+      "shader_station_m": 4276.1087,
+      "altitude_m": 4722.494,
+      "local_x_m": 971.313,
+      "local_z_m": -1044.582,
+      "grade": 0.06192,
+      "heading_rad": 0.76155
+    },
+    {
+      "progress_m": 4234.8745,
+      "shader_station_m": 4300.1549,
+      "altitude_m": 4723.983,
+      "local_x_m": 987.874,
+      "local_z_m": -1061.953,
+      "grade": 0.06418,
+      "heading_rad": 0.76153
+    },
+    {
+      "progress_m": 4258.9324,
+      "shader_station_m": 4324.2128,
+      "altitude_m": 4725.65,
+      "local_x_m": 1004.435,
+      "local_z_m": -1079.323,
+      "grade": 0.07569,
+      "heading_rad": 0.76153
+    },
+    {
+      "progress_m": 4283.0139,
+      "shader_station_m": 4348.2943,
+      "altitude_m": 4727.627,
+      "local_x_m": 1020.996,
+      "local_z_m": -1096.694,
+      "grade": 0.08867,
+      "heading_rad": 0.76155
+    },
+    {
+      "progress_m": 4307.1182,
+      "shader_station_m": 4372.3987,
+      "altitude_m": 4729.868,
+      "local_x_m": 1037.557,
+      "local_z_m": -1114.064,
+      "grade": 0.09706,
+      "heading_rad": 0.76151
+    },
+    {
+      "progress_m": 4331.2355,
+      "shader_station_m": 4396.516,
+      "altitude_m": 4732.242,
+      "local_x_m": 1054.118,
+      "local_z_m": -1131.435,
+      "grade": 0.10006,
+      "heading_rad": 0.76155
+    },
+    {
+      "progress_m": 4355.3551,
+      "shader_station_m": 4420.6355,
+      "altitude_m": 4734.642,
+      "local_x_m": 1070.686,
+      "local_z_m": -1148.798,
+      "grade": 0.09938,
+      "heading_rad": 0.76347
+    },
+    {
+      "progress_m": 4379.4687,
+      "shader_station_m": 4444.7491,
+      "altitude_m": 4736.981,
+      "local_x_m": 1087.316,
+      "local_z_m": -1166.102,
+      "grade": 0.09455,
+      "heading_rad": 0.76641
+    },
+    {
+      "progress_m": 4403.5645,
+      "shader_station_m": 4468.845,
+      "altitude_m": 4739.125,
+      "local_x_m": 1103.962,
+      "local_z_m": -1183.392,
+      "grade": 0.08272,
+      "heading_rad": 0.76543
+    },
+    {
+      "progress_m": 4427.5402,
+      "shader_station_m": 4492.8252,
+      "altitude_m": 4740.888,
+      "local_x_m": 1119.194,
+      "local_z_m": -1201.77,
+      "grade": 0.06344,
+      "heading_rad": 0.57295
+    },
+    {
+      "progress_m": 4451.5561,
+      "shader_station_m": 4516.842,
+      "altitude_m": 4742.135,
+      "local_x_m": 1131.273,
+      "local_z_m": -1222.488,
+      "grade": 0.041,
+      "heading_rad": 0.51836
+    },
+    {
+      "progress_m": 4475.5617,
+      "shader_station_m": 4540.8479,
+      "altitude_m": 4742.903,
+      "local_x_m": 1142.769,
+      "local_z_m": -1243.544,
+      "grade": 0.02468,
+      "heading_rad": 0.46851
+    },
+    {
+      "progress_m": 4499.3701,
+      "shader_station_m": 4564.6651,
+      "altitude_m": 4743.413,
+      "local_x_m": 1154.319,
+      "local_z_m": -1264.316,
+      "grade": 0.02038,
+      "heading_rad": 0.67384
+    },
+    {
+      "progress_m": 4523.1206,
+      "shader_station_m": 4588.4286,
+      "altitude_m": 4743.937,
+      "local_x_m": 1172.57,
+      "local_z_m": -1279.392,
+      "grade": 0.02492,
+      "heading_rad": 0.95899
+    },
+    {
+      "progress_m": 4547.0923,
+      "shader_station_m": 4612.4019,
+      "altitude_m": 4744.631,
+      "local_x_m": 1192.4,
+      "local_z_m": -1292.835,
+      "grade": 0.03297,
+      "heading_rad": 1.04503
+    },
+    {
+      "progress_m": 4570.9623,
+      "shader_station_m": 4636.2796,
+      "altitude_m": 4745.475,
+      "local_x_m": 1214.577,
+      "local_z_m": -1301.457,
+      "grade": 0.03674,
+      "heading_rad": 1.28549
+    },
+    {
+      "progress_m": 4594.9783,
+      "shader_station_m": 4660.2955,
+      "altitude_m": 4746.351,
+      "local_x_m": 1237.61,
+      "local_z_m": -1308.198,
+      "grade": 0.03544,
+      "heading_rad": 1.28607
+    },
+    {
+      "progress_m": 4618.9916,
+      "shader_station_m": 4684.3089,
+      "altitude_m": 4747.154,
+      "local_x_m": 1260.644,
+      "local_z_m": -1314.94,
+      "grade": 0.03127,
+      "heading_rad": 1.28608
+    },
+    {
+      "progress_m": 4643.0018,
+      "shader_station_m": 4708.3191,
+      "altitude_m": 4747.851,
+      "local_x_m": 1283.669,
+      "local_z_m": -1321.709,
+      "grade": 0.02702,
+      "heading_rad": 1.28124
+    },
+    {
+      "progress_m": 4667.0095,
+      "shader_station_m": 4732.3268,
+      "altitude_m": 4748.465,
+      "local_x_m": 1306.645,
+      "local_z_m": -1328.647,
+      "grade": 0.02467,
+      "heading_rad": 1.27655
+    },
+    {
+      "progress_m": 4698.028,
+      "shader_station_m": 4763.3915,
+      "altitude_m": 4749.303,
+      "local_x_m": 1336.829,
+      "local_z_m": -1330.052,
+      "grade": 0.03058,
+      "heading_rad": 1.95055
+    },
+    {
+      "progress_m": 4727.336,
+      "shader_station_m": 4792.9726,
+      "altitude_m": 4750.582,
+      "local_x_m": 1362.728,
+      "local_z_m": -1317.876,
+      "grade": 0.08979,
+      "heading_rad": 1.08226
+    },
+    {
+      "progress_m": 4753.5466,
+      "shader_station_m": 4819.7495,
+      "altitude_m": 4752.814,
+      "local_x_m": 1354.141,
+      "local_z_m": -1340.401,
+      "grade": 0.08881,
+      "heading_rad": -0.12071
+    },
+    {
+      "progress_m": 4784.3751,
+      "shader_station_m": 4850.6832,
+      "altitude_m": 4755.841,
+      "local_x_m": 1367.183,
+      "local_z_m": -1366.273,
+      "grade": 0.10023,
+      "heading_rad": 1.06376
+    },
+    {
+      "progress_m": 4815.474,
+      "shader_station_m": 4881.8631,
+      "altitude_m": 4758.529,
+      "local_x_m": 1396.928,
+      "local_z_m": -1366.023,
+      "grade": 0.06662,
+      "heading_rad": 2.09783
+    },
+    {
+      "progress_m": 4839.171,
+      "shader_station_m": 4905.584,
+      "altitude_m": 4759.6,
+      "local_x_m": 1413.156,
+      "local_z_m": -1349.022,
+      "grade": 0.02444,
+      "heading_rad": 2.53124
+    },
+    {
+      "progress_m": 4863.1712,
+      "shader_station_m": 4929.5843,
+      "altitude_m": 4759.771,
+      "local_x_m": 1426.683,
+      "local_z_m": -1329.199,
+      "grade": -0.00705,
+      "heading_rad": 2.54419
+    },
+    {
+      "progress_m": 4887.1732,
+      "shader_station_m": 4953.5864,
+      "altitude_m": 4759.457,
+      "local_x_m": 1440.183,
+      "local_z_m": -1309.356,
+      "grade": -0.01443,
+      "heading_rad": 2.54426
+    },
+    {
+      "progress_m": 4911.174,
+      "shader_station_m": 4977.5872,
+      "altitude_m": 4759.285,
+      "local_x_m": 1453.615,
+      "local_z_m": -1289.467,
+      "grade": 0.00375,
+      "heading_rad": 2.55328
+    },
+    {
+      "progress_m": 4935.1793,
+      "shader_station_m": 5001.5927,
+      "altitude_m": 4759.751,
+      "local_x_m": 1466.888,
+      "local_z_m": -1269.472,
+      "grade": 0.03616,
+      "heading_rad": 2.55603
+    },
+    {
+      "progress_m": 4959.2129,
+      "shader_station_m": 5025.6263,
+      "altitude_m": 4761.007,
+      "local_x_m": 1480.131,
+      "local_z_m": -1249.457,
+      "grade": 0.06703,
+      "heading_rad": 2.56088
+    },
+    {
+      "progress_m": 4983.2845,
+      "shader_station_m": 5049.698,
+      "altitude_m": 4762.862,
+      "local_x_m": 1493.173,
+      "local_z_m": -1229.31,
+      "grade": 0.08477,
+      "heading_rad": 2.56985
+    },
+    {
+      "progress_m": 5007.3747,
+      "shader_station_m": 5073.7882,
+      "altitude_m": 4764.945,
+      "local_x_m": 1506.169,
+      "local_z_m": -1209.133,
+      "grade": 0.08623,
+      "heading_rad": 2.56773
+    },
+    {
+      "progress_m": 5031.4546,
+      "shader_station_m": 5097.8681,
+      "altitude_m": 4766.905,
+      "local_x_m": 1519.247,
+      "local_z_m": -1189.009,
+      "grade": 0.07572,
+      "heading_rad": 2.56467
+    },
+    {
+      "progress_m": 5055.5013,
+      "shader_station_m": 5121.9155,
+      "altitude_m": 4768.548,
+      "local_x_m": 1531.908,
+      "local_z_m": -1168.636,
+      "grade": 0.06121,
+      "heading_rad": 2.63089
+    },
+    {
+      "progress_m": 5079.5013,
+      "shader_station_m": 5145.9183,
+      "altitude_m": 4769.863,
+      "local_x_m": 1541.896,
+      "local_z_m": -1146.88,
+      "grade": 0.04931,
+      "heading_rad": 2.7952
+    },
+    {
+      "progress_m": 5103.496,
+      "shader_station_m": 5169.9152,
+      "altitude_m": 4770.948,
+      "local_x_m": 1548.211,
+      "local_z_m": -1123.778,
+      "grade": 0.04177,
+      "heading_rad": 2.94063
+    },
+    {
+      "progress_m": 5127.5118,
+      "shader_station_m": 5193.9312,
+      "altitude_m": 4771.875,
+      "local_x_m": 1552.579,
+      "local_z_m": -1100.181,
+      "grade": 0.03526,
+      "heading_rad": 2.96322
+    },
+    {
+      "progress_m": 5151.5234,
+      "shader_station_m": 5217.9427,
+      "altitude_m": 4772.614,
+      "local_x_m": 1556.837,
+      "local_z_m": -1076.562,
+      "grade": 0.0256,
+      "heading_rad": 2.96325
+    },
+    {
+      "progress_m": 5175.5281,
+      "shader_station_m": 5241.9474,
+      "altitude_m": 4773.086,
+      "local_x_m": 1561.095,
+      "local_z_m": -1052.943,
+      "grade": 0.01389,
+      "heading_rad": 2.96322
+    },
+    {
+      "progress_m": 5199.5293,
+      "shader_station_m": 5265.9486,
+      "altitude_m": 4773.322,
+      "local_x_m": 1565.362,
+      "local_z_m": -1029.325,
+      "grade": 0.00739,
+      "heading_rad": 2.96226
+    },
+    {
+      "progress_m": 5223.5295,
+      "shader_station_m": 5289.9489,
+      "altitude_m": 4773.537,
+      "local_x_m": 1569.709,
+      "local_z_m": -1005.723,
+      "grade": 0.01279,
+      "heading_rad": 2.94928
+    },
+    {
+      "progress_m": 5247.4943,
+      "shader_station_m": 5313.9165,
+      "altitude_m": 4774.018,
+      "local_x_m": 1575.445,
+      "local_z_m": -982.478,
+      "grade": 0.02841,
+      "heading_rad": 2.80422
+    },
+    {
+      "progress_m": 5271.336,
+      "shader_station_m": 5337.7723,
+      "altitude_m": 4774.896,
+      "local_x_m": 1587.135,
+      "local_z_m": -961.857,
+      "grade": 0.0443,
+      "heading_rad": 2.43697
+    },
+    {
+      "progress_m": 5295.1809,
+      "shader_station_m": 5361.632,
+      "altitude_m": 4776.056,
+      "local_x_m": 1605.659,
+      "local_z_m": -947.092,
+      "grade": 0.05114,
+      "heading_rad": 2.05917
+    },
+    {
+      "progress_m": 5319.0657,
+      "shader_station_m": 5385.5285,
+      "altitude_m": 4777.255,
+      "local_x_m": 1628.204,
+      "local_z_m": -939.608,
+      "grade": 0.04807,
+      "heading_rad": 1.72278
+    },
+    {
+      "progress_m": 5343.0363,
+      "shader_station_m": 5409.5026,
+      "altitude_m": 4778.312,
+      "local_x_m": 1652.105,
+      "local_z_m": -938.492,
+      "grade": 0.03997,
+      "heading_rad": 1.5729
+    },
+    {
+      "progress_m": 5367.0478,
+      "shader_station_m": 5433.5143,
+      "altitude_m": 4779.175,
+      "local_x_m": 1676.099,
+      "local_z_m": -938.711,
+      "grade": 0.03224,
+      "heading_rad": 1.5328
+    },
+    {
+      "progress_m": 5391.0265,
+      "shader_station_m": 5457.4954,
+      "altitude_m": 4779.875,
+      "local_x_m": 1699.919,
+      "local_z_m": -941.19,
+      "grade": 0.02657,
+      "heading_rad": 1.38428
+    },
+    {
+      "progress_m": 5414.959,
+      "shader_station_m": 5481.4334,
+      "altitude_m": 4780.473,
+      "local_x_m": 1722.705,
+      "local_z_m": -948.324,
+      "grade": 0.02407,
+      "heading_rad": 1.15458
+    },
+    {
+      "progress_m": 5438.9093,
+      "shader_station_m": 5505.3882,
+      "altitude_m": 4781.066,
+      "local_x_m": 1743.442,
+      "local_z_m": -960.214,
+      "grade": 0.0264,
+      "heading_rad": 0.94463
+    },
+    {
+      "progress_m": 5462.8946,
+      "shader_station_m": 5529.3753,
+      "altitude_m": 4781.774,
+      "local_x_m": 1761.744,
+      "local_z_m": -975.681,
+      "grade": 0.03318,
+      "heading_rad": 0.82776
+    },
+    {
+      "progress_m": 5486.9112,
+      "shader_station_m": 5553.3919,
+      "altitude_m": 4782.668,
+      "local_x_m": 1779.366,
+      "local_z_m": -991.974,
+      "grade": 0.04109,
+      "heading_rad": 0.82182
+    },
+    {
+      "progress_m": 5510.9085,
+      "shader_station_m": 5577.391,
+      "altitude_m": 4783.724,
+      "local_x_m": 1796.266,
+      "local_z_m": -1008.96,
+      "grade": 0.04649,
+      "heading_rad": 0.70664
+    },
+    {
+      "progress_m": 5534.8706,
+      "shader_station_m": 5601.3584,
+      "altitude_m": 4784.869,
+      "local_x_m": 1809.661,
+      "local_z_m": -1028.742,
+      "grade": 0.04882,
+      "heading_rad": 0.4827
+    },
+    {
+      "progress_m": 5558.8327,
+      "shader_station_m": 5625.3258,
+      "altitude_m": 4786.053,
+      "local_x_m": 1818.279,
+      "local_z_m": -1051.02,
+      "grade": 0.04998,
+      "heading_rad": 0.25626
+    },
+    {
+      "progress_m": 5582.8038,
+      "shader_station_m": 5649.3016,
+      "altitude_m": 4787.255,
+      "local_x_m": 1821.801,
+      "local_z_m": -1074.659,
+      "grade": 0.05006,
+      "heading_rad": 0.04119
+    },
+    {
+      "progress_m": 5606.7593,
+      "shader_station_m": 5673.263,
+      "altitude_m": 4788.42,
+      "local_x_m": 1819.996,
+      "local_z_m": -1098.468,
+      "grade": 0.04642,
+      "heading_rad": -0.19492
+    },
+    {
+      "progress_m": 5630.7264,
+      "shader_station_m": 5697.2342,
+      "altitude_m": 4789.434,
+      "local_x_m": 1812.837,
+      "local_z_m": -1121.281,
+      "grade": 0.0375,
+      "heading_rad": -0.38722
+    },
+    {
+      "progress_m": 5654.7364,
+      "shader_station_m": 5721.2443,
+      "altitude_m": 4790.203,
+      "local_x_m": 1803.335,
+      "local_z_m": -1143.317,
+      "grade": 0.0268,
+      "heading_rad": -0.4119
+    },
+    {
+      "progress_m": 5678.7427,
+      "shader_station_m": 5745.2507,
+      "altitude_m": 4790.754,
+      "local_x_m": 1793.726,
+      "local_z_m": -1165.31,
+      "grade": 0.02023,
+      "heading_rad": -0.4121
+    },
+    {
+      "progress_m": 5702.7474,
+      "shader_station_m": 5769.2554,
+      "altitude_m": 4791.234,
+      "local_x_m": 1784.068,
+      "local_z_m": -1187.28,
+      "grade": 0.02097,
+      "heading_rad": -0.41642
+    },
+    {
+      "progress_m": 5726.7541,
+      "shader_station_m": 5793.2621,
+      "altitude_m": 4791.799,
+      "local_x_m": 1774.352,
+      "local_z_m": -1209.226,
+      "grade": 0.02641,
+      "heading_rad": -0.41685
+    },
+    {
+      "progress_m": 5750.7641,
+      "shader_station_m": 5817.272,
+      "altitude_m": 4792.49,
+      "local_x_m": 1764.646,
+      "local_z_m": -1231.176,
+      "grade": 0.03046,
+      "heading_rad": -0.41315
+    },
+    {
+      "progress_m": 5774.7699,
+      "shader_station_m": 5841.2782,
+      "altitude_m": 4793.212,
+      "local_x_m": 1755.457,
+      "local_z_m": -1253.339,
+      "grade": 0.0285,
+      "heading_rad": -0.359
+    },
+    {
+      "progress_m": 5798.7467,
+      "shader_station_m": 5865.2574,
+      "altitude_m": 4793.809,
+      "local_x_m": 1748.642,
+      "local_z_m": -1276.296,
+      "grade": 0.02054,
+      "heading_rad": -0.20722
+    },
+    {
+      "progress_m": 5822.7158,
+      "shader_station_m": 5889.2293,
+      "altitude_m": 4794.179,
+      "local_x_m": 1745.662,
+      "local_z_m": -1300.053,
+      "grade": 0.01037,
+      "heading_rad": -0.04631
+    },
+    {
+      "progress_m": 5846.6732,
+      "shader_station_m": 5913.19,
+      "altitude_m": 4794.327,
+      "local_x_m": 1746.577,
+      "local_z_m": -1323.965,
+      "grade": 0.0028,
+      "heading_rad": 0.12993
+    },
+    {
+      "progress_m": 5870.6402,
+      "shader_station_m": 5937.1593,
+      "altitude_m": 4794.361,
+      "local_x_m": 1751.705,
+      "local_z_m": -1347.356,
+      "grade": 0.00123,
+      "heading_rad": 0.27443
+    },
+    {
+      "progress_m": 5894.6399,
+      "shader_station_m": 5961.159,
+      "altitude_m": 4794.446,
+      "local_x_m": 1758.354,
+      "local_z_m": -1370.416,
+      "grade": 0.00716,
+      "heading_rad": 0.28134
+    },
+    {
+      "progress_m": 5918.6421,
+      "shader_station_m": 5985.1613,
+      "altitude_m": 4794.765,
+      "local_x_m": 1765.017,
+      "local_z_m": -1393.473,
+      "grade": 0.02059,
+      "heading_rad": 0.28131
+    },
+    {
+      "progress_m": 5942.6528,
+      "shader_station_m": 6009.172,
+      "altitude_m": 4795.482,
+      "local_x_m": 1771.715,
+      "local_z_m": -1416.519,
+      "grade": 0.03991,
+      "heading_rad": 0.29028
+    },
+    {
+      "progress_m": 5966.6688,
+      "shader_station_m": 6033.1892,
+      "altitude_m": 4796.699,
+      "local_x_m": 1779.515,
+      "local_z_m": -1439.19,
+      "grade": 0.06157,
+      "heading_rad": 0.39132
+    },
+    {
+      "progress_m": 5990.6895,
+      "shader_station_m": 6057.2132,
+      "altitude_m": 4798.409,
+      "local_x_m": 1790.513,
+      "local_z_m": -1460.444,
+      "grade": 0.08015,
+      "heading_rad": 0.56727
+    },
+    {
+      "progress_m": 6014.7412,
+      "shader_station_m": 6081.2678,
+      "altitude_m": 4800.472,
+      "local_x_m": 1805.03,
+      "local_z_m": -1479.478,
+      "grade": 0.09021,
+      "heading_rad": 0.73225
+    },
+    {
+      "progress_m": 6038.8273,
+      "shader_station_m": 6105.3546,
+      "altitude_m": 4802.642,
+      "local_x_m": 1821.919,
+      "local_z_m": -1496.507,
+      "grade": 0.08874,
+      "heading_rad": 0.80424
+    },
+    {
+      "progress_m": 6062.9091,
+      "shader_station_m": 6129.4366,
+      "altitude_m": 4804.645,
+      "local_x_m": 1839.135,
+      "local_z_m": -1513.226,
+      "grade": 0.0766,
+      "heading_rad": 0.783
+    },
+    {
+      "progress_m": 6086.9421,
+      "shader_station_m": 6153.4712,
+      "altitude_m": 4806.262,
+      "local_x_m": 1855.068,
+      "local_z_m": -1531.126,
+      "grade": 0.05747,
+      "heading_rad": 0.66108
+    },
+    {
+      "progress_m": 6110.9417,
+      "shader_station_m": 6177.4728,
+      "altitude_m": 4807.388,
+      "local_x_m": 1868.4,
+      "local_z_m": -1551.028,
+      "grade": 0.03662,
+      "heading_rad": 0.51937
+    },
+    {
+      "progress_m": 6134.934,
+      "shader_station_m": 6201.4665,
+      "altitude_m": 4808.046,
+      "local_x_m": 1879.007,
+      "local_z_m": -1572.526,
+      "grade": 0.01923,
+      "heading_rad": 0.4111
+    },
+    {
+      "progress_m": 6158.9354,
+      "shader_station_m": 6225.4679,
+      "altitude_m": 4808.364,
+      "local_x_m": 1888.366,
+      "local_z_m": -1594.625,
+      "grade": 0.00858,
+      "heading_rad": 0.39836
+    },
+    {
+      "progress_m": 6182.9258,
+      "shader_station_m": 6249.4584,
+      "altitude_m": 4808.519,
+      "local_x_m": 1897.638,
+      "local_z_m": -1616.751,
+      "grade": 0.00545,
+      "heading_rad": 0.39416
+    },
+    {
+      "progress_m": 6194.9054,
+      "shader_station_m": 6261.438,
+      "altitude_m": 4808.585,
+      "local_x_m": 1902.28,
+      "local_z_m": -1627.794,
+      "grade": 0.00569,
+      "heading_rad": 0.40599
+    }
+  ]
+}

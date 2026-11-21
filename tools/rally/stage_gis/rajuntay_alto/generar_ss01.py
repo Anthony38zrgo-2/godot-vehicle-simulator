@@ -108,7 +108,20 @@ if __name__ == "__main__":
         sys.path[:0] = [str(BASE), str(RAURA)]
         from generar_stage2 import main
 
-        main(dict(track=TRACK, output=OUT, wear=OUT / "desgaste.json",
-                  axis_source=f"{STAGE_ID}_Carretera_Spline_3D_Nodes.csv",
-                  asphalt=STAGE_NUMBER >= 3, snow_second_half=STAGE_NUMBER == 4,
-                  name=f"Caminos del Inca · {STAGE_ID} {STAGE_NAMES[STAGE_NUMBER - 1]}"))
+        stage_cfg = dict(
+            track=TRACK, output=OUT, wear=OUT / "desgaste.json",
+            axis_source=f"{STAGE_ID}_Carretera_Spline_3D_Nodes.csv",
+            asphalt=STAGE_NUMBER >= 3, snow_second_half=STAGE_NUMBER == 4,
+            name=f"Caminos del Inca · {STAGE_ID} {STAGE_NAMES[STAGE_NUMBER - 1]}",
+        )
+        if STAGE_NUMBER in (1, 4):
+            stage_cfg["geography"] = {
+                "crs": "EPSG:32718",
+                "dem_source": "Copernicus DEM GLO-30 (cop-dem-glo-30, Copernicus_DSM_COG_10_S12_00_W077_00_DEM)",
+                "vertical_datum": "EGM2008 orthometric (shared by DEM origin z0 and approved axis)",
+                "vertical_datum_verified": True,
+                "osm_observations": [
+                    f"{STAGE_ID}_Carretera_Spline_3D_Nodes.csv z_corr_m derived from GLO-30 DEM 2.5m sharing datum with DEM origin z0.",
+                ],
+            }
+        main(stage_cfg)
