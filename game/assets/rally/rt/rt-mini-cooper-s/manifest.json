@@ -18,7 +18,15 @@
       "physics_policy": "game_derived"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Mini Cooper.fbx",
+      "texture": "mini_cooper_S_alta.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -28,29 +36,32 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "200da8d9d84cca58c1f80d53f1e0bd4f9ff0618ab5837e61399d0371cd73604d",
-    "size_bytes": 1301304
+    "sha256": "12a85cc1c636b766df58f8b30f5c95515006eb14116cbe869caebef4e0fe15f4",
+    "size_bytes": 194656,
+    "exported_nodes": [
+      "MiniCooperExterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "57e6e98f9228c61699743b56bf9d109b0bd60e639bfc5598e69b457430dc4a08",
-      "size_bytes": 65968
+      "sha256": "56656395dee6289760ada8607144fa1e82a541d746d1b3f9823341000baac7aa",
+      "size_bytes": 129168
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "fd851fc8adaa471f6e3ddaa454af1fe24aad1060a7dd82187d87a770a3b037d0",
-      "size_bytes": 65956
+      "sha256": "df08156d0911d22d774e345d5d7df74c36535db937954f05d06b99d7b7a05b7c",
+      "size_bytes": 129168
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "df390469a10217665fc3b75b50fa082ea1a9530ae01f708366d47709d16e8d0e",
-      "size_bytes": 65956
+      "sha256": "07f8c29a2145435377018296fecc04f5443da78867795e6234fe5d6ad34a6724",
+      "size_bytes": 129224
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "acb15c09049cb712563c6b2178b9f05b4a61e1bff0dd8c0b3886bd42256bb4f9",
-      "size_bytes": 65956
+      "sha256": "444b4c8d6f67d802bd93fcaaebf62548190725ad2390ce3a86cfd1c58d975040",
+      "size_bytes": 129224
     }
   },
   "wheel_pivots": {
@@ -136,11 +147,11 @@
     "native_wheelbase_m": 2.0250001549720764
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
   "warnings": []
 }

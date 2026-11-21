@@ -62,49 +62,65 @@ func run() -> void:
 	for axle in [0, 2]:
 		var track: float = absf(car.simulation.wheel_positions_local[axle + 1].x - car.simulation.wheel_positions_local[axle].x)
 		check(absf(track - float(geometry.front_track if axle == 0 else geometry.rear_track)) < 0.0001, "wheel track matches model")
-	var cockpit = car.get_node("CockpitAnimation")
-	check(cockpit.arms.size() == 2, "two animated arms")
-	if cockpit.arms.size() == 2:
-		check(cockpit._pose_indices[0].size() == 19 and cockpit._pose_indices[1].size() == 19, "19 native steering poses")
-		var rest: Basis = cockpit.steering_wheel.basis
-		cockpit.update_steering_pose(0.7)
-		check(not cockpit.steering_wheel.basis.is_equal_approx(rest), "steering wheel animation")
-		# Rally Trophy wheels lie in local XZ. Turning must keep the rim normal fixed.
-		var turned: Basis = cockpit.steering_wheel.basis
-		check(turned.y.is_equal_approx(rest.y), "wheel rotates about its local shaft")
-		cockpit.update_steering_pose(0.0)
+	var cockpit = car.get_node_or_null("CockpitAnimation")
+	if car.cockpit_camera_enabled:
+		check(cockpit != null and cockpit.arms.size() == 2, "two animated arms")
+		if cockpit != null and cockpit.arms.size() == 2:
+			check(cockpit._pose_indices[0].size() == 19 and cockpit._pose_indices[1].size() == 19, "19 native steering poses")
+			var rest: Basis = cockpit.steering_wheel.basis
+			cockpit.update_steering_pose(0.7)
+			check(not cockpit.steering_wheel.basis.is_equal_approx(rest), "steering wheel animation")
+			# Rally Trophy wheels lie in local XZ. Turning must keep the rim normal fixed.
+			var turned: Basis = cockpit.steering_wheel.basis
+			check(turned.y.is_equal_approx(rest.y), "wheel rotates about its local shaft")
+			cockpit.update_steering_pose(0.0)
+	else:
+		check(cockpit == null, "exterior-only vehicle has no cockpit animation")
 	var rig = session.camera_rig
 	rig.camera_mode = rig.Mode.CHASE
-	for mode in [rig.Mode.BONNET, rig.Mode.COCKPIT, rig.Mode.CHASE]:
+	var expected_modes := [rig.Mode.BONNET, rig.Mode.COCKPIT, rig.Mode.CHASE] if car.cockpit_camera_enabled else [rig.Mode.BONNET, rig.Mode.CHASE]
+	for mode in expected_modes:
 		rig.toggle_camera_mode()
-		check(rig.camera_mode == mode, "three available cameras")
-		if cockpit.driver_head != null:
+		check(rig.camera_mode == mode, "expected camera mode cycle")
+		if cockpit != null and cockpit.driver_head != null:
 			check(cockpit.driver_head.visible == (mode != rig.Mode.COCKPIT), "driver head follows camera")
-	var damage = car.get_node("VisualDamage")
-	check(damage._damaged.has("body") and damage._damaged.has("interior") and damage._healthy.size() == damage._damaged.size(), "native damage variants")
-	check(damage.broken_light != null and damage.broken_glass != null and damage.broken_glass_inside != null, "damage textures available")
-	var body_mat: Material = damage._healthy.body.get_active_material(0)
-	var body_tex = body_mat.get_shader_parameter("albedo_tex") if body_mat is ShaderMaterial else body_mat.albedo_texture
-	check(body_tex != null, "textured body")
-	var interior_mat: Material = damage._healthy.interior.get_active_material(0)
-	var interior_tex = interior_mat.get_shader_parameter("albedo_tex") if interior_mat is ShaderMaterial else interior_mat.albedo_texture
-	check(interior_tex != null, "textured cockpit")
-	var cfg: Dictionary = car.simulation.domains.damage.get("visual", {})
-	damage.register_impact(Vector3(-0.55, 0.45, -1.8), Vector3.BACK, 1.0, cfg)
-	damage.register_impact(Vector3(0, 0.5, 1.8), Vector3.FORWARD, 1.0, cfg)
-	damage._process(0)
-	var snapshot: Dictionary = damage.damage_snapshot()
-	for part in damage._damaged:
-		check(damage._damaged[part].visible and not damage._healthy[part].visible, "damage switches " + part)
+	var damage = car.get_node_or_null("VisualDamage")
+	var snapshot: Dictionary = {}
 	var repair: Array[String] = ["body", "hood", "trunk", "windshield", "headlight_left", "headlight_right"]
-	damage.repair_parts(repair)
-	damage._process(0)
-	check(damage.damage_snapshot().is_empty(), "repair clears damage")
-	damage.restore_damage(snapshot)
-	damage._process(0)
-	check(damage._damaged.body.visible, "saved damage restored")
-	damage.repair_parts(repair)
-	damage._process(0)
+	if damage != null:
+		check(damage._damaged.has("body") and damage._damaged.has("interior") and damage._healthy.size() == damage._damaged.size(), "native damage variants")
+		check(damage.broken_light != null and damage.broken_glass != null and damage.broken_glass_inside != null, "damage textures available")
+		var body_mat: Material = damage._healthy.body.get_active_material(0)
+		var body_tex = body_mat.get_shader_parameter("albedo_tex") if body_mat is ShaderMaterial else body_mat.albedo_texture
+		check(body_tex != null, "textured body")
+		var interior_mat: Material = damage._healthy.interior.get_active_material(0)
+		var interior_tex = interior_mat.get_shader_parameter("albedo_tex") if interior_mat is ShaderMaterial else interior_mat.albedo_texture
+		check(interior_tex != null, "textured cockpit")
+		var cfg: Dictionary = car.simulation.domains.damage.get("visual", {})
+		damage.register_impact(Vector3(-0.55, 0.45, -1.8), Vector3.BACK, 1.0, cfg)
+		damage.register_impact(Vector3(0, 0.5, 1.8), Vector3.FORWARD, 1.0, cfg)
+		damage._process(0)
+		snapshot = damage.damage_snapshot()
+		for part in damage._damaged:
+			check(damage._damaged[part].visible and not damage._healthy[part].visible, "damage switches " + part)
+		damage.repair_parts(repair)
+		damage._process(0)
+		check(damage.damage_snapshot().is_empty(), "repair clears damage")
+		damage.restore_damage(snapshot)
+		damage._process(0)
+		check(damage._damaged.body.visible, "saved damage restored")
+		damage.repair_parts(repair)
+		damage._process(0)
+	else:
+		var chassis_meshes: Array[Node] = car.get_node("Chassis").find_children("*", "MeshInstance3D", true, false)
+		check(chassis_meshes.size() >= 1, "exterior chassis mesh imported")
+		for node_name in ["WheelFrontLeft", "WheelFrontRight", "WheelRearLeft", "WheelRearRight"]:
+			var pivot := car.get_node(node_name) as Node3D
+			var wmeshes: Array[Node] = pivot.get_node("WheelVisual/WheelMesh").find_children("*", "MeshInstance3D", true, false)
+			check(wmeshes.size() == 1, "single wheel mesh: " + node_name)
+			if wmeshes.size() == 1:
+				var tire := wmeshes[0] as MeshInstance3D
+				check(tire.to_global(tire.get_aabb().get_center()).distance_to(pivot.global_position) < 0.002, "wheel centered on spindle: " + node_name)
 	var audio = car.get_node("VehicleAudio")
 	var gt3_banks := {
 		"rt-mini-cooper-s": ["mini-cooper", 6, 6],
@@ -159,16 +175,18 @@ func run() -> void:
 		camera.look_at(car.global_position + Vector3(0, 0.5, 0))
 		camera.current = true
 		await capture("exterior.png")
-		damage.restore_damage(snapshot)
-		damage._process(0)
-		await capture("damage.png")
-		damage.repair_parts(repair)
-		damage._process(0)
+		if damage != null:
+			damage.restore_damage(snapshot)
+			damage._process(0)
+			await capture("damage.png")
+			damage.repair_parts(repair)
+			damage._process(0)
 		camera.queue_free()
-		rig.camera.current = true
-		rig.camera_mode = rig.Mode.COCKPIT
-		rig.snap_to_target()
-		await capture("cockpit.png")
+		if car.cockpit_camera_enabled:
+			rig.camera.current = true
+			rig.camera_mode = rig.Mode.COCKPIT
+			rig.snap_to_target()
+			await capture("cockpit.png")
 	finish()
 
 func capture(filename: String) -> void:

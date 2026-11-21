@@ -139,7 +139,17 @@ const CDI_STAGES := {
 	"cdi_stage3": {"name": "Chinchán Asfalto", "surface": "Asfalto"},
 	"cdi_stage4": {"name": "Abra Ticlio", "surface": "Asfalto / nieve"},
 }
-const CDI_CARS := ["fulvia", "f10070", "mustang67"]
+const CDI_CARS := [
+	"fulvia",
+	"escort",
+	"rt-alpine-a110",
+	"rt-mini-cooper-s",
+	"rt-lancia-stratos",
+	"rt-porsche-356b-2000gs",
+	"f10070",
+	"mustang67",
+	"fiat131",
+]
 
 const VIGNETTE_SHADER_CODE := """
 shader_type canvas_item;

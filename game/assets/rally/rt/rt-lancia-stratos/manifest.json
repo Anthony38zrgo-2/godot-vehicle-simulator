@@ -24,7 +24,15 @@
       }
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Stratos with lights.fbx",
+      "texture": "lancia_stratos_alta.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -34,29 +42,32 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "b774a32c2456a36b401512675c1b1b65dc8792dab42e8cb9c2521bd7c08bbee6",
-    "size_bytes": 1049944
+    "sha256": "5da3260445c28643ccca9fd15c38e4872346bf351f08436de9722df5e8c5b34b",
+    "size_bytes": 211224,
+    "exported_nodes": [
+      "LanciaStratosExterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "707b9bcfab6a06a982687138cbfb5071d43a9c838bc67f4467066c4ed05f27a4",
-      "size_bytes": 63660
+      "sha256": "39a10369d1f1b5bde5c0ee3c50fe9d1bcf6b9d7627573fe8eb0b21f9591bfdaa",
+      "size_bytes": 160732
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "7510851872d5e544a15e683b20e1a9055afd3f1338c3690712228b07020efd1a",
-      "size_bytes": 63660
+      "sha256": "fdc9eb488c9604b3b44b5ac48d34cc5f1d62c6195f3975efa78f3718da6387f2",
+      "size_bytes": 160732
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "a20ee0add16ec1caf73135ac879f8e06ca4fb995b0f20cffcff6c24032db85dc",
-      "size_bytes": 63660
+      "sha256": "25fc7cf80199e25ed998ce25fce8f44f5cfc43d2b77849b87cf1ac1025b7f144",
+      "size_bytes": 160736
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "2426f7adebc558b3baae94e6cca804c36f9b131b6d1594498e03e888f022052c",
-      "size_bytes": 63660
+      "sha256": "5498bec63b76cb13a3273e771801795cefc9b67a5d16760d412c899d0b2e6252",
+      "size_bytes": 160736
     }
   },
   "wheel_pivots": {
@@ -142,11 +153,11 @@
     "native_wheelbase_m": 2.0999999046325684
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
+    "cockpit": false,
+    "native_arm_poses": 0,
     "seats": 0,
     "recovered_components": 0,
-    "damage_variants": 2
+    "damage_variants": 0
   },
   "warnings": [
     "No separately identifiable native seats in interior_lo; interior_hi retained"

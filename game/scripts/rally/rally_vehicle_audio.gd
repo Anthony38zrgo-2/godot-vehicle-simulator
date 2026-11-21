@@ -219,6 +219,10 @@ var backfire_rng_state: int = 1
 
 var policy := VehicleAudioMixPolicy.new()
 var routing := VehicleSoundRouting.new()
+const CONTINUOUS_AUDIO_PERIOD := 1.0 / 60.0
+var _continuous_audio_phase := 0.0
+var _continuous_audio_elapsed := 0.0
+
 var acoustic: Dictionary = { }
 var accepted_sequence: int = -1
 var accepted_generation: int = -1
@@ -418,7 +422,7 @@ func play_neutral_event(ascending: bool) -> void:
 	neutral_player.play()
 
 
-func update_neutral_audio(_smoothing: float) -> void:
+func update_neutral_audio() -> void:
 	var idle := maxf(float(packet_rpm_idle), 1.0)
 	var rpm := float(acoustic.get("rpm", idle))
 	clunk_scale = smoothstep(idle, idle * (1.0 + NEUTRAL_FADE_WIDTH), rpm)
@@ -527,44 +531,13 @@ func _physics_process(delta: float) -> void:
 
 	var packet := vehicle.get_presentation_snapshot()
 	if packet.is_empty():
+		_continuous_audio_phase = 0.0
+		_continuous_audio_elapsed = 0.0
 		return
 	acoustic = policy.accept(packet)
 	packet_rpm_idle = float(packet.get("rpm_idle", 1050.0))
 
-	# El pitch sigue las RPM mecánicas reales sin sumar offsets artificiales por pedal
-	var real_rpm := float(acoustic.get("rpm", 900.0))
-	smoothed_revolutions = lerpf(smoothed_revolutions, real_rpm, 1.0 - exp(-18.0 * delta))
-	var smoothing := 1.0 - exp(-24.0 * delta)
-
-	update_view_balance()
-	update_cockpit_audio(delta)
-	if sweep_bank != null:
-		sweep_bank.update(
-			acoustic,
-			smoothed_revolutions,
-			delta,
-			view_engine_gain,
-			view_exhaust_gain,
-			exhaust_crackle_s,
-			routing.config.get("exhaust", {}),
-			self,
-		)
-	elif phase_bank != null:
-		phase_bank.update(
-			acoustic,
-			smoothed_revolutions,
-			delta,
-			view_engine_gain,
-			view_exhaust_gain,
-			exhaust_crackle_s,
-			routing.config.get("exhaust", {}),
-			self,
-		)
-	else:
-		update_layer(engine_voices, smoothed_revolutions, smoothing)
-		update_layer(exhaust_voices, smoothed_revolutions, smoothing)
-	update_limiter_audio(smoothing)
-	update_neutral_audio(smoothing)
+	update_neutral_audio()
 
 	if accepted_generation != int(packet.generation) or accepted_sequence != int(packet.sequence):
 		var target_gear := int(packet.get("gear", 1))
@@ -602,6 +575,53 @@ func _physics_process(delta: float) -> void:
 		watersplash_cooldowns.fill(0.0)
 	update_tyre_contacts(delta, wheel_samples)
 	update_watersplash(delta, wheel_samples)
+	# Process one-shots above on every physics tick. Apply continuous controls
+	# at 60 Hz with the elapsed time since the previous mix update.
+	_continuous_audio_elapsed += delta
+	_continuous_audio_phase += delta
+	if _continuous_audio_phase + 1.0e-6 < CONTINUOUS_AUDIO_PERIOD:
+		return
+	_continuous_audio_phase = fmod(_continuous_audio_phase + 1.0e-6, CONTINUOUS_AUDIO_PERIOD) - 1.0e-6
+	var mix_delta := _continuous_audio_elapsed
+	_continuous_audio_elapsed = 0.0
+	_update_continuous_audio(packet, mix_delta, wheel_samples)
+
+
+func _update_continuous_audio(packet: Dictionary, delta: float, wheel_samples: Array[Dictionary]) -> void:
+	# El pitch sigue las RPM mecánicas reales sin sumar offsets artificiales por pedal
+	var real_rpm := float(acoustic.get("rpm", 900.0))
+	smoothed_revolutions = lerpf(smoothed_revolutions, real_rpm, 1.0 - exp(-18.0 * delta))
+	var smoothing := 1.0 - exp(-24.0 * delta)
+
+	update_view_balance()
+	update_cockpit_audio(delta)
+	if sweep_bank != null:
+		sweep_bank.update(
+			acoustic,
+			smoothed_revolutions,
+			delta,
+			view_engine_gain,
+			view_exhaust_gain,
+			exhaust_crackle_s,
+			routing.config.get("exhaust", {}),
+			self,
+		)
+	elif phase_bank != null:
+		phase_bank.update(
+			acoustic,
+			smoothed_revolutions,
+			delta,
+			view_engine_gain,
+			view_exhaust_gain,
+			exhaust_crackle_s,
+			routing.config.get("exhaust", {}),
+			self,
+		)
+	else:
+		update_layer(engine_voices, smoothed_revolutions, smoothing)
+		update_layer(exhaust_voices, smoothed_revolutions, smoothing)
+	update_limiter_audio(smoothing)
+
 	update_surface_audio(packet, delta)
 	update_wheel_damage_audio(packet.get("wheels", []), delta, wheel_samples)
 

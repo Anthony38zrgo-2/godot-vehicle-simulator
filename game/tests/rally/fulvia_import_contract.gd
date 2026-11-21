@@ -87,16 +87,16 @@ func run() -> void:
 	for expected in [rig.Mode.BONNET, rig.Mode.CHASE]:
 		rig.toggle_camera_mode()
 		check(rig.camera_mode == expected, "PSX Fulvia skips cockpit view")
-	var escort = load("res://scenes/rally/ford_escort_rs2000_1971.tscn").instantiate()
-	root.add_child(escort)
-	escort.freeze = true
-	rig.set_vehicle(escort)
+	var cockpit_car = load("res://scenes/rally/rt/rt-alfa-giulia-gta.tscn").instantiate()
+	root.add_child(cockpit_car)
+	cockpit_car.freeze = true
+	rig.set_vehicle(cockpit_car)
 	rig.camera_mode = rig.Mode.BONNET
 	rig.toggle_camera_mode()
-	check(rig.camera_mode == rig.Mode.COCKPIT, "Escort retains cockpit")
+	check(rig.camera_mode == rig.Mode.COCKPIT, "cockpit-enabled vehicle retains cockpit")
 	rig.set_vehicle(vehicle)
 	check(rig.camera_mode == rig.Mode.CHASE, "switching to PSX Fulvia exits cockpit view")
-	escort.queue_free()
+	cockpit_car.queue_free()
 	if session.awaiting_setup:
 		session.garage_panel.close_garage(true)
 	await create_timer(0.5).timeout

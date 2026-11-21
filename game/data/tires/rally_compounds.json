@@ -87,7 +87,7 @@
       "visual_tread_color": "#38bdf8",
       "for_gravel": true,
       "is_asphalt_tire": false,
-      "road_grip_scale": 0.92,
+      "road_grip_scale": 0.9,
       "loose_grip_scale": 1.08,
       "advantages": "Mejor respuesta sobre grava mojada; trabaja a temperaturas más bajas.",
       "drawbacks": "Acumula más calor en seco por deformación del dibujo, con degradación de grip por sobretemperatura.",
@@ -220,7 +220,7 @@
       "visual_tread_color": "#22c55e",
       "for_gravel": false,
       "is_asphalt_tire": true,
-      "road_grip_scale": 1.12,
+      "road_grip_scale": 1.06,
       "loose_grip_scale": 0.72,
       "advantages": "Buen rendimiento en asfalto seco; respuesta direccional directa y ventana equilibrada.",
       "drawbacks": "Mayor sensibilidad al agua; menor ventana útil bajo lluvia; mayor pérdida de calor por agua.",
@@ -286,7 +286,7 @@
       "visual_tread_color": "#38bdf8",
       "for_gravel": false,
       "is_asphalt_tire": true,
-      "road_grip_scale": 1.08,
+      "road_grip_scale": 1.02,
       "loose_grip_scale": 0.76,
       "advantages": "Mejor respuesta sobre asfalto mojado; trabaja a temperaturas más bajas y evacua agua.",
       "drawbacks": "Acumula más calor en seco por deformación del dibujo, con degradación de grip por sobretemperatura.",
@@ -352,7 +352,7 @@
       "visual_tread_color": "#f59e0b",
       "for_gravel": false,
       "is_asphalt_tire": true,
-      "road_grip_scale": 0.78,
+      "road_grip_scale": 0.84,
       "loose_grip_scale": 0.62,
       "advantages": "Neumatico diagonal 6.95x14 de epoca (1967); progresivo en deriva.",
       "drawbacks": "Menor agarre maximo que radial moderno o slick; sensible a sobrecalentamiento.",
@@ -418,7 +418,7 @@
       "visual_tread_color": "#84cc16",
       "for_gravel": true,
       "is_asphalt_tire": true,
-      "road_grip_scale": 1.06,
+      "road_grip_scale": 1.0,
       "loose_grip_scale": 0.88,
       "advantages": "Crossover duro para especiales mixtas: rinde en asfalto y tolera tramos de grava. Muy durable y con ventana termica amplia.",
       "drawbacks": "Menos pico que el slick en asfalto puro y menos mordiente que el de grava en suelto; tarda en entrar en ventana con frio.",
@@ -485,7 +485,7 @@
       "visual_tread_color": "#0ea5e9",
       "for_gravel": true,
       "is_asphalt_tire": true,
-      "road_grip_scale": 1.02,
+      "road_grip_scale": 0.97,
       "loose_grip_scale": 0.92,
       "advantages": "Intermedio para mixtas con agua: evacua en asfalto y corta barro en grava mojada. Trabaja frio y dura mas en seco que el slick de lluvia.",
       "drawbacks": "Se calienta y desgasta en seco prolongado; menos pico que el slick seco en asfalto.",
@@ -615,10 +615,10 @@
             "lateral_grip_assist": 0.035
           },
           "Road": {
-            "friction": 1.2,
-            "stiffness": 10.0,
+            "friction": 1.05,
+            "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.05,
-            "lateral_grip_assist": 0.05,
+            "lateral_grip_assist": 0.02,
             "rolling_resistance": 1.0
           }
         },
@@ -716,10 +716,10 @@
             "lateral_grip_assist": 0.175
           },
           "Road": {
-            "friction": 1.2,
-            "stiffness": 10.0,
+            "friction": 1.05,
+            "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.04,
-            "lateral_grip_assist": 0.17,
+            "lateral_grip_assist": 0.07,
             "rolling_resistance": 1.0
           }
         },
@@ -797,8 +797,8 @@
           "lateral_grip_assist": 0.03
         },
         "Road": {
-          "friction": 1.35,
-          "stiffness": 12.0,
+          "friction": 1.05,
+          "stiffness": 3.2,
           "rolling_resistance": 1.0,
           "longitudinal_grip_ratio": 1.0,
           "lateral_grip_assist": 0.0
@@ -864,10 +864,10 @@
             "lateral_grip_assist": 0.035
           },
           "Road": {
-            "friction": 1.2,
-            "stiffness": 10.0,
+            "friction": 1.05,
+            "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.05,
-            "lateral_grip_assist": 0.05,
+            "lateral_grip_assist": 0.02,
             "rolling_resistance": 1.0
           }
         },
@@ -904,10 +904,10 @@
             "lateral_grip_assist": 0.175
           },
           "Road": {
-            "friction": 1.2,
-            "stiffness": 10.0,
+            "friction": 1.05,
+            "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.04,
-            "lateral_grip_assist": 0.17,
+            "lateral_grip_assist": 0.07,
             "rolling_resistance": 1.0
           }
         },

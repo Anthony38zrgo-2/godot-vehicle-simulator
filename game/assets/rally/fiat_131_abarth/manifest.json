@@ -1,0 +1,136 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "fiat_131_abarth",
+  "source": {
+    "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Fiat 131.fbx",
+    "texture": "fiat_131_abarth_alta.png",
+    "blender_version": "5.2.0 LTS",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Fiat 131.fbx",
+      "texture": "fiat_131_abarth_alta.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Piecewise-linear longitudinal fit to FIA Homologation No. 647 Group 4 wheelbase (2.490 m) and length (4.181 m) with wide Bertone Gr.4 arch width (1.758 m) preserved and 185/70 R15 gravel wheels (R=0.320 m, W=0.200 m).",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "conversion": "Blender Z-up rotated 180 deg around Z and exported with glTF +Y up",
+    "visual_physics_offset_metres": 0.0
+  },
+  "geometry": {
+    "wheelbase": 2.49,
+    "front_track": 1.461,
+    "rear_track": 1.46,
+    "front_axle_z": -1.245,
+    "rear_axle_z": 1.245
+  },
+  "chassis": {
+    "path": "fiat_131_abarth_chassis.glb",
+    "sha256": "d0a33b11cafc8bd4bf64e67c8897d7c3c6ab8fae578b3f9523339c20e546e265",
+    "size_bytes": 196920,
+    "exported_nodes": [
+      "Fiat131AbarthExterior"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "fiat_131_abarth_wheel_front_left.glb",
+      "sha256": "22edb7fabf1910a8f8cca469265ba8788efea4bc0ce4fd08247157699d0686d5",
+      "size_bytes": 147468
+    },
+    "front_right": {
+      "path": "fiat_131_abarth_wheel_front_right.glb",
+      "sha256": "1a8e16afc94465286bdc0b0c8e7f37484ac740179ffd22da81f85797032346b4",
+      "size_bytes": 147468
+    },
+    "rear_left": {
+      "path": "fiat_131_abarth_wheel_rear_left.glb",
+      "sha256": "719ef4d76ae8f131672dcf4c5f59cc1e9df6a27af89f550a6e34daeda361d680",
+      "size_bytes": 147468
+    },
+    "rear_right": {
+      "path": "fiat_131_abarth_wheel_rear_right.glb",
+      "sha256": "f01d4a343e1a3c11f129435377f5bcc51a860094b501f7da0ea96db0db76fef9",
+      "size_bytes": 147468
+    }
+  },
+  "collision": {
+    "path": "fiat_131_abarth_collision.json",
+    "sha256": "38834ffd24b4fc375f87112574fb9e3c41a91c1ecf9ce60ef7d9411dc9e5ed2c"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "tire_fl",
+      "center_metres": {
+        "x": -0.7305,
+        "y": 0.32,
+        "z": -1.245
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.2
+    },
+    "front_right": {
+      "blender_object": "tire_fr",
+      "center_metres": {
+        "x": 0.7305,
+        "y": 0.32,
+        "z": -1.245
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.2
+    },
+    "rear_left": {
+      "blender_object": "tire_rl",
+      "center_metres": {
+        "x": -0.73,
+        "y": 0.32,
+        "z": 1.245
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.2
+    },
+    "rear_right": {
+      "blender_object": "tire_rr",
+      "center_metres": {
+        "x": 0.73,
+        "y": 0.32,
+        "z": 1.245
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.2
+    }
+  },
+  "bounds_world_metres": {
+    "min_blender": [
+      -0.878779,
+      -2.265,
+      0.185
+    ],
+    "max_blender": [
+      0.878779,
+      1.916,
+      1.375
+    ],
+    "min_godot": [
+      -0.878779,
+      0.185,
+      -1.916
+    ],
+    "max_godot": [
+      0.878779,
+      1.375,
+      2.265
+    ]
+  },
+  "capabilities": {
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
+    "damage_variants": 0
+  }
+}

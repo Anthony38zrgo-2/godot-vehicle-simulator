@@ -416,6 +416,9 @@ def build_recipe(car: str, role: str, rel: str, base_rpm: int, sr_in: int, tilt_
             bells.append((1800.0, -1.0, 0.85))
         elif car == "stratos-rally-car":
             bells.append((220.0, -1.5, 0.85))
+        elif car == "fiat-131-abarth":
+            bells.append((220.0, -2.5, 0.9))
+            bells.append((900.0, +1.5, 0.75))
 
     elif role == "exhaust":
         if car == "mini-cooper":
@@ -438,6 +441,9 @@ def build_recipe(car: str, role: str, rel: str, base_rpm: int, sr_in: int, tilt_
         elif car == "stratos-rally-car":
             lowshelf = (95.0, -1.5)
             bells.append((220.0, -1.0, 0.85))
+        elif car == "fiat-131-abarth":
+            bells.append((220.0, -2.5, 0.9))
+            bells.append((900.0, +1.5, 0.75))
 
     return FilterRecipe(
         hpf_hz=hpf_hz,

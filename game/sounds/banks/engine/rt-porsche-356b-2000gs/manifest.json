@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "rt-porsche-356b-2000gs",
+  "type": "engine",
+  "source": {
+    "archive": "Porsche356bT6CoupeFTC_v30.rtp",
+    "credits": "KittX",
+    "rpm_references": "Sounds.ini"
+  },
+  "engine_position": [
+    0,
+    0.4,
+    0.8
+  ],
+  "exhaust_position": [
+    0,
+    0.1,
+    1.0
+  ],
+  "samples": [
+    {
+      "file": "FE_Idle1.wav",
+      "sha256": "4c6b996f3f4d837bc0558c463994da23195726d810ba0b910cad219712faecf5",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.2717233560090704,
+      "rms": 0.38730859709361837,
+      "gain": 0.4131
+    },
+    {
+      "file": "FE_2k1.wav",
+      "sha256": "70cd12664d0f5d6d78e9bcc3c03835ffbc1bd3d3178ba7fdef633c515a7dd792",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 1.0292743764172336,
+      "rms": 0.47010456376004955,
+      "gain": 0.3403
+    },
+    {
+      "file": "FE_4k1.wav",
+      "sha256": "327691e0d752120774e926b8b1f9da627b25b596ffc02e4ac324e81b6553a21a",
+      "rate_hz": 44100,
+      "channels": 1,
+      "seconds": 0.9474829931972789,
+      "rms": 0.48801740901414425,
+      "gain": 0.3279
+    },
+    {
+      "file": "FE_6k1.wav",
+      "sha256": "c667898b74574b2e7836c4730c1d33b521326b3b28aec07c743183d689e3dcba",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 0.8033106575963719,
+      "rms": 0.5548453319286478,
+      "gain": 0.2884
+    },
+    {
+      "file": "FX_Idle1.wav",
+      "sha256": "b9fe615dba40c9ef5475beeddf66b917abeff7ab4536837b1ac7641c7dc23bc0",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6201360544217687,
+      "rms": 0.24027383151738366,
+      "gain": 0.65
+    },
+    {
+      "file": "FX_2k1.wav",
+      "sha256": "916ea46a7fc9ed161638c1fa5c99abd26e5f96a20711e18a6b90445ef7f6bda2",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.7808616780045352,
+      "rms": 0.20920121448888418,
+      "gain": 0.65
+    },
+    {
+      "file": "FX_4k1.wav",
+      "sha256": "2b80f8b6327eed40f17d285f053c59db191a98b3789f7f93fbe49fa1c9a9de71",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.6200907029478457,
+      "rms": 0.4661616275307483,
+      "gain": 0.429
+    },
+    {
+      "file": "FX_6k1.wav",
+      "sha256": "6333e6de859ed215e9142beba530c5bc2e9aeac48f177a600413a982c0e9fd6d",
+      "rate_hz": 22050,
+      "channels": 1,
+      "seconds": 1.1862585034013606,
+      "rms": 0.5751336741366068,
+      "gain": 0.3477
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FE_Idle1.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 1500,
+      "mode": "idle",
+      "gain": 0.4131
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FE_2k1.wav",
+      "reference": 1500,
+      "lower": 1100,
+      "upper": 3000,
+      "mode": "drive",
+      "gain": 0.3403
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FE_4k1.wav",
+      "reference": 3000,
+      "lower": 1500,
+      "upper": 5000,
+      "mode": "drive",
+      "gain": 0.3279
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FE_6k1.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 7200,
+      "mode": "drive",
+      "gain": 0.2884
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FX_Idle1.wav",
+      "reference": 1100,
+      "lower": 0,
+      "upper": 1500,
+      "mode": "idle",
+      "gain": 0.65
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FX_2k1.wav",
+      "reference": 1500,
+      "lower": 1100,
+      "upper": 3000,
+      "mode": "drive",
+      "gain": 0.65
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FX_4k1.wav",
+      "reference": 3000,
+      "lower": 1500,
+      "upper": 5000,
+      "mode": "drive",
+      "gain": 0.429
+    },
+    {
+      "path": "res://sounds/banks/engine/rt-porsche-356b-2000gs/FX_6k1.wav",
+      "reference": 5000,
+      "lower": 3000,
+      "upper": 7200,
+      "mode": "drive",
+      "gain": 0.3477
+    }
+  ]
+}

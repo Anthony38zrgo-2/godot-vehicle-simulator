@@ -18,7 +18,15 @@
       "physics_policy": "game_derived"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Renault Alpine.fbx",
+      "texture": "renault_alpine_a110_alta.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -28,29 +36,32 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "323c56dedc888be7aa41a9ba8c8fef4fd96b530319a9bd4de5690ea178ee66ea",
-    "size_bytes": 1345708
+    "sha256": "583005d5bddae0876c73ac54d0069ec9c83aaeb56ae75321cc4d1a3968d7a6c4",
+    "size_bytes": 169072,
+    "exported_nodes": [
+      "AlpineA110Exterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "3aa434a5ca1c7655108b5e850ef7b6435db9afa1bd6db120caa0617b37e64932",
-      "size_bytes": 60356
+      "sha256": "be10fc7742c8f5c12c96611d1472c60cc71cfef3188c1e5ce24fcc40ec61c389",
+      "size_bytes": 118804
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "f181c9914198ca75c15d3a5ff00ce0a78572ccdf620843be60f20ff896e5474e",
-      "size_bytes": 60352
+      "sha256": "4c6f553041864c326e4d2103f2d53feebac46105bd61d555d413ee9e58abb1e8",
+      "size_bytes": 118804
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "e2181b587e4e7098b935c9f9e7f6d398cc65571b983607e2350ce52db5438b28",
-      "size_bytes": 60356
+      "sha256": "b19f8343e90ba86197962ffeffd05124689f5cc964ad8aa82d86f4f7d54b4191",
+      "size_bytes": 118796
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "4c922063fc4b3e50c1ebc4b0232de22651f75258dc497201263c39872913290d",
-      "size_bytes": 60352
+      "sha256": "5c7dcc2070d853c7c3f49d53f33e4440a362670effb16d6c8d937f1be001bc54",
+      "size_bytes": 118796
     }
   },
   "wheel_pivots": {
@@ -136,11 +147,11 @@
     "native_wheelbase_m": 2.0999999046325684
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
   "warnings": []
 }

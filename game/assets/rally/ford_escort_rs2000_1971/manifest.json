@@ -41,6 +41,14 @@
       ],
       "roof": "one-sided liner derived from the actual high-detail body roof, inset 8 mm",
       "glass": "existing body window material made double-sided; no additional inner rear glass shell"
+    },
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Ford Escort RS1800 with lights.fbx",
+      "texture": "ford_escort_RS1800_alta.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
     }
   },
   "coordinate_system": {
@@ -54,80 +62,41 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "a9892591b44b9bf94b8d2ec48ad48fee93693dd35d65faba0f53651addf98db6",
-    "size_bytes": 1429256,
-    "source_objects": [
-      "body",
-      "co_Driver_co_driver_head",
-      "co_Driver_Surface1",
-      "co_Driver_Surface2",
-      "Driver_driver_body",
-      "Driver_driver_head",
-      "DriverArm_left_frame09",
-      "DriverArm_right_frame09",
-      "hood",
-      "indicator_rpm",
-      "indicator_speed",
-      "interior_hi",
-      "interior_rear_roll_cage",
-      "interior_roof",
-      "seat_co_driver",
-      "seat_driver",
-      "steering_wheel_hi",
-      "trunk",
-      "wipers"
-    ],
+    "sha256": "22bc7e2051de686ddb3a3756a8413cbdea5f7770a19d882a5be5a0f20f9b43d9",
+    "size_bytes": 188932,
     "exported_nodes": [
-      "body",
-      "co_Driver_co_driver_head",
-      "co_Driver_Surface1",
-      "co_Driver_Surface2",
-      "Driver_driver_body",
-      "Driver_driver_head",
-      "DriverArm_left_frame09",
-      "DriverArm_right_frame09",
-      "hood",
-      "indicator_rpm",
-      "indicator_speed",
-      "interior_hi",
-      "interior_rear_roll_cage",
-      "interior_roof",
-      "seat_co_driver",
-      "seat_driver",
-      "steering_wheel_hi",
-      "trunk",
-      "wipers"
+      "EscortRS1800Exterior"
     ]
   },
   "wheels": {
     "front_left": {
       "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
-      "sha256": "d47be7077da80fa3c8064263da3a9d4cb3d8645f9922a9d8578c51b913cd569e",
-      "size_bytes": 66372,
+      "sha256": "832edb9e2a8b3c4980c49b5cf2324f91251377f05a630bedfcabc24cebb7a3f0",
+      "size_bytes": 125588,
       "source_object": "tire_fl",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "front_right": {
       "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
-      "sha256": "a732466a73bd3650de916956f77b0d78bc8b83f1c4fb4147d91b060ab80c25c8",
-      "size_bytes": 66372,
+      "sha256": "3fa2455a2447c3c85dabbe3e747bec199340935bf351cfa879d7dbfa198d17a5",
+      "size_bytes": 125588,
       "source_object": "tire_fr",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "rear_left": {
       "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
-      "sha256": "1ba25fbd3db65556ff168d955b2d6034c0d7e276fbefabbf0a6e6096e309a1c6",
-      "size_bytes": 66368,
+      "sha256": "8c82638acd06721b575144efe6465b322dfc31edfb0af876db63a747f0297c20",
+      "size_bytes": 125588,
       "source_object": "tire_rl",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "rear_right": {
       "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
-      "sha256": "b6040f7b6931cf1c02f528789152090a744bc5febb258dd1b25c63d046902a84",
-      "size_bytes": 66368,
+      "sha256": "14f3fa8b060b272e9aab431527593e3dde2f38d9ca1a8c2e4570ee553e920eff",
+      "size_bytes": 125588,
       "source_object": "tire_rr",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"

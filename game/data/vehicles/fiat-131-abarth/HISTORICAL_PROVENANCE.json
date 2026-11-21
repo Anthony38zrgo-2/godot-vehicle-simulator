@@ -1,0 +1,46 @@
+{
+  "vehicle": "Fiat Abarth 131 Rally (FIA Group 4, Homologation No. 647)",
+  "sources": [
+    {
+      "id": "FIA Form 647 (Group 4, 1976-04-02)",
+      "facts": [
+        "1,995 cc I4 DOHC 16V Lampredi engine (Tipo 232CIG), dry sump, Kugelfischer mechanical injection",
+        "Length 4,181 mm, Group 4 Bertone flared width 1,720 mm base (~1.758 m wide tarmac/rally flares), wheelbase 2,489-2,490 mm",
+        "Tracks 1,461 mm front / 1,397 mm base (1,460-1,492 mm Group 4 rally evolution), quick rack 2.85 turns lock-to-lock",
+        "Independent rear MacPherson/Chapman strut + semi-trailing arm IRS replacing stock live axle",
+        "CIMA 5-speed straight-cut dog-box ratios [3.612, 2.045, 1.357, 1.000, 0.870] incl. 33/26 primary; reverse 3.244; 8/41 (5.125) gravel final drive",
+        "230-240 CV @ 7,000-7,500 rpm, 225-230 Nm @ 5,600 rpm; unassisted vented discs 300x28 mm front / 254x20 mm rear; 60 L FIA safety cell; 15-inch Cromodora wheels"
+      ]
+    }
+  ],
+  "estimated": [
+    "Group 4 competition mass budget set to 1,035 kg excluding 4x20 kg wheels and including 150 kg crew (matches ~965 kg uncrewed rally trim + crew/spares)",
+    "Component inertias, ~52:48 F/R balance, Bilstein damper curves, tire/thermal/cooling coefficients and Cd 0.46 / 2.22 m^2 aerodynamics are engineering estimates calibrated to rally Gr.4 specs",
+    "Visual exterior derived from RallyManiacAssets Fiat 131.fbx + high-res fiat_131_abarth_alta.png PBR without PSX finish and fitted piecewise-linearly to 2.490 m wheelbase / 4.181 m length"
+  ],
+  "shared_calibration": [
+    "coupled_world",
+    "damage",
+    "driving_assistance",
+    "steering",
+    "suspension_filters",
+    "underfloor_contact"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "72b1bbb96a8a523de1c1c52c7669d6448acb97df1b4e3c2498d552b21aab7588",
+    "brakes.json": "e40e44aebc6d46405f2ac29a7b8bf50b743ba75be163d9d48cb0abbfc56f6501",
+    "chassis.json": "780aa0f4d637dc79332cba6c37eab8c59c7ee44325166ad9d0e4b281a15d21ad",
+    "coupled_world.json": "91a4df08492ab451662be98674f286589d1614546d179fe1e0113dc5e52d8803",
+    "damage.json": "533feebf57a1a33643bb651b282d9caeb2dbb975b6465b627b8f8453cf18dbdd",
+    "driving_assistance.json": "8224d6be0f4aa5b7eadeba843b6012d3841d0da0f75249ee857efcc4eeb8bf6d",
+    "fuel.json": "950b5a355dd35cf8466e652600d6fc62eefe2599d0a2dc5f6ea7961e82956d81",
+    "powertrain.json": "8504c10201be3fd642dc077188bf3bf184b7702cebf8c4ec207520a205575f18",
+    "steering.json": "535b6cd3837095be99005a499e696add0b89533e8d3bfdbfbc3f16e75975cd37",
+    "suspension.json": "cdb404f5fac3e53cd0790996541532a3eb41c14bf8cd44858faca24b86591bec",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "c947b97842554faff20a5e787823ca35edbdb623359b84172be7f25f420b4f51",
+    "underfloor_contact.json": "b50ecf6a58df1f393bafa8fe96266f8acfe36e7baaff40a26a3dfa55fd11de85",
+    "vehicle.json": "cc6da5a07ce9a18eeb4095908350d6fa0140801db9dde4b3ace647526c802d12"
+  },
+  "audio_source": "Dedicated GT3 bank gt3-bank/fiat-131-abarth built from separate engine and exhaust_normal1_turbo1 samples of bank 33406 (2.0L L4 DOHC 16V NA, 8 engine layers 1000-8000 rpm) + shared res://sounds/banks/commons/ audio for whine, backfire, shifts, and environment."
+}

@@ -134,6 +134,18 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
     },
+    "rt-porsche-356b-2000gs": {
+      "Id": "rt-porsche-356b-2000gs",
+      "Assets": "rt/rt-porsche-356b-2000gs",
+      "Profile": "rt/rt-porsche-356b-2000gs",
+      "Scene": "rt/rt-porsche-356b-2000gs",
+      "Stage": "rt/rt-porsche-356b-2000gs_stage",
+      "Proving": "rt/rt-porsche-356b-2000gs_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "engine/rt-porsche-356b-2000gs",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Porsche 356B Carrera 2"
+    },
     "f10070": {
       "Id": "ford_f100_1970",
       "Assets": "ford_f100_1970",
@@ -157,6 +169,18 @@
       "SoundBank": "gt3-bank/v8-1967",
       "ValidateSoundHashes": true,
       "DisplayName": "Ford Mustang 1967 (289-2V)"
+    },
+    "fiat131": {
+      "Id": "fiat_131_abarth",
+      "Assets": "fiat_131_abarth",
+      "Profile": "fiat-131-abarth",
+      "Scene": "fiat_131_abarth",
+      "Stage": "russia_stage1_fiat_131_abarth",
+      "Proving": "fiat_131_abarth_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/fiat-131-abarth",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Fiat 131 Abarth Gr.4"
     }
   }
 }

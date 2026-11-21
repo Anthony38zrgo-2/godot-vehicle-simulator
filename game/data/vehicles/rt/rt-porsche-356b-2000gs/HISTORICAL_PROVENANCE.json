@@ -1,0 +1,31 @@
+{
+  "vehicle_identifier": "rt-porsche-356b-2000gs",
+  "base_profile": "rt-porsche-356a",
+  "retained_domains": [
+    "aerodynamics",
+    "brakes",
+    "chassis",
+    "coupled_world",
+    "damage",
+    "driving_assistance",
+    "fuel",
+    "powertrain",
+    "steering",
+    "suspension",
+    "suspension_filters",
+    "tire_filters",
+    "tires",
+    "underfloor_contact"
+  ],
+  "engine": {
+    "source": "Backup Porsche 356B 2000 GS powertrain",
+    "fields": [
+      "idle_rpm",
+      "max_rpm",
+      "max_torque",
+      "motor_moment",
+      "torque_curve"
+    ]
+  },
+  "visual": "Porsche 356B T6 FTC with FIA 71 dimensions"
+}

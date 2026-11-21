@@ -687,6 +687,76 @@
           "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
         }
       ]
+    },
+    "fiat_131_abarth": {
+      "default_preset_id": "fiat131_tierra",
+      "presets": [
+        {
+          "id": "fiat131_tierra",
+          "label": "Tierra",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "ZF Grupo 4 (puente independiente Fiat 131 Abarth)",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 35,
+            "coast": 60
+          },
+          "bench_preload_nm": {
+            "min": 60,
+            "max": 85,
+            "initial_simulation_seed": 70.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 65,
+            "coast": 30
+          },
+          "historical_confidence": "documented_family_ramp_seed_estimated",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        },
+        {
+          "id": "fiat131_asfalto",
+          "label": "Asfalto",
+          "type": "clutch_lsd",
+          "supplier_or_family": "ZF",
+          "model_reference": "ZF Grupo 4 (puente independiente Fiat 131 Abarth)",
+          "active_friction_surfaces": 4,
+          "physical_disc_count": 8,
+          "ramp_deg": {
+            "power": 40,
+            "coast": 75
+          },
+          "bench_preload_nm": {
+            "min": 45,
+            "max": 65,
+            "initial_simulation_seed": 55.0
+          },
+          "reported_nominal_lock_pct": {
+            "power": 45,
+            "coast": 15
+          },
+          "historical_confidence": "documented_family_ramp_seed_estimated",
+          "calibration_status": "pending",
+          "enabled": true,
+          "simulation_calibration": {
+            "friction_mu_power": null,
+            "friction_mu_coast": null,
+            "ramp_gain": null
+          },
+          "calibration_note": "Hasta calibracion: conservar coeficientes power/coast existentes del perfil base, usar rampas/caracteristicas del preset y semilla de precarga solo como aproximacion."
+        }
+      ]
+    },
+    "fiat-131-abarth": {
+      "alias_of": "fiat_131_abarth"
     }
   }
 }

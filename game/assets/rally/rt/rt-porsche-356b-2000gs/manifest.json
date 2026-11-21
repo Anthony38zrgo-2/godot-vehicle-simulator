@@ -1,0 +1,116 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "rt-porsche-356b-2000gs",
+  "source": {
+    "source_blend": "Porsche_356B_T6_Coupe_FTC_Medidas_FIA71.blend",
+    "credits": "sharpo and Bugbear"
+  },
+  "coordinate_system": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "c7f75919a838808a2033b8a3932ae86bc75c87dc12d0cd2e71aff31d588990d8",
+    "size_bytes": 858248,
+    "texture": {
+      "image": "chassis_FTC_PSX.png",
+      "resolution": [
+        512,
+        512
+      ],
+      "filter": "nearest",
+      "color": "RGB555",
+      "tool": "ps1kit ps1",
+      "paint_finish": "Shared green base, reduced baked shading, RGB555 without dithering on paint"
+    }
+  },
+  "wheels": {
+    "front_left": {
+      "path": "wheel_front_left.glb",
+      "sha256": "cfff7ba2dd74b42c52c598a46a3b414be2795b1de22a0311d4404b4ae02ed203",
+      "size_bytes": 72924
+    },
+    "front_right": {
+      "path": "wheel_front_right.glb",
+      "sha256": "b157d28ce4c3a172831e23f3c681d500b712794753cd179acd9e5ab325f51a31",
+      "size_bytes": 69580
+    },
+    "rear_left": {
+      "path": "wheel_rear_left.glb",
+      "sha256": "de625db626f1f1219830f77a0c35dc7397a4a77cfe2d667e474389c32ae614de",
+      "size_bytes": 72836
+    },
+    "rear_right": {
+      "path": "wheel_rear_right.glb",
+      "sha256": "4a56b4c3840c609e97a3eb94ee8ca12f0499a484c9bc9955507efb3d3062ebd3",
+      "size_bytes": 69448
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.652999997138977,
+        "y": 0.3225000202655792,
+        "z": -1.0499998331069946
+      },
+      "radius_metres": 0.3225,
+      "width_metres": 0.165
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.652999997138977,
+        "y": 0.3225000202655792,
+        "z": -1.0499998331069946
+      },
+      "radius_metres": 0.3225,
+      "width_metres": 0.165
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.6359999179840088,
+        "y": 0.3225000202655792,
+        "z": 1.0499999523162842
+      },
+      "radius_metres": 0.3225,
+      "width_metres": 0.165
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.6359997987747192,
+        "y": 0.322500079870224,
+        "z": 1.0500001907348633
+      },
+      "radius_metres": 0.3225,
+      "width_metres": 0.165
+    }
+  },
+  "geometry": {
+    "wheelbase": 2.1,
+    "front_axle_z": -1.05,
+    "rear_axle_z": 1.05,
+    "front_track": 1.306,
+    "rear_track": 1.272
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.8349999785423279,
+      0.14000000059604645,
+      -1.8902308940887451
+    ],
+    "max_godot": [
+      0.8349999785423279,
+      1.3200000524520874,
+      2.0997514724731445
+    ]
+  },
+  "capabilities": {
+    "cockpit": false
+  },
+  "collision": {
+    "path": "collision.json",
+    "sha256": "1d1891997b3cdac8b74850b425f2df67aa5b0cf81d1debfaec11821429bf992c"
+  }
+}
