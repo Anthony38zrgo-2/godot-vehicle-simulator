@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode fog_disabled, specular_disabled;
+render_mode fog_disabled;
 
 #include "res://scripts/rally/cdi_terrain_layers.gdshaderinc"
 #include "res://scripts/rally/cdi_ticlio_snow.gdshaderinc"
@@ -46,19 +46,22 @@ void fragment() {
 	}
 	ALBEDO *= terrain_macro_tone(p.xz);
 	float road_roughness = 0.95;
+	float road_specular = 0.0;
 	if (terrain_mode == 2 && procedural_surface_enabled) {
 		vec3 proc = proc_sample_surface(UV2.y, UV.x);
-		float gravel_wet = 1.0 - 0.24 * proc.x;
+		float gravel_wet = 1.0 - 0.36 * proc.x;
 		vec3 gravel_lit = ALBEDO * gravel_wet;
 		vec3 snow_patch = mix(vec3(0.72, 0.75, 0.78), vec3(0.84, 0.86, 0.88), fine);
 		gravel_lit = mix(gravel_lit, snow_patch, proc.y * 0.76);
 		float ice_glaze = proc.z * (1.0 - proc.y * 0.82);
 		gravel_lit = mix(gravel_lit, mix(gravel_lit * 1.08, vec3(0.70, 0.80, 0.90), 0.34), ice_glaze);
 		ALBEDO = gravel_lit;
-		road_roughness = mix(mix(0.95, 0.42, proc.x), 0.18, ice_glaze);
+		road_roughness = mix(mix(0.95, 0.32, proc.x), 0.18, ice_glaze);
+		road_specular = mix(mix(0.0, 0.56, smoothstep(0.02, 0.75, proc.x)) * (1.0 - proc.y * 0.85), 0.65, ice_glaze);
 	} else if (terrain_mode != 2) {
 		float ditch = terrain_mode == 1 ? 1.0 - smoothstep(0.24, 0.73, UV2.x) : 0.0;
 		ALBEDO = ticlio_winter_ground(ALBEDO, p, n, length(VERTEX), ditch);
 	}
 	ROUGHNESS = road_roughness;
+	SPECULAR = road_specular;
 }

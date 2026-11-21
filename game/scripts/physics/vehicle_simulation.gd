@@ -411,7 +411,7 @@ func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 
 func _local_conditions_base(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
-		"water_mm": 0.0, "snow_mm": 0.0, "ice_mm": 0.0, "snow_coverage": -1.0, "ice_coverage": -1.0,
+		"water_mm": 0.0, "background_water_mm": 0.0, "snow_mm": 0.0, "ice_mm": 0.0, "snow_coverage": -1.0, "ice_coverage": -1.0,
 		"surface_name": surface_name, "puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
 	if weather_controller != null and weather_controller.get("calendar_active"):
 		var weather: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, position) if loaded else weather_controller.current_blend
@@ -423,6 +423,7 @@ func _local_conditions_base(surface_name: String, position: Vector3, loaded: boo
 		local["water_mm"] = practice_water_mm
 		local["snow_mm"] = practice_snow_mm
 		local["irradiance_w_m2"] = practice_irradiance_w_m2
+	local["background_water_mm"] = maxf(float(local.get("water_mm", 0.0)), 0.0)
 	return local
 
 
@@ -437,6 +438,8 @@ func _apply_water_overlays_to_local(
 	river_drag: float,
 	river_channel_id: String,
 ) -> Dictionary:
+	if not local.has("background_water_mm"):
+		local["background_water_mm"] = maxf(float(local.get("water_mm", 0.0)), 0.0)
 	if has_puddle:
 		local["puddle_depth_mm"] = puddle_depth
 		local["puddle_drag"] = puddle_drag
@@ -1621,6 +1624,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var thermal_vx: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_fy: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var background_water: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_snow: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_ice: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var thermal_snow_cov: Array[float] = [-1.0, -1.0, -1.0, -1.0]
@@ -1631,6 +1635,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 
 	var has_puddles: bool = is_instance_valid(puddle_system)
 	var has_rivers: bool = is_instance_valid(river_system)
+	var has_winter_patches: bool = has_puddles and bool(puddle_system.get("has_winter_patches"))
 	var use_puddle_batch: bool = has_puddles and puddle_system.has_method(&"sample_4wheels")
 	var use_river_batch: bool = has_rivers and river_system.has_method(&"sample_4wheels")
 	var puddle_batch := PackedFloat32Array()
@@ -1671,11 +1676,20 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			local = _apply_water_overlays_to_local(local, surface_str, batch_has_p, batch_p_depth, batch_p_drag, batch_has_r, batch_r_depth, batch_r_drag, batch_r_ch)
 		else:
 			local = _local_conditions_at_contact(surface_str, contact_pos, loaded_contact)
+		if has_winter_patches and loaded_contact:
+			var winter: Vector2 = puddle_system.sample_winter_patch(contact_pos)
+			if winter.x > 0.0:
+				local["snow_mm"] = maxf(float(local.get("snow_mm", 0.0)), winter.x)
+				local["snow_coverage"] = maxf(float(local.get("snow_coverage", 0.0)), smoothstep(0.0, 3.5, winter.x))
+			if winter.y > 0.0:
+				local["ice_mm"] = maxf(float(local.get("ice_mm", 0.0)), winter.y)
+				local["ice_coverage"] = maxf(float(local.get("ice_coverage", 0.0)), smoothstep(0.0, 1.8, winter.y))
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
 		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
 		last_puddle_depths_mm[i] = current_puddle_depth
 		local["puddle_depth_rate"] = depth_rate
 		thermal_water[i] = float(local.get("water_mm", 0.0))
+		background_water[i] = float(local.get("background_water_mm", thermal_water[i]))
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
 		thermal_ice[i] = float(local.get("ice_mm", 0.0))
 		thermal_snow_cov[i] = float(local.get("snow_coverage", -1.0))
@@ -1814,9 +1828,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var longitudinal_speed := point_velocity.dot(forward)
 			var lateral_speed := point_velocity.dot(right)
 			var thermal_state := tire_thermal_states[i]
-			var puddle_here := float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
-			var thin_water := maxf(thermal_water[i] - puddle_here, 0.0)
-			var local_water := thin_water
+			var local_water := background_water[i]
 			var local_snow := thermal_snow[i]
 			var local_ground := thermal_ground[i]
 			tire_model.rotate_patch_frame(i, forward, right)
@@ -1843,8 +1855,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var mz := float(tire_result.get("aligning_torque_nm", 0.0))
 			var flat_drag := -clampf(longitudinal_speed, -1.0, 1.0) * normal_load * 0.045 * float(thermal_state.pressure_loss_fraction)
 			var puddle_depth_here: float = float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
-			var sup_x: float = 1.0
-			var sup_y: float = 1.0
+			var eff_sup_x: float = 1.0
+			var eff_sup_y: float = 1.0
 			var drag_n: float = 0.0
 			var steering_pull_mag: float = 0.0
 			var hydro_wheel_torque_mag: float = 0.0
@@ -1861,16 +1873,18 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 						float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
 						wheel_radii[i]
 					)
-					sup_x = pres[1]
-					sup_y = pres[2]
+					if normal_load > 1e-4:
+						var wf_bg := maxf(float(tire_model.states[i]["compound_water_factor"]), 0.05)
+						eff_sup_x = minf(wf_bg, pres[1]) / wf_bg
+						eff_sup_y = minf(wf_bg, pres[2]) / wf_bg
 					drag_n = pres[3]
 					hydro_wheel_torque_mag = pres[6]
 					steering_pull_mag = pres[7]
-			last_local_conditions[i]["puddle_support"] = sup_x
+			last_local_conditions[i]["puddle_support"] = eff_sup_x
 			last_local_conditions[i]["puddle_drag_n"] = drag_n
-			fx *= sup_x
-			fy *= sup_y
-			mz *= sup_y
+			fx *= eff_sup_x
+			fy *= eff_sup_y
+			mz *= eff_sup_y
 			if i < 2:
 				var puddle_pull := 0.0
 				if drag_n > 0.0:
@@ -1897,7 +1911,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				float(tire_result.get("slip_ratio", 0.0)),
 				float(tire_result.get("slip_angle_rad", 0.0)),
 			)
-			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * sup_x
+			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * eff_sup_x
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
 			var hydro_wheel_torque: float = (hydro_wheel_torque_mag if puddle_depth_here > 0.001 else 0.0) * signf(longitudinal_speed)
 			var raw_tire_torque := (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
@@ -2036,6 +2050,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"effective_slip_angle_rad": float(tire_model.states[index].get("effective_slip_angle", 0.0)),
 				"puddle_depth_mm": float(last_local_conditions[index].get("puddle_depth_mm", 0.0)),
 				"water_mm": float(last_local_conditions[index].get("water_mm", 0.0)),
+				"background_water_mm": float(last_local_conditions[index].get("background_water_mm", 0.0)),
 				"puddle_support": float(last_local_conditions[index].get("puddle_support", 1.0)),
 				"puddle_drag_n": float(last_local_conditions[index].get("puddle_drag_n", 0.0)),
 				"patch_pos": tire_model.states[index].patch_pos,

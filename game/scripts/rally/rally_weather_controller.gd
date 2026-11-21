@@ -129,6 +129,7 @@ func configure_five_sector_snapshot(
 	effective_abs_seconds: float = -1.0,
 	surface_type: String = "asphalt",
 	regime_override: String = "",
+	water_retention_override: int = -1,
 ) -> bool:
 	error = ""
 	stage_id = for_stage_id
@@ -146,6 +147,7 @@ func configure_five_sector_snapshot(
 		effective_abs_seconds,
 		surface_type,
 		regime_override,
+		water_retention_override,
 	)
 	if not bool(built.get("ok", false)):
 		error = str(built.get("error", "Fallo al configurar clima de cinco sectores"))
@@ -199,6 +201,20 @@ func sector_summary() -> Array:
 	return []
 
 
+func water_retention_status() -> Dictionary:
+	if five_sector_snapshot_active and procedural_atmosphere != null and procedural_atmosphere.has_method("water_retention_status"):
+		var res: Variant = procedural_atmosphere.call("water_retention_status")
+		return res as Dictionary if res is Dictionary else {"ok": false}
+	return {"ok": false, "enabled": false, "active": false}
+
+
+func inspect_water_retention_profile(step_m: float = 25.0) -> Dictionary:
+	if five_sector_snapshot_active and procedural_atmosphere != null and procedural_atmosphere.has_method("inspect_water_retention_profile"):
+		var res: Variant = procedural_atmosphere.call("inspect_water_retention_profile", step_m)
+		return res as Dictionary if res is Dictionary else {"ok": false}
+	return {"ok": false}
+
+
 func local_surface_state_at_distance(distance: float, lateral_t: float = 0.0) -> Dictionary:
 	if not calendar_active or not surface.valid:
 		return {}
@@ -211,10 +227,23 @@ func procedural_telemetry(step_m: float = 250.0) -> Dictionary:
 	return surface.telemetry_profile(step_m)
 
 
+func uses_localized_road_ice() -> bool:
+	return five_sector_snapshot_active and stage_id in ["cdi_stage1", "cdi_stage4"]
+
+
 func surface_field_packet(known_revision: int = -1) -> Dictionary:
 	if not procedural_active:
 		return {"ok": false}
-	return surface.surface_field_packet(known_revision)
+	var packet := surface.surface_field_packet(known_revision)
+	# Keep the native reserves available for preparing the localized patches.
+	if uses_localized_road_ice() and packet.has("rgba8"):
+		var pixels: PackedByteArray = packet["rgba8"]
+		for i in range(0, pixels.size(), 4):
+			if stage_id == "cdi_stage1":
+				pixels[i + 1] = 0
+			pixels[i + 2] = 0
+		packet["rgba8"] = pixels
+	return packet
 
 
 func _read_json(path: String) -> Dictionary:
@@ -453,6 +482,13 @@ func local_conditions_for_contact(surface_name: String, vehicle_pos: Vector3) ->
 					var signed_lat := Vector2(vehicle_pos.x - proj.x, vehicle_pos.z - proj.z).dot(right)
 					lateral_t = clampf(signed_lat / maxf(procedural_road_half_width_m, 0.5), -1.0, 1.0)
 	var st := surface.blended_state_at_distance(distance, lateral_t)
+	if five_sector_snapshot_active and stage_id == "cdi_stage1":
+		st["snow_mm"] = 0.0
+		st["snow_mm_effective"] = 0.0
+		st["snow_coverage"] = 0.0
+	if uses_localized_road_ice():
+		st["ice_mm"] = 0.0
+		st["ice_coverage"] = 0.0
 	st["surface_name"] = surface_name
 	st["procedural_active"] = procedural_active
 	if not st.has("water_mm_effective"):
@@ -594,7 +630,7 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 								float(visual.get("snow_far_fade_end_m", 45.0)),
 								Color(1.0, 1.0, 1.0),
 							)
-						particles.amount = 400
+						particles.amount = 500 if kind == "snow" else 400
 						tca_controller.add_child(particles)
 				if particles != null:
 					emitters[kind] = particles

@@ -104,6 +104,7 @@ static func build_five_sector_snapshot_for_stage(
 	effective_abs_seconds: float = -1.0,
 	surface_type: String = "asphalt",
 	regime_override: String = "",
+	water_retention_override: int = -1,
 ) -> Dictionary:
 	var cfg := resolve_procedural_climate_config(stage_id)
 	if cfg.is_empty():
@@ -138,6 +139,22 @@ static func build_five_sector_snapshot_for_stage(
 	var res := res_var as Dictionary
 	if not bool(res.get("ok", false)):
 		return {"ok": false, "error": str(res.get("error", "Error de configuracion RustFiveSectorWeather"))}
+	var wr_cfg_v: Variant = cfg.get("water_retention_profile", {})
+	var wr_cfg: Dictionary = wr_cfg_v as Dictionary if wr_cfg_v is Dictionary else {}
+	var wr_enabled := bool(cfg.get("local_water_retention_enabled", wr_cfg.get("enabled", false)))
+	if water_retention_override == 0:
+		wr_enabled = false
+	elif water_retention_override == 1:
+		wr_enabled = true
+	if wr_enabled and engine.has_method("set_local_water_retention"):
+		var wr_var: Variant = engine.call("set_local_water_retention", true)
+		if wr_var is Dictionary:
+			var wr_dict := wr_var as Dictionary
+			res["water_retention"] = wr_dict
+			if not bool(wr_dict.get("valid", false)):
+				push_warning("Retencion local de agua desactivada en %s: %s" % [stage_id, str(wr_dict.get("diagnostic", "perfil invalido"))])
+	else:
+		res["water_retention"] = {"ok": true, "enabled": false, "active": false}
 	return {
 		"ok": true,
 		"mode": "five_sector_snapshot",

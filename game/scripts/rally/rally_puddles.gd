@@ -89,6 +89,7 @@ static var _mask_images: Dictionary = {}
 
 var use_rust_backend: bool = true
 var fixed_snapshot_mode: bool = false
+var has_winter_patches: bool = false
 var provider = null
 var sky_node: Node
 var wetness_node: Node
@@ -607,25 +608,77 @@ func apply_fixed_snapshot_fills() -> bool:
 		"compute_puddle_fills", _cand_distances, _cand_twis, _cand_min_waters, _cand_retentions
 	)
 	var count := patches.size()
+	var localized_ice: bool = provider.has_method("uses_localized_road_ice") and provider.call("uses_localized_road_ice")
+	var localized_snow := str(provider.get("stage_id")) == "cdi_stage1"
+	has_winter_patches = false
 	if _rust_fills.size() != count:
 		_rust_fills.resize(count)
 	for i in count:
 		var fill := fills[i] if i < fills.size() else 0.0
 		var patch: Dictionary = patches[i]
+		var winter_kind := 0
+		var winter_depth_mm := 0.0
+		if localized_ice:
+			var surface: Dictionary = provider.local_surface_state_at_distance(_cand_distances[i])
+			var snow_mm := float(surface.get("snow_mm", 0.0))
+			var ice_mm := float(surface.get("ice_mm", 0.0))
+			var water_mm := float(surface.get("water_mm", 0.0))
+			var retention := _cand_retentions[i]
+			# Deep basins shelter snow earlier than shallow, exposed hollows.
+			var shelter := smoothstep(5.0, 48.0, float(patch.depth_mm))
+			var snow_threshold_mm := lerpf(5.0, 1.5, shelter)
+			if localized_snow and snow_mm * retention >= snow_threshold_mm:
+				winter_kind = 1
+				winter_depth_mm = clampf(snow_mm * retention, 0.0, 30.0)
+			elif float(surface.get("ground_c", 1.0)) <= 0.0 and ice_mm > water_mm and ice_mm >= snow_mm:
+				# Frozen water has to clear this basin's activation threshold.
+				var basin_ice_mm := ice_mm * (0.85 + 1.15 * clampf(_cand_twis[i], 0.0, 1.5))
+				var ice_fill := clampf((basin_ice_mm - _cand_min_waters[i]) * retention / 2.2, 0.0, 1.0)
+				if ice_fill > 0.005:
+					winter_kind = 2
+					winter_depth_mm = minf(ice_fill * float(patch.depth_mm), 6.0)
+		if winter_kind != 0:
+			fill = 0.0
+			has_winter_patches = true
+		patch["winter_kind"] = winter_kind
+		patch["winter_depth_mm"] = winter_depth_mm
 		patch["fill"] = fill
 		_rust_fills[i] = fill
 		var mesh := patch["mesh"] as MeshInstance3D
-		var filled := fill > 0.005
+		var filled := fill > 0.005 or winter_kind != 0
 		if mesh != null and mesh.visible != filled:
 			mesh.visible = filled
 		var mat := patch["material"] as ShaderMaterial
 		if mat != null:
 			mat.set_shader_parameter("fill", fill)
+			mat.set_shader_parameter("winter_kind", winter_kind)
+			mat.set_shader_parameter("winter_depth_mm", winter_depth_mm)
 	if _rust_field != null:
 		_rust_field.call("update_fills", _rust_fills)
 	fixed_snapshot_mode = true
 	_refresh_visible_reflections_only()
 	return true
+
+
+func sample_winter_patch(position: Vector3) -> Vector2:
+	var depths := Vector2.ZERO
+	var key := Vector2i(floori(position.x / 16.0), floori(position.z / 16.0))
+	for patch: Dictionary in buckets.get(key, []):
+		var kind := int(patch.get("winter_kind", 0))
+		if kind == 0:
+			continue
+		var local: Vector3 = (patch.transform as Transform3D).affine_inverse() * position
+		if absf(local.y) > 0.20:
+			continue
+		var uv := Vector2(local.x / patch.size.x, local.z / patch.size.y)
+		var img: Image = patch.get("mask_image")
+		var mask := sample_image_mask(img, uv, patch.uv_scale) if img != null else mask_at(uv, patch.shape_params)
+		var depth := clampf((mask - 0.18) / 0.82, 0.0, 1.0) * float(patch.winter_depth_mm)
+		if kind == 1:
+			depths.x = maxf(depths.x, depth)
+		else:
+			depths.y = maxf(depths.y, depth)
+	return depths
 
 
 func _refresh_visible_reflections_only() -> void:

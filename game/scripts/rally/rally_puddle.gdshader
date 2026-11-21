@@ -26,6 +26,8 @@ uniform vec2 uv_scale = vec2(1.0);
 uniform vec4 shape_params = vec4(0.0);
 uniform float max_depth_mm = 48.0;
 uniform float fill = 0.0;
+uniform int winter_kind = 0;
+uniform float winter_depth_mm = 0.0;
 uniform float rain = 0.0;
 uniform float edge_softness = 0.18;
 uniform vec4 shallow_color : source_color = vec4(0.030, 0.065, 0.105, 0.22);
@@ -90,7 +92,7 @@ float procedural_mask(vec2 uv, vec4 sp) {
 }
 
 void fragment() {
-	if (fill <= 0.001) {
+	if (winter_kind == 0 && fill <= 0.001) {
 		discard;
 	}
 
@@ -120,63 +122,78 @@ void fragment() {
 	float water_mask = clamp((mask - 0.18) / 0.82, 0.0, 1.0);
 
 	// Physical basin depth in mm
-	float real_depth_mm = water_mask * fill * max_depth_mm;
-	float depth_norm = clamp(real_depth_mm / 48.0, 0.0, 1.0);
-
-	// 1. Beer-Lambert Law: Exponential light extinction through muddy sediment suspension.
-	// Shallow water (3-10 mm) is clear & translucent; deep potholes (40-60 mm) are opaque dark chocolate mud.
-	float turbidity = 1.0 - exp(-real_depth_mm * 0.065);
-
-	// 2. Cavity Rim Occlusion: Deep potholes excavate into the ground, creating a distinct
-	// embankment shadow along their inner rim that reads immediately as 3D hollow depth.
-	float rim_band = smoothstep(0.16, 0.26, mask) * (1.0 - smoothstep(0.26, 0.44, mask));
-	float cavity_occlusion = 1.0 - rim_band * depth_norm * 0.55;
-
-	// 3. Meniscus Surface Tension Glint: Subtle specular highlight line where water meets wet soil.
-	float meniscus = smoothstep(0.17, 0.22, mask) * (1.0 - smoothstep(0.22, 0.28, mask));
-	float meniscus_glint = pow(meniscus, 2.0) * 0.30 * water_body;
-
-	// 4. Dreamcast-style smooth surface normal + scrolling water texture in ALBEDO (no micro-specular noise).
-	vec2 detail_flow = vec2(TIME) * detail_speed * vec2(0.7, 1.0);
-	vec3 wd = water_detail_sample(world_position.xz, detail_flow);
-	float dist_fade = 1.0 - smoothstep(55.0, 140.0, length(world_position - CAMERA_POSITION_WORLD));
-	float detail_k = clamp(detail_strength * 0.25 * water_body * dist_fade, 0.0, 1.0);
-	float pattern = smoothstep(0.40, 0.68, wd.x);
-
-	// Sky reflection lookup (smooth planar/env-map feel)
-	vec3 normal_world = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-	vec3 reflected = reflect(normalize(world_position - CAMERA_POSITION_WORLD), normal_world);
-	vec3 sky = horizon_color;
-	if (has_sky) {
-		sky = mix(texture(sky_a, reflected).rgb * tint_a, texture(sky_b, rotate_y(reflected, yaw_b)).rgb * tint_b, weather_mix);
-		sky = mix(texture(sky_c, rotate_y(reflected, twilight_yaw)).rgb * tint_c, sky, daylight_mix);
-		sky = mix(horizon_color, sky, smoothstep(-0.025, 0.12, reflected.y));
+	if (winter_kind != 0) {
+		float depth_mm = water_mask * winter_depth_mm;
+		float solid = smoothstep(0.0, winter_kind == 1 ? 3.5 : 1.8, depth_mm);
+		if (winter_kind == 1) {
+			ALBEDO = mix(vec3(0.45, 0.47, 0.50), vec3(0.83, 0.86, 0.90), solid);
+			ROUGHNESS = 0.92;
+			ALPHA = solid;
+		} else {
+			float grazing = 1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+			ALBEDO = mix(vec3(0.26, 0.34, 0.40), vec3(0.61, 0.72, 0.79), grazing);
+			ROUGHNESS = 0.2;
+			ALPHA = solid * 0.75;
+		}
 	} else {
-		sky = sky_tint.rgb;
+		float real_depth_mm = water_mask * fill * max_depth_mm;
+		float depth_norm = clamp(real_depth_mm / 48.0, 0.0, 1.0);
+
+		// 1. Beer-Lambert Law: Exponential light extinction through muddy sediment suspension.
+		// Shallow water (3-10 mm) is clear & translucent; deep potholes (40-60 mm) are opaque dark chocolate mud.
+		float turbidity = 1.0 - exp(-real_depth_mm * 0.065);
+
+		// 2. Cavity Rim Occlusion: Deep potholes excavate into the ground, creating a distinct
+		// embankment shadow along their inner rim that reads immediately as 3D hollow depth.
+		float rim_band = smoothstep(0.16, 0.26, mask) * (1.0 - smoothstep(0.26, 0.44, mask));
+		float cavity_occlusion = 1.0 - rim_band * depth_norm * 0.55;
+
+		// 3. Meniscus Surface Tension Glint: Subtle specular highlight line where water meets wet soil.
+		float meniscus = smoothstep(0.17, 0.22, mask) * (1.0 - smoothstep(0.22, 0.28, mask));
+		float meniscus_glint = pow(meniscus, 2.0) * 0.30 * water_body;
+
+		// 4. Dreamcast-style smooth surface normal + scrolling water texture in ALBEDO (no micro-specular noise).
+		vec2 detail_flow = vec2(TIME) * detail_speed * vec2(0.7, 1.0);
+		vec3 wd = water_detail_sample(world_position.xz, detail_flow);
+		float dist_fade = 1.0 - smoothstep(55.0, 140.0, length(world_position - CAMERA_POSITION_WORLD));
+		float detail_k = clamp(detail_strength * 0.25 * water_body * dist_fade, 0.0, 1.0);
+		float pattern = smoothstep(0.40, 0.68, wd.x);
+
+		// Sky reflection lookup (smooth planar/env-map feel)
+		vec3 normal_world = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+		vec3 reflected = reflect(normalize(world_position - CAMERA_POSITION_WORLD), normal_world);
+		vec3 sky = horizon_color;
+		if (has_sky) {
+			sky = mix(texture(sky_a, reflected).rgb * tint_a, texture(sky_b, rotate_y(reflected, yaw_b)).rgb * tint_b, weather_mix);
+			sky = mix(texture(sky_c, rotate_y(reflected, twilight_yaw)).rgb * tint_c, sky, daylight_mix);
+			sky = mix(horizon_color, sky, smoothstep(-0.025, 0.12, reflected.y));
+		} else {
+			sky = sky_tint.rgb;
+		}
+
+		float view_angle = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+		float soft_fresnel = 1.0 - view_angle;
+
+		// Dark damp soil albedo modulated by rim cavity occlusion
+		vec3 soil_albedo = vec3(0.012, 0.009, 0.007) * cavity_occlusion;
+
+		// Water body color: Dreamcast-style contrast between dark trough and sky-tinted pattern
+		vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
+		vec3 highlight = mix(base_puddle * 1.8 + sky * 0.16, sky * 0.44, 0.38);
+		vec3 water_color = mix(base_puddle * 0.72, highlight, pattern * detail_k);
+		vec3 water_albedo = mix(water_color, sky * 0.45, 0.04 + 0.10 * soft_fresnel);
+
+		ALBEDO = mix(soil_albedo, water_albedo, water_body);
+		EMISSION = (sky * (0.14 * pattern * detail_k + 0.04 * soft_fresnel) + vec3(meniscus_glint * 0.30)) * water_body;
+
+		ROUGHNESS = 0.85;
+		METALLIC = 0.0;
+		SPECULAR = 0.0;
+
+		// Uniform Dreamcast-like water translucency over wet road rim
+		float soil_alpha = wet_soil * 0.38;
+		float base_water_alpha = mix(0.36, 0.66, turbidity);
+		float water_alpha = base_water_alpha * water_body;
+		ALPHA = max(soil_alpha, water_alpha) * smoothstep(0.0, 0.03, fill);
 	}
-
-	float view_angle = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
-	float soft_fresnel = 1.0 - view_angle;
-
-	// Dark damp soil albedo modulated by rim cavity occlusion
-	vec3 soil_albedo = vec3(0.012, 0.009, 0.007) * cavity_occlusion;
-
-	// Water body color: Dreamcast-style contrast between dark trough and sky-tinted pattern
-	vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
-	vec3 highlight = mix(base_puddle * 1.8 + sky * 0.16, sky * 0.44, 0.38);
-	vec3 water_color = mix(base_puddle * 0.72, highlight, pattern * detail_k);
-	vec3 water_albedo = mix(water_color, sky * 0.45, 0.04 + 0.10 * soft_fresnel);
-
-	ALBEDO = mix(soil_albedo, water_albedo, water_body);
-	EMISSION = (sky * (0.14 * pattern * detail_k + 0.04 * soft_fresnel) + vec3(meniscus_glint * 0.30)) * water_body;
-
-	ROUGHNESS = 0.85;
-	METALLIC = 0.0;
-	SPECULAR = 0.0;
-
-	// Uniform Dreamcast-like water translucency over wet road rim
-	float soil_alpha = wet_soil * 0.38;
-	float base_water_alpha = mix(0.36, 0.66, turbidity);
-	float water_alpha = base_water_alpha * water_body;
-	ALPHA = max(soil_alpha, water_alpha) * smoothstep(0.0, 0.03, fill);
 }

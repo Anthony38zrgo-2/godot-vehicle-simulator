@@ -244,59 +244,8 @@ impl RustPuddleField {
     #[func]
     pub fn compute_route_topography_packed(route_pts: PackedVector3Array) -> PackedFloat32Array {
         let pts = route_pts.as_slice();
-        let n = pts.len();
-        let mut out = Vec::with_capacity(n * 4);
-        if n == 0 {
-            return PackedFloat32Array::new();
-        }
-        if n < 3 {
-            for _ in 0..n {
-                out.extend_from_slice(&[0.0, 0.0, 0.0, 1.0]);
-            }
-            return PackedFloat32Array::from(out.as_slice());
-        }
-        let w = (n / 90).clamp(1, 4);
-        for i in 0..n {
-            let i_prev = i.saturating_sub(w);
-            let i_next = (i + w).min(n - 1);
-            let p_prev = pts[i_prev];
-            let p_curr = pts[i];
-            let p_next = pts[i_next];
-
-            let v_prev = p_curr - p_prev;
-            let v_next = p_next - p_curr;
-            let d_prev_xz = (v_prev.x * v_prev.x + v_prev.z * v_prev.z).sqrt().max(0.5);
-            let d_next_xz = (v_next.x * v_next.x + v_next.z * v_next.z).sqrt().max(0.5);
-
-            let slope_prev = v_prev.y / d_prev_xz;
-            let slope_next = v_next.y / d_next_xz;
-            let slope = 0.5 * (slope_prev + slope_next);
-            let concavity = slope_next - slope_prev;
-
-            let f_prev_v = Vector3::new(v_prev.x, 0.0, v_prev.z);
-            let f_prev = if f_prev_v.length_squared() < 0.1 {
-                Vector3::FORWARD
-            } else {
-                f_prev_v.normalized()
-            };
-            let f_next_v = Vector3::new(v_next.x, 0.0, v_next.z);
-            let f_next = if f_next_v.length_squared() < 0.1 {
-                f_prev
-            } else {
-                f_next_v.normalized()
-            };
-            let right_prev = f_prev.cross(Vector3::UP).normalized();
-            let turn_signed = f_next.dot(right_prev);
-
-            let slope_factor = (1.0 - slope.abs() / 0.12).clamp(0.0, 1.0);
-            let mut valley_boost = (1.0 + concavity * 14.0).clamp(0.0, 1.65);
-            if concavity < -0.025 {
-                valley_boost = 0.05;
-            }
-            let twi = (slope_factor * valley_boost).clamp(0.0, 1.5);
-            out.extend_from_slice(&[slope, concavity, turn_signed, twi]);
-        }
-        PackedFloat32Array::from(out.as_slice())
+        let packed = compute_route_topography_slice(pts);
+        PackedFloat32Array::from(packed.as_slice())
     }
 
     #[func]
@@ -455,4 +404,232 @@ fn contact_response_impl(
         steering_pull_nm,
         vertical_dip_m,
     ]
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct EntryExitTopography {
+    pub slope_prev: f32,
+    pub slope_next: f32,
+    pub slope: f32,
+    pub concavity: f32,
+    pub turn_signed: f32,
+    pub d_prev_xz: f32,
+    pub d_next_xz: f32,
+}
+
+/// Computes entry/exit longitudinal slopes, vertical concavity (`slope_next - slope_prev`),
+/// and signed horizontal turn across three 3D route positions.
+#[inline]
+pub(crate) fn compute_entry_exit_topography(
+    p_prev: Vector3,
+    p_curr: Vector3,
+    p_next: Vector3,
+) -> EntryExitTopography {
+    let v_prev = p_curr - p_prev;
+    let v_next = p_next - p_curr;
+    let raw_prev_xz = (v_prev.x * v_prev.x + v_prev.z * v_prev.z).sqrt();
+    let raw_next_xz = (v_next.x * v_next.x + v_next.z * v_next.z).sqrt();
+    let d_prev_xz = raw_prev_xz.max(0.5);
+    let d_next_xz = raw_next_xz.max(0.5);
+
+    let slope_prev = v_prev.y / d_prev_xz;
+    let slope_next = v_next.y / d_next_xz;
+    let slope = 0.5 * (slope_prev + slope_next);
+    let concavity = slope_next - slope_prev;
+
+    let f_prev_v = Vector3::new(v_prev.x, 0.0, v_prev.z);
+    let f_prev = if f_prev_v.length_squared() < 0.1 {
+        Vector3::FORWARD
+    } else {
+        f_prev_v.normalized()
+    };
+    let f_next_v = Vector3::new(v_next.x, 0.0, v_next.z);
+    let f_next = if f_next_v.length_squared() < 0.1 {
+        f_prev
+    } else {
+        f_next_v.normalized()
+    };
+    let right_prev = f_prev.cross(Vector3::UP).normalized();
+    let turn_signed = f_next.dot(right_prev);
+
+    EntryExitTopography {
+        slope_prev,
+        slope_next,
+        slope,
+        concavity,
+        turn_signed,
+        d_prev_xz: raw_prev_xz,
+        d_next_xz: raw_next_xz,
+    }
+}
+
+/// Computes `(slope, concavity)` using the shared entry/exit slope geometry while avoiding
+/// artificial endpoint depressions when one side of the window is absent or shorter than `0.5 m`.
+#[inline]
+pub(crate) fn compute_entry_exit_slopes_bounded(
+    p_prev: Option<Vector3>,
+    p_curr: Vector3,
+    p_next: Option<Vector3>,
+) -> (f32, f32) {
+    match (p_prev, p_next) {
+        (Some(pp), Some(pn)) => {
+            let t = compute_entry_exit_topography(pp, p_curr, pn);
+            if t.d_prev_xz < 0.5 && t.d_next_xz < 0.5 {
+                (0.0, 0.0)
+            } else if t.d_prev_xz < 0.5 {
+                (t.slope_next, 0.0)
+            } else if t.d_next_xz < 0.5 {
+                (t.slope_prev, 0.0)
+            } else {
+                (t.slope, t.concavity)
+            }
+        }
+        (None, Some(pn)) => {
+            let t = compute_entry_exit_topography(p_curr, p_curr, pn);
+            if t.d_next_xz < 0.5 {
+                (0.0, 0.0)
+            } else {
+                (t.slope_next, 0.0)
+            }
+        }
+        (Some(pp), None) => {
+            let t = compute_entry_exit_topography(pp, p_curr, p_curr);
+            if t.d_prev_xz < 0.5 {
+                (0.0, 0.0)
+            } else {
+                (t.slope_prev, 0.0)
+            }
+        }
+        (None, None) => (0.0, 0.0),
+    }
+}
+
+pub(crate) fn compute_route_topography_slice(pts: &[Vector3]) -> Vec<f32> {
+    let n = pts.len();
+    let mut out = Vec::with_capacity(n * 4);
+    if n == 0 {
+        return out;
+    }
+    if n < 3 {
+        for _ in 0..n {
+            out.extend_from_slice(&[0.0, 0.0, 0.0, 1.0]);
+        }
+        return out;
+    }
+    let w = (n / 90).clamp(1, 4);
+    for i in 0..n {
+        let i_prev = i.saturating_sub(w);
+        let i_next = (i + w).min(n - 1);
+        let topo = compute_entry_exit_topography(pts[i_prev], pts[i], pts[i_next]);
+
+        let slope_factor = (1.0 - topo.slope.abs() / 0.12).clamp(0.0, 1.0);
+        let mut valley_boost = (1.0 + topo.concavity * 14.0).clamp(0.0, 1.65);
+        if topo.concavity < -0.025 {
+            valley_boost = 0.05;
+        }
+        let twi = (slope_factor * valley_boost).clamp(0.0, 1.5);
+        out.extend_from_slice(&[topo.slope, topo.concavity, topo.turn_signed, twi]);
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn reference_route_topography(pts: &[Vector3]) -> Vec<f32> {
+        let n = pts.len();
+        let mut out = Vec::with_capacity(n * 4);
+        if n == 0 {
+            return out;
+        }
+        if n < 3 {
+            for _ in 0..n {
+                out.extend_from_slice(&[0.0, 0.0, 0.0, 1.0]);
+            }
+            return out;
+        }
+        let w = (n / 90).clamp(1, 4);
+        for i in 0..n {
+            let i_prev = i.saturating_sub(w);
+            let i_next = (i + w).min(n - 1);
+            let p_prev = pts[i_prev];
+            let p_curr = pts[i];
+            let p_next = pts[i_next];
+            let v_prev = p_curr - p_prev;
+            let v_next = p_next - p_curr;
+            let d_prev_xz = (v_prev.x * v_prev.x + v_prev.z * v_prev.z).sqrt().max(0.5);
+            let d_next_xz = (v_next.x * v_next.x + v_next.z * v_next.z).sqrt().max(0.5);
+            let slope_prev = v_prev.y / d_prev_xz;
+            let slope_next = v_next.y / d_next_xz;
+            let slope = 0.5 * (slope_prev + slope_next);
+            let concavity = slope_next - slope_prev;
+            let f_prev_v = Vector3::new(v_prev.x, 0.0, v_prev.z);
+            let f_prev = if f_prev_v.length_squared() < 0.1 {
+                Vector3::FORWARD
+            } else {
+                f_prev_v.normalized()
+            };
+            let f_next_v = Vector3::new(v_next.x, 0.0, v_next.z);
+            let f_next = if f_next_v.length_squared() < 0.1 {
+                f_prev
+            } else {
+                f_next_v.normalized()
+            };
+            let right_prev = f_prev.cross(Vector3::UP).normalized();
+            let turn_signed = f_next.dot(right_prev);
+            let slope_factor = (1.0 - slope.abs() / 0.12).clamp(0.0, 1.0);
+            let mut valley_boost = (1.0 + concavity * 14.0).clamp(0.0, 1.65);
+            if concavity < -0.025 {
+                valley_boost = 0.05;
+            }
+            let twi = (slope_factor * valley_boost).clamp(0.0, 1.5);
+            out.extend_from_slice(&[slope, concavity, turn_signed, twi]);
+        }
+        out
+    }
+
+    #[test]
+    fn extracted_topography_matches_reference_bit_for_bit() {
+        let mut pts = Vec::with_capacity(220);
+        for i in 0..220 {
+            let s = i as f32 * 22.0;
+            let x = s * 0.8 + (s * 0.015).sin() * 45.0;
+            let z = s * 0.6 + (s * 0.012).cos() * 35.0;
+            let y = (s * 0.02).sin() * 14.0 - s * 0.03;
+            pts.push(Vector3::new(x, y, z));
+        }
+        let expected = reference_route_topography(&pts);
+        let actual = compute_route_topography_slice(&pts);
+        assert_eq!(actual.len(), expected.len());
+        for (a, b) in actual.iter().zip(expected.iter()) {
+            assert_eq!(a.to_bits(), b.to_bits());
+        }
+    }
+
+    #[test]
+    fn bounded_entry_exit_concavity_signs_and_neutral_endpoints() {
+        let crest_prev = Vector3::new(0.0, 0.0, 0.0);
+        let crest_curr = Vector3::new(30.0, 3.0, 0.0);
+        let crest_next = Vector3::new(60.0, 0.0, 0.0);
+        let (c_slope, c_conc) = compute_entry_exit_slopes_bounded(Some(crest_prev), crest_curr, Some(crest_next));
+        assert!(c_slope.abs() < 1e-5);
+        assert!(c_conc < -0.15, "crest must have negative concavity, got {}", c_conc);
+
+        let val_prev = Vector3::new(0.0, 3.0, 0.0);
+        let val_curr = Vector3::new(30.0, 0.0, 0.0);
+        let val_next = Vector3::new(60.0, 3.0, 0.0);
+        let (v_slope, v_conc) = compute_entry_exit_slopes_bounded(Some(val_prev), val_curr, Some(val_next));
+        assert!(v_slope.abs() < 1e-5);
+        assert!(v_conc > 0.15, "valley must have positive concavity, got {}", v_conc);
+
+        // Endpoints must not become artificial depressions when only one side exists.
+        let (s0, conc0) = compute_entry_exit_slopes_bounded(None, Vector3::new(0.0, 0.0, 0.0), Some(Vector3::new(30.0, 2.4, 0.0)));
+        assert!((s0 - 0.08).abs() < 1e-5);
+        assert_eq!(conc0, 0.0);
+
+        let (s1, conc1) = compute_entry_exit_slopes_bounded(Some(Vector3::new(0.0, 2.4, 0.0)), Vector3::new(30.0, 0.0, 0.0), None);
+        assert!((s1 + 0.08).abs() < 1e-5);
+        assert_eq!(conc1, 0.0);
+    }
 }

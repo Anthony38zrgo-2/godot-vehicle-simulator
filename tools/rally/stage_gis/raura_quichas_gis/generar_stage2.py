@@ -181,7 +181,9 @@ def build_climate_route_profile(track, data, origin, timed_axis, stations, gate_
 
     dem_meta = (stage or {}).get("geography", {})
     altitudes = [s["altitude_m"] for s in samples]
+    snow_transition_m = {"cdi_stage1": 4810, "cdi_stage4": 4680}.get(track)
     return {
+        **({"snow_transition_altitude_m": snow_transition_m} if snow_transition_m is not None else {}),
         "format_version": 1,
         "track_id": track,
         "units": {

@@ -317,6 +317,7 @@ pub struct RouteProfile {
     pub center_z_m: f32,
     pub extent_radius_m: f32,
     pub five_sector_boundaries_m: Option<[f32; 6]>,
+    pub snow_transition_altitude_m: Option<f32>,
 }
 
 impl RouteProfile {
@@ -448,6 +449,7 @@ impl RouteProfile {
             center_z_m,
             extent_radius_m,
             five_sector_boundaries_m,
+            snow_transition_altitude_m: root.get("snow_transition_altitude_m").and_then(|v| v.as_f32()).filter(|v| v.is_finite()),
         })
     }
 
@@ -2802,6 +2804,212 @@ pub struct FiveSectorData {
 }
 
 #[derive(Clone, Debug)]
+pub struct WaterRetentionConfig {
+    pub slope_window_m: f32,
+    pub smoothing_window_m: f32,
+    pub min_retention: f32,
+    pub max_retention: f32,
+}
+
+impl Default for WaterRetentionConfig {
+    fn default() -> Self {
+        Self {
+            slope_window_m: 30.0,
+            smoothing_window_m: 60.0,
+            min_retention: 0.25,
+            max_retention: 1.50,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[allow(dead_code)]
+pub struct WaterRetentionSample {
+    pub progress_m: f32,
+    pub shader_station_m: f32,
+    pub slope: f32,
+    pub concavity: f32,
+    pub raw_retention: f32,
+    pub retention: f32,
+}
+
+#[derive(Clone, Debug)]
+pub struct WaterRetentionProfile {
+    pub samples: Vec<WaterRetentionSample>,
+    pub valid: bool,
+    pub diagnostic: String,
+    pub build_time_us: u64,
+}
+
+impl WaterRetentionProfile {
+    fn sample_slice_field(samples: &[WaterRetentionSample], progress_m: f32, f: impl Fn(&WaterRetentionSample) -> f32) -> f32 {
+        if samples.is_empty() {
+            return 1.0;
+        }
+        let first = samples[0].progress_m;
+        let last = samples[samples.len() - 1].progress_m;
+        let p = progress_m.clamp(first, last);
+        let idx = samples.partition_point(|s| s.progress_m < p);
+        if idx == 0 {
+            return f(&samples[0]);
+        }
+        if idx >= samples.len() {
+            return f(&samples[samples.len() - 1]);
+        }
+        let a = &samples[idx - 1];
+        let b = &samples[idx];
+        let span = (b.progress_m - a.progress_m).max(1e-6);
+        let t = ((p - a.progress_m) / span).clamp(0.0, 1.0);
+        lerpf(f(a), f(b), t)
+    }
+
+    pub fn build(route: &RouteProfile, cfg: &WaterRetentionConfig) -> Self {
+        let t0 = std::time::Instant::now();
+        let make_invalid = |reason: String| Self {
+            samples: Vec::new(),
+            valid: false,
+            diagnostic: reason,
+            build_time_us: t0.elapsed().as_micros() as u64,
+        };
+
+        if route.samples.len() < 3 {
+            return make_invalid(format!("Insufficient route samples ({})", route.samples.len()));
+        }
+        if !route.total_distance_m.is_finite() || route.total_distance_m < 10.0 {
+            return make_invalid(format!("Invalid total distance ({})", route.total_distance_m));
+        }
+
+        let mut prev_p = f32::NEG_INFINITY;
+        let mut prev_st = f32::NEG_INFINITY;
+        for (i, s) in route.samples.iter().enumerate() {
+            if !s.progress_m.is_finite()
+                || !s.shader_station_m.is_finite()
+                || !s.altitude_m.is_finite()
+                || !s.local_x_m.is_finite()
+                || !s.local_z_m.is_finite()
+            {
+                return make_invalid(format!("Non-finite coordinates at sample {}", i));
+            }
+            if s.progress_m < prev_p {
+                return make_invalid(format!("Non-monotonic progress_m at sample {}", i));
+            }
+            if s.shader_station_m < prev_st {
+                return make_invalid(format!("Non-monotonic shader_station_m at sample {}", i));
+            }
+            prev_p = s.progress_m;
+            prev_st = s.shader_station_m;
+        }
+        let st_span = route.samples.last().unwrap().shader_station_m - route.samples[0].shader_station_m;
+        if st_span < 1.0 {
+            return make_invalid(format!("Degenerate shader_station_m span ({})", st_span));
+        }
+
+        let p_start = route.samples[0].progress_m;
+        let p_end = route.samples.last().unwrap().progress_m;
+        let win = cfg.slope_window_m.max(5.0);
+        let min_r = cfg.min_retention.min(cfg.max_retention);
+        let max_r = cfg.max_retention.max(min_r);
+
+        let mut raw_samples = Vec::with_capacity(route.samples.len());
+        for s in &route.samples {
+            let p = s.progress_m;
+            let curr_v = Vector3::new(s.local_x_m, s.altitude_m, s.local_z_m);
+            let prev_v = if p - p_start < 1.0 {
+                None
+            } else {
+                let sp = route.sample_at_progress((p - win).max(p_start));
+                Some(Vector3::new(sp.local_x_m, sp.altitude_m, sp.local_z_m))
+            };
+            let next_v = if p_end - p < 1.0 {
+                None
+            } else {
+                let sn = route.sample_at_progress((p + win).min(p_end));
+                Some(Vector3::new(sn.local_x_m, sn.altitude_m, sn.local_z_m))
+            };
+            let (slope, concavity) = crate::puddles::compute_entry_exit_slopes_bounded(prev_v, curr_v, next_v);
+
+            let slope_t = smoothstep(0.015, 0.16, slope.abs());
+            let slope_factor = 1.0 - 0.52 * slope_t;
+            let conc_factor = if concavity < 0.0 {
+                1.0 - 0.62 * smoothstep(0.0, 0.030, -concavity)
+            } else {
+                let flatness = 1.0 - 0.35 * smoothstep(0.05, 0.18, slope.abs());
+                1.0 + 0.55 * smoothstep(0.0, 0.025, concavity) * flatness
+            };
+            let raw_ret = (slope_factor * conc_factor).clamp(min_r, max_r);
+
+            raw_samples.push(WaterRetentionSample {
+                progress_m: s.progress_m,
+                shader_station_m: s.shader_station_m,
+                slope,
+                concavity,
+                raw_retention: raw_ret,
+                retention: raw_ret,
+            });
+        }
+
+        // Smooth continuously along route progress_m without resetting at sector borders.
+        let smooth_win = cfg.smoothing_window_m.clamp(30.0, 80.0);
+        let half_win = 0.5 * smooth_win;
+        let quad_step = 5.0_f32;
+        let k_max = (half_win / quad_step).floor() as i32;
+        let mut smoothed = Vec::with_capacity(raw_samples.len());
+        for s in &raw_samples {
+            let mut w_sum = 0.0_f32;
+            let mut v_sum = 0.0_f32;
+            for k in -k_max..=k_max {
+                let off = (k as f32) * quad_step;
+                let pk = s.progress_m + off;
+                if pk < p_start || pk > p_end {
+                    continue;
+                }
+                let u = (off.abs() / half_win).clamp(0.0, 1.0);
+                let w = 0.5 * (1.0 + (PI * u).cos());
+                if w > 1e-5 {
+                    let v = Self::sample_slice_field(&raw_samples, pk, |x| x.raw_retention);
+                    w_sum += w;
+                    v_sum += w * v;
+                }
+            }
+            let r = if w_sum > 1e-5 {
+                (v_sum / w_sum).clamp(min_r, max_r)
+            } else {
+                s.raw_retention
+            };
+            smoothed.push(r);
+        }
+        for (s, r) in raw_samples.iter_mut().zip(smoothed.into_iter()) {
+            s.retention = r;
+        }
+
+        Self {
+            samples: raw_samples,
+            valid: true,
+            diagnostic: String::new(),
+            build_time_us: t0.elapsed().as_micros() as u64,
+        }
+    }
+
+    pub fn sample_retention(&self, progress_m: f32) -> f32 {
+        if !self.valid || self.samples.is_empty() {
+            return 1.0;
+        }
+        Self::sample_slice_field(&self.samples, progress_m, |x| x.retention)
+    }
+
+    pub fn sample_detail(&self, progress_m: f32) -> (f32, f32, f32, f32) {
+        if !self.valid || self.samples.is_empty() {
+            return (1.0, 0.0, 0.0, 1.0);
+        }
+        let ret = Self::sample_slice_field(&self.samples, progress_m, |x| x.retention);
+        let slope = Self::sample_slice_field(&self.samples, progress_m, |x| x.slope);
+        let conc = Self::sample_slice_field(&self.samples, progress_m, |x| x.concavity);
+        let raw = Self::sample_slice_field(&self.samples, progress_m, |x| x.raw_retention);
+        (ret, slope, conc, raw)
+    }
+}
+
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct FiveSectorJourney {
     pub route: RouteProfile,
@@ -2818,6 +3026,10 @@ pub struct FiveSectorJourney {
     pub window_end_abs_s: f64,
     pub is_dry_day: bool,
     pub sectors: Vec<FiveSectorData>,
+    pub water_retention_enabled: bool,
+    pub water_retention_config: WaterRetentionConfig,
+    pub water_retention_profile: Option<WaterRetentionProfile>,
+    pub water_retention_warned: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -3292,7 +3504,58 @@ impl FiveSectorJourney {
             window_end_abs_s,
             is_dry_day,
             sectors,
+            water_retention_enabled: false,
+            water_retention_config: WaterRetentionConfig::default(),
+            water_retention_profile: None,
+            water_retention_warned: false,
         }
+    }
+
+    pub fn ensure_water_retention_profile(&mut self) -> bool {
+        if self.water_retention_profile.is_none() {
+            let profile = WaterRetentionProfile::build(&self.route, &self.water_retention_config);
+            self.water_retention_profile = Some(profile);
+        }
+        self.water_retention_profile.as_ref().map(|p| p.valid).unwrap_or(false)
+    }
+
+    pub fn set_water_retention_enabled(&mut self, enabled: bool) -> bool {
+        self.water_retention_enabled = enabled;
+        if enabled {
+            self.ensure_water_retention_profile()
+        } else {
+            self.water_retention_profile.as_ref().map(|p| p.valid).unwrap_or(false)
+        }
+    }
+
+    #[inline]
+    pub fn is_water_retention_active(&self) -> bool {
+        self.water_retention_enabled
+            && self
+                .water_retention_profile
+                .as_ref()
+                .map(|p| p.valid)
+                .unwrap_or(false)
+    }
+
+    #[inline]
+    pub fn sample_water_retention(&self, progress_m: f32) -> f32 {
+        if !self.is_water_retention_active() {
+            return 1.0;
+        }
+        self.water_retention_profile
+            .as_ref()
+            .map(|p| p.sample_retention(progress_m))
+            .unwrap_or(1.0)
+    }
+
+    pub fn sector_index_at_progress(&self, progress_m: f32) -> usize {
+        for (i, s) in self.sectors.iter().enumerate() {
+            if progress_m < s.geom.end_m || i + 1 == self.sectors.len() {
+                return i;
+            }
+        }
+        0
     }
 
     pub fn sector_blend_weights(&self, progress_m: f32) -> (usize, usize, f32) {
@@ -3332,8 +3595,16 @@ impl FiveSectorJourney {
         let ref_temp = self.season.base_temp_c
             + diurnal_phase * (self.season.diurnal_amplitude_c * 0.5)
             + mark.temp_anomaly_c;
-        let air_c = ref_temp
+        let mut air_c = ref_temp
             - mark.lapse_rate_c_per_km * ((altitude_m - self.climate.reference_altitude_m) / 1000.0);
+        if let Some(transition_m) = self.route.snow_transition_altitude_m {
+            let front_weight = 0.9 * smoothstep(0.1, 0.8, mark.precip_base_mm_h);
+            // Anchor the wet-bulb transition during the front, retaining a share
+            // of the weather anomaly and tapering the adjustment as it dries.
+            let target_wet_bulb_c = 0.9 - (altitude_m - transition_m) * 0.025;
+            let wet_bulb_c = wet_bulb_celsius(air_c, mark.humidity);
+            air_c += front_weight * (target_wet_bulb_c - wet_bulb_c);
+        }
         let solar = solar_factor_for_hour(hour);
         let irr = if solar <= 0.0 {
             0.0
@@ -3634,6 +3905,9 @@ impl FiveSectorJourney {
 
 impl FiveSectorSnapshot {
     pub fn sample_atmosphere_for_pass(&self, journey: &FiveSectorJourney, progress_m: f32) -> AtmosphereSample {
+        if journey.route.snow_transition_altitude_m.is_some() {
+            return journey.sample_route_at_time(progress_m, self.effective_abs_seconds);
+        }
         let rs = journey.route.sample_at_progress(progress_m);
         let (k0, k1, w) = journey.sector_blend_weights(progress_m);
         let a0 = &self.sector_atmo[k0];
@@ -3705,7 +3979,7 @@ impl FiveSectorSnapshot {
         }
     }
 
-    pub fn interpolate_surface_columns(&self, journey: &FiveSectorJourney, progress_m: f32) -> (f32, f32, f32, f32, f32, f32) {
+    pub fn interpolate_surface_columns_unmodulated(&self, journey: &FiveSectorJourney, progress_m: f32) -> (f32, f32, f32, f32, f32, f32) {
         let rs = journey.route.sample_at_progress(progress_m);
         let (k0, k1, w) = journey.sector_blend_weights(progress_m);
         let s0 = &self.sector_surface[k0];
@@ -3738,6 +4012,20 @@ impl FiveSectorSnapshot {
             }
         }
         (ground_c, water_mm, snow_mm, ice_mm, saturation, rs.shader_station_m)
+    }
+
+    pub fn interpolate_surface_columns(&self, journey: &FiveSectorJourney, progress_m: f32) -> (f32, f32, f32, f32, f32, f32) {
+        let (ground_c, mut water_mm, snow_mm, ice_mm, saturation, shader_station_m) =
+            self.interpolate_surface_columns_unmodulated(journey, progress_m);
+        if journey.is_water_retention_active() {
+            if water_mm <= 0.0 {
+                water_mm = 0.0;
+            } else {
+                let ret = journey.sample_water_retention(progress_m);
+                water_mm = (water_mm * ret).clamp(0.0, journey.climate.surface_balance.max_water_mm);
+            }
+        }
+        (ground_c, water_mm, snow_mm, ice_mm, saturation, shader_station_m)
     }
 
     pub fn sample_surface_at(&self, journey: &FiveSectorJourney, progress_m: f32, lateral_t: f32) -> SurfaceSample {
@@ -3829,10 +4117,11 @@ impl FiveSectorSnapshot {
         let mut out = Vec::with_capacity(count);
         for i in 0..count {
             let (_gc, water_mm, _snow_mm, ice_mm, _sat, _st) =
-                self.interpolate_surface_columns(journey, distances[i]);
+                self.interpolate_surface_columns_unmodulated(journey, distances[i]);
             let min_w = min_waters[i].max(0.01);
             let twi = twis[i].clamp(0.0, 1.5);
             let ret = retentions[i].max(0.1);
+            // Basin topography is applied once, independently of the surrounding road film.
             let eff_water = water_mm * (fsm.puddle_twi_base + fsm.puddle_twi_gain * twi);
             if eff_water <= min_w || water_mm <= 0.01 {
                 out.push(0.0);
@@ -4116,6 +4405,141 @@ impl RustFiveSectorWeather {
     }
 
     #[func]
+    pub fn set_local_water_retention(&mut self, enabled: bool) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(journey) = self.journey.as_mut() else {
+            let _ = out.insert("ok", false);
+            let _ = out.insert("enabled", false);
+            let _ = out.insert("valid", false);
+            let _ = out.insert("diagnostic", "Journey not configured");
+            return out;
+        };
+        let prev_active = journey.is_water_retention_active();
+        let valid = journey.set_water_retention_enabled(enabled);
+        let active = journey.is_water_retention_active();
+        let diagnostic = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.diagnostic.clone())
+            .unwrap_or_default();
+        if enabled && !valid && !journey.water_retention_warned {
+            journey.water_retention_warned = true;
+            godot_warn!("Water retention profile invalid for '{}': {}; using neutral 1.0 retention", journey.route.track_id, diagnostic);
+        }
+        if prev_active != active {
+            if let Some(snap) = self.snapshot.as_mut() {
+                snap.revision = snap.revision.saturating_add(1).max(1);
+            }
+        }
+        let sample_count = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.samples.len() as i64)
+            .unwrap_or(0);
+        let build_time_us = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.build_time_us as i64)
+            .unwrap_or(0);
+        let _ = out.insert("ok", true);
+        let _ = out.insert("enabled", enabled);
+        let _ = out.insert("active", active);
+        let _ = out.insert("valid", valid);
+        let _ = out.insert("diagnostic", diagnostic.as_str());
+        let _ = out.insert("sample_count", sample_count);
+        let _ = out.insert("build_time_us", build_time_us);
+        out
+    }
+
+    #[func]
+    pub fn water_retention_status(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(journey) = self.journey.as_ref() else {
+            let _ = out.insert("ok", false);
+            return out;
+        };
+        let valid = journey.water_retention_profile.as_ref().map(|p| p.valid).unwrap_or(false);
+        let diagnostic = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.diagnostic.as_str())
+            .unwrap_or("");
+        let sample_count = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.samples.len() as i64)
+            .unwrap_or(0);
+        let build_time_us = journey
+            .water_retention_profile
+            .as_ref()
+            .map(|p| p.build_time_us as i64)
+            .unwrap_or(0);
+        let _ = out.insert("ok", true);
+        let _ = out.insert("enabled", journey.water_retention_enabled);
+        let _ = out.insert("active", journey.is_water_retention_active());
+        let _ = out.insert("valid", valid);
+        let _ = out.insert("diagnostic", diagnostic);
+        let _ = out.insert("sample_count", sample_count);
+        let _ = out.insert("build_time_us", build_time_us);
+        out
+    }
+
+    #[func]
+    pub fn inspect_water_retention_profile(&self, step_m: f32) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let (Some(journey), Some(snap)) = (self.journey.as_ref(), self.snapshot.as_ref()) else {
+            let _ = out.insert("ok", false);
+            return out;
+        };
+        let total = journey.route.total_distance_m.max(1.0);
+        let step = step_m.max(5.0);
+        let count = ((total / step).ceil() as usize).max(1) + 1;
+        let mut rows = VarArray::new();
+        let cfg = &journey.climate.surface_balance;
+        for i in 0..count {
+            let p = if i + 1 == count {
+                total
+            } else {
+                (i as f32 * step).min(total)
+            };
+            let rs = journey.route.sample_at_progress(p);
+            let sec = journey.sector_index_at_progress(p);
+            let (ret, slope, conc, raw_ret) = journey
+                .water_retention_profile
+                .as_ref()
+                .map(|prof| prof.sample_detail(p))
+                .unwrap_or((1.0, 0.0, 0.0, 1.0));
+            let (_gc0, water_before, _sn0, _ic0, _sat0, _st0) =
+                snap.interpolate_surface_columns_unmodulated(journey, p);
+            let (_gc1, water_after, _sn1, _ic1, _sat1, _st1) =
+                snap.interpolate_surface_columns(journey, p);
+            let water_cov = if water_after > 0.01 {
+                smoothstep(0.01, cfg.water_coverage_full_mm, water_after)
+            } else {
+                0.0
+            };
+            let mut row = VarDictionary::new();
+            let _ = row.insert("progress_m", rs.progress_m);
+            let _ = row.insert("shader_station_m", rs.shader_station_m);
+            let _ = row.insert("sector_index", sec as i32);
+            let _ = row.insert("altitude_m", rs.altitude_m);
+            let _ = row.insert("slope", slope);
+            let _ = row.insert("concavity", conc);
+            let _ = row.insert("raw_retention", raw_ret);
+            let _ = row.insert("retention", if journey.is_water_retention_active() { ret } else { 1.0 });
+            let _ = row.insert("water_before_retention_mm", water_before);
+            let _ = row.insert("water_mm", water_after);
+            let _ = row.insert("water_coverage", water_cov);
+            rows.push(&row.to_variant());
+        }
+        let _ = out.insert("ok", true);
+        let _ = out.insert("enabled", journey.water_retention_enabled);
+        let _ = out.insert("active", journey.is_water_retention_active());
+        let _ = out.insert("rows", &rows);
+        out
+    }
+
+    #[func]
     pub fn surface_field_packet(&self) -> VarDictionary {
         self.surface_field_packet_since(-1)
     }
@@ -4136,7 +4560,6 @@ impl RustFiveSectorWeather {
             .max(cfg.ice_coverage_full_mm)
             .max(cfg.water_coverage_full_mm)
             .max(3.0);
-        let n = journey.route.samples.len().clamp(64, 512);
         let station_min = journey.route.samples[0].shader_station_m;
         let station_max = journey
             .route
@@ -4146,6 +4569,11 @@ impl RustFiveSectorWeather {
             .unwrap_or(station_min + 1.0)
             .max(station_min + 1.0);
         let span = station_max - station_min;
+        let n = if journey.is_water_retention_active() {
+            (((span / 12.5).ceil() as usize) + 1).clamp(64, 512)
+        } else {
+            journey.route.samples.len().clamp(64, 512)
+        };
         let mut rgba = PackedByteArray::new();
         rgba.resize(n * 4);
         let slice = rgba.as_mut_slice();
@@ -4323,7 +4751,7 @@ impl RustFiveSectorWeather {
         if let Some(eff) = data.get("effective_abs_seconds").and_then(|v| v.try_to::<f64>().ok()) {
             snap.effective_abs_seconds = eff;
         }
-        snap.revision = snap.revision.wrapping_add(1);
+        snap.revision = snap.revision.saturating_add(1).max(1);
         true
     }
 }
@@ -4978,5 +5406,174 @@ mod tests {
         assert!(p_pre.water_mm > 0.3 && p_post.ice_mm > 0.1 && p_post.ice_coverage > 0.05 && p_post.water_mm < p_pre.water_mm);
         let fills_post = s_post.compute_puddle_fills(&j_ice, &[total * 0.85], &[1.3], &[0.65], &[1.2]);
         assert!(fills_post[0] < 0.25);
+    }
+
+    fn load_ss01_profiles() -> (ClimateProfile, RouteProfile) {
+        let climate_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../game/data/weather/cdi_ss04_climate.json"
+        );
+        let route_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../game/assets/rally/cdi_stage1/climate_route_profile.json"
+        );
+        let c_txt = std::fs::read_to_string(climate_path).expect("read cdi_ss04_climate.json");
+        let r_txt = std::fs::read_to_string(route_path).expect("read ss01 climate_route_profile.json");
+        (
+            ClimateProfile::from_json_str(&c_txt).expect("parse climate"),
+            RouteProfile::from_json_str(&r_txt).expect("parse ss01 route"),
+        )
+    }
+
+    fn make_synthetic_route(alt_fn: impl Fn(f32) -> f32, total_m: f32, count: usize) -> RouteProfile {
+        let mut samples = Vec::with_capacity(count);
+        for i in 0..count {
+            let p = total_m * (i as f32) / ((count - 1) as f32);
+            let alt = alt_fn(p);
+            samples.push(RouteSample {
+                progress_m: p,
+                shader_station_m: p + 60.0,
+                altitude_m: alt,
+                local_x_m: p,
+                local_z_m: 0.0,
+                grade: 0.0,
+                heading_rad: 0.0,
+            });
+        }
+        RouteProfile {
+            track_id: "synthetic_test".to_string(),
+            vertical_datum_verified: true,
+            samples,
+            total_distance_m: total_m,
+            min_altitude_m: 4500.0,
+            max_altitude_m: 4700.0,
+            center_x_m: total_m * 0.5,
+            center_z_m: 0.0,
+            extent_radius_m: total_m * 0.5,
+            five_sector_boundaries_m: None,
+            snow_transition_altitude_m: None,
+        }
+    }
+
+    #[test]
+    fn water_retention_synthetic_crest_vs_depression_and_invalid_fallback() {
+        // Synthetic route: valley at 500m, flat at 1000m, crest at 1500m (total 2000m).
+        let route = make_synthetic_route(
+            |p| {
+                let d_val = ((p - 500.0) / 140.0).clamp(-1.0, 1.0);
+                let d_crest = ((p - 1500.0) / 140.0).clamp(-1.0, 1.0);
+                let valley = -12.0 * (1.0 - d_val * d_val).max(0.0);
+                let crest = 12.0 * (1.0 - d_crest * d_crest).max(0.0);
+                4600.0 + valley + crest
+            },
+            2000.0,
+            101,
+        );
+        let prof = WaterRetentionProfile::build(&route, &WaterRetentionConfig::default());
+        assert!(prof.valid);
+        let (ret_val, _s_val, c_val, _) = prof.sample_detail(500.0);
+        let (ret_flat, _s_flt, c_flt, _) = prof.sample_detail(1000.0);
+        let (ret_crest, _s_crs, c_crs, _) = prof.sample_detail(1500.0);
+        assert!(c_val > 0.02, "valley concavity must be positive: {}", c_val);
+        assert!(c_crs < -0.02, "crest concavity must be negative: {}", c_crs);
+        assert!(c_flt.abs() < 1e-3, "flat concavity near zero: {}", c_flt);
+        assert!(
+            ret_crest < ret_flat && ret_flat < ret_val,
+            "retention order crest ({}) < flat ({}) < valley ({})",
+            ret_crest,
+            ret_flat,
+            ret_val
+        );
+
+        // Invalid route (too few samples / degenerate station span) -> valid=false, neutral 1.0 retention.
+        let mut bad_route = make_synthetic_route(|_| 4600.0, 50.0, 2);
+        bad_route.samples[1].shader_station_m = bad_route.samples[0].shader_station_m;
+        let bad_prof = WaterRetentionProfile::build(&bad_route, &WaterRetentionConfig::default());
+        assert!(!bad_prof.valid);
+        assert!(!bad_prof.diagnostic.is_empty());
+        assert_eq!(bad_prof.sample_retention(25.0), 1.0);
+    }
+
+    #[test]
+    fn water_retention_dry_zero_uniform_order_boundary_continuity_and_no_double_twi() {
+        let (climate, route) = load_ss01_profiles();
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+
+        // 1. Dry day preserves exact zero water everywhere even with retention active.
+        let mut j_dry = FiveSectorJourney::build(
+            route.clone(),
+            climate.clone(),
+            4242,
+            "dry",
+            base_s,
+            FiveSectorRegime::Dry,
+        );
+        assert!(j_dry.set_water_retention_enabled(true));
+        let snap_dry = j_dry.build_snapshot_at(base_s, "gravel");
+        for p in [0.0, 864.5, 2539.6, 2645.9, 2796.1, route.total_distance_m] {
+            let s = snap_dry.sample_surface_at(&j_dry, p, 0.0);
+            assert_eq!(s.water_mm, 0.0);
+            assert_eq!(s.water_coverage, 0.0);
+        }
+
+        // 2. Wet episode on SS01: inspect Sector 2 crest, descent, depression and check boundary continuity.
+        let mut j_wet = FiveSectorJourney::build(
+            route.clone(),
+            climate.clone(),
+            2026,
+            "transition",
+            base_s,
+            FiveSectorRegime::ControlledTimingEpisode,
+        );
+        assert!(j_wet.set_water_retention_enabled(true));
+        let mut snap_wet = j_wet.build_snapshot_at(base_s + 420.0, "gravel");
+
+        // Uniform rain check (force identical sector reservoirs so only retention drives differences):
+        for ss in &mut snap_wet.sector_surface {
+            ss.water_mm = 1.6;
+            ss.snow_mm = 0.0;
+            ss.ice_mm = 0.0;
+            ss.ground_c = 6.0;
+        }
+        let s_crest = snap_wet.sample_surface_at(&j_wet, 2539.6, 0.0);
+        let s_descent = snap_wet.sample_surface_at(&j_wet, 2645.9, 0.0);
+        let s_gentle = snap_wet.sample_surface_at(&j_wet, 2867.8, 0.0);
+        let s_depr = snap_wet.sample_surface_at(&j_wet, 2360.2, 0.0);
+        let s_valley = snap_wet.sample_surface_at(&j_wet, 2796.1, 0.0);
+        eprintln!(
+            "SS01_PILOT_POINTS crest(p=2539.6 st={:.1} w={:.3}) steep_desc(p=2645.9 st={:.1} w={:.3}) gentle_desc(p=2867.8 st={:.1} w={:.3}) depr_top(p=2360.2 st={:.1} w={:.3}) valley_foot(p=2796.1 st={:.1} w={:.3})",
+            s_crest.shader_station_m, s_crest.water_mm,
+            s_descent.shader_station_m, s_descent.water_mm,
+            s_gentle.shader_station_m, s_gentle.water_mm,
+            s_depr.shader_station_m, s_depr.water_mm,
+            s_valley.shader_station_m, s_valley.water_mm
+        );
+        assert!(s_crest.water_mm < s_descent.water_mm && s_descent.water_mm < s_gentle.water_mm);
+        assert!(s_gentle.water_mm < s_valley.water_mm && s_valley.water_mm < s_depr.water_mm);
+
+        // Continuity across sector boundaries (20% = ~1002.3m, 40% = ~2004.6m, 60% = ~3006.8m, 80% = ~4009.1m).
+        for frac in [0.2_f32, 0.4, 0.6, 0.8] {
+            let b = route.total_distance_m * frac;
+            let w_before = snap_wet.sample_surface_at(&j_wet, b - 2.0, 0.0).water_mm;
+            let w_at = snap_wet.sample_surface_at(&j_wet, b, 0.0).water_mm;
+            let w_after = snap_wet.sample_surface_at(&j_wet, b + 2.0, 0.0).water_mm;
+            assert!((w_at - w_before).abs() < 0.15 && (w_after - w_at).abs() < 0.15, "boundary {} jump: {} -> {} -> {}", b, w_before, w_at, w_after);
+        }
+
+        // The road film must not change the original procedural basin fill.
+        for ss in &mut snap_wet.sector_surface {
+            ss.water_mm = 0.70;
+        }
+        let fill_with_prof = snap_wet.compute_puddle_fills(&j_wet, &[2539.6, 2360.2], &[1.5, 1.5], &[0.75, 0.75], &[1.2, 1.2]);
+        let mut j_no_prof = j_wet.clone();
+        j_no_prof.set_water_retention_enabled(false);
+        let fill_without_prof = snap_wet.compute_puddle_fills(&j_no_prof, &[2539.6, 2360.2], &[1.5, 1.5], &[0.75, 0.75], &[1.2, 1.2]);
+        assert_eq!(fill_with_prof, fill_without_prof);
+        assert!(fill_without_prof[0] > 0.4, "legacy path applies TWI boost on same base water");
+
+        // Ensure retention profile build is fast (under 10 ms even in unoptimized debug test build).
+        let build_us = j_wet.water_retention_profile.as_ref().unwrap().build_time_us;
+        eprintln!("SS01_RETENTION_BUILD_US={}", build_us);
+        assert!(build_us < 20_000, "retention build too slow: {} us", build_us);
     }
 }
