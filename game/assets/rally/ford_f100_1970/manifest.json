@@ -1,0 +1,80 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "ford_f100_1970",
+  "geometry": {
+    "front_track": 1.61671,
+    "rear_track": 1.585976,
+    "wheelbase": 2.91592,
+    "front_axle_z": -1.45796,
+    "rear_axle_z": 1.45796
+  },
+  "wheels": {
+    "front_left": {
+      "path": "front_left.glb",
+      "sha256": "66ac7a8d6d6ed01b0eca9a795db38f9720adabe4a412562a36be26d34d2bb76b",
+      "size_bytes": 108160
+    },
+    "front_right": {
+      "path": "front_right.glb",
+      "sha256": "3fb97ef7c7a3758b2c9e3073af1f2617dba450d13a71e583d5185ceba85a113f",
+      "size_bytes": 104788
+    },
+    "rear_left": {
+      "path": "rear_left.glb",
+      "sha256": "6543cd224b6e5a6bf7fe2764b95b2ea8c489edd5be2877758ed88b1a9462a6c6",
+      "size_bytes": 108064
+    },
+    "rear_right": {
+      "path": "rear_right.glb",
+      "sha256": "8a691c3e35e66ae7495f901b121e463532c1abe4415f9134a60430293ee7f5ce",
+      "size_bytes": 104684
+    }
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "center_metres": {
+        "x": -0.808355,
+        "y": 0.32004,
+        "z": -1.45796
+      },
+      "radius_metres": 0.351536,
+      "width_metres": 0.218948
+    },
+    "front_right": {
+      "center_metres": {
+        "x": 0.808355,
+        "y": 0.32004,
+        "z": -1.45796
+      },
+      "radius_metres": 0.351536,
+      "width_metres": 0.218948
+    },
+    "rear_left": {
+      "center_metres": {
+        "x": -0.792988,
+        "y": 0.32004,
+        "z": 1.45796
+      },
+      "radius_metres": 0.351536,
+      "width_metres": 0.218948
+    },
+    "rear_right": {
+      "center_metres": {
+        "x": 0.792988,
+        "y": 0.32004,
+        "z": 1.45796
+      },
+      "radius_metres": 0.351536,
+      "width_metres": 0.218948
+    }
+  },
+  "chassis": {
+    "path": "chassis.glb",
+    "sha256": "48db17ff64eebe7947625dff8d702071f82d5f2641e8b3bb103042bfc2232752",
+    "size_bytes": 395300
+  },
+  "collision": {
+    "path": "ford_f100_1970_collision.json",
+    "sha256": "38691546a6dca6d6ebd008dcc4c60f7b46644a9c32b47e2ebf53609c20ed03fa"
+  }
+}

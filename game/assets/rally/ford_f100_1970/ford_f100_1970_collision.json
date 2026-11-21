@@ -1,0 +1,69 @@
+{
+  "boxes": [
+    {
+      "identifier": "engine_bay",
+      "center": {
+        "x": 0,
+        "y": 0.69,
+        "z": -1.55
+      },
+      "half_extents": {
+        "x": 0.81,
+        "y": 0.27,
+        "z": 0.66
+      }
+    },
+    {
+      "identifier": "cab",
+      "center": {
+        "x": 0,
+        "y": 1.12,
+        "z": -0.19
+      },
+      "half_extents": {
+        "x": 0.85,
+        "y": 0.65,
+        "z": 0.57
+      }
+    },
+    {
+      "identifier": "bed",
+      "center": {
+        "x": 0,
+        "y": 0.78,
+        "z": 1.51
+      },
+      "half_extents": {
+        "x": 0.88,
+        "y": 0.27,
+        "z": 1.01
+      }
+    },
+    {
+      "identifier": "front_bumper",
+      "center": {
+        "x": 0,
+        "y": 0.49,
+        "z": -2.19
+      },
+      "half_extents": {
+        "x": 0.87,
+        "y": 0.09,
+        "z": 0.047
+      }
+    },
+    {
+      "identifier": "rear_bumper",
+      "center": {
+        "x": 0,
+        "y": 0.49,
+        "z": 2.55
+      },
+      "half_extents": {
+        "x": 0.87,
+        "y": 0.09,
+        "z": 0.065
+      }
+    }
+  ]
+}

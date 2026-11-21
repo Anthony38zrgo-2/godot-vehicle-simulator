@@ -30,13 +30,13 @@ const FIELDS: Array[Dictionary] = [
 	{"page": 0, "label": "Conducto de freno delantero", "path": "brakes.thermal.front_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
 	{"page": 0, "label": "Conducto de freno trasero", "path": "brakes.thermal.rear_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
 	{"page": 1, "label": "Par máximo de freno", "path": "brakes.max_brake_torque", "min": 500.0, "max": 8000.0, "step": 50.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "FRENOS"},
-	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 5000.0, "max": 7200.0, "step": 50.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR", "default": 7200.0},
+	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 4500.0, "max": 7200.0, "step": 50.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR", "default": 7200.0},
 	{"page": 2, "label": "Relación final", "path": "powertrain.final_drive", "min": 2.0, "max": 6.0, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN"},
-	{"page": 2, "label": "1ª Marcha", "path": "powertrain.gear_ratios.0", "min": 1.80, "max": 3.60, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 2.54},
-	{"page": 2, "label": "2ª Marcha", "path": "powertrain.gear_ratios.1", "min": 1.20, "max": 2.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.66},
+	{"page": 2, "label": "1ª Marcha", "path": "powertrain.gear_ratios.0", "min": 1.80, "max": 7.00, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 2.54},
+	{"page": 2, "label": "2ª Marcha", "path": "powertrain.gear_ratios.1", "min": 1.20, "max": 3.60, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.66},
 	{"page": 2, "label": "3ª Marcha", "path": "powertrain.gear_ratios.2", "min": 0.90, "max": 1.80, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.25},
 	{"page": 2, "label": "4ª Marcha", "path": "powertrain.gear_ratios.3", "min": 0.70, "max": 1.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.00},
-	{"page": 2, "label": "Marcha atrás (R)", "path": "powertrain.reverse_ratio", "min": 2.20, "max": 4.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 3.32},
+	{"page": 2, "label": "Marcha atrás (R)", "path": "powertrain.reverse_ratio", "min": 2.20, "max": 8.50, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 3.32},
 	# Modo modern: LSD autoblocante totalmente configurable (precarga,
 	# rampas y discos libres). En modo historic estos paths los resuelve
 	# el catálogo de presets y vehicle_simulation rechaza valores libres.
@@ -46,7 +46,7 @@ const FIELDS: Array[Dictionary] = [
 	{"page": 2, "label": "Paquetes de discos", "path": "powertrain.differential.clutches", "min": 1.0, "max": 8.0, "step": 1.0, "suffix": "", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
 	{"page": 0, "label": "Ángulo máximo de dirección", "path": "steering.max_steering_angle", "min": 0.15, "max": 0.70, "step": 0.005, "suffix": "°", "scale": 57.2957795, "digits": 1, "group": "DIRECCIÓN"},
 	{"page": 2, "label": "Velocidad de dirección", "path": "steering.steering_speed", "min": 1.0, "max": 12.0, "step": 0.05, "suffix": " /s", "scale": 1.0, "digits": 2, "group": "DIRECCIÓN"},
-	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 5.0, "max": 45.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA", "default": 25.0},
+	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 5.0, "max": 55.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA", "default": 25.0},
 ]
 
 const PAGE_TITLES := ["SUSPENSIÓN", "RUEDAS", "MOTOR / TRANSMISIÓN", "ESTRATEGIA / BOXES", "REGLAJES"]

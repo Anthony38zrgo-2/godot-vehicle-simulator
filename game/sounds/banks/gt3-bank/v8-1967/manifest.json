@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "vehicle_id": "ford_mustang_1967_289_2v",
-  "source": "Gran Turismo 3 / v8-1967 layered bank",
+  "source": "Gran Turismo 3: A-Spec, 20301. Existing engine layers; independent escape from exhaust_normal0_turbo0.",
   "engine_position": [
     0.0,
     0.55,
@@ -66,44 +66,44 @@
   ],
   "exhaust": [
     {
-      "path": "res://sounds/banks/gt3-bank/v8-1967/layer00_00800rpm.wav",
+      "path": "res://sounds/banks/gt3-bank/v8-1967/exhaust/exhaust_layer00_00800rpm.wav",
       "reference": 800.0,
       "lower": 0.0,
       "upper": 2000.0,
       "mode": "idle",
-      "gain": 0.2788566270009911
+      "gain": 0.251
     },
     {
-      "path": "res://sounds/banks/gt3-bank/v8-1967/layer01_02000rpm.wav",
+      "path": "res://sounds/banks/gt3-bank/v8-1967/exhaust/exhaust_layer01_02000rpm.wav",
       "reference": 2000.0,
       "lower": 800.0,
-      "upper": 3000.0,
+      "upper": 3032.0,
       "mode": "continuous",
-      "gain": 0.2957916717425275
+      "gain": 0.169
     },
     {
-      "path": "res://sounds/banks/gt3-bank/v8-1967/layer02_03000rpm.wav",
-      "reference": 3000.0,
+      "path": "res://sounds/banks/gt3-bank/v8-1967/exhaust/exhaust_layer02_03032rpm.wav",
+      "reference": 3032.0,
       "lower": 2000.0,
-      "upper": 4000.0,
+      "upper": 4512.0,
       "mode": "continuous",
-      "gain": 0.3196036059676771
+      "gain": 0.1815
     },
     {
-      "path": "res://sounds/banks/gt3-bank/v8-1967/layer03_04000rpm.wav",
-      "reference": 4000.0,
-      "lower": 3000.0,
-      "upper": 5000.0,
+      "path": "res://sounds/banks/gt3-bank/v8-1967/exhaust/exhaust_layer03_04512rpm.wav",
+      "reference": 4512.0,
+      "lower": 3032.0,
+      "upper": 5504.0,
       "mode": "continuous",
-      "gain": 0.4703827077605872
+      "gain": 0.2195
     },
     {
-      "path": "res://sounds/banks/gt3-bank/v8-1967/layer04_05000rpm.wav",
-      "reference": 5000.0,
-      "lower": 4000.0,
+      "path": "res://sounds/banks/gt3-bank/v8-1967/exhaust/exhaust_layer04_05504rpm.wav",
+      "reference": 5504.0,
+      "lower": 4512.0,
       "upper": 12000.0,
       "mode": "continuous",
-      "gain": 0.5171999089494905
+      "gain": 0.2322
     }
   ],
   "samples": [
@@ -161,6 +161,61 @@
         "end_s": 1.3338760528374833
       },
       "key": "layer04_05000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer00_00800rpm.wav",
+      "sha256": "79e50e84b98fa3060f0a1c5a57acb8bdce912c3e636b50acfbad3863bdfa96b7",
+      "rate_hz": 20026,
+      "base_rpm": 800,
+      "key": "exhaust_layer00_00800rpm",
+      "loop": {
+        "start_s": 0.002796364725856387,
+        "end_s": 0.5508838509937083
+      }
+    },
+    {
+      "file": "exhaust/exhaust_layer01_02000rpm.wav",
+      "sha256": "74782ae3374b634a4041a2be9ce390a2c2f94735f8e43d2b3c8dc260c1528281",
+      "rate_hz": 16150,
+      "base_rpm": 2000,
+      "key": "exhaust_layer01_02000rpm",
+      "loop": {
+        "start_s": 0.00346749226006192,
+        "end_s": 0.6986996904024769
+      }
+    },
+    {
+      "file": "exhaust/exhaust_layer02_03032rpm.wav",
+      "sha256": "ce6586f11691301e3cb005f85a657b89f09ae75d006c76e37eb95e4fb95703cf",
+      "rate_hz": 19595,
+      "base_rpm": 3032,
+      "key": "exhaust_layer02_03032rpm",
+      "loop": {
+        "start_s": 0.002857871906098495,
+        "end_s": 0.6201582036233734
+      }
+    },
+    {
+      "file": "exhaust/exhaust_layer03_04512rpm.wav",
+      "sha256": "b3431bc9ca648e2895988fe12ccd28d53b7225ade7fc371d1b6337fb516a2336",
+      "rate_hz": 22718,
+      "base_rpm": 4512,
+      "key": "exhaust_layer03_04512rpm",
+      "loop": {
+        "start_s": 0.002465005722334713,
+        "end_s": 0.566951316136984
+      }
+    },
+    {
+      "file": "exhaust/exhaust_layer04_05504rpm.wav",
+      "sha256": "4526f541583b6530b3a23c3f8a7700a1bcabdc30a89b9d662cfdc8ff55985917",
+      "rate_hz": 23633,
+      "base_rpm": 5504,
+      "key": "exhaust_layer04_05504rpm",
+      "loop": {
+        "start_s": 0.00236956797698134,
+        "end_s": 0.33884822070833165
+      }
     }
   ]
 }

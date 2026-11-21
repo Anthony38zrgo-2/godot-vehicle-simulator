@@ -1,5 +1,7 @@
 extends Node3D
 
+@export var pixel_albedo := false
+
 const TOON := preload("res://scripts/rally/rally_toon_surface.gdshader")
 const TOON_CUTOUT := preload("res://scripts/rally/rally_toon_cutout.gdshader")
 const OUTLINE := preload("res://scripts/rally/soft_toon_outline.gdshader")
@@ -73,5 +75,9 @@ func _ready() -> void:
 					or source.cull_mode != BaseMaterial3D.CULL_BACK):
 				continue
 			if not converted.has(source):
-				converted[source] = make_toon_material(source, false, cutout)
+				var toon_material := make_toon_material(source, false, cutout)
+				if pixel_albedo and source.albedo_texture != null:
+					toon_material.set_shader_parameter("use_pixel_albedo", true)
+					toon_material.set_shader_parameter("pixel_albedo", source.albedo_texture)
+				converted[source] = toon_material
 			visual.set_surface_override_material(surface, converted[source])

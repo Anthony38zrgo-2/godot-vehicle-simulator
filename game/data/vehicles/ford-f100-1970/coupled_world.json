@@ -1,0 +1,157 @@
+{
+  "coupled_world": {
+    "aerodynamic_probe_length_metres": 1,
+    "aerodynamic_probe_positions_local_metres": [
+      {
+        "x": -0.45,
+        "y": 0.22,
+        "z": -1.2
+      },
+      {
+        "x": 0.45,
+        "y": 0.22,
+        "z": -1.2
+      },
+      {
+        "x": 0.0,
+        "y": 0.22,
+        "z": 0.0
+      },
+      {
+        "x": -0.45,
+        "y": 0.22,
+        "z": 1.2
+      },
+      {
+        "x": 0.45,
+        "y": 0.22,
+        "z": 1.2
+      }
+    ],
+    "body_collision_boxes": [
+      {
+        "identifier": "engine_bay",
+        "center_local_metres": {
+          "x": 0,
+          "y": 0.69,
+          "z": -1.55
+        },
+        "half_extents_metres": {
+          "x": 0.81,
+          "y": 0.27,
+          "z": 0.66
+        }
+      },
+      {
+        "identifier": "cab",
+        "center_local_metres": {
+          "x": 0,
+          "y": 1.12,
+          "z": -0.19
+        },
+        "half_extents_metres": {
+          "x": 0.85,
+          "y": 0.65,
+          "z": 0.57
+        }
+      },
+      {
+        "identifier": "bed",
+        "center_local_metres": {
+          "x": 0,
+          "y": 0.78,
+          "z": 1.51
+        },
+        "half_extents_metres": {
+          "x": 0.88,
+          "y": 0.27,
+          "z": 1.01
+        }
+      },
+      {
+        "identifier": "front_bumper",
+        "center_local_metres": {
+          "x": 0,
+          "y": 0.49,
+          "z": -2.19
+        },
+        "half_extents_metres": {
+          "x": 0.87,
+          "y": 0.09,
+          "z": 0.047
+        }
+      },
+      {
+        "identifier": "rear_bumper",
+        "center_local_metres": {
+          "x": 0,
+          "y": 0.49,
+          "z": 2.55
+        },
+        "half_extents_metres": {
+          "x": 0.87,
+          "y": 0.09,
+          "z": 0.065
+        }
+      }
+    ],
+    "contacts": {
+      "impact_friction_coefficient": 0.55,
+      "maximum_events_per_step": 128,
+      "maximum_iterations": 100,
+      "maximum_position_correction_metres": 0.002,
+      "maximum_supported_angular_speed_radians_per_second": 12,
+      "maximum_supported_speed_metres_per_second": 80,
+      "prediction_distance_metres": 0.002,
+      "restitution": 0.2,
+      "restitution_minimum_speed_metres_per_second": 1,
+      "velocity_tolerance_metres_per_second": 1e-05
+    },
+    "integration_owner": "rust_world_candidate",
+    "maximum_initial_overlap_metres": 0.1,
+    "physical_frequency_hertz": 120,
+    "road_query_extension_metres": 0.15,
+    "schema_version": 1,
+    "steering_rack_travel_metres": 0.04,
+    "suspension": {
+      "differentiation_step_metres": 0.0001,
+      "gravity_world_metres_per_second_squared": {
+        "x": 0,
+        "y": -9.80665,
+        "z": 0
+      },
+      "substeps_per_tick": 1,
+      "substep_frequency_hz": 120,
+      "tire_vertical_damping_newton_seconds_per_metre": [
+        1100,
+        1100,
+        1100,
+        1100
+      ],
+      "tire_vertical_stiffness_newtons_per_metre": [
+        165000,
+        165000,
+        135000,
+        135000
+      ],
+      "travel_stop_damping_newton_seconds_per_metre": [
+        800,
+        800,
+        800,
+        800
+      ],
+      "travel_stop_engagement_fraction": [
+        0.85,
+        0.85,
+        0.85,
+        0.85
+      ],
+      "travel_stop_stiffness_newtons_per_cubic_metre": [
+        80000000,
+        80000000,
+        80000000,
+        80000000
+      ]
+    }
+  }
+}

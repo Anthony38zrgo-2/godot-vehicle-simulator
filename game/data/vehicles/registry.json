@@ -134,6 +134,18 @@
       "ValidateSoundHashes": true,
       "DisplayName": "Volvo 122 Amazon"
     },
+    "f10070": {
+      "Id": "ford_f100_1970",
+      "Assets": "ford_f100_1970",
+      "Profile": "ford-f100-1970",
+      "Scene": "ford_f100_1970",
+      "Stage": "russia_stage1_ford_f100_1970",
+      "Proving": "ford_f100_1970_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/v8-f100-1970",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Ford F-250 Sport Custom 1970 (Rally, SWB)"
+    },
     "mustang67": {
       "Id": "ford_mustang_1967_289_2v",
       "Assets": "ford_mustang_1967_289_2v",

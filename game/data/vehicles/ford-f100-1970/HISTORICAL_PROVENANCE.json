@@ -1,0 +1,31 @@
+{
+  "vehicle_identifier": "ford_f100_1970",
+  "display_name": "Ford F-250 Sport Custom 1970 (Rally, SWB)",
+  "geometry_policy": "native_glb",
+  "sources": {
+    "body": "https://www.fordification.com/tech/images/bb70/p143.jpg",
+    "chassis_and_tires": "https://www.fordification.com/tech/images/bb70/p05.gif",
+    "engine_and_equipment": "https://xr793.com/wp-content/uploads/2020/11/1970-Ford-Light-Truck-Sales-Features.pdf",
+    "unloaded_tire_diameter": "https://cokertire.com/tires/g78-15-coker-classic-2-3-4-whitewall-tire.html",
+    "f250_axle_and_track": "https://www.fordification.com/tech/images/bb70/p09.gif",
+    "np435_ford": "https://www.forelpublishing.com/demo/Demo20070.pdf",
+    "np435_ratios": "https://www.dlcline.com/files/NP435_Repair_Manual.pdf"
+  },
+  "note": "Rally restomod, not a production short-wheelbase F-250. Retains the 114.8 in short F-100 wheelbase and current G78-15-sized wheels. Uses F-250 4x2 drum-configuration tracks (63.65 / 62.44 in), FE 360 2V period gross torque and power anchors, NP435 wide-ratio four-speed, and an open 3.73:1 rally final drive. First is a crawler and fourth is direct. The existing shift solver uses a common synchronization model. Rear live axle with leaf springs is represented by the existing per-wheel 1DOF solver, tuned for an empty bed at 1.50 Hz with reduced bump and rebound damping. Mass, brake, aero, limiter, damping and interpolated torque are simulation estimates.",
+  "profile_json_sha256": {
+    "vehicle.json": "ac021041bbf3d9473e88e1d239f8199f041a4ec71f7a9c3a7dda8f879b53870d",
+    "aerodynamics.json": "4dc070cd1e1c6c69391d8bb6efc4d12644cde78a8e81484e720fb01c4eed882f",
+    "brakes.json": "ddbdfd5666a0c5de2119fd9d2f6afba3f2acde6789a58cd08c618db10528516d",
+    "chassis.json": "1045b81ad41ec4a79d75d60c83443ce98ecbe60ffb966c3bf6837657781ebfb7",
+    "coupled_world.json": "8d87603c6d5ce47158557021c8afb8b07bc413c3d68cf5ac1f79c59c3e188898",
+    "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
+    "driving_assistance.json": "1d909026597d2b9619b868c605d911bd49b42ff64ad49f39ba87a3b787b17410",
+    "fuel.json": "3d21fe316133a5294b33ac0ff7c938afc061aa42db136f4c9daf80d8ba78f2a2",
+    "powertrain.json": "6edc12d794e778aa9f3c4a417f907bedc9c2b237a2bdf8547346b3e9b6817967",
+    "steering.json": "56e9626ee6ade18717c7cf78b34392cfe751ce2e5bb23f18fd7778f3b3933a31",
+    "suspension.json": "f8f1f29a52c90fad9c5e75a74c1a9d05e57d11a943af073a90e830ea6e4ab075",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "da3a7ae1f52698f56d911b5b728f8e167ffb11a053c65374f8258709a258c631",
+    "underfloor_contact.json": "b50ecf6a58df1f393bafa8fe96266f8acfe36e7baaff40a26a3dfa55fd11de85"
+  }
+}

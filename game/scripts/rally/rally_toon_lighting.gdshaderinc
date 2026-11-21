@@ -3,6 +3,8 @@ uniform vec4 base_color : source_color = vec4(1.0);
 uniform float alpha_cutoff = 0.5;
 #endif
 uniform sampler2D base_texture : source_color, hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform bool use_pixel_albedo = false;
+uniform sampler2D pixel_albedo : source_color, hint_default_white, filter_nearest_mipmap, repeat_enable;
 uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform bool use_normal = false;
 uniform bool use_vertex_color = false;
@@ -46,7 +48,7 @@ float paint_noise(vec3 point) {
 void fragment() {
 	painted_edge = (paint_noise(wobble_point * wobble_scale) - 0.5) * edge_wobble;
 	vec2 tex_uv = UV * uv_scale + uv_offset;
-	vec4 paint = base_color * texture(base_texture, tex_uv);
+	vec4 paint = base_color * (use_pixel_albedo ? texture(pixel_albedo, tex_uv) : texture(base_texture, tex_uv));
 	if (use_vertex_color) {
 		paint *= COLOR;
 	}

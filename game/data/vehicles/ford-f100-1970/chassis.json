@@ -1,0 +1,422 @@
+{
+  "chassis": {
+    "center_of_gravity_height_offset": 0.0,
+    "front_weight_distribution": 0.58,
+    "inertia_multipliers": {
+      "x": 1.15,
+      "y": 1.22,
+      "z": 1.05
+    },
+    "vehicle_mass": 1550,
+    "vehicle_mass_excludes_wheel_assemblies": true,
+    "vehicle_name": "Ford F-250 Sport Custom 1970 (Rally, SWB)",
+    "target_cg_z_m": 0.7
+  },
+  "geometry": {
+    "front_track": 1.61671,
+    "rear_track": 1.585976,
+    "wheelbase": 2.91592,
+    "front_axle_z": -1.45796,
+    "rear_axle_z": 1.45796
+  },
+  "physical_mass_inventory": {
+    "schema_version": 2,
+    "base_budget_kilograms": 1550,
+    "components": [
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "frame_and_styleside_body",
+        "rotating_wheel": null,
+        "properties": {
+          "name": "frame_and_styleside_body",
+          "mass_kilograms": 1040,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.77,
+            "z": 0.17
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1140,
+                0,
+                0
+              ],
+              [
+                0,
+                1240,
+                0
+              ],
+              [
+                0,
+                0,
+                330
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          23,
+          23,
+          0,
+          0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "fe_360_and_ancillaries",
+        "rotating_wheel": null,
+        "properties": {
+          "name": "fe_360_and_ancillaries",
+          "mass_kilograms": 285,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.73,
+            "z": -1.26
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                21,
+                0
+              ],
+              [
+                0,
+                0,
+                14
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "manual_gearbox_and_propshaft",
+        "rotating_wheel": null,
+        "properties": {
+          "name": "manual_gearbox_and_propshaft",
+          "mass_kilograms": 60,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.53,
+            "z": -0.42
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                8,
+                0,
+                0
+              ],
+              [
+                0,
+                8,
+                0
+              ],
+              [
+                0,
+                0,
+                3
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "driver",
+        "rotating_wheel": null,
+        "properties": {
+          "name": "driver",
+          "mass_kilograms": 75,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": -0.36,
+            "y": 1.03,
+            "z": -0.13
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                7,
+                0,
+                0
+              ],
+              [
+                0,
+                7,
+                0
+              ],
+              [
+                0,
+                0,
+                3
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_axle_and_brake_drums",
+        "rotating_wheel": null,
+        "properties": {
+          "name": "rear_axle_and_brake_drums",
+          "mass_kilograms": 90,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.32004,
+            "z": 1.45796
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                23,
+                0,
+                0
+              ],
+              [
+                0,
+                22,
+                0
+              ],
+              [
+                0,
+                0,
+                4
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          0,
+          0,
+          45,
+          45
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_FrontLeft",
+        "rotating_wheel": "FrontLeft",
+        "properties": {
+          "name": "wheel_FrontLeft",
+          "mass_kilograms": 23,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.75,
+                0,
+                0
+              ],
+              [
+                0,
+                0.93,
+                0
+              ],
+              [
+                0,
+                0,
+                0.93
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_FrontRight",
+        "rotating_wheel": "FrontRight",
+        "properties": {
+          "name": "wheel_FrontRight",
+          "mass_kilograms": 23,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.75,
+                0,
+                0
+              ],
+              [
+                0,
+                0.93,
+                0
+              ],
+              [
+                0,
+                0,
+                0.93
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearLeft",
+        "rotating_wheel": "RearLeft",
+        "properties": {
+          "name": "wheel_RearLeft",
+          "mass_kilograms": 23,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.75,
+                0,
+                0
+              ],
+              [
+                0,
+                0.93,
+                0
+              ],
+              [
+                0,
+                0,
+                0.93
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearRight",
+        "rotating_wheel": "RearRight",
+        "properties": {
+          "name": "wheel_RearRight",
+          "mass_kilograms": 23,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.75,
+                0,
+                0
+              ],
+              [
+                0,
+                0.93,
+                0
+              ],
+              [
+                0,
+                0,
+                0.93
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "F-100 packaging and mass estimate"
+          }
+        }
+      }
+    ]
+  }
+}
