@@ -16,6 +16,15 @@
   },
   "sunday_stage_ids": [],
   "power_stage_id": "",
+  "start_order_rules": {
+    "enabled": true,
+    "ss01_source": "championship_or_draw",
+    "subsequent_source": "cumulative_standings",
+    "leader_first": true,
+    "exclude_zero_car": true,
+    "interval_seconds": 60,
+    "stage_interval_overrides": {}
+  },
   "weather_rules": {
     "regional_profile_id": "switzerland_alpine",
     "ordered_states": [

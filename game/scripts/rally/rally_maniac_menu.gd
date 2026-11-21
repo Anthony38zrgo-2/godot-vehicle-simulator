@@ -1851,6 +1851,7 @@ func _launch_session() -> void:
 		}
 		if selected_mode == "championship":
 			choices["save_path"] = "user://championship_event_v1.json"
+			choices["carry_championship_points"] = true
 		elif country == "cdi":
 			choices["save_path"] = "user://cdi_rally_event_v1.json"
 		if not manager.begin_event(choices):

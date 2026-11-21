@@ -50,6 +50,15 @@ var pending_window: Dictionary = {}
 var stage_surface_states: Dictionary = {}
 var rival_compounds: Dictionary = {}
 var compound_catalog: Dictionary = {}
+var championship_standings: Array = []
+var championship_points: Dictionary = {}
+var initial_start_draw: Array = []
+var start_order_by_stage: Dictionary = {}
+var legacy_locked_stages: Dictionary = {}
+var started_stages: Dictionary = {}
+var climate_mode: String = ""
+var save_mode_version: int = 2
+var start_order_rules_override: Dictionary = {}
 
 func _read_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
@@ -83,7 +92,9 @@ func begin_event(choices: Dictionary = {}) -> bool:
 		save_path = str(choices["save_path"])
 	var requested_event := str(choices.get("event_path", choices.get("event_id", "")))
 	# Acepta ruta res:// completa o event_id ("kenya_rally" -> evento de Kenia).
-	if requested_event == "kenya_rally" or requested_event == "kenya":
+	if requested_event == "cdi_rally" or requested_event == "cdi":
+		requested_event = "res://data/competition/events/cdi_rally.json"
+	elif requested_event == "kenya_rally" or requested_event == "kenya":
 		requested_event = "res://data/competition/events/kenya_rally.json"
 	elif requested_event == "finland_rally" or requested_event == "finland":
 		requested_event = "res://data/competition/events/finland_rally.json"
@@ -121,6 +132,26 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	stage_forecasts.clear()
 	stage_surface_states.clear()
 	rival_compounds.clear()
+	championship_points = {}
+	if bool(choices.get("carry_championship_points", false)) and FileAccess.file_exists(save_path):
+		var previous: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
+		if previous is Dictionary:
+			championship_points = (previous.get("championship_points", {}) as Dictionary).duplicate()
+			if str(previous.get("status", "")) == "finished":
+				var round_points: Dictionary = (previous.get("points_ledger", {}) as Dictionary).get("total", {})
+				for pid in round_points:
+					var points := int(round_points[pid])
+					if points > 0:
+						championship_points[pid] = int(championship_points.get(pid, 0)) + points
+	championship_standings = _normalize_championship_standings(choices.get("championship_standings", championship_points))
+	initial_start_draw.clear()
+	start_order_by_stage.clear()
+	legacy_locked_stages.clear()
+	started_stages.clear()
+	climate_mode = str(choices.get("climate_mode", "")).strip_edges().to_lower()
+	save_mode_version = int(choices.get("save_mode_version", 2))
+	var rules_ovr: Variant = choices.get("start_order_rules", {})
+	start_order_rules_override = (rules_ovr as Dictionary).duplicate(true) if rules_ovr is Dictionary else {}
 	windows_attended.clear()
 	pending_window = {}
 	setup_confirmed = false
@@ -175,6 +206,9 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	sim.leg = 1
 	_register_participants()
 	_assign_rival_compounds()
+	if _start_order_enabled() and not stage_order.is_empty():
+		_ensure_initial_start_draw()
+		_resolve_and_freeze_start_order(str(stage_order[0]), "")
 	if sim.has_method("set_weather_context"):
 		sim.set_weather_context(weather_entry_for(current_stage_id()), rival_compounds.get(current_stage_id(), {}))
 	# La vista previa del menú no debe llamar a un inicio que escriba el guardado oficial.
@@ -193,8 +227,56 @@ func is_last_stage() -> bool:
 func schedule_for(stage_id: String) -> Dictionary:
 	for entry in itinerary:
 		if str(entry.get("stage_id", "")) == stage_id:
-			return entry
+			var out: Dictionary = (entry as Dictionary).duplicate(true)
+			var base_date := str(out.get("base_date", out.get("date", "2026-06-13")))
+			var base_start := str(out.get("base_start", out.get("start", "08:00")))
+			var base_abs: int = int(out.get("base_abs_seconds", datetime_to_abs_seconds(base_date, base_start)))
+			out["base_date"] = base_date
+			out["base_start"] = base_start
+			out["base_abs_seconds"] = base_abs
+			if not legacy_locked_stages.has(stage_id) and start_order_by_stage.has(stage_id):
+				var so: Dictionary = start_order_by_stage[stage_id] as Dictionary
+				var eff_abs: int = int(so.get("player_abs_seconds", base_abs))
+				var eff_dt: Dictionary = abs_seconds_to_datetime(eff_abs)
+				out["date"] = str(eff_dt.get("date", base_date))
+				out["start"] = str(eff_dt.get("hm", base_start))
+				out["effective_date"] = str(eff_dt.get("date", base_date))
+				out["effective_hm"] = str(eff_dt.get("hm", base_start))
+				out["effective_hms"] = str(eff_dt.get("hms", base_start + ":00"))
+				out["effective_seconds_of_day"] = int(eff_dt.get("seconds_of_day", eff_abs % 86400))
+				out["effective_abs_seconds"] = eff_abs
+				out["effective_hour"] = float(eff_dt.get("hour_float", 8.0))
+				out["start_position_order"] = int(so.get("player_position", 1))
+				out["interval_seconds"] = int(so.get("interval_seconds", 60))
+				out["start_order_frozen"] = bool(so.get("frozen", true))
+				out["start_order_source"] = str(so.get("source", ""))
+				out["start_order_total"] = (so.get("entries", []) as Array).size()
+			else:
+				var base_dt: Dictionary = abs_seconds_to_datetime(base_abs)
+				out["effective_date"] = str(base_dt.get("date", base_date))
+				out["effective_hm"] = str(base_dt.get("hm", base_start))
+				out["effective_hms"] = str(base_dt.get("hms", base_start + ":00"))
+				out["effective_seconds_of_day"] = int(base_dt.get("seconds_of_day", base_abs % 86400))
+				out["effective_abs_seconds"] = base_abs
+				out["effective_hour"] = float(base_dt.get("hour_float", 8.0))
+				out["start_position_order"] = 1
+				out["interval_seconds"] = _start_interval_for_stage(stage_id) if _start_order_enabled() else 0
+				out["start_order_frozen"] = false
+				out["start_order_source"] = "legacy_base" if legacy_locked_stages.has(stage_id) else "base"
+			return out
 	return {}
+
+
+func start_order_for_stage(stage_id: String) -> Dictionary:
+	if start_order_by_stage.has(stage_id):
+		return (start_order_by_stage[stage_id] as Dictionary).duplicate(true)
+	return {}
+
+
+func mark_stage_started(stage_id: String = "") -> void:
+	var sid := stage_id if not stage_id.is_empty() else current_stage_id()
+	if not sid.is_empty():
+		started_stages[sid] = true
 
 
 func weather_entry_for(stage_id: String) -> Dictionary:
@@ -431,6 +513,8 @@ func close_current_stage(player: Dictionary) -> Dictionary:
 			_set_official(pid, stage_id, adj, 0, "adjudicated", false, false, "CPU reenganche: referencia + 300s")
 		else:
 			var total_ms := int(row.get("stage_ms", 0))
+			if total_ms <= 0 and (row.get("splits", []) as Array).is_empty():
+				total_ms = reference_total
 			_set_official(pid, stage_id, total_ms, int(row.get("penalty_ms", 0)), "finished", true, true, "CPU finished")
 	# Jugador.
 	var pid_player := "player"
@@ -445,6 +529,10 @@ func close_current_stage(player: Dictionary) -> Dictionary:
 		var total_p := int(player.get("measured_ms", 0)) + int(player.get("penalty_ms", 0))
 		_set_official(pid_player, stage_id, total_p, int(player.get("penalty_ms", 0)), "finished", true, true, "finished")
 	closed_keys["closed:" + stage_id] = true
+	legacy_locked_stages.erase(stage_id)
+	if _start_order_enabled() and not is_last_stage():
+		var next_id := str(stage_order[cursor + 1])
+		_resolve_and_freeze_start_order(next_id, stage_id)
 	_award_points_if_closed()
 	save()
 	return {"stage_id": stage_id, "cursor": cursor, "is_last": is_last_stage()}
@@ -465,11 +553,16 @@ func advance() -> bool:
 		save()
 		return true
 	# CPU repairs follow the same two-stage service cadence as the player.
-	if current_stage_id() in event_doc.get("service", {}).get("after_stage_ids", []):
+	var prev_id := current_stage_id()
+	if sim == null:
+		_ensure_sim_restored({})
+	if sim != null and prev_id in event_doc.get("service", {}).get("after_stage_ids", []):
 		sim.apply_event_service()
-	var carried = sim.rows.duplicate(true)
+	var carried = sim.rows.duplicate(true) if sim != null else []
 	cursor += 1
 	var next_id := current_stage_id()
+	if _start_order_enabled() and not start_order_by_stage.has(next_id):
+		_resolve_and_freeze_start_order(next_id, prev_id)
 	var next_config: String = loader.stage_config_path(next_id)
 	if not sim.reconfigure_for_event_stage(next_config, carried):
 		error = "No se pudo cargar " + next_id + ": " + sim.error
@@ -561,6 +654,8 @@ func final_points(power_stage_times: Dictionary) -> Dictionary:
 func save() -> bool:
 	var doc := {
 		"version": 3,
+		"save_mode_version": save_mode_version,
+		"climate_mode": climate_mode,
 		"event_id": event_doc.get("event_id", "russia_rally"),
 		"cursor": cursor,
 		"status": status,
@@ -572,6 +667,13 @@ func save() -> bool:
 		"points_ledger": points_ledger,
 		"closed_keys": closed_keys.keys(),
 		"definitive_withdrawals": definitive_withdrawals.keys(),
+		"championship_standings": championship_standings,
+		"championship_points": championship_points,
+		"initial_start_draw": initial_start_draw,
+		"start_order_by_stage": start_order_by_stage,
+		"legacy_locked_stages": legacy_locked_stages.keys(),
+		"started_stages": started_stages.keys(),
+		"start_order_rules_override": start_order_rules_override,
 		"clock": {"rate": ambient_rate},
 		"weather_schedule": weather_schedule,
 		"stage_forecasts": stage_forecasts,
@@ -591,6 +693,9 @@ func save() -> bool:
 		"pending_window": pending_window,
 		"stage_surface_states": stage_surface_states,
 		"rival_compounds": rival_compounds,
+		"sim_rows": sim.rows.duplicate(true) if sim != null else [],
+		"sim_previous_totals": sim.previous_totals.duplicate(true) if sim != null else {},
+		"sim_player_previous_ms": int(sim.player_previous_ms) if sim != null else 0,
 	}
 	var path: String = save_path
 	if path.is_empty():
@@ -621,12 +726,23 @@ func restore() -> bool:
 		return false
 	if str(doc.get("event_id", "")) != str(event_doc.get("event_id", "russia_rally")):
 		return false
+	save_mode_version = int(doc.get("save_mode_version", 1))
+	climate_mode = str(doc.get("climate_mode", "procedural_v1" if save_mode_version < 2 else ""))
 	cursor = int(doc.get("cursor", 0))
 	status = str(doc.get("status", "running"))
 	seed_value = int(doc.get("seed", seed_value))
 	difficulty = int(doc.get("difficulty", difficulty))
 	single_day = bool(doc.get("single_day", false))
 	itinerary = doc.get("itinerary", [])
+	for it_entry in itinerary:
+		if it_entry is Dictionary:
+			var ed := it_entry as Dictionary
+			var bdate := str(ed.get("base_date", ed.get("date", "2026-06-13")))
+			var bstart := str(ed.get("base_start", ed.get("start", "08:00")))
+			ed["base_date"] = bdate
+			ed["base_start"] = bstart
+			if not ed.has("base_abs_seconds"):
+				ed["base_abs_seconds"] = datetime_to_abs_seconds(bdate, bstart)
 	official = doc.get("official", {})
 	points_ledger = doc.get("points_ledger", {})
 	closed_keys.clear()
@@ -635,6 +751,18 @@ func restore() -> bool:
 	definitive_withdrawals.clear()
 	for pid in doc.get("definitive_withdrawals", []):
 		definitive_withdrawals[str(pid)] = true
+	championship_points = (doc.get("championship_points", {}) as Dictionary).duplicate()
+	championship_standings = _normalize_championship_standings(doc.get("championship_standings", championship_points))
+	initial_start_draw = (doc.get("initial_start_draw", []) as Array).duplicate()
+	start_order_by_stage = (doc.get("start_order_by_stage", {}) as Dictionary).duplicate(true)
+	legacy_locked_stages.clear()
+	for sid in doc.get("legacy_locked_stages", []):
+		legacy_locked_stages[str(sid)] = true
+	started_stages.clear()
+	for sid in doc.get("started_stages", []):
+		started_stages[str(sid)] = true
+	var r_ovr: Variant = doc.get("start_order_rules_override", {})
+	start_order_rules_override = (r_ovr as Dictionary).duplicate(true) if r_ovr is Dictionary else {}
 	ambient_rate = float((doc.get("clock", {}) as Dictionary).get("rate", 1.0))
 	# Clima/compuesto/ventanas: reanudar conserva todo; no se re-sortea.
 	weather_schedule = doc.get("weather_schedule", [])
@@ -658,10 +786,50 @@ func restore() -> bool:
 	stage_surface_states = doc.get("stage_surface_states", {})
 	rival_compounds = doc.get("rival_compounds", {})
 	compound_catalog = CompoundScript.load_catalog()
+	_ensure_sim_restored(doc)
+	# Resolver listas pendientes en guardados previos sin listas de salida,
+	# conservando la referencia temporal de la especial activa si ya había iniciado.
+	if _start_order_enabled():
+		_ensure_initial_start_draw()
+		var cur_sid := current_stage_id()
+		var had_active_legacy := (
+			save_mode_version < 2
+			and status == "running"
+			and not cur_sid.is_empty()
+			and not closed_keys.has("closed:" + cur_sid)
+			and (started_stages.has(cur_sid) or stage_surface_states.has(cur_sid) or setup_confirmed)
+		)
+		if had_active_legacy and not start_order_by_stage.has(cur_sid):
+			legacy_locked_stages[cur_sid] = true
+		_resolve_pending_start_orders_on_restore()
 	# Si se cerró durante una ventana, restaurar la ventana pendiente.
 	if pending_window.is_empty():
 		_update_pending_window()
 	return true
+
+
+func _ensure_sim_restored(doc: Dictionary) -> void:
+	if stage_order.is_empty():
+		return
+	var cur_sid := current_stage_id()
+	if cur_sid.is_empty():
+		return
+	var cfg_path: String = loader.stage_config_path(cur_sid)
+	if cfg_path.is_empty() or not FileAccess.file_exists(cfg_path):
+		return
+	var CompetitionScript := load("res://scripts/rally/rally_competition.gd")
+	var restored_sim = CompetitionScript.new()
+	restored_sim.save_path = ""
+	var saved_rows: Variant = doc.get("sim_rows", [])
+	var carried: Array = saved_rows.duplicate(true) if saved_rows is Array else []
+	if restored_sim.configure(cfg_path, seed_value, carried):
+		restored_sim.leg = cursor + 1
+		if doc.get("sim_previous_totals", {}) is Dictionary:
+			restored_sim.previous_totals = (doc.get("sim_previous_totals", {}) as Dictionary).duplicate(true)
+		restored_sim.player_previous_ms = int(doc.get("sim_player_previous_ms", 0))
+		if restored_sim.has_method("set_weather_context"):
+			restored_sim.set_weather_context(weather_entry_for(cur_sid), rival_compounds.get(cur_sid, {}))
+		sim = restored_sim
 
 
 func migrate_legacy_v2() -> Dictionary:
@@ -676,9 +844,34 @@ func migrate_legacy_v2() -> Dictionary:
 func _register_participants() -> void:
 	official.clear()
 	for entry in sim.entries:
-		var pid := str(entry.get("driver_id", ""))
-		official[pid] = {"name": entry.get("name", pid), "stages": {}, "grand_total_ms": 0, "eligible": true}
-	official["player"] = {"name": "Jugador", "stages": {}, "grand_total_ms": 0, "eligible": true}
+		var ed := entry as Dictionary
+		var pid := str(ed.get("driver_id", ""))
+		var eligible := not _is_zero_car_entry(pid, ed)
+		official[pid] = {
+			"name": ed.get("name", pid),
+			"stages": {},
+			"grand_total_ms": 0,
+			"eligible": eligible,
+			"zero_car": not eligible,
+		}
+	official["player"] = {"name": "Jugador", "stages": {}, "grand_total_ms": 0, "eligible": true, "zero_car": false}
+
+
+func player_start_summary_text(stage_id: String = "") -> String:
+	var sid := stage_id if not stage_id.is_empty() else current_stage_id()
+	var sched := schedule_for(sid)
+	if sched.is_empty():
+		return ""
+	var eff_hms := str(sched.get("effective_hms", sched.get("start", "")))
+	var eff_hm := str(sched.get("effective_hm", sched.get("start", "")))
+	var disp_time := eff_hm if eff_hms.ends_with(":00") else eff_hms
+	if bool(sched.get("start_order_frozen", false)):
+		var pos := int(sched.get("start_position_order", 1))
+		var total := int(sched.get("start_order_total", pos))
+		var base_hm := str(sched.get("base_start", ""))
+		var interval_s := int(sched.get("interval_seconds", 60))
+		return "Turno #%d/%d · Salida %s (Base %s · +%ds)" % [pos, total, disp_time, base_hm, interval_s]
+	return "Salida %s" % disp_time
 
 func _set_official(pid: String, stage_id: String, official_ms: int, penalty_ms: int, status_value: String, finished_valid: bool, counts_for_bonus: bool, provenance: String) -> void:
 	if not official.has(pid):
@@ -734,8 +927,7 @@ func _award_points_if_closed() -> void:
 func _build_itinerary(choices: Dictionary) -> void:
 	itinerary.clear()
 	var doc_itin: Dictionary = event_doc.get("itinerary_default", {})
-	if not custom_starts.is_empty():
-		pass
+	var override_starts: Dictionary = choices.get("custom_starts", custom_starts) if choices.get("custom_starts", {}) is Dictionary else custom_starts
 	if single_day:
 		var alt: Dictionary = doc_itin.get("single_day_alternative", {})
 		var starts: Array = alt.get("starts", [])
@@ -743,14 +935,16 @@ func _build_itinerary(choices: Dictionary) -> void:
 		var day_offset := 0
 		var previous_start := -1
 		for i in stage_order.size():
-			var start_str := str(starts[i]) if i < starts.size() else "08:00"
+			var sid := str(stage_order[i])
+			var start_str := str(override_starts.get(sid, starts[i] if i < starts.size() else "08:00"))
 			var parts := start_str.split(":")
 			var start_minutes := int(parts[0]) * 60 + int(parts[1])
 			if previous_start >= 0 and start_minutes <= previous_start:
 				day_offset += 1
 			previous_start = start_minutes
 			var day := _shift_date(date, day_offset)
-			itinerary.append({"stage_id": stage_order[i], "date": day, "start": start_str, "day_label": "Único"})
+			var base_abs := datetime_to_abs_seconds(day, start_str)
+			itinerary.append({"stage_id": sid, "date": day, "start": start_str, "base_date": day, "base_start": start_str, "base_abs_seconds": base_abs, "day_label": "Único"})
 	else:
 		for day in (doc_itin.get("days", []) as Array):
 			var ids: Array = day.get("stage_ids", [])
@@ -758,7 +952,10 @@ func _build_itinerary(choices: Dictionary) -> void:
 			for i in ids.size():
 				var sid: String = str(ids[i])
 				if stage_order.has(sid):
-					itinerary.append({"stage_id": sid, "date": str(day.get("date", "")), "start": str(starts_day[i]) if i < starts_day.size() else "08:00", "day_label": str(day.get("label", ""))})
+					var d_str := str(day.get("date", event_doc.get("base_date", "2026-06-13")))
+					var s_str := str(override_starts.get(sid, starts_day[i] if i < starts_day.size() else "08:00"))
+					var base_abs := datetime_to_abs_seconds(d_str, s_str)
+					itinerary.append({"stage_id": sid, "date": d_str, "start": s_str, "base_date": d_str, "base_start": s_str, "base_abs_seconds": base_abs, "day_label": str(day.get("label", ""))})
 	# Validación: horarios absolutos crecientes y margen entre salidas.
 	var previous := -1
 	for entry in itinerary:
@@ -792,26 +989,332 @@ func validate_schedule(min_gap_minutes: float = 30.0) -> Dictionary:
 	return {"conflicts": conflicts, "ok": conflicts.is_empty()}
 
 func _absolute_minutes(date: String, hm: String) -> float:
-	var dparts := date.split("-")
-	var day_index := 0
+	return float(datetime_to_abs_seconds(date, hm)) / 60.0
+
+
+static func _days_from_civil(y: int, m: int, d: int) -> int:
+	# Howard Hinnant's civil-from-days / days-from-civil (UTC/Julian-free exact integer math).
+	var yy := y - (1 if m <= 2 else 0)
+	var era := (yy if yy >= 0 else yy - 399) / 400
+	var yoe := yy - era * 400
+	var doy := (153 * (m + (-3 if m > 2 else 9)) + 2) / 5 + d - 1
+	var doe := yoe * 365 + yoe / 4 - yoe / 100 + doy
+	return era * 146097 + doe - 719468
+
+
+static func _civil_from_days(z_in: int) -> Dictionary:
+	var z := z_in + 719468
+	var era := (z if z >= 0 else z - 146096) / 146097
+	var doe := z - era * 146097
+	var yoe := (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+	var y := yoe + era * 400
+	var doy := doe - (365 * yoe + yoe / 4 - yoe / 100)
+	var mp := (5 * doy + 2) / 153
+	var d := doy - (153 * mp + 2) / 5 + 1
+	var m := mp + (3 if mp < 10 else -9)
+	y += (1 if m <= 2 else 0)
+	return {"year": y, "month": m, "day": d, "iso": "%04d-%02d-%02d" % [y, m, d]}
+
+
+static func datetime_to_abs_seconds(date: String, hm_or_hms: String) -> int:
+	var dparts := date.strip_edges().split("-")
+	var days := 0
 	if dparts.size() == 3:
-		day_index = int(dparts[2])
-	var hparts := hm.split(":")
-	return float(day_index * 1440 + int(hparts[0]) * 60 + int(hparts[1]))
+		days = _days_from_civil(int(dparts[0]), int(dparts[1]), int(dparts[2]))
+	var tparts := hm_or_hms.strip_edges().split(":")
+	var h := int(tparts[0]) if tparts.size() >= 1 else 0
+	var m := int(tparts[1]) if tparts.size() >= 2 else 0
+	var s := int(tparts[2]) if tparts.size() >= 3 else 0
+	return days * 86400 + h * 3600 + m * 60 + s
+
+
+static func abs_seconds_to_datetime(abs_seconds: int) -> Dictionary:
+	var days := floori(float(abs_seconds) / 86400.0)
+	var rem := abs_seconds - days * 86400
+	while rem < 0:
+		rem += 86400
+		days -= 1
+	while rem >= 86400:
+		rem -= 86400
+		days += 1
+	var civ := _civil_from_days(days)
+	var hour := rem / 3600
+	var minute := (rem % 3600) / 60
+	var second := rem % 60
+	return {
+		"date": str(civ["iso"]),
+		"year": int(civ["year"]),
+		"month": int(civ["month"]),
+		"day": int(civ["day"]),
+		"seconds_of_day": rem,
+		"hour": hour,
+		"minute": minute,
+		"second": second,
+		"hm": "%02d:%02d" % [hour, minute],
+		"hms": "%02d:%02d:%02d" % [hour, minute, second],
+		"hour_float": float(rem) / 3600.0,
+	}
+
 
 func _shift_date(iso: String, delta_days: int) -> String:
 	var parts := iso.split("-")
 	if parts.size() != 3:
 		return iso
-	var y := int(parts[0])
-	var m := int(parts[1])
-	var d := int(parts[2]) + delta_days
-	var leap := (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0))
-	var month_days := [31, 29 if leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-	while d > month_days[m - 1]:
-		d -= month_days[m - 1]
-		m += 1
-		if m > 12:
-			m = 1
-			y += 1
-	return "%04d-%02d-%02d" % [y, m, d]
+	var days := _days_from_civil(int(parts[0]), int(parts[1]), int(parts[2])) + delta_days
+	return str(_civil_from_days(days)["iso"])
+
+
+static func start_order_draw_seed(rally_seed: int) -> int:
+	return abs(int(("%d/rally_start_order_draw_v1" % rally_seed).hash()))
+
+
+func _start_order_rules() -> Dictionary:
+	var doc_rules := (event_doc.get("start_order_rules", {}) as Dictionary).duplicate(true)
+	for k in start_order_rules_override:
+		doc_rules[k] = start_order_rules_override[k]
+	return doc_rules
+
+
+func _start_order_enabled() -> bool:
+	return bool(_start_order_rules().get("enabled", false))
+
+
+func _start_interval_for_stage(stage_id: String) -> int:
+	var rules := _start_order_rules()
+	var overrides := rules.get("stage_interval_overrides", {}) as Dictionary
+	if overrides.has(stage_id):
+		return maxi(int(overrides[stage_id]), 0)
+	return maxi(int(rules.get("interval_seconds", 60)), 0)
+
+
+static func _is_zero_car_entry(pid: String, meta: Dictionary = {}) -> bool:
+	var low := pid.strip_edges().to_lower()
+	if low in ["0", "car_0", "car_zero", "zero_car", "auto_0", "auto_cero"]:
+		return true
+	if bool(meta.get("zero_car", false)) or bool(meta.get("is_zero_car", false)):
+		return true
+	var role := str(meta.get("role", "")).strip_edges().to_lower()
+	return role in ["zero_car", "auto_cero", "course_car"]
+
+
+func _is_eligible_for_start_order(pid: String) -> bool:
+	if pid.is_empty():
+		return false
+	if definitive_withdrawals.has(pid):
+		return false
+	var meta: Dictionary = official.get(pid, {}) as Dictionary
+	if _is_zero_car_entry(pid, meta):
+		return false
+	if meta.has("eligible") and not bool(meta.get("eligible", true)):
+		return false
+	return true
+
+
+static func _normalize_championship_standings(raw: Variant) -> Array:
+	var out: Array = []
+	if raw is Array:
+		for i in (raw as Array).size():
+			var item: Variant = (raw as Array)[i]
+			if item is String:
+				out.append({"id": str(item), "position": i + 1, "points": 0.0})
+			elif item is Dictionary:
+				var d := (item as Dictionary).duplicate(true)
+				var pid := str(d.get("id", d.get("driver_id", "")))
+				if pid.is_empty():
+					continue
+				out.append({
+					"id": pid,
+					"position": int(d.get("position", d.get("rank", 0))),
+					"points": float(d.get("points", 0.0)),
+				})
+	elif raw is Dictionary:
+		for pid in (raw as Dictionary):
+			var val: Variant = (raw as Dictionary)[pid]
+			if val is Dictionary:
+				var d := val as Dictionary
+				out.append({
+					"id": str(pid),
+					"position": int(d.get("position", d.get("rank", 0))),
+					"points": float(d.get("points", 0.0)),
+				})
+			else:
+				out.append({"id": str(pid), "position": 0, "points": float(val)})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var pa := int(a.get("position", 0))
+		var pb := int(b.get("position", 0))
+		if pa > 0 and pb > 0 and pa != pb:
+			return pa < pb
+		var pta := float(a.get("points", 0.0))
+		var ptb := float(b.get("points", 0.0))
+		if not is_equal_approx(pta, ptb):
+			return pta > ptb
+		return str(a.get("id", "")) < str(b.get("id", ""))
+	)
+	return out
+
+
+func _ensure_initial_start_draw() -> void:
+	if not initial_start_draw.is_empty():
+		return
+	var eligible_ids: Array[String] = []
+	for pid in official.keys():
+		var s_pid := str(pid)
+		if _is_eligible_for_start_order(s_pid):
+			eligible_ids.append(s_pid)
+	eligible_ids.sort()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = start_order_draw_seed(seed_value)
+	# Deterministic Fisher-Yates shuffle independent from climate stream.
+	for i in range(eligible_ids.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp := eligible_ids[i]
+		eligible_ids[i] = eligible_ids[j]
+		eligible_ids[j] = tmp
+	initial_start_draw = eligible_ids.duplicate()
+
+
+func _raw_itinerary_base(stage_id: String) -> Dictionary:
+	for entry in itinerary:
+		if str((entry as Dictionary).get("stage_id", "")) == stage_id:
+			return entry as Dictionary
+	var bdate := str(event_doc.get("base_date", "2026-06-13"))
+	return {"stage_id": stage_id, "base_date": bdate, "base_start": "08:00", "base_abs_seconds": datetime_to_abs_seconds(bdate, "08:00")}
+
+
+func _previous_relative_order_ids(stage_index: int) -> Array:
+	for j in range(stage_index - 1, -1, -1):
+		var prev_sid := str(stage_order[j])
+		if start_order_by_stage.has(prev_sid):
+			var ids: Array = []
+			for row in ((start_order_by_stage[prev_sid] as Dictionary).get("entries", []) as Array):
+				ids.append(str((row as Dictionary).get("id", "")))
+			if not ids.is_empty():
+				return ids
+	_ensure_initial_start_draw()
+	return initial_start_draw.duplicate()
+
+
+func _resolve_and_freeze_start_order(stage_id: String, prev_stage_id: String = "") -> Dictionary:
+	if start_order_by_stage.has(stage_id) and bool((start_order_by_stage[stage_id] as Dictionary).get("frozen", false)):
+		return (start_order_by_stage[stage_id] as Dictionary).duplicate(true)
+	_ensure_initial_start_draw()
+	var eligible_map := {}
+	for pid in official.keys():
+		var s_pid := str(pid)
+		if _is_eligible_for_start_order(s_pid):
+			eligible_map[s_pid] = true
+
+	var stage_idx := stage_order.find(stage_id)
+	var ordered_ids: Array[String] = []
+	var source_label := "initial_draw"
+	if stage_idx <= 0:
+		# SS01: championship standings (leader first) + deterministic draw for unranked entrants.
+		var champ_ids: Array[String] = []
+		var seen := {}
+		for rec in championship_standings:
+			var cid := str((rec as Dictionary).get("id", ""))
+			if eligible_map.has(cid) and not seen.has(cid):
+				seen[cid] = true
+				champ_ids.append(cid)
+		if not champ_ids.is_empty():
+			ordered_ids.append_array(champ_ids)
+			source_label = "championship_standings" if champ_ids.size() == eligible_map.size() else "championship_partial_plus_draw"
+		for draw_id_var in initial_start_draw:
+			var did := str(draw_id_var)
+			if eligible_map.has(did) and not seen.has(did):
+				seen[did] = true
+				ordered_ids.append(did)
+		for rem_id in eligible_map.keys():
+			var s_rem := str(rem_id)
+			if not seen.has(s_rem):
+				seen[s_rem] = true
+				ordered_ids.append(s_rem)
+	else:
+		# SS02+: cumulative official rally standings (leader first);
+		# eligible entrants without cumulative classification follow preserving previous order.
+		var ranked := standings()
+		var seen2 := {}
+		var classified_ids: Array[String] = []
+		for r in ranked:
+			var rd := r as Dictionary
+			var pid := str(rd.get("id", ""))
+			if not eligible_map.has(pid) or seen2.has(pid):
+				continue
+			var stg_map: Dictionary = rd.get("stages", {}) as Dictionary
+			if not stg_map.is_empty():
+				seen2[pid] = true
+				classified_ids.append(pid)
+		ordered_ids.append_array(classified_ids)
+		source_label = "cumulative_standings" if prev_stage_id.is_empty() else ("cumulative_after_" + prev_stage_id)
+		var prev_order := _previous_relative_order_ids(stage_idx)
+		for prev_id_var in prev_order:
+			var pid_prev := str(prev_id_var)
+			if eligible_map.has(pid_prev) and not seen2.has(pid_prev):
+				seen2[pid_prev] = true
+				ordered_ids.append(pid_prev)
+		for rem_id in eligible_map.keys():
+			var s_rem2 := str(rem_id)
+			if not seen2.has(s_rem2):
+				seen2[s_rem2] = true
+				ordered_ids.append(s_rem2)
+
+	var base_it := _raw_itinerary_base(stage_id)
+	var base_date := str(base_it.get("base_date", base_it.get("date", "2026-06-13")))
+	var base_start := str(base_it.get("base_start", base_it.get("start", "08:00")))
+	var base_abs := int(base_it.get("base_abs_seconds", datetime_to_abs_seconds(base_date, base_start)))
+	var interval_s := _start_interval_for_stage(stage_id)
+	var list_entries: Array = []
+	var player_pos := 1
+	var player_abs := base_abs
+	var player_dt := abs_seconds_to_datetime(base_abs)
+	for i in ordered_ids.size():
+		var pid := ordered_ids[i]
+		var pos := i + 1
+		var abs_s := base_abs + i * interval_s
+		var dt := abs_seconds_to_datetime(abs_s)
+		var off_entry: Dictionary = official.get(pid, {}) as Dictionary
+		list_entries.append({
+			"position": pos,
+			"id": pid,
+			"name": str(off_entry.get("name", pid)),
+			"start_abs_seconds": abs_s,
+			"date": str(dt["date"]),
+			"hm": str(dt["hm"]),
+			"hms": str(dt["hms"]),
+			"seconds_of_day": int(dt["seconds_of_day"]),
+		})
+		if pid == "player":
+			player_pos = pos
+			player_abs = abs_s
+			player_dt = dt
+
+	var record := {
+		"stage_id": stage_id,
+		"frozen": true,
+		"source": source_label,
+		"base_date": base_date,
+		"base_start": base_start,
+		"base_abs_seconds": base_abs,
+		"interval_seconds": interval_s,
+		"entries": list_entries,
+		"player_position": player_pos,
+		"player_abs_seconds": player_abs,
+		"player_date": str(player_dt["date"]),
+		"player_hm": str(player_dt["hm"]),
+		"player_hms": str(player_dt["hms"]),
+		"player_hour": float(player_dt["hour_float"]),
+	}
+	start_order_by_stage[stage_id] = record
+	return record.duplicate(true)
+
+
+func _resolve_pending_start_orders_on_restore() -> void:
+	for i in range(0, mini(cursor + 1, stage_order.size())):
+		var sid := str(stage_order[i])
+		if legacy_locked_stages.has(sid):
+			continue
+		var prev_sid := "" if i <= 0 else str(stage_order[i - 1])
+		# Only resolve i > 0 when prior stage is closed (or we have official results up to cursor).
+		if i == 0 or closed_keys.has("closed:" + prev_sid) or i <= cursor:
+			if not start_order_by_stage.has(sid):
+				_resolve_and_freeze_start_order(sid, prev_sid)

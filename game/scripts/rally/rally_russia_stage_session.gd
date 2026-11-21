@@ -1314,18 +1314,25 @@ func _load_packed_scene_async(path: String) -> PackedScene:
 	return null
 
 func start_clock_for_stage(schedule: Dictionary) -> void:
-	# Salta a la hora de salida (empieza la cuenta atrás unos segundos antes).
-	var date := str(schedule.get("date", event_clock.event_date))
-	var start_str := str(schedule.get("start", "08:00"))
-	var parts := start_str.split(":")
-	var seconds := float(int(parts[0]) * 3600 + int(parts[1]) * 60)
+	# Salta a la hora efectiva de salida del competidor (empieza la cuenta atrás unos segundos antes).
+	var date := str(schedule.get("effective_date", schedule.get("date", event_clock.event_date)))
+	var seconds := float(schedule.get("effective_seconds_of_day", -1.0))
+	if seconds < 0.0:
+		var start_str := str(schedule.get("effective_hms", schedule.get("start", "08:00")))
+		var parts := start_str.split(":")
+		var h := int(parts[0]) if parts.size() >= 1 else 8
+		var m := int(parts[1]) if parts.size() >= 2 else 0
+		var s := int(parts[2]) if parts.size() >= 3 else 0
+		seconds = float(h * 3600 + m * 60 + s)
 	vehicle.set_stage_headlights(seconds / 3600.0)
 	var countdown_lead := 5.0
 	if event_manager != null and not event_manager.event_doc.is_empty():
 		countdown_lead = float(((event_manager.event_doc.get("ambient", {}) as Dictionary).get("countdown_starts_seconds_before_scheduled", 5.0)))
 	event_clock.set_rate(ambient_rate_for_stage())
 	event_clock.set_paused(false)
-	event_clock.jump_to(date, maxf(0.0, seconds - countdown_lead), "stage_start")
+	if bool(schedule.get("start_order_frozen", false)):
+		countdown_lead = start_sequence.GO_AT * event_clock.rate
+	event_clock.jump_to(date, seconds - countdown_lead, "stage_start")
 
 func ambient_rate_for_stage() -> float:
 	if event_manager != null:
