@@ -1816,15 +1816,29 @@ fn value_noise2(x: f32, y: f32, seed_offset: [f32; 2]) -> f32 {
 
 /// Shared CPU/GPU spatial pattern in `[0, 1]` parameterized by `(shader_station_m, lateral_t)`.
 pub fn spatial_patch_field(shader_station_m: f32, lateral_t: f32, seed_offset: [f32; 2]) -> f32 {
-    let n1 = value_noise2(shader_station_m * 0.045, lateral_t * 1.8, seed_offset);
+    let side_off = if lateral_t >= 0.0 { [0.0_f32, 0.0] } else { [41.7_f32, 29.3] };
+    let s_off = [seed_offset[0] + side_off[0], seed_offset[1] + side_off[1]];
+    let n1 = value_noise2(shader_station_m * 0.019, 0.5, s_off);
     let n2 = value_noise2(
-        shader_station_m * 0.16,
-        lateral_t * 4.5,
-        [seed_offset[0] + 19.7, seed_offset[1] + 7.3],
+        shader_station_m * 0.078,
+        1.5,
+        [s_off[0] + 19.7, s_off[1] + 7.3],
     );
-    (0.65 * n1 + 0.35 * n2).clamp(0.0, 1.0)
+    let n3 = value_noise2(
+        shader_station_m * 0.23,
+        2.7,
+        [s_off[0] + 53.1, s_off[1] + 31.9],
+    );
+    (0.48 * n1 + 0.34 * n2 + 0.18 * n3).clamp(0.0, 1.0)
 }
 
+/// Shared CPU/GPU Ticlio snow coverage in `[0, 1]`.
+/// - Residual regime (`mean_mm <= 1.8 mm`): discontinuous thin lateral snow ribbons
+///   strictly confined to the outer ~10-14% berms (`|lateral_t| >= 0.85`), leaving the
+///   driving lane bare.
+/// - Sustained snowfall regime (`mean_mm > 1.8 mm`): berm drifts advance inward toward
+///   the outer wheel tracks and snow accumulates along the central crown ridge between
+///   the wheel tracks (`|lateral_t| < 0.24`), receding first from the tracks during thaw.
 pub fn local_pattern_coverage(
     mean_mm: f32,
     full_mm: f32,
@@ -1832,22 +1846,76 @@ pub fn local_pattern_coverage(
     shader_station_m: f32,
     lateral_t: f32,
     seed_offset: [f32; 2],
-    edge_bias: f32,
+    _edge_bias: f32,
 ) -> f32 {
     if mean_mm <= min_visible_mm {
         return 0.0;
     }
-    let base_cov = smoothstep(min_visible_mm, full_mm, mean_mm);
-    let patch = spatial_patch_field(shader_station_m, lateral_t, seed_offset);
     let abs_t = lateral_t.abs().clamp(0.0, 1.0);
-    // Wheel tracks around |t| ~ 0.42 clear slightly earlier than shoulders/ditches.
-    let wheel_rut = (-((abs_t - 0.42) / 0.22).powi(2)).exp();
-    let shoulder = smoothstep(0.55, 1.0, abs_t);
-    let bias = (shoulder * 0.22 - wheel_rut * 0.16) * edge_bias;
-    let modulated = (base_cov + (patch - 0.5) * 0.45 * (1.0 - (base_cov - 0.5).abs() * 1.4) + bias)
-        .clamp(0.0, 1.0);
-    // Ensure high average snow fills smoothly toward 1.0 and tiny deposits stay bounded.
-    lerpf(modulated, base_cov, (base_cov * base_cov).clamp(0.0, 0.75))
+    let sustained = smoothstep(1.80, full_mm.max(3.5) * 1.25, mean_mm);
+    let min_berm_abs_t = lerpf(0.85, 0.64, sustained);
+    if abs_t < min_berm_abs_t && sustained <= 0.001 {
+        return 0.0;
+    }
+    let side_off = if lateral_t >= 0.0 { [0.0_f32, 0.0] } else { [41.7_f32, 29.3] };
+    let s_off = [seed_offset[0] + side_off[0], seed_offset[1] + side_off[1]];
+    let patch_raw = spatial_patch_field(shader_station_m, lateral_t, seed_offset);
+    let amount = smoothstep(min_visible_mm, full_mm, mean_mm);
+
+    // 1. Outer berm / shoulder snow ribbon (advances inward during sustained snowfall)
+    let mut berm_cov = 0.0_f32;
+    if abs_t >= min_berm_abs_t {
+        let gate_lo = lerpf(0.58, 0.36, amount);
+        let gate = smoothstep(gate_lo, gate_lo + 0.22, patch_raw);
+        if gate > 0.001 {
+            let edge_jit1 = value_noise2(
+                shader_station_m * 0.32,
+                abs_t * 6.0,
+                [s_off[0] + 7.1, s_off[1] + 13.9],
+            );
+            let edge_jit2 = value_noise2(
+                shader_station_m * 1.15,
+                abs_t * 14.0,
+                [s_off[0] + 23.4, s_off[1] + 41.8],
+            );
+            let scallop = (edge_jit1 - 0.5) * 0.055 + (edge_jit2 - 0.5) * 0.032;
+            let dist_from_edge = 1.0 - abs_t;
+            let max_w = lerpf(0.142, 0.34, sustained);
+            let base_w = lerpf(0.10, 0.26, sustained);
+            let ribbon_width = (base_w * (0.40 + 0.60 * amount) * (0.35 + 0.65 * gate) + scallop * gate)
+                .clamp(0.0, max_w);
+            if ribbon_width > 0.004 {
+                let profile = 1.0 - smoothstep(ribbon_width * 0.24, ribbon_width, dist_from_edge);
+                berm_cov = (profile * smoothstep(0.0, 0.20, gate) * (0.45 + 0.55 * amount)).clamp(0.0, 1.0);
+            }
+        }
+    }
+
+    // 2. Central inter-track snow deposit during sustained snowfall (recedes with thaw)
+    let mut crown_cov = 0.0_f32;
+    if sustained > 0.001 && abs_t < 0.28 {
+        let c_patch = spatial_patch_field(
+            shader_station_m + 37.0,
+            0.0,
+            [seed_offset[0] + 19.3, seed_offset[1] + 23.7],
+        );
+        let c_gate = smoothstep(0.34, 0.58, c_patch);
+        if c_gate > 0.001 {
+            let c_jit = value_noise2(
+                shader_station_m * 0.45,
+                lateral_t * 7.0,
+                [seed_offset[0] + 59.1, seed_offset[1] + 17.4],
+            );
+            let crown_w = (0.22 * sustained * (0.55 + 0.45 * c_gate) + (c_jit - 0.5) * 0.05 * sustained)
+                .clamp(0.0, 0.26);
+            if crown_w > 0.005 {
+                let c_prof = 1.0 - smoothstep(crown_w * 0.25, crown_w, abs_t);
+                crown_cov = (c_prof * c_gate * sustained * 0.82).clamp(0.0, 1.0);
+            }
+        }
+    }
+
+    berm_cov.max(crown_cov)
 }
 
 #[inline]
@@ -2182,7 +2250,7 @@ impl SurfaceGrid {
         let cfg = &atmo.climate.surface_balance;
 
         let lat = lateral_t.clamp(-1.0, 1.0);
-        let (snow_seed_off, ice_seed_off) = patch_seed_offsets(self.patch_seed);
+        let (snow_seed_off, _ice_seed_off) = patch_seed_offsets(self.patch_seed);
         let snow_cov = local_pattern_coverage(
             cell.snow_mm,
             cfg.snow_coverage_full_mm,
@@ -2192,25 +2260,18 @@ impl SurfaceGrid {
             snow_seed_off,
             1.0,
         );
-        let ice_cov = local_pattern_coverage(
-            cell.ice_mm,
-            cfg.ice_coverage_full_mm,
-            0.02,
-            cell.shader_station_m,
-            lat,
-            ice_seed_off,
-            0.85,
-        );
+        // Continuous carriageway ice patches are disabled (water-only + lateral snow ribbons).
+        let ice_cov = 0.0;
         let water_cov = if cell.water_mm > 0.01 {
             smoothstep(0.01, cfg.water_coverage_full_mm, cell.water_mm)
         } else {
             0.0
         };
 
-        // Normalized footprint weights: snow, ice, exposed base road (dry/wet asphalt).
+        // Normalized footprint weights: snow, exposed base road (dry/wet).
         let snow_w = snow_cov.clamp(0.0, 1.0);
-        let ice_w = (ice_cov * (1.0 - snow_w * 0.7)).clamp(0.0, (1.0 - snow_w).max(0.0));
-        let dry_w = (1.0 - snow_w - ice_w).clamp(0.0, 1.0);
+        let ice_w = 0.0;
+        let dry_w = (1.0 - snow_w).clamp(0.0, 1.0);
 
         let water_eff = cell.water_mm.clamp(0.0, cfg.tire_effective_water_cap_mm);
         let snow_eff = if snow_cov <= 0.001 {
@@ -3016,6 +3077,7 @@ pub struct FiveSectorJourney {
     pub climate: ClimateProfile,
     pub season_id: String,
     pub season: SeasonParams,
+    pub regime: FiveSectorRegime,
     pub event_seed: u64,
     pub climate_seed: u64,
     pub snow_mask_seed: u32,
@@ -3411,15 +3473,15 @@ impl FiveSectorJourney {
                             wind_dir_deg: base_wind_dir,
                         }]
                     } else {
-                        // Abra summit: cold active snowfall accumulating on carriageway.
+                        // Abra summit: cold active snowfall accumulating on carriageway lateral edges & central crown.
                         vec![SectorEpisode {
-                            t_start_s: base_abs_seconds - 3600.0,
-                            t_peak_s: base_abs_seconds - 300.0,
+                            t_start_s: base_abs_seconds - 4200.0,
+                            t_peak_s: base_abs_seconds - 600.0,
                             t_end_s: base_abs_seconds + 2400.0,
-                            peak_precip_mm_h: 8.5,
+                            peak_precip_mm_h: 10.5,
                             cloud_boost: 0.52,
                             humidity_boost: 0.30,
-                            temp_anomaly_c: -5.2,
+                            temp_anomaly_c: -8.2,
                             wind_m_s: 7.0,
                             wind_dir_deg: base_wind_dir,
                         }]
@@ -3494,6 +3556,7 @@ impl FiveSectorJourney {
             climate,
             season_id,
             season,
+            regime,
             event_seed,
             climate_seed,
             snow_mask_seed,
@@ -3597,13 +3660,18 @@ impl FiveSectorJourney {
             + mark.temp_anomaly_c;
         let mut air_c = ref_temp
             - mark.lapse_rate_c_per_km * ((altitude_m - self.climate.reference_altitude_m) / 1000.0);
-        if let Some(transition_m) = self.route.snow_transition_altitude_m {
-            let front_weight = 0.9 * smoothstep(0.1, 0.8, mark.precip_base_mm_h);
-            // Anchor the wet-bulb transition during the front, retaining a share
-            // of the weather anomaly and tapering the adjustment as it dries.
-            let target_wet_bulb_c = 0.9 - (altitude_m - transition_m) * 0.025;
-            let wet_bulb_c = wet_bulb_celsius(air_c, mark.humidity);
-            air_c += front_weight * (target_wet_bulb_c - wet_bulb_c);
+        if !matches!(
+            self.regime,
+            FiveSectorRegime::ControlledMixedAscent | FiveSectorRegime::ControlledRefreeze
+        ) {
+            if let Some(transition_m) = self.route.snow_transition_altitude_m {
+                let front_weight = 0.9 * smoothstep(0.1, 0.8, mark.precip_base_mm_h);
+                // Anchor the wet-bulb transition during the front, retaining a share
+                // of the weather anomaly and tapering the adjustment as it dries.
+                let target_wet_bulb_c = 0.9 - (altitude_m - transition_m) * 0.025;
+                let wet_bulb_c = wet_bulb_celsius(air_c, mark.humidity);
+                air_c += front_weight * (target_wet_bulb_c - wet_bulb_c);
+            }
         }
         let solar = solar_factor_for_hour(hour);
         let irr = if solar <= 0.0 {
@@ -4035,7 +4103,6 @@ impl FiveSectorSnapshot {
         let cfg = &journey.climate.surface_balance;
         let lat = lateral_t.clamp(-1.0, 1.0);
         let snow_seed_off = patch_seed_offsets(self.patch_seed as u64).0;
-        let ice_seed_off = patch_seed_offsets(self.ice_patch_seed as u64).1;
 
         let snow_cov = local_pattern_coverage(
             snow_mm,
@@ -4046,15 +4113,8 @@ impl FiveSectorSnapshot {
             snow_seed_off,
             1.0,
         );
-        let ice_cov = local_pattern_coverage(
-            ice_mm,
-            cfg.ice_coverage_full_mm,
-            0.02,
-            shader_station_m,
-            lat,
-            ice_seed_off,
-            0.85,
-        );
+        // Continuous carriageway ice patches are disabled (water-only + lateral snow ribbons).
+        let ice_cov = 0.0;
         let water_cov = if water_mm > 0.01 {
             smoothstep(0.01, cfg.water_coverage_full_mm, water_mm)
         } else {
@@ -4062,8 +4122,8 @@ impl FiveSectorSnapshot {
         };
 
         let snow_w = snow_cov.clamp(0.0, 1.0);
-        let ice_w = (ice_cov * (1.0 - snow_w * 0.7)).clamp(0.0, (1.0 - snow_w).max(0.0));
-        let dry_w = (1.0 - snow_w - ice_w).clamp(0.0, 1.0);
+        let ice_w = 0.0;
+        let dry_w = (1.0 - snow_w).clamp(0.0, 1.0);
 
         let water_eff = water_mm.clamp(0.0, cfg.tire_effective_water_cap_mm);
         let snow_eff = if snow_cov <= 0.001 {
@@ -5181,17 +5241,45 @@ mod tests {
             DayRegime::ForceDry,
         );
         let mut grid = SurfaceGrid::build_and_preroll(&mut atmo, "asphalt");
-        // Set partial snow + ice on cell to inspect spatial pattern & weight normalization.
+        // Set residual snow + ice on cell to inspect lateral-edge snow ribbons, zero ice patches & weight normalization.
         for c in &mut grid.cells {
-            c.snow_mm = 2.0;
+            c.snow_mm = 1.6;
             c.ice_mm = 0.8;
             c.water_mm = 0.5;
         }
         let track = grid.sample_at(&mut atmo, 1500.0, 0.42);
-        let shoulder = grid.sample_at(&mut atmo, 1500.0, 0.95);
-        assert!(shoulder.snow_coverage >= track.snow_coverage);
+        let lane_edge = grid.sample_at(&mut atmo, 1500.0, 0.82);
+        let center_res = grid.sample_at(&mut atmo, 1500.0, 0.0);
+        assert_eq!(track.snow_coverage, 0.0, "Central wheel tracks must remain snow-free");
+        assert_eq!(lane_edge.snow_coverage, 0.0, "Inner 85% of carriageway must remain snow-free in residual regime");
+        assert_eq!(center_res.snow_coverage, 0.0, "Central crown must remain snow-free in residual regime");
+        assert_eq!(track.ice_coverage, 0.0, "Continuous ice coverage must stay zero");
+        assert_eq!(track.ice_weight, 0.0, "Continuous ice weight must stay zero");
+
+        // Sample along outer 10% lateral edges across 600 m: must show both snowy patches and clean gaps, plus L/R independence.
+        let mut saw_snow_r = false;
+        let mut saw_bare_r = false;
+        let mut lr_diff = false;
+        for step in 0..40 {
+            let p = 1200.0 + (step as f32) * 15.0;
+            let sr = grid.sample_at(&mut atmo, p, 0.96);
+            let sl = grid.sample_at(&mut atmo, p, -0.96);
+            assert_eq!(sr.ice_coverage, 0.0);
+            assert!((sr.dry_weight + sr.snow_weight + sr.ice_weight - 1.0).abs() < 1e-5);
+            assert!((sl.dry_weight + sl.snow_weight + sl.ice_weight - 1.0).abs() < 1e-5);
+            if sr.snow_coverage > 0.10 {
+                saw_snow_r = true;
+            }
+            if sr.snow_coverage <= 0.001 {
+                saw_bare_r = true;
+            }
+            if (sr.snow_coverage - sl.snow_coverage).abs() > 0.05 {
+                lr_diff = true;
+            }
+        }
+        assert!(saw_snow_r && saw_bare_r, "Outer 10% snow ribbons must be discontinuous along the stage");
+        assert!(lr_diff, "Left and right edge snow ribbons must vary independently");
         assert!((track.dry_weight + track.snow_weight + track.ice_weight - 1.0).abs() < 1e-5);
-        assert!((shoulder.dry_weight + shoulder.snow_weight + shoulder.ice_weight - 1.0).abs() < 1e-5);
     }
 
     #[test]
@@ -5211,16 +5299,24 @@ mod tests {
         let grid = SurfaceGrid::build_and_preroll(&mut atmo, "asphalt");
         let s_low = grid.sample_at(&mut atmo, total * 0.03, 0.0);
         let s_mid = grid.sample_at(&mut atmo, total * 0.48, 0.0);
-        let s_abra = grid.sample_at(&mut atmo, total * 0.90, 0.0);
+        let s_abra_center = grid.sample_at(&mut atmo, total * 0.90, 0.0);
+        let abra_edge_max = (0..12)
+            .map(|k| grid.sample_at(&mut atmo, total * 0.86 + (k as f32) * 20.0, 0.96).snow_coverage)
+            .fold(0.0_f32, f32::max);
         eprintln!(
-            "CONTROLLED_MIXED low=(cloud={:.2},ground={:.2},snow={:.2},water={:.2},snow_cov={:.2},rain={:.2}) mid=(rain={:.2},snow={:.2},snow_cov={:.2},water={:.2}) abra=(snow_h={:.2},snow={:.2},snow_cov={:.2})",
+            "CONTROLLED_MIXED low=(cloud={:.2},ground={:.2},snow={:.2},water={:.2},snow_cov={:.2},rain={:.2}) mid=(rain={:.2},snow={:.2},snow_cov={:.2},water={:.2}) abra=(snow_h={:.2},snow={:.2},center_cov={:.2},edge_max_cov={:.2})",
             s_low.cloud_cover, s_low.ground_c, s_low.snow_mm, s_low.water_mm, s_low.snow_coverage, s_low.rain_mm_h,
             s_mid.rain_mm_h, s_mid.snow_mm, s_mid.snow_coverage, s_mid.water_mm,
-            s_abra.snow_mm_h, s_abra.snow_mm, s_abra.snow_coverage
+            s_abra_center.snow_mm_h, s_abra_center.snow_mm, s_abra_center.snow_coverage, abra_edge_max
         );
-        assert!(s_low.cloud_cover >= 0.65 && s_low.snow_mm > 0.25 && s_low.ground_c > 0.15 && s_low.water_mm > 0.05);
+        let s_abra_track = grid.sample_at(&mut atmo, total * 0.90, 0.44);
+        let abra_crown_max = (0..12)
+            .map(|k| grid.sample_at(&mut atmo, total * 0.86 + (k as f32) * 20.0, 0.0).snow_coverage)
+            .fold(0.0_f32, f32::max);
+        assert!(s_low.cloud_cover >= 0.65 && s_low.snow_mm > 0.25 && s_low.ground_c > 0.15 && s_low.water_mm > 0.05 && s_low.snow_coverage == 0.0);
         assert!(s_mid.rain_mm_h > 0.5 && s_mid.snow_mm <= 0.01 && s_mid.snow_coverage <= 0.001 && s_mid.water_mm > 0.1);
-        assert!(s_abra.snow_mm_h > 0.5 && s_abra.snow_mm > 0.5 && s_abra.snow_coverage > 0.15);
+        assert_eq!(s_abra_track.snow_coverage, 0.0);
+        assert!(s_abra_center.snow_mm_h > 0.5 && s_abra_center.snow_mm > 0.5 && abra_edge_max > 0.15 && abra_crown_max > 0.05);
     }
 
     #[test]
@@ -5246,7 +5342,7 @@ mod tests {
             before.water_mm, before.ice_mm, before.ground_c,
             after.water_mm, after.ice_mm, after.ice_coverage, after.ground_c
         );
-        assert!(before.water_mm > 0.25 && after.ice_mm > before.ice_mm && after.ice_mm > 0.1 && after.ice_coverage > 0.05);
+        assert!(before.water_mm > 0.25 && after.ice_mm > before.ice_mm && after.ice_mm > 0.1 && after.ice_coverage == 0.0);
     }
 
     #[test]
@@ -5393,17 +5489,25 @@ mod tests {
         let s_low = snap.sample_surface_at(&journey, total * 0.05, 0.0);
         let s_mid = snap.sample_surface_at(&journey, total * 0.48, 0.0);
         let s_abra = snap.sample_surface_at(&journey, total * 0.92, 0.0);
-        assert!(s_low.snow_mm > 0.2 && s_low.ground_c > 0.15);
+        let s_abra_track = snap.sample_surface_at(&journey, total * 0.92, 0.44);
+        let abra_edge_max = (0..12)
+            .map(|k| snap.sample_surface_at(&journey, total * 0.86 + (k as f32) * 20.0, 0.96).snow_coverage)
+            .fold(0.0_f32, f32::max);
+        let abra_crown_max = (0..12)
+            .map(|k| snap.sample_surface_at(&journey, total * 0.86 + (k as f32) * 20.0, 0.0).snow_coverage)
+            .fold(0.0_f32, f32::max);
+        assert!(s_low.snow_mm > 0.2 && s_low.ground_c > 0.15 && s_low.snow_coverage == 0.0);
         assert!(s_mid.rain_mm_h > 0.5 && s_mid.snow_mm <= 0.01);
-        assert!(s_abra.snow_mm_h > 0.5 && s_abra.snow_coverage > 0.15);
+        assert_eq!(s_abra_track.snow_coverage, 0.0);
+        assert!(s_abra.snow_mm_h > 0.5 && abra_edge_max > 0.15 && abra_crown_max > 0.05);
 
-        // Refreeze check: liquid early, frozen ice later with reduced liquid puddle fill.
+        // Refreeze check: thermal water freezes into ice_mm (reducing liquid puddle fill), while road ice_coverage stays 0.
         let j_ice = FiveSectorJourney::build(route, climate, 888, "transition", base_s, FiveSectorRegime::ControlledRefreeze);
         let s_pre = j_ice.build_snapshot_at(base_s - 2200.0, "asphalt");
         let s_post = j_ice.build_snapshot_at(base_s + 1200.0, "asphalt");
         let p_pre = s_pre.sample_surface_at(&j_ice, total * 0.85, 0.0);
         let p_post = s_post.sample_surface_at(&j_ice, total * 0.85, 0.0);
-        assert!(p_pre.water_mm > 0.3 && p_post.ice_mm > 0.1 && p_post.ice_coverage > 0.05 && p_post.water_mm < p_pre.water_mm);
+        assert!(p_pre.water_mm > 0.3 && p_post.ice_mm > 0.1 && p_post.ice_coverage == 0.0 && p_post.water_mm < p_pre.water_mm);
         let fills_post = s_post.compute_puddle_fills(&j_ice, &[total * 0.85], &[1.3], &[0.65], &[1.2]);
         assert!(fills_post[0] < 0.25);
     }

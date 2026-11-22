@@ -22,6 +22,17 @@ fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
     t * t * (3.0 - 2.0 * t)
 }
 
+/// Shared CPU/Rust/GPU bathymetric shoreline threshold in `[0.18, 0.62]`.
+/// Treats the mask as depression relief and `fill` as water surface elevation:
+/// at low `fill`, standing water is confined to the deepest pit (`mask > 0.62`);
+/// as `fill -> 1.0`, the shoreline advances outward to the full basin rim (`0.18`).
+#[inline]
+pub fn shore_threshold_for_fill(fill: f32) -> f32 {
+    let t = fill.clamp(0.0, 1.0);
+    let f = t * (1.35 - 0.35 * t);
+    lerpf(0.62, 0.18, f)
+}
+
 struct MaskData {
     width: i32,
     height: i32,
@@ -272,6 +283,29 @@ impl RustPuddleField {
         );
         PackedFloat32Array::from(&out[..])
     }
+
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    pub fn snow_contact_response_packed(
+        depth_mm: f32,
+        speed: f32,
+        load_n: f32,
+        width: f32,
+        drag_scale: f32,
+        delta_depth_s: f32,
+        wheel_radius: f32,
+    ) -> PackedFloat32Array {
+        let out = snow_contact_response_impl(
+            depth_mm,
+            speed,
+            load_n,
+            width,
+            drag_scale,
+            delta_depth_s,
+            wheel_radius,
+        );
+        PackedFloat32Array::from(&out[..])
+    }
 }
 
 impl RustPuddleField {
@@ -300,14 +334,15 @@ impl RustPuddleField {
             }
             let uv = Vector2::new(local.x / patch.size.x, local.z / patch.size.y);
             let mask = if let Some(img) = self.masks.get(&patch.mask_id) {
-                sample_image_mask_impl(img, uv, patch.uv_scale)
+                sample_image_mask_impl(img, uv, patch.uv_scale, patch.shape_params)
             } else {
                 mask_at_impl(uv, patch.shape_params)
             };
-            if mask <= 0.18 {
+            let shore_thresh = shore_threshold_for_fill(patch.fill);
+            if mask <= shore_thresh {
                 continue;
             }
-            let water_mask = ((mask - 0.18) / 0.82).clamp(0.0, 1.0);
+            let water_mask = ((mask - shore_thresh) / (1.0 - shore_thresh)).clamp(0.0, 1.0);
             let depth = water_mask * patch.fill * patch.depth_mm;
             if depth > best_depth {
                 best_depth = depth;
@@ -339,9 +374,20 @@ fn mask_at_impl(uv: Vector2, sp: [f32; 4]) -> f32 {
 }
 
 #[inline]
-fn sample_image_mask_impl(img: &MaskData, uv: Vector2, uv_scale: Vector2) -> f32 {
-    let mx = uv.x * uv_scale.x + 0.5;
-    let my = uv.y * uv_scale.y + 0.5;
+fn warp_mask_uv_impl(uv: Vector2, uv_scale: Vector2, sp: [f32; 4]) -> (f32, f32) {
+    let p_x = uv.x * uv_scale.x;
+    let p_y = uv.y * uv_scale.y;
+    let px = p_x * (1.0 + p_y * 0.34 * sp[0]) + (p_y * p_y - 0.06) * 0.28 * sp[1];
+    let py = p_y * (1.0 - p_x * 0.18 * sp[1]) + (p_x * p_x - 0.05) * 0.16 * sp[0];
+    let r2 = ((p_x * p_x + p_y * p_y) * 4.0).clamp(0.0, 1.0);
+    let w1 = ((py * 5.8 + sp[3]).sin() + 0.55 * (px * 11.2 - sp[3] * 1.7).cos()) * 0.038 * sp[2] * r2;
+    let w2 = ((px * 5.4 + sp[3] * 1.3).cos() + 0.55 * (py * 10.6 + sp[3] * 0.8).sin()) * 0.038 * sp[2] * r2;
+    (px + w1 + 0.5, py + w2 + 0.5)
+}
+
+#[inline]
+fn sample_image_mask_impl(img: &MaskData, uv: Vector2, uv_scale: Vector2, sp: [f32; 4]) -> f32 {
+    let (mx, my) = warp_mask_uv_impl(uv, uv_scale, sp);
     if !(0.0..=1.0).contains(&mx) || !(0.0..=1.0).contains(&my) {
         return 0.0;
     }
@@ -368,8 +414,12 @@ fn contact_response_impl(
     let abs_speed = speed.abs();
     let evac_speed = evac_speed_in.max(0.1);
     let wet_factor = ((evac_speed - 16.0) / 12.0).clamp(0.0, 1.0);
-    let risk = smoothstep(evac_speed * 0.60, evac_speed * 1.30, abs_speed)
-        * smoothstep(1.5, WATER_GRIP_DEPTH_SATURATION_MM, depth_mm);
+    let depth_t = ((depth_mm - 1.5) / (WATER_GRIP_DEPTH_SATURATION_MM - 1.5)).clamp(0.0, 1.0);
+    let depth_u = depth_t.powf(0.72);
+    let depth_norm = depth_u * depth_u * (3.0 - 2.0 * depth_u);
+    let speed_risk = smoothstep(evac_speed * 0.42, evac_speed * 1.25, abs_speed)
+        .max(0.18 * smoothstep(4.0, 14.0, abs_speed));
+    let risk = speed_risk * depth_norm;
 
     let support_long = 1.0 - risk * lerpf(0.80, 0.55, wet_factor);
     let support_lat = 1.0 - risk * lerpf(0.94, 0.75, wet_factor);
@@ -392,6 +442,67 @@ fn contact_response_impl(
     let wheel_torque_nm = total_drag * 0.75 * wheel_radius;
     let steering_pull_nm = total_drag * 0.07;
     let vertical_dip_m = (depth_mm * 0.001 * 0.45).clamp(0.0, 0.018);
+
+    [
+        support,
+        support_long,
+        support_lat,
+        total_drag,
+        slam_drag,
+        continuous_drag,
+        wheel_torque_nm,
+        steering_pull_nm,
+        vertical_dip_m,
+    ]
+}
+
+const SNOW_DRAG_MAX_LOAD_FRACTION: f32 = 0.95;
+
+/// Physical snow-patch contact response: retains far more tire grip than standing water
+/// (no aquaplaning washout), while delivering stronger compaction/plowing drag from low
+/// speeds, a heavier entry impact slam, stronger wheel braking torque, and firmer steering tug.
+#[inline]
+#[allow(clippy::too_many_arguments)]
+fn snow_contact_response_impl(
+    depth_mm: f32,
+    speed: f32,
+    load_n: f32,
+    width: f32,
+    drag_scale: f32,
+    delta_depth_s: f32,
+    wheel_radius: f32,
+) -> [f32; 9] {
+    if depth_mm <= 0.001 || speed.abs() <= 0.001 {
+        return [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    }
+    let abs_speed = speed.abs();
+    let depth_factor = smoothstep(1.5, 24.0, depth_mm);
+
+    // Mild grip reduction compared to water aquaplaning: vehicle stays controllable.
+    let support_long = 1.0 - 0.14 * depth_factor;
+    let support_lat = 1.0 - 0.22 * depth_factor;
+    let support = support_long.min(support_lat);
+
+    // Compaction + plowing drag: strong resistance even at low/medium speeds.
+    let low_speed_ramp = smoothstep(0.0, 2.0, abs_speed);
+    let continuous_drag = (9500.0 * low_speed_ramp + 1800.0 * abs_speed + 3600.0 * abs_speed * abs_speed)
+        * width
+        * depth_mm
+        * 0.001
+        * drag_scale;
+
+    // Heavier initial entry slam upon striking a snow drift edge (~1.5x water slam).
+    let mut slam_drag = 0.0f32;
+    if delta_depth_s > 0.0 {
+        slam_drag = 34.0 * width * delta_depth_s.min(200.0) * abs_speed * drag_scale;
+        slam_drag = slam_drag.min(load_n * 0.45);
+    }
+
+    let max_drag = load_n * SNOW_DRAG_MAX_LOAD_FRACTION;
+    let total_drag = (continuous_drag + slam_drag).min(max_drag);
+    let wheel_torque_nm = total_drag * 0.95 * wheel_radius;
+    let steering_pull_nm = total_drag * 0.11;
+    let vertical_dip_m = (depth_mm * 0.001 * 0.30).clamp(0.0, 0.012);
 
     [
         support,
@@ -631,5 +742,43 @@ mod tests {
         let (s1, conc1) = compute_entry_exit_slopes_bounded(Some(Vector3::new(0.0, 2.4, 0.0)), Vector3::new(30.0, 0.0, 0.0), None);
         assert!((s1 + 0.08).abs() < 1e-5);
         assert_eq!(conc1, 0.0);
+    }
+
+    #[test]
+    fn mask_uv_warp_is_identity_for_zero_and_asymmetric_otherwise() {
+        let uv = Vector2::new(0.22, -0.18);
+        let scale = Vector2::new(-1.0, 1.0);
+        let (ix, iy) = warp_mask_uv_impl(uv, scale, [0.0, 0.0, 0.0, 0.0]);
+        assert!((ix - (uv.x * scale.x + 0.5)).abs() < 1e-6);
+        assert!((iy - (uv.y * scale.y + 0.5)).abs() < 1e-6);
+
+        let sp = [0.28, -0.24, 1.15, 0.7];
+        let (cx, cy) = warp_mask_uv_impl(Vector2::new(0.0, 0.0), Vector2::new(1.0, 1.0), sp);
+        assert!((cx - 0.5).abs() < 0.02 && (cy - 0.5).abs() < 0.01, "center must stay anchored: ({}, {})", cx, cy);
+
+        let (ax, ay) = warp_mask_uv_impl(Vector2::new(0.25, 0.25), Vector2::new(1.0, 1.0), sp);
+        let (bx, by) = warp_mask_uv_impl(Vector2::new(-0.25, -0.25), Vector2::new(1.0, 1.0), sp);
+        assert!(
+            ((ax - 0.5) + (bx - 0.5)).abs() > 0.005 || ((ay - 0.5) + (by - 0.5)).abs() > 0.005,
+            "warp must break central symmetry: a=({ax},{ay}) b=({bx},{by})"
+        );
+    }
+
+    #[test]
+    fn snow_patch_retains_more_grip_and_brakes_harder_than_water() {
+        let zero = snow_contact_response_impl(0.0, 15.0, 3500.0, 0.205, 1.25, 0.0, 0.31);
+        assert_eq!(zero, [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+
+        let water_hi = contact_response_impl(18.0, 26.0, 16.0, 3500.0, 0.205, 1.25, 40.0, 0.31);
+        let snow_hi = snow_contact_response_impl(18.0, 26.0, 3500.0, 0.205, 1.25, 40.0, 0.31);
+        assert!(snow_hi[1] > water_hi[1] && snow_hi[1] >= 0.85, "Snow patch must preserve longitudinal grip");
+        assert!(snow_hi[2] > water_hi[2] && snow_hi[2] >= 0.78, "Snow patch must preserve lateral grip");
+        assert!(snow_hi[3] > water_hi[3], "Snow patch must allow higher total retarding drag cap");
+        assert!(snow_hi[4] > water_hi[4], "Snow patch must deliver heavier entry slam");
+
+        let water_lo = contact_response_impl(15.0, 8.0, 16.0, 3500.0, 0.205, 1.25, 20.0, 0.31);
+        let snow_lo = snow_contact_response_impl(15.0, 8.0, 3500.0, 0.205, 1.25, 20.0, 0.31);
+        assert!(snow_lo[5] > water_lo[5] * 1.3, "Snow compaction drag must slow the car much harder at medium/low speeds");
+        assert!(snow_lo[6] > water_lo[6] && snow_lo[7] > water_lo[7], "Snow patch must apply stronger wheel braking and steering tug");
     }
 }

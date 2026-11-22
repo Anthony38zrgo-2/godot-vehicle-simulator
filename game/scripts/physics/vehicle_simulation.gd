@@ -134,6 +134,7 @@ var tire_sources: Dictionary = {}
 var last_local_conditions: Array = [{}, {}, {}, {}]
 var _ambient_irradiance_w_m2: float = 0.0
 var last_puddle_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var last_snow_patch_depths_mm: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _water_wheel_positions: PackedVector3Array = PackedVector3Array()
 # §closure-6: prototipo de envolvente espacial tandem-cam (comparación).
 # Dos apoyos geométricos longitudinales separados por la longitud de huella.
@@ -1677,17 +1678,21 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		else:
 			local = _local_conditions_at_contact(surface_str, contact_pos, loaded_contact)
 		if has_winter_patches and loaded_contact:
-			var winter: Vector2 = puddle_system.sample_winter_patch(contact_pos)
-			if winter.x > 0.0:
-				local["snow_mm"] = maxf(float(local.get("snow_mm", 0.0)), winter.x)
-				local["snow_coverage"] = maxf(float(local.get("snow_coverage", 0.0)), smoothstep(0.0, 3.5, winter.x))
-			if winter.y > 0.0:
-				local["ice_mm"] = maxf(float(local.get("ice_mm", 0.0)), winter.y)
-				local["ice_coverage"] = maxf(float(local.get("ice_coverage", 0.0)), smoothstep(0.0, 1.8, winter.y))
+			var snow_patch: Vector2 = puddle_system.sample_snow_patch(contact_pos) if puddle_system.has_method(&"sample_snow_patch") else Vector2(puddle_system.sample_winter_patch(contact_pos).x, 1.0)
+			if snow_patch.x > 0.001:
+				local["snow_patch_depth_mm"] = snow_patch.x
+				local["snow_patch_drag"] = snow_patch.y
+				local["snow_mm"] = maxf(float(local.get("snow_mm", 0.0)), snow_patch.x)
+				# Cap tire-compound snow_coverage modestly so snow patches retain grip while snow_contact_response delivers plowing drag & impact.
+				local["snow_coverage"] = maxf(float(local.get("snow_coverage", 0.0)), minf(smoothstep(0.0, 3.5, snow_patch.x) * 0.25, 0.25))
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
 		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
 		last_puddle_depths_mm[i] = current_puddle_depth
 		local["puddle_depth_rate"] = depth_rate
+		var current_snow_patch_depth := float(local.get("snow_patch_depth_mm", 0.0))
+		var snow_patch_rate := maxf(current_snow_patch_depth - last_snow_patch_depths_mm[i], 0.0) / maxf(dt, 0.001)
+		last_snow_patch_depths_mm[i] = current_snow_patch_depth
+		local["snow_patch_depth_rate"] = snow_patch_rate
 		thermal_water[i] = float(local.get("water_mm", 0.0))
 		background_water[i] = float(local.get("background_water_mm", thermal_water[i]))
 		thermal_snow[i] = float(local.get("snow_mm", 0.0))
@@ -1855,32 +1860,48 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var mz := float(tire_result.get("aligning_torque_nm", 0.0))
 			var flat_drag := -clampf(longitudinal_speed, -1.0, 1.0) * normal_load * 0.045 * float(thermal_state.pressure_loss_fraction)
 			var puddle_depth_here: float = float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
+			var snow_patch_depth_here: float = float(last_local_conditions[i].get("snow_patch_depth_mm", 0.0))
 			var eff_sup_x: float = 1.0
 			var eff_sup_y: float = 1.0
 			var drag_n: float = 0.0
 			var steering_pull_mag: float = 0.0
 			var hydro_wheel_torque_mag: float = 0.0
-			if puddle_depth_here > 0.001:
+			if puddle_depth_here > 0.001 or snow_patch_depth_here > 0.001:
 				var point_surf_speed: float = point_velocity.slide(normal).length()
 				if point_surf_speed > 0.001:
-					var pres: PackedFloat32Array = PuddleModel.contact_response_packed(
-						puddle_depth_here,
-						point_surf_speed,
-						float(tire_model.wheel_compounds[i].get("water_evacuation_reference_speed_m_s", 16.0)),
-						normal_load,
-						wheel_widths[i],
-						float(last_local_conditions[i].get("puddle_drag", 0.0)),
-						float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
-						wheel_radii[i]
-					)
-					if normal_load > 1e-4:
+					if puddle_depth_here > 0.001:
+						var pres: PackedFloat32Array = PuddleModel.contact_response_packed(
+							puddle_depth_here,
+							point_surf_speed,
+							float(tire_model.wheel_compounds[i].get("water_evacuation_reference_speed_m_s", 16.0)),
+							normal_load,
+							wheel_widths[i],
+							float(last_local_conditions[i].get("puddle_drag", 0.0)),
+							float(last_local_conditions[i].get("puddle_depth_rate", 0.0)),
+							wheel_radii[i]
+						)
 						var wf_bg := maxf(float(tire_model.states[i]["compound_water_factor"]), 0.05)
 						eff_sup_x = minf(wf_bg, pres[1]) / wf_bg
 						eff_sup_y = minf(wf_bg, pres[2]) / wf_bg
-					drag_n = pres[3]
-					hydro_wheel_torque_mag = pres[6]
-					steering_pull_mag = pres[7]
-			last_local_conditions[i]["puddle_support"] = eff_sup_x
+						drag_n = pres[3]
+						hydro_wheel_torque_mag = pres[6]
+						steering_pull_mag = pres[7]
+					if snow_patch_depth_here > 0.001:
+						var sres: PackedFloat32Array = PuddleModel.snow_contact_response_packed(
+							snow_patch_depth_here,
+							point_surf_speed,
+							normal_load,
+							wheel_widths[i],
+							float(last_local_conditions[i].get("snow_patch_drag", 1.0)),
+							float(last_local_conditions[i].get("snow_patch_depth_rate", 0.0)),
+							wheel_radii[i]
+						)
+						eff_sup_x *= sres[1]
+						eff_sup_y *= sres[2]
+						drag_n += sres[3]
+						hydro_wheel_torque_mag += sres[6]
+						steering_pull_mag += sres[7]
+			last_local_conditions[i]["puddle_support"] = minf(eff_sup_x, eff_sup_y)
 			last_local_conditions[i]["puddle_drag_n"] = drag_n
 			fx *= eff_sup_x
 			fy *= eff_sup_y
@@ -1913,7 +1934,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * eff_sup_x
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
-			var hydro_wheel_torque: float = (hydro_wheel_torque_mag if puddle_depth_here > 0.001 else 0.0) * signf(longitudinal_speed)
+			var hydro_wheel_torque: float = (hydro_wheel_torque_mag if (puddle_depth_here > 0.001 or snow_patch_depth_here > 0.001) else 0.0) * signf(longitudinal_speed)
 			var raw_tire_torque := (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
 			# Amortiguamiento implícito de spin compatible con el estado brush (patch_pos.x):
 			# dT/domega en un subpaso h es h * k_x * R_eff^2 * (1 - util)^2, sin falsear la inercia
@@ -2501,6 +2522,7 @@ func reset_dynamics() -> void:
 	wheel_surfaces.fill("Unknown")
 	last_local_conditions = [{}, {}, {}, {}]
 	last_puddle_depths_mm.fill(0.0)
+	last_snow_patch_depths_mm.fill(0.0)
 	last_contacts = [{}, {}, {}, {}]
 	contact_query_count = 0
 	brake_model.smoothed_service_input = 0.0
