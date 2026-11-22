@@ -27,8 +27,8 @@
     "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
     "runtime_visuals": {
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Stratos with lights.fbx",
-      "texture": "lancia_stratos_alta.png",
-      "finish": "high_res_pbr_no_psx",
+      "texture": "lancia_stratos_psx_rgb555.png",
+      "finish": "original_livery_baked_psx_rgb555",
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
@@ -42,8 +42,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "5da3260445c28643ccca9fd15c38e4872346bf351f08436de9722df5e8c5b34b",
-    "size_bytes": 211224,
+    "sha256": "824211c60e4f74d502fc3f9d7e1cc8dc9d64b9a8755be902ce191cf06fef62a1",
+    "size_bytes": 211904,
     "exported_nodes": [
       "LanciaStratosExterior"
     ]
@@ -51,23 +51,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "39a10369d1f1b5bde5c0ee3c50fe9d1bcf6b9d7627573fe8eb0b21f9591bfdaa",
-      "size_bytes": 160732
+      "sha256": "608331b4b5d3c28cf253d45d48c7dd260f6e305afa86eefc6fa4e6df1af5e9cd",
+      "size_bytes": 138408
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "fdc9eb488c9604b3b44b5ac48d34cc5f1d62c6195f3975efa78f3718da6387f2",
-      "size_bytes": 160732
+      "sha256": "7ac4e12d67d0786cc0a0d67453e2e6e373475b6614f72aabad0a71f1c6533983",
+      "size_bytes": 138408
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "25fc7cf80199e25ed998ce25fce8f44f5cfc43d2b77849b87cf1ac1025b7f144",
-      "size_bytes": 160736
+      "sha256": "9d88f117132ad8e9fa5764621202ecaa8246ea24a246f6ba726f1a0a80a8bd80",
+      "size_bytes": 138412
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "5498bec63b76cb13a3273e771801795cefc9b67a5d16760d412c899d0b2e6252",
-      "size_bytes": 160736
+      "sha256": "521317978c9621051733ad74cab6ce7235558752ca0512b8f3fe21bf99f64fbb",
+      "size_bytes": 138412
     }
   },
   "wheel_pivots": {

@@ -26,7 +26,8 @@
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "original_livery_baked_psx_rgb555"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +37,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "12a85cc1c636b766df58f8b30f5c95515006eb14116cbe869caebef4e0fe15f4",
-    "size_bytes": 194656,
+    "sha256": "f421aef499e7a61596ea7b7210b7d070b0ba14b12dc30cdf796d0e823e21f2e0",
+    "size_bytes": 202368,
     "exported_nodes": [
       "MiniCooperExterior"
     ]
@@ -45,23 +46,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "56656395dee6289760ada8607144fa1e82a541d746d1b3f9823341000baac7aa",
-      "size_bytes": 129168
+      "sha256": "2d815c1b711c205f9f195add4748b8dfb14430747980ac4b1dbb80af1c0cd928",
+      "size_bytes": 115172
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "df08156d0911d22d774e345d5d7df74c36535db937954f05d06b99d7b7a05b7c",
-      "size_bytes": 129168
+      "sha256": "f21ff0e8ec938126618a966c52248bc7fd8fda7489455193ac71e8a53ff2c782",
+      "size_bytes": 115172
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "07f8c29a2145435377018296fecc04f5443da78867795e6234fe5d6ad34a6724",
-      "size_bytes": 129224
+      "sha256": "89bf998afc1575b9b97460663c691d3fcbce6f4617fb354410c3e289c7c64bfc",
+      "size_bytes": 115228
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "444b4c8d6f67d802bd93fcaaebf62548190725ad2390ce3a86cfd1c58d975040",
-      "size_bytes": 129224
+      "sha256": "ba59fcdcbb9eaee7f585d7545264b4b7e0d48154d730ce4ed257545f23e37f51",
+      "size_bytes": 115228
     }
   },
   "wheel_pivots": {

@@ -12,7 +12,8 @@
       "fit": "Piecewise-linear longitudinal fit to FIA Homologation No. 647 Group 4 wheelbase (2.490 m) and length (4.181 m) with wide Bertone Gr.4 arch width (1.758 m) preserved and 185/70 R15 gravel wheels (R=0.320 m, W=0.200 m).",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "original_livery_baked_psx_rgb555"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -31,8 +32,8 @@
   },
   "chassis": {
     "path": "fiat_131_abarth_chassis.glb",
-    "sha256": "d0a33b11cafc8bd4bf64e67c8897d7c3c6ab8fae578b3f9523339c20e546e265",
-    "size_bytes": 196920,
+    "sha256": "e24848de083f22836347edca83980edea85695b8237ed9e47ce8076edfc11af3",
+    "size_bytes": 213244,
     "exported_nodes": [
       "Fiat131AbarthExterior"
     ]
@@ -40,23 +41,23 @@
   "wheels": {
     "front_left": {
       "path": "fiat_131_abarth_wheel_front_left.glb",
-      "sha256": "22edb7fabf1910a8f8cca469265ba8788efea4bc0ce4fd08247157699d0686d5",
-      "size_bytes": 147468
+      "sha256": "987695a6a803dddca1fe1600a32e421ba6e9b05f897fc7165e9ee786343c4473",
+      "size_bytes": 134888
     },
     "front_right": {
       "path": "fiat_131_abarth_wheel_front_right.glb",
-      "sha256": "1a8e16afc94465286bdc0b0c8e7f37484ac740179ffd22da81f85797032346b4",
-      "size_bytes": 147468
+      "sha256": "e5869bb07cd1845d0f548282bfef5cc7f63661843c36ce72b3092acc68fbb4d0",
+      "size_bytes": 134888
     },
     "rear_left": {
       "path": "fiat_131_abarth_wheel_rear_left.glb",
-      "sha256": "719ef4d76ae8f131672dcf4c5f59cc1e9df6a27af89f550a6e34daeda361d680",
-      "size_bytes": 147468
+      "sha256": "a339303e91d29cb834d2a9827c81b5dba8897b9da999561aa16614d0ddc4fe1c",
+      "size_bytes": 134888
     },
     "rear_right": {
       "path": "fiat_131_abarth_wheel_rear_right.glb",
-      "sha256": "f01d4a343e1a3c11f129435377f5bcc51a860094b501f7da0ea96db0db76fef9",
-      "size_bytes": 147468
+      "sha256": "457ddfb2cd2a34731f64c94662de125b1949a6c0cc42702a71f4caabccf4c11f",
+      "size_bytes": 134888
     }
   },
   "collision": {

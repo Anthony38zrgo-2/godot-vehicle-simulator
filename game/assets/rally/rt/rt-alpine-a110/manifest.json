@@ -26,7 +26,8 @@
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "original_livery_baked_psx_rgb555"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +37,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "583005d5bddae0876c73ac54d0069ec9c83aaeb56ae75321cc4d1a3968d7a6c4",
-    "size_bytes": 169072,
+    "sha256": "58253ff04fea6cd4167155eddccaf76914471b808a63e5ab324ab97e631aa97b",
+    "size_bytes": 175644,
     "exported_nodes": [
       "AlpineA110Exterior"
     ]
@@ -45,23 +46,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "be10fc7742c8f5c12c96611d1472c60cc71cfef3188c1e5ce24fcc40ec61c389",
-      "size_bytes": 118804
+      "sha256": "2bf12946a2b25453b71ffaa8bdb45e7cd20b3e38a7886c070f6dd9a5bd97acb4",
+      "size_bytes": 104112
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "4c6f553041864c326e4d2103f2d53feebac46105bd61d555d413ee9e58abb1e8",
-      "size_bytes": 118804
+      "sha256": "9b51dc8a6f6c730453c641a0e0cadbabed3e679ad3f93b73610c91fcca56fa23",
+      "size_bytes": 104112
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "b19f8343e90ba86197962ffeffd05124689f5cc964ad8aa82d86f4f7d54b4191",
-      "size_bytes": 118796
+      "sha256": "90b3f0d335e0d63665a8d7022bf16f46f6b62fb3898014220d528128ef356e59",
+      "size_bytes": 104104
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "5c7dcc2070d853c7c3f49d53f33e4440a362670effb16d6c8d937f1be001bc54",
-      "size_bytes": 118796
+      "sha256": "7440b6bebcbec676a1dd70ffd4b6b860b148c0f977e6a82a3071e1e2b46546bb",
+      "size_bytes": 104104
     }
   },
   "wheel_pivots": {

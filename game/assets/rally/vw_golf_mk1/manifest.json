@@ -12,7 +12,8 @@
       "fit": "Scaled and fitted to VW Golf Mk1 GTI Group 2 (FIA 5584/5731/5732) wheelbase (2.400 m) and length (3.741 m) with 185/70 R14 gravel wheels (R=0.305 m, W=0.195 m) and 1.420/1.410 m tracks.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "original_livery_baked_psx_rgb555"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -31,8 +32,8 @@
   },
   "chassis": {
     "path": "vw_golf_mk1_chassis.glb",
-    "sha256": "ff45a1a0bfa96e77f30daba932bd83aabb8dfdacf01ac489f15326e14d7fc9be",
-    "size_bytes": 11571164,
+    "sha256": "3e4f2736d125ecd3a265783e7def511678bacb322b65b24177f844044feab149",
+    "size_bytes": 11743432,
     "exported_nodes": [
       "VWGolfMk1Exterior"
     ]
@@ -40,23 +41,23 @@
   "wheels": {
     "front_left": {
       "path": "vw_golf_mk1_wheel_front_left.glb",
-      "sha256": "10a98b015462064ad7678d2de75654e56be9482fc32244d13a273684d235efd9",
-      "size_bytes": 11504828
+      "sha256": "8a8e7319765297f88989c90bc086a65bb031c5218cd83d0b3a0c6f6008bbaa8d",
+      "size_bytes": 11670896
     },
     "front_right": {
       "path": "vw_golf_mk1_wheel_front_right.glb",
-      "sha256": "59d9f92fafcfc1028e371236b38fccd47e687c550aa5f7661326f2a32194c01e",
-      "size_bytes": 11504828
+      "sha256": "325136c65fb7a50248df405dd09fd03caf3a60e65befcba576b1f83d57e7f0f0",
+      "size_bytes": 11670896
     },
     "rear_left": {
       "path": "vw_golf_mk1_wheel_rear_left.glb",
-      "sha256": "44cf6e4719536f636718303a44666ccfe1e24b3f44ecf45a18fdd1a3081453b8",
-      "size_bytes": 11504828
+      "sha256": "9fc0f062540e6d5163e2dad2a08e563cb0024788e0dbec2fb441a95b6510431d",
+      "size_bytes": 11670896
     },
     "rear_right": {
       "path": "vw_golf_mk1_wheel_rear_right.glb",
-      "sha256": "f33639f37de946661bce8047fd8acdb30b77e20610249a1e25c377ed4b16b6e3",
-      "size_bytes": 11504828
+      "sha256": "ff36aa5c4b9d5e2728f1aafe78293fbf4fc5810cbb8b8b7e4d1cff2b5f121f8d",
+      "size_bytes": 11670896
     }
   },
   "collision": {
