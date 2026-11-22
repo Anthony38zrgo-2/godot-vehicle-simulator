@@ -47,21 +47,64 @@ void fragment() {
 	ALBEDO *= terrain_macro_tone(p.xz);
 	float road_roughness = 0.95;
 	float road_specular = 0.0;
+	vec3 road_emission = vec3(0.0);
 	if (terrain_mode == 2 && procedural_surface_enabled) {
 		vec3 proc = proc_sample_surface(UV2.y, UV.x);
-		float gravel_wet = 1.0 - 0.36 * proc.x;
-		vec3 gravel_lit = ALBEDO * gravel_wet;
+		float local_wetness = proc.x;
+		float tracks = 0.0;
+		float micro_cavity = clamp(1.0 - fine, 0.0, 1.0);
+		proc_transverse_water_distribution(
+			UV2.y,
+			UV.x,
+			p.xz,
+			n,
+			proc.x,
+			0.48,
+			local_wetness,
+			tracks,
+			micro_cavity
+		);
+		// Protruding gravel stones emerge above the water film outside the deepest wheel ruts
+		float emergent_stones = smoothstep(0.54, 0.80, fine) * (1.0 - tracks * 0.45) * (1.0 - local_wetness * 0.35);
+		float effective_film_wet = local_wetness * (1.0 - emergent_stones * 0.62);
+		vec4 wet_opt = proc_wet_surface_optics(
+			effective_film_wet,
+			0.95,
+			0.14,
+			0.38,
+			micro_cavity,
+			tracks,
+			dot(NORMAL, VIEW)
+		);
+		float snow_suppress = 1.0 - proc.y * 0.85;
+		float refl_w = wet_opt.w * 0.72 * snow_suppress * (1.0 - emergent_stones * 0.70);
+		vec2 gravel_grad = proc_road_micro_grad(p.xz, 8.0, 1.5);
+		vec3 sky_refl;
+		vec3 pert_world_n;
+		proc_wet_sky_reflection(
+			p,
+			n,
+			CAMERA_POSITION_WORLD,
+			effective_film_wet,
+			refl_w,
+			gravel_grad,
+			0.26,
+			sky_refl,
+			pert_world_n
+		);
+		NORMAL = normalize((VIEW_MATRIX * vec4(mix(pert_world_n, n, proc.y * 0.76), 0.0)).xyz);
+		vec3 gravel_lit = ALBEDO * mix(wet_opt.x, 1.0, emergent_stones * 0.45) * (1.0 - refl_w * 0.36);
 		vec3 snow_patch = mix(vec3(0.72, 0.75, 0.78), vec3(0.84, 0.86, 0.88), fine);
 		gravel_lit = mix(gravel_lit, snow_patch, proc.y * 0.76);
-		float ice_glaze = proc.z * (1.0 - proc.y * 0.82);
-		gravel_lit = mix(gravel_lit, mix(gravel_lit * 1.08, vec3(0.70, 0.80, 0.90), 0.34), ice_glaze);
 		ALBEDO = gravel_lit;
-		road_roughness = mix(mix(0.95, 0.32, proc.x), 0.18, ice_glaze);
-		road_specular = mix(mix(0.0, 0.56, smoothstep(0.02, 0.75, proc.x)) * (1.0 - proc.y * 0.85), 0.65, ice_glaze);
+		road_emission = sky_refl * (refl_w * 0.44);
+		road_roughness = mix(mix(wet_opt.y, 0.88, emergent_stones * 0.65), 0.94, proc.y * 0.76);
+		road_specular = wet_opt.z * snow_suppress * (1.0 - emergent_stones * 0.55);
 	} else if (terrain_mode != 2) {
 		float ditch = terrain_mode == 1 ? 1.0 - smoothstep(0.24, 0.73, UV2.x) : 0.0;
 		ALBEDO = ticlio_winter_ground(ALBEDO, p, n, length(VERTEX), ditch);
 	}
+	EMISSION = road_emission;
 	ROUGHNESS = road_roughness;
 	SPECULAR = road_specular;
 }

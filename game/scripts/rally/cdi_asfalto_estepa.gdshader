@@ -7,9 +7,11 @@ uniform sampler2DArray surface_textures : source_color, filter_linear_mipmap_ani
 uniform float snow_station_m = -1.0;
 uniform float wetness : hint_range(0.0, 1.0) = 0.0;
 varying vec3 world_position;
+varying vec3 world_normal;
 
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = MODEL_NORMAL_MATRIX * NORMAL;
 }
 
 float hash21(vec2 cell) {
@@ -74,13 +76,58 @@ void fragment() {
 	vec3 winter_asphalt = clamp(unmarked_pavement + deposits, vec3(0.0), vec3(1.0));
 	float snow_mask = smoothstep(0.065, 0.30, dot(winter_asphalt, vec3(0.2126, 0.7152, 0.0722)));
 	winter_asphalt = mix(winter_asphalt, marked, stripe * (1.0 - snow_mask));
-	float asphalt_wetness = 1.0 - 0.26 * eff_wetness;
-	vec3 lit_road = mix(pavement * asphalt_wetness,
-		winter_asphalt * mix(asphalt_wetness, 1.0, snow_mask), coverage);
-	float ice_glaze = ice_cov * (1.0 - coverage * 0.85);
-	lit_road = mix(lit_road, mix(lit_road * 1.08, vec3(0.70, 0.80, 0.90), 0.32), ice_glaze);
+	vec3 base_world_n = normalize(world_normal);
+	float local_wetness = eff_wetness;
+	float wet_tracks = tracks;
+	float micro_cavity = clamp(1.0 - grain, 0.0, 1.0);
+	if (procedural_surface_enabled) {
+		proc_transverse_water_distribution(
+			station,
+			lateral,
+			world_position.xz,
+			base_world_n,
+			eff_wetness,
+			0.32,
+			local_wetness,
+			wet_tracks,
+			micro_cavity
+		);
+	}
+	vec2 asphalt_grad = proc_road_micro_grad(world_position.xz, 11.5, 2.1);
+	vec3 sky_refl;
+	vec3 pert_world_n;
+	// Estimate refl_w first from base normal, then refine perturbed view normal for direct light()
+	vec4 wet_opt = proc_wet_surface_optics(
+		local_wetness,
+		0.92,
+		procedural_surface_enabled ? 0.10 : 0.24,
+		0.30,
+		micro_cavity,
+		wet_tracks,
+		dot(NORMAL, VIEW)
+	);
+	float snow_blend = procedural_surface_enabled ? coverage : (coverage * snow_mask);
+	float refl_w = wet_opt.w * (1.0 - snow_blend);
+	proc_wet_sky_reflection(
+		world_position,
+		base_world_n,
+		CAMERA_POSITION_WORLD,
+		local_wetness,
+		refl_w,
+		asphalt_grad,
+		0.20,
+		sky_refl,
+		pert_world_n
+	);
+	NORMAL = normalize((VIEW_MATRIX * vec4(mix(pert_world_n, base_world_n, snow_blend), 0.0)).xyz);
+	vec3 wet_pavement = pavement * wet_opt.x * (1.0 - refl_w * 0.42);
+	vec3 ribbon_snow = mix(vec3(0.76, 0.80, 0.84), vec3(0.92, 0.94, 0.97), grain);
+	vec3 lit_road = procedural_surface_enabled
+		? mix(wet_pavement, ribbon_snow, coverage * 0.90)
+		: mix(wet_pavement, winter_asphalt * mix(wet_opt.x, 1.0, snow_mask), coverage);
 	ALBEDO = lit_road;
-	float base_rough = mix(0.92, procedural_surface_enabled ? 0.30 : 0.46, eff_wetness);
-	float road_rough = mix(base_rough, 0.97, coverage * snow_mask);
-	ROUGHNESS = mix(road_rough, 0.16, ice_glaze);
+	// Subtle diffuse sky reflection across the entire wet asphalt; puddles add a much stronger, sharper mirror.
+	EMISSION = sky_refl * (refl_w * 0.58);
+	ROUGHNESS = mix(wet_opt.y, 0.97, snow_blend);
+	SPECULAR = mix(wet_opt.z, 0.12, snow_blend);
 }

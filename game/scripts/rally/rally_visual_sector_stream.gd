@@ -403,15 +403,50 @@ func _process(_delta: float) -> void:
 
 
 var _light_refresh := 0.0
+var _sky_refl_refresh := 0.0
 var _lights: Array[Node] = []
+
+const ROAD_SKY_PARAMS := [
+	["sky_a", "proc_sky_a"],
+	["sky_b", "proc_sky_b"],
+	["sky_c", "proc_sky_c"],
+	["weather_mix", "proc_weather_mix"],
+	["daylight_mix", "proc_daylight_mix"],
+	["twilight_yaw", "proc_twilight_yaw"],
+	["yaw_b", "proc_yaw_b"],
+	["tint_a", "proc_tint_a"],
+	["tint_b", "proc_tint_b"],
+	["tint_c", "proc_tint_c"],
+	["horizon_color", "proc_horizon_color"],
+]
+
+
+func _sync_road_sky_material(mat: ShaderMaterial, sky: Node, sun: DirectionalLight3D) -> void:
+	if mat == null:
+		return
+	var sky_mat := sky.get("material") as ShaderMaterial if is_instance_valid(sky) else null
+	if sky_mat != null:
+		mat.set_shader_parameter("proc_has_sky", true)
+		for pair in ROAD_SKY_PARAMS:
+			mat.set_shader_parameter(pair[1], sky_mat.get_shader_parameter(pair[0]))
+	else:
+		mat.set_shader_parameter("proc_has_sky", false)
+	if sun != null and is_instance_valid(sun):
+		var dir := sun.global_basis.z
+		if not dir.is_zero_approx():
+			mat.set_shader_parameter("proc_sun_dir", dir.normalized())
+		var col := sun.light_color * sun.light_energy
+		mat.set_shader_parameter("proc_sun_color", Vector3(col.r, col.g, col.b))
 
 
 ## Feeds the dynamic sun, sky ambient and horizon haze to the regional DEM shader,
+## and live tropospheric sky cubemaps to the wet road shaders (asphalt & gravel),
 ## reading directly from the stage's tropospheric sky so isolated SubViewport preview
 ## lights (pause workshop, garage, tire strategy) can never hijack the mountain lighting.
 func _update_regional_lighting(delta: float) -> void:
 	var material: ShaderMaterial = _terrain_materials.get(4)
-	if material == null:
+	var gravel_road: ShaderMaterial = _terrain_materials.get(2)
+	if material == null and _asphalt_material == null and gravel_road == null:
 		return
 	var sky: Node = sky_node if is_instance_valid(sky_node) else null
 	if sky == null:
@@ -444,6 +479,15 @@ func _update_regional_lighting(delta: float) -> void:
 				continue
 			if sun == null or light.light_energy > sun.light_energy:
 				sun = light
+	_sky_refl_refresh -= delta
+	if _sky_refl_refresh <= 0.0 or delta <= 0.0:
+		_sky_refl_refresh = 0.2
+		if _asphalt_material != null:
+			_sync_road_sky_material(_asphalt_material, sky, sun)
+		if gravel_road != null:
+			_sync_road_sky_material(gravel_road, sky, sun)
+	if material == null:
+		return
 	if sun != null and is_instance_valid(sun):
 		var dir := sun.global_basis.z
 		if not dir.is_zero_approx():
@@ -604,5 +648,7 @@ func _terrain_blend_for(mesh_name: String) -> ShaderMaterial:
 		material.set_shader_parameter("terrain_mode", mode)
 	if mode == 2 and _procedural_surface_enabled and not _last_procedural_packet.is_empty():
 		_apply_procedural_uniforms(material, _last_procedural_packet)
+	if mode == 2:
+		_sky_refl_refresh = 0.0
 	_terrain_materials[mode] = material
 	return material
