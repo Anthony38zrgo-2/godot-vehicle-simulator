@@ -1,21 +1,24 @@
 extends Node
 
 ## Gestor persistente de música del menú, garaje, pausa y resultados.
-## - Menú / Garaje-reglajes / Servicio / Resultados-competición (menu_theme.mp3):
-##   misma pista en continuo, sin fade in y sin corte entre ellos (menú <->
-##   garaje, servicio <-> garaje, resultados <-> garaje). Solo arranca desde 0
-##   si estaba en silencio (tras rally, o primera entrada).
+## - Menú / Garaje-reglajes / Servicio / Resultados-competición:
+##   comparten una lista en reproducción continua, sin cortes al navegar.
 ##   NUNCA suena en tramo: entrada a rally y llegada directa a pilotar cortan
 ##   en inmediato (stop). Transición entre etapas solo continúa si ya sonaba.
-## - Pausa en carrera (garage_theme.mp3 = DM-Tempest2): solo para el menú de
 ## - Pausa en carrera (garage_theme.mp3 = DM-Tempest2.mp3): solo para el menú de
 ##   pausa; cada apertura corta y reinicia desde el inicio, sin fade in.
 ## - Entrada a rally: corte inmediato (stop). Transición entre etapas: el tema
 ##   del menú sigue sonando para no cortar resultados -> garaje/servicio.
 ## Nota: results_theme.ogg se sigue cargando por compatibilidad pero ya no se
-## usa para ningún panel (todos usan el tema del menú salvo la pausa).
+## usa para ningún panel (todos comparten la lista del menú salvo la pausa).
 
-const MENU_MUSIC_PATH := "res://sounds/music/menu_theme.mp3"
+const MENU_MUSIC_PATHS := [
+	"res://sounds/music/menu/botpack_9.mp3",
+	"res://sounds/music/menu/mechanism_eight.mp3",
+	"res://sounds/music/menu/the_course.mp3",
+	"res://sounds/music/menu/skylab_9000.mp3",
+	"res://sounds/music/menu/mekalopolis.mp3",
+]
 const GARAGE_MUSIC_PATH := "res://sounds/music/garage_theme.mp3"
 const RESULTS_MUSIC_PATH := "res://sounds/music/results_theme.ogg"
 const DEFAULT_VOLUME_DB := -3.0
@@ -92,7 +95,7 @@ func _ensure_music_bus() -> void:
 		AudioServer.set_bus_send(idx, "Master")
 
 
-func _load_single_stream(path: String) -> AudioStream:
+func _load_single_stream(path: String, loop: bool = true) -> AudioStream:
 	var stream: AudioStream = null
 	if ResourceLoader.exists(path):
 		stream = load(path) as AudioStream
@@ -107,7 +110,8 @@ func _load_single_stream(path: String) -> AudioStream:
 				var mp3 := AudioStreamMP3.new()
 				mp3.data = bytes
 				stream = mp3
-	_apply_loop(stream)
+	if loop:
+		_apply_loop(stream)
 	return stream
 
 
@@ -122,7 +126,18 @@ func _apply_loop(stream: AudioStream) -> void:
 
 func _load_streams() -> void:
 	if menu_stream == null:
-		menu_stream = _load_single_stream(MENU_MUSIC_PATH)
+		var playlist := AudioStreamPlaylist.new()
+		playlist.loop = true
+		playlist.shuffle = true
+		playlist.fade_time = 0.0
+		for path in MENU_MUSIC_PATHS:
+			var track := _load_single_stream(path, false)
+			if track != null:
+				var index := playlist.stream_count
+				playlist.stream_count += 1
+				playlist.set_list_stream(index, track)
+		if playlist.stream_count > 0:
+			menu_stream = playlist
 	if garage_stream == null:
 		garage_stream = _load_single_stream(GARAGE_MUSIC_PATH)
 	if results_stream == null:
@@ -154,10 +169,8 @@ func _play_immediate(p: AudioStreamPlayer, stream: AudioStream, volume_db: float
 	p.play()
 
 
-# Menú / garaje / servicio / resultados comparten el tema del menú en
-# continuo: si ya suena, sigue sin cortarse ni reiniciarse (solo fija
-# contexto y volumen final, sin fade). Solo arranca desde 0 si estaba
-# en silencio o sonaba otra pista (p. ej. tras rally o transición con corte).
+# Menú, garaje, servicio y resultados comparten la misma reproducción.
+# Si la lista ya está sonando, solo cambia el contexto y se fija el volumen.
 func _enter_menu_context(context: String) -> void:
 	if menu_stream == null:
 		_load_streams()
@@ -229,8 +242,6 @@ func _dip_player(p: AudioStreamPlayer, target_db: float, slot: String) -> void:
 
 
 func play_menu_music() -> void:
-	# Menú principal: sigue sin corte si el tema ya sonaba (viene de
-	# garaje/servicio); arranca desde 0 solo si estaba en silencio.
 	_enter_menu_context("menu")
 
 
@@ -242,17 +253,14 @@ func stop_menu_music() -> void:
 
 
 func on_enter_garage() -> void:
-	# Garaje-reglajes usa el tema del menú en continuo: sin corte si ya sonaba.
 	_enter_menu_context("garage")
 
 
 func on_enter_service() -> void:
-	# Servicio usa el tema del menú en continuo: sin corte si ya sonaba.
 	_enter_menu_context("service")
 
 
 func on_enter_results() -> void:
-	# Resultados-competición usa el tema del menú en continuo: sin corte.
 	_enter_menu_context("results")
 
 

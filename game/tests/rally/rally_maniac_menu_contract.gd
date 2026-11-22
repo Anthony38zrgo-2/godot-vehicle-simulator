@@ -298,7 +298,12 @@ func test_menu_to_garage_music_flow() -> void:
 	check(music != null, "Nodo RallyMusic debe existir en /root")
 	if music != null:
 		check(music.is_playing_menu_music(), "La música del menú debe estar reproduciéndose en el primer menú")
-		check(music.menu_stream is AudioStreamMP3 and (music.menu_stream as AudioStreamMP3).loop, "El stream del menú debe ser AudioStreamMP3 con loop activo")
+		var playlist := music.menu_stream as AudioStreamPlaylist
+		check(playlist != null and playlist.loop and playlist.shuffle and playlist.stream_count == 5, "El menú debe rotar cinco pistas al azar en bucle")
+		if playlist != null:
+			for index in playlist.stream_count:
+				var track := playlist.get_list_stream(index) as AudioStreamMP3
+				check(track != null and not track.loop, "Cada pista debe terminar para que avance la lista")
 
 		# Navegar a stage_select, car_select y weather_select: la música debe seguir sonando
 		menu_scene.show_stage_select()
@@ -333,8 +338,8 @@ func test_menu_to_garage_music_flow() -> void:
 			break
 
 	if music != null:
-		check(music.is_playing_menu_music(), "La música del menú debe seguir en garaje-reglajes (mismo tema, con corte y reinicio)")
-		check(music.menu_player.playing and music.menu_player.stream == music.menu_stream, "Garaje-reglajes debe sonar con menu_theme.mp3")
+		check(music.is_playing_menu_music(), "La música del menú debe seguir en garaje-reglajes")
+		check(music.menu_player.playing and music.menu_player.stream == music.menu_stream, "Garaje-reglajes debe compartir la lista del menú")
 		check(music.current_context == "garage", "El contexto de música debe ser 'garage' al abrir garaje-reglajes")
 
 	session_scene.queue_free()
