@@ -65,20 +65,28 @@ func _test_controlled_scenarios_and_determinism() -> void:
 	var low := ctl.local_surface_state_at_distance(total * 0.03, 0.0)
 	var mid := ctl.local_surface_state_at_distance(total * 0.48, 0.0)
 	var abra := ctl.local_surface_state_at_distance(total * 0.90, 0.0)
-	print("DELIVERY_D_MIXED_ASCENT low=(cloud=%.2f,ground=%.2f,snow=%.2f,water=%.2f,rain=%.2f) mid=(rain=%.2f,snow=%.2f,snow_cov=%.2f,water=%.2f) abra=(snow_h=%.2f,snow=%.2f,snow_cov=%.2f)" % [
+	var abra_track := ctl.local_surface_state_at_distance(total * 0.90, 0.44)
+	var abra_edge_max := 0.0
+	var abra_crown_max := 0.0
+	for k in 12:
+		var q_edge := ctl.local_surface_state_at_distance(total * 0.86 + float(k) * 20.0, 0.96)
+		var q_crown := ctl.local_surface_state_at_distance(total * 0.86 + float(k) * 20.0, 0.0)
+		abra_edge_max = maxf(abra_edge_max, float(q_edge.get("snow_coverage", 0.0)))
+		abra_crown_max = maxf(abra_crown_max, float(q_crown.get("snow_coverage", 0.0)))
+	print("DELIVERY_D_MIXED_ASCENT low=(cloud=%.2f,ground=%.2f,snow=%.2f,water=%.2f,rain=%.2f) mid=(rain=%.2f,snow=%.2f,snow_cov=%.2f,water=%.2f) abra=(snow_h=%.2f,snow=%.2f,track_cov=%.2f,crown_max=%.2f,edge_max_cov=%.2f)" % [
 		float(low.get("climate", {}).get("cumulus_coverage", 0.0)),
 		float(low.get("ground_c", 0.0)), float(low.get("snow_mm", 0.0)), float(low.get("water_mm", 0.0)), float(low.get("rain_mm_h", 0.0)),
 		float(mid.get("rain_mm_h", 0.0)), float(mid.get("snow_mm", 0.0)), float(mid.get("snow_coverage", 0.0)), float(mid.get("water_mm", 0.0)),
-		float(abra.get("snow_mm_h", 0.0)), float(abra.get("snow_mm", 0.0)), float(abra.get("snow_coverage", 0.0)),
+		float(abra.get("snow_mm_h", 0.0)), float(abra.get("snow_mm", 0.0)), float(abra_track.get("snow_coverage", 0.0)), abra_crown_max, abra_edge_max,
 	])
-	check(float(low.get("climate", {}).get("cumulus_coverage", 0.0)) >= 0.65 and float(low.get("snow_mm", 0.0)) > 0.25 and float(low.get("ground_c", 0.0)) > 0.15 and float(low.get("water_mm", 0.0)) > 0.05,
-		"Mixed ascent start: cloudy with melting residual snow")
+	check(float(low.get("climate", {}).get("cumulus_coverage", 0.0)) >= 0.65 and float(low.get("snow_mm", 0.0)) > 0.25 and float(low.get("ground_c", 0.0)) > 0.15 and float(low.get("water_mm", 0.0)) > 0.05 and float(low.get("snow_coverage", 0.0)) == 0.0,
+		"Mixed ascent start: cloudy with melting residual snow confined to berms")
 	check(float(mid.get("rain_mm_h", 0.0)) > 0.5 and float(mid.get("snow_mm", 0.0)) <= 0.01 and float(mid.get("snow_coverage", 0.0)) <= 0.001,
 		"Mixed ascent mid: active rain on snow-free asphalt")
-	check(float(abra.get("snow_mm_h", 0.0)) > 0.5 and float(abra.get("snow_mm", 0.0)) > 0.5 and float(abra.get("snow_coverage", 0.0)) > 0.15,
-		"Mixed ascent Abra: active snowfall with covered road")
+	check(float(abra_track.get("snow_coverage", 0.0)) == 0.0 and float(abra.get("snow_mm_h", 0.0)) > 0.5 and float(abra.get("snow_mm", 0.0)) > 0.5 and abra_edge_max > 0.15 and abra_crown_max > 0.05,
+		"Mixed ascent Abra: wheel tracks swept clear while sustained snow advances on berms and inter-track crown")
 
-	# 2. Controlled refreeze scenario (liquid meltwater freezes into ice).
+	# 2. Controlled refreeze scenario (liquid meltwater freezes into thermal ice_mm while road ice_coverage stays 0).
 	var ctl_ice := Controller.new()
 	check(ctl_ice.configure_procedural(
 		"cdi_stage4", "res://data/rally/cdi_stage4_route.json",
@@ -91,8 +99,8 @@ func _test_controlled_scenarios_and_determinism() -> void:
 		float(pre_freeze.get("water_mm", 0.0)), float(pre_freeze.get("ice_mm", 0.0)), float(pre_freeze.get("ground_c", 0.0)),
 		float(post_freeze.get("water_mm", 0.0)), float(post_freeze.get("ice_mm", 0.0)), float(post_freeze.get("ice_coverage", 0.0)), float(post_freeze.get("ground_c", 0.0)),
 	])
-	check(float(pre_freeze.get("water_mm", 0.0)) > 0.25 and float(post_freeze.get("ice_mm", 0.0)) > 0.1 and float(post_freeze.get("ice_coverage", 0.0)) > 0.05,
-		"Controlled refreeze produces ice from liquid water")
+	check(float(pre_freeze.get("water_mm", 0.0)) > 0.25 and float(post_freeze.get("ice_mm", 0.0)) > 0.1 and float(post_freeze.get("ice_coverage", 0.0)) == 0.0,
+		"Controlled refreeze freezes liquid water into thermal ice_mm with zero road ice patches")
 
 	# 3. Geography + Seed determinism + Seed variation.
 	var route_prof: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/rally/cdi_stage4/climate_route_profile.json"))
@@ -117,15 +125,18 @@ func _test_controlled_scenarios_and_determinism() -> void:
 	check(absf(float(st_a["air_c"]) - float(st_c["air_c"])) > 0.01 or absf(float(st_a["water_mm"]) - float(st_c["water_mm"])) > 0.01,
 		"Seed variation produces distinct weather")
 
-	# 4. Differential left vs right wheel contact across partial snow patches.
+	# 4. Differential left vs right wheel contact across lateral 10% snow ribbons.
 	var tire_loader := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
 	var tire := TireModel.new()
 	tire.configure(tire_loader.domains, tire_loader.resolved_tire_filters, [3500.0, 3500.0, 3500.0, 3500.0])
 	tire.set_compound("asphalt_dry")
-	# Find a station along mixed ascent start where left vs right lateral_t differ visibly.
+	# Find a station in the active snow zone where outer 10% edge (-0.96) vs wheel track (0.42) differ visibly.
 	var found_diff := false
-	for p_m in [100.0, 220.0, 340.0, 480.0, 620.0]:
-		var ql := ctl.local_surface_state_at_distance(p_m, -0.85)
+	var probe_dists := [100.0, 220.0, 340.0]
+	for k in 16:
+		probe_dists.append(total * 0.85 + float(k) * 20.0)
+	for p_m in probe_dists:
+		var ql := ctl.local_surface_state_at_distance(p_m, -0.96)
 		var qr := ctl.local_surface_state_at_distance(p_m, 0.42)
 		if absf(float(ql["snow_coverage"]) - float(qr["snow_coverage"])) > 0.02:
 			found_diff = true

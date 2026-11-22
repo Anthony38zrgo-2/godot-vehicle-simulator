@@ -122,10 +122,10 @@ func run() -> void:
 	var ice_depth := float(puddles.sample_contact(first_pos).depth_mm)
 	check(ice_depth == 0.0, "Frozen puddle water does not exert liquid puddle drag/depth (got %.3f mm)" % ice_depth)
 
-	# Check local_conditions_for_contact propagates ice & lateral sampling.
+	# Check local_conditions_for_contact propagates thermal ice_mm while road ice_coverage stays 0.
 	var contact_c := dry_ctl.local_conditions_for_contact("Road", dry_ctl.route_points[10])
 	check(float(contact_c.get("ice_mm", 0.0)) > 1.0, "Contact query returns ice_mm")
-	check(float(contact_c.get("ice_coverage", 0.0)) > 0.2, "Contact query returns ice_coverage")
+	check(float(contact_c.get("ice_coverage", 0.0)) == 0.0, "Road ice_coverage remains 0.0 (no carriageway ice patches)")
 
 	world.queue_free()
 	await process_frame

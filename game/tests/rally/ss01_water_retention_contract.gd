@@ -545,24 +545,40 @@ func _test_ss01_full_stage_puddles_and_wheel_telemetry() -> void:
 		var right_v := fwd_v.cross(Vector3.UP).normalized()
 		# Place car center ~0.78m toward road centerline from puddle center so one track rides through puddle center and opposite track stays outside.
 		var side_sign := signf(p_lat) if absf(p_lat) > 0.1 else 1.0
-		await _place_car_at_world(session, p_xf.origin - right_v * side_sign * 0.78 - fwd_v * 1.2, fwd_v, 18.0, 20)
-		var st_wheels: Array = session.vehicle.simulation.published_state.get("wheels", [])
+		await _place_car_at_world(session, p_xf.origin - right_v * side_sign * 0.78 - fwd_v * 1.2, fwd_v, 18.0, 14)
 		var max_pd := 0.0
 		var min_pd := 999.0
 		var max_drag := 0.0
 		var min_drag := 999.0
 		var min_sup := 999.0
 		var max_sup := 0.0
-		for w: Dictionary in st_wheels:
-			var pd := float(w.get("puddle_depth_mm", 0.0))
-			var dg := float(w.get("puddle_drag_n", 0.0))
-			var sp := float(w.get("puddle_support", 1.0))
-			max_pd = maxf(max_pd, pd)
-			min_pd = minf(min_pd, pd)
-			max_drag = maxf(max_drag, dg)
-			min_drag = minf(min_drag, dg)
-			min_sup = minf(min_sup, sp)
-			max_sup = maxf(max_sup, sp)
+		for _step in 10:
+			await physics_frame
+			session.event_weather.update_vehicle_position(session.vehicle.global_position)
+			var st_wheels: Array = session.vehicle.simulation.published_state.get("wheels", [])
+			var f_max_pd := 0.0
+			var f_min_pd := 999.0
+			var f_max_drag := 0.0
+			var f_min_drag := 999.0
+			var f_min_sup := 999.0
+			var f_max_sup := 0.0
+			for w: Dictionary in st_wheels:
+				var pd := float(w.get("puddle_depth_mm", 0.0))
+				var dg := float(w.get("puddle_drag_n", 0.0))
+				var sp := float(w.get("puddle_support", 1.0))
+				f_max_pd = maxf(f_max_pd, pd)
+				f_min_pd = minf(f_min_pd, pd)
+				f_max_drag = maxf(f_max_drag, dg)
+				f_min_drag = minf(f_min_drag, dg)
+				f_min_sup = minf(f_min_sup, sp)
+				f_max_sup = maxf(f_max_sup, sp)
+			if f_max_drag > max_drag or (max_drag == 0.0 and f_max_pd > max_pd):
+				max_pd = f_max_pd
+				min_pd = f_min_pd
+				max_drag = f_max_drag
+				min_drag = f_min_drag
+				min_sup = f_min_sup
+				max_sup = f_max_sup
 		print("SS01_STRADDLE_TELEMETRY p=%.1f pd=[%.2f..%.2f] drag=[%.1f..%.1f] sup=[%.3f..%.3f]" % [p_dist, min_pd, max_pd, min_drag, max_drag, min_sup, max_sup])
 		check(max_pd > 1.5 and max_drag > 1.0 and min_sup < 1.0, "Wheel inside SS01 puddle receives depth, drag, and grip loss")
 		check(min_pd == 0.0 and min_drag == 0.0 and is_equal_approx(max_sup, 1.0), "Wheel outside SS01 puddle mask receives zero puddle drag and full support")

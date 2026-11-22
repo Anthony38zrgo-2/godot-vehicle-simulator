@@ -17,71 +17,241 @@ extends Node3D
 const WATER_SHADER = preload("res://scripts/rally/rally_puddle.gdshader")
 const WATER_DETAIL_TEX = preload("res://assets/rally/water/water_detail.jpg")
 
-const MASK_ROUND = preload("res://assets/vfx/puddles/puddle_round_organic.png")
+const MASK_RUT = preload("res://assets/vfx/puddles/puddle_rut.png")
+const MASK_TWIN_RUT = preload("res://assets/vfx/puddles/puddle_twin_rut.png")
+const MASK_GUTTER = preload("res://assets/vfx/puddles/puddle_gutter_wedge.png")
 const MASK_KIDNEY = preload("res://assets/vfx/puddles/puddle_kidney_soft.png")
-const MASK_EGG = preload("res://assets/vfx/puddles/puddle_egg_asym.png")
+const MASK_POTHOLE = preload("res://assets/vfx/puddles/puddle_pothole.png")
+const MASK_DOUBLE_SCAR = preload("res://assets/vfx/puddles/puddle_egg_asym.png")
+const MASK_BASIN = preload("res://assets/vfx/puddles/puddle_basin.png")
+const MASK_SHEET = preload("res://assets/vfx/puddles/puddle_sheet.png")
 const MASK_CLOVER = preload("res://assets/vfx/puddles/puddle_lobe_triple.png")
+const MASK_ROUND = preload("res://assets/vfx/puddles/puddle_round_organic.png")
 
+## 12 rally puddle archetypes grouped across 4 families backed by 10 bathymetric PNG masks:
+## - "rut"     : longitudinal wheel-track channels (asymmetric straight-line & braking pull)
+## - "gutter"  : apex / shoulder / ditch traps ("Don't Cut" steep cutbank slams)
+## - "pothole" : compact broken craters & washout hollows (high entry slam & avoidance)
+## - "sheet"   : wide shallow aquaplaning blankets & rain glazes (sudden 4-wheel lateral loss)
 const TYPES := [
+	# --- Family 1: Longitudinal Wheel-Ruts ---
 	{
-		"id": "pothole_deep",
-		"length": 3.75,
-		"width": 3.25,
+		"id": "rut_streak_narrow",
+		"family": "rut",
+		"length": 4.90,
+		"width": 1.60,
+		"depth_mm": 11.0,
+		"drag": 1.05,
+		"min_water": 0.30,
+		"retention": 1.18,
+		"mask": MASK_RUT,
+		"edge_softness": 0.14,
+		"turbidity": 0.060,
+		"align_to_road": true,
+		"yaw_jitter": 0.16,
+		"lat_min": 0.55,
+		"lat_max": 1.45,
+		"grid_res": 6,
+	},
+	{
+		"id": "rut_trough_deep",
+		"family": "rut",
+		"length": 6.80,
+		"width": 2.15,
+		"depth_mm": 38.0,
+		"drag": 1.45,
+		"min_water": 0.25,
+		"retention": 1.38,
+		"mask": MASK_RUT,
+		"edge_softness": 0.11,
+		"turbidity": 0.075,
+		"align_to_road": true,
+		"yaw_jitter": 0.14,
+		"lat_min": 0.55,
+		"lat_max": 1.50,
+		"grid_res": 7,
+	},
+	{
+		"id": "twin_rut_split",
+		"family": "rut",
+		"length": 5.80,
+		"width": 3.05,
+		"depth_mm": 26.0,
+		"drag": 1.25,
+		"min_water": 0.28,
+		"retention": 1.28,
+		"mask": MASK_TWIN_RUT,
+		"edge_softness": 0.15,
+		"turbidity": 0.068,
+		"align_to_road": true,
+		"yaw_jitter": 0.12,
+		"lat_min": 0.20,
+		"lat_max": 0.90,
+		"grid_res": 6,
+	},
+	# --- Family 2: Apex Gutters & Road Shoulders ("Don't Cut") ---
+	{
+		"id": "apex_gutter_trap",
+		"family": "gutter",
+		"length": 4.20,
+		"width": 2.55,
+		"depth_mm": 54.0,
+		"drag": 1.65,
+		"min_water": 0.22,
+		"retention": 1.45,
+		"mask": MASK_GUTTER,
+		"edge_softness": 0.09,
+		"turbidity": 0.085,
+		"align_to_road": true,
+		"yaw_jitter": 0.25,
+		"orient_to_edge": true,
+		"lat_min": 0.95,
+		"lat_max": 1.90,
+		"grid_res": 5,
+	},
+	{
+		"id": "ditch_drain_channel",
+		"family": "gutter",
+		"length": 6.10,
+		"width": 2.75,
+		"depth_mm": 42.0,
+		"drag": 1.50,
+		"min_water": 0.24,
+		"retention": 1.40,
+		"mask": MASK_GUTTER,
+		"edge_softness": 0.12,
+		"turbidity": 0.078,
+		"align_to_road": true,
+		"yaw_jitter": 0.18,
+		"orient_to_edge": true,
+		"lat_min": 0.95,
+		"lat_max": 1.95,
+		"grid_res": 7,
+	},
+	{
+		"id": "camber_crescent",
+		"family": "gutter",
+		"length": 4.90,
+		"width": 3.05,
+		"depth_mm": 30.0,
+		"drag": 1.35,
+		"min_water": 0.28,
+		"retention": 1.28,
+		"mask": MASK_KIDNEY,
+		"edge_softness": 0.16,
+		"turbidity": 0.068,
+		"align_to_road": true,
+		"yaw_jitter": 0.38,
+		"orient_to_edge": true,
+		"lat_min": 0.85,
+		"lat_max": 1.85,
+		"grid_res": 5,
+	},
+	# --- Family 3: Sharp Broken Potholes & Washouts ---
+	{
+		"id": "pothole_crater_sharp",
+		"family": "pothole",
+		"length": 2.65,
+		"width": 2.60,
+		"depth_mm": 62.0,
+		"drag": 1.75,
+		"min_water": 0.22,
+		"retention": 1.52,
+		"mask": MASK_POTHOLE,
+		"edge_softness": 0.08,
+		"turbidity": 0.092,
+		"align_to_road": false,
+		"lat_min": 0.40,
+		"lat_max": 1.75,
+		"grid_res": 5,
+	},
+	{
+		"id": "pothole_double_scar",
+		"family": "pothole",
+		"length": 3.85,
+		"width": 2.95,
 		"depth_mm": 48.0,
 		"drag": 1.55,
-		"min_water": 0.60,
-		"retention": 1.40,
-		"mask": MASK_ROUND,
-		"lobe_scale": 1.0,
-		"edge_softness": 0.12,
+		"min_water": 0.26,
+		"retention": 1.38,
+		"mask": MASK_DOUBLE_SCAR,
+		"edge_softness": 0.11,
+		"turbidity": 0.082,
+		"align_to_road": true,
+		"yaw_jitter": 0.48,
+		"lat_min": 0.45,
+		"lat_max": 1.70,
+		"grid_res": 5,
 	},
 	{
-		"id": "basin_kidney",
-		"length": 4.50,
-		"width": 3.88,
-		"depth_mm": 36.0,
-		"drag": 1.35,
-		"min_water": 0.70,
-		"retention": 1.25,
-		"mask": MASK_KIDNEY,
-		"lobe_scale": 1.15,
-		"edge_softness": 0.18,
+		"id": "washout_compression_basin",
+		"family": "pothole",
+		"length": 4.80,
+		"width": 4.20,
+		"depth_mm": 44.0,
+		"drag": 1.45,
+		"min_water": 0.28,
+		"retention": 1.35,
+		"mask": MASK_BASIN,
+		"edge_softness": 0.14,
+		"turbidity": 0.078,
+		"align_to_road": false,
+		"lat_min": 0.35,
+		"lat_max": 1.55,
+		"grid_res": 6,
 	},
+	# --- Family 4: Aquaplaning Sheets & Shallow Glazes ---
 	{
-		"id": "pond_egg",
-		"length": 4.12,
-		"width": 3.62,
-		"depth_mm": 25.0,
-		"drag": 1.20,
-		"min_water": 0.75,
-		"retention": 1.20,
-		"mask": MASK_EGG,
-		"lobe_scale": 1.05,
-		"edge_softness": 0.16,
-	},
-	{
-		"id": "pool_clover",
-		"length": 4.75,
-		"width": 4.25,
-		"depth_mm": 14.0,
-		"drag": 1.10,
-		"min_water": 0.85,
-		"retention": 1.10,
-		"mask": MASK_CLOVER,
-		"lobe_scale": 1.25,
+		"id": "sheet_cross_flood",
+		"family": "sheet",
+		"length": 6.20,
+		"width": 5.10,
+		"depth_mm": 16.0,
+		"drag": 0.95,
+		"min_water": 0.34,
+		"retention": 1.12,
+		"mask": MASK_SHEET,
 		"edge_softness": 0.22,
+		"turbidity": 0.045,
+		"align_to_road": true,
+		"yaw_jitter": 0.45,
+		"lat_min": 0.15,
+		"lat_max": 1.10,
+		"grid_res": 6,
 	},
 	{
-		"id": "shallow_round",
-		"length": 3.12,
-		"width": 2.88,
-		"depth_mm": 5.0,
-		"drag": 0.80,
-		"min_water": 1.15,
-		"retention": 0.85,
-		"mask": MASK_ROUND,
-		"lobe_scale": 0.95,
+		"id": "sprawl_multi_lobe",
+		"family": "sheet",
+		"length": 5.50,
+		"width": 4.70,
+		"depth_mm": 20.0,
+		"drag": 1.12,
+		"min_water": 0.32,
+		"retention": 1.18,
+		"mask": MASK_CLOVER,
 		"edge_softness": 0.20,
+		"turbidity": 0.055,
+		"align_to_road": false,
+		"lat_min": 0.35,
+		"lat_max": 1.55,
+		"grid_res": 6,
+	},
+	{
+		"id": "skim_glaze_film",
+		"family": "sheet",
+		"length": 3.80,
+		"width": 3.45,
+		"depth_mm": 5.5,
+		"drag": 0.75,
+		"min_water": 0.42,
+		"retention": 0.95,
+		"mask": MASK_ROUND,
+		"edge_softness": 0.24,
+		"turbidity": 0.035,
+		"align_to_road": false,
+		"lat_min": 0.45,
+		"lat_max": 1.75,
+		"grid_res": 5,
 	},
 ]
 
@@ -164,15 +334,12 @@ func _physics_process(delta: float) -> void:
 		material.set_shader_parameter("fill", patch.fill)
 
 		if is_instance_valid(sky_node):
-			material.set_shader_parameter("has_sky", true)
-			for parameter in [
-				"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
-				"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color"
-			]:
-				material.set_shader_parameter(parameter, sky_node.material.get_shader_parameter(parameter))
+			_apply_sky_uniforms(material)
 
 		var rain := float(local_state.get("rain_ratio", 0.0))
+		var wind_vec: Vector2 = local_state.get("wind_vec", Vector2(1.2, 0.4)) as Vector2
 		material.set_shader_parameter("rain", rain)
+		material.set_shader_parameter("wind_vec", wind_vec)
 
 	if _rust_field != null:
 		var count: int = patches.size()
@@ -192,14 +359,25 @@ func _local_liquid_state(distance: float) -> Dictionary:
 			var kind := str(state.get("precipitation_kind", "rain"))
 			var total_p := float(climate.get("precipitation_mm_h", 0.0))
 			rain_mm_h = total_p if kind == "rain" else (total_p * 0.6 if kind == "mixed" else 0.0)
+		var wind_spd := float(state.get("wind_m_s", climate.get("wind_speed_m_s", climate.get("wind_m_s", 1.8))))
+		var wind_deg := float(state.get("wind_direction_deg", climate.get("wind_dir_deg", 60.0)))
+		var wind_rad := deg_to_rad(wind_deg)
+		var wind_vec := Vector2(sin(wind_rad), cos(wind_rad)) * wind_spd
 		return {
 			"water_mm": maxf(float(state.get("water_mm", 0.0)), 0.0),
 			"ice_mm": maxf(float(state.get("ice_mm", 0.0)), 0.0),
 			"rain_ratio": clampf(rain_mm_h / 10.0, 0.0, 1.0),
+			"wind_vec": wind_vec,
 		}
 	var w := float(wetness_node.wetness) * 4.0 if is_instance_valid(wetness_node) else 0.0
 	var r := float(wetness_node.rain_intensity) if is_instance_valid(wetness_node) else 0.0
-	return {"water_mm": maxf(w, 0.0), "ice_mm": 0.0, "rain_ratio": clampf(r, 0.0, 1.0)}
+	var wspd := 1.0 + 4.5 * r if is_instance_valid(wetness_node) else 1.2
+	return {
+		"water_mm": maxf(w, 0.0),
+		"ice_mm": 0.0,
+		"rain_ratio": clampf(r, 0.0, 1.0),
+		"wind_vec": Vector2(0.85, 0.52) * wspd,
+	}
 
 
 func background_water(distance: float) -> float:
@@ -304,30 +482,31 @@ static func _compute_route_topography(route_pts: Array[Vector3], allow_rust: boo
 	return result
 
 
-## Builds a 5x5 conformal mesh projected onto the actual road collision surface.
+## Builds an adaptive NxN conformal mesh projected onto the actual road collision surface.
 ## Vertices that overhang the road edge are clamped in height and receive COLOR.r = 0.0
 ## to let the shader fade the water edge smoothly without floating triangles.
 func _build_conformal_puddle_mesh(
 	center: Vector3,
 	basis: Basis,
-	size: Vector2
+	size: Vector2,
+	grid_res: int = 5
 ) -> Dictionary:
-	const GRID_RES := 5
+	var res := clampi(grid_res, 5, 8)
 	var normal := basis.y.normalized()
-	var total_samples := GRID_RES * GRID_RES
+	var total_samples := res * res
 	var valid_hits := 0
 	var local_heights: Array[float] = []
 	local_heights.resize(total_samples)
 	var edge_weights: Array[float] = []
 	edge_weights.resize(total_samples)
 
-	for gz in range(GRID_RES):
-		var v_ratio := float(gz) / float(GRID_RES - 1)
+	for gz in range(res):
+		var v_ratio := float(gz) / float(res - 1)
 		var z_local := (v_ratio - 0.5) * size.y
-		for gx in range(GRID_RES):
-			var u_ratio := float(gx) / float(GRID_RES - 1)
+		for gx in range(res):
+			var u_ratio := float(gx) / float(res - 1)
 			var x_local := (u_ratio - 0.5) * size.x
-			var idx := gz * GRID_RES + gx
+			var idx := gz * res + gx
 
 			var world_pt := center + basis.x * x_local + basis.z * z_local
 			var hit := road_hit(world_pt)
@@ -350,9 +529,9 @@ func _build_conformal_puddle_mesh(
 
 	# Smooth edge heights for vertices outside the road boundary using valid neighbors
 	for pass_idx in range(2):
-		for gz in range(GRID_RES):
-			for gx in range(GRID_RES):
-				var idx := gz * GRID_RES + gx
+		for gz in range(res):
+			for gx in range(res):
+				var idx := gz * res + gx
 				if edge_weights[idx] > 0.5:
 					continue
 				var sum_h := 0.0
@@ -361,8 +540,8 @@ func _build_conformal_puddle_mesh(
 					for dx in range(-1, 2):
 						var nx := gx + dx
 						var nz := gz + dz
-						if nx >= 0 and nx < GRID_RES and nz >= 0 and nz < GRID_RES:
-							var n_idx := nz * GRID_RES + nx
+						if nx >= 0 and nx < res and nz >= 0 and nz < res:
+							var n_idx := nz * res + nx
 							if edge_weights[n_idx] > 0.5:
 								sum_h += local_heights[n_idx]
 								count_h += 1.0
@@ -371,24 +550,24 @@ func _build_conformal_puddle_mesh(
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for gz in range(GRID_RES):
-		var v_norm := float(gz) / float(GRID_RES - 1)
+	for gz in range(res):
+		var v_norm := float(gz) / float(res - 1)
 		var z_local := (v_norm - 0.5) * size.y
-		for gx in range(GRID_RES):
-			var u_norm := float(gx) / float(GRID_RES - 1)
+		for gx in range(res):
+			var u_norm := float(gx) / float(res - 1)
 			var x_local := (u_norm - 0.5) * size.x
-			var idx := gz * GRID_RES + gx
+			var idx := gz * res + gx
 			var y_local: float = local_heights[idx]
 			st.set_normal(Vector3.UP)
 			st.set_uv(Vector2(u_norm, v_norm))
 			st.set_color(Color(edge_weights[idx], 1.0, 1.0, 1.0))
 			st.add_vertex(Vector3(x_local, y_local, z_local))
 
-	for gz in range(GRID_RES - 1):
-		for gx in range(GRID_RES - 1):
-			var i00 := gz * GRID_RES + gx
+	for gz in range(res - 1):
+		for gx in range(res - 1):
+			var i00 := gz * res + gx
 			var i10 := i00 + 1
-			var i01 := (gz + 1) * GRID_RES + gx
+			var i01 := (gz + 1) * res + gx
 			var i11 := i01 + 1
 			st.add_index(i00)
 			st.add_index(i10)
@@ -402,6 +581,77 @@ func _build_conformal_puddle_mesh(
 		"mesh": st.commit(),
 		"valid_ratio": float(valid_hits) / float(total_samples),
 	}
+
+
+func _select_profile_index(
+	rng: RandomNumberGenerator,
+	slot_index: int,
+	twi: float,
+	abs_turn: float,
+	last_profile_idx: int,
+	family_counts: Dictionary
+) -> int:
+	var weights: PackedFloat32Array = PackedFloat32Array()
+	weights.resize(TYPES.size())
+	var total := 0.0
+	var is_curve := abs_turn > 0.025
+	var is_valley := twi >= 1.15
+	var is_grade := twi < 0.85
+
+	for idx in TYPES.size():
+		var p: Dictionary = TYPES[idx]
+		var fam: String = str(p.get("family", "pothole"))
+		var depth_mm: float = float(p.get("depth_mm", 20.0))
+		var w := 1.0
+
+		# Primary puddles lean toward deeper/defining hazards (depth >= 15 mm);
+		# satellites broaden variety toward smaller craters, narrow ruts and shallow glazes.
+		if slot_index == 0:
+			if depth_mm < 15.0:
+				w = 0.0
+			elif depth_mm >= 25.0 or str(p.get("id", "")) == "sheet_cross_flood":
+				w *= 1.35
+		else:
+			if depth_mm <= 12.0:
+				w *= 2.25
+			elif depth_mm <= 22.0 or str(p.get("id", "")) == "pothole_crater_sharp":
+				w *= 1.45
+			elif float(p.get("length", 3.0)) >= 6.2:
+				w *= 0.60
+
+		# Topographic & geometric context (favor broader natural pools & basins over thin strips)
+		if is_curve and fam == "gutter":
+			w *= 1.75
+		elif not is_curve and fam in ["sheet", "pothole"]:
+			w *= 1.30
+		elif not is_curve and fam == "rut":
+			w *= 1.05
+
+		if is_valley:
+			if str(p.get("id", "")) in ["washout_compression_basin", "sheet_cross_flood", "sprawl_multi_lobe", "camber_crescent"]:
+				w *= 1.85
+		elif is_grade:
+			if fam == "sheet":
+				w *= 0.85
+			elif str(p.get("id", "")) in ["pothole_crater_sharp", "pothole_double_scar", "skim_glaze_film"]:
+				w *= 1.35
+
+		# Anti-repetition: suppress back-to-back identical profiles & softly balance families
+		if idx == last_profile_idx:
+			w *= 0.12
+		var f_count := int(family_counts.get(fam, 0))
+		w /= (1.0 + float(f_count) * 0.18)
+
+		weights[idx] = w
+		total += w
+
+	var pick := rng.randf() * total
+	var acc := 0.0
+	for idx in TYPES.size():
+		acc += weights[idx]
+		if pick <= acc:
+			return idx
+	return TYPES.size() - 1
 
 
 func build() -> void:
@@ -420,6 +670,8 @@ func build() -> void:
 	var distance := 0.0
 	var next_cluster_dist := 14.0
 	var cluster_id := 0
+	var last_profile_idx := -1
+	var family_counts: Dictionary = {"rut": 0, "gutter": 0, "pothole": 0, "sheet": 0}
 
 	for i in range(1, route.size()):
 		var seg := route[i] - route[i - 1]
@@ -449,27 +701,60 @@ func build() -> void:
 
 			var cluster_count := rng.randi_range(1, 5) if rng.randf() < 0.85 else 1
 			var placed_centers: Array[Vector3] = []
+			var placed_lons: Array[float] = []
+			var placed_sides: Array[float] = []
+			var cluster_mode := rng.randi_range(0, 2) # 0: longitudinal rut/gutter chain, 1: diagonal camber runoff, 2: main basin + satellites
 
 			for k in range(cluster_count):
-				var profile_idx := (patches.size() + rng.randi_range(0, 1)) % TYPES.size()
-				if k > 0 and twi < 1.15:
-					profile_idx = rng.randi_range(2, TYPES.size() - 1)
+				var profile_idx := _select_profile_index(
+					rng, k, twi, absf(turn_signed), last_profile_idx, family_counts
+				)
 				var profile: Dictionary = TYPES[profile_idx]
+				var family: String = str(profile.get("family", "pothole"))
 
-				# Wider scale distribution: small local dips to large flooded areas
-				var scale := rng.randf_range(0.72, 1.35) if k == 0 else rng.randf_range(0.36, 0.90)
-				var lon_offset := 0.0 if k == 0 else rng.randf_range(-8.5, 8.5)
+				# Pareto multi-scale size distribution: macro hazards, chained companions, and broader satellites
+				var scale := 1.0
+				if k == 0:
+					scale = rng.randf_range(0.95, 1.56)
+				elif k <= 2:
+					scale = rng.randf_range(0.76, 1.28)
+				else:
+					scale = rng.randf_range(0.58, 0.94)
 
 				var side := preferred_side
+				var lon_offset := 0.0
 				if k > 0:
-					side = -preferred_side if rng.randf() < 0.58 else preferred_side
+					if cluster_mode == 0:
+						# Longitudinal chain along the same wheel track or ditch (occasional staggered cross-track)
+						side = preferred_side if rng.randf() < 0.76 else -preferred_side
+						var dir_sign := 1.0 if (k % 2 == 1) else -1.0
+						lon_offset = dir_sign * rng.randf_range(4.2 + float(k) * 1.8, 10.5 + float(k) * 3.0)
+					elif cluster_mode == 1:
+						# Diagonal camber drainage sequence (upstream shoulder/gutter feeding offset lane pool)
+						side = -preferred_side if (k % 2 == 1) else preferred_side
+						lon_offset = (float(k) * rng.randf_range(4.5, 8.2)) * (1.0 if rng.randf() < 0.65 else -1.0)
+					else:
+						# Main depression + asymmetric trailing satellite splash pockets
+						side = preferred_side if rng.randf() < 0.68 else -preferred_side
+						lon_offset = rng.randf_range(-11.5, 11.5)
+					# Strict anti-symmetry: puddles on opposite sides of the road must be longitudinally staggered (>= 4.2m)
+					for pi in placed_lons.size():
+						if placed_sides[pi] != side and absf(lon_offset - placed_lons[pi]) < 4.2:
+							lon_offset = placed_lons[pi] + (4.4 + rng.randf_range(0.8, 4.5)) * (1.0 if lon_offset >= placed_lons[pi] else -1.0)
 
-				# Bimodal lateral distribution: wheel rut (0.65..1.55 m) or road shoulder (1.45..2.35 m)
-				var lat_mag := rng.randf_range(0.65, 1.55) if rng.randf() < 0.65 else rng.randf_range(1.45, 2.35)
+				# Family-aware lateral band: center-spanning sheets, wheel-ruts, or outer shoulders/ditches
+				var lat_min := float(profile.get("lat_min", 0.55))
+				var lat_max := float(profile.get("lat_max", 1.95))
+				var lat_mag := rng.randf_range(lat_min, lat_max)
 				var lateral_offset := side * lat_mag
 
 				var candidate_origin := seg_center + forward * lon_offset + right * lateral_offset
 				var hit := road_hit(candidate_origin)
+				if hit.is_empty() and absf(lateral_offset) > 1.25:
+					# Fallback inward on narrower road segments so outer gutters still bind cleanly
+					lateral_offset *= 0.72
+					candidate_origin = seg_center + forward * lon_offset + right * lateral_offset
+					hit = road_hit(candidate_origin)
 				if hit.is_empty():
 					continue
 
@@ -478,43 +763,56 @@ func build() -> void:
 				if normal.dot(Vector3.UP) < 0.78:
 					continue
 
+				var min_sep := 1.45 if k >= 3 else 2.45
 				var too_close := false
 				for prev_c in placed_centers:
-					if prev_c.distance_to(center) < 2.65:
+					if prev_c.distance_to(center) < min_sep:
 						too_close = true
 						break
 				if too_close:
 					continue
 
-				# 25% larger nominal size with wide independent X/Y aspect jitter
+				# Wide independent X/Y aspect jitter biased against overly thin strips
+				var aspect_x := rng.randf_range(0.98, 1.48) if bool(profile.get("align_to_road", false)) else rng.randf_range(0.88, 1.45)
+				var aspect_y := rng.randf_range(0.78, 1.26) if bool(profile.get("align_to_road", false)) else rng.randf_range(0.76, 1.30)
 				var size := Vector2(
-					float(profile.width) * scale * rng.randf_range(0.78, 1.28),
-					float(profile.length) * scale * rng.randf_range(0.78, 1.28)
+					float(profile.width) * scale * aspect_x,
+					float(profile.length) * scale * aspect_y
 				)
-				var yaw := rng.randf_range(0.0, TAU)
+				var yaw := 0.0
+				if bool(profile.get("align_to_road", false)):
+					var jitter := float(profile.get("yaw_jitter", 0.22))
+					yaw = rng.randf_range(-jitter, jitter)
+				else:
+					yaw = rng.randf_range(0.0, TAU)
 				var patch_right := forward.cross(normal).normalized()
 				if patch_right.length_squared() < 0.01:
 					patch_right = right
 				var patch_forward := normal.cross(patch_right).normalized()
 				var basis := Basis(patch_right, normal, -patch_forward).rotated(normal, yaw).orthonormalized()
 
-				var conformal := _build_conformal_puddle_mesh(center, basis, size)
+				var grid_res := int(profile.get("grid_res", 5))
+				var conformal := _build_conformal_puddle_mesh(center, basis, size, grid_res)
 				if conformal.is_empty():
 					continue
 
 				placed_centers.append(center)
-				# Highly variable per-instance depth and organic edge warping
-				var instance_depth_mm := float(profile.depth_mm) * rng.randf_range(0.72, 1.28) * (0.88 if k > 0 else 1.0)
+				placed_lons.append(lon_offset)
+				placed_sides.append(side)
+				last_profile_idx = profile_idx
+				family_counts[family] = int(family_counts.get(family, 0)) + 1
+
+				# Highly variable per-instance depth and organic domain-warp parameters
+				var instance_depth_mm := float(profile.depth_mm) * rng.randf_range(0.74, 1.28) * (0.88 if k > 0 else 1.0)
 				var shape_params := Vector4(
-					rng.randf_range(-0.32, 0.32),
-					rng.randf_range(-0.28, 0.28),
-					rng.randf_range(0.76, 1.24),
+					rng.randf_range(-0.52, 0.52),
+					rng.randf_range(-0.48, 0.48),
+					rng.randf_range(0.85, 1.55),
 					rng.randf_range(0.0, TAU)
 				)
-				var uv_scale := Vector2(
-					-1.0 if rng.randf() > 0.5 else 1.0,
-					-1.0 if rng.randf() > 0.5 else 1.0
-				)
+				var flip_x := side if bool(profile.get("orient_to_edge", false)) else (-1.0 if rng.randf() > 0.5 else 1.0)
+				var flip_y := -1.0 if rng.randf() > 0.5 else 1.0
+				var uv_scale := Vector2(flip_x, flip_y)
 				var mask_tex: Texture2D = profile.get("mask", MASK_ROUND)
 				var mask_img := get_mask_image(mask_tex)
 
@@ -527,6 +825,7 @@ func build() -> void:
 				material.set_shader_parameter("shape_params", shape_params)
 				material.set_shader_parameter("max_depth_mm", instance_depth_mm)
 				material.set_shader_parameter("edge_softness", float(profile.get("edge_softness", 0.18)))
+				material.set_shader_parameter("turbidity_rate", float(profile.get("turbidity", 0.065)))
 				material.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
 
 				var mesh_instance := MeshInstance3D.new()
@@ -542,6 +841,7 @@ func build() -> void:
 					"transform": mesh_instance.global_transform,
 					"size": size,
 					"profile": profile,
+					"family": family,
 					"distance": next_cluster_dist,
 					"twi": twi,
 					"fill": 0.0,
@@ -568,9 +868,14 @@ func build() -> void:
 			if not placed_centers.is_empty():
 				cluster_id += 1
 
-			var step_min := 16.0 if is_short_test_route else 34.0
-			var step_max := 28.0 if is_short_test_route else 74.0
-			next_cluster_dist += rng.randf_range(step_min, step_max) / clampf(twi, 0.65, 1.35)
+			if is_short_test_route:
+				next_cluster_dist += rng.randf_range(16.0, 28.0) / clampf(twi, 0.65, 1.35)
+			else:
+				# Multi-scale drainage rhythm: denser puddle sequences in wet drainage swales, wider gaps on well-drained grades
+				var drain_wave := 0.5 + 0.5 * sin(next_cluster_dist * 0.014 + float(stage_seed % 997) * 0.13) * cos(next_cluster_dist * 0.0057)
+				var step_min := 18.0 if (drain_wave > 0.48 or twi >= 1.02) else 34.0
+				var step_max := 38.0 if (drain_wave > 0.48 or twi >= 1.02) else 66.0
+				next_cluster_dist += rng.randf_range(step_min, step_max) / clampf(twi, 0.65, 1.35)
 
 		distance += seg_len
 
@@ -608,7 +913,6 @@ func apply_fixed_snapshot_fills() -> bool:
 		"compute_puddle_fills", _cand_distances, _cand_twis, _cand_min_waters, _cand_retentions
 	)
 	var count := patches.size()
-	var localized_ice: bool = provider.has_method("uses_localized_road_ice") and provider.call("uses_localized_road_ice")
 	var localized_snow := str(provider.get("stage_id")) == "cdi_stage1"
 	has_winter_patches = false
 	if _rust_fills.size() != count:
@@ -618,25 +922,16 @@ func apply_fixed_snapshot_fills() -> bool:
 		var patch: Dictionary = patches[i]
 		var winter_kind := 0
 		var winter_depth_mm := 0.0
-		if localized_ice:
+		if localized_snow:
 			var surface: Dictionary = provider.local_surface_state_at_distance(_cand_distances[i])
 			var snow_mm := float(surface.get("snow_mm", 0.0))
-			var ice_mm := float(surface.get("ice_mm", 0.0))
-			var water_mm := float(surface.get("water_mm", 0.0))
 			var retention := _cand_retentions[i]
 			# Deep basins shelter snow earlier than shallow, exposed hollows.
 			var shelter := smoothstep(5.0, 48.0, float(patch.depth_mm))
 			var snow_threshold_mm := lerpf(5.0, 1.5, shelter)
-			if localized_snow and snow_mm * retention >= snow_threshold_mm:
+			if snow_mm * retention >= snow_threshold_mm:
 				winter_kind = 1
 				winter_depth_mm = clampf(snow_mm * retention, 0.0, 30.0)
-			elif float(surface.get("ground_c", 1.0)) <= 0.0 and ice_mm > water_mm and ice_mm >= snow_mm:
-				# Frozen water has to clear this basin's activation threshold.
-				var basin_ice_mm := ice_mm * (0.85 + 1.15 * clampf(_cand_twis[i], 0.0, 1.5))
-				var ice_fill := clampf((basin_ice_mm - _cand_min_waters[i]) * retention / 2.2, 0.0, 1.0)
-				if ice_fill > 0.005:
-					winter_kind = 2
-					winter_depth_mm = minf(ice_fill * float(patch.depth_mm), 6.0)
 		if winter_kind != 0:
 			fill = 0.0
 			has_winter_patches = true
@@ -660,25 +955,52 @@ func apply_fixed_snapshot_fills() -> bool:
 	return true
 
 
-func sample_winter_patch(position: Vector3) -> Vector2:
-	var depths := Vector2.ZERO
+## Returns `Vector2(snow_depth_mm, drag_scale)` for active localized snow patches (`winter_kind == 1`).
+func sample_snow_patch(position: Vector3) -> Vector2:
+	var best_depth := 0.0
+	var best_drag := 1.0
 	var key := Vector2i(floori(position.x / 16.0), floori(position.z / 16.0))
 	for patch: Dictionary in buckets.get(key, []):
-		var kind := int(patch.get("winter_kind", 0))
-		if kind == 0:
+		if int(patch.get("winter_kind", 0)) != 1:
 			continue
 		var local: Vector3 = (patch.transform as Transform3D).affine_inverse() * position
 		if absf(local.y) > 0.20:
 			continue
 		var uv := Vector2(local.x / patch.size.x, local.z / patch.size.y)
 		var img: Image = patch.get("mask_image")
-		var mask := sample_image_mask(img, uv, patch.uv_scale) if img != null else mask_at(uv, patch.shape_params)
+		var mask := sample_image_mask(img, uv, patch.uv_scale, patch.shape_params) if img != null else mask_at(uv, patch.shape_params)
 		var depth := clampf((mask - 0.18) / 0.82, 0.0, 1.0) * float(patch.winter_depth_mm)
-		if kind == 1:
-			depths.x = maxf(depths.x, depth)
-		else:
-			depths.y = maxf(depths.y, depth)
-	return depths
+		if depth > best_depth:
+			best_depth = depth
+			var prof: Dictionary = patch.get("profile", {}) as Dictionary
+			best_drag = float(prof.get("drag", 1.0))
+	return Vector2(best_depth, best_drag)
+
+
+func sample_winter_patch(position: Vector3) -> Vector2:
+	return Vector2(sample_snow_patch(position).x, 0.0)
+
+
+func _apply_sky_uniforms(material: ShaderMaterial) -> void:
+	var sky_mat := sky_node.get("material") as ShaderMaterial
+	if sky_mat != null:
+		material.set_shader_parameter("has_sky", true)
+		for parameter in [
+			"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
+			"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color"
+		]:
+			material.set_shader_parameter(parameter, sky_mat.get_shader_parameter(parameter))
+	var sun := sky_node.get("sun") as DirectionalLight3D
+	var moon := sky_node.get("moon") as DirectionalLight3D
+	var light: DirectionalLight3D = sun if (sun != null and is_instance_valid(sun)) else null
+	if moon != null and is_instance_valid(moon) and (light == null or moon.light_energy > light.light_energy):
+		light = moon
+	if light != null:
+		var dir := light.global_basis.z
+		if not dir.is_zero_approx():
+			material.set_shader_parameter("sun_dir", dir.normalized())
+		var col := light.light_color * light.light_energy
+		material.set_shader_parameter("sun_color", Vector3(col.r, col.g, col.b))
 
 
 func _refresh_visible_reflections_only() -> void:
@@ -690,14 +1012,19 @@ func _refresh_visible_reflections_only() -> void:
 		if material == null:
 			continue
 		if has_sky:
-			material.set_shader_parameter("has_sky", true)
-			for parameter in [
-				"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
-				"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color"
-			]:
-				material.set_shader_parameter(parameter, sky_node.material.get_shader_parameter(parameter))
+			_apply_sky_uniforms(material)
 		var local_state := _local_liquid_state(float(patch["distance"]))
 		material.set_shader_parameter("rain", float(local_state.get("rain_ratio", 0.0)))
+		material.set_shader_parameter("wind_vec", local_state.get("wind_vec", Vector2(1.2, 0.4)) as Vector2)
+
+
+## Shared CPU/Rust/GPU bathymetric shoreline threshold in [0.18, 0.62].
+## At low fill, standing water is confined to the deepest pit (mask > 0.62);
+## as fill -> 1.0, the shoreline advances outward to the full basin rim (0.18).
+static func shore_threshold_for_fill(fill: float) -> float:
+	var t := clampf(fill, 0.0, 1.0)
+	var f := t * (1.35 - 0.35 * t)
+	return lerpf(0.62, 0.18, f)
 
 
 ## Smooth rounded organic procedural mask without sharp pinches
@@ -715,10 +1042,25 @@ static func mask_at(uv: Vector2, shape_params: Vector4 = Vector4.ZERO) -> float:
 	return clampf(1.0 - (r / r_bound), 0.0, 1.0)
 
 
-static func sample_image_mask(img: Image, uv: Vector2, uv_scale: Vector2) -> float:
+static func warp_mask_uv(uv: Vector2, uv_scale: Vector2, shape_params: Vector4 = Vector4.ZERO) -> Vector2:
+	var p := uv * uv_scale
+	var px := p.x * (1.0 + p.y * 0.34 * shape_params.x) + (p.y * p.y - 0.06) * 0.28 * shape_params.y
+	var py := p.y * (1.0 - p.x * 0.18 * shape_params.y) + (p.x * p.x - 0.05) * 0.16 * shape_params.x
+	var r2 := clampf(p.dot(p) * 4.0, 0.0, 1.0)
+	var w1 := (sin(py * 5.8 + shape_params.w) + 0.55 * cos(px * 11.2 - shape_params.w * 1.7)) * 0.038 * shape_params.z * r2
+	var w2 := (cos(px * 5.4 + shape_params.w * 1.3) + 0.55 * sin(py * 10.6 + shape_params.w * 0.8)) * 0.038 * shape_params.z * r2
+	return Vector2(px + w1 + 0.5, py + w2 + 0.5)
+
+
+static func sample_image_mask(
+	img: Image,
+	uv: Vector2,
+	uv_scale: Vector2,
+	shape_params: Vector4 = Vector4.ZERO
+) -> float:
 	if img == null:
 		return 0.0
-	var muv := uv * uv_scale + Vector2(0.5, 0.5)
+	var muv := warp_mask_uv(uv, uv_scale, shape_params)
 	if muv.x < 0.0 or muv.x > 1.0 or muv.y < 0.0 or muv.y > 1.0:
 		return 0.0
 	var w := img.get_width()
@@ -768,16 +1110,19 @@ func sample_contact(position: Vector3) -> Dictionary:
 		var mask := 0.0
 		var img: Image = patch.get("mask_image")
 		if img != null:
-			mask = sample_image_mask(img, uv, patch.get("uv_scale", Vector2.ONE))
+			mask = sample_image_mask(img, uv, patch.get("uv_scale", Vector2.ONE), patch.get("shape_params", Vector4.ZERO))
 		else:
 			mask = mask_at(uv, patch.shape_params)
 
 		var fill := float(patch.fill)
-		if fill <= 0.001 or mask <= 0.18:
+		if fill <= 0.001:
+			continue
+		var shore_thresh := shore_threshold_for_fill(fill)
+		if mask <= shore_thresh:
 			continue
 
 		var patch_depth := float(patch.get("depth_mm", patch.profile.depth_mm))
-		var water_mask := clampf((mask - 0.18) / 0.82, 0.0, 1.0)
+		var water_mask := clampf((mask - shore_thresh) / (1.0 - shore_thresh), 0.0, 1.0)
 		var depth := water_mask * fill * patch_depth
 		if depth > float(result.depth_mm):
 			result = {
@@ -949,7 +1294,11 @@ static func contact_response(
 	# Numeric evacuation property from the catalog; bool callers remain compatible.
 	var evac_speed := (28.0 if evacuation else 16.0) if evacuation is bool else maxf(float(evacuation), 0.1)
 	var wet_factor := clampf((evac_speed - 16.0) / 12.0, 0.0, 1.0)
-	var risk := smoothstep(evac_speed * 0.60, evac_speed * 1.30, abs_speed) * smoothstep(1.5, WATER_GRIP_DEPTH_SATURATION_MM, depth_mm)
+	var depth_t := clampf((depth_mm - 1.5) / (WATER_GRIP_DEPTH_SATURATION_MM - 1.5), 0.0, 1.0)
+	var depth_u := pow(depth_t, 0.72)
+	var depth_norm := depth_u * depth_u * (3.0 - 2.0 * depth_u)
+	var speed_risk := maxf(smoothstep(evac_speed * 0.42, evac_speed * 1.25, abs_speed), 0.18 * smoothstep(4.0, 14.0, abs_speed))
+	var risk := speed_risk * depth_norm
 
 	# Differentiated aquaplaning support: lateral cornering grip drops faster than longitudinal braking
 	var support_long := 1.0 - risk * lerpf(0.80, 0.55, wet_factor)
@@ -1016,6 +1365,98 @@ static func contact_response_packed(
 			wheel_radius,
 		) as PackedFloat32Array
 	var d: Dictionary = contact_response(depth_mm, speed, evac_speed, load_n, width, drag_scale, delta_depth_s, wheel_radius)
+	var out := PackedFloat32Array()
+	out.resize(9)
+	out[0] = float(d.get("support", 1.0))
+	out[1] = float(d.get("support_longitudinal", 1.0))
+	out[2] = float(d.get("support_lateral", 1.0))
+	out[3] = float(d.get("drag_n", 0.0))
+	out[4] = float(d.get("slam_n", 0.0))
+	out[5] = float(d.get("continuous_drag_n", 0.0))
+	out[6] = float(d.get("wheel_torque_nm", 0.0))
+	out[7] = float(d.get("steering_pull_nm", 0.0))
+	out[8] = float(d.get("vertical_dip_m", 0.0))
+	return out
+
+
+const SNOW_DRAG_MAX_LOAD_FRACTION := 0.95
+static func snow_contact_response(
+	depth_mm: float,
+	speed: float,
+	load_n: float,
+	width: float,
+	drag_scale: float,
+	delta_depth_s: float = 0.0,
+	wheel_radius: float = 0.28
+) -> Dictionary:
+	if depth_mm <= 0.001 or absf(speed) <= 0.001:
+		return {
+			"support": 1.0,
+			"support_longitudinal": 1.0,
+			"support_lateral": 1.0,
+			"drag_n": 0.0,
+			"slam_n": 0.0,
+			"continuous_drag_n": 0.0,
+			"wheel_torque_nm": 0.0,
+			"steering_pull_nm": 0.0,
+			"vertical_dip_m": 0.0,
+		}
+
+	var abs_speed := absf(speed)
+	var depth_factor := smoothstep(1.5, 24.0, depth_mm)
+	var support_long := 1.0 - 0.14 * depth_factor
+	var support_lat := 1.0 - 0.22 * depth_factor
+	var support := minf(support_long, support_lat)
+
+	var low_speed_ramp := smoothstep(0.0, 2.0, abs_speed)
+	var continuous_drag := (9500.0 * low_speed_ramp + 1800.0 * abs_speed + 3600.0 * abs_speed * abs_speed) * width * depth_mm * 0.001 * drag_scale
+
+	var slam_drag := 0.0
+	if delta_depth_s > 0.0:
+		slam_drag = 34.0 * width * minf(delta_depth_s, 200.0) * abs_speed * drag_scale
+		slam_drag = minf(slam_drag, load_n * 0.45)
+
+	var max_drag := load_n * SNOW_DRAG_MAX_LOAD_FRACTION
+	var total_drag := minf(continuous_drag + slam_drag, max_drag)
+	var wheel_torque_nm := total_drag * 0.95 * wheel_radius
+	var steering_pull_nm := total_drag * 0.11
+	var vertical_dip_m := clampf(depth_mm * 0.001 * 0.30, 0.0, 0.012)
+
+	return {
+		"support": support,
+		"support_longitudinal": support_long,
+		"support_lateral": support_lat,
+		"drag_n": total_drag,
+		"slam_n": slam_drag,
+		"continuous_drag_n": continuous_drag,
+		"wheel_torque_nm": wheel_torque_nm,
+		"steering_pull_nm": steering_pull_nm,
+		"vertical_dip_m": vertical_dip_m,
+	}
+
+
+static func snow_contact_response_packed(
+	depth_mm: float,
+	speed: float,
+	load_n: float,
+	width: float,
+	drag_scale: float,
+	delta_depth_s: float = 0.0,
+	wheel_radius: float = 0.28
+) -> PackedFloat32Array:
+	var helper: RefCounted = _get_rust_static_helper()
+	if helper != null and helper.has_method(&"snow_contact_response_packed"):
+		return helper.call(
+			"snow_contact_response_packed",
+			depth_mm,
+			speed,
+			load_n,
+			width,
+			drag_scale,
+			delta_depth_s,
+			wheel_radius,
+		) as PackedFloat32Array
+	var d: Dictionary = snow_contact_response(depth_mm, speed, load_n, width, drag_scale, delta_depth_s, wheel_radius)
 	var out := PackedFloat32Array()
 	out.resize(9)
 	out[0] = float(d.get("support", 1.0))
