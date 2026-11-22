@@ -20,6 +20,7 @@ game/assets/rally/*/*_collision_*.png
 .tools/localappdata/
 build/
 dist/
+rust/target/
 scratch/
 game/logs/
 __pycache__/
