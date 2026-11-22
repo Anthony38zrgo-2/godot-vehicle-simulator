@@ -96,6 +96,11 @@ func run() -> void:
 			check(snow_texture == ctl.SNOW_SPRITE, "snow uses the active sprite")
 		var snow_quad := snow.draw_pass_1 as QuadMesh
 		check(snow_quad != null and is_equal_approx(snow_quad.size.x, 0.24), "snow uses the configured size")
+		ctl.apply_to_adapters(scene.weather_sky_node, tca, scene.terrain_wetness, 12.0, Vector3(0.0, 5.0, -50.0))
+		var snow_offset: Vector3 = snow.global_position - ctl.last_vehicle_pos
+		var snow_process := snow.process_material as ParticleProcessMaterial
+		check(snow_offset.is_equal_approx(Vector3(0.0, 7.0, -38.0)), "snow anticipates motion horizontally at 180 km/h")
+		check(not snow.local_coords and snow_process.emission_box_extents.y >= 6.0, "snow spans driving height and stays in world space")
 	await process_frame
 	await process_frame
 	check(is_instance_valid(rain) and not rain.emitting and not rain.visible, "inactive rain emitter is retained without rendering")

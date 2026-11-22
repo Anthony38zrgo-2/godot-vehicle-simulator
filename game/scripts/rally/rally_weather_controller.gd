@@ -619,6 +619,11 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 							particles.trail_enabled = false
 							particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 							particles.draw_passes = 1
+							particles.local_coords = false
+							particles.visibility_aabb = AABB(Vector3(-80.0, -32.0, -80.0), Vector3(160.0, 40.0, 160.0))
+							var snow_process := particles.process_material.duplicate() as ParticleProcessMaterial
+							snow_process.emission_box_extents.y = 6.0
+							particles.process_material = snow_process
 							var snow_size := float(visual.get("snow_size_m", 0.16))
 							particles.draw_pass_1 = _make_precipitation_pass(
 								SNOW_SPRITE,
@@ -647,7 +652,13 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 			# Rampa suave continua sin salto brusco a 0.18:
 			var entry_ramp := smoothstep(0.005, 0.40, precip)
 			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if precip > 0.005 else 0.0
-			particles.global_position = last_vehicle_pos + Vector3.UP * 10.0
+			var emitter_offset := Vector3.UP * 10.0
+			if kind == "snow":
+				# Slow flakes must spawn ahead and at driving height, or the
+				# car passes below the emitter before they descend into view.
+				var horizontal_velocity := Vector3(vehicle_velocity.x, 0.0, vehicle_velocity.z)
+				emitter_offset = Vector3.UP * 7.0 + (horizontal_velocity * 1.0).limit_length(38.0)
+			particles.global_position = last_vehicle_pos + emitter_offset
 			# Orientacion de lluvia/nieve segun el viento local
 			var relative_fall := Vector3.DOWN
 			var pm := particles.process_material as ParticleProcessMaterial
