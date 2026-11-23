@@ -20,10 +20,9 @@
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
     "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
     "runtime_visuals": {
-      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Renault Alpine.fbx",
-      "texture": "renault_alpine_a110_alta.png",
-      "finish": "high_res_pbr_no_psx",
-      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "blend": "D:\\RallyManiacAssets\\1963-alpine-renault-a110-lp\\source\\Alpine Renault A110 '63 (LP).blend",
+      "finish": "original_livery_baked_psx_rgb555",
+      "fit": "Blender 'Alpine Renault A110 63 (LP).blend' rotated +180 deg Z, Mirror applied, interior stripped, headlight crystal covers ('Shade') preserved, cabin glass opaque black; tracks 1.300/1.300 m and tire R=0.2972 W=0.2050 m.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
@@ -37,8 +36,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "58253ff04fea6cd4167155eddccaf76914471b808a63e5ab324ab97e631aa97b",
-    "size_bytes": 175644,
+    "sha256": "8e981b58742abf08d29900cd41266639ea723127113e6396421758b8d25957b3",
+    "size_bytes": 547260,
     "exported_nodes": [
       "AlpineA110Exterior"
     ]
@@ -46,73 +45,73 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "2bf12946a2b25453b71ffaa8bdb45e7cd20b3e38a7886c070f6dd9a5bd97acb4",
-      "size_bytes": 104112
+      "sha256": "08b83b513e873121fb395118fb207cd64210a51c9a018140e1fee97942be7b08",
+      "size_bytes": 74744
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "9b51dc8a6f6c730453c641a0e0cadbabed3e679ad3f93b73610c91fcca56fa23",
-      "size_bytes": 104112
+      "sha256": "e9980a7dc2913fe0da558a9257f3509591e28dd3ed76d99e399dd8b39ddb2f50",
+      "size_bytes": 106936
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "90b3f0d335e0d63665a8d7022bf16f46f6b62fb3898014220d528128ef356e59",
-      "size_bytes": 104104
+      "sha256": "f5834f5535938fd72687f079a2c670c14eeac49ed1fc50c6cd86531a33e2ec26",
+      "size_bytes": 80464
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "7440b6bebcbec676a1dd70ffd4b6b860b148c0f977e6a82a3071e1e2b46546bb",
-      "size_bytes": 104104
+      "sha256": "16b6e6c8e456fe8170dd7aa883bf1c426e2b38e9a8613b19be6838e327731be8",
+      "size_bytes": 84612
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.5704421997070312,
-        "y": 0.2665,
-        "z": -1.0499999523162842
+        "x": -0.65,
+        "y": 0.2972,
+        "z": -1.05
       },
-      "radius_metres": 0.2665,
-      "width_metres": 0.188
+      "radius_metres": 0.2972,
+      "width_metres": 0.205
     },
     "front_right": {
       "center_metres": {
-        "x": 0.5707464814186096,
-        "y": 0.2665,
-        "z": -1.0499999523162842
+        "x": 0.65,
+        "y": 0.2972,
+        "z": -1.05
       },
-      "radius_metres": 0.2665,
-      "width_metres": 0.188
+      "radius_metres": 0.2972,
+      "width_metres": 0.205
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6100000143051147,
-        "y": 0.2655,
-        "z": 1.0499999523162842
+        "x": -0.65,
+        "y": 0.2972,
+        "z": 1.05
       },
-      "radius_metres": 0.2655,
-      "width_metres": 0.248
+      "radius_metres": 0.2972,
+      "width_metres": 0.205
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.60999995470047,
-        "y": 0.2655,
-        "z": 1.0500000715255737
+        "x": 0.65,
+        "y": 0.2972,
+        "z": 1.05
       },
-      "radius_metres": 0.2655,
-      "width_metres": 0.248
+      "radius_metres": 0.2972,
+      "width_metres": 0.205
     }
   },
   "geometry": {
-    "wheelbase": 2.0999999046325684,
-    "front_axle_z": -1.0499999523162842,
-    "rear_axle_z": 1.0499999523162842,
-    "front_track": 1.1411886811256409,
-    "rear_track": 1.2199999690055847
+    "wheelbase": 2.1,
+    "front_axle_z": -1.05,
+    "rear_axle_z": 1.05,
+    "front_track": 1.3,
+    "rear_track": 1.3
   },
   "collision": {
     "path": "collision.json",
-    "sha256": "49dac9330770f89f783f28ae04737c7a1af898a5c537967027cd196cebaea41c"
+    "sha256": "8dc5982a593d37c89383c85fe5115a81af5276e93e27256d8379d3767d755422"
   },
   "visual_damage": {
     "files": {
@@ -132,20 +131,20 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.7679777145385742,
-      0.10002611577510834,
-      -1.8953163623809814
+      -0.773124,
+      0.139638,
+      -1.881669
     ],
     "max_godot": [
-      0.7680222392082214,
-      1.0647860765457153,
-      1.9984022378921509
+      0.773124,
+      1.092932,
+      1.957173
     ]
   },
   "measurement": {
-    "geometry_policy": "native",
+    "geometry_policy": "blender_model_native_tracks_wheels",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.0999999046325684
+    "native_wheelbase_m": 2.1
   },
   "capabilities": {
     "cockpit": false,

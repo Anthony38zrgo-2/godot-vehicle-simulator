@@ -1,0 +1,100 @@
+{
+  "suspension": {
+    "contact_shape_count": 1,
+    "contact_query_type": "ShapeCast3D",
+    "front": {
+      "spring_architecture": "torsion_bar",
+      "spring_can_unseat": true,
+      "arb_ratio": 0.18,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": -0.01745,
+      "camber_gain_rad_per_m": -0.018,
+      "damping_ratio": 0.46,
+      "rebound_damp_multiplier": 1.35,
+      "resting_ratio": 0.35,
+      "spring_length": 0.3,
+      "toe": 0.001745,
+      "toe_gain_rad_per_m": 0.006,
+      "ride_frequency_hz": 1.55
+    },
+    "rear": {
+      "spring_architecture": "torsion_bar",
+      "spring_can_unseat": true,
+      "arb_ratio": 0.14,
+      "bump_damp_multiplier": 1.0,
+      "bump_stop_multiplier": 1.0,
+      "camber": -0.02618,
+      "camber_gain_rad_per_m": -0.014,
+      "damping_ratio": 0.48,
+      "rebound_damp_multiplier": 1.35,
+      "resting_ratio": 0.35,
+      "spring_length": 0.3,
+      "toe": 0.002618,
+      "toe_gain_rad_per_m": 0.004,
+      "ride_frequency_hz": 1.65
+    },
+    "geometry_physical": {
+      "version": 1,
+      "front": {
+        "arb_damper_Ns_per_m": 110.0,
+        "bump_stop_damper_Ns_per_m": 580.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.025,
+        "damper_bump_Ns_per_m": 1850.0,
+        "damper_fast_factor": 0.55,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.46,
+        "damper_min_m": 0.14,
+        "damper_rebound_Ns_per_m": 2450.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.3,
+        "spring_installed_length_m": 0.25,
+        "spring_rate_N_per_m": 22500.0,
+        "wheel_bump_m": 0.14,
+        "wheel_droop_m": 0.12
+      },
+      "front_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.18
+      },
+      "rear": {
+        "arb_damper_Ns_per_m": 95.0,
+        "bump_stop_damper_Ns_per_m": 600.0,
+        "bump_stop_law": "cubic",
+        "bump_stop_mult": 1.0,
+        "bump_stop_travel_m": 0.025,
+        "damper_bump_Ns_per_m": 2400.0,
+        "damper_fast_factor": 0.6,
+        "damper_knee_blend_m_per_s": 0.02,
+        "damper_knee_m_per_s": 0.15,
+        "damper_max_m": 0.48,
+        "damper_min_m": 0.12,
+        "damper_rebound_Ns_per_m": 3200.0,
+        "hard_stop_compliance_m": 0.001,
+        "hard_stop_damper_Ns_per_m": 2500.0,
+        "hard_stop_overtravel_m": 0.005,
+        "hard_stop_stiffness_N_per_m": 8000000.0,
+        "spring_free_length_m": 0.3,
+        "spring_installed_length_m": 0.25,
+        "spring_rate_N_per_m": 31500.0,
+        "wheel_bump_m": 0.14,
+        "wheel_droop_m": 0.12
+      },
+      "rear_arb": {
+        "mode": "legacy_ratio",
+        "ratio": 0.14
+      }
+    },
+    "model": "geometric",
+    "model_version": 1,
+    "tri_ray_spacing_ratio": 0.35,
+    "use_authored_wheel_centers": true,
+    "virtual_unsprung_mass_multiplier": 1.15
+  }
+}

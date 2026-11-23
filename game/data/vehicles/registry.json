@@ -193,6 +193,18 @@
       "SoundBank": "gt3-bank/vw-golf-mk1",
       "ValidateSoundHashes": true,
       "DisplayName": "VW Golf Mk1 GTI Gr.2"
+    },
+    "porsche911": {
+      "Id": "porsche_911_24s",
+      "Assets": "porsche_911_24s",
+      "Profile": "porsche-911-24s",
+      "Scene": "porsche_911_24s",
+      "Stage": "russia_stage1_porsche_911_24s",
+      "Proving": "porsche_911_24s_proving",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/porsche-911-24s",
+      "ValidateSoundHashes": true,
+      "DisplayName": "Porsche 911 2.4 S"
     }
   }
 }

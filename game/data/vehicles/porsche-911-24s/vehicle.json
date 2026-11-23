@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "vehicle_identifier": "porsche_911_24s",
+  "profile_name": "Porsche 911 2.4 S (1972-1973 F-Series, Type 911/53)",
+  "units": "SI",
+  "coordinate_contract": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y"
+  },
+  "domains": {
+    "aerodynamics": "aerodynamics.json",
+    "brakes": "brakes.json",
+    "chassis": "chassis.json",
+    "coupled_world": "coupled_world.json",
+    "damage": "damage.json",
+    "driving_assistance": "driving_assistance.json",
+    "fuel": "fuel.json",
+    "powertrain": "powertrain.json",
+    "steering": "steering.json",
+    "suspension": "suspension.json",
+    "suspension_filters": "suspension_filters.json",
+    "tires": "tires.json",
+    "underfloor_contact": "underfloor_contact.json"
+  }
+}

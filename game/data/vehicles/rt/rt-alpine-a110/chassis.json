@@ -15,8 +15,8 @@
     "wheelbase": 2.1,
     "front_axle_z": -1.05,
     "rear_axle_z": 1.05,
-    "front_track": 1.358,
-    "rear_track": 1.337
+    "front_track": 1.3,
+    "rear_track": 1.3
   },
   "physical_mass_inventory": {
     "schema_version": 2,
@@ -56,7 +56,7 @@
             ]
           },
           "provenance": {
-            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "source": "Dossier 1974 \u00a72.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
             "mass_origin": "recalibrated_1974",
             "center_of_mass_origin": "recalibrated_1974",
             "inertia_origin": "recalibrated_1974"

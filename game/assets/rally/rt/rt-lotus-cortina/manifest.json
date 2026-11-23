@@ -18,7 +18,15 @@
       "physics_policy": "game_derived"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "fbx": "D:\\RallyManiacAssets\\1965-ford-lotus-cortina-mk1\\source\\FINAL_MODEL_65\\FINAL_MODEL_65.fbx",
+      "finish": "original_livery_baked_psx_rgb555",
+      "fit": "FINAL_MODEL_65.fbx scaled to metres, rotated +180 deg Z, interior/calipers/discs purged, Ermine White CaarPaint + Lotus Green Color_2, crystal headlight lenses, opaque black windows; native FBX wheelbase=2.4980 m, tracks=1.3101/1.3101 m, tire R=0.2688 W=0.1811 m.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    },
+    "texture_finish": "original_livery_baked_psx_rgb555"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -28,79 +36,83 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "85c5b6267a6fb92c5115ed42fb48f2c2b9889b35644ff14d617976a1004f0bbd",
-    "size_bytes": 1330000
+    "sha256": "264c8729c215afbcb398042639057fb19bc9c302a03798764520106466bf0776",
+    "size_bytes": 879444,
+    "exported_nodes": [
+      "LotusCortinaExterior",
+      "LotusCortinaBadges"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "2e937f4aad6ebcef22369e19c631062bac5f171b338dbce2249771fe1438749c",
-      "size_bytes": 67784
+      "sha256": "9268a25a08fcfd138bb1ab01f813d47a3b1b0d4885ac72122ab9f3896771f5de",
+      "size_bytes": 147972
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "ff42a7f111e7f852fcf6d2133b791b4e168b6bfc00bc320c9176096f45328948",
-      "size_bytes": 67784
+      "sha256": "71f4c6dbd7dc878bbaffd7e43ffe40ce2b95682a8c0170f536e17ae8d0938613",
+      "size_bytes": 141044
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "993911634280c37bc7b84a00dcf6df7f3b40727823d75c70cd37d36fbf2b2148",
-      "size_bytes": 67780
+      "sha256": "13276a82dbf203c75abb14d57cdfa517669edb3c1ade3f2d098a8e18d78bb7d2",
+      "size_bytes": 132428
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "e4bb9956e7f1cc9dbe52b19b1496294a39cecf4e04b1d8acdd82b0f4999f5265",
-      "size_bytes": 67780
+      "sha256": "41722dca71c810c23788c55fea90797843e1bfce1a6fc9a99abf6ffb9270316a",
+      "size_bytes": 140676
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.6500000357627869,
-        "y": 0.2799999415874481,
-        "z": -1.2999999523162842
+        "x": -0.65505,
+        "y": 0.2688,
+        "z": -1.249
       },
-      "radius_metres": 0.28000000119208757,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.2688,
+      "width_metres": 0.1811
     },
     "front_right": {
       "center_metres": {
-        "x": 0.6499999761581421,
-        "y": 0.2799999415874481,
-        "z": -1.2999999523162842
+        "x": 0.65505,
+        "y": 0.2688,
+        "z": -1.249
       },
-      "radius_metres": 0.2800000011920911,
-      "width_metres": 0.19999998807907104
+      "radius_metres": 0.2688,
+      "width_metres": 0.1811
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6500000953674316,
-        "y": 0.28000012040138245,
-        "z": 1.2999999523162842
+        "x": -0.65505,
+        "y": 0.2688,
+        "z": 1.249
       },
-      "radius_metres": 0.28000000119209645,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.2688,
+      "width_metres": 0.1811
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.6499999761581421,
-        "y": 0.28000012040138245,
-        "z": 1.3000000715255737
+        "x": 0.65505,
+        "y": 0.2688,
+        "z": 1.249
       },
-      "radius_metres": 0.2800000011920929,
-      "width_metres": 0.19999998807907104
+      "radius_metres": 0.2688,
+      "width_metres": 0.1811
     }
   },
   "geometry": {
-    "wheelbase": 2.5999999046325684,
-    "front_axle_z": -1.2999999523162842,
-    "rear_axle_z": 1.2999999523162842,
-    "front_track": 1.300000011920929,
-    "rear_track": 1.3000000715255737
+    "wheelbase": 2.498,
+    "front_axle_z": -1.249,
+    "rear_axle_z": 1.249,
+    "front_track": 1.3101,
+    "rear_track": 1.3101
   },
   "collision": {
     "path": "collision.json",
-    "sha256": "dd2653edfc1cda1e4d529e8edf7d50d1c1eeea74c547b6195e885ebc6b13de77"
+    "sha256": "92ee796f0cd4242a7510147f85097e9c6fd356d6d3f339de38724594323f4169"
   },
   "visual_damage": {
     "files": {
@@ -120,27 +132,27 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.800000011920929,
-      0.005000125151127577,
-      -1.9100000858306885
+      -0.811136,
+      0.146215,
+      -1.901367
     ],
     "max_godot": [
-      0.800000011920929,
-      1.2800002098083496,
-      2.365000009536743
+      0.808982,
+      1.356207,
+      2.287109
     ]
   },
   "measurement": {
-    "geometry_policy": "native",
+    "geometry_policy": "fbx_native_dimensions",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.5999999046325684
+    "native_wheelbase_m": 2.498
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
   "warnings": []
 }

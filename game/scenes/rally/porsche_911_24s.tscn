@@ -1,0 +1,63 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
+[ext_resource type="PackedScene" path="res://assets/rally/porsche_911_24s/porsche_911_24s_chassis.glb" id="2_chassis"]
+[ext_resource type="PackedScene" path="res://assets/rally/porsche_911_24s/porsche_911_24s_wheel_front_left.glb" id="3_wheel_front_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/porsche_911_24s/porsche_911_24s_wheel_front_right.glb" id="4_wheel_front_right"]
+[ext_resource type="PackedScene" path="res://assets/rally/porsche_911_24s/porsche_911_24s_wheel_rear_left.glb" id="5_wheel_rear_left"]
+[ext_resource type="PackedScene" path="res://assets/rally/porsche_911_24s/porsche_911_24s_wheel_rear_right.glb" id="6_wheel_rear_right"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
+[ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="8_vfx"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_porsche911"]
+friction = 0.9
+bounce = 0.0
+
+[node name="Porsche911_24S" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 1
+physics_material_override = SubResource("PhysicsMaterial_porsche911")
+can_sleep = false
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 8
+script = ExtResource("1_vehicle")
+rally_profile_path = "res://data/vehicles/porsche-911-24s/vehicle.json"
+asset_manifest_path = "res://assets/rally/porsche_911_24s/manifest.json"
+rally_collision_path = "res://assets/rally/porsche_911_24s/porsche_911_24s_collision.json"
+cockpit_camera_enabled = false
+
+[node name="Chassis" parent="." instance=ExtResource("2_chassis")]
+
+[node name="VehicleVFX" type="Node3D" parent="."]
+script = ExtResource("8_vfx")
+exhaust_tip = Vector3(-0.35, 0.22, 1.98)
+
+[node name="WheelFrontLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontLeft"]
+
+[node name="WheelMesh" parent="WheelFrontLeft/WheelVisual" instance=ExtResource("3_wheel_front_left")]
+
+[node name="WheelFrontRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelFrontRight"]
+
+[node name="WheelMesh" parent="WheelFrontRight/WheelVisual" instance=ExtResource("4_wheel_front_right")]
+
+[node name="WheelRearLeft" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearLeft"]
+
+[node name="WheelMesh" parent="WheelRearLeft/WheelVisual" instance=ExtResource("5_wheel_rear_left")]
+
+[node name="WheelRearRight" type="Node3D" parent="."]
+
+[node name="WheelVisual" type="Node3D" parent="WheelRearRight"]
+
+[node name="WheelMesh" parent="WheelRearRight/WheelVisual" instance=ExtResource("6_wheel_rear_right")]
+
+[node name="VehicleAudio" type="Node3D" parent="."]
+script = ExtResource("7_audio")
+engine_bank_manifest_path = "res://sounds/banks/gt3-bank/porsche-911-24s/manifest.json"
+vehicle_path = NodePath("..")

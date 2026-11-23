@@ -1,0 +1,1052 @@
+{
+  "chassis": {
+    "vehicle_name": "Porsche 911 2.4 S (1972-1973)",
+    "vehicle_mass": 1130.0,
+    "vehicle_mass_excludes_wheel_assemblies": true,
+    "front_weight_distribution": 0.415,
+    "center_of_gravity_height_offset": -0.145,
+    "inertia_multipliers": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "target_cg_z_m": 0.455
+  },
+  "geometry": {
+    "wheelbase": 2.271,
+    "front_track": 1.372,
+    "rear_track": 1.354,
+    "front_axle_z": -1.1355,
+    "rear_axle_z": 1.1355
+  },
+  "physical_mass_inventory": {
+    "schema_version": 2,
+    "base_budget_kilograms": 1130.0,
+    "rim_and_tire_mass_kilograms": [
+      17.5,
+      17.5,
+      17.5,
+      17.5
+    ],
+    "coordinate_contract": {
+      "forward": "-Z",
+      "right": "+X",
+      "up": "+Y"
+    },
+    "spare_policy": {
+      "mass_component_name": "spare_wheels_and_tools",
+      "tools_mass_kg": 7.5,
+      "wheel_mass_kg": 17.5
+    },
+    "components": [
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "unitary 2+2 steel coupe shell, doors, glazing, 911 S front spoiler and trim",
+        "properties": {
+          "name": "bodywork_and_rollcage",
+          "mass_kilograms": 498.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.5,
+            "z": -0.05
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                285.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                345.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                105.0
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Porsche 911 F-Series LWB unitary steel coupe body shell",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 423.3,
+          "upper_mass_kilograms": 572.7,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "2341 cc air-cooled flat-6 SOHC engine, Bosch MFI, dry-sump and cooling fan",
+        "properties": {
+          "name": "engine_type_911_53_2400",
+          "mass_kilograms": 195.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.41,
+            "z": 1.38
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                18.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                14.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                15.0
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Porsche Type 911/53 2.4L air-cooled flat-6 rear-mounted behind rear axle",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 165.75,
+          "upper_mass_kilograms": 224.25,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "magnesium-cased Type 915/02 5-speed transaxle, ZF LSD and halfshafts",
+        "properties": {
+          "name": "transaxle_915_02_5spd_lsd",
+          "mass_kilograms": 56.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.34,
+            "z": 0.88
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                4.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                4.5,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                2.8
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Porsche Type 915/02 5-speed manual transaxle",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 47.6,
+          "upper_mass_kilograms": 64.4,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "crew driver",
+        "properties": {
+          "name": "driver",
+          "mass_kilograms": 75.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": -0.34,
+            "y": 0.43,
+            "z": 0.14
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                7.5,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                7.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.5
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Crew allocation (driver)",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 71.25,
+          "upper_mass_kilograms": 78.75,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "crew co-driver",
+        "properties": {
+          "name": "co_driver",
+          "mass_kilograms": 75.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.34,
+            "y": 0.43,
+            "z": 0.16
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                7.5,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                7.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.5
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Crew allocation (co-driver)",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 71.25,
+          "upper_mass_kilograms": 78.75,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "62 L front fuel tank (partial load), pumps and lines",
+        "properties": {
+          "name": "fuel_system_and_fluid",
+          "mass_kilograms": 32.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.34,
+            "z": -1.25
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.6,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                2.2,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                2.0
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Front-mounted 62L fuel tank and MFI lines",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 27.2,
+          "upper_mass_kilograms": 36.8,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "1972 forward-mounted dry-sump oil tank and front fender oil cooler",
+        "properties": {
+          "name": "oil_tank_and_cooler",
+          "mass_kilograms": 14.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.48,
+            "y": 0.34,
+            "z": 0.72
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.8,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.9,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.8
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "1972-73 relocated dry-sump oil tank ahead of right rear wheel",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 11.9,
+          "upper_mass_kilograms": 16.1,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "stainless/steel flat-6 dual heat exchangers and rear silencer",
+        "properties": {
+          "name": "exhaust_and_heat_exchangers",
+          "mass_kilograms": 22.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": -0.15,
+            "y": 0.25,
+            "z": 1.56
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                1.6,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.4
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Porsche 911 2.4 S twin heat-exchanger exhaust system",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 18.7,
+          "upper_mass_kilograms": 25.3,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front crossmember, MacPherson struts, 19 mm torsion bars and ZF rack",
+        "properties": {
+          "name": "front_torsion_subframe",
+          "mass_kilograms": 48.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.28,
+            "z": -1.1355
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                2.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                7.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                6.0
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Front MacPherson + longitudinal 19 mm torsion-bar suspension crossmember",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 40.8,
+          "upper_mass_kilograms": 55.2,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear torsion tube, semi-trailing arms, 23 mm torsion bars and shocks",
+        "properties": {
+          "name": "rear_semi_trailing_subframe",
+          "mass_kilograms": 46.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.29,
+            "z": 1.1355
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                2.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                6.8,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                5.5
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Rear semi-trailing arm + transverse 23 mm torsion-bar suspension",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 39.1,
+          "upper_mass_kilograms": 52.9,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear engine crankcase skid guard",
+        "properties": {
+          "name": "sump_and_underbody_protection",
+          "mass_kilograms": 20.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.19,
+            "z": 1.15
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.4,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                2.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Rear crankcase skid plate",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 17.0,
+          "upper_mass_kilograms": 23.0,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front luggage compartment spare wheel and jack/tools",
+        "properties": {
+          "name": "spare_wheels_and_tools",
+          "mass_kilograms": 25.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.38,
+            "z": -1.35
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                1.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.6
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Front boot spare 15-inch wheel/tire (17.5 kg) + tools (7.5 kg)",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 21.25,
+          "upper_mass_kilograms": 28.75,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "upright assembly FrontLeft",
+        "properties": {
+          "name": "upright_frontleft",
+          "mass_kilograms": 6.0,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.1,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.1,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Forged strut/trailing-arm upright, alloy caliper and vented disc hub",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 5.1,
+          "upper_mass_kilograms": 6.9,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "upright assembly FrontRight",
+        "properties": {
+          "name": "upright_frontright",
+          "mass_kilograms": 6.0,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.1,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.1,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Forged strut/trailing-arm upright, alloy caliper and vented disc hub",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 5.1,
+          "upper_mass_kilograms": 6.9,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "upright assembly RearLeft",
+        "properties": {
+          "name": "upright_rearleft",
+          "mass_kilograms": 6.0,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.1,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.1,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Forged strut/trailing-arm upright, alloy caliper and vented disc hub",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 5.1,
+          "upper_mass_kilograms": 6.9,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "upright assembly RearRight",
+        "properties": {
+          "name": "upright_rearright",
+          "mass_kilograms": 6.0,
+          "attachment": {
+            "kind": "upright",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.1,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.1,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.1
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "Forged strut/trailing-arm upright, alloy caliper and vented disc hub",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": null,
+        "uncertainty": {
+          "lower_mass_kilograms": 5.1,
+          "upper_mass_kilograms": 6.9,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "wheel_assembly_frontleft",
+        "properties": {
+          "name": "wheel_frontleft",
+          "mass_kilograms": 17.5,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.95,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.55,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.55
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "6Jx15 Fuchs forged alloy rim + 185/70 VR 15 tire",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": "FrontLeft",
+        "uncertainty": {
+          "lower_mass_kilograms": 15.75,
+          "upper_mass_kilograms": 19.25,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "wheel_assembly_frontright",
+        "properties": {
+          "name": "wheel_frontright",
+          "mass_kilograms": 17.5,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "FrontRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.95,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.55,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.55
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "6Jx15 Fuchs forged alloy rim + 185/70 VR 15 tire",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": "FrontRight",
+        "uncertainty": {
+          "lower_mass_kilograms": 15.75,
+          "upper_mass_kilograms": 19.25,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "wheel_assembly_rearleft",
+        "properties": {
+          "name": "wheel_rearleft",
+          "mass_kilograms": 17.5,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearLeft"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.95,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.55,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.55
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "6Jx15 Fuchs forged alloy rim + 185/70 VR 15 tire",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": "RearLeft",
+        "uncertainty": {
+          "lower_mass_kilograms": 15.75,
+          "upper_mass_kilograms": 19.25,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      },
+      {
+        "budget": "rim_and_tire",
+        "component_perimeter": "wheel_assembly_rearright",
+        "properties": {
+          "name": "wheel_rearright",
+          "mass_kilograms": 17.5,
+          "attachment": {
+            "kind": "wheel_rotor",
+            "wheel": "RearRight"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.95,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.55,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.55
+              ]
+            ]
+          },
+          "provenance": {
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated",
+            "source": "6Jx15 Fuchs forged alloy rim + 185/70 VR 15 tire",
+            "center_of_mass_basis": "Local ground-plane / attachment coordinates; 1972-73 911 2.4 S packaging"
+          }
+        },
+        "rotating_wheel": "RearRight",
+        "uncertainty": {
+          "lower_mass_kilograms": 15.75,
+          "upper_mass_kilograms": 19.25,
+          "center_uncertainty_metres": 0.1,
+          "inertia_relative_uncertainty": 0.2,
+          "rationale": "Historic 911 2.4 S component mass reconstruction"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "porsche_911_24s",
+  "whine": [
+    "res://sounds/banks/commons/whinelo.wav",
+    "res://sounds/banks/commons/whinehi.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine_position": [
+    0.0,
+    0.42,
+    1.38
+  ],
+  "exhaust_position": [
+    -0.35,
+    0.22,
+    1.98
+  ],
+  "source": "Gran Turismo 3: A-Spec USA v1.10 (banks/22803 - 911(996) GT3 (+1): engine 6 layers 900-6000 rpm + exhaust 900 rpm idle + exhaust_normal0-3_turbo1_turbo3 1400-6928 rpm)",
+  "sound_id": 22803,
+  "samples": [
+    {
+      "file": "engine/engine_layer00_00900rpm.wav",
+      "sha256": "d5a3c16791d3e922d6c5351f9ee4a2b08e61f563fe8bd2be533e0a9952627df0",
+      "rate_hz": 37726,
+      "base_rpm": 900,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.0090984997084238
+      },
+      "key": "engine_layer00_00900rpm"
+    },
+    {
+      "file": "engine/engine_layer01_02000rpm.wav",
+      "sha256": "e6e116bf89ffa205cc3d207e5dedb65bee1d8f91544b1bea5feeb02704bdd20c",
+      "rate_hz": 35380,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.866315715093273
+      },
+      "key": "engine_layer01_02000rpm"
+    },
+    {
+      "file": "engine/engine_layer02_03000rpm.wav",
+      "sha256": "f4f6708dfca95189f4d118447e9e0a89f3a678f07d703924b107219ed79c1011",
+      "rate_hz": 39966,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.9714319671720962
+      },
+      "key": "engine_layer02_03000rpm"
+    },
+    {
+      "file": "engine/engine_layer03_04000rpm.wav",
+      "sha256": "4b83c69c26d43853499a8307f16d4e238b3642c77a57e514dcdd95a82394c2db",
+      "rate_hz": 38502,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.9221144356137344
+      },
+      "key": "engine_layer03_04000rpm"
+    },
+    {
+      "file": "engine/engine_layer04_05000rpm.wav",
+      "sha256": "6fe721915fd74542e174699371decdf1c3f33d2ee632ab539ee1cca5ecfd78f3",
+      "rate_hz": 38932,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8228513818966403
+      },
+      "key": "engine_layer04_05000rpm"
+    },
+    {
+      "file": "engine/engine_layer05_06000rpm.wav",
+      "sha256": "6912c547d9006637331c118bb1ea67e4a0711175c23b1c7ef468073d6b8d6392",
+      "rate_hz": 40870,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.7117751406899927
+      },
+      "key": "engine_layer05_06000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer00_00900rpm.wav",
+      "sha256": "3e27232fdcdac5c2b1556148b1d21c267c6e05f2a733452cc5ae3653111ea09f",
+      "rate_hz": 37704,
+      "base_rpm": 900,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8626471992361553
+      },
+      "key": "exhaust_layer00_00900rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer01_01400rpm.wav",
+      "sha256": "8321d632e395c94edf4a655b5dd685a27e17745b8925c0d6a115adb0d953b21c",
+      "rate_hz": 37446,
+      "base_rpm": 1400,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8999158788655665
+      },
+      "key": "exhaust_layer01_01400rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer02_02000rpm.wav",
+      "sha256": "350c6f66ffe72dd50acb51d09db27eaea76445095a35bc1d67d273321d8a57ce",
+      "rate_hz": 36822,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5089145076313074
+      },
+      "key": "exhaust_layer02_02000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer03_03000rpm.wav",
+      "sha256": "f70bbffdf0eff4133b1396936ddb3950007aa7ca97f1e0743a57553cd39f39c2",
+      "rate_hz": 40246,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.6199187496894101
+      },
+      "key": "exhaust_layer03_03000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer04_04000rpm.wav",
+      "sha256": "047d30a1efa8bfec7e15bbfe8a0aa27396c09c30daefd68da8ff8e2f823d89fb",
+      "rate_hz": 39966,
+      "base_rpm": 4000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.8187021468248011
+      },
+      "key": "exhaust_layer04_04000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer05_05000rpm.wav",
+      "sha256": "82a94c5ec5f4ace306bf69577743909af40d7361831d7d78cc61c03f9932a323",
+      "rate_hz": 40288,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.7316136318506752
+      },
+      "key": "exhaust_layer05_05000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer06_06000rpm.wav",
+      "sha256": "698906e5dd5b68c347fdc065947bbca9a407b13663d8fd575e4392e9096e9b8f",
+      "rate_hz": 40180,
+      "base_rpm": 6000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.5872137879542061
+      },
+      "key": "exhaust_layer06_06000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer07_06928rpm.wav",
+      "sha256": "4f6275773c6d63603cdcf8300921ddc034f1ba0338bbd118f6bcffee5036da0c",
+      "rate_hz": 40202,
+      "base_rpm": 6928,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 0.7150452713795333
+      },
+      "key": "exhaust_layer07_06928rpm"
+    }
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer00_00900rpm.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 2000,
+      "mode": "idle",
+      "gain": 0.23946330782336436
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer01_02000rpm.wav",
+      "reference": 2000,
+      "lower": 900,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.1957039339950137
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer02_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.3022112902352573
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer03_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.34201040740679767
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer04_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.356406327507684
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/engine/engine_layer05_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.39280331558381665
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer00_00900rpm.wav",
+      "reference": 900,
+      "lower": 0,
+      "upper": 1400,
+      "mode": "idle",
+      "gain": 0.31347481471419353
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer01_01400rpm.wav",
+      "reference": 1400,
+      "lower": 900,
+      "upper": 2000,
+      "mode": "continuous",
+      "gain": 0.2225745312232834
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer02_02000rpm.wav",
+      "reference": 2000,
+      "lower": 1400,
+      "upper": 3000,
+      "mode": "continuous",
+      "gain": 0.2190464493054789
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer03_03000rpm.wav",
+      "reference": 3000,
+      "lower": 2000,
+      "upper": 4000,
+      "mode": "continuous",
+      "gain": 0.20615947634207216
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer04_04000rpm.wav",
+      "reference": 4000,
+      "lower": 3000,
+      "upper": 5000,
+      "mode": "continuous",
+      "gain": 0.3091549776799132
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer05_05000rpm.wav",
+      "reference": 5000,
+      "lower": 4000,
+      "upper": 6000,
+      "mode": "continuous",
+      "gain": 0.3206304718012519
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer06_06000rpm.wav",
+      "reference": 6000,
+      "lower": 5000,
+      "upper": 6928,
+      "mode": "continuous",
+      "gain": 0.2977217814120361
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/porsche-911-24s/exhaust/exhaust_layer07_06928rpm.wav",
+      "reference": 6928,
+      "lower": 6000,
+      "upper": 12000,
+      "mode": "continuous",
+      "gain": 0.41135117901841667
+    }
+  ]
+}

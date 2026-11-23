@@ -12,11 +12,11 @@
     "target_cg_z_m": 0.51
   },
   "geometry": {
-    "wheelbase": 2.565,
-    "front_axle_z": -1.2825,
-    "rear_axle_z": 1.2825,
-    "front_track": 1.31,
-    "rear_track": 1.295
+    "wheelbase": 2.498,
+    "front_axle_z": -1.249,
+    "rear_axle_z": 1.249,
+    "front_track": 1.3101,
+    "rear_track": 1.3101
   },
   "physical_mass_inventory": {
     "schema_version": 2,
@@ -56,7 +56,7 @@
             ]
           },
           "provenance": {
-            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
+            "source": "Dossier 1974 \u00a72.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
             "mass_origin": "recalibrated_1974",
             "center_of_mass_origin": "recalibrated_1974",
             "inertia_origin": "recalibrated_1974"

@@ -1,0 +1,44 @@
+{
+  "vehicle": "Porsche 911 2.4 S (1972-1973 F-Series LWB, Type 911/53)",
+  "sources": [
+    {
+      "id": "Porsche AG Factory Specifications — 911 2.4 S (1972-1973)",
+      "facts": [
+        "2,341 cc Type 911/53 air-cooled flat-6 (84.0 x 70.4 mm, 8.5:1 CR, Bosch MFI): 190 CV (140 kW) @ 6,500 rpm, 216 Nm @ 5,200 rpm",
+        "Type 915/02 5-speed rear transaxle [3.182, 1.833, 1.261, 0.960, 0.759] with 7:31 (4.429) final drive and RR layout",
+        "F-Series LWB dimensions: wheelbase 2,271 mm, length 4,163 mm, width 1,610 mm, height 1,320 mm, tracks 1,372 / 1,354 mm",
+        "1,050 kg DIN curb weight (~41.5/58.5 F/R distribution with 1972 forward oil tank), 19/23 mm torsion bars, 282.5/290 mm vented discs, 185/70 VR 15 tires on 6Jx15 Fuchs"
+      ]
+    }
+  ],
+  "estimated": [
+    "Non-wheel vehicle_mass budget set to 1,130.0 kg (1,050 kg curb - 70 kg 4x wheels + 150 kg crew)",
+    "Component inertias, damper curves, tire thermal/cooling coefficients, and Cd 0.395 / 1.80 m^2 aerodynamics are engineering estimates",
+    "Visual exterior derived from Re-Volt 90120 PRM mesh & car.bmp texture scaled to exact 1972-73 911 2.4 S dimensions"
+  ],
+  "shared_calibration": [
+    "coupled_world",
+    "damage",
+    "driving_assistance",
+    "steering",
+    "suspension_filters",
+    "underfloor_contact"
+  ],
+  "profile_json_sha256": {
+    "aerodynamics.json": "b4e02650de73e616880f4a1244e30e8c5a601231f9e9918a0714b9c2f8054da5",
+    "brakes.json": "08c28f46b800266e706d23dab4ea93e588fb49953070d06f30431dac8ccc890d",
+    "chassis.json": "9325d8c43b0b5346ad1020cbdbe3ef29ecd5c50200a6625a15c1ae23a3c4473c",
+    "coupled_world.json": "5a854fc9797cbc12c472401e8324d4c37484f10b110e8fc0e300d2f76fe69e65",
+    "damage.json": "960e7c82c224a898bde9d9657996096012b54f751a61b9a881c81ad9dc34127f",
+    "driving_assistance.json": "8224d6be0f4aa5b7eadeba843b6012d3841d0da0f75249ee857efcc4eeb8bf6d",
+    "fuel.json": "fb70c164a575772674e38f102d2051552471a128f973cf56e0948b0a309dab21",
+    "powertrain.json": "e325fc3ef6fe48f89c674b1576e997db7fa92c4a2054c53dbf5ffa4506b81d2a",
+    "steering.json": "8aad14fa6f6781fda94bb1284d059257f51b8659e955e6c472f165b779f4946e",
+    "suspension.json": "3ebc61c99613b221a01f6d7b25b2b3ced9d5dcb30132215708890b88b96845e2",
+    "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
+    "tires.json": "33bf240d7c4870be70da0455fdc2e1daf6414cafe7d966d5a0e3102095fcd755",
+    "underfloor_contact.json": "822455b438cac816394ddd8d5e21c2632348e1a3a1354f6759b0e226dec9f286",
+    "vehicle.json": "519fb73d9643adfa8e015ceff1808b87c8f6de8417f0a241858eb1121ffbd805"
+  },
+  "audio_source": "Dedicated GT3 flat-6 bank gt3-bank/porsche-911-24s built from engine (6 layers 900-6000 rpm) + exhaust (900 rpm idle + 7 layers 1400-6928 rpm) of bank 22803 (911(996) GT3) + shared res://sounds/banks/commons/ audio."
+}

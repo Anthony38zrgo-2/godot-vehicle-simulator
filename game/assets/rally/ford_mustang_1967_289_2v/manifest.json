@@ -2,102 +2,101 @@
   "contract_version": 1,
   "vehicle_id": "ford_mustang_1967_289_2v",
   "source": {
-    "fbx": "D:\\RallyManiacAssets\\cars\\mustang-pack\\source\\Mustang Pack.fbx",
-    "texture": "D:\\RallyManiacAssets\\cars\\mustang-pack\\textures\\GT-350.png",
+    "blend": "D:\\RallyManiacAssets\\cars\\palomino-special-67-low-poly-model\\source\\PalominoSpecial67.blend",
     "blender_version": "5.2.0 LTS",
-    "note": "Shelby GT350 exterior and wheels fitted to the existing Ford Mustang 1967 geometry and collision proxy."
+    "texture_finish": "original_livery_baked_psx_rgb555",
+    "note": "PalominoSpecial67.blend exterior and wheels with interior stripped, opaque black cabin glass, crystal headlight glass, red Bodymat Mix(MULTIPLY) and F-250 PSX RGB555 baked finish."
   },
   "coordinate_system": {
     "engine": "Godot",
     "forward": "-Z",
     "right": "+X",
     "up": "+Y",
-    "conversion": "Rotated 180 deg around Blender Z, fitted to existing axle centers and body bounds; glTF +Y up."
+    "conversion": "Rotated +90 deg around Blender Z, centered wheelbase/tracks around origin; glTF +Y up."
   },
   "geometry": {
-    "wheelbase": 2.81144,
+    "wheelbase": 2.81145,
     "front_track": 1.51192,
     "rear_track": 1.51192,
     "front_axle_z": -1.40572,
     "rear_axle_z": 1.40572
   },
   "chassis": {
-    "path": "gt350_chassis.glb",
-    "sha256": "436612a98ed7bd36a12d2344ae7253799394aba6f92c6cd8b736075a8d60ea83",
-    "size_bytes": 57132,
+    "path": "ford_mustang_1967_289_2v_chassis.glb",
+    "sha256": "e92e19dd2bd983d7c9e32a56ec0fc0060ffc540765c8e50d2249e4a848a9bb99",
+    "size_bytes": 669832,
     "exported_nodes": [
-      "Shelby_GT350",
-      "GT350_Wheel_Wells",
-      "GT350_Emblems"
+      "Palomino67Exterior",
+      "Palomino67Badges"
     ]
   },
   "wheels": {
     "front_left": {
-      "path": "gt350_wheel_front_left.glb",
-      "sha256": "c5e411b45720366eda3213dbdebe90dab7fc0543c7cecf2bdd6cb4fdb84e3c4c",
-      "size_bytes": 29204,
-      "source_object": "Shelby_gt350"
+      "path": "ford_mustang_1967_289_2v_wheel_front_left.glb",
+      "sha256": "46bffaf54ebb40237866b7363470f1b222d6345588b9fbbba4a1543fa2cf118a",
+      "size_bytes": 107108,
+      "source_object": "PalominoSpecial67_WheelStock_FL"
     },
     "front_right": {
-      "path": "gt350_wheel_front_right.glb",
-      "sha256": "4813189dc236c8f7c4225e1cd0baf611d45a82022e744851b455647fe43df5b6",
-      "size_bytes": 29204,
-      "source_object": "Shelby_gt350"
+      "path": "ford_mustang_1967_289_2v_wheel_front_right.glb",
+      "sha256": "ab7f027d2630dc7031168dd8905d7e42408f51bf49886dfc00503e8140dbf9e8",
+      "size_bytes": 108372,
+      "source_object": "PalominoSpecial67_WheelStock_FR"
     },
     "rear_left": {
-      "path": "gt350_wheel_rear_left.glb",
-      "sha256": "96dc1ae77657ceb687177e38fe8af7edd0777e3dc3cf04fddd8af57dc2b5dfb0",
-      "size_bytes": 29204,
-      "source_object": "Shelby_gt350"
+      "path": "ford_mustang_1967_289_2v_wheel_rear_left.glb",
+      "sha256": "cfec264b4b1e564f5e4a5d3cf28afd7e597c026ff081c08807bc17086e03c645",
+      "size_bytes": 108964,
+      "source_object": "PalominoSpecial67_WheelStock_RL"
     },
     "rear_right": {
-      "path": "gt350_wheel_rear_right.glb",
-      "sha256": "5439aaca0a2ed3368a6f3bc88e1af7377069bcbc55cbbd9b3cc5a86bafeff481",
-      "size_bytes": 29204,
-      "source_object": "Shelby_gt350"
+      "path": "ford_mustang_1967_289_2v_wheel_rear_right.glb",
+      "sha256": "6c4122fe6b6742a857108fe13f13252761775f244a3c9331f7f178bcc52bc41e",
+      "size_bytes": 110212,
+      "source_object": "PalominoSpecial67_WheelStock_RR"
     }
   },
   "collision": {
     "path": "ford_mustang_1967_289_2v_collision.json",
-    "sha256": "7926993eb628c8a55073929e4be0ad3bb61eaa7e6d6f8f9a0b70cd3efe9d58a0"
+    "sha256": "b299afb73c0b6b6181e9c11c8870be685950572cbba977fb9803503e197a1861"
   },
   "wheel_pivots": {
     "front_left": {
-      "blender_object": "GT350_Wheel_front_left",
+      "blender_object": "PalominoSpecial67_WheelStock_FL",
       "center_metres": {
-        "x": -0.75592,
+        "x": -0.75596,
         "y": 0.30564,
-        "z": -1.40572
+        "z": -1.405725
       },
       "radius_metres": 0.30564,
       "width_metres": 0.25687
     },
     "front_right": {
-      "blender_object": "GT350_Wheel_front_right",
+      "blender_object": "PalominoSpecial67_WheelStock_FR",
       "center_metres": {
-        "x": 0.756,
+        "x": 0.75596,
         "y": 0.30564,
-        "z": -1.40572
+        "z": -1.405725
       },
       "radius_metres": 0.30564,
       "width_metres": 0.25687
     },
     "rear_left": {
-      "blender_object": "GT350_Wheel_rear_left",
+      "blender_object": "PalominoSpecial67_WheelStock_RL",
       "center_metres": {
-        "x": -0.75592,
+        "x": -0.75596,
         "y": 0.30564,
-        "z": 1.40572
+        "z": 1.405725
       },
       "radius_metres": 0.30564,
       "width_metres": 0.25687
     },
     "rear_right": {
-      "blender_object": "GT350_Wheel_rear_right",
+      "blender_object": "PalominoSpecial67_WheelStock_RR",
       "center_metres": {
-        "x": 0.756,
+        "x": 0.75596,
         "y": 0.30564,
-        "z": 1.40572
+        "z": 1.405725
       },
       "radius_metres": 0.30564,
       "width_metres": 0.25687
@@ -105,22 +104,22 @@
   },
   "bounds_world_metres": {
     "min_blender": [
-      -0.90454,
+      -0.90458,
       -2.46821,
       0.15964
     ],
     "max_blender": [
-      0.90454,
+      0.9045,
       2.25389,
       1.28685
     ],
     "min_godot": [
-      -0.90454,
+      -0.90458,
       0.15964,
       -2.25389
     ],
     "max_godot": [
-      0.90454,
+      0.9045,
       1.28685,
       2.46821
     ]

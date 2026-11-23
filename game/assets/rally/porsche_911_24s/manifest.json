@@ -1,0 +1,136 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "porsche_911_24s",
+  "source": {
+    "prm_dir": "D:\\RallyManiacAssets\\90120\\cars\\90120",
+    "texture": "car.bmp",
+    "blender_version": "5.2.0 LTS",
+    "runtime_visuals": {
+      "source": "D:\\RallyManiacAssets\\90120\\cars\\90120",
+      "texture": "porsche_911_24s_diffuse.png",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Fitted to official Porsche 911 2.4 S (1972-1973 F-Series LWB) dimensions: wheelbase 2.271 m, length 4.163 m, body width 1.610 m, height 1.320 m, tracks 1.372 m / 1.354 m, 185/70 VR 15 tires (R=0.320 m, W=0.195 m).",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "conversion": "Re-Volt PRM (+X right, +Y down, +Z fwd) -> Blender (+X, +Y_fwd, +Z_up) -> glTF +Y up",
+    "visual_physics_offset_metres": 0.0
+  },
+  "geometry": {
+    "wheelbase": 2.271,
+    "front_track": 1.372,
+    "rear_track": 1.354,
+    "front_axle_z": -1.1355,
+    "rear_axle_z": 1.1355
+  },
+  "chassis": {
+    "path": "porsche_911_24s_chassis.glb",
+    "sha256": "800d82b12037780c9b1e14d56d19fd45b47d1726c6e3f0f8bddd1eed73cd01cb",
+    "size_bytes": 334964,
+    "exported_nodes": [
+      "Porsche911_24S_Exterior"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "porsche_911_24s_wheel_front_left.glb",
+      "sha256": "b8bad6a1c018ad5991bff8401da21fbbdc282dac7ae8d81afa9cb9687f7e5936",
+      "size_bytes": 60544
+    },
+    "front_right": {
+      "path": "porsche_911_24s_wheel_front_right.glb",
+      "sha256": "f3dc77817f6248ebf4c0e20d80aa9a9dac855a6543fea0d15af5df9fec9436d4",
+      "size_bytes": 60544
+    },
+    "rear_left": {
+      "path": "porsche_911_24s_wheel_rear_left.glb",
+      "sha256": "ef8f017b1a102b5848469bc063e26e51522b8d762ead0b25b2f01aa74275fabb",
+      "size_bytes": 60544
+    },
+    "rear_right": {
+      "path": "porsche_911_24s_wheel_rear_right.glb",
+      "sha256": "0b7486eae43a922794fd9d8d54dde280a5f0029cd76967263e2995d71395f088",
+      "size_bytes": 60544
+    }
+  },
+  "collision": {
+    "path": "porsche_911_24s_collision.json",
+    "sha256": "59e2b2de3b6546b8e26ad78b33f0ea70b902170e4bbd8bec43170e2dae872961"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "tire_fl",
+      "center_metres": {
+        "x": -0.686,
+        "y": 0.32,
+        "z": -1.1355
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.195
+    },
+    "front_right": {
+      "blender_object": "tire_fr",
+      "center_metres": {
+        "x": 0.686,
+        "y": 0.32,
+        "z": -1.1355
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.195
+    },
+    "rear_left": {
+      "blender_object": "tire_rl",
+      "center_metres": {
+        "x": -0.677,
+        "y": 0.32,
+        "z": 1.1355
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.195
+    },
+    "rear_right": {
+      "blender_object": "tire_rr",
+      "center_metres": {
+        "x": 0.677,
+        "y": 0.32,
+        "z": 1.1355
+      },
+      "radius_metres": 0.32,
+      "width_metres": 0.195
+    }
+  },
+  "bounds_world_metres": {
+    "min_blender": [
+      -0.865738,
+      -2.147495,
+      0.154994
+    ],
+    "max_blender": [
+      0.865738,
+      2.015509,
+      1.319991
+    ],
+    "min_godot": [
+      -0.865738,
+      0.154994,
+      -2.015509
+    ],
+    "max_godot": [
+      0.865738,
+      1.319991,
+      2.147495
+    ]
+  },
+  "capabilities": {
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
+    "damage_variants": 0
+  }
+}

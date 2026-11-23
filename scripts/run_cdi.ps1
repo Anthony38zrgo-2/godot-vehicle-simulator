@@ -54,6 +54,12 @@ $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/c
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-alfa-giulia-gta') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-lotus-cortina') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/ford_mustang_1967_289_2v') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/porsche_911_24s') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
 foreach ($assetPath in $assetPaths) {
     $asset = Get-Item -LiteralPath $assetPath -ErrorAction SilentlyContinue
     if (-not $asset) { throw "Falta la malla $assetPath. Consulta PLAN_SS01.md para regenerarla." }
