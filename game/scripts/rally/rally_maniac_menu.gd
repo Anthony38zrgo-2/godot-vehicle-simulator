@@ -142,6 +142,7 @@ const CDI_STAGES := {
 const CDI_CARS := [
 	"fulvia",
 	"escort",
+	"rt-alfa-giulia-gta",
 	"rt-alpine-a110",
 	"rt-mini-cooper-s",
 	"rt-lancia-stratos",

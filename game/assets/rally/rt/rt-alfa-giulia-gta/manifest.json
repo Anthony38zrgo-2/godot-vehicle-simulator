@@ -18,7 +18,15 @@
       "physics_policy": "game_derived"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "blend": "D:\\rust-godot-vehicle-simulator\\alfa_romeo_giulia_ti.blend",
+      "texture": "GiuliaTi_Blue_Diffuse",
+      "finish": "high_res_pbr_no_psx",
+      "fit": "Alfa Romeo Giulia Ti exterior fitted 1:1 to Rally Trophy Giulia GTA chassis bounds, 2.400 m wheelbase, and 1.200 m tracks with native Rally Trophy Giulia wheel meshes.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -28,29 +36,32 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "ee2e747a4c0ccc846463e85b1a13a63b6d588006addbc50b471498170c16e8e3",
-    "size_bytes": 1239840
+    "sha256": "fa07aeacae717244283a13ee19219000d137a2fb0804241e8da6545d1da315aa",
+    "size_bytes": 576824,
+    "exported_nodes": [
+      "AlfaGiuliaTiExterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "59c75cc72dd6c39fc418e1b691c626a555fe682be99af4719dcfa4acb15a7a97",
-      "size_bytes": 64920
+      "sha256": "9ec354a685f4799a17a03ba8e4c73580a0473d85e6914dcfc646502da707dbce",
+      "size_bytes": 66772
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "701603d831740711e3655d5b4711fbc663e3149593a9262ca5ce3b8fe67b7cae",
-      "size_bytes": 64920
+      "sha256": "112033652bc11cf1db7941c711907b4555ef56e7676bb12c3d5552ebaf774727",
+      "size_bytes": 66780
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "cb0950961eeda7b48df3c178d25477d0d71f71ff099884feb888f252d3e59c9f",
-      "size_bytes": 64920
+      "sha256": "7e9d77167078ae0b3f6242a3345df074413f1eb1bb5e8ebf60bcc6463c291ade",
+      "size_bytes": 66780
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "c4523b93442ae245296b7dfc8d2f795ab30978a2eb9762f8f795d53a390e6fb5",
-      "size_bytes": 64920
+      "sha256": "991c06cf418bba7e4893999e01d272e0b2818f34d12aaf6e839876149bde1c6b",
+      "size_bytes": 66780
     }
   },
   "wheel_pivots": {
@@ -136,11 +147,11 @@
     "native_wheelbase_m": 2.4000000953674316
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
   "warnings": []
 }

@@ -87,7 +87,7 @@ func run() -> void:
 	for expected in [rig.Mode.BONNET, rig.Mode.CHASE]:
 		rig.toggle_camera_mode()
 		check(rig.camera_mode == expected, "PSX Fulvia skips cockpit view")
-	var cockpit_car = load("res://scenes/rally/rt/rt-alfa-giulia-gta.tscn").instantiate()
+	var cockpit_car = load("res://scenes/rally/rt/rt-lotus-cortina.tscn").instantiate()
 	root.add_child(cockpit_car)
 	cockpit_car.freeze = true
 	rig.set_vehicle(cockpit_car)
