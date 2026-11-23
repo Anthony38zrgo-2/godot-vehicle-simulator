@@ -47,7 +47,17 @@
       "enabled": true,
       "output_inertia_kg_m2": 0.2,
       "stiffness_nm_per_rad": 8500.0,
-      "damping_nms_per_rad": 130.0
+      "damping_nms_per_rad": 130.0,
+      "backlash_rad": 0.04,
+      "backlash_damping_ratio": 0.04
+    },
+    "chassis_reaction": {
+      "enabled": true,
+      "engine_orientation": "longitudinal",
+      "crank_spin_sign": 1.0,
+      "reaction_scale": 1.0,
+      "mount_tau_s": 0.022,
+      "driveshaft_roll_fraction": 0.3
     },
     "final_drive": 2.79,
     "front_torque_split": 0.0,

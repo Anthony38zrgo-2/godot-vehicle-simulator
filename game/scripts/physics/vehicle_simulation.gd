@@ -1748,6 +1748,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 			F_body += slosh_reaction["force"] as Vector3
 			T_body += slosh_reaction["torque"] as Vector3
+		if powertrain_model.chassis_reaction_enabled and powertrain_model.chassis_reaction_torque_local_nm.length_squared() > 0.0:
+			T_body += pred_R * powertrain_model.chassis_reaction_torque_local_nm
 		if pred_V.length_squared() > 0.01:
 			var spd := pred_V.length()
 			var drag_mag := aero_model.drag_force(spd) + thermal_model.cooling_drag_force_n
@@ -2143,6 +2145,12 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"energy_j": powertrain_model.driveline_energy_j,
 			"dissipation_w": powertrain_model.driveline_dissipation_w,
 			"output_rad_s": powertrain_model.output_shaft_omega_rad_s,
+			"backlash_rad": powertrain_model.driveline_backlash_rad,
+			"in_backlash": powertrain_model.driveline_in_backlash,
+			"backlash_flank": powertrain_model.driveline_backlash_flank,
+			"backlash_impact_rad_s": powertrain_model.driveline_backlash_impact_rad_s,
+			"chassis_reaction_enabled": powertrain_model.chassis_reaction_enabled,
+			"chassis_reaction_torque_local_nm": powertrain_model.chassis_reaction_torque_local_nm,
 		},
 		"load": clampf(
 			absf(powertrain_model.engine_torque_nm) / maxf(powertrain_model.peak_torque_nm, 1.0),

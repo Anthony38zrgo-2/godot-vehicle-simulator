@@ -572,6 +572,195 @@ func run_setup_axle_checks() -> void:
 	RallyDifferentialCatalog.set_mode_override(RallyDifferentialCatalog.MODE_MODERN)
 
 
+const CDI_PROFILE_SLUGS := [
+	"lancia-fulvia",
+	"ford-escort-rs2000",
+	"rt/rt-alfa-giulia-gta",
+	"rt/rt-alpine-a110",
+	"rt/rt-lotus-cortina",
+	"rt/rt-mini-cooper-s",
+	"rt/rt-lancia-stratos",
+	"rt/rt-porsche-356b-2000gs",
+	"ford-f100-1970",
+	"ford-mustang-1967-289-2v",
+	"fiat-131-abarth",
+	"vw-golf-mk1",
+	"porsche-911-24s",
+]
+
+
+func _is_cdi_manifest(manifest_path: String) -> bool:
+	for slug in CDI_PROFILE_SLUGS:
+		if manifest_path.find(slug + "/vehicle.json") >= 0:
+			return true
+	return false
+
+
+func run_backlash_checks() -> void:
+	const PORSCHE_911_MANIFEST := "res://data/vehicles/porsche-911-24s/vehicle.json"
+	var cdi_count := 0
+	for manifest_path in _profile_manifests():
+		var loaded := VehicleProfileLoader.load_profile(manifest_path)
+		if not bool(loaded.get("ok", false)):
+			continue
+		var m := VehiclePowertrainModel.new()
+		var cfg := m.configure(loaded["domains"])
+		if not bool(cfg.get("ok", false)):
+			continue
+		if _is_cdi_manifest(manifest_path):
+			cdi_count += 1
+			check(m.driveline_backlash_rad > 0.0, "backlash: CDI activo (" + manifest_path + ")")
+			check(absf(m.driveline_backlash_damping_ratio - 0.04) < 1.0e-6, "backlash: CDI damping ratio 0.04 (" + manifest_path + ")")
+		else:
+			check(m.driveline_backlash_rad == 0.0, "backlash: no-CDI desactivado (" + manifest_path + ")")
+	check(cdi_count == CDI_PROFILE_SLUGS.size(), "backlash: los 13 coches CDI presentes (got %d)" % cdi_count)
+
+	var loaded_911 := VehicleProfileLoader.load_profile(PORSCHE_911_MANIFEST)
+	if not bool(loaded_911.get("ok", false)):
+		check(false, "backlash: carga porsche 911")
+		return
+	# Validación estricta de parámetros inválidos.
+	for bad_val in [-0.01, 0.5, "0.02", true]:
+		var bad_domains: Dictionary = (loaded_911["domains"] as Dictionary).duplicate(true)
+		bad_domains["powertrain"]["powertrain"]["driveline_compliance"]["backlash_rad"] = bad_val
+		var res := VehiclePowertrainModel.validate_powertrain_config(bad_domains)
+		check(not bool(res.get("ok", false)), "backlash: rechaza backlash_rad invalido=" + str(bad_val))
+	for bad_damp in [-0.1, 1.5, "0.04"]:
+		var bad_domains2: Dictionary = (loaded_911["domains"] as Dictionary).duplicate(true)
+		bad_domains2["powertrain"]["powertrain"]["driveline_compliance"]["backlash_damping_ratio"] = bad_damp
+		var res2 := VehiclePowertrainModel.validate_powertrain_config(bad_domains2)
+		check(not bool(res2.get("ok", false)), "backlash: rechaza backlash_damping_ratio invalido=" + str(bad_damp))
+
+	# Comportamiento físico: zona muerta y transición retención (-) -> tracción (+).
+	var model := VehiclePowertrainModel.new()
+	check(bool(model.configure(loaded_911["domains"]).get("ok", false)), "backlash: configura porsche 911")
+	model.current_gear = 2
+	model.engine_rpm = 3500.0
+	model.clutch_engagement = 1.0
+	var ratio: float = model.gear_ratios[1] * model.final_drive_ratio
+	var carrier := (3500.0 * TAU / 60.0) / ratio
+	model.input_shaft_omega_rad_s = 3500.0 * TAU / 60.0
+	model.output_shaft_omega_rad_s = carrier
+	# Dentro de la holgura (twist = 0): energía elástica cero y par mínimo.
+	var spins_dead: Array[float] = [carrier, carrier, carrier, carrier]
+	var inertias: Array[float] = [1.4, 1.4, 1.5, 1.5]
+	var zeros: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	model.driveline_twist_rad = 0.0
+	model.driveline_backlash_flank = 0
+	model.solve_rotation(0.002, spins_dead, inertias, zeros, zeros)
+	check(model.driveline_in_backlash, "backlash: en zona muerta con twist=0")
+	check(model.driveline_energy_j == 0.0, "backlash: energia elastica cero en zona muerta")
+	check(absf(model.driveline_torque_nm) < 5.0, "backlash: par residual minimo en zona muerta")
+
+	# Transición de retención (-flank) a tracción (+flank) bajo gas a fondo.
+	model.driveline_twist_rad = -0.04
+	model.driveline_backlash_flank = -1
+	model.output_shaft_omega_rad_s = carrier
+	var spins: Array[float] = [carrier, carrier, carrier, carrier]
+	var road_drag: Array[float] = [0.0, 0.0, 450.0, 450.0]
+	var saw_in_lash := false
+	var peak_impact := 0.0
+	for step_idx in 80:
+		model.advance(0.002, 1.0, 1.0, 1.0, 0.5 * (spins[2] + spins[3]))
+		model.solve_rotation(0.002, spins, inertias, road_drag, zeros)
+		if model.driveline_in_backlash:
+			saw_in_lash = true
+		peak_impact = maxf(peak_impact, model.driveline_backlash_impact_rad_s)
+	check(saw_in_lash, "backlash: atraviesa zona muerta de retencion a traccion")
+	check(model.driveline_backlash_flank == 1, "backlash: engancha flanco positivo de traccion")
+	check(peak_impact > 0.0, "backlash: registra velocidad de impacto al reenganchar (%.3f rad/s)" % peak_impact)
+	check(model.driveline_torque_nm > 100.0 and is_finite(model.driveline_torque_nm), "backlash: transmite par positivo tras reenganche (%.1f Nm)" % model.driveline_torque_nm)
+	check(model.driveline_energy_j > 0.0 and is_finite(model.driveline_energy_j), "backlash: energia elastica positiva en flanco")
+
+
+func run_chassis_reaction_checks() -> void:
+	const PORSCHE_911_MANIFEST := "res://data/vehicles/porsche-911-24s/vehicle.json"
+	const GOLF_MK1_MANIFEST := "res://data/vehicles/vw-golf-mk1/vehicle.json"
+	for manifest_path in _profile_manifests():
+		var loaded := VehicleProfileLoader.load_profile(manifest_path)
+		if not bool(loaded.get("ok", false)):
+			continue
+		var m := VehiclePowertrainModel.new()
+		var cfg := m.configure(loaded["domains"])
+		if not bool(cfg.get("ok", false)):
+			continue
+		if _is_cdi_manifest(manifest_path):
+			check(m.chassis_reaction_enabled, "chassis_reaction: CDI activo (" + manifest_path + ")")
+			var expect_transverse := (
+				manifest_path.find("rt-mini-cooper-s") >= 0
+				or manifest_path.find("rt-lancia-stratos") >= 0
+				or manifest_path.find("vw-golf-mk1") >= 0
+			)
+			var expected_orient := "transverse" if expect_transverse else "longitudinal"
+			check(m.chassis_reaction_orientation == expected_orient, "chassis_reaction: orientacion " + expected_orient + " (" + manifest_path + ")")
+		else:
+			check(not m.chassis_reaction_enabled, "chassis_reaction: no-CDI desactivado (" + manifest_path + ")")
+
+	var loaded_911 := VehicleProfileLoader.load_profile(PORSCHE_911_MANIFEST)
+	if not bool(loaded_911.get("ok", false)):
+		check(false, "chassis_reaction: carga porsche 911")
+		return
+	# Validación estricta.
+	var invalid_cases := [
+		["engine_orientation", "diagonal"],
+		["crank_spin_sign", 0.0],
+		["reaction_scale", -0.5],
+		["mount_tau_s", 0.9],
+		["driveshaft_roll_fraction", 1.5],
+	]
+	for entry in invalid_cases:
+		var bad_domains: Dictionary = (loaded_911["domains"] as Dictionary).duplicate(true)
+		bad_domains["powertrain"]["powertrain"]["chassis_reaction"][entry[0]] = entry[1]
+		var res := VehiclePowertrainModel.validate_powertrain_config(bad_domains)
+		check(not bool(res.get("ok", false)), "chassis_reaction: rechaza " + str(entry[0]) + "=" + str(entry[1]))
+
+	# Golpe de gas en punto muerto en el 911 -> pulso de par reactivo en eje Z (roll), cero en X/Y.
+	var model := VehiclePowertrainModel.new()
+	check(bool(model.configure(loaded_911["domains"]).get("ok", false)), "chassis_reaction: configura 911")
+	model.current_gear = 0
+	model.engine_rpm = 2000.0
+	model.clutch_engagement = 0.0
+	var spins: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var inertias: Array[float] = [1.4, 1.4, 1.5, 1.5]
+	var zeros: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	# Primer tick inicializa la referencia de velocidad angular.
+	model.solve_rotation(0.002, spins, inertias, zeros, zeros)
+	var min_tz_accel := 0.0
+	for _i in 30:
+		model.advance(0.002, 1.0, 0.0, 1.0, 0.0)
+		model.solve_rotation(0.002, spins, inertias, zeros, zeros)
+		min_tz_accel = minf(min_tz_accel, model.chassis_reaction_torque_local_nm.z)
+	check(min_tz_accel < -40.0, "chassis_reaction: golpe de gas en neutro genera par roll negativo (%.1f Nm)" % min_tz_accel)
+	check(absf(model.chassis_reaction_torque_local_nm.x) < 1.0e-6 and absf(model.chassis_reaction_torque_local_nm.y) < 1.0e-6, "chassis_reaction: motor longitudinal solo actua en eje Z")
+
+	# Al cortar gas desde altas RPM, el motor desacelera y el par reactivo invierte signo (+Z).
+	model.engine_rpm = 5500.0
+	model.solve_rotation(0.002, spins, inertias, zeros, zeros)
+	var max_tz_decel := -1.0e9
+	for _i in 60:
+		model.advance(0.002, 0.0, 0.0, 1.0, 0.0)
+		model.solve_rotation(0.002, spins, inertias, zeros, zeros)
+		max_tz_decel = maxf(max_tz_decel, model.chassis_reaction_torque_local_nm.z)
+	check(max_tz_decel > 5.0, "chassis_reaction: al cortar gas invierte signo en roll (%.1f Nm)" % max_tz_decel)
+
+	# Motor transversal (Golf Mk1): golpe de gas en neutro genera pulso de cabeceo en eje X, cero en Y/Z.
+	var loaded_golf := VehicleProfileLoader.load_profile(GOLF_MK1_MANIFEST)
+	if bool(loaded_golf.get("ok", false)):
+		var golf := VehiclePowertrainModel.new()
+		check(bool(golf.configure(loaded_golf["domains"]).get("ok", false)), "chassis_reaction: configura golf mk1")
+		golf.current_gear = 0
+		golf.engine_rpm = 2000.0
+		golf.clutch_engagement = 0.0
+		golf.solve_rotation(0.002, spins, inertias, zeros, zeros)
+		var min_tx_accel := 0.0
+		for _i in 30:
+			golf.advance(0.002, 1.0, 0.0, 1.0, 0.0)
+			golf.solve_rotation(0.002, spins, inertias, zeros, zeros)
+			min_tx_accel = minf(min_tx_accel, golf.chassis_reaction_torque_local_nm.x)
+		check(min_tx_accel < -30.0, "chassis_reaction: transversal genera par pitch en X (%.1f Nm)" % min_tx_accel)
+		check(absf(golf.chassis_reaction_torque_local_nm.y) < 1.0e-6 and absf(golf.chassis_reaction_torque_local_nm.z) < 1.0e-6, "chassis_reaction: transversal solo actua en eje X")
+
+
 func _initialize() -> void:
 	call_deferred("run")
 
@@ -584,5 +773,7 @@ func run() -> void:
 	run_validation_checks()
 	run_differential_checks()
 	run_setup_axle_checks()
+	run_backlash_checks()
+	run_chassis_reaction_checks()
 	print("POWERTRAIN_CORRECTION_CONTRACT ", "PASS" if failures.is_empty() else "FAIL")
 	quit(0 if failures.is_empty() else 1)

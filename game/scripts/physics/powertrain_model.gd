@@ -145,10 +145,26 @@ var output_shaft_inertia_kg_m2: float = 0.2
 var output_shaft_omega_rad_s: float = 0.0
 var torsional_stiffness_nm_per_rad: float = 8000.0
 var torsional_damping_nms_per_rad: float = 120.0
+var driveline_backlash_rad: float = 0.0
+var driveline_backlash_damping_ratio: float = 0.04
 var driveline_twist_rad: float = 0.0
 var driveline_torque_nm: float = 0.0
 var driveline_energy_j: float = 0.0
 var driveline_dissipation_w: float = 0.0
+var driveline_in_backlash: bool = false
+var driveline_backlash_flank: int = 0
+var driveline_backlash_impact_rad_s: float = 0.0
+const MAX_CHASSIS_REACTION_NM := 1200.0
+var chassis_reaction_enabled: bool = false
+var chassis_reaction_orientation: String = "longitudinal"
+var chassis_reaction_crank_sign: float = 1.0
+var chassis_reaction_scale: float = 1.0
+var chassis_reaction_mount_tau_s: float = 0.018
+var chassis_reaction_driveshaft_roll_fraction: float = 0.0
+var chassis_reaction_torque_local_nm: Vector3 = Vector3.ZERO
+var _reaction_prev_engine_omega: float = 0.0
+var _reaction_prev_input_omega: float = 0.0
+var _reaction_initialized: bool = false
 
 
 func configure(domains: Dictionary) -> Dictionary:
@@ -207,6 +223,14 @@ func configure(domains: Dictionary) -> Dictionary:
 	output_shaft_inertia_kg_m2 = float(values["compliance_inertia"])
 	torsional_stiffness_nm_per_rad = float(values["compliance_stiffness"])
 	torsional_damping_nms_per_rad = float(values["compliance_damping"])
+	driveline_backlash_rad = float(values["compliance_backlash_rad"])
+	driveline_backlash_damping_ratio = float(values["compliance_backlash_damping_ratio"])
+	chassis_reaction_enabled = bool(values["chassis_reaction_enabled"])
+	chassis_reaction_orientation = str(values["chassis_reaction_orientation"])
+	chassis_reaction_crank_sign = float(values["chassis_reaction_crank_sign"])
+	chassis_reaction_scale = float(values["chassis_reaction_scale"])
+	chassis_reaction_mount_tau_s = float(values["chassis_reaction_mount_tau_s"])
+	chassis_reaction_driveshaft_roll_fraction = float(values["chassis_reaction_driveshaft_roll_fraction"])
 	reset_compliance()
 	_apply_staged_differential(values["front_differential"], "front")
 	_apply_staged_differential(values["rear_differential"], "rear")
@@ -248,6 +272,8 @@ func configure(domains: Dictionary) -> Dictionary:
 				"output_inertia_kg_m2": output_shaft_inertia_kg_m2,
 				"stiffness_nm_per_rad": torsional_stiffness_nm_per_rad,
 				"damping_nms_per_rad": torsional_damping_nms_per_rad,
+				"backlash_rad": driveline_backlash_rad,
+				"backlash_damping_ratio": driveline_backlash_damping_ratio,
 				"autoblip_enabled": downshift_rev_matching_enabled,
 			}
 		),
@@ -453,6 +479,106 @@ static func validate_powertrain_config(domains: Dictionary) -> Dictionary:
 	values["compliance_inertia"] = out_inertia
 	values["compliance_stiffness"] = stiffness
 	values["compliance_damping"] = damping
+	var backlash_rad := 0.0
+	if compliance.has("backlash_rad"):
+		var backlash_check := _require_finite_number(
+			compliance.get("backlash_rad"), "powertrain.driveline_compliance.backlash_rad"
+		)
+		if not bool(backlash_check.get("ok", false)):
+			return backlash_check
+		backlash_rad = float(backlash_check["value"])
+		if backlash_rad < 0.0 or backlash_rad > 0.25:
+			return {
+				"ok": false,
+				"error": "powertrain.driveline_compliance.backlash_rad must be within [0.0, 0.25].",
+			}
+	var backlash_damping_ratio := 0.04
+	if compliance.has("backlash_damping_ratio"):
+		var lash_damp_check := _require_finite_number(
+			compliance.get("backlash_damping_ratio"),
+			"powertrain.driveline_compliance.backlash_damping_ratio",
+		)
+		if not bool(lash_damp_check.get("ok", false)):
+			return lash_damp_check
+		backlash_damping_ratio = float(lash_damp_check["value"])
+		if backlash_damping_ratio < 0.0 or backlash_damping_ratio > 1.0:
+			return {
+				"ok": false,
+				"error": "powertrain.driveline_compliance.backlash_damping_ratio must be within [0.0, 1.0].",
+			}
+	values["compliance_backlash_rad"] = backlash_rad
+	values["compliance_backlash_damping_ratio"] = backlash_damping_ratio
+	var reaction_raw: Variant = powertrain.get("chassis_reaction", {})
+	if reaction_raw != null and not reaction_raw is Dictionary:
+		return {"ok": false, "error": "powertrain.chassis_reaction must be a dictionary."}
+	var reaction: Dictionary = reaction_raw if reaction_raw is Dictionary else {}
+	var reaction_enabled := bool(reaction.get("enabled", false))
+	var reaction_orientation := str(reaction.get("engine_orientation", "longitudinal")).strip_edges().to_lower()
+	if reaction_orientation != "longitudinal" and reaction_orientation != "transverse":
+		return {
+			"ok": false,
+			"error": "powertrain.chassis_reaction.engine_orientation must be 'longitudinal' or 'transverse'.",
+		}
+	var crank_sign := 1.0
+	if reaction.has("crank_spin_sign"):
+		var sign_check := _require_finite_number(
+			reaction.get("crank_spin_sign"), "powertrain.chassis_reaction.crank_spin_sign"
+		)
+		if not bool(sign_check.get("ok", false)):
+			return sign_check
+		var s_val := float(sign_check["value"])
+		if absf(s_val) != 1.0:
+			return {
+				"ok": false,
+				"error": "powertrain.chassis_reaction.crank_spin_sign must be -1.0 or 1.0.",
+			}
+		crank_sign = s_val
+	var reaction_scale := 1.0
+	if reaction.has("reaction_scale"):
+		var scale_check := _require_finite_number(
+			reaction.get("reaction_scale"), "powertrain.chassis_reaction.reaction_scale"
+		)
+		if not bool(scale_check.get("ok", false)):
+			return scale_check
+		reaction_scale = float(scale_check["value"])
+		if reaction_scale < 0.0 or reaction_scale > 3.0:
+			return {
+				"ok": false,
+				"error": "powertrain.chassis_reaction.reaction_scale must be within [0.0, 3.0].",
+			}
+	var mount_tau := 0.018
+	if reaction.has("mount_tau_s"):
+		var tau_check := _require_finite_number(
+			reaction.get("mount_tau_s"), "powertrain.chassis_reaction.mount_tau_s"
+		)
+		if not bool(tau_check.get("ok", false)):
+			return tau_check
+		mount_tau = float(tau_check["value"])
+		if mount_tau < 0.0 or mount_tau > 0.25:
+			return {
+				"ok": false,
+				"error": "powertrain.chassis_reaction.mount_tau_s must be within [0.0, 0.25].",
+			}
+	var driveshaft_roll := 0.0
+	if reaction.has("driveshaft_roll_fraction"):
+		var ds_check := _require_finite_number(
+			reaction.get("driveshaft_roll_fraction"),
+			"powertrain.chassis_reaction.driveshaft_roll_fraction",
+		)
+		if not bool(ds_check.get("ok", false)):
+			return ds_check
+		driveshaft_roll = float(ds_check["value"])
+		if driveshaft_roll < 0.0 or driveshaft_roll > 1.0:
+			return {
+				"ok": false,
+				"error": "powertrain.chassis_reaction.driveshaft_roll_fraction must be within [0.0, 1.0].",
+			}
+	values["chassis_reaction_enabled"] = reaction_enabled
+	values["chassis_reaction_orientation"] = reaction_orientation
+	values["chassis_reaction_crank_sign"] = crank_sign
+	values["chassis_reaction_scale"] = reaction_scale
+	values["chassis_reaction_mount_tau_s"] = mount_tau
+	values["chassis_reaction_driveshaft_roll_fraction"] = driveshaft_roll
 	# Marchas: al menos una hacia delante, todas positivas y finitas.
 	var ratios: Variant = powertrain.get("gear_ratios", [])
 	if not ratios is Array or (ratios as Array).is_empty():
@@ -865,6 +991,13 @@ func reset_compliance() -> void:
 	driveline_torque_nm = 0.0
 	driveline_energy_j = 0.0
 	driveline_dissipation_w = 0.0
+	driveline_in_backlash = false
+	driveline_backlash_flank = 0
+	driveline_backlash_impact_rad_s = 0.0
+	chassis_reaction_torque_local_nm = Vector3.ZERO
+	_reaction_prev_engine_omega = 0.0
+	_reaction_prev_input_omega = 0.0
+	_reaction_initialized = false
 
 
 func request_shift(delta_gears: int) -> bool:
@@ -1183,6 +1316,13 @@ func solve_rotation(
 	var spring_inverse := output_inverse + carrier_inverse
 	var implicit_damping := torsional_damping_nms_per_rad + h * torsional_stiffness_nm_per_rad
 	var spring_denominator := 1.0 + h * implicit_damping * spring_inverse
+	var backlash_half_rad := 0.5 * driveline_backlash_rad
+	var lash_damping := torsional_damping_nms_per_rad * driveline_backlash_damping_ratio
+	var lash_denominator := 1.0 + h * lash_damping * spring_inverse
+	var initial_carrier := 0.0
+	for i in 4:
+		initial_carrier += weights[i] * spins[i]
+	var initial_twist_speed := output_shaft_omega_rad_s - initial_carrier
 	var spring_impulse := 0.0
 	var clutch_impulse := 0.0
 	var gear_impulse := 0.0
@@ -1247,10 +1387,34 @@ func solve_rotation(
 			for i in 4:
 				carrier_speed += weights[i] * spins[i]
 			var relative_speed := output_shaft_omega_rad_s - carrier_speed
-			var spring_delta := -(
-				spring_impulse + h * torsional_stiffness_nm_per_rad * driveline_twist_rad
-				+ h * implicit_damping * relative_speed
-			) / spring_denominator
+			var spring_delta := 0.0
+			if backlash_half_rad > 0.0:
+				var theta_pred := driveline_twist_rad + h * relative_speed
+				if theta_pred > backlash_half_rad:
+					var raw_delta := -(
+						spring_impulse
+						+ h * torsional_stiffness_nm_per_rad * (driveline_twist_rad - backlash_half_rad)
+						+ h * implicit_damping * relative_speed
+					) / spring_denominator
+					var next_spring := minf(spring_impulse + raw_delta, 0.0)
+					spring_delta = next_spring - spring_impulse
+				elif theta_pred < -backlash_half_rad:
+					var raw_delta := -(
+						spring_impulse
+						+ h * torsional_stiffness_nm_per_rad * (driveline_twist_rad + backlash_half_rad)
+						+ h * implicit_damping * relative_speed
+					) / spring_denominator
+					var next_spring := maxf(spring_impulse + raw_delta, 0.0)
+					spring_delta = next_spring - spring_impulse
+				else:
+					spring_delta = -(
+						spring_impulse + h * lash_damping * relative_speed
+					) / lash_denominator
+			else:
+				spring_delta = -(
+					spring_impulse + h * torsional_stiffness_nm_per_rad * driveline_twist_rad
+					+ h * implicit_damping * relative_speed
+				) / spring_denominator
 			spring_impulse += spring_delta
 			output_shaft_omega_rad_s += spring_delta * output_inverse
 			for i in 4:
@@ -1374,14 +1538,72 @@ func solve_rotation(
 		for i in 4:
 			final_carrier += weights[i] * spins[i]
 		var twist_speed := output_shaft_omega_rad_s - final_carrier
+		var prev_flank := driveline_backlash_flank
 		driveline_twist_rad = clampf(driveline_twist_rad + h * twist_speed, -0.35, 0.35)
+		var effective_twist := driveline_twist_rad
+		var current_flank := 0
+		if backlash_half_rad > 0.0:
+			if driveline_twist_rad > backlash_half_rad:
+				effective_twist = driveline_twist_rad - backlash_half_rad
+				current_flank = 1
+			elif driveline_twist_rad < -backlash_half_rad:
+				effective_twist = driveline_twist_rad + backlash_half_rad
+				current_flank = -1
+			else:
+				effective_twist = 0.0
+				current_flank = 0
+			driveline_in_backlash = current_flank == 0
+			driveline_backlash_impact_rad_s = (
+				absf(initial_twist_speed)
+				if (current_flank != 0 and current_flank != prev_flank)
+				else 0.0
+			)
+		else:
+			current_flank = 1 if driveline_twist_rad > 0.0 else (-1 if driveline_twist_rad < 0.0 else 0)
+			driveline_in_backlash = false
+			driveline_backlash_impact_rad_s = 0.0
+		driveline_backlash_flank = current_flank
 		driveline_torque_nm = -spring_impulse / h
-		driveline_energy_j = 0.5 * torsional_stiffness_nm_per_rad * driveline_twist_rad * driveline_twist_rad
-		driveline_dissipation_w = torsional_damping_nms_per_rad * twist_speed * twist_speed
+		driveline_energy_j = 0.5 * torsional_stiffness_nm_per_rad * effective_twist * effective_twist
+		var active_damping := lash_damping if driveline_in_backlash else torsional_damping_nms_per_rad
+		driveline_dissipation_w = active_damping * twist_speed * twist_speed
 
 	engine_rpm = maxf(engine_omega, 0.0) * 60.0 / TAU
 	clutch_torque_nm = clutch_impulse / h
 	clutch_slip_power_w = maxf(clutch_work / h, 0.0)
+	if chassis_reaction_enabled:
+		var alpha_e := (engine_omega - _reaction_prev_engine_omega) / h if _reaction_initialized else 0.0
+		var alpha_in := (input_shaft_omega_rad_s - _reaction_prev_input_omega) / h if _reaction_initialized else 0.0
+		var inertial_reaction := -(ie * alpha_e + shaft_inertia * alpha_in)
+		var raw_torque_local := Vector3.ZERO
+		if chassis_reaction_orientation == "transverse":
+			var tx := clampf(
+				inertial_reaction * chassis_reaction_scale,
+				-MAX_CHASSIS_REACTION_NM,
+				MAX_CHASSIS_REACTION_NM,
+			)
+			raw_torque_local = Vector3(chassis_reaction_crank_sign * tx, 0.0, 0.0)
+		else:
+			var ds_roll := 0.0
+			if chassis_reaction_driveshaft_roll_fraction > 0.0 and connected and current_gear != 0:
+				ds_roll = -clutch_torque_nm * _ratio_for_gear(current_gear) * chassis_reaction_driveshaft_roll_fraction
+			var tz := clampf(
+				(inertial_reaction + ds_roll) * chassis_reaction_scale,
+				-MAX_CHASSIS_REACTION_NM,
+				MAX_CHASSIS_REACTION_NM,
+			)
+			raw_torque_local = Vector3(0.0, 0.0, chassis_reaction_crank_sign * tz)
+		var mount_alpha := (
+			1.0
+			if chassis_reaction_mount_tau_s <= 0.0001
+			else (1.0 - exp(-h / chassis_reaction_mount_tau_s))
+		)
+		chassis_reaction_torque_local_nm = chassis_reaction_torque_local_nm.lerp(raw_torque_local, mount_alpha)
+	else:
+		chassis_reaction_torque_local_nm = Vector3.ZERO
+	_reaction_prev_engine_omega = engine_omega
+	_reaction_prev_input_omega = input_shaft_omega_rad_s
+	_reaction_initialized = true
 	for i in 4:
 		brake_work[i] = maxf(brake_work[i], 0.0)
 	return {
@@ -1391,6 +1613,7 @@ func solve_rotation(
 			if driveline_compliance_enabled
 			else (-ratio * gear_impulse / h if connected else 0.0)
 		),
+		"chassis_reaction_torque_local_nm": chassis_reaction_torque_local_nm,
 	}
 
 
