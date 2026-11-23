@@ -67,6 +67,26 @@ static func get_compound(catalog: Dictionary, compound_id: String) -> Dictionary
 	return (c as Dictionary).duplicate(true)
 
 
+static func compound_label(
+	compound_id: String,
+	short: bool = false,
+	label_overrides: Dictionary = {},
+	catalog: Dictionary = {},
+) -> String:
+	var ov: Variant = label_overrides.get(compound_id, null)
+	if ov is Dictionary:
+		var key := "short_label" if short else "label"
+		var text := str((ov as Dictionary).get(key, (ov as Dictionary).get("label", ""))).strip_edges()
+		if not text.is_empty():
+			return text
+	elif ov is String and not str(ov).strip_edges().is_empty():
+		var text := str(ov).strip_edges()
+		return text.to_upper() if short else text
+	var cat := catalog if not catalog.is_empty() else load_catalog()
+	var info := get_compound(cat, compound_id)
+	return str(info.get("short_label" if short else "label", compound_id))
+
+
 static func is_valid(compound_id: String) -> bool:
 	return not compound_id.is_empty() and (load_catalog().get("compounds", {}) as Dictionary).has(compound_id)
 

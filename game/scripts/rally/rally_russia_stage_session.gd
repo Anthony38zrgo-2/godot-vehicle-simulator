@@ -1854,6 +1854,10 @@ func _open_setup_window() -> void:
 		# Si venimos de estrategia inicial o servicio, restaurar paused = false
 		# justo antes de abrir el garaje para que guarde _restore_tree_paused = false.
 		get_tree().paused = false
+		var label_overrides := get_session_compound_label_overrides()
+		var forecast_advice := "Nieve con clavos" if str(session_track_id).begins_with("sweden_") else str(forecast.get("suggested_compound", ""))
+		if RallyTireCompound.is_valid(forecast_advice):
+			forecast_advice = RallyTireCompound.compound_label(forecast_advice, false, label_overrides)
 		garage_panel.call("open_garage_for_event", {
 			"spare_wheels": vehicle.tire_inventory.spares.size(),
 			"wheel_compounds": mounted_wheel_compounds(),
@@ -1862,10 +1866,11 @@ func _open_setup_window() -> void:
 			"compound_change_allowed": true,
 			"confirmation_required": bool(window.get("confirmation_required", true)),
 			"forecast_summary": forecast_text,
-			"forecast_advice": "Nieve con clavos" if str(session_track_id).begins_with("sweden_") else str(forecast.get("suggested_compound", "")),
+			"forecast_advice": forecast_advice,
 			"start_order_summary": start_summary,
 			"window_label": label,
 			"allowed_compound_ids": event_manager.get_allowed_compound_ids(),
+			"compound_label_overrides": label_overrides,
 			"default_compound_id": str(
 				event_manager.event_doc.get(
 					"tire_rules", {}
@@ -1904,6 +1909,9 @@ func _open_setup_window() -> void:
 			"window_label": label,
 			"allowed_compound_ids": tire_rules.get(
 				"allowed_compound_ids", []
+			),
+			"compound_label_overrides": tire_rules.get(
+				"compound_label_overrides", {}
 			),
 			"default_compound_id": tire_rules.get(
 				"default_compound_id", "gravel_normal"
@@ -2021,6 +2029,7 @@ func _on_garage_closed(applied: bool) -> void:
 	apply_competition_controls()
 	_update_panel_for_stage()
 	var comp_summary := ""
+	var label_overrides := get_session_compound_label_overrides()
 	if vehicle.tire_inventory != null and vehicle.tire_inventory.mounted.size() >= 4:
 		var cat := RallyTireCompound.load_catalog()
 		var unique_cids: Array[String] = []
@@ -2029,14 +2038,16 @@ func _on_garage_closed(applied: bool) -> void:
 			var tcid := str((t as Dictionary).get("compound_id", cid))
 			if not unique_cids.has(tcid):
 				unique_cids.append(tcid)
-			var s_lbl := str(RallyTireCompound.get_compound(cat, tcid).get("short_label", tcid))
+			var s_lbl := RallyTireCompound.compound_label(tcid, true, label_overrides, cat)
 			short_parts.append(s_lbl.to_upper())
 		if unique_cids.size() == 1:
-			comp_summary = "COMPUESTO " + unique_cids[0].to_upper()
+			var single_lbl := RallyTireCompound.compound_label(unique_cids[0], false, label_overrides, cat)
+			comp_summary = "COMPUESTO " + single_lbl.to_upper()
 		else:
 			comp_summary = "MIXTO (" + "/".join(short_parts) + ")"
 	else:
-		var comp_label: String = event_manager.confirmed_compound_id if (not practice_mode and event_manager != null) else cid
+		var comp_id: String = event_manager.confirmed_compound_id if (not practice_mode and event_manager != null) else cid
+		var comp_label := RallyTireCompound.compound_label(comp_id, false, label_overrides)
 		comp_summary = "COMPUESTO " + comp_label.to_upper()
 	if head_up_display != null:
 		head_up_display.show_status(comp_summary + " — SALIDA HABILITADA", Color(0.34, 0.82, 0.45), 3.0)
@@ -2067,6 +2078,18 @@ func get_session_allowed_compound_ids() -> Array:
 		return (event_manager.event_doc.get("tire_rules", {}) as Dictionary).get("allowed_compound_ids", [])
 	var rules := RallyTireCompound.event_rules_for_stage(session_track_id)
 	return rules.get("allowed_compound_ids", [])
+
+
+func get_session_compound_label_overrides() -> Dictionary:
+	if event_manager != null:
+		if event_manager.has_method("get_compound_label_overrides"):
+			return event_manager.get_compound_label_overrides()
+		var rules_em: Dictionary = event_manager.event_doc.get("tire_rules", {}) as Dictionary
+		var ov_em: Variant = rules_em.get("compound_label_overrides", {})
+		return (ov_em as Dictionary).duplicate(true) if ov_em is Dictionary else {}
+	var rules := RallyTireCompound.event_rules_for_stage(session_track_id)
+	var ov: Variant = rules.get("compound_label_overrides", {})
+	return (ov as Dictionary).duplicate(true) if ov is Dictionary else {}
 
 
 func may_service_tires() -> bool:

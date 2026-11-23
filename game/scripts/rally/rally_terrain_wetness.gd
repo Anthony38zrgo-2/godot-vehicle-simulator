@@ -214,10 +214,10 @@ func _sync_from_provider() -> void:
 	if not bool(shared_provider.get("procedural_active")) and shared_provider.surface != null:
 		snap_raw = shared_provider.surface.snapshot()
 	if snap_raw is Array and (snap_raw as Array).size() == 3:
-		var snap := snap_raw as Array
 		var changed := false
 		for i in 3:
-			var w := clampf(float((snap[i] as Dictionary).get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
+			var zs: Dictionary = shared_provider.surface.state_for_zone(i)
+			var w := clampf(float(zs.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 			if absf(w - zone_wetness[i]) > 0.004:
 				changed = true
 			zone_wetness[i] = w

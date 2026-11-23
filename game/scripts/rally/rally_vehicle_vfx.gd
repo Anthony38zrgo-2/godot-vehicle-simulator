@@ -510,6 +510,8 @@ func update_wheel(index: int, wetness: float) -> void:
 	var snow_mm := float(cond.get("snow_mm", 0.0))
 	var snow_cov := float(cond.get("snow_coverage", -1.0))
 	var ice_cov := float(cond.get("ice_coverage", -1.0))
+	var loose_cov := float(cond.get("loose_gravel_coverage", 0.0))
+	var mud_fac := float(cond.get("mud_factor", 0.0))
 	# La capa invernal manda sobre la superficie base: en Suecia la carretera
 	# es Gravel con snow_packed aunque snow_mm meteorologico sea 0.
 	var winter_layer := str(sim.tire_model.states[index].get("winter_layer_id", "")) if index < sim.tire_model.states.size() else ""
@@ -533,26 +535,26 @@ func update_wheel(index: int, wetness: float) -> void:
 			wheel_snow_haze[index] = SNOW_HAZE_TICKS * WHEEL_PARTICLES.STEP
 			var haze_velocity := rearward * 0.8 + normal * 0.6
 			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.SMOKE, TIRE_SMOKE, source + normal * 0.35, haze_velocity, point, normal, clampf(strength * 0.7, 0.0, 1.0))
-	elif surface == "gravel" and wet < 0.35:
+	elif surface == "gravel" and wet < 0.35 and mud_fac < 0.25:
 		var hub := _wheel_hub_center(index, point, normal)
 		var chip_direction := (rearward - side * 0.35 + normal * 0.35).normalized()
 		var chip_velocity := chip_direction * wheel_particles.rng.randf_range(0.3, 0.5) + corner_speed * 0.85
 		wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_SPRAY, snow_texture_variant(index), hub, chip_velocity, point, normal)
-		if slip > 0.76:
+		if slip > 0.76 or loose_cov >= 0.45:
 			var rock_velocity := velocity * 0.3 + normal * 0.2 + corner_speed * 0.7
 			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.GRAVEL_SPRAY, snow_texture_variant(index), hub, rock_velocity, point, normal)
 		if index >= 2 and float(profile.dust) * strength * (1.0 - wet) > 0.025:
-			var dust_kind := WHEEL_PARTICLES.Kind.SLIP_DUST if slip > 0.76 else WHEEL_PARTICLES.Kind.DUST
+			var dust_kind := WHEEL_PARTICLES.Kind.SLIP_DUST if (slip > 0.76 or loose_cov >= 0.50) else WHEEL_PARTICLES.Kind.DUST
 			wheel_particles.emit_particle(dust_kind, GRAVEL_DUST, source + normal * 0.16, velocity + normal * 0.28, point, normal)
-			for i in int(profile.get("burst", 0)):
+			for i in int(profile.get("burst", 0)) + (1 if loose_cov >= 0.45 else 0):
 				var puff_offset := source + side * wheel_particles.rng.randf_range(-0.22, 0.22) + normal * wheel_particles.rng.randf_range(0.0, 0.12)
 				var puff_velocity := velocity * wheel_particles.rng.randf_range(0.85, 1.1) + normal * 0.28
 				wheel_particles.emit_particle(dust_kind, GRAVEL_DUST, puff_offset, puff_velocity, point, normal)
-	elif wet >= 0.35:
-		var spray := smoothstep(0.35, 1.0, wet)
+	elif wet >= 0.35 or mud_fac >= 0.25:
+		var spray := maxf(smoothstep(0.35, 1.0, wet), mud_fac * 0.85)
 		var splash := SPLASH_PAVED if paved else SPLASH_LOOSE
 		var splash_origin := source + normal * 0.10
-		if index >= 2 or entered_water or slip > 0.3:
+		if index >= 2 or entered_water or slip > 0.3 or mud_fac >= 0.35:
 			var splash_velocity := velocity * 0.55 + normal * lerpf(1.2, 2.2, spray)
 			wheel_particles.emit_particle(
 				WHEEL_PARTICLES.Kind.SPLASH, splash, splash_origin, splash_velocity, point, normal, spray
@@ -566,7 +568,7 @@ func update_wheel(index: int, wetness: float) -> void:
 				)
 		if surface != "grass":
 			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.WATER, WATER_CORE, source + normal * 0.06, velocity + normal * 1.4, point, normal)
-		if surface == "dirt" and wet >= 0.55 and slip > 0.55:
+		if (surface == "dirt" and wet >= 0.55 and slip > 0.55) or (surface in ["gravel", "dirt"] and mud_fac >= 0.30 and (slip > 0.22 or corner_speed.length() > 6.0)):
 			wheel_particles.emit_particle(WHEEL_PARTICLES.Kind.MUD, MUD_CLOD, source + normal * 0.04, velocity + normal * 1.1, point, normal)
 	elif index >= 2:
 		var dust := (slip * 0.65 if paved else float(profile.dust)) * strength * (1.0 - wet)

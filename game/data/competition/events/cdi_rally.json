@@ -43,8 +43,22 @@
     "between_stages_allowed_steps": [-2, -1, 0, 1, 2]
   },
   "tire_rules": {
-    "allowed_compound_ids": ["gravel_normal", "gravel_wet", "asphalt_mixed", "snow_studded", "asphalt_dry", "asphalt_wet"],
-    "default_compound_id": "gravel_normal"
+    "allowed_compound_ids": ["gravel_normal", "asphalt_dry", "asphalt_mixed"],
+    "default_compound_id": "gravel_normal",
+    "compound_label_overrides": {
+      "gravel_normal": {
+        "label": "Grava",
+        "short_label": "GRAVA"
+      },
+      "asphalt_dry": {
+        "label": "Asfalto",
+        "short_label": "ASFALTO"
+      },
+      "asphalt_mixed": {
+        "label": "Mixto",
+        "short_label": "MIXTO"
+      }
+    }
   },
   "service": {"after_stage_ids": ["cdi_stage2"]},
   "setup_windows": [

@@ -105,8 +105,10 @@ func _init_data() -> void:
 		if allowed_compounds.is_empty():
 			allowed_compounds = ["gravel_normal", "gravel_wet"]
 		var cat := RallyTireCompound.load_catalog()
+		var label_overrides: Dictionary = manager.get_compound_label_overrides() if manager.has_method("get_compound_label_overrides") else {}
+		compound_labels.clear()
 		for cid in allowed_compounds:
-			compound_labels[cid] = RallyTireCompound.get_compound(cat, str(cid)).get("label", cid)
+			compound_labels[cid] = RallyTireCompound.compound_label(str(cid), false, label_overrides, cat)
 		if not manager.weather_schedule.is_empty():
 			forecast_stage1 = RallyWeatherScheduler.get_stage_dominant_weather(manager.weather_schedule[0])
 		if manager.stage_forecasts.size() > 1:
@@ -251,7 +253,13 @@ func _draw_weather_panel(rect: Rect2) -> void:
 
 func _draw_step1_selector_panel(rect: Rect2) -> void:
 	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "SELECTOR DE NEUMÁTICOS (SECO / LLUVIA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
+	var has_wet := false
+	for cid in allowed_compounds:
+		if str(cid).ends_with("_wet"):
+			has_wet = true
+			break
+	var selector_title := "SELECTOR DE NEUMÁTICOS (SECO / LLUVIA)" if has_wet else "SELECTOR DE NEUMÁTICOS"
+	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), selector_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
 	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), Color(C_BORDER, 0.45), 1.0)
 	draw_string(FONT_REGULAR, Vector2(rect.position.x + 18, rect.position.y + 216), "APLICACIÓN RÁPIDA AL COCHE COMPLETO (4×):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
 	var count := mini(allowed_compounds.size(), 4)

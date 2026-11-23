@@ -114,7 +114,7 @@ if __name__ == "__main__":
             asphalt=STAGE_NUMBER >= 3, snow_second_half=STAGE_NUMBER == 4,
             name=f"Caminos del Inca · {STAGE_ID} {STAGE_NAMES[STAGE_NUMBER - 1]}",
         )
-        if STAGE_NUMBER in (1, 4):
+        if STAGE_NUMBER in (1, 2, 4):
             stage_cfg["geography"] = {
                 "crs": "EPSG:32718",
                 "dem_source": "Copernicus DEM GLO-30 (cop-dem-glo-30, Copernicus_DSM_COG_10_S12_00_W077_00_DEM)",

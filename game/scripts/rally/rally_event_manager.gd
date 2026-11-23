@@ -301,6 +301,21 @@ func get_allowed_compound_ids() -> Array:
 	).duplicate()
 
 
+func get_compound_label_overrides() -> Dictionary:
+	var rules: Dictionary = event_doc.get("tire_rules", {})
+	var overrides: Variant = rules.get("compound_label_overrides", {})
+	return (overrides as Dictionary).duplicate(true) if overrides is Dictionary else {}
+
+
+func get_compound_label(compound_id: String, short: bool = false) -> String:
+	return CompoundScript.compound_label(
+		compound_id,
+		short,
+		get_compound_label_overrides(),
+		compound_catalog
+	)
+
+
 func _forecast_accuracy() -> float:
 	var rules: Dictionary = event_doc.get("tire_rules", {})
 	var acc := float(rules.get("forecast_accuracy", SchedulerScript.FORECAST_DEFAULT_ACCURACY))

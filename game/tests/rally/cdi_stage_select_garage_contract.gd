@@ -53,6 +53,18 @@ func _verify() -> void:
 			and strategy != null and paused and not session.garage_panel.visible,
 			"Launching from SS03 did not reach the tire strategy"):
 		return
+	var expected_cids := ["gravel_normal", "asphalt_dry", "asphalt_mixed"]
+	var strategy_board := strategy.get_node_or_null("StrategyBoard3D")
+	if not _require(strategy.allowed_compounds == expected_cids
+			and str(strategy.compound_labels.get("gravel_normal", "")) == "Grava"
+			and str(strategy.compound_labels.get("asphalt_dry", "")) == "Asfalto"
+			and str(strategy.compound_labels.get("asphalt_mixed", "")) == "Mixto"
+			and strategy_board != null
+			and strategy_board._compound_short_label("gravel_normal") == "GRAVA"
+			and strategy_board._compound_short_label("asphalt_dry") == "ASFALTO"
+			and strategy_board._compound_short_label("asphalt_mixed") == "MIXTO",
+			"CDI strategy screen must expose only Grava, Asfalto, and Mixto"):
+		return
 	strategy.set_step(1)
 	strategy._on_confirm()
 	for i in range(180):
@@ -63,6 +75,16 @@ func _verify() -> void:
 	if not _require(garage.visible and session.awaiting_setup and session.vehicle.freeze and garage.page == 0
 			and FRONT_DUCT in garage._page_field_paths and REAR_DUCT in garage._page_field_paths,
 			"Tire confirmation did not open the garage with both duct sliders"):
+		return
+	if not _require(garage._available_compound_ids() == expected_cids
+			and garage._compound_label("gravel_normal") == "Grava"
+			and garage._compound_label("gravel_normal", true) == "GRAVA"
+			and garage._compound_label("asphalt_dry") == "Asfalto"
+			and garage._compound_label("asphalt_dry", true) == "ASFALTO"
+			and garage._compound_label("asphalt_mixed") == "Mixto"
+			and garage._compound_label("asphalt_mixed", true) == "MIXTO"
+			and RallyTireCompound.compound_label("gravel_normal") == "Grava-Seco",
+			"CDI garage must restrict and rename compounds without altering global catalog"):
 		return
 	var thermal := session.vehicle.simulation.thermal_model as VehicleThermalModel
 	var track := Rect2(0, 0, 100, 10)

@@ -167,9 +167,11 @@
     "ice_coverage_full_mm": 1.8,
     "water_coverage_full_mm": 3.0,
     "max_water_mm": 18.0,
+    "road_surface_water_scale": 0.5,
+    "road_max_water_mm": 9.0,
     "max_snow_mm": 60.0,
     "max_ice_mm": 15.0,
-    "tire_effective_water_cap_mm": 12.0,
+    "tire_effective_water_cap_mm": 6.0,
     "tire_effective_snow_cap_mm": 8.0
   },
   "surface_profiles": {

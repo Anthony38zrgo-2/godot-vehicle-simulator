@@ -434,6 +434,8 @@ func evaluate(
 	ice_mm: float = 0.0,
 	snow_coverage: float = -1.0,
 	ice_coverage: float = -1.0,
+	loose_gravel_coverage: float = 0.0,
+	mud_factor: float = 0.0,
 ) -> Dictionary:
 	var state: Dictionary = states[index]
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
@@ -468,6 +470,25 @@ func evaluate(
 			surface_name,
 			axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", { })))),
 		)
+	var eff_loose_cov := clampf(loose_gravel_coverage, 0.0, 1.0) if surface_name in ["Gravel", "Dirt"] else 0.0
+	var eff_mud := clampf(mud_factor, 0.0, 1.0) if surface_name in ["Gravel", "Dirt"] else 0.0
+	var dry_loose := clampf(eff_loose_cov - eff_mud, 0.0, 1.0)
+	if eff_loose_cov > 0.001 or eff_mud > 0.001:
+		target_surface = target_surface.duplicate(true)
+		var base_fric := float(target_surface.get("friction", 0.98))
+		var base_stiff := float(target_surface.get("stiffness", 0.90))
+		var base_roll := float(target_surface.get("rolling_resistance", 2.2))
+		var base_lat_assist := float(target_surface.get("lateral_grip_assist", 0.03))
+		# Dry loose gravel / clay (~10% less grip, ~18% softer cornering response, +25% rolling resistance);
+		# Heavy rain converts it into thick mud (~26% less base grip, ~35% softer stiffness, -45% lateral assist, +85% rolling resistance).
+		var fric_scale := 1.0 - 0.10 * dry_loose - 0.26 * eff_mud
+		var stiff_scale := 1.0 - 0.18 * dry_loose - 0.35 * eff_mud
+		var roll_scale := 1.0 + 0.25 * dry_loose + 0.85 * eff_mud
+		var lat_assist_scale := 1.0 - 0.15 * dry_loose - 0.45 * eff_mud
+		target_surface["friction"] = base_fric * fric_scale
+		target_surface["stiffness"] = base_stiff * stiff_scale
+		target_surface["rolling_resistance"] = base_roll * roll_scale
+		target_surface["lateral_grip_assist"] = base_lat_assist * lat_assist_scale
 		if target_surface.is_empty():
 			target_surface = {
 				"friction": 1.0,
@@ -718,6 +739,15 @@ func evaluate(
 			compound_mult *= float(
 				compound.get("loose_grip_scale", 1.0)
 			)
+	# Compound tread-packing sensitivity in thick mud: gravel lugs clear mud best (1.0),
+	# crossover mixed tires lose extra bite (0.82), pure asphalt tires pack up heavily (0.64).
+	if eff_mud > 0.001 and not compound.is_empty():
+		var for_gravel := bool(compound.get("for_gravel", true))
+		var is_asphalt := bool(compound.get("is_asphalt_tire", false))
+		var mud_comp_floor := 1.0 if (for_gravel and not is_asphalt) else (0.82 if (for_gravel and is_asphalt) else 0.64)
+		compound_mult *= lerpf(1.0, mud_comp_floor, eff_mud)
+	state["loose_gravel_coverage"] = eff_loose_cov
+	state["mud_factor"] = eff_mud
 	state["compound_mult"] = compound_mult
 	state["local_water_mm"] = water_mm
 	state["local_snow_mm"] = snow_mm

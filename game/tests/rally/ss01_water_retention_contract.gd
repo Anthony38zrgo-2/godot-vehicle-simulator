@@ -258,7 +258,7 @@ func _test_pilot_points_shader_and_restore() -> void:
 	var ctl_post := ControllerScript.new()
 	check(ctl_post.configure_five_sector_snapshot("cdi_stage1", "res://data/rally/cdi_stage1_route.json", 2026, "transition", base_abs, base_abs + 1500.0, "gravel", "controlled_timing_episode"), "Post-rain SS01 configures")
 	var post_s := ctl_post.local_surface_state_at_distance(2360.2, 0.0)
-	check(float(post_s.get("rain_mm_h", 99.0)) <= 0.01 and float(post_s.get("water_mm", 0.0)) > 0.2 and float(post_s.get("water_coverage", 0.0)) > 0.05, "Post-rain retained water persists visually after rain stops")
+	check(float(post_s.get("rain_mm_h", 99.0)) <= 0.01 and float(post_s.get("water_mm", 0.0)) > 0.1 and float(post_s.get("water_coverage", 0.0)) > 0.01, "Post-rain retained water persists visually after rain stops")
 
 	# Snapshot save & restore reproduces identical contacts, shader packet, and puddle fills.
 	var saved_snap := ctl.snapshot()

@@ -167,6 +167,7 @@ var advanced_section := 0
 var mandatory_confirmation := false
 var compound_change_allowed := true
 var allowed_compound_ids: Array = []
+var compound_label_overrides: Dictionary = { }
 var default_event_compound_id: String = RallyTireCompound.DEFAULT_ID
 var draft_wheel_compounds: Dictionary = { }
 var draft_compound_id: String:
@@ -300,6 +301,12 @@ func open_garage_for_event(options: Dictionary = { }) -> void:
 	allowed_compound_ids = (
 		options.get("allowed_compound_ids", []) as Array
 	).duplicate()
+	var overrides_var: Variant = options.get("compound_label_overrides", { })
+	compound_label_overrides = (
+		(overrides_var as Dictionary).duplicate(true)
+		if overrides_var is Dictionary
+		else { }
+	)
 	default_event_compound_id = str(
 		options.get(
 			"default_compound_id",
@@ -336,6 +343,7 @@ func open_garage() -> void:
 		mandatory_confirmation = false
 		compound_change_allowed = true
 		allowed_compound_ids.clear()
+		compound_label_overrides.clear()
 		default_event_compound_id = RallyTireCompound.DEFAULT_ID
 		event_forecast = ""
 	_restore_tree_paused = get_tree().paused
@@ -2153,14 +2161,15 @@ func _available_compound_ids() -> Array:
 	)
 	if allowed_compound_ids.is_empty():
 		return ids
-	return ids.filter(
-		func(cid): return cid in allowed_compound_ids
-	)
+	var ordered: Array = []
+	for cid in allowed_compound_ids:
+		if cid in ids and not ordered.has(cid):
+			ordered.append(cid)
+	return ordered
 
 
 func _compound_label(compound_id: String, short: bool = false) -> String:
-	var info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), compound_id)
-	return str(info.get("short_label" if short else "label", compound_id))
+	return RallyTireCompound.compound_label(compound_id, short, compound_label_overrides)
 
 
 func _all_compound(compound_id: String) -> bool:

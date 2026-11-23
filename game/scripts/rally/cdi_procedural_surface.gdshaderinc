@@ -135,6 +135,37 @@ vec3 proc_sample_surface(float station_m, float uv_x) {
 	return vec3(water_cov, snow_cov, 0.0);
 }
 
+// Shared CPU/GPU procedural loose clay-gravel (~40% of gravel stages) and heavy-rain mud factor:
+// Returns vec2(loose_gravel_coverage, mud_factor) in [0, 1].
+vec2 proc_sample_loose_gravel_and_mud(float station_m, float uv_x, float snow_cov) {
+	float signed_lateral = (clamp(uv_x, 0.0, 1.0) - 0.5) * 2.0;
+	float span_m = max(surface_station_range_m.y - surface_station_range_m.x, 1.0);
+	float norm_u = clamp((station_m - surface_station_range_m.x) / span_m, 0.0, 1.0);
+	float nw = max(surface_field_width, 2.0);
+	float tex_u = (norm_u * (nw - 1.0) + 0.5) / nw;
+	vec4 tex_rgba = texture(surface_field_tex, vec2(tex_u, 0.5));
+	float road_water_mm = tex_rgba.r * surface_max_encode_mm;
+	float saturation = clamp(tex_rgba.a, 0.0, 1.0);
+
+	vec2 s0 = surface_seed_offsets.zw + vec2(31.4, 59.2);
+	float n_macro = proc_value_noise2(vec2(station_m * 0.0075, 0.35), s0);
+	float n_meso = proc_value_noise2(vec2(station_m * 0.024, 1.65), s0 + vec2(13.7, 29.1));
+	float n_fine = proc_value_noise2(vec2(station_m * 0.085, 2.85 + signed_lateral * 0.75), s0 + vec2(47.3, 11.8));
+	float field = 0.54 * n_macro + 0.30 * n_meso + 0.16 * n_fine;
+	float sector_gate = smoothstep(0.530, 0.640, field);
+	if (sector_gate <= 0.001) {
+		return vec2(0.0);
+	}
+	float abs_lat = clamp(abs(signed_lateral), 0.0, 1.0);
+	float rut_dip = 1.0 - 0.16 * (1.0 - clamp(abs(abs_lat - 0.48) / 0.24, 0.0, 1.0));
+	float snow_mask = clamp(1.0 - snow_cov, 0.0, 1.0);
+	float loose_cov = clamp(sector_gate * rut_dip, 0.0, 1.0) * snow_mask;
+	float wet_drive = clamp(road_water_mm / 0.55 + saturation * 0.45, 0.0, 1.0);
+	float mud_raw = smoothstep(0.32, 0.82, wet_drive);
+	float mud = clamp(loose_cov * mud_raw, 0.0, 1.0);
+	return vec2(loose_cov, mud);
+}
+
 vec3 proc_rotate_y(vec3 d, float yaw) {
 	return vec3(cos(yaw) * d.x + sin(yaw) * d.z, d.y, -sin(yaw) * d.x + cos(yaw) * d.z);
 }

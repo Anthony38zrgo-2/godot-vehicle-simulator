@@ -1038,8 +1038,11 @@ func _update_header_summary() -> void:
 	var front := _wheel_index("front")
 	var rear := _wheel_index("rear")
 	var compounds := sim.tire_model.wheel_compounds
-	var front_compound := str(compounds[front].get("label", compounds[front].get("id", "")))
-	var rear_compound := str(compounds[rear].get("label", compounds[rear].get("id", "")))
+	var label_overrides: Dictionary = session.get_session_compound_label_overrides() if (session != null and session.has_method("get_session_compound_label_overrides")) else {}
+	var front_cid := str(compounds[front].get("id", ""))
+	var rear_cid := str(compounds[rear].get("id", ""))
+	var front_compound := RallyTireCompound.compound_label(front_cid, false, label_overrides) if not front_cid.is_empty() else str(compounds[front].get("label", ""))
+	var rear_compound := RallyTireCompound.compound_label(rear_cid, false, label_overrides) if not rear_cid.is_empty() else str(compounds[rear].get("label", ""))
 	_header_subtitle.text = "%s  ·  Del. %s  ·  Tras. %s  ·  %s" % [
 		str(sim.profile.get("vehicle_identifier", "")), front_compound, rear_compound, pending_text,
 	]

@@ -585,10 +585,24 @@ pub struct SurfaceBalanceConfig {
     pub ice_coverage_full_mm: f32,
     pub water_coverage_full_mm: f32,
     pub max_water_mm: f32,
+    pub road_surface_water_scale: f32,
+    pub road_max_water_mm: f32,
     pub max_snow_mm: f32,
     pub max_ice_mm: f32,
     pub tire_effective_water_cap_mm: f32,
     pub tire_effective_snow_cap_mm: f32,
+}
+
+impl SurfaceBalanceConfig {
+    #[inline]
+    pub fn project_road_surface_water_mm(&self, raw_water_mm: f32, retention: f32) -> f32 {
+        if raw_water_mm <= 0.0 {
+            0.0
+        } else {
+            (raw_water_mm * self.road_surface_water_scale * retention)
+                .clamp(0.0, self.road_max_water_mm)
+        }
+    }
 }
 
 impl Default for SurfaceBalanceConfig {
@@ -610,9 +624,11 @@ impl Default for SurfaceBalanceConfig {
             ice_coverage_full_mm: 2.0,
             water_coverage_full_mm: 3.0,
             max_water_mm: 18.0,
+            road_surface_water_scale: 0.5,
+            road_max_water_mm: 9.0,
             max_snow_mm: 60.0,
             max_ice_mm: 15.0,
-            tire_effective_water_cap_mm: 12.0,
+            tire_effective_water_cap_mm: 6.0,
             tire_effective_snow_cap_mm: 8.0,
         }
     }
@@ -903,6 +919,14 @@ impl ClimateProfile {
         let get_sb = |k: &str, d: f32| -> f32 {
             sb_obj.and_then(|o| o.get(k)).and_then(|v| v.as_f32()).unwrap_or(d)
         };
+        let parsed_max_water_mm = get_sb("max_water_mm", sb_def.max_water_mm).max(1.0);
+        let parsed_road_water_scale =
+            get_sb("road_surface_water_scale", sb_def.road_surface_water_scale).clamp(0.0, 2.0);
+        let parsed_road_max_water_mm = get_sb(
+            "road_max_water_mm",
+            (parsed_max_water_mm * parsed_road_water_scale).max(0.5),
+        )
+        .max(0.5);
         let surface_balance = SurfaceBalanceConfig {
             snow_stick_below_c: get_sb("snow_stick_below_c", sb_def.snow_stick_below_c),
             snow_stick_above_c: get_sb("snow_stick_above_c", sb_def.snow_stick_above_c),
@@ -919,7 +943,9 @@ impl ClimateProfile {
             snow_coverage_full_mm: get_sb("snow_coverage_full_mm", sb_def.snow_coverage_full_mm).max(0.1),
             ice_coverage_full_mm: get_sb("ice_coverage_full_mm", sb_def.ice_coverage_full_mm).max(0.1),
             water_coverage_full_mm: get_sb("water_coverage_full_mm", sb_def.water_coverage_full_mm).max(0.1),
-            max_water_mm: get_sb("max_water_mm", sb_def.max_water_mm).max(1.0),
+            max_water_mm: parsed_max_water_mm,
+            road_surface_water_scale: parsed_road_water_scale,
+            road_max_water_mm: parsed_road_max_water_mm,
             max_snow_mm: get_sb("max_snow_mm", sb_def.max_snow_mm).max(1.0),
             max_ice_mm: get_sb("max_ice_mm", sb_def.max_ice_mm).max(1.0),
             tire_effective_water_cap_mm: get_sb("tire_effective_water_cap_mm", sb_def.tire_effective_water_cap_mm).max(1.0),
@@ -1766,6 +1792,8 @@ pub struct SurfaceSample {
     pub water_coverage: f32,
     pub snow_coverage: f32,
     pub ice_coverage: f32,
+    pub loose_gravel_coverage: f32,
+    pub mud_factor: f32,
     pub dry_weight: f32,
     pub snow_weight: f32,
     pub ice_weight: f32,
@@ -1830,6 +1858,46 @@ pub fn spatial_patch_field(shader_station_m: f32, lateral_t: f32, seed_offset: [
         [s_off[0] + 53.1, s_off[1] + 31.9],
     );
     (0.48 * n1 + 0.34 * n2 + 0.18 * n3).clamp(0.0, 1.0)
+}
+
+/// Shared CPU/GPU procedural loose-gravel / clay sector coverage (~40% of gravel stages)
+/// and heavy-rain mud conversion factor `(loose_gravel_coverage, mud_factor)` in `[0, 1]`.
+pub fn loose_gravel_and_mud_coverage(
+    is_gravel_surface: bool,
+    shader_station_m: f32,
+    lateral_t: f32,
+    road_water_mm: f32,
+    saturation: f32,
+    seed_offset: [f32; 2],
+) -> (f32, f32) {
+    if !is_gravel_surface {
+        return (0.0, 0.0);
+    }
+    let s0 = [seed_offset[0] + 31.4, seed_offset[1] + 59.2];
+    let n_macro = value_noise2(shader_station_m * 0.0075, 0.35, s0);
+    let n_meso = value_noise2(
+        shader_station_m * 0.024,
+        1.65,
+        [s0[0] + 13.7, s0[1] + 29.1],
+    );
+    let n_fine = value_noise2(
+        shader_station_m * 0.085,
+        2.85 + lateral_t * 0.75,
+        [s0[0] + 47.3, s0[1] + 11.8],
+    );
+    let field = 0.54 * n_macro + 0.30 * n_meso + 0.16 * n_fine;
+    // Calibrated threshold so ~40% of the stage has loose clay-gravel sectors.
+    let sector_gate = smoothstep(0.530, 0.640, field);
+    if sector_gate <= 0.001 {
+        return (0.0, 0.0);
+    }
+    let abs_lat = lateral_t.abs().clamp(0.0, 1.0);
+    let rut_dip = 1.0 - 0.16 * (1.0 - ((abs_lat - 0.48).abs() / 0.24).clamp(0.0, 1.0));
+    let loose_cov = (sector_gate * rut_dip).clamp(0.0, 1.0);
+    let wet_drive = (road_water_mm / 0.55 + saturation.clamp(0.0, 1.0) * 0.45).clamp(0.0, 1.0);
+    let mud_raw = smoothstep(0.32, 0.82, wet_drive);
+    let mud = (loose_cov * mud_raw).clamp(0.0, 1.0);
+    (loose_cov, mud)
 }
 
 /// Shared CPU/GPU Ticlio snow coverage in `[0, 1]`.
@@ -2250,7 +2318,7 @@ impl SurfaceGrid {
         let cfg = &atmo.climate.surface_balance;
 
         let lat = lateral_t.clamp(-1.0, 1.0);
-        let (snow_seed_off, _ice_seed_off) = patch_seed_offsets(self.patch_seed);
+        let (snow_seed_off, ice_seed_off) = patch_seed_offsets(self.patch_seed);
         let snow_cov = local_pattern_coverage(
             cell.snow_mm,
             cfg.snow_coverage_full_mm,
@@ -2262,18 +2330,31 @@ impl SurfaceGrid {
         );
         // Continuous carriageway ice patches are disabled (water-only + lateral snow ribbons).
         let ice_cov = 0.0;
-        let water_cov = if cell.water_mm > 0.01 {
-            smoothstep(0.01, cfg.water_coverage_full_mm, cell.water_mm)
+        let road_water_mm = cfg.project_road_surface_water_mm(cell.water_mm, 1.0);
+        let water_cov = if road_water_mm > 0.01 {
+            smoothstep(0.01, cfg.water_coverage_full_mm, road_water_mm)
         } else {
             0.0
         };
+        let is_gravel = matches!(self.surface_type.as_str(), "gravel" | "gravel_mud" | "dirt");
+        let (loose_gravel_cov, mud_factor) = loose_gravel_and_mud_coverage(
+            is_gravel,
+            cell.shader_station_m,
+            lat,
+            road_water_mm,
+            cell.saturation,
+            ice_seed_off,
+        )
+        ;
+        let loose_gravel_cov = loose_gravel_cov * (1.0 - snow_cov).clamp(0.0, 1.0);
+        let mud_factor = mud_factor * (1.0 - snow_cov).clamp(0.0, 1.0);
 
         // Normalized footprint weights: snow, exposed base road (dry/wet).
         let snow_w = snow_cov.clamp(0.0, 1.0);
         let ice_w = 0.0;
         let dry_w = (1.0 - snow_w).clamp(0.0, 1.0);
 
-        let water_eff = cell.water_mm.clamp(0.0, cfg.tire_effective_water_cap_mm);
+        let water_eff = road_water_mm.clamp(0.0, cfg.tire_effective_water_cap_mm);
         let snow_eff = if snow_cov <= 0.001 {
             0.0
         } else {
@@ -2288,13 +2369,15 @@ impl SurfaceGrid {
             altitude_m: cell.altitude_m,
             air_c: a.air_c,
             ground_c: cell.ground_c,
-            water_mm: cell.water_mm,
+            water_mm: road_water_mm,
             snow_mm: cell.snow_mm,
             ice_mm: cell.ice_mm,
             saturation: cell.saturation,
             water_coverage: water_cov,
             snow_coverage: snow_cov,
             ice_coverage: ice_cov,
+            loose_gravel_coverage: loose_gravel_cov,
+            mud_factor,
             dry_weight: dry_w,
             snow_weight: snow_w,
             ice_weight: ice_w,
@@ -2477,6 +2560,8 @@ impl RustProceduralWeather {
         let _ = out.insert("water_coverage", s.water_coverage);
         let _ = out.insert("snow_coverage", s.snow_coverage);
         let _ = out.insert("ice_coverage", s.ice_coverage);
+        let _ = out.insert("loose_gravel_coverage", s.loose_gravel_coverage);
+        let _ = out.insert("mud_factor", s.mud_factor);
         let _ = out.insert("dry_weight", s.dry_weight);
         let _ = out.insert("snow_weight", s.snow_weight);
         let _ = out.insert("ice_weight", s.ice_weight);
@@ -2581,7 +2666,8 @@ impl RustProceduralWeather {
             let st = station_min + u * span;
             let prog = table.route.shader_station_to_progress(st);
             let cell = surface.interpolate_cell_at(prog);
-            slice[i * 4] = ((cell.water_mm / max_encode_mm).clamp(0.0, 1.0) * 255.0).round() as u8;
+            let road_water_mm = cfg.project_road_surface_water_mm(cell.water_mm, 1.0);
+            slice[i * 4] = ((road_water_mm / max_encode_mm).clamp(0.0, 1.0) * 255.0).round() as u8;
             slice[i * 4 + 1] = ((cell.snow_mm / max_encode_mm).clamp(0.0, 1.0) * 255.0).round() as u8;
             slice[i * 4 + 2] = ((cell.ice_mm / max_encode_mm).clamp(0.0, 1.0) * 255.0).round() as u8;
             slice[i * 4 + 3] = (cell.saturation.clamp(0.0, 1.0) * 255.0).round() as u8;
@@ -4083,16 +4169,17 @@ impl FiveSectorSnapshot {
     }
 
     pub fn interpolate_surface_columns(&self, journey: &FiveSectorJourney, progress_m: f32) -> (f32, f32, f32, f32, f32, f32) {
-        let (ground_c, mut water_mm, snow_mm, ice_mm, saturation, shader_station_m) =
+        let (ground_c, raw_water_mm, snow_mm, ice_mm, saturation, shader_station_m) =
             self.interpolate_surface_columns_unmodulated(journey, progress_m);
-        if journey.is_water_retention_active() {
-            if water_mm <= 0.0 {
-                water_mm = 0.0;
-            } else {
-                let ret = journey.sample_water_retention(progress_m);
-                water_mm = (water_mm * ret).clamp(0.0, journey.climate.surface_balance.max_water_mm);
-            }
-        }
+        let ret = if journey.is_water_retention_active() {
+            journey.sample_water_retention(progress_m)
+        } else {
+            1.0
+        };
+        let water_mm = journey
+            .climate
+            .surface_balance
+            .project_road_surface_water_mm(raw_water_mm, ret);
         (ground_c, water_mm, snow_mm, ice_mm, saturation, shader_station_m)
     }
 
@@ -4103,6 +4190,7 @@ impl FiveSectorSnapshot {
         let cfg = &journey.climate.surface_balance;
         let lat = lateral_t.clamp(-1.0, 1.0);
         let snow_seed_off = patch_seed_offsets(self.patch_seed as u64).0;
+        let ice_seed_off = patch_seed_offsets(self.ice_patch_seed as u64).1;
 
         let snow_cov = local_pattern_coverage(
             snow_mm,
@@ -4120,6 +4208,17 @@ impl FiveSectorSnapshot {
         } else {
             0.0
         };
+        let is_gravel = matches!(self.surface_type.as_str(), "gravel" | "gravel_mud" | "dirt");
+        let (raw_loose_cov, raw_mud) = loose_gravel_and_mud_coverage(
+            is_gravel,
+            shader_station_m,
+            lat,
+            water_mm,
+            saturation,
+            ice_seed_off,
+        );
+        let loose_gravel_cov = raw_loose_cov * (1.0 - snow_cov).clamp(0.0, 1.0);
+        let mud_factor = raw_mud * (1.0 - snow_cov).clamp(0.0, 1.0);
 
         let snow_w = snow_cov.clamp(0.0, 1.0);
         let ice_w = 0.0;
@@ -4147,6 +4246,8 @@ impl FiveSectorSnapshot {
             water_coverage: water_cov,
             snow_coverage: snow_cov,
             ice_coverage: ice_cov,
+            loose_gravel_coverage: loose_gravel_cov,
+            mud_factor,
             dry_weight: dry_w,
             snow_weight: snow_w,
             ice_weight: ice_w,
@@ -4426,6 +4527,8 @@ impl RustFiveSectorWeather {
         let _ = out.insert("water_coverage", s.water_coverage);
         let _ = out.insert("snow_coverage", s.snow_coverage);
         let _ = out.insert("ice_coverage", s.ice_coverage);
+        let _ = out.insert("loose_gravel_coverage", s.loose_gravel_coverage);
+        let _ = out.insert("mud_factor", s.mud_factor);
         let _ = out.insert("dry_weight", s.dry_weight);
         let _ = out.insert("snow_weight", s.snow_weight);
         let _ = out.insert("ice_weight", s.ice_weight);
@@ -5679,5 +5782,130 @@ mod tests {
         let build_us = j_wet.water_retention_profile.as_ref().unwrap().build_time_us;
         eprintln!("SS01_RETENTION_BUILD_US={}", build_us);
         assert!(build_us < 20_000, "retention build too slow: {} us", build_us);
+    }
+
+    #[test]
+    fn road_surface_water_halved_while_puddle_fills_stay_unchanged() {
+        let (mut climate_full, route) = load_ss04_profiles();
+        climate_full.surface_balance.road_surface_water_scale = 1.0;
+        climate_full.surface_balance.road_max_water_mm = climate_full.surface_balance.max_water_mm;
+
+        let mut climate_half = climate_full.clone();
+        climate_half.surface_balance.road_surface_water_scale = 0.5;
+        climate_half.surface_balance.road_max_water_mm = 9.0;
+        climate_half.surface_balance.tire_effective_water_cap_mm = 6.0;
+
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+        let j_full = FiveSectorJourney::build(
+            route.clone(),
+            climate_full,
+            2026,
+            "transition",
+            base_s,
+            FiveSectorRegime::ControlledTimingEpisode,
+        );
+        let j_half = FiveSectorJourney::build(
+            route,
+            climate_half,
+            2026,
+            "transition",
+            base_s,
+            FiveSectorRegime::ControlledTimingEpisode,
+        );
+        let mut s_full = j_full.build_snapshot_at(base_s + 420.0, "asphalt");
+        let mut s_half = j_half.build_snapshot_at(base_s + 420.0, "asphalt");
+
+        // Normal wet conditions: road film is exactly 50%, puddle fills are bit-for-bit identical.
+        let r_full = s_full.sample_surface_at(&j_full, 3000.0, 0.0);
+        let r_half = s_half.sample_surface_at(&j_half, 3000.0, 0.0);
+        assert!(r_full.water_mm > 0.2);
+        assert!((r_half.water_mm - r_full.water_mm * 0.5).abs() < 1e-4);
+
+        let f_full = s_full.compute_puddle_fills(&j_full, &[1200.0, 3000.0, 4800.0], &[1.2, 1.35, 1.5], &[0.3, 0.65, 0.75], &[1.2, 1.3, 1.4]);
+        let f_half = s_half.compute_puddle_fills(&j_half, &[1200.0, 3000.0, 4800.0], &[1.2, 1.35, 1.5], &[0.3, 0.65, 0.75], &[1.2, 1.3, 1.4]);
+        assert_eq!(f_full, f_half, "Puddle fills must be completely unaffected by road film halving");
+
+        // Saturated extreme reservoir (18 mm): road surface caps at 9.0 mm (50%), tire effective cap at 6.0 mm.
+        for ss in &mut s_full.sector_surface {
+            ss.water_mm = 18.0;
+        }
+        for ss in &mut s_half.sector_surface {
+            ss.water_mm = 18.0;
+        }
+        let max_full = s_full.sample_surface_at(&j_full, 3000.0, 0.0);
+        let max_half = s_half.sample_surface_at(&j_half, 3000.0, 0.0);
+        assert!((max_full.water_mm - 18.0).abs() < 1e-4);
+        assert!((max_half.water_mm - 9.0).abs() < 1e-4);
+        assert!((max_half.water_mm_effective - 6.0).abs() < 1e-4);
+    }
+
+    #[test]
+    fn gravel_stage_has_40_percent_loose_clay_sectors_and_converts_to_mud_in_heavy_rain() {
+        let (climate, route) = load_ss01_profiles();
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+
+        // 1. Dry gravel stage: ~40% of the stage has loose clay-gravel sectors, mud_factor == 0 everywhere.
+        let j_dry = FiveSectorJourney::build(
+            route.clone(),
+            climate.clone(),
+            2026,
+            "dry",
+            base_s,
+            FiveSectorRegime::Dry,
+        );
+        let snap_dry = j_dry.build_snapshot_at(base_s, "gravel");
+        let snap_asphalt = j_dry.build_snapshot_at(base_s, "asphalt");
+        let n_samples = 250usize;
+        let mut active_loose = 0usize;
+        for i in 0..=n_samples {
+            let p = route.total_distance_m * (i as f32) / (n_samples as f32);
+            let s_g = snap_dry.sample_surface_at(&j_dry, p, 0.0);
+            let s_a = snap_asphalt.sample_surface_at(&j_dry, p, 0.0);
+            assert_eq!(s_a.loose_gravel_coverage, 0.0, "asphalt must never have loose gravel sectors");
+            assert_eq!(s_a.mud_factor, 0.0);
+            assert_eq!(s_g.mud_factor, 0.0, "dry gravel must have zero mud_factor");
+            if s_g.loose_gravel_coverage >= 0.35 {
+                active_loose += 1;
+            }
+        }
+        let share = (active_loose as f32) / ((n_samples + 1) as f32);
+        eprintln!("SS01_LOOSE_GRAVEL_SHARE={:.3}", share);
+        assert!(
+            (0.33..=0.47).contains(&share),
+            "expected ~40% loose gravel coverage on SS01, got {:.1}%",
+            share * 100.0
+        );
+
+        // 2. Heavy rain on the same gravel stage converts loose-gravel sectors into thick mud.
+        let j_wet = FiveSectorJourney::build(
+            route.clone(),
+            climate,
+            2026,
+            "transition",
+            base_s,
+            FiveSectorRegime::ControlledTimingEpisode,
+        );
+        let mut snap_wet = j_wet.build_snapshot_at(base_s + 540.0, "gravel");
+        for ss in &mut snap_wet.sector_surface {
+            ss.water_mm = 1.4;
+            ss.saturation = 0.55;
+        }
+        let mut mud_active = 0usize;
+        for i in 0..=n_samples {
+            let p = route.total_distance_m * (i as f32) / (n_samples as f32);
+            let s_w = snap_wet.sample_surface_at(&j_wet, p, 0.0);
+            if s_w.loose_gravel_coverage >= 0.50 {
+                assert!(
+                    s_w.mud_factor > 0.45,
+                    "loose gravel sector under heavy rain must convert to mud (loose={} mud={})",
+                    s_w.loose_gravel_coverage,
+                    s_w.mud_factor
+                );
+                mud_active += 1;
+            } else if s_w.loose_gravel_coverage == 0.0 {
+                assert_eq!(s_w.mud_factor, 0.0, "compact gravel outside clay sectors stays mud_factor=0");
+            }
+        }
+        assert!(mud_active > 60, "expected substantial mud sectors under heavy rain (got {})", mud_active);
     }
 }

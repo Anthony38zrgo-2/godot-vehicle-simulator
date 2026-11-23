@@ -586,7 +586,7 @@ func abandon_stage() -> void:
 
 func description(tire: Dictionary) -> String:
 	var state: Dictionary = tire.state
-	var compound := str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.compound_id)).get("short_label", tire.compound_id))
+	var compound := _compound_label(str(tire.compound_id), true)
 	var puncture := ""
 	if float(state.get("leak_per_second", 0.0)) > 0.0:
 		puncture = " / pinchado" if float(state.get("pressure_loss_fraction", 0.0)) > 0.85 else " / fuga"
@@ -625,13 +625,13 @@ func show_inventory() -> void:
 					var scid := str(sd.get("compound_id", ""))
 					if not is_compound_allowed_for_session(scid):
 						continue
-					button("+ #%d %s" % [sid, scid], func(): load_spare_from_stock(sid), row)
+					button("+ #%d %s" % [sid, _compound_label(scid, true)], func(): load_spare_from_stock(sid), row)
 		else:
 			var row := HBoxContainer.new()
 			content.add_child(row)
 			for entry in (get_session_allowed_compound_ids() if not get_session_allowed_compound_ids().is_empty() else RallyTireCompound.compound_ids(RallyTireCompound.load_catalog())):
 				var cid := str(entry)
-				button("+ " + cid, func(): load_spare(cid), row)
+				button("+ " + _compound_label(cid), func(): load_spare(cid), row)
 	if not opened_from_results:
 		_add_minimal_damage_strip()
 	var nav := HBoxContainer.new()
@@ -899,6 +899,16 @@ func get_session_allowed_compound_ids() -> Array:
 	if session != null and session.has_method("get_session_allowed_compound_ids"):
 		return session.get_session_allowed_compound_ids()
 	return []
+
+
+func get_session_compound_label_overrides() -> Dictionary:
+	if session != null and session.has_method("get_session_compound_label_overrides"):
+		return session.get_session_compound_label_overrides()
+	return {}
+
+
+func _compound_label(compound_id: String, short: bool = false) -> String:
+	return RallyTireCompound.compound_label(compound_id, short, get_session_compound_label_overrides())
 
 
 func spare_compound_for_id(spare_id: int) -> String:
@@ -1202,7 +1212,7 @@ func _update_telemetry_panel() -> void:
 			var extra_suffix := (" · " + " ".join(extras)) if not extras.is_empty() else ""
 
 			var lbl := Label.new()
-			lbl.text = "%s: %s [%s]%s" % [corners[i], str(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire.get("compound_id", ""))).get("short_label", tire.get("compound_id", ""))), c_stat, extra_suffix]
+			lbl.text = "%s: %s [%s]%s" % [corners[i], _compound_label(str(tire.get("compound_id", "")), true), c_stat, extra_suffix]
 			lbl.add_theme_font_override("font", DIN_BOLD)
 			lbl.add_theme_font_size_override("font_size", 9)
 			lbl.add_theme_color_override("font_color", col)
@@ -1563,8 +1573,9 @@ class WheelSlotControl extends PanelContainer:
 		head_box.add_child(head_sp)
 
 		var state: Dictionary = tire_data.get("state", {})
-		var compound_info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), str(tire_data.get("compound_id", "")))
-		var comp_name := str(compound_info.get("label", tire_data.get("compound_id", ""))).to_upper()
+		var tire_cid := str(tire_data.get("compound_id", ""))
+		var compound_info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_cid)
+		var comp_name := str(panel_ref._compound_label(tire_cid, false)).to_upper() if (panel_ref != null and panel_ref.has_method("_compound_label")) else str(compound_info.get("label", tire_cid)).to_upper()
 		compound_label = Label.new()
 		compound_label.text = comp_name
 		compound_label.add_theme_font_override("font", panel_ref.DIN_BOLD)

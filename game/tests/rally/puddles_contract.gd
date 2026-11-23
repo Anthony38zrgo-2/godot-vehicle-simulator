@@ -93,7 +93,7 @@ func verify() -> void:
 	mean_abs_lat /= float(a.patches.size())
 	assert(profile_ids.size() >= 6, "Puddles must generate rich profile diversity (got %d)" % profile_ids.size())
 	assert(families_found.size() == 4, "Puddles must generate all 4 rally hazard families (got %d)" % families_found.size())
-	assert(max_depth_found >= 38.0 and min_depth_found <= 10.0, "Puddles must span diverse depths with high dynamic range")
+	assert(max_depth_found >= 26.0 and max_depth_found <= 50.0 and min_depth_found <= 10.0, "Puddles must span diverse depths within the calibrated 5-40mm nominal range (got %.1f..%.1f)" % [min_depth_found, max_depth_found])
 	assert(max_area_found > 14.0, "Puddles must include large basins with +25% size increase")
 	assert(max_area_found / min_area_found > 3.0, "Puddles must have high size variability")
 	assert(mean_abs_lat > 0.65, "Puddles must form off-center wheel-rut and shoulder patterns (not a centerline file)")

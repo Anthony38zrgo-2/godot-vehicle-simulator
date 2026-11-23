@@ -11,6 +11,9 @@ extends RefCounted
 ## ambiental común, incluyendo las no visitadas, con pasos acotados
 ## independientes del FPS. En pausa/reglaje/carga no avanza.
 
+const ROAD_SURFACE_WATER_SCALE := 0.5
+const ROAD_MAX_WATER_MM := 7.5
+
 var zones: Array = []
 var surface_profiles: Dictionary = {}
 var regional_id: String = "russia_summer"
@@ -96,10 +99,17 @@ func zone_count() -> int:
 	return zones.size()
 
 
+static func _project_road_water_state(state: Dictionary) -> Dictionary:
+	var raw_water := maxf(float(state.get("water_mm", 0.0)), 0.0)
+	state["puddle_water_mm"] = raw_water
+	state["water_mm"] = clampf(raw_water * ROAD_SURFACE_WATER_SCALE, 0.0, ROAD_MAX_WATER_MM)
+	return state
+
+
 func state_for_zone(zi: int) -> Dictionary:
 	if zi < 0 or zi >= zones.size():
 		return {}
-	return (zones[zi] as Dictionary).duplicate(true)
+	return _project_road_water_state((zones[zi] as Dictionary).duplicate(true))
 
 
 ## Interpolación espacial continua en límites de zona (smoothstep sobre la franja de
@@ -123,8 +133,8 @@ func blended_state_at_distance(dist_m: float, lateral_t: float = 0.0) -> Diction
 		var half := blend * 0.5
 		if absf(dist_m - boundary) <= half and half > 0.01:
 			var t := smoothstep(0.0, 1.0, clampf((dist_m - (boundary - half)) / (half * 2.0), 0.0, 1.0))
-			return _lerp_states(prev_z, next_z, t)
-	return (zones[zi] as Dictionary).duplicate(true)
+			return _project_road_water_state(_lerp_states(prev_z, next_z, t))
+	return _project_road_water_state((zones[zi] as Dictionary).duplicate(true))
 
 
 func zone_index_at_distance(dist_m: float) -> int:
@@ -197,6 +207,8 @@ func _procedural_state_at(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
 		"water_coverage": float(s.get("water_coverage", 0.0)),
 		"snow_coverage": float(s.get("snow_coverage", 0.0)),
 		"ice_coverage": float(s.get("ice_coverage", 0.0)),
+		"loose_gravel_coverage": float(s.get("loose_gravel_coverage", 0.0)),
+		"mud_factor": float(s.get("mud_factor", 0.0)),
 		"dry_weight": float(s.get("dry_weight", 1.0)),
 		"snow_weight": float(s.get("snow_weight", 0.0)),
 		"ice_weight": float(s.get("ice_weight", 0.0)),

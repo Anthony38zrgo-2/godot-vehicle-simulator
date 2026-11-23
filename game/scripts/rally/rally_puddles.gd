@@ -40,7 +40,7 @@ const TYPES := [
 		"family": "rut",
 		"length": 4.90,
 		"width": 1.60,
-		"depth_mm": 11.0,
+		"depth_mm": 9.5,
 		"drag": 1.05,
 		"min_water": 0.30,
 		"retention": 1.18,
@@ -58,7 +58,7 @@ const TYPES := [
 		"family": "rut",
 		"length": 6.80,
 		"width": 2.15,
-		"depth_mm": 38.0,
+		"depth_mm": 24.0,
 		"drag": 1.45,
 		"min_water": 0.25,
 		"retention": 1.38,
@@ -76,7 +76,7 @@ const TYPES := [
 		"family": "rut",
 		"length": 5.80,
 		"width": 3.05,
-		"depth_mm": 26.0,
+		"depth_mm": 18.5,
 		"drag": 1.25,
 		"min_water": 0.28,
 		"retention": 1.28,
@@ -95,7 +95,7 @@ const TYPES := [
 		"family": "gutter",
 		"length": 4.20,
 		"width": 2.55,
-		"depth_mm": 54.0,
+		"depth_mm": 36.0,
 		"drag": 1.65,
 		"min_water": 0.22,
 		"retention": 1.45,
@@ -114,7 +114,7 @@ const TYPES := [
 		"family": "gutter",
 		"length": 6.10,
 		"width": 2.75,
-		"depth_mm": 42.0,
+		"depth_mm": 28.0,
 		"drag": 1.50,
 		"min_water": 0.24,
 		"retention": 1.40,
@@ -133,7 +133,7 @@ const TYPES := [
 		"family": "gutter",
 		"length": 4.90,
 		"width": 3.05,
-		"depth_mm": 30.0,
+		"depth_mm": 21.0,
 		"drag": 1.35,
 		"min_water": 0.28,
 		"retention": 1.28,
@@ -153,7 +153,7 @@ const TYPES := [
 		"family": "pothole",
 		"length": 2.65,
 		"width": 2.60,
-		"depth_mm": 62.0,
+		"depth_mm": 40.0,
 		"drag": 1.75,
 		"min_water": 0.22,
 		"retention": 1.52,
@@ -170,7 +170,7 @@ const TYPES := [
 		"family": "pothole",
 		"length": 3.85,
 		"width": 2.95,
-		"depth_mm": 48.0,
+		"depth_mm": 33.0,
 		"drag": 1.55,
 		"min_water": 0.26,
 		"retention": 1.38,
@@ -188,7 +188,7 @@ const TYPES := [
 		"family": "pothole",
 		"length": 4.80,
 		"width": 4.20,
-		"depth_mm": 44.0,
+		"depth_mm": 30.0,
 		"drag": 1.45,
 		"min_water": 0.28,
 		"retention": 1.35,
@@ -206,7 +206,7 @@ const TYPES := [
 		"family": "sheet",
 		"length": 6.20,
 		"width": 5.10,
-		"depth_mm": 16.0,
+		"depth_mm": 12.5,
 		"drag": 0.95,
 		"min_water": 0.34,
 		"retention": 1.12,
@@ -224,7 +224,7 @@ const TYPES := [
 		"family": "sheet",
 		"length": 5.50,
 		"width": 4.70,
-		"depth_mm": 20.0,
+		"depth_mm": 15.0,
 		"drag": 1.12,
 		"min_water": 0.32,
 		"retention": 1.18,
@@ -241,7 +241,7 @@ const TYPES := [
 		"family": "sheet",
 		"length": 3.80,
 		"width": 3.45,
-		"depth_mm": 5.5,
+		"depth_mm": 5.0,
 		"drag": 0.75,
 		"min_water": 0.42,
 		"retention": 0.95,
@@ -254,6 +254,17 @@ const TYPES := [
 		"grid_res": 5,
 	},
 ]
+
+const DEPTH_BAND_SHALLOW_MAX_MM := 10.0
+const DEPTH_BAND_DEEP_MIN_MM := 28.0
+const DEPTH_BAND_EXTREME_MIN_MM := 35.0
+const TARGET_BAND_SHARE := {
+	"shallow": 0.20,
+	"mid": 0.65,
+	"deep": 0.15,
+}
+const DEEP_COOLDOWN_M := 55.0
+const CLUSTER_DENSITY_SCALE := 0.74
 
 static var _mask_images: Dictionary = {}
 
@@ -364,7 +375,7 @@ func _local_liquid_state(distance: float) -> Dictionary:
 		var wind_rad := deg_to_rad(wind_deg)
 		var wind_vec := Vector2(sin(wind_rad), cos(wind_rad)) * wind_spd
 		return {
-			"water_mm": maxf(float(state.get("water_mm", 0.0)), 0.0),
+			"water_mm": maxf(float(state.get("puddle_water_mm", state.get("water_mm", 0.0))), 0.0),
 			"ice_mm": maxf(float(state.get("ice_mm", 0.0)), 0.0),
 			"rain_ratio": clampf(rain_mm_h / 10.0, 0.0, 1.0),
 			"wind_vec": wind_vec,
@@ -583,13 +594,25 @@ func _build_conformal_puddle_mesh(
 	}
 
 
+static func _depth_band(depth_mm: float) -> String:
+	if depth_mm <= DEPTH_BAND_SHALLOW_MAX_MM:
+		return "shallow"
+	if depth_mm >= DEPTH_BAND_DEEP_MIN_MM:
+		return "deep"
+	return "mid"
+
+
 func _select_profile_index(
 	rng: RandomNumberGenerator,
 	slot_index: int,
 	twi: float,
 	abs_turn: float,
 	last_profile_idx: int,
-	family_counts: Dictionary
+	family_counts: Dictionary,
+	band_counts: Dictionary,
+	cluster_deep_used: bool = false,
+	cluster_shallow_used: bool = false,
+	deep_cooldown_active: bool = false
 ) -> int:
 	var weights: PackedFloat32Array = PackedFloat32Array()
 	weights.resize(TYPES.size())
@@ -598,52 +621,86 @@ func _select_profile_index(
 	var is_valley := twi >= 1.15
 	var is_grade := twi < 0.85
 
+	var band_type_counts := {"shallow": 0, "mid": 0, "deep": 0}
+	for p_item: Dictionary in TYPES:
+		var b_key := _depth_band(float(p_item.get("depth_mm", 20.0)))
+		band_type_counts[b_key] = int(band_type_counts[b_key]) + 1
+
+	var total_placed := int(band_counts.get("shallow", 0)) + int(band_counts.get("mid", 0)) + int(band_counts.get("deep", 0))
+	var band_feedback := {}
+	for b_key in ["shallow", "mid", "deep"]:
+		var share := float(TARGET_BAND_SHARE[b_key])
+		var expected := float(total_placed + 1) * share
+		var actual := float(int(band_counts.get(b_key, 0)))
+		var ratio := clampf((expected + 0.6) / (actual + 0.6), 0.06, 4.0)
+		band_feedback[b_key] = share * (ratio * ratio) / maxf(float(band_type_counts[b_key]), 1.0)
+
 	for idx in TYPES.size():
 		var p: Dictionary = TYPES[idx]
 		var fam: String = str(p.get("family", "pothole"))
 		var depth_mm: float = float(p.get("depth_mm", 20.0))
-		var w := 1.0
+		var band := _depth_band(depth_mm)
+		var w := float(band_feedback[band])
 
-		# Primary puddles lean toward deeper/defining hazards (depth >= 15 mm);
-		# satellites broaden variety toward smaller craters, narrow ruts and shallow glazes.
+		# Bell-shaped distribution (~20% shallow, ~65% mid, ~15% deep):
+		# - Deep puddles (>= 28 mm, max 40 mm nominal) spawn only as primary cluster hazards, max 1 per cluster,
+		#   with extreme craters/gutters (36-40 mm) kept rarer than 28-33 mm basins.
+		# - Shallow puddles (<= 10 mm) spawn primarily as satellites (max 1 per cluster when possible).
 		if slot_index == 0:
-			if depth_mm < 15.0:
-				w = 0.0
-			elif depth_mm >= 25.0 or str(p.get("id", "")) == "sheet_cross_flood":
-				w *= 1.35
+			if band == "shallow":
+				w *= 0.12
+			elif band == "deep":
+				if cluster_deep_used:
+					w = 0.0
+				else:
+					w *= 2.15 if depth_mm < DEPTH_BAND_EXTREME_MIN_MM else 1.05
+					if deep_cooldown_active:
+						w *= 0.28
+			else:
+				w *= 1.15
 		else:
-			if depth_mm <= 12.0:
-				w *= 2.25
-			elif depth_mm <= 22.0 or str(p.get("id", "")) == "pothole_crater_sharp":
-				w *= 1.45
-			elif float(p.get("length", 3.0)) >= 6.2:
-				w *= 0.60
+			if band == "deep":
+				w = 0.0
+			elif band == "shallow":
+				w *= 0.45 if cluster_shallow_used else 1.55
+			else:
+				w *= 0.75 if float(p.get("length", 3.0)) >= 6.2 else 1.10
 
-		# Topographic & geometric context (favor broader natural pools & basins over thin strips)
+		if w <= 0.0:
+			weights[idx] = 0.0
+			continue
+
+		# Topographic & geometric context (kept moderate so band shares remain stable)
 		if is_curve and fam == "gutter":
-			w *= 1.75
+			w *= 1.45
 		elif not is_curve and fam in ["sheet", "pothole"]:
-			w *= 1.30
+			w *= 1.20
 		elif not is_curve and fam == "rut":
 			w *= 1.05
 
 		if is_valley:
 			if str(p.get("id", "")) in ["washout_compression_basin", "sheet_cross_flood", "sprawl_multi_lobe", "camber_crescent"]:
-				w *= 1.85
+				w *= 1.35
 		elif is_grade:
 			if fam == "sheet":
-				w *= 0.85
-			elif str(p.get("id", "")) in ["pothole_crater_sharp", "pothole_double_scar", "skim_glaze_film"]:
-				w *= 1.35
+				w *= 0.88
+			elif str(p.get("id", "")) in ["pothole_crater_sharp", "pothole_double_scar"]:
+				w *= 1.15
 
-		# Anti-repetition: suppress back-to-back identical profiles & softly balance families
+		# Anti-repetition & gentle family representation (boost unseen families early without fighting band targets)
 		if idx == last_profile_idx:
 			w *= 0.12
 		var f_count := int(family_counts.get(fam, 0))
-		w /= (1.0 + float(f_count) * 0.18)
+		if f_count == 0:
+			w *= 2.4
+		else:
+			w /= (1.0 + float(f_count) * 0.03)
 
 		weights[idx] = w
 		total += w
+
+	if total <= 0.0001:
+		return 2
 
 	var pick := rng.randf() * total
 	var acc := 0.0
@@ -672,6 +729,8 @@ func build() -> void:
 	var cluster_id := 0
 	var last_profile_idx := -1
 	var family_counts: Dictionary = {"rut": 0, "gutter": 0, "pothole": 0, "sheet": 0}
+	var band_counts: Dictionary = {"shallow": 0, "mid": 0, "deep": 0}
+	var last_deep_dist := -DEEP_COOLDOWN_M
 
 	for i in range(1, route.size()):
 		var seg := route[i] - route[i - 1]
@@ -699,18 +758,31 @@ func build() -> void:
 			if absf(turn_signed) > 0.025:
 				preferred_side = signf(turn_signed) if rng.randf() < 0.75 else -signf(turn_signed)
 
-			var cluster_count := rng.randi_range(1, 5) if rng.randf() < 0.85 else 1
+			var cluster_count := rng.randi_range(1, 4) if rng.randf() < 0.80 else 1
 			var placed_centers: Array[Vector3] = []
 			var placed_lons: Array[float] = []
 			var placed_sides: Array[float] = []
 			var cluster_mode := rng.randi_range(0, 2) # 0: longitudinal rut/gutter chain, 1: diagonal camber runoff, 2: main basin + satellites
+			var cluster_deep_used := false
+			var cluster_shallow_used := false
 
 			for k in range(cluster_count):
+				var deep_cooldown_active := (not is_short_test_route) and ((next_cluster_dist - last_deep_dist) < DEEP_COOLDOWN_M)
 				var profile_idx := _select_profile_index(
-					rng, k, twi, absf(turn_signed), last_profile_idx, family_counts
+					rng,
+					k,
+					twi,
+					absf(turn_signed),
+					last_profile_idx,
+					family_counts,
+					band_counts,
+					cluster_deep_used,
+					cluster_shallow_used,
+					deep_cooldown_active
 				)
 				var profile: Dictionary = TYPES[profile_idx]
 				var family: String = str(profile.get("family", "pothole"))
+				var depth_band := _depth_band(float(profile.get("depth_mm", 20.0)))
 
 				# Pareto multi-scale size distribution: macro hazards, chained companions, and broader satellites
 				var scale := 1.0
@@ -801,9 +873,17 @@ func build() -> void:
 				placed_sides.append(side)
 				last_profile_idx = profile_idx
 				family_counts[family] = int(family_counts.get(family, 0)) + 1
+				band_counts[depth_band] = int(band_counts.get(depth_band, 0)) + 1
+				if depth_band == "deep":
+					cluster_deep_used = true
+					last_deep_dist = next_cluster_dist
+				elif depth_band == "shallow":
+					cluster_shallow_used = true
 
-				# Highly variable per-instance depth and organic domain-warp parameters
-				var instance_depth_mm := float(profile.depth_mm) * rng.randf_range(0.74, 1.28) * (0.88 if k > 0 else 1.0)
+				# Triangular-centered per-instance depth variation (keeps extreme tails rare)
+				var tri := (rng.randf() + rng.randf()) * 0.5
+				var depth_jitter := lerpf(0.78, 1.22, tri)
+				var instance_depth_mm := float(profile.depth_mm) * depth_jitter * (0.90 if k > 0 else 1.0)
 				var shape_params := Vector4(
 					rng.randf_range(-0.52, 0.52),
 					rng.randf_range(-0.48, 0.48),
@@ -875,7 +955,7 @@ func build() -> void:
 				var drain_wave := 0.5 + 0.5 * sin(next_cluster_dist * 0.014 + float(stage_seed % 997) * 0.13) * cos(next_cluster_dist * 0.0057)
 				var step_min := 18.0 if (drain_wave > 0.48 or twi >= 1.02) else 34.0
 				var step_max := 38.0 if (drain_wave > 0.48 or twi >= 1.02) else 66.0
-				next_cluster_dist += rng.randf_range(step_min, step_max) / clampf(twi, 0.65, 1.35)
+				next_cluster_dist += rng.randf_range(step_min, step_max) / (clampf(twi, 0.65, 1.35) * CLUSTER_DENSITY_SCALE)
 
 		distance += seg_len
 
