@@ -4,8 +4,8 @@
   "source": {
     "blend": "D:\\RallyManiacAssets\\cars\\palomino-special-67-low-poly-model\\source\\PalominoSpecial67.blend",
     "blender_version": "5.2.0 LTS",
-    "texture_finish": "original_livery_baked_psx_rgb555",
-    "note": "PalominoSpecial67.blend exterior and wheels with interior stripped, opaque black cabin glass, crystal headlight glass, red Bodymat Mix(MULTIPLY) and F-250 PSX RGB555 baked finish."
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "note": "PalominoSpecial67.blend exterior and wheels rebuilt at 1024/512 with interior stripped, stylized Bayer4 blue-slate opaque cabin glass, sharp 1024 lights/chrome/badges/plate, and shadow-driven PSX ordered dithering on pre-baked AO + directional lightmaps."
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -23,8 +23,8 @@
   },
   "chassis": {
     "path": "ford_mustang_1967_289_2v_chassis.glb",
-    "sha256": "e92e19dd2bd983d7c9e32a56ec0fc0060ffc540765c8e50d2249e4a848a9bb99",
-    "size_bytes": 669832,
+    "sha256": "6cb14dbfeee33b0a256bca7ea9f6dda3de74327dd1d74baf637029709291464f",
+    "size_bytes": 1466072,
     "exported_nodes": [
       "Palomino67Exterior",
       "Palomino67Badges"
@@ -33,26 +33,26 @@
   "wheels": {
     "front_left": {
       "path": "ford_mustang_1967_289_2v_wheel_front_left.glb",
-      "sha256": "46bffaf54ebb40237866b7363470f1b222d6345588b9fbbba4a1543fa2cf118a",
-      "size_bytes": 107108,
+      "sha256": "3372858b0f69c79f933f29f6de6710375ae97857c9b0f82215756eb3203cccdc",
+      "size_bytes": 128496,
       "source_object": "PalominoSpecial67_WheelStock_FL"
     },
     "front_right": {
       "path": "ford_mustang_1967_289_2v_wheel_front_right.glb",
-      "sha256": "ab7f027d2630dc7031168dd8905d7e42408f51bf49886dfc00503e8140dbf9e8",
-      "size_bytes": 108372,
+      "sha256": "9c010ea3443451c4034a3b9f37b1b51ecfb3c88427e6d4a1817ef5873b73c3ad",
+      "size_bytes": 128576,
       "source_object": "PalominoSpecial67_WheelStock_FR"
     },
     "rear_left": {
       "path": "ford_mustang_1967_289_2v_wheel_rear_left.glb",
-      "sha256": "cfec264b4b1e564f5e4a5d3cf28afd7e597c026ff081c08807bc17086e03c645",
-      "size_bytes": 108964,
+      "sha256": "daf8316061b546cfee792eaeb673329a23c3ef88716ec8ef929467ecb881f2fe",
+      "size_bytes": 128492,
       "source_object": "PalominoSpecial67_WheelStock_RL"
     },
     "rear_right": {
       "path": "ford_mustang_1967_289_2v_wheel_rear_right.glb",
-      "sha256": "6c4122fe6b6742a857108fe13f13252761775f244a3c9331f7f178bcc52bc41e",
-      "size_bytes": 110212,
+      "sha256": "fab4f5a2e34bca86bcb577ce758530c4eabcf03d1ae916b7788893fabb9516d8",
+      "size_bytes": 128572,
       "source_object": "PalominoSpecial67_WheelStock_RR"
     }
   },

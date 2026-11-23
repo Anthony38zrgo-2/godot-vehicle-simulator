@@ -13,8 +13,10 @@
       "texture": "lancia_fulvia_16HF_psx_ruedas_originales.png",
       "fit": "PSX exterior fitted to original runtime chassis bounds. Longitudinal axle planes and hub height are fixed; wheel meshes retain the original 0.28 m radius and 0.20 m width.",
       "cockpit_enabled": false,
-      "visual_damage_enabled": false
-    }
+      "visual_damage_enabled": false,
+      "finish": "stylized_shadow_dither_psx_v1"
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -24,8 +26,8 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "bc86a9c93a4fffa7f22998c44e83ea9e72f2d2658617e59a9305cc023c8d228d",
-    "size_bytes": 162392,
+    "sha256": "41ef280d1e6d8b1b917415249067427e7954bc03070abbdf5c8e2740f014d689",
+    "size_bytes": 205876,
     "exported_nodes": [
       "FulviaPSXExterior"
     ]
@@ -33,23 +35,23 @@
   "wheels": {
     "front_left": {
       "path": "lancia_fulvia_wheel_front_left.glb",
-      "sha256": "7be3f8207fee09869f3eae3f55330df265f7b957f1d76c8f3d8ce1f33d4016cf",
-      "size_bytes": 96260
+      "sha256": "984462ee884537fbca23b102efbbb9c816b1097d737b72293cb40f232c2aee2b",
+      "size_bytes": 110580
     },
     "front_right": {
       "path": "lancia_fulvia_wheel_front_right.glb",
-      "sha256": "f89e4110039786c532b91bc115d34a3001019ba6c09fad5ae55fa2995ff5d40e",
-      "size_bytes": 96256
+      "sha256": "3b79e4bf42ef6b2e830f6d3fc8046548860470bd7bbfdb15bd99966a23bda20e",
+      "size_bytes": 110576
     },
     "rear_left": {
       "path": "lancia_fulvia_wheel_rear_left.glb",
-      "sha256": "2594db8f0ec107c5c2c1430941fac1c717645ee33e35bbfac7589568379f8c3b",
-      "size_bytes": 96260
+      "sha256": "d1bdcd86507e71f3e4ff0bda5609d41ac008a690998396c8fea9ff82a461014e",
+      "size_bytes": 110580
     },
     "rear_right": {
       "path": "lancia_fulvia_wheel_rear_right.glb",
-      "sha256": "941120b0cada97d692afbe335377b1d5a90d30dcdc24abe55b95c27b1701254d",
-      "size_bytes": 96260
+      "sha256": "e3c43324b12c29b78fe8a89696e856b7a302ab31ef91830cd2225cf20425582f",
+      "size_bytes": 110580
     }
   },
   "wheel_pivots": {

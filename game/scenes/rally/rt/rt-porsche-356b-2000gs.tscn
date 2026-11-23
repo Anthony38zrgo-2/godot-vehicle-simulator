@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/chassis.glb" id="chassis"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/wheel_front_right.glb" id="front_right"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/wheel_rear_left.glb" id="rear_left"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/wheel_rear_right.glb" id="rear_right"]
+[ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="toon_stylized"]
 
 [sub_resource type="PhysicsMaterial" id="surface"]
 friction = 0.35
@@ -28,6 +29,8 @@ rally_collision_path = "res://assets/rally/rt/rt-porsche-356b-2000gs/collision.j
 cockpit_camera_enabled = false
 
 [node name="Chassis" parent="." instance=ExtResource("chassis")]
+script = ExtResource("toon_stylized")
+pixel_albedo = true
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("vfx")

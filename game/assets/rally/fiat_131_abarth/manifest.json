@@ -8,12 +8,12 @@
     "runtime_visuals": {
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Fiat 131.fbx",
       "texture": "fiat_131_abarth_alta.png",
-      "finish": "high_res_pbr_no_psx",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Piecewise-linear longitudinal fit to FIA Homologation No. 647 Group 4 wheelbase (2.490 m) and length (4.181 m) with wide Bertone Gr.4 arch width (1.758 m) preserved and 185/70 R15 gravel wheels (R=0.320 m, W=0.200 m).",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "original_livery_baked_psx_rgb555"
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -32,8 +32,8 @@
   },
   "chassis": {
     "path": "fiat_131_abarth_chassis.glb",
-    "sha256": "e24848de083f22836347edca83980edea85695b8237ed9e47ce8076edfc11af3",
-    "size_bytes": 213244,
+    "sha256": "9669c2dbb67357746ed916f0054360271f1caa40da142ea754ef1762f562bc89",
+    "size_bytes": 217152,
     "exported_nodes": [
       "Fiat131AbarthExterior"
     ]
@@ -41,22 +41,22 @@
   "wheels": {
     "front_left": {
       "path": "fiat_131_abarth_wheel_front_left.glb",
-      "sha256": "987695a6a803dddca1fe1600a32e421ba6e9b05f897fc7165e9ee786343c4473",
+      "sha256": "da3a875c92ffec834edc62709e579c30c5ecfb493692365bcf2e1e5a763d48f4",
       "size_bytes": 134888
     },
     "front_right": {
       "path": "fiat_131_abarth_wheel_front_right.glb",
-      "sha256": "e5869bb07cd1845d0f548282bfef5cc7f63661843c36ce72b3092acc68fbb4d0",
+      "sha256": "1e9ffb2d83fde520fe20e71c4e3e3686b9f7e4c803d28ed44803a5ef907dc111",
       "size_bytes": 134888
     },
     "rear_left": {
       "path": "fiat_131_abarth_wheel_rear_left.glb",
-      "sha256": "a339303e91d29cb834d2a9827c81b5dba8897b9da999561aa16614d0ddc4fe1c",
+      "sha256": "e46c1cca7994ed95d4ae52ff0390d0a0f7e15daa61f0f08612b424d03ae53fa6",
       "size_bytes": 134888
     },
     "rear_right": {
       "path": "fiat_131_abarth_wheel_rear_right.glb",
-      "sha256": "457ddfb2cd2a34731f64c94662de125b1949a6c0cc42702a71f4caabccf4c11f",
+      "sha256": "0a13332d7d899391fea6aa39336859cc38cb7c69fbab9c108b1256d5de55a5b3",
       "size_bytes": 134888
     }
   },

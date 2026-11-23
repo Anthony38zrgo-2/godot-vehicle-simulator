@@ -3,7 +3,8 @@
   "vehicle_id": "rt-porsche-356b-2000gs",
   "source": {
     "source_blend": "Porsche_356B_T6_Coupe_FTC_Medidas_FIA71.blend",
-    "credits": "sharpo and Bugbear"
+    "credits": "sharpo and Bugbear",
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -13,8 +14,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "c7f75919a838808a2033b8a3932ae86bc75c87dc12d0cd2e71aff31d588990d8",
-    "size_bytes": 858248,
+    "sha256": "322624bf2b394eb6fdf1b133fd7759af89399af2f012c0134f3cb04fca3cbaf8",
+    "size_bytes": 869780,
     "texture": {
       "image": "chassis_FTC_PSX.png",
       "resolution": [
@@ -30,23 +31,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "cfff7ba2dd74b42c52c598a46a3b414be2795b1de22a0311d4404b4ae02ed203",
-      "size_bytes": 72924
+      "sha256": "9eb732bd48f50982c55a5cdc163abfee22d99975a8888460749855cfd903e29e",
+      "size_bytes": 55444
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "b157d28ce4c3a172831e23f3c681d500b712794753cd179acd9e5ab325f51a31",
-      "size_bytes": 69580
+      "sha256": "9a315f5e1e3629f8eb954d57c32bb1d4cfd40da94c1da0eb7d383d3bbb9e5419",
+      "size_bytes": 52100
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "de625db626f1f1219830f77a0c35dc7397a4a77cfe2d667e474389c32ae614de",
-      "size_bytes": 72836
+      "sha256": "dc52933a59a7de2ccbf8947592257749e24ed1e9ac8598b3efbb941a826f8d9e",
+      "size_bytes": 55356
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "4a56b4c3840c609e97a3eb94ee8ca12f0499a484c9bc9955507efb3d3062ebd3",
-      "size_bytes": 69448
+      "sha256": "f3897d5bffb7e5a05f5dc097f0de9302b35ae7b5fdd8e1020af5bac4ced12e13",
+      "size_bytes": 51968
     }
   },
   "wheel_pivots": {

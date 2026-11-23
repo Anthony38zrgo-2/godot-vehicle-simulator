@@ -22,11 +22,12 @@
     "runtime_visuals": {
       "blend": "D:\\rust-godot-vehicle-simulator\\alfa_romeo_giulia_ti.blend",
       "texture": "GiuliaTi_Blue_Diffuse",
-      "finish": "high_res_pbr_no_psx",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Alfa Romeo Giulia Ti exterior fitted 1:1 to Rally Trophy Giulia GTA chassis bounds, 2.400 m wheelbase, and 1.200 m tracks with native Rally Trophy Giulia wheel meshes.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +37,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "fa07aeacae717244283a13ee19219000d137a2fb0804241e8da6545d1da315aa",
-    "size_bytes": 576824,
+    "sha256": "fa071147cc67996fabdff1d84b3862a641c8908d62380d6b2856e274e8973963",
+    "size_bytes": 320244,
     "exported_nodes": [
       "AlfaGiuliaTiExterior"
     ]
@@ -45,23 +46,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "9ec354a685f4799a17a03ba8e4c73580a0473d85e6914dcfc646502da707dbce",
-      "size_bytes": 66772
+      "sha256": "6de8a6198532ce2288a6ab710affc6e82d562e256016da05d521dd5ab6ee88de",
+      "size_bytes": 47744
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "112033652bc11cf1db7941c711907b4555ef56e7676bb12c3d5552ebaf774727",
-      "size_bytes": 66780
+      "sha256": "232059c8d8cc61b100c922e4fe05736a25dc123051d237c04d7ae479e8cbd4fc",
+      "size_bytes": 47752
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "7e9d77167078ae0b3f6242a3345df074413f1eb1bb5e8ebf60bcc6463c291ade",
-      "size_bytes": 66780
+      "sha256": "352a47a761b0b76b5a0ce230f9ca651be408718e788bd136114ecde13022a7c4",
+      "size_bytes": 47752
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "991c06cf418bba7e4893999e01d272e0b2818f34d12aaf6e839876149bde1c6b",
-      "size_bytes": 66780
+      "sha256": "0fcb812bb40212b75b8358870710126c3bc16c0e6d39f4a76553506e07a9fdd2",
+      "size_bytes": 47752
     }
   },
   "wheel_pivots": {

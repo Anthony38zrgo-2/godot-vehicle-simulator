@@ -7,8 +7,8 @@
     "blender_version": "5.2.0 LTS",
     "runtime_visuals": {
       "source": "D:\\RallyManiacAssets\\90120\\cars\\90120",
-      "texture": "porsche_911_24s_diffuse.png",
-      "finish": "high_res_pbr_no_psx",
+      "texture": "porsche_911_24s_chassis_stylized_psx.png",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Fitted to official Porsche 911 2.4 S (1972-1973 F-Series LWB) dimensions: wheelbase 2.271 m, length 4.163 m, body width 1.610 m, height 1.320 m, tracks 1.372 m / 1.354 m, 185/70 VR 15 tires (R=0.320 m, W=0.195 m).",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
@@ -31,8 +31,8 @@
   },
   "chassis": {
     "path": "porsche_911_24s_chassis.glb",
-    "sha256": "800d82b12037780c9b1e14d56d19fd45b47d1726c6e3f0f8bddd1eed73cd01cb",
-    "size_bytes": 334964,
+    "sha256": "5b4c612a38cab6174cf09c31bc521ce51c911665ff28b480464b52f978c48684",
+    "size_bytes": 531476,
     "exported_nodes": [
       "Porsche911_24S_Exterior"
     ]
@@ -40,23 +40,23 @@
   "wheels": {
     "front_left": {
       "path": "porsche_911_24s_wheel_front_left.glb",
-      "sha256": "b8bad6a1c018ad5991bff8401da21fbbdc282dac7ae8d81afa9cb9687f7e5936",
-      "size_bytes": 60544
+      "sha256": "0fb5ed7ee844d0aeb7e98d1986168ce8a402191cf27903f732d7c91e4f4148a4",
+      "size_bytes": 38432
     },
     "front_right": {
       "path": "porsche_911_24s_wheel_front_right.glb",
-      "sha256": "f3dc77817f6248ebf4c0e20d80aa9a9dac855a6543fea0d15af5df9fec9436d4",
-      "size_bytes": 60544
+      "sha256": "da74b446be772e55d7298b0c8b5930c495c59a22af1fe6b224d1746a2cc1bc8a",
+      "size_bytes": 38432
     },
     "rear_left": {
       "path": "porsche_911_24s_wheel_rear_left.glb",
-      "sha256": "ef8f017b1a102b5848469bc063e26e51522b8d762ead0b25b2f01aa74275fabb",
-      "size_bytes": 60544
+      "sha256": "e0e30d90156b809011aafe02326b37e827e68a98db231b0637dc63c1d6c7e356",
+      "size_bytes": 38432
     },
     "rear_right": {
       "path": "porsche_911_24s_wheel_rear_right.glb",
-      "sha256": "0b7486eae43a922794fd9d8d54dde280a5f0029cd76967263e2995d71395f088",
-      "size_bytes": 60544
+      "sha256": "3f52d50f48332c2439e0d519358035da70c18ae5e4874b6e31d225566f78a4f2",
+      "size_bytes": 38432
     }
   },
   "collision": {

@@ -45,11 +45,12 @@
     "runtime_visuals": {
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Ford Escort RS1800 with lights.fbx",
       "texture": "ford_escort_RS1800_alta.png",
-      "finish": "high_res_pbr_no_psx",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
-    }
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -62,8 +63,8 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "22bc7e2051de686ddb3a3756a8413cbdea5f7770a19d882a5be5a0f20f9b43d9",
-    "size_bytes": 188932,
+    "sha256": "4ffbe0ce773eb9a140408daa8984ace8508118458c41d7d780957fd88d36624b",
+    "size_bytes": 210644,
     "exported_nodes": [
       "EscortRS1800Exterior"
     ]
@@ -71,32 +72,32 @@
   "wheels": {
     "front_left": {
       "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
-      "sha256": "832edb9e2a8b3c4980c49b5cf2324f91251377f05a630bedfcabc24cebb7a3f0",
-      "size_bytes": 125588,
+      "sha256": "25d00ea1e2ece34cfb079ae7247ff8e63ce8608cf998a7e08cbdc601804911d5",
+      "size_bytes": 110400,
       "source_object": "tire_fl",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "front_right": {
       "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
-      "sha256": "3fa2455a2447c3c85dabbe3e747bec199340935bf351cfa879d7dbfa198d17a5",
-      "size_bytes": 125588,
+      "sha256": "09a54424a0ac1b57e0ca7b919292e572f8c1fbf88efdadd5401303f6be98443f",
+      "size_bytes": 110400,
       "source_object": "tire_fr",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "rear_left": {
       "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
-      "sha256": "8c82638acd06721b575144efe6465b322dfc31edfb0af876db63a747f0297c20",
-      "size_bytes": 125588,
+      "sha256": "b0d103bdbfeea44f606fb164b296d75d784b0c61bf14a29c315c331251dc3a20",
+      "size_bytes": 110400,
       "source_object": "tire_rl",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
     },
     "rear_right": {
       "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
-      "sha256": "14f3fa8b060b272e9aab431527593e3dde2f38d9ca1a8c2e4570ee553e920eff",
-      "size_bytes": 125588,
+      "sha256": "c198419948576c7259a060c82ae59ae66a3a9b595534224862c0744c99b790a6",
+      "size_bytes": 110400,
       "source_object": "tire_rr",
       "mirrored_across_x": false,
       "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"

@@ -19,7 +19,17 @@
       "collision_source": "exterior"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "kn5": "D:\\RallyManiacAssets\\asw-pack-saab-96\\content\\cars\\blz_saab_96\\blz_saab_96.kn5",
+      "skin": "02_polar",
+      "blend": "D:\\RallyManiacAssets\\saab_96_psx\\saab_96_beige_exterior.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "fit": "KN5 non-rally Polar Beige exterior-only (interior stripped, opaque bluish cabin glass, welded vertices, 2-atlas seamless AC body UV + details UV); measured wheelbase=2.498594 m, tracks=1.342534/1.322805 m, tire R=0.32714 m W=0.2236 m.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -29,75 +39,78 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "265113b99b131ad05e423e5821eebd2178c08c2874331c5fc33578c3f69c743e",
-    "size_bytes": 1341904
+    "sha256": "1befe750b8742fd32e095bab2bf0ff0ba208fa3fcebbb78e9a5ffcfaa4019c83",
+    "size_bytes": 2685520,
+    "exported_nodes": [
+      "Saab96_Exterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "2ed6a1619821fe77f340566cbbbb1ef370f8e51af38b7c7aa390cee830409207",
-      "size_bytes": 65692
+      "sha256": "c4af130fbe2a18785928da63786abc5035edd23c13c26ddeabdee93c64c3df9e",
+      "size_bytes": 227740
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "743e36fbd12b8b01b43b9d6111ad3cc38ac69f95e6aa28f5b9b07f2bc21d60b7",
-      "size_bytes": 65692
+      "sha256": "ebde96b1def8ee9bddc2bd6e27e3c8f614c0d258af3834a538828227ed4a9e80",
+      "size_bytes": 216088
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "aa7d40380fc6f86c76b251141c2b7e8631fede001a70a13546394bcb955909c6",
-      "size_bytes": 65692
+      "sha256": "f650e3ac1c223cf2a4d1d110592b266311a49c29c2f2b168c27893a28e695f85",
+      "size_bytes": 231228
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "34869e30cb26465a99b296e8c364a012131651512572a0b71c8b5fbae77b7bda",
-      "size_bytes": 65692
+      "sha256": "7a23b111f52eba84460501eb555cca9cd61f6f0b10ee01c226beabb6c892b2dd",
+      "size_bytes": 222948
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.5924999713897705,
-        "y": 0.2799999415874481,
-        "z": -1.2000000476837158
+        "x": -0.671267,
+        "y": 0.34258,
+        "z": -1.249297
       },
-      "radius_metres": 0.28000000119208934,
-      "width_metres": 0.17500007152557373
+      "radius_metres": 0.327009,
+      "width_metres": 0.22381
     },
     "front_right": {
       "center_metres": {
-        "x": 0.5924999713897705,
-        "y": 0.2799999415874481,
-        "z": -1.2000000476837158
+        "x": 0.671267,
+        "y": 0.34258,
+        "z": -1.249297
       },
-      "radius_metres": 0.2800000011920929,
-      "width_metres": 0.17500001192092896
+      "radius_metres": 0.327009,
+      "width_metres": 0.22381
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.5625000596046448,
-        "y": 0.28000012040138245,
-        "z": 1.1999998092651367
+        "x": -0.661402,
+        "y": 0.325644,
+        "z": 1.249297
       },
-      "radius_metres": 0.28000000119209645,
-      "width_metres": 0.17500007152557373
+      "radius_metres": 0.327271,
+      "width_metres": 0.223386
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.5625,
-        "y": 0.28000012040138245,
-        "z": 1.1999999284744263
+        "x": 0.661402,
+        "y": 0.325644,
+        "z": 1.249297
       },
-      "radius_metres": 0.2800000011920929,
-      "width_metres": 0.17500001192092896
+      "radius_metres": 0.327271,
+      "width_metres": 0.223386
     }
   },
   "geometry": {
-    "wheelbase": 2.3999998569488525,
-    "front_axle_z": -1.2000000476837158,
-    "rear_axle_z": 1.1999998092651367,
-    "front_track": 1.184999942779541,
-    "rear_track": 1.1250000596046448
+    "wheelbase": 2.498594,
+    "front_axle_z": -1.249297,
+    "rear_axle_z": 1.249297,
+    "front_track": 1.342534,
+    "rear_track": 1.322805
   },
   "collision": {
     "path": "collision.json",
@@ -121,29 +134,27 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.7514986395835876,
-      0.03200007230043411,
-      -1.9224216938018799
+      -0.789602,
+      0.065007,
+      -1.960784
     ],
     "max_godot": [
-      0.7512694597244263,
-      1.3022326231002808,
-      2.0299999713897705
+      0.791657,
+      1.476003,
+      2.111956
     ]
   },
   "measurement": {
-    "geometry_policy": "native",
+    "geometry_policy": "kn5_native_dimensions",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.3999998569488525
+    "native_wheelbase_m": 2.498594
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
-  "warnings": [
-    "Estimated convex hulls from exterior meshes; model.BMF has no collision helper"
-  ]
+  "warnings": []
 }

@@ -21,12 +21,12 @@
     "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
     "runtime_visuals": {
       "blend": "D:\\RallyManiacAssets\\1963-alpine-renault-a110-lp\\source\\Alpine Renault A110 '63 (LP).blend",
-      "finish": "original_livery_baked_psx_rgb555",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Blender 'Alpine Renault A110 63 (LP).blend' rotated +180 deg Z, Mirror applied, interior stripped, headlight crystal covers ('Shade') preserved, cabin glass opaque black; tracks 1.300/1.300 m and tire R=0.2972 W=0.2050 m.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "original_livery_baked_psx_rgb555"
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +36,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "8e981b58742abf08d29900cd41266639ea723127113e6396421758b8d25957b3",
-    "size_bytes": 547260,
+    "sha256": "9d0b2b4aedcc75b43ad2b2aa1749a9dfbe89c9260f6edeff10c68b0203d47350",
+    "size_bytes": 836360,
     "exported_nodes": [
       "AlpineA110Exterior"
     ]
@@ -45,23 +45,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "08b83b513e873121fb395118fb207cd64210a51c9a018140e1fee97942be7b08",
-      "size_bytes": 74744
+      "sha256": "470b978f327e855f0940aecbe0ab60389d5072de61578c86d23d5e2650bcfee8",
+      "size_bytes": 86760
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "e9980a7dc2913fe0da558a9257f3509591e28dd3ed76d99e399dd8b39ddb2f50",
-      "size_bytes": 106936
+      "sha256": "c4ad300f86d0274a2e6ff34508656f2aefa0f2489f58cc143b442baa8d4c0e6c",
+      "size_bytes": 87100
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "f5834f5535938fd72687f079a2c670c14eeac49ed1fc50c6cd86531a33e2ec26",
-      "size_bytes": 80464
+      "sha256": "5d35ee9a5ddfb5e84583dd55e2cb66a81c19c301ee98c0be76c1189059ddb0d5",
+      "size_bytes": 87468
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "16b6e6c8e456fe8170dd7aa883bf1c426e2b38e9a8613b19be6838e327731be8",
-      "size_bytes": 84612
+      "sha256": "a630ef418d39526a6e371196ebeb011900497156863ae3cdc9adf3671ea5c629",
+      "size_bytes": 86376
     }
   },
   "wheel_pivots": {

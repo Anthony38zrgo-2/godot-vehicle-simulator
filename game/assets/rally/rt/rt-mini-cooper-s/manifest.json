@@ -22,12 +22,12 @@
     "runtime_visuals": {
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Mini Cooper.fbx",
       "texture": "mini_cooper_S_alta.png",
-      "finish": "high_res_pbr_no_psx",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "original_livery_baked_psx_rgb555"
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -37,8 +37,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "f421aef499e7a61596ea7b7210b7d070b0ba14b12dc30cdf796d0e823e21f2e0",
-    "size_bytes": 202368,
+    "sha256": "ba78996ea4fd044f30f1c48e1f7bcde6c247978ded9cdb36cdf31313574bbdc5",
+    "size_bytes": 229992,
     "exported_nodes": [
       "MiniCooperExterior"
     ]
@@ -46,23 +46,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "2d815c1b711c205f9f195add4748b8dfb14430747980ac4b1dbb80af1c0cd928",
-      "size_bytes": 115172
+      "sha256": "d68de9a5c27e746312388dba0da028056335f6c429f9abae5082490ed8686ebb",
+      "size_bytes": 115184
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "f21ff0e8ec938126618a966c52248bc7fd8fda7489455193ac71e8a53ff2c782",
-      "size_bytes": 115172
+      "sha256": "647616776ec1a36228aad25464edc5afd5e0b9b2a6286a3ecc41c29a95e8db40",
+      "size_bytes": 115184
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "89bf998afc1575b9b97460663c691d3fcbce6f4617fb354410c3e289c7c64bfc",
-      "size_bytes": 115228
+      "sha256": "b0fe07f54396e5e466c238504d7a97d9358a1b41c79111e04ecf07c84ec1272f",
+      "size_bytes": 115240
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "ba59fcdcbb9eaee7f585d7545264b4b7e0d48154d730ce4ed257545f23e37f51",
-      "size_bytes": 115228
+      "sha256": "588638ff78f464c5108b45c14ce78313e33aa0f80c4ad0946e1f0d709497c734",
+      "size_bytes": 115240
     }
   },
   "wheel_pivots": {

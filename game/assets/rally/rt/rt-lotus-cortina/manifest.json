@@ -21,12 +21,12 @@
     "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
     "runtime_visuals": {
       "fbx": "D:\\RallyManiacAssets\\1965-ford-lotus-cortina-mk1\\source\\FINAL_MODEL_65\\FINAL_MODEL_65.fbx",
-      "finish": "original_livery_baked_psx_rgb555",
+      "finish": "stylized_shadow_dither_psx_v1",
       "fit": "FINAL_MODEL_65.fbx scaled to metres, rotated +180 deg Z, interior/calipers/discs purged, Ermine White CaarPaint + Lotus Green Color_2, crystal headlight lenses, opaque black windows; native FBX wheelbase=2.4980 m, tracks=1.3101/1.3101 m, tire R=0.2688 W=0.1811 m.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "original_livery_baked_psx_rgb555"
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +36,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "264c8729c215afbcb398042639057fb19bc9c302a03798764520106466bf0776",
-    "size_bytes": 879444,
+    "sha256": "b08ccd88ee254a2835ff66926dd4c0acda3d05b16c479fc445fd905e94220c31",
+    "size_bytes": 1293252,
     "exported_nodes": [
       "LotusCortinaExterior",
       "LotusCortinaBadges"
@@ -46,23 +46,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "9268a25a08fcfd138bb1ab01f813d47a3b1b0d4885ac72122ab9f3896771f5de",
-      "size_bytes": 147972
+      "sha256": "c2de50a180b723cc9440484333a56b10b227776f8d6170e309d0592927f2a4c6",
+      "size_bytes": 160332
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "71f4c6dbd7dc878bbaffd7e43ffe40ce2b95682a8c0170f536e17ae8d0938613",
-      "size_bytes": 141044
+      "sha256": "d583d205f12ba1b7f6ddd25267cd1dcf01c862309348eab4978f46bf21ff4972",
+      "size_bytes": 165040
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "13276a82dbf203c75abb14d57cdfa517669edb3c1ade3f2d098a8e18d78bb7d2",
-      "size_bytes": 132428
+      "sha256": "03c09df6b7dec499a6fdc150757d414976579f86c3312c6dd2a05a101dd1f92a",
+      "size_bytes": 159696
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "41722dca71c810c23788c55fea90797843e1bfce1a6fc9a99abf6ffb9270316a",
-      "size_bytes": 140676
+      "sha256": "538c44dd05c895ca19cf560293c6c8860e493e174f8dc88b053124c34363f651",
+      "size_bytes": 164856
     }
   },
   "wheel_pivots": {

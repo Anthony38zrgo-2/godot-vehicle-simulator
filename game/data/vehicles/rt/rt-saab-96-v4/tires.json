@@ -2,17 +2,17 @@
   "tires": {
     "front": {
       "contact_patch": 0.2,
-      "radius": 0.28000000119208934,
-      "rim_diameter_inches": 13.0,
+      "radius": 0.327009,
+      "rim_diameter_inches": 15.0,
       "wheel_mass": 20.0,
-      "width": 0.17500007152557373
+      "width": 0.22381
     },
     "rear": {
       "contact_patch": 0.2,
-      "radius": 0.28000000119209645,
-      "rim_diameter_inches": 13.0,
+      "radius": 0.327271,
+      "rim_diameter_inches": 15.0,
       "wheel_mass": 20.0,
-      "width": 0.17500007152557373
+      "width": 0.223386
     }
   }
 }
