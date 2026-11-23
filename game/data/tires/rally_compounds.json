@@ -915,8 +915,8 @@
         "longitudinal_peak_slip_ratio": 0.13,
         "lateral_slide_mu_ratio": 0.99,
         "longitudinal_slide_mu_ratio": 0.99,
-        "falloff_sharpness": 0.85,
-        "peak_load_sensitivity": 0.075,
+        "falloff_sharpness": 0.8,
+        "peak_load_sensitivity": 0.04,
         "budget_blend_width": 0.25
       },
       "surface_transition_tau_s": 0.092
