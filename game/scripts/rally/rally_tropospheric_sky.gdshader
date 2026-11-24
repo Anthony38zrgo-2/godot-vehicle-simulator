@@ -1,9 +1,9 @@
 shader_type sky;
 render_mode use_debanding;
 
-uniform samplerCube sky_a : source_color, filter_linear_mipmap;
-uniform samplerCube sky_b : source_color, filter_linear_mipmap;
-uniform samplerCube sky_c : source_color, filter_linear_mipmap;
+uniform samplerCube sky_a : source_color, filter_nearest_mipmap;
+uniform samplerCube sky_b : source_color, filter_nearest_mipmap;
+uniform samplerCube sky_c : source_color, filter_nearest_mipmap;
 uniform float weather_mix = 0.0;
 uniform float daylight_mix = 0.0;
 uniform float twilight_yaw = 0.0;
