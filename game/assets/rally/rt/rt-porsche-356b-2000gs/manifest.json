@@ -4,7 +4,16 @@
   "source": {
     "source_blend": "Porsche_356B_T6_Coupe_FTC_Medidas_FIA71.blend",
     "credits": "sharpo and Bugbear",
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "runtime_visuals": {
+      "kn5": "D:\\RallyManiacAssets\\35c6e71f9dc46b36dc52841e1034fb00\\ad_TD_porsche_356a_coupe\\porsche_356_coupe.kn5",
+      "skin": "01_silver_metalic",
+      "blend": "D:\\RallyManiacAssets\\porsche356_silver_psx\\porsche356_silver_exterior.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "fit": "KN5 Porsche 356A Coupe Darker Silver (Silbermetall) + Light Silver rims exterior-only (interior stripped, opaque bluish cabin glass, welded vertices, 2-atlas decoupled body + details); measured wheelbase=2.107367 m, tracks=1.299774/1.250948 m, tire R=0.312557/0.31259 m W=0.185322/0.196624 m.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -14,97 +23,89 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "322624bf2b394eb6fdf1b133fd7759af89399af2f012c0134f3cb04fca3cbaf8",
-    "size_bytes": 869780,
-    "texture": {
-      "image": "chassis_FTC_PSX.png",
-      "resolution": [
-        512,
-        512
-      ],
-      "filter": "nearest",
-      "color": "RGB555",
-      "tool": "ps1kit ps1",
-      "paint_finish": "Shared green base, reduced baked shading, RGB555 without dithering on paint"
-    }
+    "sha256": "968ae16268e36c1464e710bb40236042efdfb4ec7f4ac281f803541f0e7352c8",
+    "size_bytes": 5223240,
+    "exported_nodes": [
+      "Porsche356_Exterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "9eb732bd48f50982c55a5cdc163abfee22d99975a8888460749855cfd903e29e",
-      "size_bytes": 55444
+      "sha256": "d8a8365b6fb9f55e0d35f18c1860bb1db4624ec76c6b9d46654f6f15c7142937",
+      "size_bytes": 211120
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "9a315f5e1e3629f8eb954d57c32bb1d4cfd40da94c1da0eb7d383d3bbb9e5419",
-      "size_bytes": 52100
+      "sha256": "0d352c9a1580b2af71f3cc0c0388d5f58486e81e2516462fff05c9390261ddde",
+      "size_bytes": 220148
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "dc52933a59a7de2ccbf8947592257749e24ed1e9ac8598b3efbb941a826f8d9e",
-      "size_bytes": 55356
+      "sha256": "8afb20b7d3ea9289359970b2e0e414389a038bbba98e6670dcc051f63f09cb8f",
+      "size_bytes": 213652
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "f3897d5bffb7e5a05f5dc097f0de9302b35ae7b5fdd8e1020af5bac4ced12e13",
-      "size_bytes": 51968
+      "sha256": "cb939b435eba4d82bc131f00688db250777e47a8d9228afced1f9cce1a21eec3",
+      "size_bytes": 217464
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.652999997138977,
-        "y": 0.3225000202655792,
-        "z": -1.0499998331069946
+        "x": -0.649887,
+        "y": 0.31254,
+        "z": -1.053683
       },
-      "radius_metres": 0.3225,
-      "width_metres": 0.165
+      "radius_metres": 0.312557,
+      "width_metres": 0.185322
     },
     "front_right": {
       "center_metres": {
-        "x": 0.652999997138977,
-        "y": 0.3225000202655792,
-        "z": -1.0499998331069946
+        "x": 0.649887,
+        "y": 0.31254,
+        "z": -1.053683
       },
-      "radius_metres": 0.3225,
-      "width_metres": 0.165
+      "radius_metres": 0.312557,
+      "width_metres": 0.185322
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6359999179840088,
-        "y": 0.3225000202655792,
-        "z": 1.0499999523162842
+        "x": -0.625474,
+        "y": 0.312536,
+        "z": 1.053683
       },
-      "radius_metres": 0.3225,
-      "width_metres": 0.165
+      "radius_metres": 0.31259,
+      "width_metres": 0.196624
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.6359997987747192,
-        "y": 0.322500079870224,
-        "z": 1.0500001907348633
+        "x": 0.625474,
+        "y": 0.312536,
+        "z": 1.053683
       },
-      "radius_metres": 0.3225,
-      "width_metres": 0.165
+      "radius_metres": 0.31259,
+      "width_metres": 0.196624
     }
   },
   "geometry": {
-    "wheelbase": 2.1,
-    "front_axle_z": -1.05,
-    "rear_axle_z": 1.05,
-    "front_track": 1.306,
-    "rear_track": 1.272
+    "wheelbase": 2.107367,
+    "front_axle_z": -1.053683,
+    "rear_axle_z": 1.053683,
+    "front_track": 1.299774,
+    "rear_track": 1.250948
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.8349999785423279,
-      0.14000000059604645,
-      -1.8902308940887451
+      -0.873299,
+      0.225504,
+      -1.884779
     ],
     "max_godot": [
-      0.8349999785423279,
-      1.3200000524520874,
-      2.0997514724731445
+      0.810188,
+      1.287459,
+      2.04755
     ]
   },
   "capabilities": {
@@ -113,5 +114,10 @@
   "collision": {
     "path": "collision.json",
     "sha256": "1d1891997b3cdac8b74850b425f2df67aa5b0cf81d1debfaec11821429bf992c"
+  },
+  "measurement": {
+    "geometry_policy": "kn5_native_dimensions",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.107367
   }
 }

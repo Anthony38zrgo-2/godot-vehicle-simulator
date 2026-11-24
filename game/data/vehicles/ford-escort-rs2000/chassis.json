@@ -13,11 +13,11 @@
     "target_cg_z_m": 0.505
   },
   "geometry": {
-    "front_track": 1.32,
-    "rear_track": 1.34,
-    "wheelbase": 2.41,
-    "front_axle_z": -1.205,
-    "rear_axle_z": 1.205
+    "front_track": 1.204823,
+    "rear_track": 1.170718,
+    "wheelbase": 2.372162,
+    "front_axle_z": -1.186081,
+    "rear_axle_z": 1.186081
   },
   "physical_mass_inventory": {
     "base_budget_kilograms": 1015.0,

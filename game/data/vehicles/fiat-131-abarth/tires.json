@@ -2,23 +2,23 @@
   "tires": {
     "front": {
       "contact_patch": 0.2,
-      "radius": 0.32,
+      "radius": 0.295718,
       "rim_diameter_inches": 15.0,
       "wheel_mass": 20.0,
-      "width": 0.2,
-      "nominal_section_width_m": 0.185,
-      "rolling_radius_m": 0.32,
+      "width": 0.210173,
+      "nominal_section_width_m": 0.210173,
+      "rolling_radius_m": 0.295718,
       "pressure_kpa": 180.0,
       "compound": "gravel_normal"
     },
     "rear": {
       "contact_patch": 0.2,
-      "radius": 0.32,
+      "radius": 0.29512,
       "rim_diameter_inches": 15.0,
       "wheel_mass": 20.0,
-      "width": 0.2,
-      "nominal_section_width_m": 0.185,
-      "rolling_radius_m": 0.32,
+      "width": 0.242304,
+      "nominal_section_width_m": 0.242304,
+      "rolling_radius_m": 0.29512,
       "pressure_kpa": 180.0,
       "compound": "gravel_normal"
     },

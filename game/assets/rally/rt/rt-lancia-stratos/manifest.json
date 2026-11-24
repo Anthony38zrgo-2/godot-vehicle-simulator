@@ -26,10 +26,11 @@
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
     "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
     "runtime_visuals": {
-      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Stratos with lights.fbx",
-      "texture": "lancia_stratos_psx_rgb555.png",
+      "kn5": "D:\\RallyManiacAssets\\75677989ba82c325946ad2988b27a5c4\\accr_lancia_stratos_hf_stradale\\lancia_stratos_hf.kn5",
+      "skin": "Azzurro",
+      "blend": "D:\\RallyManiacAssets\\stratos_celeste_psx\\stratos_celeste_exterior.blend",
       "finish": "stylized_shadow_dither_psx_v1",
-      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "fit": "KN5 Lancia Stratos HF Stradale Azzurro Celeste + Campagnolo gold-orange rims exterior-only (interior stripped, opaque bluish cabin glass, welded vertices, 2-atlas seamless AC body UV + details UV); measured wheelbase=2.179917 m, tracks=1.405909/1.46004 m, tire R=0.321741/0.322115 m W=0.211145/0.220724 m.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
@@ -43,78 +44,78 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "e0dac4b886614c3f9b10dd87a857bb6985b34e190512fa3013a98b3838ed657c",
-    "size_bytes": 237560,
+    "sha256": "aa481ec4df80063455288f6011f2c5cf47ecf09581b74189ed943522d2cfbfc8",
+    "size_bytes": 2587972,
     "exported_nodes": [
-      "LanciaStratosExterior"
+      "Stratos_Exterior"
     ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "68f32faa100017c8729ab0d308e304aca42e7e97ff879e5bdd6ea106270c11f6",
-      "size_bytes": 138420
+      "sha256": "4693aef330208585a6379b6ff996f5fe63b8459afcab7a7cbd9970af89a34843",
+      "size_bytes": 195972
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "36dce0f2b1ca35df82b80f64e33d0af46e15af6aa3a0323d5aec21898e1768fc",
-      "size_bytes": 138420
+      "sha256": "b7054aee5d955be9b6cc4aeec8b41a7ffe9e0b3416aa30a32880f17fca1515f8",
+      "size_bytes": 202160
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "790508ddfe714e2b48f9bb3238a6118f8b6159a65c5b9740f80321dbffe27d48",
-      "size_bytes": 138424
+      "sha256": "b8997038660589bfcdf762490cfd08598634bb4b50d7c4868d948db420255f4a",
+      "size_bytes": 191560
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "554642a799d358e626da75ffbc27c0565298e268de35a51005995311d7f3e409",
-      "size_bytes": 138424
+      "sha256": "aabbecb50fe331545230dcf562cbd0891b30b04ef1cd0071721dad53ca322aa7",
+      "size_bytes": 201476
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.7000000476837158,
-        "y": 0.30875,
-        "z": -1.0499999523162842
+        "x": -0.702955,
+        "y": 0.342402,
+        "z": -1.089959
       },
-      "radius_metres": 0.30875,
-      "width_metres": 0.215
+      "radius_metres": 0.321741,
+      "width_metres": 0.211145
     },
     "front_right": {
       "center_metres": {
-        "x": 0.7000000476837158,
-        "y": 0.30875,
-        "z": -1.0499999523162842
+        "x": 0.702955,
+        "y": 0.342402,
+        "z": -1.089959
       },
-      "radius_metres": 0.30875,
-      "width_metres": 0.215
+      "radius_metres": 0.321741,
+      "width_metres": 0.211145
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6850000619888306,
-        "y": 0.30775,
-        "z": 1.0499999523162842
+        "x": -0.73002,
+        "y": 0.323402,
+        "z": 1.089959
       },
-      "radius_metres": 0.30775,
-      "width_metres": 0.335
+      "radius_metres": 0.322115,
+      "width_metres": 0.220724
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.684999942779541,
-        "y": 0.30775,
-        "z": 1.0500000715255737
+        "x": 0.73002,
+        "y": 0.323402,
+        "z": 1.089959
       },
-      "radius_metres": 0.30775,
-      "width_metres": 0.335
+      "radius_metres": 0.322115,
+      "width_metres": 0.220724
     }
   },
   "geometry": {
-    "wheelbase": 2.0999999046325684,
-    "front_axle_z": -1.0499999523162842,
-    "rear_axle_z": 1.0499999523162842,
-    "front_track": 1.4000000953674316,
-    "rear_track": 1.3700000047683716
+    "wheelbase": 2.179917,
+    "front_axle_z": -1.089959,
+    "rear_axle_z": 1.089959,
+    "front_track": 1.405909,
+    "rear_track": 1.46004
   },
   "collision": {
     "path": "collision.json",
@@ -138,20 +139,20 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.8820370435714722,
-      0.010117029771208763,
-      -1.8823630809783936
+      -0.870535,
+      0.118925,
+      -1.948187
     ],
     "max_godot": [
-      0.8820370435714722,
-      1.0497610569000244,
-      1.8060142993927002
+      0.874238,
+      1.149152,
+      1.788674
     ]
   },
   "measurement": {
-    "geometry_policy": "native",
+    "geometry_policy": "kn5_native_dimensions",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.0999999046325684
+    "native_wheelbase_m": 2.179917
   },
   "capabilities": {
     "cockpit": false,
@@ -160,7 +161,5 @@
     "recovered_components": 0,
     "damage_variants": 0
   },
-  "warnings": [
-    "No separately identifiable native seats in interior_lo; interior_hi retained"
-  ]
+  "warnings": []
 }

@@ -149,6 +149,7 @@ const CDI_CARS := [
 	"rt-lancia-stratos",
 	"rt-porsche-356b-2000gs",
 	"rt-saab-96-v4",
+	"rt-volvo-amazon",
 	"f10070",
 	"mustang67",
 	"fiat131",

@@ -1,19 +1,14 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/chassis.glb" id="chassis"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="audio"]
-[ext_resource type="Script" path="res://scripts/rally/rally_cockpit_animation.gd" id="cockpit"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="vfx"]
-[ext_resource type="Script" path="res://scripts/rally/rally_escort_visual_damage.gd" id="damage"]
-[ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/damage/damage.glb" id="crash"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/wheel_front_left.glb" id="front_left"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/wheel_front_right.glb" id="front_right"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/wheel_rear_left.glb" id="rear_left"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-volvo-amazon/wheel_rear_right.glb" id="rear_right"]
-[ext_resource type="Texture2D" path="res://assets/rally/rt/rt-volvo-amazon/damage/lights_damaged.png" id="lights_damaged"]
-[ext_resource type="Texture2D" path="res://assets/rally/rt/rt-volvo-amazon/damage/windows_damaged.png" id="windows_damaged"]
-[ext_resource type="Texture2D" path="res://assets/rally/rt/rt-volvo-amazon/damage/interior_windows_damaged.png" id="interior_windows_damaged"]
+[ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="toon"]
 
 [sub_resource type="PhysicsMaterial" id="surface"]
 friction = 0.35
@@ -31,37 +26,11 @@ script = ExtResource("vehicle")
 rally_profile_path = "res://data/vehicles/rt/rt-volvo-amazon/vehicle.json"
 asset_manifest_path = "res://assets/rally/rt/rt-volvo-amazon/manifest.json"
 rally_collision_path = "res://assets/rally/rt/rt-volvo-amazon/collision.json"
-cockpit_camera_enabled = true
+cockpit_camera_enabled = false
 
 [node name="Chassis" parent="." instance=ExtResource("chassis")]
-
-[node name="VisualDamage" type="Node3D" parent="."]
-script = ExtResource("damage")
-damage_meshes = ExtResource("crash")
-damage_parts = PackedStringArray("body", "hood", "trunk", "interior")
-broken_light = ExtResource("lights_damaged")
-broken_glass = ExtResource("windows_damaged")
-broken_glass_inside = ExtResource("interior_windows_damaged")
-
-[node name="HeadlightLeft" type="SpotLight3D" parent="VisualDamage"]
-position = Vector3(-0.5590000051259995, 0.45, -1.8749999284744263)
-visible = false
-light_color = Color(1, 0.90, 0.73, 1)
-light_energy = 6.0
-spot_range = 95.0
-spot_angle = 27.0
-
-[node name="HeadlightRight" type="SpotLight3D" parent="VisualDamage"]
-position = Vector3(0.5590000051259995, 0.45, -1.8749999284744263)
-visible = false
-light_color = Color(1, 0.90, 0.73, 1)
-light_energy = 6.0
-spot_range = 95.0
-spot_angle = 27.0
-
-[node name="CockpitAnimation" type="Node" parent="."]
-script = ExtResource("cockpit")
-steering_wheel_axis = Vector3(0, 1, 0)
+script = ExtResource("toon")
+pixel_albedo = true
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("vfx")

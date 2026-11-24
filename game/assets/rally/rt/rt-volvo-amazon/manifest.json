@@ -12,13 +12,23 @@
       "id": "rt-volvo-amazon",
       "archive": "car_5.bzf",
       "historical_id": "volvo-amazon",
-      "display_name": "Volvo 122 Amazon",
+      "display_name": "Volvo Amazon 123GT",
       "engine_layout": "front",
       "geometry_policy": "native",
       "physics_policy": "game_derived"
     },
     "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818"
+    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "runtime_visuals": {
+      "kn5": "D:\\RallyManiacAssets\\asw-volvo-amazon-123gt\\lm_volvo_amazon\\amazon.kn5",
+      "skin": "black",
+      "blend": "D:\\RallyManiacAssets\\volvo_123gt_psx\\volvo_123gt_black_exterior.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "fit": "KN5 2-door Volvo Amazon 123GT Black exterior-only (interior stripped, opaque bluish cabin glass, welded vertices, 2-atlas decoupled body + details); measured wheelbase=2.59985 m, tracks=1.365424/1.339623 m, tire R=0.32108/0.321169 m W=0.179963/0.179963 m.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v1"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -28,75 +38,78 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "36df5e0b0f016f431e7cdec10935db286df5cda283ccffdf08e7ca35cbaf6cb9",
-    "size_bytes": 1467632
+    "sha256": "6b7d5d762f6852e2c6bae85162a385d2f4c6a0932acebe6620d6807b688405bc",
+    "size_bytes": 3444144,
+    "exported_nodes": [
+      "Volvo123GT_Exterior"
+    ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "df38504d18bc4d1a201db72afe2ff1db86ae01d2e2f4e64bd6ab2438181715d9",
-      "size_bytes": 67788
+      "sha256": "ab40d2ebac37fd13155b9f5d716caef87bb76d691970c250df078d18a1eeb9ca",
+      "size_bytes": 231700
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "080378b5020fa5d602b92a736ff20f28f634fa611aa1769bb019b9ff55d451dd",
-      "size_bytes": 67788
+      "sha256": "b8b879875ac48254ce5ec4f969926c6255510c501d85a2479908e968d8a726b8",
+      "size_bytes": 231804
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "ab28e1864c86f2e5f8f9cf355acf1193b464c71c2cff93ad59edaa398393d9b1",
-      "size_bytes": 67788
+      "sha256": "9b1222e13cc89d4389b09bc2aeab8e8136bf404c81edc8b784c0581c687b8593",
+      "size_bytes": 231368
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "9ea5258a7e053cb1180984f60d88d5455b2a2b5b7f9222194b0f0eb14d558018",
-      "size_bytes": 67788
+      "sha256": "e0f9c0aa07984e8715c9650703701a7b1eb3c9bc0193b332f1ca98e9602f4184",
+      "size_bytes": 234500
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.6500000357627869,
-        "y": 0.32199999690055847,
-        "z": -1.3249999284744263
+        "x": -0.682712,
+        "y": 0.338861,
+        "z": -1.299925
       },
-      "radius_metres": 0.32200001180171345,
-      "width_metres": 0.23000001907348633
+      "radius_metres": 0.32108,
+      "width_metres": 0.179963
     },
     "front_right": {
       "center_metres": {
-        "x": 0.6499999761581421,
-        "y": 0.32199999690055847,
-        "z": -1.3249999284744263
+        "x": 0.682712,
+        "y": 0.338861,
+        "z": -1.299925
       },
-      "radius_metres": 0.3220000118017179,
-      "width_metres": 0.23000001907348633
+      "radius_metres": 0.32108,
+      "width_metres": 0.179963
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6500000953674316,
-        "y": 0.322000116109848,
-        "z": 1.3250000476837158
+        "x": -0.669812,
+        "y": 0.321372,
+        "z": 1.299925
       },
-      "radius_metres": 0.3219999819994044,
-      "width_metres": 0.23000001907348633
+      "radius_metres": 0.321169,
+      "width_metres": 0.179963
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.6499999761581421,
-        "y": 0.3220001459121704,
-        "z": 1.3250000476837158
+        "x": 0.669812,
+        "y": 0.321372,
+        "z": 1.299925
       },
-      "radius_metres": 0.32200001180171967,
-      "width_metres": 0.23000001907348633
+      "radius_metres": 0.321169,
+      "width_metres": 0.179963
     }
   },
   "geometry": {
-    "wheelbase": 2.649999976158142,
-    "front_axle_z": -1.3249999284744263,
-    "rear_axle_z": 1.3250000476837158,
-    "front_track": 1.300000011920929,
-    "rear_track": 1.3000000715255737
+    "wheelbase": 2.59985,
+    "front_axle_z": -1.299925,
+    "rear_axle_z": 1.299925,
+    "front_track": 1.365424,
+    "rear_track": 1.339623
   },
   "collision": {
     "path": "collision.json",
@@ -120,27 +133,27 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.8170719742774963,
-      0.003000108525156975,
-      -1.943000078201294
+      -0.820532,
+      0.186356,
+      -1.989546
     ],
     "max_godot": [
-      0.8170720338821411,
-      1.3869999647140503,
-      2.4730000495910645
+      0.8209,
+      1.488753,
+      2.431894
     ]
   },
   "measurement": {
-    "geometry_policy": "native",
+    "geometry_policy": "kn5_native_dimensions",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.649999976158142
+    "native_wheelbase_m": 2.59985
   },
   "capabilities": {
-    "cockpit": true,
-    "native_arm_poses": 19,
-    "seats": 2,
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
     "recovered_components": 9,
-    "damage_variants": 4
+    "damage_variants": 0
   },
   "warnings": []
 }

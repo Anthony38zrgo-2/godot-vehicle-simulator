@@ -9,12 +9,13 @@
     "occupants": "Shared original driver1.bzf meshes and 19 native steering morphs, relocated using Fulvia DriverLoc/CoDriverLoc.",
     "sprung_offset_metres": 0.1,
     "runtime_visuals": {
-      "blend": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Fulvia PSX - ruedas originales.blend",
-      "texture": "lancia_fulvia_16HF_psx_ruedas_originales.png",
-      "fit": "PSX exterior fitted to original runtime chassis bounds. Longitudinal axle planes and hub height are fixed; wheel meshes retain the original 0.28 m radius and 0.20 m width.",
+      "kn5": "D:\\RallyManiacAssets\\asw-lancia-fulvia-coupe-13s\\lancia_fulvia_1.3s\\lancia_fulvia.kn5",
+      "skin": "rosso_york",
+      "blend": "D:\\RallyManiacAssets\\fulvia_guinda_psx\\fulvia_guinda_exterior.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "fit": "KN5 Lancia Fulvia Coupe 1.3 S Rojo Guinda (Rosso York) exterior-only (interior stripped, opaque bluish cabin glass, welded vertices, 2-atlas seamless AC body UV + details UV); measured wheelbase=2.349551 m, tracks=1.379109/1.328567 m, tire R=0.310424/0.310174 m W=0.196346/0.183543 m.",
       "cockpit_enabled": false,
-      "visual_damage_enabled": false,
-      "finish": "stylized_shadow_dither_psx_v1"
+      "visual_damage_enabled": false
     },
     "texture_finish": "stylized_shadow_dither_psx_v1"
   },
@@ -26,70 +27,70 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "41ef280d1e6d8b1b917415249067427e7954bc03070abbdf5c8e2740f014d689",
-    "size_bytes": 205876,
+    "sha256": "2de924951e760c69b83773f5659a199592415b69bd34e80832f0320c29174bcc",
+    "size_bytes": 2888244,
     "exported_nodes": [
-      "FulviaPSXExterior"
+      "Fulvia_Exterior"
     ]
   },
   "wheels": {
     "front_left": {
       "path": "lancia_fulvia_wheel_front_left.glb",
-      "sha256": "984462ee884537fbca23b102efbbb9c816b1097d737b72293cb40f232c2aee2b",
-      "size_bytes": 110580
+      "sha256": "70f71b4d33945f7e3ffba8ea171df73e262d515f23f70eb9b19dfd6a8323b7eb",
+      "size_bytes": 208640
     },
     "front_right": {
       "path": "lancia_fulvia_wheel_front_right.glb",
-      "sha256": "3b79e4bf42ef6b2e830f6d3fc8046548860470bd7bbfdb15bd99966a23bda20e",
-      "size_bytes": 110576
+      "sha256": "1523001a6f3b8cd2395b1a0ba40464760e2da7dcedad19c0ac83bd683715a643",
+      "size_bytes": 214604
     },
     "rear_left": {
       "path": "lancia_fulvia_wheel_rear_left.glb",
-      "sha256": "d1bdcd86507e71f3e4ff0bda5609d41ac008a690998396c8fea9ff82a461014e",
-      "size_bytes": 110580
+      "sha256": "d4224f7ece995a0d2d7a0adc5a791ca1554e3eb2d380329147fbd818357b32b6",
+      "size_bytes": 205072
     },
     "rear_right": {
       "path": "lancia_fulvia_wheel_rear_right.glb",
-      "sha256": "e3c43324b12c29b78fe8a89696e856b7a302ab31ef91830cd2225cf20425582f",
-      "size_bytes": 110580
+      "sha256": "a7854df17ef2498e59d4b78545e52fbf1ba34f2df359d48459954d71c7996dfc",
+      "size_bytes": 214108
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.6100000739097595,
-        "y": 0.2799999415874481,
-        "z": -1.2400000095367432
+        "x": -0.689554,
+        "y": 0.321967,
+        "z": -1.174775
       },
-      "radius_metres": 0.28000000119208757,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.310424,
+      "width_metres": 0.196346
     },
     "front_right": {
       "center_metres": {
-        "x": 0.6100000143051147,
-        "y": 0.2799999415874481,
-        "z": -1.2400000095367432
+        "x": 0.689554,
+        "y": 0.321967,
+        "z": -1.174775
       },
-      "radius_metres": 0.2800000011920911,
-      "width_metres": 0.19999998807907104
+      "radius_metres": 0.310424,
+      "width_metres": 0.196346
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6100001335144043,
-        "y": 0.28000012040138245,
-        "z": 1.2400000095367432
+        "x": -0.664284,
+        "y": 0.310702,
+        "z": 1.174775
       },
-      "radius_metres": 0.28000000119209645,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.310174,
+      "width_metres": 0.183543
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.6100000143051147,
-        "y": 0.28000012040138245,
-        "z": 1.2400000095367432
+        "x": 0.664284,
+        "y": 0.310702,
+        "z": 1.174775
       },
-      "radius_metres": 0.2800000011920929,
-      "width_metres": 0.19999998807907104
+      "radius_metres": 0.310174,
+      "width_metres": 0.183543
     }
   },
   "collision": {
@@ -97,19 +98,17 @@
     "sha256": "f155be4e6635d56fefeaab619e60d02adce8aed8eb2facd5a8f2a7d5d027fc9e"
   },
   "geometry": {
-    "front_axle_z": -1.2400000095367432,
-    "rear_axle_z": 1.2400000095367432,
-    "wheelbase": 2.4800000190734863,
-    "front_track": 1.2200000882148743,
-    "rear_track": 1.220000147819519
+    "front_axle_z": -1.174775,
+    "rear_axle_z": 1.174775,
+    "wheelbase": 2.349551,
+    "front_track": 1.379109,
+    "rear_track": 1.328567
   },
   "measurement": {
-    "method": "Native metric FBX geometry, no GTA scaling. Four high-detail wheel mesh bounds and pivots. Source Rally Trophy geometry retained; geometric source is not a measured historical chassis.",
-    "cockpit_eye_metres": {
-      "x": -0.3,
-      "y": 1.0,
-      "z": 0.15
-    }
+    "method": "Measured directly from KN5 Lancia Fulvia Coupe 1.3 S native metric geometry.",
+    "geometry_policy": "kn5_native_dimensions",
+    "uniform_scale": 1.0,
+    "native_wheelbase_m": 2.349551
   },
   "visual_damage": {
     "archive": "car_13.bzf",
@@ -131,14 +130,14 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.7700000405311584,
-      0.09999993443489075,
-      -1.962172031402588
+      -0.799266,
+      0.176354,
+      -1.995333
     ],
     "max_godot": [
-      0.7700000405311584,
-      1.215000033378601,
-      2.0399999618530273
+      0.793572,
+      1.282604,
+      1.979056
     ]
   }
 }

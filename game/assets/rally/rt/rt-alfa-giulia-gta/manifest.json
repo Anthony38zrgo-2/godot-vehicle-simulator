@@ -2,32 +2,18 @@
   "contract_version": 1,
   "vehicle_id": "rt-alfa-giulia-gta",
   "source": {
-    "archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Cars\\car_17.bzf",
-    "archive_sha256": "a42624248b4ed081d611cd24dcbede4a639c958e4e75b132a61aa21f40acd858",
-    "driver_archive": "D:\\games\\rally-throphy\\Program Files\\JoWooD\\Rally Trophy\\Data\\Drivers\\driver1.bzf",
-    "driver_archive_sha256": "0b3073046b9301fa3f8048b114dca49d7d08c7d5c12628cdba25b59f5a286db4",
-    "generator": "tools/rally_trophy",
-    "pipeline_code_sha256": "fc5c5d93fb9aa4c6a05216fad8bce2a52cab9a5e452372ffdc5b2d0fcd5fd5d2",
-    "recipe": {
-      "id": "rt-alfa-giulia-gta",
-      "archive": "car_17.bzf",
-      "historical_id": "alfa-giulia-gta",
-      "display_name": "Alfa Romeo Giulia Sprint GTA",
-      "engine_layout": "front",
-      "geometry_policy": "native",
-      "physics_policy": "game_derived"
-    },
-    "blender_sha256": "e27fbfea8564aa645d4463cb0949695fd85562b9de6df9561b06859a1074adf7",
-    "converter_sha256": "997cac15a6f662161a611c8dc439171fdac04b288c829356c8d54593255de818",
+    "kn5": "D:\\RallyManiacAssets\\asw-alfa-romeo-gtv-1750-1968\\alfa_romeo_gtv_1750_1968\\alfa_gta_2000_rhd.kn5",
+    "recipe": "alfa1750_ocra_stylized.json",
+    "blender_version": "5.2.0 LTS",
     "runtime_visuals": {
-      "blend": "D:\\rust-godot-vehicle-simulator\\alfa_romeo_giulia_ti.blend",
-      "texture": "GiuliaTi_Blue_Diffuse",
-      "finish": "stylized_shadow_dither_psx_v1",
-      "fit": "Alfa Romeo Giulia Ti exterior fitted 1:1 to Rally Trophy Giulia GTA chassis bounds, 2.400 m wheelbase, and 1.200 m tracks with native Rally Trophy Giulia wheel meshes.",
+      "kn5": "D:\\RallyManiacAssets\\asw-alfa-romeo-gtv-1750-1968\\alfa_romeo_gtv_1750_1968\\alfa_gta_2000_rhd.kn5",
+      "recipe": "alfa1750_ocra_stylized.json",
+      "finish": "stylized_shadow_dither_psx_v2_seamless",
+      "fit": "Native KN5 dimensions preserved (wheelbase 2.403 m, front track 1.335 m, rear track 1.285 m, wheels R=0.310 m, W=0.211 m). Exterior-only welded mesh in Giallo Ocra (AR 109) with opaque bluish Bayer4 cabin glass.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v2_seamless"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -37,121 +23,105 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "fa071147cc67996fabdff1d84b3862a641c8908d62380d6b2856e274e8973963",
-    "size_bytes": 320244,
+    "sha256": "46ef19a6dc179324122be7dea3022f9b0c7109ce629b942f05c13c3e11649627",
+    "size_bytes": 3839848,
     "exported_nodes": [
-      "AlfaGiuliaTiExterior"
+      "Alfa1750GTV_Exterior"
     ]
   },
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "6de8a6198532ce2288a6ab710affc6e82d562e256016da05d521dd5ab6ee88de",
-      "size_bytes": 47744
+      "sha256": "a50421148c47f987a8a9d320312ae929ed5e0a7936db974a426c3e1a20de7eec",
+      "size_bytes": 226892
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "232059c8d8cc61b100c922e4fe05736a25dc123051d237c04d7ae479e8cbd4fc",
-      "size_bytes": 47752
+      "sha256": "682f848880776d2ccf3bfe5a0480005f0eb3341201dd6699141d29c0a79ab619",
+      "size_bytes": 231684
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "352a47a761b0b76b5a0ce230f9ca651be408718e788bd136114ecde13022a7c4",
-      "size_bytes": 47752
+      "sha256": "06f79a1784e7ecef8f26e951b51856bc2a463861b95c7ac35da1e204d320fdb8",
+      "size_bytes": 222476
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "0fcb812bb40212b75b8358870710126c3bc16c0e6d39f4a76553506e07a9fdd2",
-      "size_bytes": 47752
+      "sha256": "33309fa44b2f15c47fc292078d55ac67647f34ff19c79ed1ea6703432d4ed5de",
+      "size_bytes": 233244
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.6000000238418579,
-        "y": 0.2799999415874481,
-        "z": -1.2000000476837158
+        "x": -0.667559,
+        "y": 0.314143,
+        "z": -1.20174
       },
-      "radius_metres": 0.28000000119208757,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.310271,
+      "width_metres": 0.210576
     },
     "front_right": {
       "center_metres": {
-        "x": 0.5999999642372131,
-        "y": 0.2799999415874481,
-        "z": -1.1999999284744263
+        "x": 0.667571,
+        "y": 0.314149,
+        "z": -1.20174
       },
-      "radius_metres": 0.2800000011920911,
-      "width_metres": 0.20000001788139343
+      "radius_metres": 0.31027,
+      "width_metres": 0.210576
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.6000000834465027,
-        "y": 0.28000012040138245,
-        "z": 1.2000000476837158
+        "x": -0.642349,
+        "y": 0.310281,
+        "z": 1.201759
       },
-      "radius_metres": 0.28000000119209645,
-      "width_metres": 0.20000004768371582
+      "radius_metres": 0.310271,
+      "width_metres": 0.210576
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.5999999642372131,
-        "y": 0.28000012040138245,
-        "z": 1.2000000476837158
+        "x": 0.642337,
+        "y": 0.310288,
+        "z": 1.201759
       },
-      "radius_metres": 0.2800000011920929,
-      "width_metres": 0.20000001788139343
+      "radius_metres": 0.31027,
+      "width_metres": 0.210576
     }
   },
   "geometry": {
-    "wheelbase": 2.4000000953674316,
-    "front_axle_z": -1.2000000476837158,
-    "rear_axle_z": 1.2000000476837158,
-    "front_track": 1.199999988079071,
-    "rear_track": 1.2000000476837158
+    "wheelbase": 2.403499,
+    "front_axle_z": -1.20174,
+    "rear_axle_z": 1.201759,
+    "front_track": 1.33513,
+    "rear_track": 1.284686
   },
   "collision": {
     "path": "collision.json",
     "sha256": "7733d15a04fea36e98ade158eb0c8d688183aa11de78cdd961eacbdd54387872"
   },
-  "visual_damage": {
-    "files": {
-      "damage/windows_damaged.png": {
-        "sha256": "5bcce077aebe124c4914dcdc373756c95a81dfddd3b41eee957fe7e7ac475d12"
-      },
-      "damage/interior_windows_damaged.png": {
-        "sha256": "aa5d92d841ea60b4687f610e1c16cf880ff8863d344dc8b4248e557e60a18394"
-      },
-      "damage/lights_damaged.png": {
-        "sha256": "af380b118896df5661d9530962bb7260c48ebe9f1c2a1281fbabd8d8e01c29c8"
-      },
-      "damage/damage.glb": {
-        "sha256": "a4ee120c22142e8a548241a44102b4d3ccf42c6adeb6ef9e2df791f5edf4692e"
-      }
-    }
-  },
   "bounds_world_metres": {
     "min_godot": [
-      -0.75,
-      0.09999994188547134,
-      -1.8600001335144043
+      -0.804078,
+      0.135931,
+      -1.903176
     ],
     "max_godot": [
-      0.75,
-      1.1920000314712524,
-      2.1649999618530273
+      0.799812,
+      1.288018,
+      2.128469
     ]
   },
   "measurement": {
     "geometry_policy": "native",
     "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.4000000953674316
+    "native_wheelbase_m": 2.403499
   },
   "capabilities": {
     "cockpit": false,
     "native_arm_poses": 0,
     "seats": 0,
-    "recovered_components": 9,
+    "recovered_components": 0,
     "damage_variants": 0
   },
   "warnings": []

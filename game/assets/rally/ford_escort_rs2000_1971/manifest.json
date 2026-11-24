@@ -2,105 +2,62 @@
   "contract_version": 1,
   "vehicle_id": "ford_escort_rs2000_1971",
   "source": {
-    "repository": "D:/open-formula",
-    "blend": "D:/games/rally-throphy/exports_flatout/ford-escort-rs2000/ford_escort_rs2000_occupants.blend",
-    "blend_sha256": "74e183e1f91111cb5041965f8069636cb116803faf53eda6904d7ded6048d43a",
+    "kn5": "D:\\RallyManiacAssets\\asw-ford-escort-mk1-1300gt\\atcc_ford_escort_mk1_1300GT__street\\atcc_ford_escort_mk1_v2.kn5",
+    "recipe": "escort_mk1_crema_stylized.json",
     "blender_version": "5.2.0 LTS",
-    "occupants_glb": "D:/games/rally-throphy/exports_flatout/ford-escort-rs2000/ford_escort_rs2000_occupants.glb",
-    "occupants_note": "Original driver/co-driver, seats and 19 arm poses preserved. One high-detail body/interior shell; redundant rear glass and low-detail tub removed. Authentic Ford cage bars restored at the same +0.1 m offset as the seats. Single body glass and fitted 8 mm roof liner.",
-    "base_blend": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/ford_escort_rs2000_1971.blend",
-    "seats": {
-      "archive": "D:/games/rally-throphy/Program Files/JoWooD/Rally Trophy/Data/Cars/car_12.bzf",
-      "mesh": "model.BMF/interior_lo",
-      "texture": "interior_lo.tga",
-      "objects": [
-        "seat_driver",
-        "seat_co_driver"
-      ],
-      "triangles_per_seat": 44,
-      "sprung_offset_metres": 0.1,
-      "generator": "D:/open-formula/staging_rally/cars/ra-escort-rs2000/integrate_original_seats.py"
-    },
-    "runtime_blend": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\ford_escort_rs2000_1971_rear_clean.blend",
-    "runtime_blend_sha256": "d61b295be02fdd0436c29a3d4bc570ea705aa87f77fc3f84823930d19ee43360",
-    "arm_animation": {
-      "poses_per_arm": 19,
-      "neutral_pose": 9,
-      "morph_targets": "steer_00 through steer_18",
-      "source": "driver1.bzf/arm_left_lo.BMF + arm_right_lo.BMF",
-      "generator": "D:/games/rally-throphy/exports_flatout/export_cockpit_animation.py"
-    },
-    "rear_cleanup": {
-      "generator": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\clean_rear_interior.py",
-      "backup": "D:\\open-formula\\staging_rally\\cars\\ra-escort-rs2000\\rear_cleanup_before",
-      "source_rear": "car_12.bzf/model.BMF/interior_lo; only the seven 12-triangle cage components, with the same +0.1 m sprung offset as the two seats. Low-detail floor/walls and seats are excluded.",
-      "removed_duplicate_glass": [
-        "interior_rear_side_left",
-        "interior_rear_side_right",
-        "interior_rear_window"
-      ],
-      "roof": "one-sided liner derived from the actual high-detail body roof, inset 8 mm",
-      "glass": "existing body window material made double-sided; no additional inner rear glass shell"
-    },
     "runtime_visuals": {
-      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Ford Escort RS1800 with lights.fbx",
-      "texture": "ford_escort_RS1800_alta.png",
-      "finish": "stylized_shadow_dither_psx_v1",
-      "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
+      "kn5": "D:\\RallyManiacAssets\\asw-ford-escort-mk1-1300gt\\atcc_ford_escort_mk1_1300GT__street\\atcc_ford_escort_mk1_v2.kn5",
+      "recipe": "escort_mk1_crema_stylized.json",
+      "finish": "stylized_shadow_dither_psx_v2_seamless",
+      "fit": "Native KN5 dimensions preserved (wheelbase 2.372 m, front track 1.205 m, rear track 1.171 m, wheels R=0.271 m, W_f=0.176 m / W_r=0.185 m). Exterior-only welded mesh in light cream (crema claro) with opaque bluish Bayer4 cabin glass.",
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v2_seamless"
   },
   "coordinate_system": {
     "engine": "Godot",
     "forward": "-Z",
     "right": "+X",
     "up": "+Y",
-    "conversion": "Blender Z-up exported with glTF +Y up; no manual rotation",
-    "visual_physics_offset_metres": 0.0,
-    "visual_physics_offset_reason": "The GEVP wheel ray origins are placed so the rigid-body origin rests on the wheel-contact plane; the Stage 1 Rapier chassis-frame offset does not apply to this rig."
+    "conversion": "Assetto Corsa KN5 converted to Blender Z-up, centered at axle midpoint, exported with glTF +Y up",
+    "visual_physics_offset_metres": 0.0
+  },
+  "geometry": {
+    "wheelbase": 2.372162,
+    "front_axle_z": -1.186081,
+    "rear_axle_z": 1.186081,
+    "front_track": 1.204823,
+    "rear_track": 1.170718
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "4ffbe0ce773eb9a140408daa8984ace8508118458c41d7d780957fd88d36624b",
-    "size_bytes": 210644,
+    "sha256": "59ffcee68431693a7385a31429f382ce2159d2de73302afe95fb6dd6fe588e3c",
+    "size_bytes": 1139188,
     "exported_nodes": [
-      "EscortRS1800Exterior"
+      "EscortMk1_Exterior"
     ]
   },
   "wheels": {
     "front_left": {
       "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
-      "sha256": "25d00ea1e2ece34cfb079ae7247ff8e63ce8608cf998a7e08cbdc601804911d5",
-      "size_bytes": 110400,
-      "source_object": "tire_fl",
-      "mirrored_across_x": false,
-      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+      "sha256": "d03a82e30a0e15ec9fdf08025abd1afb2a17a090f8d5bf1eb2cbb49e28a0795a",
+      "size_bytes": 125816
     },
     "front_right": {
       "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
-      "sha256": "09a54424a0ac1b57e0ca7b919292e572f8c1fbf88efdadd5401303f6be98443f",
-      "size_bytes": 110400,
-      "source_object": "tire_fr",
-      "mirrored_across_x": false,
-      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+      "sha256": "2cea4294f3b015997ea38a5f1cc6431f8714778e00e7818e2bc257ef347a5530",
+      "size_bytes": 127132
     },
     "rear_left": {
       "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
-      "sha256": "b0d103bdbfeea44f606fb164b296d75d784b0c61bf14a29c315c331251dc3a20",
-      "size_bytes": 110400,
-      "source_object": "tire_rl",
-      "mirrored_across_x": false,
-      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+      "sha256": "bceb3883340787062756af27bea4e68a51d597f0ae8d7b4d0cb55c4b751a670b",
+      "size_bytes": 121804
     },
     "rear_right": {
       "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
-      "sha256": "c198419948576c7259a060c82ae59ae66a3a9b595534224862c0744c99b790a6",
-      "size_bytes": 110400,
-      "source_object": "tire_rr",
-      "mirrored_across_x": false,
-      "source_side_orientation": "right-hand source wheels carry the baked 180 degree Z rotation"
+      "sha256": "0a1d20264b0dcde4f40f47ad1e880e61f060b6b50ab7bc16abbed37ab88cc3ea",
+      "size_bytes": 124528
     }
   },
   "collision": {
@@ -109,116 +66,72 @@
   },
   "wheel_pivots": {
     "front_left": {
-      "blender_object": "tire_fl",
+      "blender_object": "EscortMk1_Wheel_front_left",
       "center_metres": {
-        "x": -0.64,
-        "y": 0.28,
-        "z": -1.205
+        "x": -0.599869,
+        "y": 0.271337,
+        "z": -1.186106
       },
-      "radius_metres": 0.28,
-      "width_metres": 0.2
+      "radius_metres": 0.270958,
+      "width_metres": 0.176121
     },
     "front_right": {
-      "blender_object": "tire_fr",
+      "blender_object": "EscortMk1_Wheel_front_right",
       "center_metres": {
-        "x": 0.64,
-        "y": 0.28,
-        "z": -1.205
+        "x": 0.604954,
+        "y": 0.27132,
+        "z": -1.186056
       },
-      "radius_metres": 0.28,
-      "width_metres": 0.2
+      "radius_metres": 0.270933,
+      "width_metres": 0.176213
     },
     "rear_left": {
-      "blender_object": "tire_rl",
+      "blender_object": "EscortMk1_Wheel_rear_left",
       "center_metres": {
-        "x": -0.64,
-        "y": 0.28,
-        "z": 1.205
+        "x": -0.587901,
+        "y": 0.274457,
+        "z": 1.186031
       },
-      "radius_metres": 0.28,
-      "width_metres": 0.2
+      "radius_metres": 0.270565,
+      "width_metres": 0.1848
     },
     "rear_right": {
-      "blender_object": "tire_rr",
+      "blender_object": "EscortMk1_Wheel_rear_right",
       "center_metres": {
-        "x": 0.64,
-        "y": 0.28,
-        "z": 1.205
+        "x": 0.582817,
+        "y": 0.274459,
+        "z": 1.186131
       },
-      "radius_metres": 0.28,
-      "width_metres": 0.2
+      "radius_metres": 0.270565,
+      "width_metres": 0.1848
     }
   },
   "bounds_world_metres": {
     "min_blender": [
-      -0.8100000023841858,
-      -2.190000057220459,
-      0.004999987781047821
+      -0.771435,
+      -2.10421,
+      0.170996
     ],
     "max_blender": [
-      0.8100000023841858,
-      1.8400002717971802,
-      1.2899999618530273
+      0.852067,
+      1.80816,
+      1.324223
     ],
     "min_godot": [
-      -0.8100000023841858,
-      0.004999987781047821,
-      -1.8400002717971802
+      -0.771435,
+      0.170996,
+      -1.80816
     ],
     "max_godot": [
-      0.8100000023841858,
-      1.2899999618530273,
-      2.190000057220459
+      0.852067,
+      1.324223,
+      2.10421
     ]
   },
-  "excluded_objects": [
-    "body_lod",
-    "body_crash",
-    "hood_crash",
-    "trunk_crash",
-    "tire_fl_lod",
-    "tire_fr_lod",
-    "tire_rl_lod",
-    "tire_rr_lod",
-    "shadow_tire_fl",
-    "shadow_tire_fr",
-    "shadow_tire_rl",
-    "shadow_tire_rr",
-    "ext_pipe01",
-    "light_front_left01",
-    "light_front_right01",
-    "light_rear_left",
-    "light_rear_right",
-    "light_brake_left",
-    "light_brake_right",
-    "light_reverse01",
-    "interior_lo",
-    "steering_wheel_lo"
-  ],
-  "visual_damage": {
-    "archive": "Rally Trophy/Data/Cars/car_12.bzf",
-    "files": {
-      "windows_damaged.png": {
-        "source": "windows_damaged.tga",
-        "source_sha256": "08a677e895a99fbfe80d4a9f4f1e282dbaa4b99a8595552f3899316e2b58f9e0",
-        "sha256": "59e02f6380ba37434642e6b59973210b53ab5570cd05b011df8a14dc90827318"
-      },
-      "interior_windows_damaged.png": {
-        "source": "interior_windows_damaged.tga",
-        "source_sha256": "8f177df55f8cb3f971c2361ed4c78cf20942d787ff37fcea3afd17b325b67785",
-        "sha256": "cd4d5cc89eacbd9183a73c150c0cde1cdf24e4f8cf53254d5905fa7f9723db9a"
-      },
-      "lights_damaged.png": {
-        "source": "lights_damaged.tga",
-        "source_sha256": "ef910ed9de420dae3cd094f9931f6599ad66e3e2ddc1761cc8006f1aa8a9df8c",
-        "sha256": "ac36ebdaae16891c7b17fe5fb7e0cdcf8307eb3a449f9f67f54d758c5c42beb0"
-      },
-      "escort_damage.glb": {
-        "source": "model.BMF and runtime chassis interior_hi",
-        "source_sha256": "a7f3ddedf03e4c05085ca525e9178d9e4296f04a418d3d8b64448194c83888cf",
-        "runtime_chassis_sha256": "a9892591b44b9bf94b8d2ec48ad48fee93693dd35d65faba0f53651addf98db6",
-        "sha256": "2ea575252dc21e03e02b333cf8488e2bcde0096db681a06ecf06e98bd9835b53"
-      }
-    }
+  "capabilities": {
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
+    "damage_variants": 0
   }
 }
