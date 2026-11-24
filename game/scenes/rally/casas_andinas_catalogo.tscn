@@ -1,0 +1,92 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/01_rural_blanco_humo_teja.glb" id="1"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/02_rural_celeste_corredor.glb" id="2"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/03_casita_crema_calamina.glb" id="3"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/04_quincha_calamina_un_agua.glb" id="4"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/05_quincha_larga_calamina.glb" id="5"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/06_pueblo_rosa_teja.glb" id="6"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/07_pueblo_menta_calamina.glb" id="7"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/08_caserio_amarillo_un_agua.glb" id="8"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/09_quincha_doble_calamina.glb" id="9"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/10_estancia_blanco_humo_porche.glb" id="10"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/11_andina2p_blanco_humo_balcon.glb" id="11"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/12_andina2p_celeste_balcon.glb" id="12"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/13_andina2p_durazno_calamina.glb" id="13"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/14_andina2p_lila_teja.glb" id="14"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/15_quincha2p_barro_calamina.glb" id="15"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/16_andina2p_menta_retranqueo.glb" id="16"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/17_andina3p_blanco_humo_balcon.glb" id="17"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/18_andina3p_crema_doble_balcon.glb" id="18"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/19_andina3p_rosa_calamina.glb" id="19"]
+[ext_resource type="PackedScene" path="res://assets/rally/CDI/casas_andinas/glb/20_andina3p_celeste_azotea.glb" id="20"]
+
+[node name="CasasAndinasCatalogo" type="Node3D"]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.848, -0.371, 0.378, 0, 0.713, 0.701, -0.530, -0.594, 0.605, 0, 20, 0)
+shadow_enabled = true
+
+[node name="OverviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.848, 0.530, 0, -0.530, 0.848, 0, 42, 68)
+fov = 42.0
+
+[node name="01_rural_blanco_humo_teja" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.80, 0, 17.10)
+
+[node name="02_rural_celeste_corredor" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.40, 0, 17.10)
+
+[node name="03_casita_crema_calamina" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00, 0, 17.10)
+
+[node name="04_quincha_calamina_un_agua" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.40, 0, 17.10)
+
+[node name="05_quincha_larga_calamina" parent="." instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.80, 0, 17.10)
+
+[node name="06_pueblo_rosa_teja" parent="." instance=ExtResource("6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.80, 0, 5.70)
+
+[node name="07_pueblo_menta_calamina" parent="." instance=ExtResource("7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.40, 0, 5.70)
+
+[node name="08_caserio_amarillo_un_agua" parent="." instance=ExtResource("8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00, 0, 5.70)
+
+[node name="09_quincha_doble_calamina" parent="." instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.40, 0, 5.70)
+
+[node name="10_estancia_blanco_humo_porche" parent="." instance=ExtResource("10")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.80, 0, 5.70)
+
+[node name="11_andina2p_blanco_humo_balcon" parent="." instance=ExtResource("11")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.80, 0, -5.70)
+
+[node name="12_andina2p_celeste_balcon" parent="." instance=ExtResource("12")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.40, 0, -5.70)
+
+[node name="13_andina2p_durazno_calamina" parent="." instance=ExtResource("13")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00, 0, -5.70)
+
+[node name="14_andina2p_lila_teja" parent="." instance=ExtResource("14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.40, 0, -5.70)
+
+[node name="15_quincha2p_barro_calamina" parent="." instance=ExtResource("15")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.80, 0, -5.70)
+
+[node name="16_andina2p_menta_retranqueo" parent="." instance=ExtResource("16")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.80, 0, -17.10)
+
+[node name="17_andina3p_blanco_humo_balcon" parent="." instance=ExtResource("17")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.40, 0, -17.10)
+
+[node name="18_andina3p_crema_doble_balcon" parent="." instance=ExtResource("18")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00, 0, -17.10)
+
+[node name="19_andina3p_rosa_calamina" parent="." instance=ExtResource("19")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.40, 0, -17.10)
+
+[node name="20_andina3p_celeste_azotea" parent="." instance=ExtResource("20")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.80, 0, -17.10)

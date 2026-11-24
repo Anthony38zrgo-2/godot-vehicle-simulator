@@ -1,7 +1,10 @@
 extends Node3D
-## Roadside markers selected for the authored SS04 centerline. Stations are timed PKs.
+## Roadside MTC curve and warning signs for all CDI stages (SS01-SS04).
+## Uses the exact same MTC Peru sign set authored for SS04 (Abra Ticlio).
 
 const FACES := "res://assets/rally/CDI/senaletica/caras_mtc/"
+
+# Default SS04 constants preserved for backwards compatibility
 const WARNINGS := [
 	[65.0, "velocidad_40"],
 	[1100.0, "sinuoso"],
@@ -18,23 +21,98 @@ const HAIRPINS := [
 	[3923.0, -1.0, "chevron"],
 	[4727.0, 1.0, "chevron_izq"],
 ]
+
+const STAGE_SPECS := {
+	"cdi_stage1": {
+		"warnings": [
+			[820.0, "sinuoso"],
+			[1265.0, "herradura"],
+			[2270.0, "sinuoso"],
+			[2315.0, "velocidad_30"],
+			[2375.0, "herradura_izq"],
+			[2488.0, "herradura_izq"],
+			[2665.0, "herradura"],
+			[3340.0, "herradura"],
+			[4385.0, "herradura_izq"],
+		],
+		"hairpins": [
+			[1345.0, -1.0, "chevron"],
+			[1382.0, 1.0, "chevron_izq"],
+			[2445.0, 1.0, "chevron_izq"],
+			[2560.0, 1.0, "chevron_izq"],
+			[2750.0, -1.0, "chevron"],
+			[3424.0, -1.0, "chevron"],
+			[4470.0, 1.0, "chevron_izq"],
+		],
+	},
+	"cdi_stage2": {
+		"warnings": [
+			[480.0, "sinuoso"],
+			[545.0, "herradura_izq"],
+			[1310.0, "herradura"],
+			[2060.0, "sinuoso"],
+			[2105.0, "velocidad_30"],
+			[2145.0, "herradura_izq"],
+			[2362.0, "herradura"],
+			[2602.0, "herradura_izq"],
+			[2740.0, "herradura"],
+			[2890.0, "herradura_izq"],
+			[3015.0, "herradura"],
+		],
+		"hairpins": [
+			[627.0, 1.0, "chevron_izq"],
+			[1396.0, -1.0, "chevron"],
+			[2214.0, 1.0, "chevron_izq"],
+			[2447.0, -1.0, "chevron"],
+			[2686.0, 1.0, "chevron_izq"],
+			[2814.0, -1.0, "chevron"],
+			[2969.0, 1.0, "chevron_izq"],
+			[3081.0, -1.0, "chevron"],
+		],
+	},
+	"cdi_stage3": {
+		"warnings": [
+			[1430.0, "sinuoso"],
+			[1796.0, "herradura_izq"],
+			[2995.0, "sinuoso"],
+		],
+		"hairpins": [
+			[1881.0, 1.0, "chevron_izq"],
+			[1922.0, -1.0, "chevron"],
+			[3078.0, 1.0, "chevron_izq"],
+		],
+	},
+	"cdi_stage4": {
+		"warnings": WARNINGS,
+		"hairpins": HAIRPINS,
+	},
+}
+
 var _boards := {}
+var _placed_signs: Array[Dictionary] = []
 
 
-func build(course: RallyStageProgress, mask: int, stream: RallyVisualSectorStream) -> void:
+func build(course: RallyStageProgress, mask: int, stream: RallyVisualSectorStream,
+		stage_id: String = "cdi_stage4") -> void:
 	var space := get_world_3d().direct_space_state
+	var spec_group: Dictionary = STAGE_SPECS.get(stage_id, STAGE_SPECS["cdi_stage4"])
+	var warnings: Array = spec_group["warnings"]
+	var hairpins: Array = spec_group["hairpins"]
 	var count := 0
-	for spec in WARNINGS:
-		count += int(_place(course, float(spec[0]), str(spec[1]), 1.0, space, mask, stream))
-	for spec in HAIRPINS:
+	_placed_signs.clear()
+	for spec in warnings:
+		count += int(_place(course, float(spec[0]), str(spec[1]), 1.0, space, mask, stream, stage_id))
+	for spec in hairpins:
 		for distance in [-13.0, 0.0, 13.0]:
-			count += int(_place(course, float(spec[0]) + float(distance), str(spec[2]), float(spec[1]), space, mask, stream))
+			count += int(_place(course, float(spec[0]) + float(distance), str(spec[2]), float(spec[1]), space, mask, stream, stage_id))
 	set_meta("sign_count", count)
-	print("TICLIO_SIGNS_READY count=", count)
+	set_meta("placed_signs", _placed_signs)
+	print("TICLIO_SIGNS_READY stage=", stage_id, " count=", count)
 
 
 func _place(course: RallyStageProgress, pk: float, face: String, side: float,
-		space: PhysicsDirectSpaceState3D, mask: int, stream: RallyVisualSectorStream) -> bool:
+		space: PhysicsDirectSpaceState3D, mask: int, stream: RallyVisualSectorStream,
+		stage_id: String) -> bool:
 	var stations := course.route_distances
 	var i := clampi(stations.bsearch(pk), 3, course.points.size() - 4)
 	var a := course.points[i - 1]
@@ -43,18 +121,26 @@ func _place(course: RallyStageProgress, pk: float, face: String, side: float,
 	var heading := course.points[i + 1] - course.points[i - 2]
 	var forward := Vector3(heading.x, 0.0, heading.z).normalized()
 	var right := forward.cross(Vector3.UP)
-	for offset in [5.2, 6.4, 4.35, 7.7]:
-		var point := center + right * side * float(offset)
-		var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 3.0, point - Vector3.UP * 3.0, mask)
-		var hit := space.intersect_ray(query)
-		if hit.is_empty() or hit.collider.get_meta("collision_role", "") != "terrain" 				or hit.collider.get_meta("is_stage_road", false) or (hit.normal as Vector3).y < 0.59:
-			continue
-		var ground: Vector3 = hit.position
-		var approach := course.points[i - 3] - ground
-		var facing := Vector3(approach.x, 0.0, approach.z).normalized()
-		stream.register_content(stream.sector_for_point(ground), _spawn.bind(ground, facing, face))
-		return true
-	push_warning("SS04 sign %s has no roadside support at %.0f m" % [face, pk])
+
+	var offsets: Array = [5.2, 6.4, 4.35, 7.7] if stage_id == "cdi_stage4" else [4.5, 5.2, 3.85, 6.4, 7.7]
+	var min_normals: Array = [0.59] if stage_id == "cdi_stage4" else [0.59, 0.42]
+	for min_ny_v in min_normals:
+		var min_ny := float(min_ny_v)
+		for offset_v in offsets:
+			var offset := float(offset_v)
+			var point := center + right * side * offset
+			var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 4.0, point - Vector3.UP * 5.0, mask)
+			var hit := space.intersect_ray(query)
+			if hit.is_empty() or hit.collider.get_meta("collision_role", "") != "terrain" \
+					or hit.collider.get_meta("is_stage_road", false) or (hit.normal as Vector3).y < min_ny:
+				continue
+			var ground: Vector3 = hit.position
+			var approach := course.points[i - 3] - ground
+			var facing := Vector3(approach.x, 0.0, approach.z).normalized()
+			stream.register_content(stream.sector_for_point(ground), _spawn.bind(ground, facing, face))
+			_placed_signs.append({"pk": pk, "face": face, "side": side, "ground": ground, "facing": facing})
+			return true
+	push_warning("%s sign %s has no roadside support at %.0f m" % [stage_id, face, pk])
 	return false
 
 
@@ -82,11 +168,12 @@ func _spawn(parent: Node3D, ground: Vector3, facing: Vector3, face: String) -> v
 	assembly.add_child(plate)
 	var pole := MeshInstance3D.new()
 	var metal := BoxMesh.new()
-	metal.size = Vector3(0.055, center_y + 0.22, 0.055)
+	var embed := 0.35
+	metal.size = Vector3(0.055, center_y + 0.22 + embed, 0.055)
 	var steel := StandardMaterial3D.new()
 	steel.albedo_color = Color(0.39, 0.41, 0.42)
 	steel.roughness = 0.8
 	metal.material = steel
 	pole.mesh = metal
-	pole.position.y = metal.size.y * 0.5
+	pole.position.y = (center_y + 0.22 - embed) * 0.5
 	assembly.add_child(pole)

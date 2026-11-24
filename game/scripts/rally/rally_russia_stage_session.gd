@@ -340,7 +340,7 @@ func _build_terrain_wetness() -> void:
 
 
 func _build_stage_grass() -> void:
-	for node_name in ["StageGrass", "StageBushes", "StageProps", "TiclioParking", "TiclioRoadSigns"]:
+	for node_name in ["StageGrass", "StageBushes", "StageProps", "TiclioParking", "TiclioRoadSigns", "CdiStageHouses", "CdiStageGuardrails"]:
 		var previous := get_node_or_null(node_name)
 		if previous != null:
 			remove_child(previous)
@@ -364,6 +364,7 @@ func _build_stage_grass() -> void:
 		add_child(props)
 		props.build(course, hash(session_track_id + "_props"), track_collision.collision_layer)
 		occupied = props.occupied_points()
+		var parking_ref: Node = null
 		if session_track_id in ["cdi_stage3", "cdi_stage4"] and sector_stream != null:
 			var parking := preload("res://scripts/rally/ticlio_parked_vehicles.gd").new()
 			parking.name = "TiclioParking"
@@ -371,17 +372,36 @@ func _build_stage_grass() -> void:
 			var route_doc: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(resolved_stage.paths.route))
 			var ticlio := session_track_id == "cdi_stage4"
 			parking.build(course, route_doc, track_collision.collision_layer, sector_stream, occupied, ticlio)
+			parking_ref = parking
 			grass.parking_covers = parking.covers
 			if ticlio:
 				parking.add_viewing_group(4227.0, -1.0, 12.0, props)
 				parking.add_viewing_group(5647.0, 1.0, 12.0, props)
-				var signs := preload("res://scripts/rally/ticlio_road_signs.gd").new()
-				signs.name = "TiclioRoadSigns"
-				add_child(signs)
-				signs.build(course, track_collision.collision_layer, sector_stream)
 			else:
 				parking.add_viewing_group(1187.0, 1.0, 15.0, props)
 			occupied = props.occupied_points()
+		if sector_stream != null:
+			if session_track_id in ["cdi_stage1", "cdi_stage2"]:
+				var guardrails := preload("res://scripts/rally/cdi_stage_guardrails.gd").new()
+				guardrails.name = "CdiStageGuardrails"
+				add_child(guardrails)
+				guardrails.build(session_track_id, course, track_collision.collision_layer, sector_stream)
+			if session_track_id in ["cdi_stage2", "cdi_stage3"]:
+				var houses := preload("res://scripts/rally/cdi_stage_houses.gd").new()
+				houses.name = "CdiStageHouses"
+				add_child(houses)
+				houses.build(session_track_id, course, track_collision.collision_layer, sector_stream, occupied)
+				occupied = occupied.duplicate()
+				occupied.append_array(houses.occupied_points())
+				if parking_ref != null:
+					grass.parking_covers = func(pt: Vector3) -> bool:
+						return bool(parking_ref.call("covers", pt)) or houses.covers(pt)
+				else:
+					grass.parking_covers = houses.covers
+			var signs := preload("res://scripts/rally/ticlio_road_signs.gd").new()
+			signs.name = "TiclioRoadSigns"
+			add_child(signs)
+			signs.build(course, track_collision.collision_layer, sector_stream, session_track_id)
 		grass.ground_group = &"RauraGrassGround"
 		grass.use_standard_variant_profile = true
 		grass.density_scale = 0.45 * 0.35
