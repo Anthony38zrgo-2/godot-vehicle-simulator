@@ -25,15 +25,22 @@ const HAIRPINS := [
 const STAGE_SPECS := {
 	"cdi_stage1": {
 		"warnings": [
+			[65.0, "velocidad_40"],
 			[820.0, "sinuoso"],
+			[1150.0, "resbaladizo"],
 			[1265.0, "herradura"],
-			[2270.0, "sinuoso"],
-			[2315.0, "velocidad_30"],
+			[1850.0, "velocidad_40"],
+			[2240.0, "sinuoso"],
+			[2285.0, "despacio"],
+			[2330.0, "velocidad_30"],
 			[2375.0, "herradura_izq"],
 			[2488.0, "herradura_izq"],
 			[2665.0, "herradura"],
 			[3340.0, "herradura"],
+			[3980.0, "sinuoso"],
+			[4025.0, "despacio"],
 			[4385.0, "herradura_izq"],
+			[4890.0, "despacio"],
 		],
 		"hairpins": [
 			[1345.0, -1.0, "chevron"],
@@ -47,17 +54,25 @@ const STAGE_SPECS := {
 	},
 	"cdi_stage2": {
 		"warnings": [
-			[480.0, "sinuoso"],
+			[65.0, "velocidad_40"],
+			[455.0, "sinuoso"],
+			[500.0, "despacio"],
 			[545.0, "herradura_izq"],
+			[1265.0, "velocidad_30"],
 			[1310.0, "herradura"],
-			[2060.0, "sinuoso"],
+			[1700.0, "resbaladizo"],
+			[2025.0, "sinuoso"],
+			[2065.0, "despacio"],
 			[2105.0, "velocidad_30"],
 			[2145.0, "herradura_izq"],
 			[2362.0, "herradura"],
+			[2545.0, "sinuoso"],
 			[2602.0, "herradura_izq"],
 			[2740.0, "herradura"],
 			[2890.0, "herradura_izq"],
 			[3015.0, "herradura"],
+			[3890.0, "velocidad_40"],
+			[4860.0, "despacio"],
 		],
 		"hairpins": [
 			[627.0, 1.0, "chevron_izq"],
@@ -72,9 +87,15 @@ const STAGE_SPECS := {
 	},
 	"cdi_stage3": {
 		"warnings": [
+			[65.0, "velocidad_40"],
 			[1430.0, "sinuoso"],
+			[1715.0, "despacio"],
+			[1755.0, "velocidad_30"],
 			[1796.0, "herradura_izq"],
 			[2995.0, "sinuoso"],
+			[4420.0, "resbaladizo"],
+			[4920.0, "sinuoso"],
+			[6110.0, "despacio"],
 		],
 		"hairpins": [
 			[1881.0, 1.0, "chevron_izq"],
