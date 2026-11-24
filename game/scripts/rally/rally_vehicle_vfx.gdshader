@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_lambert;
 
-uniform sampler2D particle_texture : source_color, filter_linear_mipmap;
+uniform sampler2D particle_texture : source_color, filter_nearest;
 uniform sampler2D scene_depth : hint_depth_texture, repeat_disable, filter_nearest;
 uniform float soft_intersection_metres = 0.0;
 uniform mat4 world_to_vehicle;
@@ -12,6 +12,53 @@ varying float particle_age;
 uniform float sprite_frames = 1.0;
 uniform bool manual_particle_state = false;
 uniform bool opaque_sprite_mask = false;
+
+// PSX VFX finish: RGB555 + aggressive 4x4 ordered dithering on color and alpha (Option A)
+uniform bool psx_enabled = true;
+uniform int psx_color_bits : hint_range(2, 8) = 5;
+uniform float psx_color_dither_strength : hint_range(0.0, 2.0) = 0.85;
+uniform int psx_alpha_levels : hint_range(2, 16) = 4;
+uniform float psx_alpha_dither_strength : hint_range(0.0, 2.0) = 0.90;
+uniform float psx_dither_scale : hint_range(1.0, 4.0) = 2.0;
+
+const float PS1_DITHER_4X4[16] = float[16](
+	-4.0,  0.0, -3.0,  1.0,
+	 2.0, -2.0,  3.0, -1.0,
+	-3.0,  1.0, -4.0,  0.0,
+	 3.0, -1.0,  2.0, -2.0
+);
+
+float psx_dither_value(vec2 frag_xy) {
+	ivec2 cell = ivec2(floor(frag_xy / max(psx_dither_scale, 1.0)));
+	return PS1_DITHER_4X4[(cell.y & 3) * 4 + (cell.x & 3)];
+}
+
+vec3 psx_quantize_rgb555(vec3 linear_rgb, float pattern) {
+	int bits = clamp(psx_color_bits, 2, 8);
+	int shift = 8 - bits;
+	vec3 srgb = pow(clamp(linear_rgb, vec3(0.0), vec3(1.0)), vec3(1.0 / 2.2)) * 255.0;
+	if (shift > 0 && psx_color_dither_strength > 0.0) {
+		float scale = psx_color_dither_strength * float(1 << shift) / 8.0;
+		srgb += vec3(pattern * scale);
+	}
+	ivec3 q = ivec3(clamp(srgb, vec3(0.0), vec3(255.0))) >> shift;
+	vec3 out_srgb;
+	if (bits >= 4) {
+		ivec3 rep = (q << shift) | (q >> (bits - shift));
+		out_srgb = vec3(rep) / 255.0;
+	} else {
+		float max_lvl = float((1 << bits) - 1);
+		out_srgb = vec3(q) / max_lvl;
+	}
+	return pow(clamp(out_srgb, vec3(0.0), vec3(1.0)), vec3(2.2));
+}
+
+float psx_quantize_alpha(float alpha, float pattern) {
+	float steps = float(max(psx_alpha_levels - 1, 1));
+	float d = (pattern / 8.0) * psx_alpha_dither_strength / steps;
+	float q = floor(clamp(alpha + d, 0.0, 1.0) * steps + 0.5) / steps;
+	return clamp(q, 0.0, 1.0);
+}
 
 void vertex() {
 	particle_age = INSTANCE_CUSTOM.y;
@@ -86,11 +133,19 @@ void fragment() {
 	}
 
 	float final_alpha = sample_color.a * visibility * edge_fade * near_fade;
+	vec3 out_color = sample_color.rgb;
+	if (psx_enabled) {
+		float pattern = psx_dither_value(FRAGCOORD.xy);
+		out_color = psx_quantize_rgb555(out_color, pattern);
+		if (!opaque_sprite_mask) {
+			final_alpha = psx_quantize_alpha(final_alpha, pattern);
+		}
+	}
 	if (final_alpha < 0.005) {
 		discard;
 	}
 
-	ALBEDO = sample_color.rgb;
+	ALBEDO = out_color;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
 	ALPHA = final_alpha;
