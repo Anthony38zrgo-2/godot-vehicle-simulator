@@ -1860,8 +1860,22 @@ pub fn spatial_patch_field(shader_station_m: f32, lateral_t: f32, seed_offset: [
     (0.48 * n1 + 0.34 * n2 + 0.18 * n3).clamp(0.0, 1.0)
 }
 
-/// Shared CPU/GPU procedural loose-gravel / clay sector coverage (~40% of gravel stages)
+/// Derives a full-entropy 2D noise seed offset from a 32-bit mask seed
+/// (used for `ice_patch_seed` / loose-gravel damaged-section patterns).
+#[inline]
+pub fn loose_gravel_seed_offset_u32(seed: u32) -> [f32; 2] {
+    let ix = ((seed & 0xffff) as f32) * 0.0151 + 17.3;
+    let iy = (((seed >> 16) & 0xffff) as f32) * 0.0193 + 9.7;
+    [ix, iy]
+}
+
+/// Shared CPU/GPU procedural damaged-track sandy/clayey loose-gravel coverage
 /// and heavy-rain mud conversion factor `(loose_gravel_coverage, mud_factor)` in `[0, 1]`.
+///
+/// Models irregular, unpredictable damaged sections of Andean gravel stages (SS01/SS02)
+/// covered with sandy/clayey loose gravel: domain-warped multi-scale damage clusters,
+/// asymmetric lateral bias (shoulder washouts, center breakdown, or full-width degraded cuts),
+/// broken intact-gravel islands, and subtle wheel-rut sweeping.
 pub fn loose_gravel_and_mud_coverage(
     is_gravel_surface: bool,
     shader_station_m: f32,
@@ -1874,26 +1888,60 @@ pub fn loose_gravel_and_mud_coverage(
         return (0.0, 0.0);
     }
     let s0 = [seed_offset[0] + 31.4, seed_offset[1] + 59.2];
-    let n_macro = value_noise2(shader_station_m * 0.0075, 0.35, s0);
-    let n_meso = value_noise2(
-        shader_station_m * 0.024,
-        1.65,
-        [s0[0] + 13.7, s0[1] + 29.1],
+
+    // 1. 2D domain warp breaks longitudinal periodicity and slants/curves damaged borders organically.
+    let warp_long = (value_noise2(
+        shader_station_m * 0.0093,
+        lateral_t * 0.65 + 1.1,
+        [s0[0] + 5.3, s0[1] + 19.7],
+    ) - 0.5)
+        * 46.0;
+    let warp_lat = (value_noise2(
+        shader_station_m * 0.029,
+        lateral_t * 1.3 + 4.7,
+        [s0[0] + 27.9, s0[1] + 8.4],
+    ) - 0.5)
+        * 0.72;
+    let sw = shader_station_m + warp_long;
+    let lw = lateral_t + warp_lat;
+
+    // 2. Multi-scale irregular damage envelope:
+    //    - cluster_env (~270m warped): long intact stretches alternating with degraded zones
+    //    - medium_patch (~58m 2D): individual irregular damaged road patches (20-90m)
+    //    - short_pocket (~17m 2D): localized pothole/washout repairs & intact gravel islands
+    let cluster_env = value_noise2(sw * 0.0037, 0.41, [s0[0] + 11.2, s0[1] + 3.8]);
+    let medium_patch = value_noise2(
+        sw * 0.0173,
+        lw * 0.52 + 2.3,
+        [s0[0] + 43.6, s0[1] + 21.5],
     );
-    let n_fine = value_noise2(
-        shader_station_m * 0.085,
-        2.85 + lateral_t * 0.75,
-        [s0[0] + 47.3, s0[1] + 11.8],
+    let short_pocket = value_noise2(
+        sw * 0.057,
+        lw * 1.35 + 5.1,
+        [s0[0] + 71.1, s0[1] + 37.9],
     );
-    let field = 0.54 * n_macro + 0.30 * n_meso + 0.16 * n_fine;
-    // Calibrated threshold so ~40% of the stage has loose clay-gravel sectors.
-    let sector_gate = smoothstep(0.530, 0.640, field);
+
+    // 3. Asymmetric lateral damage focus (shifts unpredictably between left edge, center, right edge).
+    let bias_noise = value_noise2(sw * 0.0061, 3.7, [s0[0] + 61.4, s0[1] + 14.2]);
+    let bias_center = (bias_noise - 0.5) * 2.4;
+    let lat_affinity = 1.0 - smoothstep(0.35, 1.35, (lw - bias_center).abs());
+
+    let damage_field =
+        0.34 * cluster_env + 0.36 * medium_patch + 0.18 * short_pocket + 0.12 * lat_affinity;
+
+    // Crisper threshold calibrated so ~35-42% of the stage has distinct broken/gravel-covered track areas.
+    let sector_gate = smoothstep(0.548, 0.652, damage_field);
     if sector_gate <= 0.001 {
         return (0.0, 0.0);
     }
+
+    // Previous traffic partially sweeps loose gravel out of the wheel ruts on lighter patches,
+    // while severely damaged washouts stay deeply covered across the full rut width.
     let abs_lat = lateral_t.abs().clamp(0.0, 1.0);
-    let rut_dip = 1.0 - 0.16 * (1.0 - ((abs_lat - 0.48).abs() / 0.24).clamp(0.0, 1.0));
-    let loose_cov = (sector_gate * rut_dip).clamp(0.0, 1.0);
+    let rut_sweep = 1.0 - ((abs_lat - 0.46).abs() / 0.22).clamp(0.0, 1.0);
+    let rut_thin = lerpf(0.24, 0.06, smoothstep(0.60, 0.80, damage_field));
+    let loose_cov = (sector_gate * (1.0 - rut_thin * rut_sweep)).clamp(0.0, 1.0);
+
     let wet_drive = (road_water_mm / 0.55 + saturation.clamp(0.0, 1.0) * 0.45).clamp(0.0, 1.0);
     let mud_raw = smoothstep(0.32, 0.82, wet_drive);
     let mud = (loose_cov * mud_raw).clamp(0.0, 1.0);
@@ -4190,7 +4238,7 @@ impl FiveSectorSnapshot {
         let cfg = &journey.climate.surface_balance;
         let lat = lateral_t.clamp(-1.0, 1.0);
         let snow_seed_off = patch_seed_offsets(self.patch_seed as u64).0;
-        let ice_seed_off = patch_seed_offsets(self.ice_patch_seed as u64).1;
+        let ice_seed_off = loose_gravel_seed_offset_u32(self.ice_patch_seed);
 
         let snow_cov = local_pattern_coverage(
             snow_mm,
@@ -4756,7 +4804,7 @@ impl RustFiveSectorWeather {
             slice[i * 4 + 3] = (saturation.clamp(0.0, 1.0) * 255.0).round() as u8;
         }
         let snow_off = patch_seed_offsets(snap.patch_seed as u64).0;
-        let ice_off = patch_seed_offsets(snap.ice_patch_seed as u64).1;
+        let ice_off = loose_gravel_seed_offset_u32(snap.ice_patch_seed);
         let _ = out.insert("ok", true);
         let _ = out.insert("mode", "five_sector_snapshot");
         let _ = out.insert("revision", snap.revision as i64);
@@ -5907,5 +5955,132 @@ mod tests {
             }
         }
         assert!(mud_active > 60, "expected substantial mud sectors under heavy rain (got {})", mud_active);
+    }
+
+    #[test]
+    fn damaged_gravel_patches_are_irregular_asymmetric_and_distinct_across_ss01_and_ss02() {
+        let (climate, ss01_route) = load_ss01_profiles();
+        let ss02_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../game/assets/rally/cdi_stage2/climate_route_profile.json");
+        let ss02_txt = std::fs::read_to_string(&ss02_path).expect("read ss02 climate_route_profile.json");
+        let ss02_route = RouteProfile::from_json_str(&ss02_txt).expect("parse ss02 route");
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+
+        let j1 = FiveSectorJourney::build(
+            ss01_route.clone(),
+            climate.clone(),
+            2026,
+            "dry",
+            base_s,
+            FiveSectorRegime::Dry,
+        );
+        let j2 = FiveSectorJourney::build(
+            ss02_route.clone(),
+            climate.clone(),
+            2026,
+            "dry",
+            base_s,
+            FiveSectorRegime::Dry,
+        );
+        let snap1 = j1.build_snapshot_at(base_s, "gravel");
+        let snap2 = j2.build_snapshot_at(base_s, "gravel");
+
+        // 1. Seed offsets must differ in both X and Y between SS01 and SS02 (full 32-bit entropy).
+        let off1 = loose_gravel_seed_offset_u32(snap1.ice_patch_seed);
+        let off2 = loose_gravel_seed_offset_u32(snap2.ice_patch_seed);
+        assert!(
+            (off1[0] - off2[0]).abs() > 0.05 && (off1[1] - off2[1]).abs() > 0.05,
+            "SS01 and SS02 loose-gravel seed offsets must vary in both dimensions: {:?} vs {:?}",
+            off1,
+            off2
+        );
+
+        // 2. Measure lateral asymmetry, patch length variability, and SS01/SS02 distinctness.
+        let step_m = 10.0_f32;
+        let steps = (ss01_route.total_distance_m / step_m).floor() as usize;
+        let mut asymmetric_count = 0usize;
+        let mut ss01_vs_ss02_diff = 0usize;
+        let mut patch_lengths_m: Vec<f32> = Vec::new();
+        let mut gap_lengths_m: Vec<f32> = Vec::new();
+        let mut in_patch = false;
+        let mut run_len = 0.0_f32;
+
+        for i in 0..=steps {
+            let p = (i as f32 * step_m).min(ss01_route.total_distance_m);
+            let s_l = snap1.sample_surface_at(&j1, p, -0.65).loose_gravel_coverage;
+            let s_c = snap1.sample_surface_at(&j1, p, 0.0).loose_gravel_coverage;
+            let s_r = snap1.sample_surface_at(&j1, p, 0.65).loose_gravel_coverage;
+            if (s_l - s_r).abs() >= 0.25 {
+                asymmetric_count += 1;
+            }
+            let p2 = (i as f32 * step_m).min(ss02_route.total_distance_m);
+            let s2_c = snap2.sample_surface_at(&j2, p2, 0.0).loose_gravel_coverage;
+            if (s_c - s2_c).abs() >= 0.20 {
+                ss01_vs_ss02_diff += 1;
+            }
+            let active = s_c >= 0.30;
+            if i == 0 {
+                in_patch = active;
+                run_len = step_m;
+            } else if active == in_patch {
+                run_len += step_m;
+            } else {
+                if in_patch {
+                    patch_lengths_m.push(run_len);
+                } else {
+                    gap_lengths_m.push(run_len);
+                }
+                in_patch = active;
+                run_len = step_m;
+            }
+        }
+        if in_patch {
+            patch_lengths_m.push(run_len);
+        } else {
+            gap_lengths_m.push(run_len);
+        }
+
+        let asym_share = (asymmetric_count as f32) / ((steps + 1) as f32);
+        let diff_share = (ss01_vs_ss02_diff as f32) / ((steps + 1) as f32);
+        let min_patch = patch_lengths_m.iter().copied().fold(f32::INFINITY, f32::min);
+        let max_patch = patch_lengths_m.iter().copied().fold(0.0_f32, f32::max);
+        let min_gap = gap_lengths_m.iter().copied().fold(f32::INFINITY, f32::min);
+        let max_gap = gap_lengths_m.iter().copied().fold(0.0_f32, f32::max);
+        eprintln!(
+            "DAMAGED_GRAVEL_STATS asym={:.3} ss01_vs_ss02_diff={:.3} patches={} ({:.0}..{:.0}m) gaps={} ({:.0}..{:.0}m)",
+            asym_share,
+            diff_share,
+            patch_lengths_m.len(),
+            min_patch,
+            max_patch,
+            gap_lengths_m.len(),
+            min_gap,
+            max_gap
+        );
+
+        assert!(
+            asym_share >= 0.12,
+            "expected meaningful left/right damaged-track asymmetry (>=12%), got {:.1}%",
+            asym_share * 100.0
+        );
+        assert!(
+            diff_share >= 0.25,
+            "expected SS01 and SS02 damaged-gravel layouts to differ substantially, got {:.1}%",
+            diff_share * 100.0
+        );
+        assert!(
+            patch_lengths_m.len() >= 10 && max_patch >= min_patch * 3.0,
+            "expected irregular non-periodic patch lengths, got count={} range={}..{}m",
+            patch_lengths_m.len(),
+            min_patch,
+            max_patch
+        );
+        assert!(
+            gap_lengths_m.len() >= 10 && max_gap >= min_gap * 3.0,
+            "expected irregular non-periodic intact gaps, got count={} range={}..{}m",
+            gap_lengths_m.len(),
+            min_gap,
+            max_gap
+        );
     }
 }

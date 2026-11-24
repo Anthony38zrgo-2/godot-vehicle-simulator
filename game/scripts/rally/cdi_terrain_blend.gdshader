@@ -70,12 +70,38 @@ void fragment() {
 			micro_cavity
 		);
 
-		// Clayey loose gravel tint in dry/damp conditions + deep dark muddy paste under heavy rain
-		float fine_pebble = patch_noise(p.xz * 3.4);
-		vec3 clay_dry_tint = mix(vec3(0.66, 0.48, 0.33), vec3(0.76, 0.57, 0.40), fine_pebble);
-		ALBEDO = mix(ALBEDO, mix(ALBEDO * vec3(1.08, 0.88, 0.68), clay_dry_tint, 0.56), dry_clay_cov * 0.78);
-		vec3 mud_paste_tint = mix(vec3(0.28, 0.18, 0.11), vec3(0.38, 0.25, 0.16), tracks * 0.5 + fine * 0.5);
-		ALBEDO = mix(ALBEDO, mix(ALBEDO * vec3(0.55, 0.44, 0.34), mud_paste_tint, 0.68), mud_factor * 0.88);
+		// Damaged-track loose sandy/clayey gravel fill + heavy-rain mud paste:
+		// Perturb the perimeter with world-space granular noise so boundaries read as
+		// chipped, eroded track patches with spilled sand/gravel rather than smooth stripes.
+		float edge_breakup = patch_noise(p.xz * 0.38 + vec2(13.1, 7.7));
+		float fine_pebble = patch_noise(p.xz * 3.6 + vec2(5.2, 19.4));
+		float micro_sand = patch_noise(p.xz * 9.2 + vec2(21.7, 3.1));
+		float broken_mask = clamp(
+			(loose_cov - 0.10) * 1.25 + (edge_breakup - 0.5) * 0.36 + (fine_pebble - 0.5) * 0.14,
+			0.0,
+			1.0
+		);
+		float damage_vis = smoothstep(0.06, 0.74, broken_mask) * smoothstep(0.0, 0.08, loose_cov);
+		float dry_damage_vis = clamp(damage_vis * (1.0 - mud_factor), 0.0, 1.0);
+		// Fractured crust rim around the eroded depression where compacted track breaks away.
+		float fracture_rim = smoothstep(0.04, 0.28, damage_vis) * (1.0 - smoothstep(0.42, 0.78, damage_vis));
+		// Disturbed sub-base + sandy-ochre & Andean clay loose gravilla fill.
+		vec3 disturbed_soil = zone_shoulder(p, zone) * terrain_macro_tone(p.xz);
+		float sand_vs_clay = smoothstep(0.28, 0.74, patch_noise(p.xz * 0.14 + vec2(29.3, 11.4)) * 0.65 + edge_breakup * 0.35);
+		vec3 sandy_fill = mix(vec3(0.68, 0.56, 0.41), vec3(0.77, 0.65, 0.48), micro_sand);
+		vec3 clayey_fill = mix(vec3(0.55, 0.39, 0.27), vec3(0.67, 0.49, 0.34), fine_pebble);
+		vec3 loose_aggregate = mix(clayey_fill, sandy_fill, sand_vs_clay);
+		// Loose stones/pebbles scattered on top of the sandy-clayey fill; wheel tracks expose slightly darker sub-base.
+		float pebble_fleck = smoothstep(0.62, 0.86, fine_pebble * 0.6 + micro_sand * 0.4);
+		vec3 damaged_surface = mix(disturbed_soil * vec3(1.12, 0.96, 0.80), loose_aggregate, 0.62);
+		damaged_surface *= mix(1.0, 0.88, tracks * 0.55);
+		damaged_surface = mix(damaged_surface, damaged_surface * 1.14, pebble_fleck * 0.45);
+		ALBEDO *= mix(1.0, 0.84, fracture_rim * (1.0 - mud_factor * 0.5) * 0.65);
+		ALBEDO = mix(ALBEDO, damaged_surface, dry_damage_vis * 0.86);
+
+		float mud_vis = clamp(mud_factor * mix(0.75, 1.15, damage_vis), 0.0, 1.0);
+		vec3 mud_paste_tint = mix(vec3(0.26, 0.17, 0.11), vec3(0.37, 0.24, 0.15), tracks * 0.5 + fine * 0.5);
+		ALBEDO = mix(ALBEDO, mix(ALBEDO * vec3(0.52, 0.42, 0.32), mud_paste_tint, 0.70), mud_vis * 0.90);
 
 		// Protruding gravel stones stay drier while mud paste holds a slightly smoother sheen
 		float emergent_stones = smoothstep(0.54, 0.80, fine) * (1.0 - tracks * 0.45) * (1.0 - mud_factor * 0.82);
