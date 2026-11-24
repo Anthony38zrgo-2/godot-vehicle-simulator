@@ -1,13 +1,14 @@
 shader_type spatial;
-render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_lambert;
+render_mode blend_mix, depth_draw_never, cull_disabled, unshaded;
 
-// Camera-facing sprite used by the weather adapter for the CMR2 rain and snow
-// bitmaps. Distance fades prevent a near-plane quad from covering the screen
-// and keep the precipitation layer readable without a second particle system.
+// Camera-facing unshaded sprite used by the weather adapter for the CMR2 rain and
+// snow bitmaps. Unshaded avoids per-pixel PBR lighting on 400-500 transparent quads,
+// while ambient_brightness adapts visibility to daylight/night.
 
 uniform sampler2D particle_texture : source_color, filter_linear_mipmap;
 uniform float opacity = 0.55;
 uniform vec3 tint_color = vec3(1.0);
+uniform float ambient_brightness = 1.0;
 uniform float near_start_m = 0.9;
 uniform float near_end_m = 3.6;
 uniform float far_start_m = 22.0;
@@ -50,9 +51,6 @@ void fragment() {
 	vec4 sample_color = texture(particle_texture, sprite_uv) * COLOR;
 	vec2 border = smoothstep(vec2(0.01), vec2(0.12), min(UV, 1.0 - UV));
 	float alpha = sample_color.a * opacity * distance_fade * border.x * border.y;
-	if (alpha < 0.005) {
-		discard;
-	}
-	ALBEDO = tint_color;
+	ALBEDO = tint_color * ambient_brightness;
 	ALPHA = alpha;
 }

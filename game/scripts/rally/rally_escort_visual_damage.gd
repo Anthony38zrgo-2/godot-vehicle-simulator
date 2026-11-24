@@ -98,11 +98,28 @@ func _bind_exterior_surface(mesh: MeshInstance3D, surface: int, material: Materi
 			if material.resource_name == "#E1 window front":
 				var cracked := glass.duplicate() as StandardMaterial3D
 				cracked.albedo_texture = broken_glass
-				cracked.next_pass = _windshield_rain_material
+				binding["base_front_glass"] = glass
 				binding["cracked"] = cracked
 				binding["tinted_cracked"] = _make_tinted_glass(broken_glass, true)
-				glass.next_pass = _windshield_rain_material
+				_sync_windshield_next_pass(glass, cracked)
 			_exterior_windows.append(binding)
+
+
+func _sync_windshield_next_pass(glass: StandardMaterial3D, cracked: StandardMaterial3D) -> void:
+	var active_pass: Material = _windshield_rain_material if (_cockpit_view and _rain_intensity > 0.005) else null
+	if glass != null and glass.next_pass != active_pass:
+		glass.next_pass = active_pass
+	if cracked != null and cracked.next_pass != active_pass:
+		cracked.next_pass = active_pass
+
+
+func _sync_all_windshield_passes() -> void:
+	for binding in _exterior_windows:
+		if binding.has("base_front_glass") or binding.has("cracked"):
+			_sync_windshield_next_pass(
+				binding.get("base_front_glass") as StandardMaterial3D,
+				binding.get("cracked") as StandardMaterial3D,
+			)
 
 
 func _make_tinted_glass(texture: Texture2D, cracked: bool) -> ShaderMaterial:
@@ -121,6 +138,7 @@ func set_cockpit_view(enabled: bool) -> void:
 		_cockpit_view = enabled
 		if _windshield_rain_material != null:
 			_windshield_rain_material.set_shader_parameter("is_cockpit_view", _cockpit_view)
+		_sync_all_windshield_passes()
 		_update_exterior_glass()
 
 
@@ -129,8 +147,11 @@ func update_weather_glass(precipitation_mm_h: float, speed_mps: float) -> void:
 	var smoothed_speed := lerpf(_car_speed_mps, speed_mps, 0.25) if _car_speed_mps > 0.01 else speed_mps
 	if absf(_rain_intensity - intensity) < 0.003 and absf(_car_speed_mps - smoothed_speed) < 0.25:
 		return
+	var was_wet := _rain_intensity > 0.005
 	_rain_intensity = intensity
 	_car_speed_mps = smoothed_speed
+	if was_wet != (_rain_intensity > 0.005):
+		_sync_all_windshield_passes()
 	if _windshield_rain_material != null:
 		_windshield_rain_material.set_shader_parameter("rain_intensity", _rain_intensity)
 		_windshield_rain_material.set_shader_parameter("car_speed_mps", _car_speed_mps)

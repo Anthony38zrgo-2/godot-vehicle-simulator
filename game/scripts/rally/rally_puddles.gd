@@ -265,6 +265,12 @@ const TARGET_BAND_SHARE := {
 }
 const DEEP_COOLDOWN_M := 55.0
 const CLUSTER_DENSITY_SCALE := 0.74
+const PUDDLE_VISUAL_RADIUS_M := 210.0
+const PUDDLE_VISUAL_RADIUS_SQ := PUDDLE_VISUAL_RADIUS_M * PUDDLE_VISUAL_RADIUS_M
+const SKY_PARAM_KEYS := [
+	"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
+	"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color",
+]
 
 static var _mask_images: Dictionary = {}
 
@@ -279,6 +285,7 @@ var stage_seed: int = 0
 var patches: Array[Dictionary] = []
 var buckets: Dictionary = {}
 var elapsed := 0.0
+var _visual_elapsed := 0.2
 var built := false
 var _rust_field: RefCounted = null
 var _rust_mask_ids: Dictionary = {}
@@ -288,6 +295,10 @@ var _cand_distances: PackedFloat32Array = PackedFloat32Array()
 var _cand_twis: PackedFloat32Array = PackedFloat32Array()
 var _cand_min_waters: PackedFloat32Array = PackedFloat32Array()
 var _cand_retentions: PackedFloat32Array = PackedFloat32Array()
+var _sky_cache: Dictionary = {}
+var _sky_revision: int = 0
+var _prewarm_node: MeshInstance3D = null
+var _prewarm_frames_left: int = 0
 static var _rust_static_helper: RefCounted = null
 
 
@@ -310,18 +321,27 @@ func configure(points: Array[Vector3], seed_value: int, weather, wetness: Node) 
 func _physics_process(delta: float) -> void:
 	if not built:
 		build()
+	if fixed_snapshot_mode:
+		return
 	elapsed += delta
-	if elapsed < 0.2:
+	if elapsed < 0.25:
 		return
 	elapsed = 0.0
 
-	if fixed_snapshot_mode:
-		_refresh_visible_reflections_only()
-		return
-
+	# Physical fill update only (decoupled from visual shader/uniform updates in _process).
+	# Bucketed by 25 m along route to avoid 139 redundant Rust surface lookups per tick.
+	var state_cache: Dictionary = {}
 	for patch in patches:
 		var profile: Dictionary = patch.profile
-		var local_state := _local_liquid_state(float(patch.distance))
+		var dist_m: float = float(patch.distance)
+		var bucket_key: int = floori(dist_m / 25.0)
+		var local_state: Dictionary
+		if state_cache.has(bucket_key):
+			local_state = state_cache[bucket_key]
+		else:
+			local_state = _local_liquid_state(dist_m)
+			state_cache[bucket_key] = local_state
+
 		var water := float(local_state.get("water_mm", 0.0))
 		var ice := float(local_state.get("ice_mm", 0.0))
 		var min_w := float(profile.get("min_water", 0.75))
@@ -335,23 +355,6 @@ func _physics_process(delta: float) -> void:
 			var liquid_fraction := water / (water + ice) if ice > 0.001 else 1.0
 			patch.fill = clampf((water - min_w) * ret / 3.0, 0.0, 1.0) * liquid_fraction
 
-		var mesh := patch.mesh as MeshInstance3D
-		var filled := float(patch.fill) > 0.005
-		if mesh.visible != filled:
-			mesh.visible = filled
-		if not filled:
-			continue
-		var material: ShaderMaterial = patch.material
-		material.set_shader_parameter("fill", patch.fill)
-
-		if is_instance_valid(sky_node):
-			_apply_sky_uniforms(material)
-
-		var rain := float(local_state.get("rain_ratio", 0.0))
-		var wind_vec: Vector2 = local_state.get("wind_vec", Vector2(1.2, 0.4)) as Vector2
-		material.set_shader_parameter("rain", rain)
-		material.set_shader_parameter("wind_vec", wind_vec)
-
 	if _rust_field != null:
 		var count: int = patches.size()
 		if _rust_fills.size() != count:
@@ -359,6 +362,22 @@ func _physics_process(delta: float) -> void:
 		for pi in count:
 			_rust_fills[pi] = float(patches[pi]["fill"])
 		_rust_field.call("update_fills", _rust_fills)
+
+
+func _process(delta: float) -> void:
+	if _prewarm_node != null:
+		_prewarm_frames_left -= 1
+		if _prewarm_frames_left <= 0:
+			if is_instance_valid(_prewarm_node):
+				_prewarm_node.queue_free()
+			_prewarm_node = null
+	if not built or patches.is_empty():
+		return
+	_visual_elapsed += delta
+	if _visual_elapsed < 0.2:
+		return
+	_visual_elapsed = 0.0
+	_refresh_visible_puddles(false)
 
 
 func _local_liquid_state(distance: float) -> Dictionary:
@@ -913,12 +932,15 @@ func build() -> void:
 				mesh_instance.mesh = conformal.mesh
 				mesh_instance.material_override = material
 				mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				mesh_instance.visibility_range_end = 195.0
+				mesh_instance.visibility_range_end_margin = 20.0
 				add_child(mesh_instance)
 				mesh_instance.global_transform = Transform3D(basis, center + normal * 0.014)
 				mesh_instance.visible = false
 
 				var patch := {
 					"transform": mesh_instance.global_transform,
+					"origin": mesh_instance.global_transform.origin,
 					"size": size,
 					"profile": profile,
 					"family": family,
@@ -934,6 +956,10 @@ func build() -> void:
 					"yaw": yaw,
 					"cluster_id": cluster_id,
 					"depth_mm": instance_depth_mm,
+					"sky_rev": -1,
+					"last_fill": -1.0,
+					"last_rain": -1.0,
+					"last_wind": Vector2(INF, INF),
 				}
 				patches.append(patch)
 
@@ -961,9 +987,37 @@ func build() -> void:
 
 	_sync_patches_to_rust()
 	_rebuild_candidate_arrays()
+	_spawn_shader_prewarm()
 	if provider != null and bool(provider.get("five_sector_snapshot_active")):
 		apply_fixed_snapshot_fills()
 	print("RALLY_PUDDLES_READY count=", patches.size(), " seed=", stage_seed, " clusters=", cluster_id)
+
+
+func _spawn_shader_prewarm() -> void:
+	if _prewarm_node != null and is_instance_valid(_prewarm_node):
+		_prewarm_node.queue_free()
+	_prewarm_node = null
+	if not is_inside_tree() or route.is_empty():
+		return
+	var q := QuadMesh.new()
+	q.size = Vector2(0.05, 0.05)
+	var mat := ShaderMaterial.new()
+	mat.shader = WATER_SHADER
+	mat.set_shader_parameter("fill", 0.5)
+	mat.set_shader_parameter("rain", 0.5)
+	mat.set_shader_parameter("puddle_mask", MASK_ROUND)
+	mat.set_shader_parameter("use_mask_texture", true)
+	mat.set_shader_parameter("water_detail_tex", WATER_DETAIL_TEX)
+	var mi := MeshInstance3D.new()
+	mi.name = "PuddleShaderPrewarm"
+	mi.mesh = q
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.extra_cull_margin = 16384.0
+	add_child(mi)
+	mi.global_position = route[0] + Vector3(0.0, -50.0, 0.0)
+	_prewarm_node = mi
+	_prewarm_frames_left = 2
 
 
 func _rebuild_candidate_arrays() -> void:
@@ -1061,15 +1115,25 @@ func sample_winter_patch(position: Vector3) -> Vector2:
 	return Vector2(sample_snow_patch(position).x, 0.0)
 
 
-func _apply_sky_uniforms(material: ShaderMaterial) -> void:
+func _update_sky_cache() -> bool:
+	if not is_instance_valid(sky_node):
+		return false
 	var sky_mat := sky_node.get("material") as ShaderMaterial
+	var changed := false
 	if sky_mat != null:
-		material.set_shader_parameter("has_sky", true)
-		for parameter in [
-			"sky_a", "sky_b", "sky_c", "weather_mix", "daylight_mix",
-			"twilight_yaw", "yaw_b", "tint_a", "tint_b", "tint_c", "horizon_color"
-		]:
-			material.set_shader_parameter(parameter, sky_mat.get_shader_parameter(parameter))
+		if not bool(_sky_cache.get("has_sky", false)):
+			_sky_cache["has_sky"] = true
+			changed = true
+		for parameter: String in SKY_PARAM_KEYS:
+			var val: Variant = sky_mat.get_shader_parameter(parameter)
+			var prev: Variant = _sky_cache.get(parameter, null)
+			if typeof(val) == TYPE_FLOAT and typeof(prev) == TYPE_FLOAT:
+				if absf(float(val) - float(prev)) > 0.004:
+					_sky_cache[parameter] = val
+					changed = true
+			elif prev != val:
+				_sky_cache[parameter] = val
+				changed = true
 	var sun := sky_node.get("sun") as DirectionalLight3D
 	var moon := sky_node.get("moon") as DirectionalLight3D
 	var light: DirectionalLight3D = sun if (sun != null and is_instance_valid(sun)) else null
@@ -1078,24 +1142,102 @@ func _apply_sky_uniforms(material: ShaderMaterial) -> void:
 	if light != null:
 		var dir := light.global_basis.z
 		if not dir.is_zero_approx():
-			material.set_shader_parameter("sun_dir", dir.normalized())
+			var norm_dir := dir.normalized()
+			var prev_dir: Variant = _sky_cache.get("sun_dir", Vector3.ZERO)
+			if not (prev_dir is Vector3) or (prev_dir as Vector3).distance_squared_to(norm_dir) > 0.0004:
+				_sky_cache["sun_dir"] = norm_dir
+				changed = true
 		var col := light.light_color * light.light_energy
-		material.set_shader_parameter("sun_color", Vector3(col.r, col.g, col.b))
+		var col_v := Vector3(col.r, col.g, col.b)
+		var prev_col: Variant = _sky_cache.get("sun_color", Vector3(-1.0, -1.0, -1.0))
+		if not (prev_col is Vector3) or (prev_col as Vector3).distance_squared_to(col_v) > 0.0004:
+			_sky_cache["sun_color"] = col_v
+			changed = true
+	if changed or _sky_revision == 0:
+		_sky_revision += 1
+	return true
+
+
+func _apply_cached_sky_uniforms(material: ShaderMaterial) -> void:
+	if _sky_cache.is_empty():
+		return
+	for key in _sky_cache:
+		material.set_shader_parameter(str(key), _sky_cache[key])
+
+
+func _apply_sky_uniforms(material: ShaderMaterial) -> void:
+	_update_sky_cache()
+	_apply_cached_sky_uniforms(material)
+
+
+func _get_focus_position() -> Variant:
+	if is_inside_tree():
+		var vp := get_viewport()
+		if vp != null:
+			var cam := vp.get_camera_3d()
+			if cam != null and is_instance_valid(cam):
+				return cam.global_position
+	if provider != null and bool(provider.get("has_position")):
+		return provider.get("last_vehicle_pos")
+	return null
+
+
+func _refresh_visible_puddles(force_all: bool) -> void:
+	var has_sky := _update_sky_cache()
+	var focus_var: Variant = null if force_all else _get_focus_position()
+	var has_focus := focus_var is Vector3
+	var focus_pos: Vector3 = focus_var if has_focus else Vector3.ZERO
+	var state_cache: Dictionary = {}
+
+	for patch in patches:
+		var fill_v: float = float(patch["fill"])
+		var winter_k: int = int(patch.get("winter_kind", 0))
+		var active: bool = fill_v > 0.005 or winter_k != 0
+		var mesh := patch["mesh"] as MeshInstance3D
+		if not active:
+			if mesh != null and mesh.visible:
+				mesh.visible = false
+			continue
+		if has_focus:
+			var origin: Vector3 = patch.get("origin", (patch["transform"] as Transform3D).origin)
+			if origin.distance_squared_to(focus_pos) > PUDDLE_VISUAL_RADIUS_SQ:
+				if mesh != null and mesh.visible:
+					mesh.visible = false
+				continue
+		if mesh != null and not mesh.visible:
+			mesh.visible = true
+		var material := patch["material"] as ShaderMaterial
+		if material == null:
+			continue
+		if absf(float(patch.get("last_fill", -1.0)) - fill_v) >= 0.003:
+			patch["last_fill"] = fill_v
+			material.set_shader_parameter("fill", fill_v)
+		if winter_k != 0:
+			continue
+		if has_sky and int(patch.get("sky_rev", -1)) != _sky_revision:
+			patch["sky_rev"] = _sky_revision
+			_apply_cached_sky_uniforms(material)
+		var dist_m: float = float(patch["distance"])
+		var bucket_key: int = floori(dist_m / 45.0)
+		var local_state: Dictionary
+		if state_cache.has(bucket_key):
+			local_state = state_cache[bucket_key]
+		else:
+			local_state = _local_liquid_state(dist_m)
+			state_cache[bucket_key] = local_state
+		var rain_v: float = float(local_state.get("rain_ratio", 0.0))
+		if absf(float(patch.get("last_rain", -1.0)) - rain_v) >= 0.005:
+			patch["last_rain"] = rain_v
+			material.set_shader_parameter("rain", rain_v)
+		var wind_v: Vector2 = local_state.get("wind_vec", Vector2(1.2, 0.4)) as Vector2
+		var prev_wind: Vector2 = patch.get("last_wind", Vector2(INF, INF)) as Vector2
+		if prev_wind.distance_squared_to(wind_v) >= 0.01:
+			patch["last_wind"] = wind_v
+			material.set_shader_parameter("wind_vec", wind_v)
 
 
 func _refresh_visible_reflections_only() -> void:
-	var has_sky := is_instance_valid(sky_node) and sky_node.get("material") != null
-	for patch in patches:
-		if float(patch["fill"]) <= 0.005:
-			continue
-		var material: ShaderMaterial = patch["material"]
-		if material == null:
-			continue
-		if has_sky:
-			_apply_sky_uniforms(material)
-		var local_state := _local_liquid_state(float(patch["distance"]))
-		material.set_shader_parameter("rain", float(local_state.get("rain_ratio", 0.0)))
-		material.set_shader_parameter("wind_vec", local_state.get("wind_vec", Vector2(1.2, 0.4)) as Vector2)
+	_refresh_visible_puddles(false)
 
 
 ## Shared CPU/Rust/GPU bathymetric shoreline threshold in [0.18, 0.62].

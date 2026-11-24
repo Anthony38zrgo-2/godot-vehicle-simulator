@@ -551,6 +551,120 @@ func _make_precipitation_pass(
 	return quad
 
 
+func _get_or_create_precipitation_emitter(tca_controller: Node, kind: String) -> GPUParticles3D:
+	if tca_controller == null or not is_instance_valid(tca_controller):
+		return null
+	if catalog.is_empty():
+		catalog = _read_json(SchedulerScript.PRESET_CATALOG_PATH)
+	var visual: Dictionary = catalog.get("visual_response", {})
+	var adapter: Dictionary = catalog.get("precipitation_adapter", {})
+	var emitters: Dictionary = tca_controller.get_meta("calendar_emitters", {})
+	var cached_emitter: Variant = emitters.get(kind)
+	var particles := cached_emitter as GPUParticles3D if is_instance_valid(cached_emitter) else null
+	if is_instance_valid(particles) and not particles.is_queued_for_deletion():
+		return particles
+	particles = null
+	var path := str(adapter.get(kind + "_scene", ""))
+	if ResourceLoader.exists(path):
+		var packed := load(path) as PackedScene
+		if packed != null:
+			particles = packed.instantiate() as GPUParticles3D
+		if particles != null:
+			if kind == "rain":
+				particles.trail_enabled = false
+				particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				particles.draw_passes = 1
+				particles.lifetime = float(visual.get("rain_lifetime_s", 0.9))
+				particles.draw_pass_1 = _make_precipitation_pass(
+					RAIN_SPRITE,
+					Vector2(
+						float(visual.get("raindrop_width_m", 0.05)),
+						float(visual.get("raindrop_height_m", 0.55)),
+					),
+					float(visual.get("raindrop_opacity", 0.70)),
+					float(visual.get("raindrop_near_fade_start_m", 0.05)),
+					float(visual.get("raindrop_near_fade_end_m", 0.4)),
+					float(visual.get("raindrop_far_fade_start_m", 24.0)),
+					float(visual.get("raindrop_far_fade_end_m", 42.0)),
+					Color(0.90, 0.94, 1.0),
+				)
+			elif kind == "snow":
+				particles.trail_enabled = false
+				particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				particles.draw_passes = 1
+				particles.local_coords = false
+				particles.visibility_aabb = AABB(Vector3(-80.0, -32.0, -80.0), Vector3(160.0, 40.0, 160.0))
+				var snow_process := particles.process_material.duplicate() as ParticleProcessMaterial
+				snow_process.emission_box_extents.y = 6.0
+				particles.process_material = snow_process
+				var snow_size := float(visual.get("snow_size_m", 0.16))
+				particles.draw_pass_1 = _make_precipitation_pass(
+					SNOW_SPRITE,
+					Vector2(snow_size, snow_size),
+					float(visual.get("snow_opacity", 0.65)),
+					float(visual.get("rain_near_fade_start_m", 0.9)),
+					float(visual.get("rain_near_fade_end_m", 3.6)),
+					float(visual.get("snow_far_fade_start_m", 24.0)),
+					float(visual.get("snow_far_fade_end_m", 45.0)),
+					Color(1.0, 1.0, 1.0),
+				)
+			particles.amount = 500 if kind == "snow" else 400
+			tca_controller.add_child(particles)
+	if particles != null:
+		emitters[kind] = particles
+		tca_controller.set_meta("calendar_emitters", emitters)
+	return particles
+
+
+## Pre-instantiates rain and snow GPUParticles3D and briefly emits 1 tiny particle
+## off-screen during stage setup so GPU particle pipelines compile before driving.
+func prewarm_precipitation(tca_controller: Node) -> void:
+	if tca_controller == null or not is_instance_valid(tca_controller):
+		return
+	if bool(tca_controller.get_meta("calendar_precip_prewarmed", false)):
+		return
+	tca_controller.set_meta("calendar_precip_prewarmed", true)
+	var active_kind := str(tca_controller.get_meta("calendar_particle_kind", ""))
+	var warmed: Array[String] = []
+	for kind: String in ["rain", "snow"]:
+		var emitter := _get_or_create_precipitation_emitter(tca_controller, kind)
+		if emitter == null:
+			continue
+		if kind == active_kind:
+			continue
+		emitter.global_position = last_vehicle_pos + Vector3(0.0, -180.0, 0.0)
+		emitter.amount_ratio = 0.005
+		emitter.visible = true
+		emitter.emitting = true
+		warmed.append(kind)
+	if not warmed.is_empty():
+		tca_controller.set_meta("calendar_prewarm_pending", warmed)
+		tca_controller.set_meta("calendar_prewarm_ticks", 2)
+
+
+func _tick_precipitation_prewarm(tca_controller: Node) -> void:
+	var ticks := int(tca_controller.get_meta("calendar_prewarm_ticks", 0))
+	if ticks <= 0:
+		return
+	ticks -= 1
+	tca_controller.set_meta("calendar_prewarm_ticks", ticks)
+	if ticks > 0:
+		return
+	var active_kind := str(tca_controller.get_meta("calendar_particle_kind", ""))
+	var emitters: Dictionary = tca_controller.get_meta("calendar_emitters", {})
+	var pending: Array = tca_controller.get_meta("calendar_prewarm_pending", [])
+	for kind_v in pending:
+		var kind := str(kind_v)
+		if kind == active_kind:
+			continue
+		var emitter := emitters.get(kind) as GPUParticles3D
+		if is_instance_valid(emitter):
+			emitter.emitting = false
+			emitter.amount_ratio = 0.0
+			emitter.hide()
+	tca_controller.set_meta("calendar_prewarm_pending", [])
+
+
 func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: float, vehicle_velocity: Vector3 = Vector3.ZERO) -> void:
 	if not calendar_active or current_blend.is_empty():
 		return
@@ -568,6 +682,7 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 		# Fuente unica: congelar el avance autonomo y la ruleta de climas.
 		if tca_controller.get("time_speed_multiplier") != null and float(tca_controller.get("time_speed_multiplier")) != 0.0:
 			tca_controller.set("time_speed_multiplier", 0.0)
+		_tick_precipitation_prewarm(tca_controller)
 		var precip := float(climate.get("precipitation_mm_h", 0.0))
 		var raining := precip >= 0.4
 		# Exponer intensidad a los adaptadores que la lean (sonido/particulas).
@@ -588,70 +703,22 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 					particles.hide()
 				else:
 					particles.queue_free()
-			var cached_emitter: Variant = emitters.get(kind)
-			particles = cached_emitter as GPUParticles3D if is_instance_valid(cached_emitter) else null
-			if not is_instance_valid(particles) or particles.is_queued_for_deletion():
-				particles = null
-				var path := str(adapter.get(kind + "_scene", ""))
-				if ResourceLoader.exists(path):
-					var packed := load(path) as PackedScene
-					particles = packed.instantiate() as GPUParticles3D
-					if particles != null:
-						if kind == "rain":
-							particles.trail_enabled = false
-							particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-							particles.draw_passes = 1
-							particles.lifetime = float(visual.get("rain_lifetime_s", 0.9))
-							particles.draw_pass_1 = _make_precipitation_pass(
-								RAIN_SPRITE,
-								Vector2(
-									float(visual.get("raindrop_width_m", 0.05)),
-									float(visual.get("raindrop_height_m", 0.55)),
-								),
-								float(visual.get("raindrop_opacity", 0.70)),
-								float(visual.get("raindrop_near_fade_start_m", 0.05)),
-								float(visual.get("raindrop_near_fade_end_m", 0.4)),
-								float(visual.get("raindrop_far_fade_start_m", 24.0)),
-								float(visual.get("raindrop_far_fade_end_m", 42.0)),
-								Color(0.90, 0.94, 1.0),
-							)
-						elif kind == "snow":
-							particles.trail_enabled = false
-							particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-							particles.draw_passes = 1
-							particles.local_coords = false
-							particles.visibility_aabb = AABB(Vector3(-80.0, -32.0, -80.0), Vector3(160.0, 40.0, 160.0))
-							var snow_process := particles.process_material.duplicate() as ParticleProcessMaterial
-							snow_process.emission_box_extents.y = 6.0
-							particles.process_material = snow_process
-							var snow_size := float(visual.get("snow_size_m", 0.16))
-							particles.draw_pass_1 = _make_precipitation_pass(
-								SNOW_SPRITE,
-								Vector2(snow_size, snow_size),
-								float(visual.get("snow_opacity", 0.65)),
-								float(visual.get("rain_near_fade_start_m", 0.9)),
-								float(visual.get("rain_near_fade_end_m", 3.6)),
-								float(visual.get("snow_far_fade_start_m", 24.0)),
-								float(visual.get("snow_far_fade_end_m", 45.0)),
-								Color(1.0, 1.0, 1.0),
-							)
-						particles.amount = 500 if kind == "snow" else 400
-						tca_controller.add_child(particles)
-				if particles != null:
-					emitters[kind] = particles
-					tca_controller.set_meta("calendar_emitters", emitters)
+			particles = _get_or_create_precipitation_emitter(tca_controller, kind)
 			if particles != null:
 				particles.show()
 				particles.restart()
 			tca_controller.set("particle_system", particles)
 			tca_controller.set_meta("calendar_particle_kind", kind)
 		if particles != null:
-			particles.emitting = precip > 0.005 and kind != "none"
+			var active_precip := precip > 0.005 and kind != "none"
+			particles.emitting = active_precip
+			if particles.visible != active_precip and active_precip:
+				particles.show()
 			var full_int := maxf(float(adapter.get("full_intensity_mm_h", 12.0)), 0.01)
 			var base_ratio := clampf(precip / full_int, 0.0, 1.0)
 			# Rampa suave continua sin salto brusco a 0.18:
 			var entry_ramp := smoothstep(0.005, 0.40, precip)
-			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if precip > 0.005 else 0.0
+			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if active_precip else 0.0
 			var emitter_offset := Vector3.UP * 10.0
 			if kind == "snow":
 				# Slow flakes must spawn ahead and at driving height, or the
@@ -677,6 +744,10 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 				var pass_material := pass_mesh.surface_get_material(0) as ShaderMaterial
 				if pass_material != null:
 					pass_material.set_shader_parameter("rain_direction", relative_fall if kind == "rain" else Vector3.ZERO)
+					if sky != null and sky.get("environment") is Environment:
+						var env := sky.get("environment") as Environment
+						var light_scale := clampf(env.ambient_light_energy * 0.95 + 0.18, 0.18, 1.0)
+						pass_material.set_shader_parameter("ambient_brightness", light_scale)
 	if wetness != null and is_instance_valid(wetness):
 		var w := clampf(float(current_blend.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 		if wetness.has_method("set_rain_intensity"):

@@ -44,7 +44,9 @@ vec3 rotate_y(vec3 d, float yaw) {
 }
 
 float puddle_hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
 }
 
 float puddle_value_noise(vec2 p) {
@@ -58,21 +60,19 @@ float puddle_value_noise(vec2 p) {
 	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 
-// Multi-scale world-space pavement/gravel micro-relief in [-0.5, 0.5] + gradient.
-// Breaks up the shallow puddle shoreline so aggregate stones poke through shallow margins.
-vec3 puddle_micro_relief(vec2 xz) {
-	mat2 r1 = mat2(vec2(0.80, 0.60), vec2(-0.60, 0.80));
-	mat2 r2 = mat2(vec2(0.54, -0.84), vec2(0.84, 0.54));
-	vec2 p1 = r1 * (xz * 1.75);
-	vec2 p2 = r2 * (xz * 5.80);
-	vec2 p3 = r1 * (xz * 18.5);
+// Lightweight 2-octave world-space micro-relief in [-0.5, 0.5] + cheap shore slope.
+vec3 puddle_micro_relief(vec2 xz, bool compute_grad) {
+	vec2 p1 = vec2(xz.x * 1.40 + xz.y * 1.05, -xz.x * 1.05 + xz.y * 1.40);
+	vec2 p2 = vec2(xz.x * 3.13 - xz.y * 4.87, xz.x * 4.87 + xz.y * 3.13);
 	float n1 = puddle_value_noise(p1) - 0.5;
 	float n2 = puddle_value_noise(p2) - 0.5;
-	float n3 = puddle_value_noise(p3) - 0.5;
-	float h = n1 * 0.50 + n2 * 0.34 + n3 * 0.22;
+	float h = n1 * 0.62 + n2 * 0.38;
+	if (!compute_grad) {
+		return vec3(h, 0.0, 0.0);
+	}
 	float gx = (puddle_value_noise(p2 + vec2(0.18, 0.0)) - 0.5) - n2;
 	float gz = (puddle_value_noise(p2 + vec2(0.0, 0.18)) - 0.5) - n2;
-	return vec3(h, gx * 4.5, gz * 4.5);
+	return vec3(h, gx * 4.2, gz * 4.2);
 }
 
 // Shared CPU/Rust/GPU bathymetric shoreline threshold in [0.18, 0.62].
@@ -82,8 +82,7 @@ float shore_threshold_for_fill(float f_in) {
 	return mix(0.62, 0.18, f);
 }
 
-// Analytical 2D wave slope (dh/dx, dh/dz) aligned with meteorological wind_vec (m/s).
-// Calms to a near-still mirror when wind speed drops after rain.
+// Analytical 2-wave slope (dh/dx, dh/dz) aligned with meteorological wind_vec (m/s).
 vec2 puddle_wind_slope(vec2 xz, float time, float depth_norm, vec2 wind) {
 	float wspd = length(wind);
 	float w_amp = smoothstep(0.15, 7.5, wspd);
@@ -94,64 +93,61 @@ vec2 puddle_wind_slope(vec2 xz, float time, float depth_norm, vec2 wind) {
 	vec2 wperp = vec2(-wdir.y, wdir.x);
 	vec2 dir1 = normalize(wdir + wperp * 0.28);
 	vec2 dir2 = normalize(wdir - wperp * 0.34);
-	vec2 dir3 = normalize(wdir * 0.65 + wperp * 0.75);
 
 	float f1 = mix(3.0, 1.6, depth_norm);
 	float f2 = mix(4.6, 2.5, depth_norm);
-	float f3 = 6.2;
 	float speed = 0.75 + 0.32 * min(wspd, 12.0);
 
 	float a1 = dot(xz, dir1) * f1 - time * speed * 1.35;
 	float a2 = dot(xz, dir2) * f2 - time * speed * 1.10;
-	float a3 = dot(xz, dir3) * f3 - time * speed * 1.75;
 
-	vec2 g = dir1 * (cos(a1) * f1 * 0.022)
-		+ dir2 * (cos(a2) * f2 * 0.015)
-		+ dir3 * (cos(a3) * f3 * 0.004);
+	vec2 g = dir1 * (cos(a1) * f1 * 0.022) + dir2 * (cos(a2) * f2 * 0.015);
 	return g * (0.12 + 0.88 * w_amp);
 }
 
-// Radial 2D normal gradient for concentric raindrop ripples with jittered impact centers
-// and precipitation-rate spawn gating (quiet post-rain -> isolated drizzle rings -> dense downpour).
-vec2 rain_drop_ripples_grad(vec2 uv_world, float time, float intensity) {
-	if (intensity <= 0.01) return vec2(0.0);
-	vec2 grad = vec2(0.0);
-	float spawn_prob = clamp(0.10 + 0.90 * pow(clamp(intensity, 0.0, 1.0), 0.75), 0.0, 1.0);
-	float amp_scale = 0.08 + 0.08 * clamp(intensity, 0.0, 1.0);
-	for (int layer = 0; layer < 2; layer++) {
-		if (layer == 1 && intensity < 0.28) continue;
-		float scale = (layer == 0) ? 4.6 : 8.2;
-		vec2 p = uv_world * scale + float(layer) * 17.3;
-		vec2 g = floor(p);
-		vec2 f = fract(p) - 0.5;
-		for (int i = -1; i <= 1; i++) {
-			for (int j = -1; j <= 1; j++) {
-				vec2 n = vec2(float(i), float(j));
-				vec2 cell_id = g + n;
-				float h = puddle_hash(cell_id);
-				float rate = 0.85 + 0.65 * h;
-				float t_cycle = time * rate + h * 6.2831;
-				float cycle_idx = floor(t_cycle);
-				float h_spawn = puddle_hash(cell_id + vec2(cycle_idx * 13.7, cycle_idx * 7.3));
-				if (h_spawn > spawn_prob) continue;
-				// Pseudo-random impact center inside the cell (eliminates grid alignment)
-				vec2 jitter = (vec2(
-					puddle_hash(cell_id + vec2(19.1 + cycle_idx, 5.7)),
-					puddle_hash(cell_id + vec2(31.3, 11.9 + cycle_idx))
-				) - 0.5) * 0.76;
-				float age = fract(t_cycle);
-				float rad = age * 0.46;
-				vec2 d = f - (n + jitter);
-				float dist = length(d);
-				if (dist > 0.005 && dist < rad && dist > rad - 0.16) {
-					float ring_t = clamp((dist - (rad - 0.16)) / 0.16, 0.0, 1.0);
-					float window = sin(ring_t * 3.14159265);
-					float slope = sin(ring_t * 12.5663706) * window * window;
-					float fade = (1.0 - age) * smoothstep(0.0, 0.12, age);
-					grad += (d / dist) * (slope * fade);
-				}
-			}
-		}
+// Single-cell concentric raindrop ring gradient (no 3x3 neighbor loop: jitter + max radius
+// stay bounded within the cell so rings never clip at cell borders).
+vec2 rain_ripple_layer(vec2 uv_world, float scale, vec2 offset, float time, float spawn_prob) {
+	vec2 p = uv_world * scale + offset;
+	vec2 cell_id = floor(p);
+	vec2 f = fract(p) - 0.5;
+	float h = puddle_hash(cell_id);
+	float rate = 0.85 + 0.65 * h;
+	float t_cycle = time * rate + h * 6.2831;
+	float cycle_idx = floor(t_cycle);
+	float h_spawn = puddle_hash(cell_id + vec2(cycle_idx * 13.7, cycle_idx * 7.3));
+	if (h_spawn > spawn_prob) {
+		return vec2(0.0);
+	}
+	vec2 jitter = (vec2(
+		puddle_hash(cell_id + vec2(19.1 + cycle_idx, 5.7)),
+		puddle_hash(cell_id + vec2(31.3, 11.9 + cycle_idx))
+	) - 0.5) * 0.34;
+	float age = fract(t_cycle);
+	float rad = age * 0.32;
+	vec2 d = f - jitter;
+	float dist = length(d);
+	if (dist <= 0.005 || dist >= rad || dist <= rad - 0.14) {
+		return vec2(0.0);
+	}
+	float ring_t = clamp((dist - (rad - 0.14)) / 0.14, 0.0, 1.0);
+	float window = sin(ring_t * 3.14159265);
+	float slope = sin(ring_t * 12.5663706) * window * window;
+	float fade = (1.0 - age) * smoothstep(0.0, 0.12, age);
+	return (d / dist) * (slope * fade);
+}
+
+// Lightweight 1-to-2 layer concentric raindrop ripples (15x fewer evaluations than 2x3x3 Voronoi).
+vec2 rain_drop_ripples_grad(vec2 uv_world, float time, float intensity, float cam_dist) {
+	if (intensity <= 0.01 || cam_dist > 34.0) {
+		return vec2(0.0);
+	}
+	float dist_fade = 1.0 - smoothstep(14.0, 34.0, cam_dist);
+	float spawn_prob = clamp(0.18 + 0.82 * pow(clamp(intensity, 0.0, 1.0), 0.75), 0.0, 1.0);
+	float amp_scale = (0.09 + 0.08 * clamp(intensity, 0.0, 1.0)) * dist_fade;
+	vec2 grad = rain_ripple_layer(uv_world, 3.6, vec2(0.0), time, spawn_prob);
+	if (intensity >= 0.32 && cam_dist < 18.0) {
+		grad += rain_ripple_layer(uv_world, 5.8, vec2(17.3, 29.1), time * 1.12, spawn_prob) * (1.0 - smoothstep(10.0, 18.0, cam_dist));
 	}
 	return grad * amp_scale;
 }
@@ -212,11 +208,13 @@ void fragment() {
 		discard;
 	}
 
+	float cam_dist = length(world_position - CAMERA_POSITION_WORLD);
+
 	// Bathymetric basin growth + world-space micro-relief shoreline breakup:
 	// `shore_thresh` matches CPU/Rust `shore_threshold_for_fill(fill)` so at 10% fill only
 	// the deepest pit holds a small water mirror, advancing outward as fill -> 100%,
 	// surrounded by a translucent damp pavement rim that preserves the underlying road texture.
-	vec3 micro_rel = puddle_micro_relief(world_position.xz);
+	vec3 micro_rel = puddle_micro_relief(world_position.xz, winter_kind == 0 && cam_dist < 40.0);
 	float shore_thresh = (winter_kind == 1) ? 0.18 : shore_threshold_for_fill(fill);
 	float rim_zone = 1.0 - smoothstep(shore_thresh, min(shore_thresh + 0.30, 0.96), mask);
 	float vis_mask = mask + micro_rel.x * (0.11 + 0.08 * edge_softness) * rim_zone * smoothstep(0.04, 0.22, mask);
@@ -257,16 +255,19 @@ void fragment() {
 		float meniscus = smoothstep(shore_thresh - 0.01, shore_thresh + 0.035, vis_mask) * (1.0 - smoothstep(shore_thresh + 0.035, shore_thresh + 0.09, vis_mask));
 		float meniscus_glint = pow(meniscus, 2.0) * 0.22 * water_body;
 
-		// 4. Wind-aligned capillary waves + jittered raindrop rings + shallow stone grain
-		vec2 detail_flow = wind_vec * (TIME * 0.035) + vec2(TIME) * detail_speed * vec2(0.4, 0.6);
-		vec3 wd = water_detail_sample(world_position.xz, detail_flow);
-		float dist_fade = 1.0 - smoothstep(55.0, 145.0, length(world_position - CAMERA_POSITION_WORLD));
+		// 4. Wind-aligned capillary waves + close-range raindrop rings + shallow stone grain
+		float dist_fade = 1.0 - smoothstep(45.0, 95.0, cam_dist);
 		float detail_k = clamp(detail_strength * 0.22 * water_body * dist_fade, 0.0, 1.0);
-		float pattern = smoothstep(0.38, 0.68, wd.x);
+		float pattern = 0.5;
+		if (detail_k > 0.005) {
+			vec2 detail_flow = wind_vec * (TIME * 0.035) + vec2(TIME) * detail_speed * vec2(0.4, 0.6);
+			vec3 wd = water_detail_sample(world_position.xz, detail_flow);
+			pattern = smoothstep(0.38, 0.68, wd.x);
+		}
 
 		float ripple_damping = smoothstep(shore_thresh, min(shore_thresh + 0.18, 0.95), vis_mask) * dist_fade;
-		vec2 rain_grad = rain_drop_ripples_grad(world_position.xz, TIME, rain) * ripple_damping;
-		vec2 wind_grad = puddle_wind_slope(world_position.xz, TIME, depth_norm, wind_vec) * ripple_damping;
+		vec2 rain_grad = rain_drop_ripples_grad(world_position.xz, TIME, rain, cam_dist) * ripple_damping;
+		vec2 wind_grad = (cam_dist < 70.0) ? (puddle_wind_slope(world_position.xz, TIME, depth_norm, wind_vec) * ripple_damping) : vec2(0.0);
 		vec2 shore_grain_grad = micro_rel.yz * (1.0 - shore_depth) * 0.15;
 		vec2 wave_slope = wind_grad + rain_grad + shore_grain_grad;
 
@@ -280,8 +281,22 @@ void fragment() {
 		vec3 refl_dir = normalize(vec3(reflected.x, max(reflected.y, 0.015), reflected.z));
 		vec3 sky = horizon_color;
 		if (has_sky) {
-			sky = mix(texture(sky_a, refl_dir).rgb * tint_a, texture(sky_b, rotate_y(refl_dir, yaw_b)).rgb * tint_b, weather_mix);
-			sky = mix(texture(sky_c, rotate_y(refl_dir, twilight_yaw)).rgb * tint_c, sky, daylight_mix);
+			// Skip redundant cubemap fetches when a sky layer has negligible weight.
+			if (weather_mix <= 0.02) {
+				sky = texture(sky_a, refl_dir).rgb * tint_a;
+			} else if (weather_mix >= 0.98) {
+				sky = texture(sky_b, rotate_y(refl_dir, yaw_b)).rgb * tint_b;
+			} else {
+				sky = mix(
+					texture(sky_a, refl_dir).rgb * tint_a,
+					texture(sky_b, rotate_y(refl_dir, yaw_b)).rgb * tint_b,
+					weather_mix
+				);
+			}
+			if (daylight_mix < 0.98) {
+				vec3 twilight_col = texture(sky_c, rotate_y(refl_dir, twilight_yaw)).rgb * tint_c;
+				sky = mix(twilight_col, sky, daylight_mix);
+			}
 			sky = mix(horizon_color, sky, smoothstep(-0.02, 0.05, reflected.y));
 		} else {
 			sky = sky_tint.rgb;

@@ -166,9 +166,18 @@ func update_visuals(delta: float) -> void:
 	sun.light_color = Color(1.0, 0.94, 0.82).lerp(Color(1.0, 0.68, 0.40), twilight).lerp(Color(0.94, 0.96, 1.0), overcast * 0.65)
 	sun.light_energy = daylight * lerpf(float(visual.get("sun_energy_overcast", 0.38)),
 		float(visual.get("sun_energy_clear", 1.24)), sun_clarity)
-	sun.shadow_enabled = daylight > 0.1 and cover < 0.85
+	# Hysteresis prevents shadow_enabled pipeline thrashing when light rain starts (cover ~0.80-0.88).
+	if daylight <= 0.1:
+		if sun.shadow_enabled:
+			sun.shadow_enabled = false
+	elif sun.shadow_enabled:
+		if cover >= 0.90:
+			sun.shadow_enabled = false
+	elif cover < 0.80:
+		sun.shadow_enabled = true
+	var shadow_fade := 1.0 - smoothstep(0.76, 0.90, cover)
 	sun.shadow_opacity = lerpf(float(visual.get("shadow_opacity_clear", 0.45)),
-		float(visual.get("shadow_opacity_overcast", 0.15)), overcast)
+		float(visual.get("shadow_opacity_overcast", 0.15)), overcast) * shadow_fade
 	moon.light_color = Color(0.46, 0.56, 0.76)
 	moon.light_energy = (1.0 - daylight) * lerpf(0.08, 0.025, overcast)
 	var clear_amb := Color(0.68, 0.77, 0.90).lerp(Color(0.66, 0.65, 0.76), twilight * 0.55)

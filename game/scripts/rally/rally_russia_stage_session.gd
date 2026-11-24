@@ -1261,8 +1261,6 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	var adjuster := RallyStageVisualMaterialAdjuster.new()
 	adjuster.adjust_node(track_visual)
 	adjuster.free()
-	if str(resolved.track_id) in ["raurastart_stage2", "rauraearth_stage2"]:
-		preload("res://scripts/rally/raura_pilot_materials.gd").new().apply(track_visual)
 	var streaming: Dictionary = resolved.manifest.get("streaming", {})
 	if not streaming.is_empty():
 		var stream := preload("res://scripts/rally/rally_visual_sector_stream.gd").new()
@@ -1539,6 +1537,7 @@ func _refresh_stage_weather() -> void:
 	event_weather.update_vehicle_position(vehicle.global_position)
 	event_weather.tick_visual(2.0)
 	event_weather.apply_to_adapters(weather_sky_node, weather_controller_node, terrain_wetness, event_clock.hour_of_day(), vehicle.linear_velocity)
+	event_weather.prewarm_precipitation(weather_controller_node)
 	_sync_procedural_shader_field()
 	if river_channels != null and is_instance_valid(river_channels):
 		river_channels.refresh_render()
