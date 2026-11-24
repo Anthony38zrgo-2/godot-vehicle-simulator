@@ -22,8 +22,10 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 @export var dc_blob_shadow_opacity: float = 0.92
 
 const DC_SHADER := preload("res://shaders/dreamcast_vehicle.gdshader")
+const VehicleLiveryScript := preload("res://scripts/rally/rally_vehicle_livery.gd")
 
 var _blob_shadow_decal: Decal = null
+var selected_livery_id: String = ""
 
 var simulation := FordRallyVehicleSimulation.new()
 var tire_inventory = preload("res://scripts/rally/rally_tire_inventory.gd").new()
@@ -139,6 +141,8 @@ func _ready() -> void:
 	bind_wheel_visuals()
 	if dreamcast_car_visuals:
 		_apply_dreamcast_vehicle_visuals()
+	if not selected_livery_id.is_empty():
+		VehicleLiveryScript.apply_to_vehicle(self, "", selected_livery_id)
 	simulation.create_wheel_contact_casts(self)
 	add_to_group("rally_vehicle")
 	contact_monitor = true
@@ -1417,6 +1421,14 @@ func _load_json_document(path: String) -> Dictionary:
 
 func get_presentation_snapshot() -> Dictionary:
 	return simulation.published_state.duplicate(true)
+
+
+func set_livery(car_key: String, livery_id: String) -> int:
+	var lid := livery_id.strip_edges().to_lower()
+	if lid.is_empty():
+		return 0
+	selected_livery_id = lid
+	return VehicleLiveryScript.apply_to_vehicle(self, car_key, lid)
 
 
 func _apply_dreamcast_vehicle_visuals() -> void:

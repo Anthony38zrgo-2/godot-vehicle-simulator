@@ -35,6 +35,7 @@ var weather_schedule: Array = []
 var stage_forecasts: Array = []
 var climate_seed: int = 0
 var initial_weather: String = ""
+var selected_livery_id: String = ""
 var weather_generator_version: int = 1
 var surface_continuity: Dictionary = {}
 var confirmed_compound_id: String = "gravel_normal"
@@ -123,6 +124,7 @@ func begin_event(choices: Dictionary = {}) -> bool:
 	ambient_rate = float(choices.get("ambient_rate", 1.0))
 	single_day = bool(choices.get("single_day", false))
 	initial_weather = str(choices.get("initial_weather", choices.get("weather", choices.get("start_weather", ""))))
+	selected_livery_id = str(choices.get("livery_id", choices.get("selected_livery_id", ""))).strip_edges().to_lower()
 	cursor = 0
 	official.clear()
 	points_ledger.clear()
@@ -694,6 +696,7 @@ func save() -> bool:
 		"stage_forecasts": stage_forecasts,
 		"climate_seed": climate_seed,
 		"initial_weather": initial_weather,
+		"selected_livery_id": selected_livery_id,
 		"generator_version": weather_generator_version,
 		"surface_continuity": surface_continuity,
 		"confirmed_compound": confirmed_compound_id,
@@ -786,6 +789,7 @@ func restore() -> bool:
 		stage_forecasts = SchedulerScript.generate_stage_forecasts(weather_schedule, climate_seed, _forecast_accuracy(), _ordered_weather_states())
 	climate_seed = int(doc.get("climate_seed", 0))
 	initial_weather = str(doc.get("initial_weather", ""))
+	selected_livery_id = str(doc.get("selected_livery_id", "")).strip_edges().to_lower()
 	weather_generator_version = int(doc.get("generator_version", 1))
 	surface_continuity = doc.get("surface_continuity", {})
 	confirmed_compound_id = str(doc.get("confirmed_compound", "gravel_normal"))

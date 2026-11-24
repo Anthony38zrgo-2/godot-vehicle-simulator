@@ -14,8 +14,12 @@ extends Node3D
 const TOON := preload("res://scripts/rally/rally_toon_surface.gdshader")
 const TOON_CUTOUT := preload("res://scripts/rally/rally_toon_cutout.gdshader")
 const GT2_VEHICLE := preload("res://scripts/rally/rally_gt2_vehicle.gdshader")
+const VehicleLiveryScript := preload("res://scripts/rally/rally_vehicle_livery.gd")
 static var _vehicle_paint_ramp: ImageTexture = null
 static var _gt2_env_texture: ImageTexture = null
+var _converted_by_source_name: Dictionary = {}
+var _ready_completed: bool = false
+var _pending_livery_params: Dictionary = {}
 
 
 static func _gt2_env_map() -> ImageTexture:
@@ -182,11 +186,16 @@ static func make_toon_material(
 	return material
 
 
-func _collect_vehicle_meshes() -> Array[Node]:
+func _collect_chassis_meshes() -> Array[Node]:
 	var meshes: Array[Node] = find_children("*", "MeshInstance3D", true, false)
 	var root_mesh := get_node(".") as MeshInstance3D
 	if root_mesh != null:
 		meshes.push_front(root_mesh)
+	return meshes
+
+
+func _collect_wheel_meshes() -> Array[Node]:
+	var meshes: Array[Node] = []
 	if include_vehicle_wheels:
 		var parent := get_parent()
 		if parent != null:
@@ -197,9 +206,7 @@ func _collect_vehicle_meshes() -> Array[Node]:
 	return meshes
 
 
-func _ready() -> void:
-	var meshes := _collect_vehicle_meshes()
-	var converted := {}
+func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Dictionary) -> void:
 	for visual_node in meshes:
 		var visual := visual_node as MeshInstance3D
 		if visual == null or visual.mesh == null:
@@ -212,14 +219,76 @@ func _ready() -> void:
 			var cutout := source.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 			if not cutout and source.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 				continue
-			if not converted.has(source):
+			var cache_key := "%d:%s" % [source.get_instance_id(), "w" if is_wheel else "c"]
+			if not converted.has(cache_key):
 				var surface_material := (
 					make_gt2_vehicle_material(source, cutout, psx_snap_resolution, psx_snap_strength, psx_affine_strength)
 					if gt2_vehicle_shading
 					else make_toon_material(source, cutout, psx_snap_resolution, psx_snap_strength, psx_affine_strength)
 				)
+				surface_material.resource_name = source.resource_name
+				surface_material.set_meta("source_material_name", source.resource_name)
+				surface_material.set_meta("original_albedo_texture", source.albedo_texture)
+				if is_wheel and not gt2_vehicle_shading:
+					# Ruta ligera para las 4 ruedas: sin ruido 3D, sin rim ni especular de carrocería.
+					surface_material.set_shader_parameter("edge_wobble", 0.0)
+					surface_material.set_shader_parameter("rim_strength", 0.0)
+					surface_material.set_shader_parameter("paint_spec_strength", 0.0)
 				if pixel_albedo and source.albedo_texture != null:
 					surface_material.set_shader_parameter("use_pixel_albedo", true)
 					surface_material.set_shader_parameter("pixel_albedo", source.albedo_texture)
-				converted[source] = surface_material
-			visual.set_surface_override_material(surface, converted[source])
+				converted[cache_key] = surface_material
+				if not is_wheel:
+					var key_name := source.resource_name
+					if not _converted_by_source_name.has(key_name):
+						_converted_by_source_name[key_name] = []
+					(_converted_by_source_name[key_name] as Array).append(surface_material)
+			visual.set_surface_override_material(surface, converted[cache_key])
+
+
+func _ready() -> void:
+	var converted := {}
+	_converted_by_source_name.clear()
+	_convert_mesh_group(_collect_chassis_meshes(), false, converted)
+	_convert_mesh_group(_collect_wheel_meshes(), true, converted)
+	_ready_completed = true
+	if not _pending_livery_params.is_empty():
+		apply_livery_parameters(_pending_livery_params)
+
+
+func apply_livery_parameters(params: Dictionary) -> int:
+	_pending_livery_params = params.duplicate(true)
+	if not _ready_completed:
+		return 0
+	var target_names: Array = params.get("materials", [])
+	var enabled: bool = bool(params.get("enabled", false))
+	var target_mats: Array = []
+	for mat_name_var in _converted_by_source_name:
+		var mat_name := str(mat_name_var)
+		var is_target := false
+		if target_names.is_empty():
+			is_target = true
+		else:
+			for wanted in target_names:
+				if str(wanted) == mat_name:
+					is_target = true
+					break
+		var mats: Array = _converted_by_source_name[mat_name_var]
+		for m in mats:
+			var sm := m as ShaderMaterial
+			if sm == null:
+				continue
+			if not is_target or not enabled:
+				sm.set_meta("livery_enabled", false)
+				if sm.has_meta("original_albedo_texture"):
+					var orig := sm.get_meta("original_albedo_texture") as Texture2D
+					if orig != null:
+						if bool(sm.get_shader_parameter("use_pixel_albedo")):
+							sm.set_shader_parameter("pixel_albedo", orig)
+						else:
+							sm.set_shader_parameter("base_texture", orig)
+				continue
+			target_mats.append(sm)
+	if enabled and not target_mats.is_empty():
+		VehicleLiveryScript.bake_and_apply(get_tree(), target_mats, params)
+	return target_mats.size()

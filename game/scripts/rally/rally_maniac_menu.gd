@@ -61,6 +61,7 @@ const DEFAULT_CREATOR_NAME := "DoomerDoge38"
 const DEFAULT_GAME_VERSION := "1.0"
 const StageLoaderScript := preload("res://scripts/rally/rally_stage_loader.gd")
 const EventManagerScript := preload("res://scripts/rally/rally_event_manager.gd")
+const VehicleLiveryScript := preload("res://scripts/rally/rally_vehicle_livery.gd")
 
 const STAGE_METADATA := {
 	"russia_stage1": {"km": "5.0 KM", "surface": "Grava y barro", "tag": "Técnico"},
@@ -266,6 +267,9 @@ var selected_mode: String = "championship"
 var selected_stage_id: String = "russia_stage1"
 var selected_country: String = "russia"
 var selected_car_key: String = "fulvia"
+var selected_livery_id: String = ""
+var selected_livery_by_car: Dictionary = {}
+var _confirmed_car_click_key: String = ""
 var _cdi_launch: bool = false
 var vehicle_registry: Dictionary = {}
 var vehicle_specs_cache: Dictionary = {}
@@ -329,6 +333,12 @@ var car_scroll: ScrollContainer
 var car_buttons: Array[Button] = []
 var btn_car_back: Button
 var btn_car_confirm: Button
+var livery_panel: PanelContainer
+var livery_name_label: Label
+var livery_hex_label: Label
+var livery_buttons: Array[Button] = []
+var btn_livery_prev: Button
+var btn_livery_next: Button
 
 # Pantalla 4: Selector de Clima Inicial (Intermedias del simulador)
 const WEATHER_OPTIONS: Array[Dictionary] = [
@@ -451,7 +461,7 @@ func _ensure_menu_music() -> void:
 
 
 func _process(delta: float) -> void:
-	if car_turntable != null and is_instance_valid(car_turntable):
+	if current_screen == "car_select" and car_turntable != null and is_instance_valid(car_turntable):
 		car_turntable.rotate_y(delta * 0.45)
 
 
@@ -471,6 +481,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif current_screen == "stage_select" and not _cdi_launch:
 			show_main_menu()
 			get_viewport().set_input_as_handled()
+	elif current_screen == "car_select" and not is_loading and not event.is_echo():
+		var focus_owner := get_viewport().gui_get_focus_owner()
+		var focused_in_swatches := focus_owner is Button and livery_buttons.has(focus_owner)
+		if not focused_in_swatches:
+			if event.is_action_pressed("ui_left") or (event is InputEventKey and event.pressed and event.keycode == KEY_Q):
+				_cycle_livery(-1)
+				get_viewport().set_input_as_handled()
+			elif event.is_action_pressed("ui_right") or (event is InputEventKey and event.pressed and event.keycode == KEY_E):
+				_cycle_livery(1)
+				get_viewport().set_input_as_handled()
 
 
 # =============================================================================
@@ -499,8 +519,8 @@ func _build_ui() -> void:
 	preview_viewport.size = Vector2i(vp_size) if vp_size.x > 0 else Vector2i(1280, 720)
 	preview_viewport.own_world_3d = true
 	preview_viewport.transparent_bg = false
-	preview_viewport.msaa_3d = Viewport.MSAA_2X
-	preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	preview_viewport.msaa_3d = Viewport.MSAA_DISABLED
+	preview_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	showroom_container.add_child(preview_viewport)
 
 	_setup_3d_preview_scene()
@@ -1270,9 +1290,12 @@ func _build_car_select_screen() -> void:
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 		var k := str(car_key)
-		btn.pressed.connect(func(): _on_car_selected(k))
+		btn.pressed.connect(func(): _on_car_button_pressed(k))
 		btn.focus_entered.connect(func(): _preview_car(k))
-		btn.mouse_entered.connect(func(): _preview_car(k))
+		btn.mouse_entered.connect(func():
+			if _confirmed_car_click_key.is_empty():
+				_preview_car(k)
+		)
 
 		cars_vbox.add_child(btn)
 		car_buttons.append(btn)
@@ -1344,6 +1367,102 @@ func _build_car_select_screen() -> void:
 	var showroom_spacer := Control.new()
 	showroom_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(showroom_spacer)
+
+	# 1b. SELECTOR DE COLOR / LIVERY (16 COLORES PSX EN UNA FILA COMPACTA)
+	livery_panel = PanelContainer.new()
+	livery_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	livery_panel.add_theme_stylebox_override(
+		"panel",
+		RallyUITheme.make_flat_panel(Color(0.04, 0.055, 0.08, 0.90), RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 16, 9)
+	)
+	right_vbox.add_child(livery_panel)
+
+	var livery_vbox := VBoxContainer.new()
+	livery_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	livery_vbox.add_theme_constant_override("separation", 7)
+	livery_panel.add_child(livery_vbox)
+
+	var livery_header := HBoxContainer.new()
+	livery_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	livery_header.add_theme_constant_override("separation", 10)
+	livery_vbox.add_child(livery_header)
+
+	var livery_tag := Label.new()
+	livery_tag.text = "COLOR / LIVERY"
+	livery_tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	livery_tag.add_theme_font_override("font", FONT_UI)
+	livery_tag.add_theme_font_size_override("font_size", 9)
+	livery_tag.add_theme_color_override("font_color", C_CHROME_DIM)
+	livery_header.add_child(livery_tag)
+
+	livery_name_label = Label.new()
+	livery_name_label.text = "---"
+	livery_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	livery_name_label.add_theme_font_override("font", FONT_SUBTITLE)
+	livery_name_label.add_theme_font_size_override("font_size", 15)
+	livery_name_label.add_theme_color_override("font_color", C_CHROME_TEXT)
+	livery_header.add_child(livery_name_label)
+
+	livery_hex_label = Label.new()
+	livery_hex_label.text = ""
+	livery_hex_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	livery_hex_label.add_theme_font_override("font", FONT_UI)
+	livery_hex_label.add_theme_font_size_override("font_size", 10)
+	livery_hex_label.add_theme_color_override("font_color", C_GOLD_HI)
+	livery_header.add_child(livery_hex_label)
+
+	var livery_spacer := Control.new()
+	livery_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	livery_header.add_child(livery_spacer)
+
+	var livery_hint := Label.new()
+	livery_hint.text = "◀ / ▶  CAMBIAR COLOR"
+	livery_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	livery_hint.add_theme_font_override("font", FONT_UI)
+	livery_hint.add_theme_font_size_override("font_size", 9)
+	livery_hint.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.80))
+	livery_header.add_child(livery_hint)
+
+	btn_livery_prev = Button.new()
+	btn_livery_prev.text = "◀"
+	btn_livery_prev.custom_minimum_size = Vector2(28, 22)
+	btn_livery_prev.focus_mode = Control.FOCUS_NONE
+	_style_livery_cycle_button(btn_livery_prev)
+	btn_livery_prev.pressed.connect(func(): _cycle_livery(-1))
+	livery_header.add_child(btn_livery_prev)
+
+	btn_livery_next = Button.new()
+	btn_livery_next.text = "▶"
+	btn_livery_next.custom_minimum_size = Vector2(28, 22)
+	btn_livery_next.focus_mode = Control.FOCUS_NONE
+	_style_livery_cycle_button(btn_livery_next)
+	btn_livery_next.pressed.connect(func(): _cycle_livery(1))
+	livery_header.add_child(btn_livery_next)
+
+	var swatch_row := HBoxContainer.new()
+	swatch_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	swatch_row.add_theme_constant_override("separation", 6)
+	livery_vbox.add_child(swatch_row)
+
+	livery_buttons.clear()
+	for entry in VehicleLiveryScript.get_liveries():
+		var lid := str(entry.get("id", ""))
+		var lname := str(entry.get("name", lid))
+		var lhex := str(entry.get("hex", "#FFFFFF"))
+		var sbtn := Button.new()
+		sbtn.text = ""
+		sbtn.tooltip_text = "%s (%s)" % [lname, lhex]
+		sbtn.custom_minimum_size = Vector2(24, 24)
+		sbtn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sbtn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		sbtn.set_meta("livery_id", lid)
+		sbtn.set_meta("livery_name", lname)
+		sbtn.set_meta("livery_hex", lhex)
+		var target_lid := lid
+		sbtn.pressed.connect(func(): _select_livery(target_lid))
+		sbtn.focus_entered.connect(func(): _select_livery(target_lid))
+		swatch_row.add_child(sbtn)
+		livery_buttons.append(sbtn)
 
 	# 2. FICHA TÉCNICA INTEGRADA EN NEGATIVO (UNA SOLA FILA HORIZONTAL LIMPIA)
 	var specs_panel := PanelContainer.new()
@@ -1659,6 +1778,7 @@ func _focus_stage_button() -> void:
 
 
 func show_car_select() -> void:
+	_confirmed_car_click_key = ""
 	if _cdi_launch:
 		car_title.text = "Caminos del Inca · SS%02d %s" % [
 			int(selected_stage_id.get_slice("_stage", 1)), CDI_STAGES[selected_stage_id].name,
@@ -1771,13 +1891,68 @@ func _on_stage_selected(stage_id: String) -> void:
 	show_car_select()
 
 
+func _on_car_button_pressed(car_key: String) -> void:
+	if is_loading:
+		return
+	if _cdi_launch and car_key not in CDI_CARS:
+		return
+	if _confirmed_car_click_key == car_key and selected_car_key == car_key:
+		_on_car_selected(car_key)
+		return
+	_confirmed_car_click_key = car_key
+	_preview_car(car_key)
+
+
 func _on_car_selected(car_key: String) -> void:
 	if is_loading:
 		return
 	if _cdi_launch and car_key not in CDI_CARS:
 		return
 	selected_car_key = car_key
+	if selected_livery_id.is_empty() or not VehicleLiveryScript.is_valid_livery(selected_livery_id):
+		selected_livery_id = str(selected_livery_by_car.get(car_key, VehicleLiveryScript.default_livery_for(car_key)))
+	selected_livery_by_car[car_key] = selected_livery_id
 	show_weather_select()
+
+
+func _select_livery(livery_id: String) -> void:
+	if not VehicleLiveryScript.is_valid_livery(livery_id):
+		return
+	selected_livery_id = livery_id
+	if not selected_car_key.is_empty():
+		selected_livery_by_car[selected_car_key] = livery_id
+	_update_livery_ui()
+	_apply_preview_livery()
+
+
+func _cycle_livery(delta: int) -> void:
+	var all := VehicleLiveryScript.get_liveries()
+	if all.is_empty():
+		return
+	var current_idx := 0
+	for i in all.size():
+		if str(all[i].get("id", "")) == selected_livery_id:
+			current_idx = i
+			break
+	var next_idx := posmod(current_idx + delta, all.size())
+	_select_livery(str(all[next_idx].get("id", "")))
+
+
+func _update_livery_ui() -> void:
+	var entry := VehicleLiveryScript.get_livery(selected_livery_id)
+	if livery_name_label != null:
+		livery_name_label.text = str(entry.get("name", "---")).to_upper()
+	if livery_hex_label != null:
+		livery_hex_label.text = str(entry.get("hex", ""))
+	for btn in livery_buttons:
+		var lid := str(btn.get_meta("livery_id", ""))
+		var lhex := str(btn.get_meta("livery_hex", "#FFFFFF"))
+		_style_livery_swatch(btn, Color.from_string(lhex, Color.WHITE), lid == selected_livery_id)
+
+
+func _apply_preview_livery() -> void:
+	if current_car_model_instance != null and is_instance_valid(current_car_model_instance):
+		VehicleLiveryScript.apply_to_vehicle(current_car_model_instance, selected_car_key, selected_livery_id)
 
 
 func _launch_session() -> void:
@@ -1846,11 +2021,15 @@ func _launch_session() -> void:
 		_set_loading(false)
 		return
 
-	# Transferir modo, ID de tramo, coche seleccionado y clima inicial
+	# Transferir modo, ID de tramo, coche seleccionado, livery y clima inicial
+	var active_livery_id := selected_livery_id
+	if active_livery_id.is_empty() or not VehicleLiveryScript.is_valid_livery(active_livery_id):
+		active_livery_id = str(selected_livery_by_car.get(selected_car_key, VehicleLiveryScript.default_livery_for(selected_car_key)))
 	session.track_id = selected_stage_id
 	session.session_track_id = selected_stage_id
 	session.set("session_mode", selected_mode)
 	session.set("selected_vehicle_key", selected_car_key)
+	session.set("selected_livery_id", active_livery_id)
 	session.set("selected_weather", selected_weather)
 	if CDI_STAGES.has(selected_stage_id):
 		session.stage_place = str(CDI_STAGES[selected_stage_id].name)
@@ -1865,6 +2044,7 @@ func _launch_session() -> void:
 		var choices := {
 			"start_stage_id": selected_stage_id,
 			"initial_weather": selected_weather,
+			"livery_id": active_livery_id,
 			"event_path": str(EVENT_PATH_BY_COUNTRY.get(country, EVENT_PATH_BY_COUNTRY["russia"])),
 		}
 		if selected_mode == "championship":
@@ -1885,6 +2065,11 @@ func _launch_session() -> void:
 		session.competition.save_path = ""
 		session.set("single_stage_weather", selected_weather)
 
+	# Liberar mapas fuente de livery del menú antes de cargar el tramo
+	VehicleLiveryScript.clear_data_map_cache()
+	if preview_viewport != null:
+		preview_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+
 	# Conectar y cambiar de escena
 	var tree := get_tree()
 	tree.root.add_child(session)
@@ -1903,6 +2088,12 @@ func _set_loading(loading: bool) -> void:
 	btn_car_back.disabled = loading
 	if btn_car_confirm != null:
 		btn_car_confirm.disabled = loading
+	for btn in livery_buttons:
+		btn.disabled = loading
+	if btn_livery_prev != null:
+		btn_livery_prev.disabled = loading
+	if btn_livery_next != null:
+		btn_livery_next.disabled = loading
 	for btn in weather_buttons:
 		btn.disabled = loading
 	if btn_weather_back != null:
@@ -2193,6 +2384,8 @@ func _show_photo_at_index(index: int) -> void:
 
 
 func _start_photo_slideshow() -> void:
+	if preview_viewport != null:
+		preview_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	if photo_paths.is_empty():
 		return
 	if showroom_container != null:
@@ -2216,6 +2409,8 @@ func _stop_photo_slideshow(show_showroom: bool = true) -> void:
 		photo_container.hide()
 	if showroom_container != null:
 		showroom_container.visible = show_showroom
+	if preview_viewport != null:
+		preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if show_showroom else SubViewport.UPDATE_DISABLED
 
 
 func _on_photo_timer_timeout() -> void:
@@ -2394,11 +2589,17 @@ func _preview_car(car_key: String) -> void:
 		spec_layout_sub.text = str(specs.get("layout_sub", ""))
 
 	_update_car_list_visuals()
+	selected_livery_id = str(selected_livery_by_car.get(car_key, VehicleLiveryScript.default_livery_for(car_key)))
+	if not VehicleLiveryScript.is_valid_livery(selected_livery_id):
+		selected_livery_id = VehicleLiveryScript.default_livery_for(car_key)
+	selected_livery_by_car[car_key] = selected_livery_id
+	_update_livery_ui()
 
 	if car_turntable == null or not is_instance_valid(car_turntable):
 		return
 
 	if car_key == current_preview_car_key and current_car_model_instance != null and is_instance_valid(current_car_model_instance):
+		_apply_preview_livery()
 		return
 
 	current_preview_car_key = car_key
@@ -2420,6 +2621,7 @@ func _preview_car(car_key: String) -> void:
 			car_node.position = Vector3.ZERO
 			car_turntable.add_child(car_node)
 			current_car_model_instance = car_node
+			_apply_preview_livery()
 
 
 func _update_car_list_visuals() -> void:
@@ -2590,3 +2792,38 @@ func _style_weather_card(btn: Button, is_selected: bool) -> void:
 	btn.add_theme_color_override("font_hover_color", Color(0, 0, 0, 0))
 	btn.add_theme_color_override("font_focus_color", Color(0, 0, 0, 0))
 	btn.add_theme_color_override("font_pressed_color", Color(0, 0, 0, 0))
+
+
+func _style_livery_cycle_button(btn: Button) -> void:
+	RallyUITheme.style_tone_button(btn, "chrome", 11, 4, 2)
+	btn.add_theme_color_override("font_hover_color", C_GOLD)
+	btn.add_theme_color_override("font_focus_color", C_GOLD)
+
+
+func _style_livery_swatch(btn: Button, swatch_color: Color, is_selected: bool) -> void:
+	var border_normal := C_GOLD if is_selected else Color(1.0, 1.0, 1.0, 0.28)
+	var width_normal := 2 if is_selected else 1
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = swatch_color
+	normal.border_color = border_normal
+	normal.set_border_width_all(width_normal)
+	normal.set_corner_radius_all(RallyUITheme.CORNER_RADIUS)
+	if is_selected:
+		normal.set_expand_margin_all(2.0)
+
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.border_color = C_GOLD if is_selected else Color.WHITE
+	hover.set_border_width_all(2)
+	hover.set_expand_margin_all(2.0 if is_selected else 1.0)
+
+	var focus := normal.duplicate() as StyleBoxFlat
+	focus.border_color = C_GOLD
+	focus.set_border_width_all(2)
+	focus.set_expand_margin_all(2.0)
+
+	var pressed := focus.duplicate() as StyleBoxFlat
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("focus", focus)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("disabled", normal)

@@ -28,6 +28,7 @@ const FALL_DISTANCE_BELOW_STAGE_METRES := 50.0
 @export var weather_start_weather: int = 0
 @export var weather_speed_multiplier: float = 1.0
 @export var selected_weather: String = "random"
+@export var selected_livery_id: String = ""
 @export var single_stage_weather: String = ""
 @export var procedural_climate_override: int = -1
 @export var procedural_regime_override: String = ""
@@ -205,6 +206,11 @@ func _ready() -> void:
 			for i in mini(saved_alignment.size(), 4):
 				vehicle.simulation.alignment_collision_damage[i] = clampf(float(saved_alignment[i]), 0.0, 1.0)
 	vehicle.apply_tire_inventory()
+	var active_livery_id := selected_livery_id.strip_edges().to_lower()
+	if active_livery_id.is_empty() and not practice_mode and event_manager != null:
+		active_livery_id = str(event_manager.get("selected_livery_id")).strip_edges().to_lower()
+	if not active_livery_id.is_empty() and vehicle.has_method("set_livery"):
+		vehicle.set_livery(selected_vehicle_key, active_livery_id)
 	if not practice_mode and event_manager != null:
 		vehicle.restore_damage(event_manager.vehicle_damage_state)
 	if track_collision == null:

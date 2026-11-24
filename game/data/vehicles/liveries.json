@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "finish_id": "stylized_shadow_dither_psx_v1",
+  "liveries": [
+    {
+      "id": "rojo_brillante",
+      "name": "Rojo brillante",
+      "hex": "#D51E22",
+      "shadow_tint": [44, 14, 54],
+      "shadow_tint_strength": 0.42,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.08,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.88,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "burdeos",
+      "name": "Burdeos",
+      "hex": "#782B3B",
+      "shadow_tint": [36, 8, 28],
+      "shadow_tint_strength": 0.42,
+      "ao_strength": 0.54,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.88,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "naranja",
+      "name": "Naranja",
+      "hex": "#E87524",
+      "shadow_tint": [76, 26, 34],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "amarillo",
+      "name": "Amarillo",
+      "hex": "#E6BE29",
+      "shadow_tint": [78, 50, 26],
+      "shadow_tint_strength": 0.36,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.62, 1.0],
+      "shadow_gamma": 1.05,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.55, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "azul_oscuro",
+      "name": "Azul oscuro",
+      "hex": "#244579",
+      "shadow_tint": [10, 18, 48],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.62, 1.0],
+      "shadow_gamma": 1.05,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.55, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "azul_frances",
+      "name": "Azul francés",
+      "hex": "#326DC1",
+      "shadow_tint": [16, 26, 74],
+      "shadow_tint_strength": 0.42,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.08,
+      "saturation": 1.05,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "celeste",
+      "name": "Celeste",
+      "hex": "#78A9CF",
+      "shadow_tint": [22, 50, 86],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "verde_petroleo",
+      "name": "Verde petróleo",
+      "hex": "#15534F",
+      "shadow_tint": [8, 28, 42],
+      "shadow_tint_strength": 0.40,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.62, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "verde_britanico",
+      "name": "Verde británico",
+      "hex": "#25452D",
+      "shadow_tint": [14, 30, 38],
+      "shadow_tint_strength": 0.40,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.62, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "verde_oliva",
+      "name": "Verde oliva",
+      "hex": "#858B48",
+      "shadow_tint": [34, 44, 34],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "cobrizo",
+      "name": "Cobrizo",
+      "hex": "#986443",
+      "shadow_tint": [44, 24, 32],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "marfil",
+      "name": "Marfil",
+      "hex": "#D8C8A8",
+      "shadow_tint": [108, 102, 92],
+      "shadow_tint_strength": 0.36,
+      "ao_strength": 0.50,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.66, 1.0],
+      "shadow_gamma": 1.05,
+      "saturation": 1.03,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.84,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "negro",
+      "name": "Negro",
+      "hex": "#202124",
+      "shadow_tint": [14, 18, 28],
+      "shadow_tint_strength": 0.35,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.58, 1.0],
+      "shadow_gamma": 1.05,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.84,
+      "shadow_band": [0.54, 0.96],
+      "dither_dark_floor": 0.42
+    },
+    {
+      "id": "grafito",
+      "name": "Grafito",
+      "hex": "#555A60",
+      "shadow_tint": [28, 34, 48],
+      "shadow_tint_strength": 0.36,
+      "ao_strength": 0.52,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.62, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.04,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "plateado",
+      "name": "Plateado",
+      "hex": "#BFC3C8",
+      "shadow_tint": [72, 84, 108],
+      "shadow_tint_strength": 0.36,
+      "ao_strength": 0.50,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.64, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.03,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.56, 0.96],
+      "dither_dark_floor": 0.45
+    },
+    {
+      "id": "blanco",
+      "name": "Blanco",
+      "hex": "#EEEEEC",
+      "shadow_tint": [94, 108, 142],
+      "shadow_tint_strength": 0.38,
+      "ao_strength": 0.50,
+      "dir_from": [-0.50, 0.88],
+      "dir_to": [0.68, 1.0],
+      "shadow_gamma": 1.06,
+      "saturation": 1.02,
+      "dither_base": 0.0,
+      "dither_shadow_boost": 0.86,
+      "shadow_band": [0.58, 0.96],
+      "dither_dark_floor": 0.45
+    }
+  ],
+  "vehicles": {
+    "fulvia": {
+      "default_livery": "burdeos",
+      "materials": ["Fulvia_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/fulvia_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "escort": {
+      "default_livery": "marfil",
+      "materials": ["EscortMk1_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/escort_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-alfa-giulia-gta": {
+      "default_livery": "amarillo",
+      "materials": ["Alfa1750_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-alfa-giulia-gta_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-alpine-a110": {
+      "default_livery": "azul_frances",
+      "materials": ["AlpineA110_Stylized_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-alpine-a110_livery_data.png",
+      "effective_res": [1024, 1024]
+    },
+    "rt-fiat-abarth-1000": {
+      "default_livery": "negro",
+      "materials": ["Fiat500_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-fiat-abarth-1000_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-lotus-cortina": {
+      "default_livery": "blanco",
+      "materials": ["LotusCortina_Stylized_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-lotus-cortina_livery_data.png",
+      "effective_res": [1024, 1024],
+      "preserve_accent_on_livery": "blanco"
+    },
+    "rt-mini-cooper-s": {
+      "default_livery": "rojo_brillante",
+      "materials": ["MiniCooperExterior_Mat"],
+      "data_map": "res://assets/rally/liveries/rt-mini-cooper-s_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-lancia-stratos": {
+      "default_livery": "celeste",
+      "materials": ["Stratos_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-lancia-stratos_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-porsche-356b-2000gs": {
+      "default_livery": "plateado",
+      "materials": ["Porsche356_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-porsche-356b-2000gs_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-saab-96-v4": {
+      "default_livery": "marfil",
+      "materials": ["Saab96_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-saab-96-v4_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "rt-volvo-amazon": {
+      "default_livery": "negro",
+      "materials": ["Volvo123_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/rt-volvo-amazon_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "f10070": {
+      "default_livery": "verde_oliva",
+      "materials": ["Paint"],
+      "data_map": "res://assets/rally/liveries/f10070_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "mustang67": {
+      "default_livery": "rojo_brillante",
+      "materials": ["Mustang67_Stylized_PSX"],
+      "data_map": "res://assets/rally/liveries/mustang67_livery_data.png",
+      "effective_res": [1024, 1024]
+    },
+    "fiat131": {
+      "default_livery": "azul_oscuro",
+      "materials": ["Fiat131_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/fiat131_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "golfmk1": {
+      "default_livery": "naranja",
+      "materials": ["VWGolfMk1_Stylized_PSX"],
+      "data_map": "res://assets/rally/liveries/golfmk1_livery_data.png",
+      "effective_res": [1024, 1024]
+    },
+    "porsche911": {
+      "default_livery": "rojo_brillante",
+      "materials": ["Porsche911_24S_Body_Gloss", "Porsche911_24S_Body_Matte"],
+      "data_map": "res://assets/rally/liveries/porsche911_livery_data.png",
+      "effective_res": [512, 512]
+    },
+    "gaz24": {
+      "default_livery": "negro",
+      "materials": ["GAZ24_BodyPaint_PSX"],
+      "data_map": "res://assets/rally/liveries/gaz24_livery_data.png",
+      "effective_res": [512, 512]
+    }
+  }
+}

@@ -30,14 +30,36 @@ uniform vec2 psx_snap_resolution = vec2(320.0, 240.0);
 uniform float psx_snap_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float psx_affine_strength : hint_range(0.0, 1.0) = 0.0;
 
-varying vec3 wobble_point;
 varying float painted_edge;
 varying vec2 v_affine_uv;
 varying float v_affine_w;
 varying float v_psx_affine;
 
+float paint_hash(vec3 point) {
+	point = fract(point * 0.1031);
+	point += dot(point, point.zyx + 31.32);
+	return fract((point.x + point.y) * point.z);
+}
+
+float paint_noise(vec3 point) {
+	vec3 cell = floor(point);
+	vec3 weight = smoothstep(vec3(0.0), vec3(1.0), fract(point));
+	vec4 lower = vec4(paint_hash(cell), paint_hash(cell + vec3(1, 0, 0)),
+		paint_hash(cell + vec3(0, 1, 0)), paint_hash(cell + vec3(1, 1, 0)));
+	cell.z += 1.0;
+	vec4 upper = vec4(paint_hash(cell), paint_hash(cell + vec3(1, 0, 0)),
+		paint_hash(cell + vec3(0, 1, 0)), paint_hash(cell + vec3(1, 1, 0)));
+	vec4 corners = mix(lower, upper, weight.z);
+	return mix(mix(corners.x, corners.y, weight.x), mix(corners.z, corners.w, weight.x), weight.y);
+}
+
 void vertex() {
-	wobble_point = wobble_in_world ? (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz : VERTEX;
+	if (edge_wobble > 0.001) {
+		vec3 wp = wobble_in_world ? (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz : VERTEX;
+		painted_edge = (paint_noise(wp * wobble_scale * wobble_anisotropy) - 0.5) * edge_wobble;
+	} else {
+		painted_edge = 0.0;
+	}
 
 	vec4 clip = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	// Smoothly attenuate very close to the camera (<2.6m) so cockpit view stays comfortable.
@@ -58,26 +80,7 @@ void vertex() {
 	v_psx_affine = psx_affine_strength * psx_dist_fade;
 }
 
-float paint_hash(vec3 point) {
-	point = fract(point * 0.1031);
-	point += dot(point, point.zyx + 31.32);
-	return fract((point.x + point.y) * point.z);
-}
-
-float paint_noise(vec3 point) {
-	vec3 cell = floor(point);
-	vec3 weight = smoothstep(vec3(0.0), vec3(1.0), fract(point));
-	vec4 lower = vec4(paint_hash(cell), paint_hash(cell + vec3(1, 0, 0)),
-		paint_hash(cell + vec3(0, 1, 0)), paint_hash(cell + vec3(1, 1, 0)));
-	cell.z += 1.0;
-	vec4 upper = vec4(paint_hash(cell), paint_hash(cell + vec3(1, 0, 0)),
-		paint_hash(cell + vec3(0, 1, 0)), paint_hash(cell + vec3(1, 1, 0)));
-	vec4 corners = mix(lower, upper, weight.z);
-	return mix(mix(corners.x, corners.y, weight.x), mix(corners.z, corners.w, weight.x), weight.y);
-}
-
 void fragment() {
-	painted_edge = (paint_noise(wobble_point * wobble_scale * wobble_anisotropy) - 0.5) * edge_wobble;
 	vec2 persp_uv = UV * uv_scale + uv_offset;
 	vec2 tex_uv = persp_uv;
 	if (v_psx_affine > 0.001) {
@@ -102,12 +105,14 @@ void fragment() {
 void light() {
 	float facing = max(dot(NORMAL, LIGHT), 0.0);
 	float band = smoothstep(0.35, 0.49, facing + painted_edge);
-	float diffuse = mix(0.32, 0.90, band) * smoothstep(0.0, 0.20, facing);
-	vec3 diffuse_color = mix(shade_tint, vec3(1.0), band) * diffuse;
+	float edge_fade = smoothstep(0.0, 0.20, facing);
+	vec3 diffuse_color;
 	if (use_ramp) {
 		float ramp_position = clamp(facing + painted_edge, 0.0, 1.0);
-		diffuse_color = textureLod(ramp, vec2(ramp_position, 0.5), 0.0).rgb
-			* smoothstep(0.0, 0.20, facing);
+		diffuse_color = textureLod(ramp, vec2(ramp_position, 0.5), 0.0).rgb * edge_fade;
+	} else {
+		float diffuse = mix(0.32, 0.90, band) * edge_fade;
+		diffuse_color = mix(shade_tint, vec3(1.0), band) * diffuse;
 	}
 	if (toon_blend < 0.999) {
 		float smooth_wrap = clamp(facing * 0.72 + 0.28, 0.0, 1.0);
@@ -118,7 +123,10 @@ void light() {
 	if (crisp_shadows && LIGHT_IS_DIRECTIONAL) {
 		reach = step(0.5, reach);
 	}
-	float rim = smoothstep(0.57, 0.87, 1.0 - max(dot(NORMAL, VIEW), 0.0));
+	float rim_term = 0.0;
+	if (rim_strength > 0.001) {
+		rim_term = smoothstep(0.57, 0.87, 1.0 - max(dot(NORMAL, VIEW), 0.0)) * band * rim_strength;
+	}
 	vec3 spec_dab = vec3(0.0);
 	if (paint_spec_strength > 0.001 && facing > 0.0) {
 		vec3 half_vec = normalize(LIGHT + VIEW);
@@ -130,5 +138,5 @@ void light() {
 		);
 		spec_dab = paint_spec_color * (dab * paint_spec_strength * band);
 	}
-	DIFFUSE_LIGHT += (diffuse_color + spec_dab + rim * band * rim_strength) * reach * LIGHT_COLOR / PI;
+	DIFFUSE_LIGHT += (diffuse_color + spec_dab + vec3(rim_term)) * reach * LIGHT_COLOR / PI;
 }
