@@ -236,11 +236,12 @@ SPECS: list[dict] = [
     },
     {
         "car_key": "rt-porsche-356b-2000gs",
-        "size": (512, 512),
+        "size": (1024, 1024),
         "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_lightmap.png",
+        "lightmap": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_lightmap_clean.png",
         "albedo_raw": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_albedo_raw.png",
-        "mask_mode": "full",
+        "mask_mode": "exclude_baked_mask",
+        "exclude_mask": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_baked_details_mask.png",
         "flat_body": True,
     },
     {
@@ -363,6 +364,10 @@ def build_one(spec: dict, diag_dir: Path | None) -> tuple[Path, float]:
     stripe_mask = np.zeros((h, w), dtype=bool)
     if mode == "full":
         body_mask = np.ones((h, w), dtype=bool)
+    elif mode == "exclude_baked_mask":
+        with Image.open(spec["exclude_mask"]) as ex_im:
+            ex_arr = np.asarray(ex_im.convert("L").resize(size, Image.Resampling.NEAREST), dtype=np.uint8)
+        body_mask = ex_arr <= 32
     elif mode == "id_map":
         body_mask = _id_mask(spec["id_map"], (255, 0, 0), size)
     elif mode == "cortina_stripe":

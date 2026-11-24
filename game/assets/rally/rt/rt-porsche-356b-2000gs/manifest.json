@@ -23,8 +23,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "968ae16268e36c1464e710bb40236042efdfb4ec7f4ac281f803541f0e7352c8",
-    "size_bytes": 5223240,
+    "sha256": "9fc01c268cb115c0ef491ce6ad21ccca504d8f37efacce897e2fad9d035e0bec",
+    "size_bytes": 985764,
     "exported_nodes": [
       "Porsche356_Exterior"
     ]
@@ -32,23 +32,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "d8a8365b6fb9f55e0d35f18c1860bb1db4624ec76c6b9d46654f6f15c7142937",
-      "size_bytes": 211120
+      "sha256": "0372bdda5c9b7fd4805485ecea88e45b72bd0b68c37291a001798173ee512b96",
+      "size_bytes": 38460
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "0d352c9a1580b2af71f3cc0c0388d5f58486e81e2516462fff05c9390261ddde",
-      "size_bytes": 220148
+      "sha256": "344dce3775ee60ec7bff2ba1bfe956f439ff7268512b86b0bd87f095be1d595c",
+      "size_bytes": 38464
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "8afb20b7d3ea9289359970b2e0e414389a038bbba98e6670dcc051f63f09cb8f",
-      "size_bytes": 213652
+      "sha256": "682c798ea0a08edc74bee6fbcbba6dc253506083a433b560580c2eb55dcc1722",
+      "size_bytes": 38456
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "cb939b435eba4d82bc131f00688db250777e47a8d9228afced1f9cce1a21eec3",
-      "size_bytes": 217464
+      "sha256": "1078fe7b2dfec96b41329cea93e591e022c4c9ef58434b25a8b91a2563a44289",
+      "size_bytes": 38464
     }
   },
   "wheel_pivots": {
