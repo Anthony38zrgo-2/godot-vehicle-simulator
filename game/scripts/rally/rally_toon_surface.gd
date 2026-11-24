@@ -1,13 +1,20 @@
 extends Node3D
 
+## Vehicle-only stylized toon / GT2 surface converter with authentic PSX
+## geometry imprecision (vertex snapping) and affine texture wobble.
+
 @export var pixel_albedo := false
 @export var gt2_vehicle_shading := false
+@export_group("PSX Vehicle Distortion")
+@export var psx_snap_resolution := Vector2(480.0, 360.0)
+@export_range(0.0, 1.0) var psx_snap_strength := 0.22
+@export_range(0.0, 1.0) var psx_affine_strength := 0.18
+@export var include_vehicle_wheels := true
 
 const TOON := preload("res://scripts/rally/rally_toon_surface.gdshader")
 const TOON_CUTOUT := preload("res://scripts/rally/rally_toon_cutout.gdshader")
 const GT2_VEHICLE := preload("res://scripts/rally/rally_gt2_vehicle.gdshader")
-const OUTLINE := preload("res://scripts/rally/soft_toon_outline.gdshader")
-static var _paint_ramps: Dictionary[bool, ImageTexture] = {}
+static var _vehicle_paint_ramp: ImageTexture = null
 static var _gt2_env_texture: ImageTexture = null
 
 
@@ -53,7 +60,24 @@ static func _gt2_env_map() -> ImageTexture:
 	return _gt2_env_texture
 
 
-static func make_gt2_vehicle_material(source: StandardMaterial3D, cutout: bool = false) -> ShaderMaterial:
+static func _apply_psx_params(
+	material: ShaderMaterial,
+	snap_resolution: Vector2,
+	snap_strength: float,
+	affine_strength: float,
+) -> void:
+	material.set_shader_parameter("psx_snap_resolution", snap_resolution)
+	material.set_shader_parameter("psx_snap_strength", clampf(snap_strength, 0.0, 1.0))
+	material.set_shader_parameter("psx_affine_strength", clampf(affine_strength, 0.0, 1.0))
+
+
+static func make_gt2_vehicle_material(
+	source: StandardMaterial3D,
+	cutout: bool = false,
+	snap_resolution: Vector2 = Vector2(480.0, 360.0),
+	snap_strength: float = 0.22,
+	affine_strength: float = 0.18,
+) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = GT2_VEHICLE
 	material.set_shader_parameter("base_color", source.albedo_color)
@@ -94,25 +118,32 @@ static func make_gt2_vehicle_material(source: StandardMaterial3D, cutout: bool =
 	material.set_shader_parameter("env_strength", env_str)
 	material.set_shader_parameter("spec_strength", spec_str)
 	material.set_shader_parameter("env_fresnel_base", fresnel_base)
+	_apply_psx_params(material, snap_resolution, snap_strength, affine_strength)
 	return material
 
 
-static func _paint_ramp(is_rock: bool) -> ImageTexture:
-	if not _paint_ramps.has(is_rock):
-		var shade := Color("#695762") if is_rock else Color("#3f425a")
-		var middle := Color("#ad9384") if is_rock else Color("#9d99ac")
-		var highlight := Color("#dcc8b1") if is_rock else Color("#f2e8d6")
+static func _paint_ramp() -> ImageTexture:
+	if _vehicle_paint_ramp == null:
+		var shade := Color("#3f425a")
+		var middle := Color("#9d99ac")
+		var highlight := Color("#f2e8d6")
 		var pixels := Image.create_empty(16, 1, false, Image.FORMAT_RGB8)
 		pixels.fill(shade)
 		pixels.set_pixel(6, 0, shade.lerp(middle, 0.5))
 		pixels.fill_rect(Rect2i(7, 0, 4, 1), middle)
 		pixels.set_pixel(11, 0, middle.lerp(highlight, 0.5))
 		pixels.fill_rect(Rect2i(12, 0, 4, 1), highlight)
-		_paint_ramps[is_rock] = ImageTexture.create_from_image(pixels)
-	return _paint_ramps[is_rock]
+		_vehicle_paint_ramp = ImageTexture.create_from_image(pixels)
+	return _vehicle_paint_ramp
 
 
-static func make_toon_material(source: StandardMaterial3D, is_rock: bool = false, cutout: bool = false) -> ShaderMaterial:
+static func make_toon_material(
+	source: StandardMaterial3D,
+	cutout: bool = false,
+	snap_resolution: Vector2 = Vector2(480.0, 360.0),
+	snap_strength: float = 0.22,
+	affine_strength: float = 0.18,
+) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = TOON_CUTOUT if cutout else TOON
 	material.set_shader_parameter("base_color", source.albedo_color)
@@ -125,47 +156,53 @@ static func make_toon_material(source: StandardMaterial3D, is_rock: bool = false
 		material.set_shader_parameter("normal_strength", source.normal_scale)
 	material.set_shader_parameter("uv_scale", Vector2(source.uv1_scale.x, source.uv1_scale.y))
 	material.set_shader_parameter("uv_offset", Vector2(source.uv1_offset.x, source.uv1_offset.y))
-	material.set_shader_parameter("rim_strength", 0.025 if is_rock else 0.12)
-	material.set_shader_parameter("edge_wobble", 0.10 if is_rock else 0.28)
-	material.set_shader_parameter("wobble_scale", 2.4 if is_rock else 1.8)
-	material.set_shader_parameter("wobble_anisotropy", Vector3.ONE if is_rock else Vector3(1.4, 3.0, 0.55))
-	material.set_shader_parameter("wobble_in_world", is_rock)
-	material.set_shader_parameter("use_ramp", not is_rock)
-	material.set_shader_parameter("ramp", _paint_ramp(is_rock))
+	material.set_shader_parameter("rim_strength", 0.12)
+	material.set_shader_parameter("edge_wobble", 0.28)
+	material.set_shader_parameter("wobble_scale", 1.8)
+	material.set_shader_parameter("wobble_anisotropy", Vector3(1.4, 3.0, 0.55))
+	material.set_shader_parameter("wobble_in_world", false)
+	material.set_shader_parameter("use_ramp", true)
+	material.set_shader_parameter("ramp", _paint_ramp())
 	material.set_shader_parameter("toon_blend", 1.0)
 	material.set_shader_parameter("crisp_shadows", false)
-	if not is_rock:
-		var mat_name := source.resource_name.to_lower()
-		var spec_str := 0.26
-		var spec_thresh := 0.88
-		if mat_name.contains("glass") or mat_name.contains("window") or mat_name.contains("windshield") or mat_name.contains("chrome") or mat_name.contains("metal") or source.metallic > 0.45:
-			spec_str = 0.44
-			spec_thresh = 0.85
-		elif mat_name.contains("matte") or mat_name.contains("plastic") or mat_name.contains("tire") or mat_name.contains("rubber") or source.roughness > 0.80:
-			spec_str = 0.05
-			spec_thresh = 0.92
-		material.set_shader_parameter("paint_spec_strength", spec_str)
-		material.set_shader_parameter("paint_spec_threshold", spec_thresh)
+	var mat_name := source.resource_name.to_lower()
+	var spec_str := 0.26
+	var spec_thresh := 0.88
+	if mat_name.contains("glass") or mat_name.contains("window") or mat_name.contains("windshield") or mat_name.contains("chrome") or mat_name.contains("metal") or source.metallic > 0.45:
+		spec_str = 0.44
+		spec_thresh = 0.85
+	elif mat_name.contains("matte") or mat_name.contains("plastic") or mat_name.contains("tire") or mat_name.contains("rubber") or source.roughness > 0.80:
+		spec_str = 0.05
+		spec_thresh = 0.92
+	material.set_shader_parameter("paint_spec_strength", spec_str)
+	material.set_shader_parameter("paint_spec_threshold", spec_thresh)
 	if cutout:
 		material.set_shader_parameter("alpha_cutoff", source.alpha_scissor_threshold)
-	if is_rock:
-		var outline := ShaderMaterial.new()
-		outline.shader = OUTLINE
-		outline.set_shader_parameter("outline_width", 8.0)
-		outline.set_shader_parameter("outline_fade_start", 18.0)
-		outline.set_shader_parameter("outline_fade_end", 48.0)
-		material.next_pass = outline
+	_apply_psx_params(material, snap_resolution, snap_strength, affine_strength)
 	return material
 
 
-func _ready() -> void:
-	var meshes := find_children("*", "MeshInstance3D", true, false)
+func _collect_vehicle_meshes() -> Array[Node]:
+	var meshes: Array[Node] = find_children("*", "MeshInstance3D", true, false)
 	var root_mesh := get_node(".") as MeshInstance3D
 	if root_mesh != null:
 		meshes.push_front(root_mesh)
+	if include_vehicle_wheels:
+		var parent := get_parent()
+		if parent != null:
+			for wheel_name in ["WheelFrontLeft", "WheelFrontRight", "WheelRearLeft", "WheelRearRight"]:
+				var wheel_node := parent.get_node_or_null(wheel_name)
+				if wheel_node != null:
+					meshes.append_array(wheel_node.find_children("*", "MeshInstance3D", true, false))
+	return meshes
+
+
+func _ready() -> void:
+	var meshes := _collect_vehicle_meshes()
 	var converted := {}
-	for visual: MeshInstance3D in meshes:
-		if visual.mesh == null:
+	for visual_node in meshes:
+		var visual := visual_node as MeshInstance3D
+		if visual == null or visual.mesh == null:
 			continue
 		for surface in visual.mesh.get_surface_count():
 			var source := visual.get_active_material(surface) as StandardMaterial3D
@@ -176,7 +213,11 @@ func _ready() -> void:
 			if not cutout and source.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 				continue
 			if not converted.has(source):
-				var surface_material := make_gt2_vehicle_material(source, cutout) if gt2_vehicle_shading else make_toon_material(source, false, cutout)
+				var surface_material := (
+					make_gt2_vehicle_material(source, cutout, psx_snap_resolution, psx_snap_strength, psx_affine_strength)
+					if gt2_vehicle_shading
+					else make_toon_material(source, cutout, psx_snap_resolution, psx_snap_strength, psx_affine_strength)
+				)
 				if pixel_albedo and source.albedo_texture != null:
 					surface_material.set_shader_parameter("use_pixel_albedo", true)
 					surface_material.set_shader_parameter("pixel_albedo", source.albedo_texture)

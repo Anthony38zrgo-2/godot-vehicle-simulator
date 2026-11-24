@@ -374,12 +374,6 @@ func _load_models() -> bool:
 					var variant := {"label": str(entry.file).get_basename(), "mesh": mesh_node.mesh,
 						"material": material}
 					if kind == STONE:
-						var outline := ShaderMaterial.new()
-						outline.shader = preload("res://scripts/rally/soft_toon_outline.gdshader")
-						outline.set_shader_parameter("outline_width", 0.2)
-						outline.set_shader_parameter("outline_fade_start", 18.0)
-						outline.set_shader_parameter("outline_fade_end", 48.0)
-						material.next_pass = outline
 						var hull := mesh_node.mesh.create_convex_shape(true, true)
 						variant["hull"] = hull.points
 					_variants[kind].append(variant)

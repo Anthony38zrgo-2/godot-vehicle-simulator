@@ -33,9 +33,17 @@ uniform vec3 shade_tint : source_color = vec3(0.66, 0.70, 0.80);
 uniform bool psx_dither_env = true;
 uniform float psx_dither_strength : hint_range(0.0, 1.0) = 0.30;
 
+// PSX vehicle-only geometry imprecision (vertex snapping) & affine texture wobble
+uniform vec2 psx_snap_resolution = vec2(320.0, 240.0);
+uniform float psx_snap_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float psx_affine_strength : hint_range(0.0, 1.0) = 0.0;
+
 varying vec2 v_env_uv;
 varying float v_fresnel;
 varying float v_sky_facing;
+varying vec2 v_affine_uv;
+varying float v_affine_w;
+varying float v_psx_affine;
 
 const float PS1_DITHER_4X4[16] = float[16](
 	-4.0,  0.0, -3.0,  1.0,
@@ -57,6 +65,23 @@ vec3 psx_quantize_rgb555(vec3 linear_rgb, vec2 frag_xy) {
 }
 
 void vertex() {
+	vec4 clip = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+	float psx_dist_fade = smoothstep(0.9, 2.6, max(clip.w, 0.0));
+	if (psx_snap_strength > 0.001) {
+		float eff_snap = psx_snap_strength * psx_dist_fade;
+		vec2 ndc = clip.xy / max(abs(clip.w), 0.0001);
+		vec2 grid = max(psx_snap_resolution, vec2(32.0)) * 0.5;
+		vec2 snapped = floor(ndc * grid + 0.5) / grid;
+		clip.xy = mix(ndc, snapped, eff_snap) * clip.w;
+	}
+	POSITION = clip;
+
+	vec2 base_uv = UV * uv_scale + uv_offset;
+	float w_eff = max(clip.w, 0.15);
+	v_affine_uv = base_uv * w_eff;
+	v_affine_w = w_eff;
+	v_psx_affine = psx_affine_strength * psx_dist_fade;
+
 	vec3 pos_view = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec3 n_view = normalize(MODELVIEW_NORMAL_MATRIX * NORMAL);
 	vec3 v_view = normalize(-pos_view);
@@ -77,7 +102,12 @@ void vertex() {
 }
 
 void fragment() {
-	vec2 tex_uv = UV * uv_scale + uv_offset;
+	vec2 persp_uv = UV * uv_scale + uv_offset;
+	vec2 tex_uv = persp_uv;
+	if (v_psx_affine > 0.001) {
+		vec2 affine_uv = v_affine_uv / max(v_affine_w, 0.0001);
+		tex_uv = mix(persp_uv, affine_uv, v_psx_affine);
+	}
 	vec4 paint = base_color * (use_pixel_albedo ? texture(pixel_albedo, tex_uv) : texture(base_texture, tex_uv));
 	if (use_vertex_color) {
 		paint *= COLOR;
