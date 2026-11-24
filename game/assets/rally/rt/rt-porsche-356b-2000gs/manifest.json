@@ -23,8 +23,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "9fc01c268cb115c0ef491ce6ad21ccca504d8f37efacce897e2fad9d035e0bec",
-    "size_bytes": 985764,
+    "sha256": "63117a614c21ad62e4211a275838d1242ba85f33de1fa279143209d444b87d31",
+    "size_bytes": 1002380,
     "exported_nodes": [
       "Porsche356_Exterior"
     ]
