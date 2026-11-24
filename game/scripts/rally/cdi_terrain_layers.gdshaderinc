@@ -1,10 +1,18 @@
-uniform sampler2DArray terrain_palette : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2DArray terrain_palette : source_color, filter_nearest_mipmap_anisotropic, repeat_enable;
 uniform sampler2D grass_gis : filter_linear, repeat_disable;
 uniform vec4 grass_gis_bounds;
 uniform vec3 grass_dense_tone : source_color = vec3(0.6196, 0.5294, 0.3882);   // #9E8763
 uniform vec3 grass_sparse_tone : source_color = vec3(0.7490, 0.6549, 0.4980);  // #BFA77F
 uniform vec3 grass_olive_tone : source_color = vec3(0.4784, 0.4588, 0.3373);   // #7A7556
 uniform vec3 grass_mineral_tone : source_color = vec3(0.5608, 0.4000, 0.3333); // #8F6655
+uniform vec3 depth_haze_color : source_color = vec3(0.68, 0.76, 0.86);
+uniform float depth_haze_start = 140.0;
+uniform float depth_haze_end = 620.0;
+uniform float depth_haze_max : hint_range(0.0, 0.85) = 0.0;
+
+float terrain_depth_haze(float view_dist) {
+	return smoothstep(depth_haze_start, depth_haze_end, view_dist) * depth_haze_max;
+}
 
 float hash_patch(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -35,7 +43,7 @@ vec2 terrain_warp(vec2 point) {
 }
 
 float terrain_macro_tone(vec2 point) {
-	return mix(0.89, 1.10, patch_noise(point * 0.027 + vec2(41.0, 26.0)));
+	return mix(0.84, 1.12, patch_noise(point * 0.027 + vec2(41.0, 26.0)));
 }
 
 vec3 shoulder_cover(vec3 p) {
@@ -58,11 +66,12 @@ vec3 grass_macro_color(vec3 weights) {
 
 float grass_detail(vec3 sample_color, float reference) {
 	float luma = dot(sample_color, vec3(0.2126, 0.7152, 0.0722));
-	return clamp(1.0 + (luma - reference) * 1.55, 0.63, 1.40);
+	return clamp(1.0 + (luma - reference) * 2.05, 0.56, 1.44);
 }
 
 vec3 ground_cover(vec3 p, float patch) {
 	vec2 tile = p.xz / 3.5 + terrain_warp(p.xz) * 0.72;
+	vec2 macro_tile = p.xz / 14.0 + terrain_warp(p.xz * 0.25) * 0.85;
 	float variant = patch_noise(p.xz * 0.13 + vec2(17.0, 3.0));
 	vec4 gis = grass_coverage(p);
 	vec3 fallback = vec3(smoothstep(0.24, 0.72, patch), 0.06, 0.18);
@@ -72,7 +81,12 @@ vec3 ground_cover(vec3 p, float patch) {
 	float dry = grass_detail(palette_mix(tile, 7.0, 3.0, variant), 0.46);
 	float olive = grass_detail(palette_layer(tile, 10.0), 0.18);
 	float mineral = grass_detail(palette_mix(p.xz / 2.0 + terrain_warp(p.xz) * 0.64, 17.0, 2.0, variant), 0.20);
-	float detail = mix(mix(mix(dense, dry, weights.r), olive, weights.g), mineral, weights.b);
+	float near_detail = mix(mix(mix(dense, dry, weights.r), olive, weights.g), mineral, weights.b);
+	// Mid-distance macro grain keeps hillsides textured at 30-300 m instead of averaging to flat sand.
+	float macro_grass = grass_detail(palette_layer(macro_tile, mix(5.0, 8.0, step(0.5, weights.r))), 0.38);
+	float macro_rock = grass_detail(palette_layer(macro_tile * 1.15, 17.0), 0.20);
+	float macro_detail = mix(macro_grass, macro_rock, clamp(weights.b * 0.75 + 0.20, 0.0, 1.0));
+	float detail = clamp(near_detail * mix(1.0, macro_detail, 0.52), 0.52, 1.46);
 	return grass_macro_color(weights) * detail;
 }
 

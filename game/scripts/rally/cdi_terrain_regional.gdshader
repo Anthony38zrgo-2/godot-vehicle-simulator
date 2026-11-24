@@ -11,11 +11,46 @@ uniform vec3 ambient_color = vec3(0.48, 0.54, 0.63);
 uniform vec3 haze_color = vec3(0.68, 0.76, 0.86);
 uniform float sun_gain = 0.88;
 uniform float ambient_gain = 0.56;
-// Aire fino de 4800 m: bruma ligera y tardía
-uniform float haze_start = 3000.0;
-uniform float haze_end = 18000.0;
-uniform float haze_max = 0.24;
+// Bruma atmosférica continua con la ladera cercana hacia la cordillera
+uniform float haze_start = 450.0;
+uniform float haze_end = 14000.0;
+uniform float haze_max = 0.36;
 uniform float color_saturation = 1.16;
+
+// Acabado PS1 RGB555 + matriz de dithering 4x4 (ps1kit/color.py)
+uniform bool psx_quantize_enabled = true;
+uniform int psx_color_bits : hint_range(2, 8) = 5;
+uniform float psx_dither_strength : hint_range(0.0, 2.0) = 0.35;
+uniform float psx_dither_scale : hint_range(1.0, 4.0) = 1.0;
+
+const float PS1_DITHER_4X4[16] = float[16](
+	-4.0,  0.0, -3.0,  1.0,
+	 2.0, -2.0,  3.0, -1.0,
+	-3.0,  1.0, -4.0,  0.0,
+	 3.0, -1.0,  2.0, -2.0
+);
+
+vec3 psx_quantize_color(vec3 linear_rgb, vec2 frag_xy) {
+	int bits = clamp(psx_color_bits, 2, 8);
+	int shift = 8 - bits;
+	vec3 srgb = pow(clamp(linear_rgb, vec3(0.0), vec3(1.0)), vec3(1.0 / 2.2)) * 255.0;
+	if (shift > 0 && psx_dither_strength > 0.0) {
+		ivec2 cell = ivec2(floor(frag_xy / max(psx_dither_scale, 1.0)));
+		float pattern = PS1_DITHER_4X4[(cell.y & 3) * 4 + (cell.x & 3)];
+		float scale = psx_dither_strength * float(1 << shift) / 8.0;
+		srgb += vec3(pattern * scale);
+	}
+	ivec3 q = ivec3(clamp(srgb, vec3(0.0), vec3(255.0))) >> shift;
+	vec3 out_srgb;
+	if (bits >= 4) {
+		ivec3 rep = (q << shift) | (q >> (bits - shift));
+		out_srgb = vec3(rep) / 255.0;
+	} else {
+		float max_lvl = float((1 << bits) - 1);
+		out_srgb = vec3(q) / max_lvl;
+	}
+	return pow(clamp(out_srgb, vec3(0.0), vec3(1.0)), vec3(2.2));
+}
 
 varying vec3 world_point;
 varying vec3 world_normal;
@@ -168,5 +203,9 @@ void fragment() {
 
 	// --- A. Bruma por distancia a cámara, igual para roca y pasto ---
 	float haze = smoothstep(haze_start, haze_end, dist) * haze_max;
-	ALBEDO = mix(lit, haze_color, haze);
+	vec3 final_color = mix(lit, haze_color, haze);
+	if (psx_quantize_enabled) {
+		final_color = psx_quantize_color(final_color, FRAGCOORD.xy);
+	}
+	ALBEDO = final_color;
 }

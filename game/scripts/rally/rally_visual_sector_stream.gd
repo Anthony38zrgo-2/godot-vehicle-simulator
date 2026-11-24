@@ -83,7 +83,8 @@ func load_cdi_palette(stage_dir: String) -> bool:
 			return false
 		pixels.clear_mipmaps()
 		pixels.convert(Image.FORMAT_RGBA8)
-		pixels.resize(256, 256, Image.INTERPOLATE_LANCZOS)
+		if pixels.get_size() != Vector2i(128, 128):
+			pixels.resize(128, 128, Image.INTERPOLATE_NEAREST)
 		pixels.generate_mipmaps()
 		layers.append(pixels)
 	var palette := Texture2DArray.new()
@@ -105,7 +106,7 @@ func _load_surface_layers(paths: Array[String], size: int = 0) -> Texture2DArray
 		pixels.clear_mipmaps()
 		pixels.convert(Image.FORMAT_RGBA8)
 		if size > 0 and pixels.get_size() != Vector2i(size, size):
-			pixels.resize(size, size, Image.INTERPOLATE_LANCZOS)
+			pixels.resize(size, size, Image.INTERPOLATE_NEAREST)
 		pixels.generate_mipmaps()
 		layers.append(pixels)
 	var textures := Texture2DArray.new()
@@ -121,10 +122,8 @@ func load_cdi_asphalt(snow_station: float, keep_ticlio_roadside_snow: bool = fal
 		return false
 	if snow_station >= 0.0 or keep_ticlio_roadside_snow:
 		var ice_paths: Array[String] = []
-		for index in range(1, 8):
+		for index in range(1, 10):
 			ice_paths.append("res://assets/rally/CDI/nieve_ticlio/terreno_%02d.png" % index)
-		for index in range(1, 3):
-			ice_paths.append("res://assets/rally/sweden_stage2/sweden_stage2_visual_terrain_snow_%d.png" % index)
 		_ticlio_snow_textures = _load_surface_layers(ice_paths, 128)
 		_ticlio_snow_coverage = load("res://assets/rally/cdi_stage4/puna_seca/nieve_gis.png") as Texture2D
 		if _ticlio_snow_textures == null or _ticlio_snow_coverage == null:
@@ -149,6 +148,7 @@ func load_cdi_asphalt(snow_station: float, keep_ticlio_roadside_snow: bool = fal
 			return false
 		var rail := StandardMaterial3D.new()
 		rail.albedo_texture = texture
+		rail.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		rail.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 		rail.alpha_scissor_threshold = 0.5
 		rail.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -446,7 +446,7 @@ func _sync_road_sky_material(mat: ShaderMaterial, sky: Node, sun: DirectionalLig
 func _update_regional_lighting(delta: float) -> void:
 	var material: ShaderMaterial = _terrain_materials.get(4)
 	var gravel_road: ShaderMaterial = _terrain_materials.get(2)
-	if material == null and _asphalt_material == null and gravel_road == null:
+	if material == null and _asphalt_material == null and _terrain_materials.is_empty():
 		return
 	var sky: Node = sky_node if is_instance_valid(sky_node) else null
 	if sky == null:
@@ -486,6 +486,21 @@ func _update_regional_lighting(delta: float) -> void:
 			_sync_road_sky_material(_asphalt_material, sky, sun)
 		if gravel_road != null:
 			_sync_road_sky_material(gravel_road, sky, sun)
+	if env == null and get_world_3d() != null:
+		env = get_world_3d().environment
+	if env != null:
+		var haze := env.fog_light_color
+		for mode_key in _terrain_materials:
+			if int(mode_key) != 4:
+				var near_mat := _terrain_materials[mode_key] as ShaderMaterial
+				if near_mat != null:
+					near_mat.set_shader_parameter("depth_haze_color", haze)
+		if _asphalt_material != null:
+			_asphalt_material.set_shader_parameter("depth_haze_color", haze)
+		if material != null:
+			var ambient := env.ambient_light_color * env.ambient_light_energy
+			material.set_shader_parameter("ambient_color", Vector3(ambient.r, ambient.g, ambient.b))
+			material.set_shader_parameter("haze_color", Vector3(haze.r, haze.g, haze.b))
 	if material == null:
 		return
 	if sun != null and is_instance_valid(sun):
@@ -494,13 +509,6 @@ func _update_regional_lighting(delta: float) -> void:
 			material.set_shader_parameter("sun_dir", dir.normalized())
 		var color := sun.light_color * sun.light_energy
 		material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
-	if env == null and get_world_3d() != null:
-		env = get_world_3d().environment
-	if env != null:
-		var ambient := env.ambient_light_color * env.ambient_light_energy
-		material.set_shader_parameter("ambient_color", Vector3(ambient.r, ambient.g, ambient.b))
-		var haze := env.fog_light_color
-		material.set_shader_parameter("haze_color", Vector3(haze.r, haze.g, haze.b))
 
 
 func _distance_sq(point: Vector2, rect: Rect2) -> float:
@@ -595,7 +603,8 @@ func tune_materials(root: Node) -> void:
 					if _ticlio_drainage_material == null:
 						_ticlio_drainage_material = StandardMaterial3D.new()
 						_ticlio_drainage_material.albedo_texture = load("res://assets/rally/cdi_stage4/cuneta_v.png") as Texture2D
-						_ticlio_drainage_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+						_ticlio_drainage_material.albedo_color = Color(0.84, 0.82, 0.79)
+						_ticlio_drainage_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC
 						_ticlio_drainage_material.roughness = 0.95
 					terrain.set_surface_override_material(surface, _ticlio_drainage_material)
 				else:
