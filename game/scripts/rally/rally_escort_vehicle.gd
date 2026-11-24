@@ -1497,7 +1497,13 @@ func _set_vehicle_layers(node: Node) -> void:
 
 
 func _create_blob_shadow() -> void:
-	# Sombra suave bajo el chasis. Solo proyecta sobre la capa 1 (terreno); el coche esta en la capa 2.
+	# Sombra suave bajo el chasis con ligero dithering PS1. Solo proyecta sobre la capa 1 (terreno); el coche esta en la capa 2.
+	const PS1_DITHER := [
+		-4.0,  0.0, -3.0,  1.0,
+		 2.0, -2.0,  3.0, -1.0,
+		-3.0,  1.0, -4.0,  0.0,
+		 3.0, -1.0,  2.0, -2.0,
+	]
 	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
 	for y in 64:
 		var ny := (float(y) / 63.0) * 2.0 - 1.0
@@ -1507,8 +1513,10 @@ func _create_blob_shadow() -> void:
 			var dist := pow(absf(nx), 2.4) + pow(absf(ny), 3.2)
 			var alpha := clampf(1.0 - dist, 0.0, 1.0)
 			alpha = smoothstep(0.0, 1.0, alpha) * dc_blob_shadow_opacity
-			# Cuantización ARGB4444 (16 niveles de alfa como en texturas transparentes de Dreamcast)
-			alpha = floor(alpha * 15.0 + 0.5) / 15.0
+			# Cuantización ARGB4444 (16 niveles) con ligero dithering 4x4 PS1
+			if alpha > 0.005:
+				var d: float = (PS1_DITHER[(y & 3) * 4 + (x & 3)] / 8.0) * 0.25 / 15.0
+				alpha = clampf(floor(clampf(alpha + d, 0.0, 1.0) * 15.0 + 0.5) / 15.0, 0.0, 1.0)
 			img.set_pixel(x, y, Color(0.0, 0.0, 0.0, alpha))
 
 	var shadow_tex := ImageTexture.create_from_image(img)

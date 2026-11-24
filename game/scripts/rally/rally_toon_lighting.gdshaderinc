@@ -12,13 +12,18 @@ uniform float normal_strength = 1.0;
 uniform float rim_strength = 0.10;
 uniform float edge_wobble = 0.04;
 uniform float wobble_scale = 3.0;
+uniform vec3 wobble_anisotropy = vec3(1.0);
 uniform bool wobble_in_world = false;
 uniform vec2 uv_scale = vec2(1.0);
 uniform vec2 uv_offset = vec2(0.0);
 uniform vec3 shade_tint : source_color = vec3(0.67, 0.69, 0.82);
 uniform bool use_ramp = false;
-uniform sampler2D ramp : source_color, filter_nearest, repeat_disable, hint_default_white;
+uniform sampler2D ramp : source_color, filter_linear, repeat_disable, hint_default_white;
+uniform float toon_blend : hint_range(0.0, 1.0) = 1.0;
 uniform bool crisp_shadows = false;
+uniform float paint_spec_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float paint_spec_threshold : hint_range(0.5, 0.99) = 0.88;
+uniform vec3 paint_spec_color : source_color = vec3(1.0, 0.97, 0.90);
 
 varying vec3 wobble_point;
 varying float painted_edge;
@@ -46,7 +51,7 @@ float paint_noise(vec3 point) {
 }
 
 void fragment() {
-	painted_edge = (paint_noise(wobble_point * wobble_scale) - 0.5) * edge_wobble;
+	painted_edge = (paint_noise(wobble_point * wobble_scale * wobble_anisotropy) - 0.5) * edge_wobble;
 	vec2 tex_uv = UV * uv_scale + uv_offset;
 	vec4 paint = base_color * (use_pixel_albedo ? texture(pixel_albedo, tex_uv) : texture(base_texture, tex_uv));
 	if (use_vertex_color) {
@@ -73,10 +78,26 @@ void light() {
 		diffuse_color = textureLod(ramp, vec2(ramp_position, 0.5), 0.0).rgb
 			* smoothstep(0.0, 0.20, facing);
 	}
+	if (toon_blend < 0.999) {
+		float smooth_wrap = clamp(facing * 0.72 + 0.28, 0.0, 1.0);
+		vec3 smooth_diffuse = mix(shade_tint, vec3(1.0), smooth_wrap) * mix(0.32, 0.94, facing);
+		diffuse_color = mix(smooth_diffuse, diffuse_color, toon_blend);
+	}
 	float reach = ATTENUATION;
 	if (crisp_shadows && LIGHT_IS_DIRECTIONAL) {
 		reach = step(0.5, reach);
 	}
 	float rim = smoothstep(0.57, 0.87, 1.0 - max(dot(NORMAL, VIEW), 0.0));
-	DIFFUSE_LIGHT += (diffuse_color + rim * band * rim_strength) * reach * LIGHT_COLOR / PI;
+	vec3 spec_dab = vec3(0.0);
+	if (paint_spec_strength > 0.001 && facing > 0.0) {
+		vec3 half_vec = normalize(LIGHT + VIEW);
+		float ndh = max(dot(NORMAL, half_vec), 0.0);
+		float dab = smoothstep(
+			paint_spec_threshold - 0.03,
+			paint_spec_threshold + 0.03,
+			ndh + painted_edge * 0.22
+		);
+		spec_dab = paint_spec_color * (dab * paint_spec_strength * band);
+	}
+	DIFFUSE_LIGHT += (diffuse_color + spec_dab + rim * band * rim_strength) * reach * LIGHT_COLOR / PI;
 }
