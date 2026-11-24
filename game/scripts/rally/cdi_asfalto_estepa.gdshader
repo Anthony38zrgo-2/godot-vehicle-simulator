@@ -6,6 +6,10 @@ render_mode fog_disabled;
 uniform sampler2DArray surface_textures : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float snow_station_m = -1.0;
 uniform float wetness : hint_range(0.0, 1.0) = 0.0;
+uniform vec3 depth_haze_color : source_color = vec3(0.68, 0.76, 0.86);
+uniform float depth_haze_start = 140.0;
+uniform float depth_haze_end = 620.0;
+uniform float depth_haze_max : hint_range(0.0, 0.85) = 0.0;
 varying vec3 world_position;
 varying vec3 world_normal;
 
@@ -93,41 +97,25 @@ void fragment() {
 			micro_cavity
 		);
 	}
-	vec2 asphalt_grad = proc_road_micro_grad(world_position.xz, 11.5, 2.1);
-	vec3 sky_refl;
-	vec3 pert_world_n;
-	// Estimate refl_w first from base normal, then refine perturbed view normal for direct light()
 	vec4 wet_opt = proc_wet_surface_optics(
 		local_wetness,
 		0.92,
-		procedural_surface_enabled ? 0.10 : 0.24,
-		0.30,
+		0.45,
+		0.22,
 		micro_cavity,
 		wet_tracks,
 		dot(NORMAL, VIEW)
 	);
 	float snow_blend = procedural_surface_enabled ? coverage : (coverage * snow_mask);
-	float refl_w = wet_opt.w * (1.0 - snow_blend);
-	proc_wet_sky_reflection(
-		world_position,
-		base_world_n,
-		CAMERA_POSITION_WORLD,
-		local_wetness,
-		refl_w,
-		asphalt_grad,
-		0.20,
-		sky_refl,
-		pert_world_n
-	);
-	NORMAL = normalize((VIEW_MATRIX * vec4(mix(pert_world_n, base_world_n, snow_blend), 0.0)).xyz);
-	vec3 wet_pavement = pavement * wet_opt.x * (1.0 - refl_w * 0.42);
+	float sheen_w = wet_opt.w * (1.0 - snow_blend);
+	vec3 wet_pavement = pavement * wet_opt.x;
 	vec3 ribbon_snow = mix(vec3(0.76, 0.80, 0.84), vec3(0.92, 0.94, 0.97), grain);
 	vec3 lit_road = procedural_surface_enabled
 		? mix(wet_pavement, ribbon_snow, coverage * 0.90)
 		: mix(wet_pavement, winter_asphalt * mix(wet_opt.x, 1.0, snow_mask), coverage);
-	ALBEDO = lit_road;
-	// Subtle diffuse sky reflection across the entire wet asphalt; puddles add a much stronger, sharper mirror.
-	EMISSION = sky_refl * (refl_w * 0.58);
-	ROUGHNESS = mix(wet_opt.y, 0.97, snow_blend);
-	SPECULAR = mix(wet_opt.z, 0.12, snow_blend);
+	float haze = smoothstep(depth_haze_start, depth_haze_end, length(VERTEX)) * depth_haze_max;
+	ALBEDO = mix(lit_road, depth_haze_color, haze);
+	EMISSION = mix(proc_horizon_color * sheen_w, depth_haze_color * 0.42, haze);
+	ROUGHNESS = mix(mix(wet_opt.y, 0.97, snow_blend), 0.97, haze);
+	SPECULAR = mix(wet_opt.z, 0.08, snow_blend) * (1.0 - haze);
 }
