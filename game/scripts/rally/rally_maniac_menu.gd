@@ -144,6 +144,7 @@ const CDI_CARS := [
 	"escort",
 	"rt-alfa-giulia-gta",
 	"rt-alpine-a110",
+	"rt-fiat-abarth-1000",
 	"rt-lotus-cortina",
 	"rt-mini-cooper-s",
 	"rt-lancia-stratos",
@@ -155,6 +156,7 @@ const CDI_CARS := [
 	"fiat131",
 	"golfmk1",
 	"porsche911",
+	"gaz24",
 ]
 
 const VIGNETTE_SHADER_CODE := """

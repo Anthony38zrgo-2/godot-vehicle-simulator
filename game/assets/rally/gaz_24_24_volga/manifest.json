@@ -1,0 +1,127 @@
+{
+  "contract_version": 1,
+  "vehicle_id": "gaz_24_24_volga",
+  "source": {
+    "blend": "D:\\RallyManiacAssets\\1971-gaz-24-volga-lp\\source\\GAZ-24 Volga (low-poly).blend",
+    "recipe": "gaz24_negro_stylized.json",
+    "blender_version": "5.2.0 LTS",
+    "runtime_visuals": {
+      "blend": "D:\\RallyManiacAssets\\1971-gaz-24-volga-lp\\source\\GAZ-24 Volga (low-poly).blend",
+      "recipe": "gaz24_negro_stylized.json",
+      "finish": "stylized_shadow_dither_psx_v2_seamless",
+      "fit": "Native GAZ-24 dimensions preserved (wheelbase 2.800 m, front track 1.438 m, rear track 1.420 m, wheels R=0.326 m, W=0.185 m). Exterior-only welded mesh in KGB satin jet black with opaque bluish Bayer4 cabin glass.",
+      "cockpit_enabled": false,
+      "visual_damage_enabled": false
+    },
+    "texture_finish": "stylized_shadow_dither_psx_v2_seamless",
+    "collection": "GAZ-24 Volga (mod)"
+  },
+  "coordinate_system": {
+    "engine": "Godot",
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y",
+    "visual_physics_offset_metres": 0.0
+  },
+  "geometry": {
+    "wheelbase": 2.799924,
+    "front_axle_z": -1.399962,
+    "rear_axle_z": 1.399962,
+    "front_track": 1.437942,
+    "rear_track": 1.42
+  },
+  "chassis": {
+    "path": "gaz_24_24_volga_chassis.glb",
+    "sha256": "71b06eab5ddd1428fa063553aa94d61db2894b594f8bf897e1770c5b001b1668",
+    "size_bytes": 1210612,
+    "exported_nodes": [
+      "GAZ24Volga_Exterior"
+    ]
+  },
+  "wheels": {
+    "front_left": {
+      "path": "gaz_24_24_volga_wheel_front_left.glb",
+      "sha256": "01179dac3c465f2b54825a768ea7f214ab1a4cfa81650c67416d8fab3bcc1ccb",
+      "size_bytes": 221816
+    },
+    "front_right": {
+      "path": "gaz_24_24_volga_wheel_front_right.glb",
+      "sha256": "1cdb7a253800973c63d4e30c62c36d4c89b8c3ffc5cd807e8ff8fa55dd7c49f0",
+      "size_bytes": 221176
+    },
+    "rear_left": {
+      "path": "gaz_24_24_volga_wheel_rear_left.glb",
+      "sha256": "cea357a62fe1f5ce52c6387505c7ec763d1bf647381f796bb8f52f5b2ff51280",
+      "size_bytes": 220584
+    },
+    "rear_right": {
+      "path": "gaz_24_24_volga_wheel_rear_right.glb",
+      "sha256": "ecc14576563cb8f42a45fb0d04ae011140d685a6751c4634ef8bac2c8c1ad900",
+      "size_bytes": 220956
+    }
+  },
+  "collision": {
+    "path": "gaz_24_24_volga_collision.json",
+    "sha256": "c06d30d6066cd5bcc68918d7a19e2cfdd68f569605f595d135a972ac228a9a1f"
+  },
+  "wheel_pivots": {
+    "front_left": {
+      "blender_object": "GAZ24_Wheel_front_left",
+      "center_metres": {
+        "x": -0.718982,
+        "y": 0.3258,
+        "z": -1.399962
+      },
+      "radius_metres": 0.3258,
+      "width_metres": 0.18499
+    },
+    "front_right": {
+      "blender_object": "GAZ24_Wheel_front_right",
+      "center_metres": {
+        "x": 0.71896,
+        "y": 0.325816,
+        "z": -1.399962
+      },
+      "radius_metres": 0.3258,
+      "width_metres": 0.18499
+    },
+    "rear_left": {
+      "blender_object": "GAZ24_Wheel_rear_left",
+      "center_metres": {
+        "x": -0.709989,
+        "y": 0.325804,
+        "z": 1.399986
+      },
+      "radius_metres": 0.3258,
+      "width_metres": 0.18499
+    },
+    "rear_right": {
+      "blender_object": "GAZ24_Wheel_rear_right",
+      "center_metres": {
+        "x": 0.710011,
+        "y": 0.325838,
+        "z": 1.399938
+      },
+      "radius_metres": 0.3258,
+      "width_metres": 0.18499
+    }
+  },
+  "bounds_world_metres": {
+    "min_godot": [
+      -0.918526,
+      0.061385,
+      -2.165334
+    ],
+    "max_godot": [
+      0.918547,
+      1.509207,
+      2.592785
+    ]
+  },
+  "capabilities": {
+    "cockpit": false,
+    "native_arm_poses": 0,
+    "seats": 0,
+    "damage_variants": 0
+  }
+}

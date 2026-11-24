@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "vehicle_id": "gaz_24_24_volga",
+  "source": "Gran Turismo 3: A-Spec, 20111 - Camaro Z28 (5.7L OHV V8) \u2014 independent engine + exhaust_normal0_turbo0 layers for 5.53L ZMZ-2424 V8.",
+  "engine_position": [
+    0.0,
+    0.62,
+    -1.25
+  ],
+  "exhaust_position": [
+    -0.44,
+    0.3,
+    2.52
+  ],
+  "whine": [
+    "res://sounds/banks/commons/whinelo.wav",
+    "res://sounds/banks/commons/whinehi.wav"
+  ],
+  "backfire": [
+    "res://sounds/banks/commons/backfire_ext_1.wav",
+    "res://sounds/banks/commons/backfire_ext_2.wav",
+    "res://sounds/banks/commons/backfire_ext_3.wav",
+    "res://sounds/banks/commons/backfire_ext_4.wav"
+  ],
+  "engine": [
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/layer00_00800rpm.wav",
+      "reference": 800.0,
+      "lower": 0.0,
+      "upper": 2000.0,
+      "mode": "idle",
+      "gain": 0.24
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/layer01_02000rpm.wav",
+      "reference": 2000.0,
+      "lower": 800.0,
+      "upper": 3000.0,
+      "mode": "continuous",
+      "gain": 0.27
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/layer02_03000rpm.wav",
+      "reference": 3000.0,
+      "lower": 2000.0,
+      "upper": 4592.0,
+      "mode": "continuous",
+      "gain": 0.3
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/layer03_04592rpm.wav",
+      "reference": 4592.0,
+      "lower": 3000.0,
+      "upper": 5504.0,
+      "mode": "continuous",
+      "gain": 0.4
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/layer04_05504rpm.wav",
+      "reference": 5504.0,
+      "lower": 4592.0,
+      "upper": 12000.0,
+      "mode": "continuous",
+      "gain": 0.44
+    }
+  ],
+  "exhaust": [
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/exhaust/exhaust_layer00_00800rpm.wav",
+      "reference": 800.0,
+      "lower": 0.0,
+      "upper": 2000.0,
+      "mode": "idle",
+      "gain": 0.25
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/exhaust/exhaust_layer01_02000rpm.wav",
+      "reference": 2000.0,
+      "lower": 800.0,
+      "upper": 3000.0,
+      "mode": "continuous",
+      "gain": 0.19
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/exhaust/exhaust_layer02_03000rpm.wav",
+      "reference": 3000.0,
+      "lower": 2000.0,
+      "upper": 3928.0,
+      "mode": "continuous",
+      "gain": 0.21
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/exhaust/exhaust_layer03_03928rpm.wav",
+      "reference": 3928.0,
+      "lower": 3000.0,
+      "upper": 5000.0,
+      "mode": "continuous",
+      "gain": 0.23
+    },
+    {
+      "path": "res://sounds/banks/gt3-bank/v8-gaz-2424/exhaust/exhaust_layer04_05000rpm.wav",
+      "reference": 5000.0,
+      "lower": 3928.0,
+      "upper": 12000.0,
+      "mode": "continuous",
+      "gain": 0.24
+    }
+  ],
+  "samples": [
+    {
+      "file": "layer00_00800rpm.wav",
+      "sha256": "9c346d633bd363a6273c5801e5af24b3ec36740ff2884c0a6b5bedc4940cc5a7",
+      "rate_hz": 28004,
+      "base_rpm": 800,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 3.0255677760319952
+      },
+      "key": "layer00_00800rpm"
+    },
+    {
+      "file": "layer01_02000rpm.wav",
+      "sha256": "00506f2d4aea8b841ebd35732041bd4d56ada1fadd7386f25d196e57b3be22b8",
+      "rate_hz": 28747,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.9012766549552997
+      },
+      "key": "layer01_02000rpm"
+    },
+    {
+      "file": "layer02_03000rpm.wav",
+      "sha256": "87ce4b0aa22b9d80a316d4d8d9c24c530f8e4a6de4aac89a9190ff8eb6b103c4",
+      "rate_hz": 28930,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 3.191980642931213
+      },
+      "key": "layer02_03000rpm"
+    },
+    {
+      "file": "layer03_04592rpm.wav",
+      "sha256": "8727e3bc99dbc6d486d681594f080f88890dcfb20d7741c81a5f6944b3f405a7",
+      "rate_hz": 31740,
+      "base_rpm": 4592,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 2.8926275992438564
+      },
+      "key": "layer03_04592rpm"
+    },
+    {
+      "file": "layer04_05504rpm.wav",
+      "sha256": "db7ed3718041229803e5c2cbcab7d3e082c6964211d745c8c4e00563ddf7f095",
+      "rate_hz": 32957,
+      "base_rpm": 5504,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.2361562035379434
+      },
+      "key": "layer04_05504rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer00_00800rpm.wav",
+      "sha256": "4b55213c4a48c610442cae80ff8a6192870be7190c66cf528a85ccf6d5f244cb",
+      "rate_hz": 28004,
+      "base_rpm": 800,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 3.175546350521354
+      },
+      "key": "exhaust_layer00_00800rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer01_02000rpm.wav",
+      "sha256": "a42fe0f29694cea20ebb3a91294480ed2e5d53723f545768dd002f9cbabf21cc",
+      "rate_hz": 28004,
+      "base_rpm": 2000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 2.149692901014141
+      },
+      "key": "exhaust_layer01_02000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer02_03000rpm.wav",
+      "sha256": "c974db0812250823a02899c074cdd07a5eb2c0b074bb4736c1ae14d6ec2374f2",
+      "rate_hz": 28747,
+      "base_rpm": 3000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 2.351271437019515
+      },
+      "key": "exhaust_layer02_03000rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer03_03928rpm.wav",
+      "sha256": "80536cf6f8d8b5186d23bcf72d3315d0c2696f087262e993fd08f8c259319578",
+      "rate_hz": 27390,
+      "base_rpm": 3928,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 2.0670317634173054
+      },
+      "key": "exhaust_layer03_03928rpm"
+    },
+    {
+      "file": "exhaust/exhaust_layer04_05000rpm.wav",
+      "sha256": "f2c47de526e2c7bbef6b5d1b9aac573b8927f9d73bc7b7cb78b241a1bb3e7f7a",
+      "rate_hz": 28402,
+      "base_rpm": 5000,
+      "loop": {
+        "start_s": 0.0,
+        "end_s": 1.889866910780931
+      },
+      "key": "exhaust_layer04_05000rpm"
+    }
+  ]
+}

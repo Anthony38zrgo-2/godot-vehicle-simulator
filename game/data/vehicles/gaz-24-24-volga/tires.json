@@ -1,0 +1,36 @@
+{
+  "tires": {
+    "front": {
+      "contact_patch": 0.2,
+      "radius": 0.3258,
+      "rim_diameter_inches": 14.0,
+      "wheel_mass": 22.0,
+      "width": 0.18499,
+      "nominal_section_width_m": 0.185,
+      "rolling_radius_m": 0.3258,
+      "pressure_kpa": 165.5,
+      "compound": "road_bias_ply_1967"
+    },
+    "rear": {
+      "contact_patch": 0.2,
+      "radius": 0.3258,
+      "rim_diameter_inches": 14.0,
+      "wheel_mass": 22.0,
+      "width": 0.18499,
+      "nominal_section_width_m": 0.185,
+      "rolling_radius_m": 0.3258,
+      "pressure_kpa": 165.5,
+      "compound": "road_bias_ply_1967"
+    },
+    "default_compound": "road_bias_ply_1967",
+    "pressure": {
+      "cold_kpa_gauge": {
+        "FL": 165.5,
+        "FR": 165.5,
+        "RL": 165.5,
+        "RR": 165.5
+      },
+      "reference_temperature_c": 25.0
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "vehicle_identifier": "gaz_24_24_volga",
+  "profile_name": "GAZ-24-24 Volga V8 (1971, ZMZ-2424 5.53L KGB) \u2014 engineering profile",
+  "units": "SI",
+  "coordinate_contract": {
+    "forward": "-Z",
+    "right": "+X",
+    "up": "+Y"
+  },
+  "domains": {
+    "aerodynamics": "aerodynamics.json",
+    "brakes": "brakes.json",
+    "chassis": "chassis.json",
+    "coupled_world": "coupled_world.json",
+    "damage": "damage.json",
+    "driving_assistance": "driving_assistance.json",
+    "fuel": "fuel.json",
+    "powertrain": "powertrain.json",
+    "steering": "steering.json",
+    "suspension": "suspension.json",
+    "suspension_filters": "suspension_filters.json",
+    "tires": "tires.json",
+    "underfloor_contact": "underfloor_contact.json"
+  }
+}

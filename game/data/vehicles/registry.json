@@ -205,6 +205,18 @@
       "SoundBank": "gt3-bank/porsche-911-24s",
       "ValidateSoundHashes": true,
       "DisplayName": "Porsche 911 2.4 S"
+    },
+    "gaz24": {
+      "Id": "gaz_24_24_volga",
+      "Assets": "gaz_24_24_volga",
+      "Profile": "gaz-24-24-volga",
+      "Scene": "gaz_24_24_volga",
+      "Stage": "russia_stage1_gaz_24_24_volga",
+      "Proving": "gaz_24_24_volga",
+      "Provenance": "HISTORICAL_PROVENANCE.json",
+      "SoundBank": "gt3-bank/v8-gaz-2424",
+      "ValidateSoundHashes": true,
+      "DisplayName": "GAZ-24-24 Volga V8 (5.5L)"
     }
   }
 }
