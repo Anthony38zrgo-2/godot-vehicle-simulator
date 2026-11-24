@@ -238,10 +238,10 @@ SPECS: list[dict] = [
         "car_key": "rt-porsche-356b-2000gs",
         "size": (1024, 1024),
         "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_lightmap_clean.png",
-        "albedo_raw": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_albedo_raw.png",
+        "lightmap": ASSETS_ROOT / "porsche356_clean_uv" / "body_lightmap.png",
+        "albedo_raw": ASSETS_ROOT / "porsche356_clean_uv" / "body_albedo_raw_red.png",
         "mask_mode": "exclude_baked_mask",
-        "exclude_mask": ASSETS_ROOT / "porsche356_silver_psx" / "porsche356_body_baked_details_mask.png",
+        "exclude_mask": ASSETS_ROOT / "porsche356_clean_uv" / "body_baked_details_mask.png",
         "flat_body": True,
     },
     {
