@@ -18,9 +18,9 @@ const TALUS_STONE_PROFILE := {
 	"offset": Vector2(5.0, 17.0), "size": Vector2(0.80, 1.85), "wide_clearance": true, "talus": true,
 }
 const STONE_PROFILES := [
-	{"offset": Vector2(3.55, 5.15), "size": Vector2(0.15, 0.38), "wide_clearance": false},
-	{"offset": Vector2(3.85, 6.20), "size": Vector2(0.32, 0.57), "wide_clearance": false},
-	{"offset": Vector2(4.50, 8.50), "size": Vector2(0.52, 0.99), "wide_clearance": false},
+	{"offset": Vector2(4.15, 6.80), "size": Vector2(0.55, 0.90), "wide_clearance": false},
+	{"offset": Vector2(4.50, 8.50), "size": Vector2(0.65, 1.05), "wide_clearance": false},
+	{"offset": Vector2(5.00, 10.0), "size": Vector2(0.85, 1.45), "wide_clearance": true},
 	{"offset": Vector2(5.45, 10.0), "size": Vector2(1.16, 2.12), "wide_clearance": true},
 	{"offset": Vector2(11.0, 32.0), "size": Vector2(1.22, 2.75), "wide_clearance": true},
 ]
@@ -262,7 +262,7 @@ func _ground(kind: String, station: float, offset: float, solid_diameter: float 
 	var direction := points[index+1] - points[index]
 	var lateral := Vector3.UP.cross(direction).normalized()
 	var position := center + lateral * offset
-	var clearance := 6.4 if kind == SPECTATOR else (13.0 if kind == ANIMAL else 3.50)
+	var clearance := 6.4 if kind == SPECTATOR else (13.0 if kind == ANIMAL else 4.00)
 	if solid_diameter > 0.0:
 		clearance = 3.75 + solid_diameter * 0.72
 	if not _clear_of_road(position, clearance):
