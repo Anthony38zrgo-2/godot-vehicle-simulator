@@ -286,7 +286,10 @@
     },
     "rt-alpine-a110": {
       "default_livery": "azul_frances",
-      "materials": ["AlpineA110_Stylized_PSX"],
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
+      "materials": ["AlpineA110_Stylized_PSX", "Alpine_Cristales_y_Juntas"],
       "data_map": "res://assets/rally/liveries/rt-alpine-a110_livery_data.png",
       "effective_res": [512, 512]
     },

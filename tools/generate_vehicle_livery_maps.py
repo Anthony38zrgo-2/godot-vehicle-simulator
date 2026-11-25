@@ -201,11 +201,12 @@ def fbx_exterior_spec(car_key: str, work: Path) -> dict:
     }
 
 
-def road_exterior_spec(car_key: str, work: Path) -> dict:
+def road_exterior_spec(car_key: str, work: Path, prefix: str | None = None) -> dict:
     spec = fbx_exterior_spec(car_key, work)
-    spec["lightmap"] = work / f"{car_key}_lightmap_pulido.png"
-    spec["albedo_raw"] = work / f"{car_key}_atlas_neutro.png"
-    spec["id_map"] = work / f"{car_key}_mascara_pintura_id.png"
+    prefix = prefix or car_key
+    spec["lightmap"] = work / f"{prefix}_lightmap_pulido.png"
+    spec["albedo_raw"] = work / f"{prefix}_atlas_neutro.png"
+    spec["id_map"] = work / f"{prefix}_mascara_pintura_id.png"
     return spec
 
 
@@ -286,7 +287,7 @@ SPECS: list[dict] = [
         "flat_body": True,
     },
     # --- Group C: Single/Combined Exterior Atlas (6 cars) ---
-    fbx_exterior_spec("rt-alpine-a110", ASSETS_ROOT / "cdi_fbx_psx" / "rt-alpine-a110"),
+    road_exterior_spec("rt-alpine-a110", ASSETS_ROOT / "cdi_fbx_psx" / "rt-alpine-a110" / "revision_blender", "alpine"),
     {
         "car_key": "rt-lotus-cortina",
         "size": (1024, 1024),

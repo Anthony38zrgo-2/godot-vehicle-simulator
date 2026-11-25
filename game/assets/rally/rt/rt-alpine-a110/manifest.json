@@ -31,10 +31,10 @@
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Renault Alpine.fbx",
       "fbx_sha256": "4032b4c46e43bec8766e9bfe90799c89d4ffb34404d26c3bf0b055ad117bf083",
       "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\renault_alpine_a110_alta.png",
-      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
-      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\rt-alpine-a110\\exterior_psx.blend",
-      "finish": "stylized_shadow_dither_psx_v1",
-      "atlas": "Road paint and fixed details without rally graphics",
+      "generator": "D:\\RallyManiacAssets\\tools\\install_alpine_road_exterior.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\rt-alpine-a110\\revision_blender\\alpine_a110_1600_rehecho_blender.blend",
+      "finish": "rgb888_4x4_texel_dither_ao",
+      "atlas": "Alpine A110 street atlas, original side glazing and eight reflective panes",
       "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
     }
   },
@@ -46,10 +46,10 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "3b1c6866e1e7a84156c9e6b4852ca183d86ca03a215af1cbfc0a1338847a4e0c",
-    "size_bytes": 230284,
+    "sha256": "5c3370910d4a75bf849acfe3208c3fb3f0aa967ca40d3a2a13e0a3da1942dc3f",
+    "size_bytes": 254252,
     "exported_nodes": [
-      "AlpineA110Exterior"
+      "Alpine_A110_1600_Carroceria"
     ]
   },
   "wheels": {
