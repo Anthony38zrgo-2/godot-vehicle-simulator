@@ -152,7 +152,7 @@ def _golfmk1_mask(id_map_path: Path, albedo_path: Path, size: tuple[int, int]) -
     return part & orange_paint
 
 
-def _extract_seam_detail(albedo_path: Path | None, paint_mask: np.ndarray, size: tuple[int, int], flat_body: bool) -> np.ndarray:
+def _extract_seam_detail(albedo_path: Path | None, paint_mask: np.ndarray, size: tuple[int, int], flat_body: bool, sparse_seams: bool = False) -> np.ndarray:
     """Return [0..1] seam multiplier (1.0 on flat painted panels, <1.0 on baked door/panel seams)."""
     w, h = size
     if flat_body or albedo_path is None or not albedo_path.exists():
@@ -169,7 +169,8 @@ def _extract_seam_detail(albedo_path: Path | None, paint_mask: np.ndarray, size:
     p50 = float(np.percentile(samples, 50))
     p90 = float(np.percentile(samples, 90))
     # If the raw albedo has virtually zero variation (flat color bake), keep 1.0 cleanly.
-    if (p90 - float(np.percentile(samples, 5))) < 0.03:
+    low = float(samples.min() if sparse_seams else np.percentile(samples, 5))
+    if (p90 - low) < 0.03:
         return np.ones((h, w), dtype=np.float32)
     ref = max(p50, 0.05)
     seam = np.clip(luma / ref, 0.28, 1.0)
@@ -185,6 +186,19 @@ def _load_lightmap(path: Path, size: tuple[int, int]) -> tuple[np.ndarray, np.nd
             rgb = rgb.resize(size, Image.Resampling.BOX)
         arr = np.asarray(rgb, dtype=np.float32) / 255.0
     return arr[..., 0], arr[..., 1]
+
+
+def fbx_exterior_spec(car_key: str, work: Path) -> dict:
+    return {
+        "car_key": car_key,
+        "size": (1024, 1024),
+        "effective_scale": 0.5,
+        "lightmap": work / ("lightmap_polished.png" if car_key == "rt-lancia-stratos" else "lightmap.png"),
+        "albedo_raw": work / "albedo_raw.png",
+        "mask_mode": "id_map",
+        "id_map": work / "part_mask.png",
+        "flat_body": False,
+    }
 
 
 SPECS: list[dict] = [
@@ -226,15 +240,7 @@ SPECS: list[dict] = [
         "mask_mode": "full",
         "flat_body": True,
     },
-    {
-        "car_key": "rt-lancia-stratos",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "stratos_celeste_psx" / "stratos_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "stratos_celeste_psx" / "stratos_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    fbx_exterior_spec("rt-lancia-stratos", ASSETS_ROOT / "cdi_fbx_psx" / "rt-lancia-stratos"),
     {
         "car_key": "rt-porsche-356b-2000gs",
         "size": (1024, 1024),
@@ -385,7 +391,8 @@ def build_one(spec: dict, diag_dir: Path | None) -> tuple[Path, float]:
 
     any_paint = body_mask | stripe_mask
     ao, dot_nl = _load_lightmap(lm_path, size)
-    seam = _extract_seam_detail(spec.get("albedo_raw"), body_mask, size, spec.get("flat_body", True))
+    seam = _extract_seam_detail(spec.get("albedo_raw"), body_mask, size, spec.get("flat_body", True),
+                                sparse_seams=car_key == "rt-lancia-stratos")
     # On Lotus Cortina's green stripe, keep seam=1.0 so non-original liveries paint seamlessly over the stripe
     if stripe_mask.any():
         seam[stripe_mask] = 1.0

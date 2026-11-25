@@ -5,6 +5,10 @@ extends Node3D
 
 @export var pixel_albedo := false
 @export var gt2_vehicle_shading := false
+@export var banded_paint_materials: PackedStringArray
+@export var banded_paint_mask: Texture2D
+@export var glass_reflection_material := ""
+@export var glass_reflection_mask: Texture2D
 @export_group("PSX Vehicle Distortion")
 @export var psx_snap_resolution := Vector2(480.0, 360.0)
 @export_range(0.0, 1.0) var psx_snap_strength := 0.22
@@ -226,6 +230,14 @@ func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Diction
 					if gt2_vehicle_shading
 					else make_toon_material(source, cutout, psx_snap_resolution, psx_snap_strength, psx_affine_strength)
 				)
+				if not is_wheel and not gt2_vehicle_shading and banded_paint_mask != null \
+						and banded_paint_materials.has(source.resource_name):
+					surface_material.set_shader_parameter("use_banded_body_paint", true)
+					surface_material.set_shader_parameter("body_paint_mask", banded_paint_mask)
+				if not is_wheel and not gt2_vehicle_shading and glass_reflection_mask != null \
+						and source.resource_name == glass_reflection_material:
+					surface_material.set_shader_parameter("use_glass_reflection", true)
+					surface_material.set_shader_parameter("glass_reflection_mask", glass_reflection_mask)
 				surface_material.resource_name = source.resource_name
 				surface_material.set_meta("source_material_name", source.resource_name)
 				surface_material.set_meta("original_albedo_texture", source.albedo_texture)

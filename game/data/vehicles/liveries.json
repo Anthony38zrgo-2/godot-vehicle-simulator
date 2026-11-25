@@ -305,7 +305,9 @@
     },
     "rt-lancia-stratos": {
       "default_livery": "celeste",
-      "materials": ["Stratos_BodyPaint_PSX"],
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "materials": ["Stratos_BodyPaint_PSX", "Stratos_FBX_Details_PSX", "Stratos_Glazing_And_Seals"],
       "data_map": "res://assets/rally/liveries/rt-lancia-stratos_livery_data.png",
       "effective_res": [512, 512]
     },

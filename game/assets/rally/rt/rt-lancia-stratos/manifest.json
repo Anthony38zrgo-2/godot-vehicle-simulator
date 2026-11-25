@@ -34,7 +34,17 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "cdi_fbx_exterior": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Stratos.fbx",
+      "fbx_sha256": "ab8ad87674b5e4329948a0a5d062550d03b14cafe29568bfc90e1a66f5c0d972",
+      "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\lancia_stratos_alta.png",
+      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\rt-lancia-stratos\\exterior_psx.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "atlas": "Road paint and fixed details without rally graphics",
+      "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -44,8 +54,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "aa481ec4df80063455288f6011f2c5cf47ecf09581b74189ed943522d2cfbfc8",
-    "size_bytes": 2587972,
+    "sha256": "81df5c442caa8a63e936108dab17c5775b5d20d336b2d1860a261d9f1ca8a867",
+    "size_bytes": 164844,
     "exported_nodes": [
       "Stratos_Exterior"
     ]

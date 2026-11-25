@@ -153,7 +153,8 @@ static func build_shader_params(car_key: String, livery_id: String) -> Dictionar
 		float(st_arr[2]) / 255.0 if st_arr.size() > 2 else 0.21
 	)
 	var dir_from_arr: Array = livery.get("dir_from", [-0.50, 0.88])
-	var dir_to_arr: Array = livery.get("dir_to", [0.64, 1.0])
+	var baked_ao_only := bool(vcfg.get("baked_ao_only", false))
+	var dir_to_arr: Array = [1.0, 1.0] if baked_ao_only else livery.get("dir_to", [0.64, 1.0])
 	var band_arr: Array = livery.get("shadow_band", [0.56, 0.96])
 	var eff_arr: Array = vcfg.get("effective_res", [512, 512])
 
@@ -173,17 +174,18 @@ static func build_shader_params(car_key: String, livery_id: String) -> Dictionar
 		"materials": vcfg.get("materials", []),
 		"color_srgb": Vector3(col.r, col.g, col.b),
 		"shadow_tint_srgb": st_vec,
-		"shadow_tint_strength": float(livery.get("shadow_tint_strength", 0.40)),
+		"shadow_tint_strength": 0.0 if baked_ao_only else float(livery.get("shadow_tint_strength", 0.40)),
 		"ao_strength": float(livery.get("ao_strength", 0.52)),
 		"dir_from": Vector2(float(dir_from_arr[0]), float(dir_from_arr[1])),
 		"dir_to": Vector2(float(dir_to_arr[0]), float(dir_to_arr[1])),
 		"shadow_gamma": float(livery.get("shadow_gamma", 1.08)),
-		"saturation": float(livery.get("saturation", 1.04)),
+		"saturation": 1.0 if baked_ao_only else float(livery.get("saturation", 1.04)),
 		"dither_base": float(livery.get("dither_base", 0.0)),
 		"dither_shadow_boost": float(livery.get("dither_shadow_boost", 0.86)),
 		"shadow_band": Vector2(float(band_arr[0]), float(band_arr[1])),
 		"dither_dark_floor": float(livery.get("dither_dark_floor", 0.45)),
 		"effective_res": Vector2(float(eff_arr[0]), float(eff_arr[1])),
+		"paint_rgb555": bool(vcfg.get("paint_rgb555", true)),
 		"mask_threshold": mask_threshold,
 		"data_map": data_tex,
 	}
@@ -292,6 +294,7 @@ static func _run_gpu_bake(
 	bmat.set_shader_parameter("livery_shadow_band", params.get("shadow_band", Vector2(0.56, 0.96)))
 	bmat.set_shader_parameter("livery_dither_dark_floor", float(params.get("dither_dark_floor", 0.45)))
 	bmat.set_shader_parameter("livery_effective_res", params.get("effective_res", Vector2(512.0, 512.0)))
+	bmat.set_shader_parameter("livery_paint_rgb555", bool(params.get("paint_rgb555", true)))
 	bmat.set_shader_parameter("livery_mask_threshold", float(params.get("mask_threshold", 0.30)))
 	rect.material = bmat
 	vp.add_child(rect)

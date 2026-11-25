@@ -30,6 +30,16 @@ uniform vec2 psx_snap_resolution = vec2(320.0, 240.0);
 uniform float psx_snap_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float psx_affine_strength : hint_range(0.0, 1.0) = 0.0;
 
+uniform bool use_banded_body_paint = false;
+uniform sampler2D body_paint_mask : filter_nearest, repeat_disable, hint_default_white;
+
+uniform bool use_glass_reflection = false;
+uniform sampler2D glass_reflection_mask : filter_nearest, repeat_disable, hint_default_black;
+
+varying float reflection_dither;
+varying float body_paint_coverage;
+varying float body_height;
+varying float body_surface_up;
 varying float painted_edge;
 varying vec2 v_affine_uv;
 varying float v_affine_w;
@@ -54,6 +64,13 @@ float paint_noise(vec3 point) {
 }
 
 void vertex() {
+	// Stratos waistline slopes down toward the nose. Local coordinates keep
+	// the bands fixed to the shell through turns, jumps and camera changes.
+	float nose_drop = 0.18 * smoothstep(0.45, 1.82, -VERTEX.z);
+	float tail_drop = 0.10 * smoothstep(0.72, 1.68, VERTEX.z);
+	float shoulder = 0.90 - nose_drop - tail_drop;
+	body_height = clamp((VERTEX.y - 0.26) / (shoulder - 0.26), 0.0, 1.0);
+	body_surface_up = NORMAL.y;
 	if (edge_wobble > 0.001) {
 		vec3 wp = wobble_in_world ? (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz : VERTEX;
 		painted_edge = (paint_noise(wp * wobble_scale * wobble_anisotropy) - 0.5) * edge_wobble;
@@ -80,6 +97,11 @@ void vertex() {
 	v_psx_affine = psx_affine_strength * psx_dist_fade;
 }
 
+// Quantize only the highlight. The ordered offset affects its band transitions.
+float reflection_bands(float value, float dither) {
+	return floor(clamp(value, 0.0, 1.0) * 3.0 + 0.5 + dither) / 3.0;
+}
+
 void fragment() {
 	vec2 persp_uv = UV * uv_scale + uv_offset;
 	vec2 tex_uv = persp_uv;
@@ -91,7 +113,23 @@ void fragment() {
 	if (use_vertex_color) {
 		paint *= COLOR;
 	}
+	body_paint_coverage = use_banded_body_paint ? step(0.5, texture(body_paint_mask, tex_uv).r) : 0.0;
+	reflection_dither = 0.0;
+	if (use_glass_reflection || use_banded_body_paint) {
+		vec2 cell = mod(floor(FRAGCOORD.xy * psx_snap_resolution / max(VIEWPORT_SIZE, vec2(1.0))), 2.0);
+		reflection_dither = (mod(cell.x + cell.y, 2.0) * 2.0 + cell.y - 1.5) * 0.12;
+	}
 	ALBEDO = paint.rgb;
+	if (use_glass_reflection) {
+		vec2 glass = texture(glass_reflection_mask, tex_uv).rg * (1.0 - body_paint_coverage);
+		vec3 reflected = (INV_VIEW_MATRIX * vec4(reflect(-VIEW, normalize(NORMAL)), 0.0)).xyz;
+		float sky = smoothstep(-0.12, 0.55, reflected.y);
+		float grazing = 1.0 - clamp(dot(normalize(NORMAL), VIEW), 0.0, 1.0);
+		float windshield = reflection_bands(glass.x * (0.35 + 0.65 * sky) * (0.62 + 0.38 * grazing), reflection_dither);
+		float side_window = reflection_bands(glass.y * (0.32 + 0.68 * sky), reflection_dither);
+		EMISSION = vec3(0.016, 0.065, 0.095) * windshield
+			+ vec3(0.014, 0.050, 0.077) * side_window;
+	}
 #ifdef TOON_ALPHA_CUTOUT
 	ALPHA = paint.a;
 	ALPHA_SCISSOR_THRESHOLD = alpha_cutoff;
@@ -138,5 +176,22 @@ void light() {
 		);
 		spec_dab = paint_spec_color * (dab * paint_spec_strength * band);
 	}
-	DIFFUSE_LIGHT += (diffuse_color + spec_dab + vec3(rim_term)) * reach * LIGHT_COLOR / PI;
+	vec3 lighting = diffuse_color + spec_dab + vec3(rim_term);
+	if (body_paint_coverage > 0.5) {
+		// Horizontal bands carry across the door and fenders. The hood and
+		// other upward-facing surfaces get a broader, steadier light.
+		float side_height = body_height + 0.035 * (facing - 0.52);
+		float side_tone = 0.16
+			+ 0.19 * smoothstep(0.23, 0.245, side_height)
+			+ 0.25 * smoothstep(0.47, 0.485, side_height)
+			+ 0.31 * smoothstep(0.70, 0.72, side_height);
+		float upward = smoothstep(0.73, 0.94, body_surface_up);
+		float tone = mix(side_tone, mix(0.73, 0.94, facing), upward);
+		float alignment = dot(NORMAL, normalize(LIGHT + VIEW));
+		float shoulder_light = smoothstep(0.61, 0.82, body_height);
+		float clearcoat = smoothstep(0.942, 0.967, alignment)
+			* smoothstep(0.18, 0.38, facing) * shoulder_light;
+		lighting = vec3(tone + 0.42 * reflection_bands(clearcoat, reflection_dither));
+	}
+	DIFFUSE_LIGHT += lighting * reach * LIGHT_COLOR / PI;
 }
