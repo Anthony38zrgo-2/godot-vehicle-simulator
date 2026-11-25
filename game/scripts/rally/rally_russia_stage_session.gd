@@ -1793,12 +1793,152 @@ func _resolve_stage_weather_label() -> String:
 
 
 func _collect_garage_stage_metadata() -> Dictionary:
+	var sectors: Array = []
+	var terrain := _build_garage_terrain_summary(sectors)
 	return {
 		"stage_id": session_track_id,
 		"stage_country": _resolve_stage_country(),
 		"stage_length_m": _resolve_stage_length_m(),
 		"stage_route_path": _resolve_stage_route_path_for_garage(),
 		"stage_weather_label": _resolve_stage_weather_label(),
+		"stage_sectors": sectors,
+		"stage_terrain": terrain,
+	}
+
+
+func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
+	var stage_cfg: Dictionary = resolved_stage.get("stage_config", {})
+	var manifest: Dictionary = resolved_stage.get("manifest", {})
+	var src: Dictionary = manifest.get("source", {})
+	var raw_surface := str(stage_cfg.get("surface", "gravel_mud")).to_lower()
+	var is_asphalt := raw_surface == "asphalt"
+	var total_m := maxf(_resolve_stage_length_m(), 100.0)
+
+	var loose_sum := 0.0
+	var mud_sum := 0.0
+	var water_sum := 0.0
+	var snow_sum := 0.0
+	var ice_sum := 0.0
+	var rust_samples := 0
+
+	var raw_sectors: Array = event_weather.sector_summary() if event_weather != null else []
+	if not raw_sectors.is_empty():
+		for si in raw_sectors.size():
+			var row: Dictionary = (raw_sectors[si] as Dictionary).duplicate(true)
+			var s_start := float(row.get("start_m", float(si) * total_m / 5.0))
+			var s_end := float(row.get("end_m", float(si + 1) * total_m / 5.0))
+			var s_loose := 0.0
+			var s_mud := 0.0
+			var s_water := 0.0
+			var s_snow := 0.0
+			var s_ice := 0.0
+			var sub_n := 5
+			for k in sub_n:
+				var d := lerpf(s_start, s_end, (float(k) + 0.5) / float(sub_n))
+				var st: Dictionary = event_weather.local_surface_state_at_distance(d, 0.0)
+				if not st.is_empty():
+					s_loose += float(st.get("loose_gravel_coverage", 0.0))
+					s_mud += float(st.get("mud_factor", 0.0))
+					s_water += float(st.get("water_coverage", 0.0))
+					s_snow += float(st.get("snow_coverage", 0.0))
+					s_ice += float(st.get("ice_coverage", 0.0))
+					rust_samples += 1
+			row["loose_gravel_coverage"] = s_loose / float(sub_n)
+			row["mud_factor"] = s_mud / float(sub_n)
+			row["water_coverage"] = s_water / float(sub_n)
+			row["snow_coverage"] = s_snow / float(sub_n)
+			row["ice_coverage"] = s_ice / float(sub_n)
+			sectors_out.append(row)
+			loose_sum += s_loose
+			mud_sum += s_mud
+			water_sum += s_water
+			snow_sum += s_snow
+			ice_sum += s_ice
+	elif event_weather != null and event_weather.calendar_active:
+		for si in 5:
+			var s_start := float(si) * total_m / 5.0
+			var s_end := float(si + 1) * total_m / 5.0
+			var mid_st: Dictionary = event_weather.local_surface_state_at_distance((s_start + s_end) * 0.5, 0.0)
+			var clim: Dictionary = mid_st.get("climate", {})
+			var s_loose := 0.0
+			var s_mud := 0.0
+			var s_water := 0.0
+			var s_snow := 0.0
+			var s_ice := 0.0
+			var sub_n := 5
+			for k in sub_n:
+				var d := lerpf(s_start, s_end, (float(k) + 0.5) / float(sub_n))
+				var st: Dictionary = event_weather.local_surface_state_at_distance(d, 0.0)
+				if not st.is_empty():
+					s_loose += float(st.get("loose_gravel_coverage", 0.0))
+					s_mud += float(st.get("mud_factor", 0.0))
+					s_water += float(st.get("water_coverage", 0.0))
+					s_snow += float(st.get("snow_coverage", 0.0))
+					s_ice += float(st.get("ice_coverage", 0.0))
+					rust_samples += 1
+			sectors_out.append({
+				"sector_index": si,
+				"start_m": s_start,
+				"end_m": s_end,
+				"air_c": float(mid_st.get("air_c", 16.0)),
+				"ground_c": float(mid_st.get("ground_c", 16.0)),
+				"cloud_cover": float(clim.get("cumulus_coverage", 0.25)),
+				"rain_mm_h": float(mid_st.get("rain_mm_h", clim.get("rain_mm_h", 0.0))),
+				"snow_mm_h": float(mid_st.get("snow_mm_h", clim.get("snow_mm_h", 0.0))),
+				"water_mm": float(mid_st.get("water_mm", 0.0)),
+				"snow_mm": float(mid_st.get("snow_mm", 0.0)),
+				"ice_mm": float(mid_st.get("ice_mm", 0.0)),
+				"loose_gravel_coverage": s_loose / float(sub_n),
+				"mud_factor": s_mud / float(sub_n),
+				"water_coverage": s_water / float(sub_n),
+				"snow_coverage": s_snow / float(sub_n),
+				"ice_coverage": s_ice / float(sub_n),
+			})
+			loose_sum += s_loose
+			mud_sum += s_mud
+			water_sum += s_water
+			snow_sum += s_snow
+			ice_sum += s_ice
+
+	var rocks_count := 0
+	var props_node := get_node_or_null("StageProps")
+	if props_node != null and props_node.has_meta("counts"):
+		var counts: Variant = props_node.get_meta("counts")
+		if counts is Dictionary:
+			rocks_count = int((counts as Dictionary).get("rocks", 0))
+	if rocks_count == 0 and track_collision != null:
+		for child in track_collision.get_children():
+			var cname := str(child.name).to_lower()
+			if "rock" in cname or "stone" in cname:
+				rocks_count += 1
+	var slope_tex: Variant = src.get("slope_texture", {})
+	var has_rock_slope := slope_tex is Dictionary and "pedregal" in str((slope_tex as Dictionary).get("file", "")).to_lower()
+
+	var puddles_active := 0
+	if vehicle != null and vehicle.simulation != null and vehicle.simulation.puddle_system != null:
+		var patches_var: Variant = vehicle.simulation.puddle_system.get("patches")
+		if patches_var is Array:
+			for p in (patches_var as Array):
+				if p is Dictionary and float((p as Dictionary).get("fill", 0.0)) > 0.05:
+					puddles_active += 1
+
+	return {
+		"source": "rust" if (rust_samples > 0 and event_weather != null and event_weather.procedural_active) else "stage_data",
+		"is_asphalt": is_asphalt,
+		"surface_raw": raw_surface,
+		"loose_gravel_avg": loose_sum / float(maxi(rust_samples, 1)),
+		"mud_avg": mud_sum / float(maxi(rust_samples, 1)),
+		"water_avg": water_sum / float(maxi(rust_samples, 1)),
+		"snow_avg": snow_sum / float(maxi(rust_samples, 1)),
+		"ice_avg": ice_sum / float(maxi(rust_samples, 1)),
+		"roughness": float(stage_cfg.get("roughness", 0.3)),
+		"water_cfg": float(stage_cfg.get("water", 0.0)),
+		"wetness_cfg": float(stage_cfg.get("wetness", 0.0)),
+		"jumps": float(stage_cfg.get("jumps", 0.0)),
+		"pothole_count": int(src.get("pothole_count", 0)),
+		"rocks_count": rocks_count,
+		"has_rock_slope": has_rock_slope,
+		"puddles_active": puddles_active,
 	}
 
 

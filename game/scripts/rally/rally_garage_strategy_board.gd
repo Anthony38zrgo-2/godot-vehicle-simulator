@@ -14,10 +14,10 @@ const MOUNTED_RECTS: Array[Rect2] = [
 	Rect2(1050.0, 432.0, 180.0, 218.0),
 ]
 const SPARE_RECTS: Array[Rect2] = [
-	Rect2(50.0, 372.0, 280.0, 92.0),
-	Rect2(338.0, 372.0, 280.0, 92.0),
+	Rect2(48.0, 434.0, 282.0, 80.0),
+	Rect2(338.0, 434.0, 282.0, 80.0),
 ]
-const STOCK_ZONE_RECT := Rect2(44.0, 470.0, 580.0, 196.0)
+const STOCK_ZONE_RECT := Rect2(44.0, 520.0, 580.0, 150.0)
 const FONT_TITLE: Font = RallyUITheme.FONT_SUBTITLE
 const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
 const FONT_BODY: Font = RallyUITheme.FONT_MEDIUM_TIGHT
@@ -169,7 +169,7 @@ func _build_slots(vehicle: Node3D) -> void:
 	for k in 6:
 		var col := k % 3
 		var row := k / 3
-		var rect := Rect2(50.0 + float(col) * 192.0, 474.0 + float(row) * 96.0, 184.0, 88.0)
+		var rect := Rect2(48.0 + float(col) * 192.0, 524.0 + float(row) * 72.0, 184.0, 68.0)
 		var st_slot := GarageTireSlot3D.new()
 		st_slot.setup(self, "stock", k, rect, Vector3(0.26, 0.36, -0.10))
 		add_child(st_slot)
@@ -286,7 +286,7 @@ class GarageTireSlot3D extends Control:
 
 		var g := board.garage
 		var vehicle: Node3D = g.get("vehicle") as Node3D if is_instance_valid(g) else null
-		var wheel_dim := Vector2(88.0, 88.0) if slot_kind == "mounted" else (Vector2(68.0, 68.0) if slot_kind == "spare" else Vector2(62.0, 62.0))
+		var wheel_dim := Vector2(92.0, 92.0) if slot_kind == "mounted" else (Vector2(62.0, 62.0) if slot_kind == "spare" else Vector2(54.0, 54.0))
 		wheel_view = Tire3DViewScript.create_wheel_view(
 			vehicle,
 			slot_index if slot_kind == "mounted" else 0,
@@ -297,9 +297,9 @@ class GarageTireSlot3D extends Control:
 			SubViewport.UPDATE_ONCE
 		)
 		if slot_kind == "mounted":
-			wheel_view.position = Vector2((size.x - wheel_dim.x) * 0.5, 34.0)
+			wheel_view.position = Vector2((size.x - wheel_dim.x) * 0.5, 32.0)
 		else:
-			wheel_view.position = Vector2(6.0, (size.y - wheel_dim.y) * 0.5)
+			wheel_view.position = Vector2(5.0, (size.y - wheel_dim.y) * 0.5)
 		add_child(wheel_view)
 
 		title_lbl = Label.new()
@@ -330,51 +330,51 @@ class GarageTireSlot3D extends Control:
 		add_child(life_bar)
 
 		if slot_kind == "mounted":
-			title_lbl.position = Vector2(10.0, 7.0)
-			title_lbl.size = Vector2(92.0, 20.0)
-			title_lbl.add_theme_font_size_override("font_size", 15)
+			title_lbl.position = Vector2(10.0, 6.0)
+			title_lbl.size = Vector2(92.0, 22.0)
+			title_lbl.add_theme_font_size_override("font_size", 16)
 
 			status_lbl.position = Vector2(90.0, 8.0)
 			status_lbl.size = Vector2(size.x - 100.0, 18.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 9)
+			status_lbl.add_theme_font_size_override("font_size", 10)
 
-			compound_lbl.position = Vector2(10.0, 132.0)
-			compound_lbl.size = Vector2(size.x - 20.0, 18.0)
+			compound_lbl.position = Vector2(10.0, 128.0)
+			compound_lbl.size = Vector2(size.x - 20.0, 20.0)
 			compound_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			compound_lbl.add_theme_font_size_override("font_size", 10)
+			compound_lbl.add_theme_font_size_override("font_size", 12)
 
-			sub_lbl.position = Vector2(10.0, 152.0)
-			sub_lbl.size = Vector2(size.x - 20.0, 32.0)
+			sub_lbl.position = Vector2(10.0, 150.0)
+			sub_lbl.size = Vector2(size.x - 20.0, 36.0)
 			sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			sub_lbl.add_theme_font_size_override("font_size", 9)
+			sub_lbl.add_theme_font_size_override("font_size", 10)
 
 			life_bar.position = Vector2(12.0, size.y - 16.0)
 			life_bar.size = Vector2(size.x - 24.0, 6.0)
 		elif slot_kind == "spare":
-			title_lbl.position = Vector2(78.0, 8.0)
-			title_lbl.size = Vector2(138.0, 20.0)
+			title_lbl.position = Vector2(74.0, 5.0)
+			title_lbl.size = Vector2(128.0, 20.0)
 			title_lbl.add_theme_font_size_override("font_size", 14)
 
-			compound_lbl.position = Vector2(78.0, 30.0)
-			compound_lbl.size = Vector2(130.0, 18.0)
-			compound_lbl.add_theme_font_size_override("font_size", 10)
+			compound_lbl.position = Vector2(74.0, 25.0)
+			compound_lbl.size = Vector2(138.0, 18.0)
+			compound_lbl.add_theme_font_size_override("font_size", 11)
 
-			sub_lbl.position = Vector2(78.0, 50.0)
-			sub_lbl.size = Vector2(140.0, 18.0)
-			sub_lbl.add_theme_font_size_override("font_size", 9)
+			sub_lbl.position = Vector2(74.0, 44.0)
+			sub_lbl.size = Vector2(142.0, 18.0)
+			sub_lbl.add_theme_font_size_override("font_size", 10)
 
-			status_lbl.position = Vector2(size.x - 84.0, 8.0)
+			status_lbl.position = Vector2(size.x - 84.0, 6.0)
 			status_lbl.size = Vector2(74.0, 18.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 9)
+			status_lbl.add_theme_font_size_override("font_size", 10)
 
-			life_bar.position = Vector2(78.0, size.y - 14.0)
-			life_bar.size = Vector2(size.x - 146.0, 5.0)
+			life_bar.position = Vector2(74.0, size.y - 11.0)
+			life_bar.size = Vector2(size.x - 144.0, 5.0)
 
 			unload_btn = Button.new()
 			unload_btn.text = "SACAR"
-			unload_btn.position = Vector2(size.x - 62.0, size.y - 34.0)
+			unload_btn.position = Vector2(size.x - 62.0, size.y - 32.0)
 			unload_btn.size = Vector2(54.0, 24.0)
 			unload_btn.focus_mode = Control.FOCUS_NONE
 			RallyUITheme.style_tone_button(unload_btn, "chrome", 12, 8, 3, RallyUITheme.CORNER_RADIUS, FONT_BUTTON)
@@ -384,25 +384,25 @@ class GarageTireSlot3D extends Control:
 			)
 			add_child(unload_btn)
 		else:
-			title_lbl.position = Vector2(70.0, 7.0)
-			title_lbl.size = Vector2(60.0, 18.0)
-			title_lbl.add_theme_font_size_override("font_size", 14)
+			title_lbl.position = Vector2(64.0, 4.0)
+			title_lbl.size = Vector2(56.0, 18.0)
+			title_lbl.add_theme_font_size_override("font_size", 13)
 
-			status_lbl.position = Vector2(118.0, 8.0)
-			status_lbl.size = Vector2(size.x - 126.0, 16.0)
+			status_lbl.position = Vector2(114.0, 5.0)
+			status_lbl.size = Vector2(size.x - 122.0, 16.0)
 			status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status_lbl.add_theme_font_size_override("font_size", 8)
+			status_lbl.add_theme_font_size_override("font_size", 9)
 
-			compound_lbl.position = Vector2(70.0, 28.0)
-			compound_lbl.size = Vector2(size.x - 78.0, 18.0)
-			compound_lbl.add_theme_font_size_override("font_size", 10)
+			compound_lbl.position = Vector2(64.0, 22.0)
+			compound_lbl.size = Vector2(size.x - 72.0, 18.0)
+			compound_lbl.add_theme_font_size_override("font_size", 11)
 
-			sub_lbl.position = Vector2(70.0, 48.0)
-			sub_lbl.size = Vector2(size.x - 78.0, 18.0)
-			sub_lbl.add_theme_font_size_override("font_size", 8)
+			sub_lbl.position = Vector2(64.0, 40.0)
+			sub_lbl.size = Vector2(size.x - 72.0, 16.0)
+			sub_lbl.add_theme_font_size_override("font_size", 9)
 
-			life_bar.position = Vector2(70.0, size.y - 12.0)
-			life_bar.size = Vector2(size.x - 78.0, 5.0)
+			life_bar.position = Vector2(64.0, size.y - 10.0)
+			life_bar.size = Vector2(size.x - 72.0, 5.0)
 
 	func update_slot(next_tire_id: int, wheel_idx_hint: int) -> void:
 		tire_id = next_tire_id

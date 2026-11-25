@@ -149,7 +149,7 @@ func _test_garage_pool_swap_blocking_and_sqlite() -> void:
 
 	# Verify may_service_tires()==false blocks pool edits
 	host.allow_service = false
-	garage._set_page(2)
+	garage._set_page(3)
 	garage._pool_interact("mounted", 0)
 	check(garage.selected_pool_tire_id == -1 and garage.notice_is_error, "may_service_tires()==false blocks pool pick")
 	host.allow_service = true
@@ -425,11 +425,11 @@ func _test_garage_3d_strategy_board_drag_and_drop() -> void:
 	var spare1_id := int(inv.spares[1]["id"])
 
 	garage.open_garage()
-	garage._set_page(2)
+	garage._set_page(3)
 	await process_frame
 
 	var board := garage.get_node_or_null("StrategyBoard3D")
-	check(board != null and board.visible, "StrategyBoard3D is visible on pool page 2")
+	check(board != null and board.visible, "StrategyBoard3D is visible on pool page 3")
 	check(board._car_view != null and board._car_view.get_child(0) is SubViewport, "3D board creates central car SubViewport")
 	check(board._mounted_slots.size() == 4, "3D board creates 4 mounted slots")
 	check(board._spare_slots.size() == 2 and board._spare_slots[0].visible and board._spare_slots[1].visible, "3D board shows 2 spare slots")
@@ -476,9 +476,9 @@ func _test_garage_3d_strategy_board_drag_and_drop() -> void:
 
 	# Tab navigation hides and restores 3D board, close clears all SubViewports
 	garage._set_page(0)
-	check(not board.visible, "switching away from page 2 hides 3D board")
-	garage._set_page(2)
-	check(board.visible, "switching back to page 2 shows 3D board")
+	check(not board.visible, "switching away from page 3 hides 3D board")
+	garage._set_page(3)
+	check(board.visible, "switching back to page 3 shows 3D board")
 	garage.close_garage(true)
 	await process_frame
 	check(not board.visible and board.get_child_count() == 0, "close_garage(true) frees all 3D SubViewports")
