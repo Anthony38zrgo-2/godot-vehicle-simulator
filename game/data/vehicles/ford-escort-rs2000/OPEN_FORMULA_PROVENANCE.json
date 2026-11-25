@@ -25,7 +25,7 @@
   "profile_json_sha256": {
     "aerodynamics.json": "26ca3744352b5688b97bfb96672066c1ddf1aabacc3112eeb4027e1f688ccb3e",
     "brakes.json": "5854e3af79ffec4198e580901d3b19825dd0c5d593b8cfb881f7f6a4cbd06b95",
-    "chassis.json": "ab4fd0b7bc9eeb87eb72ef5e511bc6d266ce24a3d9d364cadf97177643244acc",
+    "chassis.json": "11aa60de45fe4407e898419537bb243f0bda9c9be40ee65ad6d3b9582aa6832a",
     "coupled_world.json": "5eba1457fa8d9d19522eec9a3af879c35fddadba802311a47cc9e04ffe0940b6",
     "damage.json": "ddba1853b7f8d09bd189c32e03246bfe826bf4c7041aee4298c2a6bea9ad64e9",
     "driving_assistance.json": "53f593912c93825cfa2aa8eeae54199809e5882df8d2f475f08096fbf4bfd80b",
@@ -35,7 +35,7 @@
     "steering.json": "86f4441c18dc3c6efca59b82c12a04bbf51d180bd5aa2fe54acd61be1d53fbc2",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "suspension.json": "db8d6407a69c58f24288ec627d676d5f48d795361af77255484c59b7c60102a3",
-    "tires.json": "8f97ac0ebbc2c1ae4b0f94030556623279293161ff38a72dfeccbe6fb4f725ab",
+    "tires.json": "0d0ba4fd17a85bb3cad4dbd35d6d31a9fef26f0701a0421fb7ec0dac482c5c74",
     "underfloor_contact.json": "6bd2e2b970cd579c8e4a3b15015136e20989fbad0e532bdec9a2f1d9832f5ab3",
     "vehicle.json": "bb6f48fae53b04448ef6ba1e6bd8c5bfda8af52db986d970099b45aa487e9b79"
   },
@@ -56,5 +56,9 @@
     "fuel.json": "Reauthor mass centres in the active ground-plane coordinate frame; packaging estimates documented in game/docs/rally/MASS_DISTRIBUTION.md.",
     "steering.json": "Progressive command gain and slew reduction with planar speed; full command below 20 km/h.",
     "suspension.json": "ShapeCast3D contacts with sprung-mass frequency reference, real unsprung hubs and radial tire compliance; initial k and c preserved. Front coils unseat without clamping dampers or ARBs; attached rear leaf springs remain bilateral."
+  },
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://www.motomobil.com/fileadmin/_2020/prospekte/Prospekte_Escort/Ford_Escort_MK1_Originalprospekt_RS_2000_englisch.pdf"
   }
 }

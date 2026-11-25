@@ -1,31 +1,22 @@
 {
   "vehicle_identifier": "rt-porsche-356b-2000gs",
-  "base_profile": "rt-porsche-356a",
-  "retained_domains": [
-    "aerodynamics",
-    "brakes",
-    "chassis",
-    "coupled_world",
-    "damage",
-    "driving_assistance",
-    "fuel",
-    "powertrain",
-    "steering",
-    "suspension",
-    "suspension_filters",
-    "tire_filters",
-    "tires",
-    "underfloor_contact"
-  ],
+  "display_name": "Porsche 356 A 1600 GS Carrera GT",
+  "visual": "356 A coupe runtime exterior; see runtime_visuals in the asset manifest.",
   "engine": {
-    "source": "Backup Porsche 356B 2000 GS powertrain",
-    "fields": [
-      "idle_rpm",
-      "max_rpm",
-      "max_torque",
-      "motor_moment",
-      "torque_curve"
-    ]
+    "source": "https://files.porsche.com/f/332100/bad79a6551/kat071-e-356-59-katalog.pdf",
+    "configuration": "1959 Type 692/0 four-cam 1.6 L Carrera GT",
+    "factory_power_kw": 80,
+    "estimated_peak_torque_nm": 127,
+    "note": "Torque curve, rev limiter and rotating inertia are engineering estimates."
   },
-  "visual": "Porsche 356B T6 FTC with FIA 71 dimensions"
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://files.porsche.com/f/332100/bad79a6551/kat071-e-356-59-katalog.pdf"
+  },
+  "profile_json_sha256": {
+    "chassis.json": "a863b46e345bdfa1d41003d0e44210dea8d22e5dc6002a456ab7d5079a72cee7",
+    "powertrain.json": "26b8382d61e6d0b6474080b4082355441559825d8bf5bf664af5f91cd2e8b8b8",
+    "tires.json": "78318442260235a798c6eb4705862e64dc55365b65510b74c9efcc08dc33c96c",
+    "vehicle.json": "d8e4622728be79deb79b5412f09ee0b58bb0a47c6d559634df5f5d5a6a8a7bd9"
+  }
 }

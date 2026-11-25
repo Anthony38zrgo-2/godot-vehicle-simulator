@@ -13,7 +13,17 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v2_seamless"
+    "texture_finish": "stylized_shadow_dither_psx_v2_seamless",
+    "cdi_fbx_exterior": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Fiat 131.fbx",
+      "fbx_sha256": "9d0b638ab14c92b8c1924c6900408e1dbaf797588dc0e79cb283b8956cd6e982",
+      "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\fiat_131_abarth_alta.png",
+      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fiat131\\exterior_psx.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "atlas": "Road paint and fixed details without rally graphics",
+      "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    }
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -32,8 +42,8 @@
   },
   "chassis": {
     "path": "fiat_131_abarth_chassis.glb",
-    "sha256": "484a94d0d3e8eeb6096d227e7b2fe127c45043e5b7aab2b9695da7c28103b9e0",
-    "size_bytes": 3124040,
+    "sha256": "ef40ce69f7c3c6cedf59a08e62035d0688884b6806ef780b93d7b9548bf5767e",
+    "size_bytes": 266096,
     "exported_nodes": [
       "Fiat131Abarth_Exterior"
     ]

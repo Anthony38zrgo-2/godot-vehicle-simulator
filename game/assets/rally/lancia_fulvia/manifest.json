@@ -17,7 +17,17 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "cdi_fbx_exterior": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Lancia Fulvia.fbx",
+      "fbx_sha256": "a582469a8b3f7df3e7a9fd416015fd4ff3376187d3d9e65fa86d9fb2a6469e31",
+      "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\lancia_fulvia_16HF_alta.png",
+      "generator": "D:\\RallyManiacAssets\\tools\\install_fulvia_road_exterior.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_blender\\fulvia_rehecho_blender.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "atlas": "Fulvia road atlas, RGB888 with 4x4 texel dither",
+      "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -27,8 +37,8 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "2de924951e760c69b83773f5659a199592415b69bd34e80832f0320c29174bcc",
-    "size_bytes": 2888244,
+    "sha256": "810266db4170fd1cd3210d59ffa7e760bcd17df1526bdb128acc27f2d59cfde8",
+    "size_bytes": 212960,
     "exported_nodes": [
       "Fulvia_Exterior"
     ]
@@ -36,22 +46,22 @@
   "wheels": {
     "front_left": {
       "path": "lancia_fulvia_wheel_front_left.glb",
-      "sha256": "c5d329e1e6e9b2256ddadd6600c66479e93c5e1757175191913d16df3c7f0e83",
+      "sha256": "6246ccdb90f763e69d7c4df6504a868e12bcfaae80c5d1cdf8e78cf101ec7318",
       "size_bytes": 60528
     },
     "front_right": {
       "path": "lancia_fulvia_wheel_front_right.glb",
-      "sha256": "b432745bb5aa83ed0479015da228657510220b52317d435c1a37664d641aa583",
+      "sha256": "6c6c0027083c7311638f0dafe5ca4d9afb7b95d6e63ae9e6dd68c591f09c247a",
       "size_bytes": 60532
     },
     "rear_left": {
       "path": "lancia_fulvia_wheel_rear_left.glb",
-      "sha256": "5a9b566793b60d749a01864fbd6486fb6997724d2314eee5bc33f29b7e1e152c",
+      "sha256": "4624169a0a5fc4810d513503c880dc174b5b4d7e856a8cf5c82152cd031a8067",
       "size_bytes": 60532
     },
     "rear_right": {
       "path": "lancia_fulvia_wheel_rear_right.glb",
-      "sha256": "16c70c6aef49d2c5d01567d5b87cdbe7e552fe1ef2938e4421f3ae5502124391",
+      "sha256": "0ae79cc9743bff7ffc37002e819aebe4483a7048416a4801d33dce012ead17a8",
       "size_bytes": 60532
     }
   },

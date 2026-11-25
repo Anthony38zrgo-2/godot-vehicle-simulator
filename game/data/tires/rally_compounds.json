@@ -915,7 +915,7 @@
         "longitudinal_peak_slip_ratio": 0.13,
         "lateral_slide_mu_ratio": 0.99,
         "longitudinal_slide_mu_ratio": 0.99,
-        "falloff_sharpness": 0.8,
+        "falloff_sharpness": 0.95,
         "peak_load_sensitivity": 0.04,
         "budget_blend_width": 0.25
       },

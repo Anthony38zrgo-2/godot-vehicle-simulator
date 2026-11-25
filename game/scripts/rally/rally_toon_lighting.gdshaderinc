@@ -31,10 +31,16 @@ uniform float psx_snap_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float psx_affine_strength : hint_range(0.0, 1.0) = 0.0;
 
 uniform bool use_banded_body_paint = false;
+uniform vec2 body_paint_height_range = vec2(0.26, 0.90);
+uniform vec2 body_paint_end_drop = vec2(0.18, 0.10);
 uniform sampler2D body_paint_mask : filter_nearest, repeat_disable, hint_default_white;
 
 uniform bool use_glass_reflection = false;
 uniform sampler2D glass_reflection_mask : filter_nearest, repeat_disable, hint_default_black;
+
+uniform bool use_louver_shading = false;
+varying vec2 louver_cross_section;
+varying vec3 louver_up_view;
 
 varying float reflection_dither;
 varying float body_paint_coverage;
@@ -66,11 +72,14 @@ float paint_noise(vec3 point) {
 void vertex() {
 	// Stratos waistline slopes down toward the nose. Local coordinates keep
 	// the bands fixed to the shell through turns, jumps and camera changes.
-	float nose_drop = 0.18 * smoothstep(0.45, 1.82, -VERTEX.z);
-	float tail_drop = 0.10 * smoothstep(0.72, 1.68, VERTEX.z);
-	float shoulder = 0.90 - nose_drop - tail_drop;
-	body_height = clamp((VERTEX.y - 0.26) / (shoulder - 0.26), 0.0, 1.0);
+	float nose_drop = body_paint_end_drop.x * smoothstep(0.45, 1.82, -VERTEX.z);
+	float tail_drop = body_paint_end_drop.y * smoothstep(0.72, 1.68, VERTEX.z);
+	float sill = body_paint_height_range.x;
+	float shoulder = body_paint_height_range.y - nose_drop - tail_drop;
+	body_height = clamp((VERTEX.y - sill) / max(shoulder - sill, 0.01), 0.0, 1.0);
 	body_surface_up = NORMAL.y;
+	louver_cross_section = VERTEX.xz;
+	louver_up_view = normalize(MODELVIEW_NORMAL_MATRIX * vec3(0.0, 1.0, 0.0));
 	if (edge_wobble > 0.001) {
 		vec3 wp = wobble_in_world ? (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz : VERTEX;
 		painted_edge = (paint_noise(wp * wobble_scale * wobble_anisotropy) - 0.5) * edge_wobble;
@@ -129,6 +138,22 @@ void fragment() {
 		float side_window = reflection_bands(glass.y * (0.32 + 0.68 * sky), reflection_dither);
 		EMISSION = vec3(0.016, 0.065, 0.095) * windshield
 			+ vec3(0.014, 0.050, 0.077) * side_window;
+	}
+	if (use_louver_shading) {
+		// The four upper slat faces are flatter than the back panel. Use the
+		// face normal so interpolated vertex normals cannot blur that break.
+		vec3 face_normal = normalize(cross(dFdx(VERTEX), dFdy(VERTEX)));
+		float top_face = smoothstep(0.943, 0.966, abs(dot(face_normal, louver_up_view)));
+		float z = louver_cross_section.y;
+		// Trailing edges of the four slats in the fitted model, in metres.
+		vec4 edge_distance = abs(vec4(z) - vec4(0.793, 0.912, 1.020, 1.131));
+		float nearest_edge = min(min(edge_distance.x, edge_distance.y), min(edge_distance.z, edge_distance.w));
+		float pixel_width = clamp(fwidth(z), 0.001, 0.010);
+		float lip = 1.0 - smoothstep(0.004, 0.012 + pixel_width, nearest_edge);
+		float across = 1.0 - smoothstep(0.44, 0.516, abs(louver_cross_section.x));
+		float slats = smoothstep(0.675, 0.715, z) * across * top_face;
+		// A low diffuse fill keeps the graphite edges legible under cast shadow.
+		EMISSION = vec3(0.015, 0.017, 0.019) * slats * (0.35 + 1.55 * lip);
 	}
 #ifdef TOON_ALPHA_CUTOUT
 	ALPHA = paint.a;

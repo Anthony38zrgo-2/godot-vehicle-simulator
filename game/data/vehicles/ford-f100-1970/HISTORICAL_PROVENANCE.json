@@ -16,7 +16,7 @@
     "vehicle.json": "ac021041bbf3d9473e88e1d239f8199f041a4ec71f7a9c3a7dda8f879b53870d",
     "aerodynamics.json": "4dc070cd1e1c6c69391d8bb6efc4d12644cde78a8e81484e720fb01c4eed882f",
     "brakes.json": "ddbdfd5666a0c5de2119fd9d2f6afba3f2acde6789a58cd08c618db10528516d",
-    "chassis.json": "1045b81ad41ec4a79d75d60c83443ce98ecbe60ffb966c3bf6837657781ebfb7",
+    "chassis.json": "fd9ccc9743545b6bd8c78bcaaa2c34b71a4b5d163a6f09e0bdf282dcea7eb352",
     "coupled_world.json": "8d87603c6d5ce47158557021c8afb8b07bc413c3d68cf5ac1f79c59c3e188898",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "1d909026597d2b9619b868c605d911bd49b42ff64ad49f39ba87a3b787b17410",
@@ -25,7 +25,11 @@
     "steering.json": "56e9626ee6ade18717c7cf78b34392cfe751ce2e5bb23f18fd7778f3b3933a31",
     "suspension.json": "f8f1f29a52c90fad9c5e75a74c1a9d05e57d11a943af073a90e830ea6e4ab075",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "tires.json": "da3a7ae1f52698f56d911b5b728f8e167ffb11a053c65374f8258709a258c631",
+    "tires.json": "54204320d8157bd7c34f0027aecf22e87af5620844b7f1f7e816f0cff970883f",
     "underfloor_contact.json": "b50ecf6a58df1f393bafa8fe96266f8acfe36e7baaff40a26a3dfa55fd11de85"
+  },
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://fordification.com/tech/bodybuilder70.htm"
   }
 }

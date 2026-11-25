@@ -57,23 +57,13 @@ $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/c
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/cdi_stage1/ichu') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-alfa-giulia-gta') -Filter '*.glb' -File |
-    ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-alpine-a110') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-lotus-cortina') -Filter '*.glb' -File |
-    ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-mini-cooper-s') -Filter '*.glb' -File |
-    ForEach-Object { $_.FullName })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-saab-96-v4') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-lancia-stratos') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-porsche-356b-2000gs') -Filter '*.glb' -File |
-    ForEach-Object { $_.FullName })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-volvo-amazon') -Filter '*.glb' -File |
-    ForEach-Object { $_.FullName })
-$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-fiat-abarth-1000') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/ford_f100_1970') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })

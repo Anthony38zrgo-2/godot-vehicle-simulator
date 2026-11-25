@@ -201,26 +201,18 @@ def fbx_exterior_spec(car_key: str, work: Path) -> dict:
     }
 
 
+def fulvia_road_spec(work: Path) -> dict:
+    spec = fbx_exterior_spec("fulvia", work)
+    spec["lightmap"] = work / "fulvia_lightmap_pulido.png"
+    spec["albedo_raw"] = work / "fulvia_atlas_neutro.png"
+    spec["id_map"] = work / "fulvia_mascara_pintura_id.png"
+    return spec
+
+
 SPECS: list[dict] = [
     # --- Group A: Dedicated *_BodyPaint_PSX material (10 cars) ---
-    {
-        "car_key": "fulvia",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "fulvia_guinda_psx" / "fulvia_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "fulvia_guinda_psx" / "fulvia_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
-    {
-        "car_key": "escort",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "escort_mk1_crema_psx" / "escort_mk1_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "escort_mk1_crema_psx" / "escort_mk1_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    fulvia_road_spec(ASSETS_ROOT / "cdi_fbx_psx" / "fulvia" / "revision_blender"),
+    fbx_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort"),
     {
         "car_key": "rt-alfa-giulia-gta",
         "size": (1024, 1024),
@@ -269,15 +261,7 @@ SPECS: list[dict] = [
         "mask_mode": "full",
         "flat_body": True,
     },
-    {
-        "car_key": "fiat131",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "fiat131_azul_psx" / "fiat131_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "fiat131_azul_psx" / "fiat131_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    fbx_exterior_spec("fiat131", ASSETS_ROOT / "cdi_fbx_psx" / "fiat131"),
     {
         "car_key": "gaz24",
         "size": (512, 512),
@@ -298,16 +282,7 @@ SPECS: list[dict] = [
         "flat_body": True,
     },
     # --- Group C: Single/Combined Exterior Atlas (6 cars) ---
-    {
-        "car_key": "rt-alpine-a110",
-        "size": (1024, 1024),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "cdi_stylized" / "rt-alpine-a110" / "alpine_chassis_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "cdi_stylized" / "rt-alpine-a110" / "alpine_chassis_albedo_raw.png",
-        "mask_mode": "id_map",
-        "id_map": ASSETS_ROOT / "cdi_stylized" / "rt-alpine-a110" / "alpine_chassis_part_mask.png",
-        "flat_body": True,
-    },
+    fbx_exterior_spec("rt-alpine-a110", ASSETS_ROOT / "cdi_fbx_psx" / "rt-alpine-a110"),
     {
         "car_key": "rt-lotus-cortina",
         "size": (1024, 1024),
@@ -392,7 +367,7 @@ def build_one(spec: dict, diag_dir: Path | None) -> tuple[Path, float]:
     any_paint = body_mask | stripe_mask
     ao, dot_nl = _load_lightmap(lm_path, size)
     seam = _extract_seam_detail(spec.get("albedo_raw"), body_mask, size, spec.get("flat_body", True),
-                                sparse_seams=car_key == "rt-lancia-stratos")
+                                sparse_seams=car_key in ("fulvia", "rt-lancia-stratos"))
     # On Lotus Cortina's green stripe, keep seam=1.0 so non-original liveries paint seamlessly over the stripe
     if stripe_mask.any():
         seam[stripe_mask] = 1.0

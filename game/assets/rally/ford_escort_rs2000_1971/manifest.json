@@ -13,7 +13,17 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v2_seamless"
+    "texture_finish": "stylized_shadow_dither_psx_v2_seamless",
+    "cdi_fbx_exterior": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Ford Escort RS1800.fbx",
+      "fbx_sha256": "08e102bfc40fec1bacc23779250b4ac661d3293a7015f53a812465a8bdd90ad8",
+      "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\ford_escort_RS1800_alta.png",
+      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\escort\\exterior_psx.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "atlas": "Road paint and fixed details without rally graphics",
+      "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    }
   },
   "coordinate_system": {
     "engine": "Godot",
@@ -32,8 +42,8 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "59ffcee68431693a7385a31429f382ce2159d2de73302afe95fb6dd6fe588e3c",
-    "size_bytes": 1139188,
+    "sha256": "4db81e915af7302a3b61443c275160526e41c526b2021f577d5118f63d05a60b",
+    "size_bytes": 233732,
     "exported_nodes": [
       "EscortMk1_Exterior"
     ]
@@ -41,22 +51,22 @@
   "wheels": {
     "front_left": {
       "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
-      "sha256": "1d7d4dd7e92140c82acc05ff7582043d9c8dcaf2827ba6c1721c07d4e4e4c110",
+      "sha256": "b9a09c17177bf584a0afe80e86c941fe2854ae9c46e4cdae6021c52eda7e4cbb",
       "size_bytes": 56244
     },
     "front_right": {
       "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
-      "sha256": "7f5f4d8ac1232b685c1bed5bcddc5407aa1cf66d528c336a0c4642bad2672095",
+      "sha256": "e45f0c0fab45ccde9a859cc64ab2d4ce3f03bcda28d550a49b7d2987b5ca9290",
       "size_bytes": 56248
     },
     "rear_left": {
       "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
-      "sha256": "e0155f3c231e1a49506dcdc2e4b9d602a255b9bc94e7359d71b291c7b12161e4",
+      "sha256": "efff66f93ebc3c0edc180dc20f7aaa114866f66ac9af180e997d10700a01d467",
       "size_bytes": 56244
     },
     "rear_right": {
       "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
-      "sha256": "9e097b3fbf24ea9b0aceea388fa7918c060033e3d7a7ec4e78db566d3aa8219c",
+      "sha256": "f37c3cead1b88fe58cdab819088f4f7497f0533237da62316eba81f22d6e4e5c",
       "size_bytes": 56248
     }
   },

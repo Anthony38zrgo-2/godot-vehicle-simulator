@@ -4,14 +4,14 @@
       "contact_patch": 0.2,
       "radius": 0.321741,
       "rim_diameter_inches": 14.0,
-      "wheel_mass": 20.0,
+      "wheel_mass": 16,
       "width": 0.211145
     },
     "rear": {
       "contact_patch": 0.2,
       "radius": 0.322115,
       "rim_diameter_inches": 14.0,
-      "wheel_mass": 20.0,
+      "wheel_mass": 18,
       "width": 0.220725
     }
   }

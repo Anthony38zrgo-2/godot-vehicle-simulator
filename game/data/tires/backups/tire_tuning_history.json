@@ -2,6 +2,22 @@
   "format_version": 1,
   "entries": [
     {
+      "id": "2026-11-24_12-23-44_067",
+      "timestamp": "2026-11-24 12:23:44",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-24_12-23-44_067.json",
+      "changes_summary": "Tras falloff_sharpness: 1.05→0.95"
+    },
+    {
+      "id": "2026-11-24_12-21-10_419",
+      "timestamp": "2026-11-24 12:21:10",
+      "label": "Pre-aplicación (auto)",
+      "compound_id": "gravel_normal",
+      "backup_file": "rally_compounds_2026-11-24_12-21-10_419.json",
+      "changes_summary": "Tras falloff_sharpness: 0.8→1.05"
+    },
+    {
       "id": "2026-11-23_11-19-21_382",
       "timestamp": "2026-11-23 11:19:21",
       "label": "Pre-aplicación (auto)",
@@ -784,22 +800,6 @@
       "compound_id": "gravel_normal",
       "backup_file": "rally_compounds_2026-11-14_17-11-35_471.json",
       "changes_summary": "Del slip_recovery_tau_s: 0.001→0.2"
-    },
-    {
-      "id": "2026-11-14_17-09-48_463",
-      "timestamp": "2026-11-14 17:09:48",
-      "label": "Pre-aplicación (auto)",
-      "compound_id": "gravel_normal",
-      "backup_file": "rally_compounds_2026-11-14_17-09-48_463.json",
-      "changes_summary": "Del relaxation_recovery_scale: 0.96→0.94; Tras relaxation_recovery_scale: 0.96→0.94"
-    },
-    {
-      "id": "2026-11-14_17-08-53_763",
-      "timestamp": "2026-11-14 17:08:53",
-      "label": "Pre-aplicación (auto)",
-      "compound_id": "gravel_normal",
-      "backup_file": "rally_compounds_2026-11-14_17-08-53_763.json",
-      "changes_summary": "Del relaxation_recovery_scale: 0.95→0.96; Tras slip_recovery_tau_s: 0.3→0.2; Tras relaxation_recovery_scale: 0.95→0.96"
     }
   ]
 }

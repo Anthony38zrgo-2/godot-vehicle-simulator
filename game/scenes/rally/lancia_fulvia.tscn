@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/lancia_fulvia/lancia_fulvia_chassis.glb" id="2_chassis"]
@@ -9,6 +9,10 @@
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="9_vfx"]
 [ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="toon_stylized"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/fulvia_livery_data.png" id="paint_mask"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/fulvia_glass_reflection.png" id="glass_mask"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ford"]
 friction = 0.9
@@ -32,6 +36,12 @@ dc_blob_shadow_size = Vector2(2.1, 4.6)
 [node name="Chassis" parent="." instance=ExtResource("2_chassis")]
 script = ExtResource("toon_stylized")
 pixel_albedo = true
+banded_paint_materials = PackedStringArray("Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos")
+banded_paint_mask = ExtResource("paint_mask")
+banded_paint_height_range = Vector2(0.28, 0.87)
+banded_paint_end_drop = Vector2(0.045, 0.025)
+glass_reflection_materials = PackedStringArray("Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos")
+glass_reflection_mask = ExtResource("glass_mask")
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("9_vfx")

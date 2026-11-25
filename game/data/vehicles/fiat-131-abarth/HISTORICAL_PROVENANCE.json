@@ -29,7 +29,7 @@
   "profile_json_sha256": {
     "aerodynamics.json": "72b1bbb96a8a523de1c1c52c7669d6448acb97df1b4e3c2498d552b21aab7588",
     "brakes.json": "e40e44aebc6d46405f2ac29a7b8bf50b743ba75be163d9d48cb0abbfc56f6501",
-    "chassis.json": "780aa0f4d637dc79332cba6c37eab8c59c7ee44325166ad9d0e4b281a15d21ad",
+    "chassis.json": "94787c9c4239d1b6ecb47d29309f2d14954145bba1ec9fb7d7eb6e286d526168",
     "coupled_world.json": "91a4df08492ab451662be98674f286589d1614546d179fe1e0113dc5e52d8803",
     "damage.json": "533feebf57a1a33643bb651b282d9caeb2dbb975b6465b627b8f8453cf18dbdd",
     "driving_assistance.json": "8224d6be0f4aa5b7eadeba843b6012d3841d0da0f75249ee857efcc4eeb8bf6d",
@@ -38,9 +38,13 @@
     "steering.json": "535b6cd3837095be99005a499e696add0b89533e8d3bfdbfbc3f16e75975cd37",
     "suspension.json": "cdb404f5fac3e53cd0790996541532a3eb41c14bf8cd44858faca24b86591bec",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "tires.json": "c947b97842554faff20a5e787823ca35edbdb623359b84172be7f25f420b4f51",
+    "tires.json": "9b6de0d9de7c44b8831589dc99e838a45e7701efdb827d835100447db7439216",
     "underfloor_contact.json": "b50ecf6a58df1f393bafa8fe96266f8acfe36e7baaff40a26a3dfa55fd11de85",
     "vehicle.json": "cc6da5a07ce9a18eeb4095908350d6fa0140801db9dde4b3ace647526c802d12"
   },
-  "audio_source": "Dedicated GT3 bank gt3-bank/fiat-131-abarth built from separate engine and exhaust_normal1_turbo1 samples of bank 33406 (2.0L L4 DOHC 16V NA, 8 engine layers 1000-8000 rpm) + shared res://sounds/banks/commons/ audio for whine, backfire, shifts, and environment."
+  "audio_source": "Dedicated GT3 bank gt3-bank/fiat-131-abarth built from separate engine and exhaust_normal1_turbo1 samples of bank 33406 (2.0L L4 DOHC 16V NA, 8 engine layers 1000-8000 rpm) + shared res://sounds/banks/commons/ audio for whine, backfire, shifts, and environment.",
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://rallybodykits.com/pdf/fia-homologation-papers-fiat-abarth-131-rally-stradale-and-group-4-number-647.pdf"
+  }
 }

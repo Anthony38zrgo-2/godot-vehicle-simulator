@@ -1,6 +1,11 @@
 {
-  "vehicle_identifier": "ford_mustang_1967_289_2v",
-  "display_name": "1967 Ford Mustang Hardtop (289-2V)",
-  "geometry_policy": "native_glb",
-  "note": "Uses native measured FBX/blend wheelbase (2.81145 m), tracks (1.51192 / 1.51192 m), and tires (R=0.30564 m, W=0.25687 m) from PalominoSpecial67."
+  "vehicle_identifier": "gaz_24_24_volga",
+  "display_name": "GAZ-24-24 Volga V8 (5.5L)",
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://www.historicalreporter.ru/upload/iblock/233/233ef2ee8cc976e0ad7684cb08688411.pdf"
+  },
+  "sources": {
+    "vehicle_architecture": "https://www.historicalreporter.ru/upload/iblock/233/233ef2ee8cc976e0ad7684cb08688411.pdf"
+  }
 }

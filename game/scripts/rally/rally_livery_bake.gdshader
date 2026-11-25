@@ -23,6 +23,7 @@ uniform float livery_dither_dark_floor = 0.45;
 uniform vec2 livery_effective_res = vec2(512.0, 512.0);
 uniform float livery_mask_threshold = 0.30;
 uniform bool livery_paint_rgb555 = true;
+uniform float livery_dither_cell_scale = 1.0;
 
 const float PS1_DITHER_4X4[16] = float[16](
 	-4.0,  0.0, -3.0,  1.0,
@@ -59,7 +60,7 @@ void fragment() {
 		float settle = 1.0 - (1.0 - livery_dither_dark_floor) * smoothstep(0.75, 1.0, pen_t);
 		float dither_str = livery_dither_base + livery_dither_shadow_boost * (ramp_in * settle);
 
-		ivec2 cell = ivec2(floor(UV * livery_effective_res));
+		ivec2 cell = ivec2(floor(UV * livery_effective_res / livery_dither_cell_scale));
 		float d_pat = PS1_DITHER_4X4[(cell.y & 3) * 4 + (cell.x & 3)];
 		vec3 dithered = clamp(lit_srgb + vec3(d_pat * max(dither_str, 0.0)), vec3(0.0), vec3(255.0));
 		ivec3 paint_color = ivec3(dithered);

@@ -8,9 +8,9 @@
     "initial_kg": 44.82,
     "reference_lap_time_s": 180.0,
     "tank_position_local_m": {
-      "x": 0.0,
+      "x": 0,
       "y": 0.42,
-      "z": 1.75
+      "z": 1.48
     }
   }
 }

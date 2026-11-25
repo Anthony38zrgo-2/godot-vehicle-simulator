@@ -100,17 +100,21 @@
   "profile_json_sha256": {
     "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
     "brakes.json": "6cdc3a31acdf93601dfab5b85bde3e8ff3ebf9578e3e897d4331aad8fe597f7c",
-    "chassis.json": "7564ecd655b20c68665ab572e93483f0233ddea6593334c0ad9af237ee715735",
+    "chassis.json": "b3689bc8df22508266653ae42e5bf04b5c557e9d6ff8ef0294147b443f8bb276",
     "coupled_world.json": "5eba1457fa8d9d19522eec9a3af879c35fddadba802311a47cc9e04ffe0940b6",
     "damage.json": "5b0474203de890f28883e2b8ba8da789cbf09f42fdf160785d5cc5c1f8f7eb22",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
-    "fuel.json": "6a3776797342e716e9e4e12c150e3e977140665cc57082290415d2423369c5c1",
+    "fuel.json": "128ca4883dda684fbc1e5a406fc28b4601f4069860d50d77119fbfe3501b6a75",
     "powertrain.json": "df13e2e5c16d2890d50d40fa903e685b27f4c99997ce80cf6899187b187e3383",
     "steering.json": "3cf0ab6109a231a7bfc429577f8d24530fbc1705e4a2a963e14ff52ec4f70f7a",
     "suspension.json": "4c8619ce1249ae0abbe4472b067c3d45a4b758af7191012393c18383f42c9bc0",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "tires.json": "d4b91ccab83af7c3157ac7583b8a23199dcfa9a07d591fa9323349c3477a5bd1",
+    "tires.json": "df5becf517c3064d30b15f8abb37368afb799018f84f9b142a078f6fe387a527",
     "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
     "vehicle.json": "c93ca95496614f0e7a2f81c0157c401fc30d18ca7937d9645c3dd7bbeb8afb98"
+  },
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://www.kunoschaer.ch/images/upload/Lancia_Stratos_auto_motor_sport_1975.pdf"
   }
 }

@@ -186,6 +186,7 @@ static func build_shader_params(car_key: String, livery_id: String) -> Dictionar
 		"dither_dark_floor": float(livery.get("dither_dark_floor", 0.45)),
 		"effective_res": Vector2(float(eff_arr[0]), float(eff_arr[1])),
 		"paint_rgb555": bool(vcfg.get("paint_rgb555", true)),
+		"dither_cell_scale": maxi(1, int(vcfg.get("dither_cell_scale", 1))),
 		"mask_threshold": mask_threshold,
 		"data_map": data_tex,
 	}
@@ -295,6 +296,7 @@ static func _run_gpu_bake(
 	bmat.set_shader_parameter("livery_dither_dark_floor", float(params.get("dither_dark_floor", 0.45)))
 	bmat.set_shader_parameter("livery_effective_res", params.get("effective_res", Vector2(512.0, 512.0)))
 	bmat.set_shader_parameter("livery_paint_rgb555", bool(params.get("paint_rgb555", true)))
+	bmat.set_shader_parameter("livery_dither_cell_scale", float(params.get("dither_cell_scale", 1)))
 	bmat.set_shader_parameter("livery_mask_threshold", float(params.get("mask_threshold", 0.30)))
 	rect.material = bmat
 	vp.add_child(rect)

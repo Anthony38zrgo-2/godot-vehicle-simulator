@@ -1,13 +1,13 @@
 {
   "chassis": {
     "vehicle_name": "Alfa Romeo 1750 GT Veloce (1968)",
-    "vehicle_mass": 1110.0,
+    "vehicle_mass": 1079.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
-    "front_weight_distribution": 0.53,
+    "front_weight_distribution": 0.552377,
     "inertia_multipliers": {
-      "x": 1,
-      "y": 1,
-      "z": 1
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
     },
     "target_cg_z_m": 0.48
   },
@@ -20,97 +20,136 @@
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 1110.0,
+    "base_budget_kilograms": 1079.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "body_and_systems",
+        "component_perimeter": "body_structure_trim_and_remaining_fixed_equipment",
         "properties": {
-          "name": "body_and_systems",
-          "mass_kilograms": 798.0,
+          "name": "body_structure_trim_and_remaining_fixed_equipment",
+          "mass_kilograms": 618.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.47,
-            "z": 0.02
+            "y": 0.480825,
+            "z": -0.071864
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1011.5,
+                766.59295,
                 0,
                 0
               ],
               [
                 0,
-                1045.5,
+                838.75475,
                 0
               ],
               [
                 0,
                 0,
-                259.2
+                141.419
               ]
             ]
           },
           "provenance": {
-            "source": "Dossier 1974 §2.1 con tripulacion (cuerpo 85% inercia total; resto componentes + ejes paralelos)",
-            "mass_origin": "recalibrated_1974",
-            "center_of_mass_origin": "recalibrated_1974",
-            "inertia_origin": "recalibrated_1974"
-          }
-        },
-        "rotating_wheel": null
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "engine_and_transaxle",
-        "properties": {
-          "name": "engine_and_transaxle",
-          "mass_kilograms": 115.0,
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0,
-            "y": 0.42,
-            "z": -0.3
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                12,
-                0,
-                0
-              ],
-              [
-                0,
-                15,
-                0
-              ],
-              [
-                0,
-                0,
-                10
-              ]
-            ]
-          },
-          "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null
+        }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "driver_and_seat",
+        "component_perimeter": "twin_cam_1750",
         "properties": {
-          "name": "driver_and_seat",
+          "name": "twin_cam_1750",
+          "mass_kilograms": 135,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.44,
+            "z": -0.98
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                8.685,
+                0,
+                0
+              ],
+              [
+                0,
+                8.181,
+                0
+              ],
+              [
+                0,
+                0,
+                7.065
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "five_speed_and_propshaft",
+        "properties": {
+          "name": "five_speed_and_propshaft",
+          "mass_kilograms": 45,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.3,
+            "z": -0.24
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                6.7215,
+                0,
+                0
+              ],
+              [
+                0,
+                6.74588,
+                0
+              ],
+              [
+                0,
+                0,
+                0.79238
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "driver",
+        "properties": {
+          "name": "driver",
           "mass_kilograms": 75.0,
           "attachment": {
             "kind": "body"
@@ -150,9 +189,9 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "codriver_and_seat",
+        "component_perimeter": "codriver",
         "properties": {
-          "name": "codriver_and_seat",
+          "name": "codriver",
           "mass_kilograms": 75.0,
           "attachment": {
             "kind": "body"
@@ -195,92 +234,48 @@
         "component_perimeter": "spare_wheels_and_tools",
         "properties": {
           "name": "spare_wheels_and_tools",
-          "mass_kilograms": 27.0,
+          "mass_kilograms": 39.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
             "x": 0,
-            "y": 0.45,
-            "z": -0.02
+            "y": 0.39,
+            "z": 1.43
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                3,
+                1.4066,
                 0,
                 0
               ],
               [
                 0,
-                5,
+                2.53923,
                 0
               ],
               [
                 0,
                 0,
-                3
+                1.44723
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "FrontLeft_upright",
-        "properties": {
-          "name": "FrontLeft_upright",
-          "mass_kilograms": 5.0,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "FrontLeft"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0,
-                0
-              ],
-              [
-                0,
-                0.1,
-                0
-              ],
-              [
-                0,
-                0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
-          }
-        },
-        "rotating_wheel": null
+        }
       },
       {
         "budget": "vehicle_and_driver",
         "component_perimeter": "wheel_FrontLeft",
         "properties": {
           "name": "wheel_FrontLeft",
-          "mass_kilograms": 20.0,
+          "mass_kilograms": 16.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontLeft"
@@ -293,24 +288,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8624000073432594,
+                0.82247,
                 0,
                 0
               ],
               [
                 0,
-                0.5174400044059556,
+                0.47036,
                 0
               ],
               [
                 0,
                 0,
-                0.5174400044059556
+                0.47036
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -320,53 +315,10 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "FrontRight_upright",
-        "properties": {
-          "name": "FrontRight_upright",
-          "mass_kilograms": 5.0,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "FrontRight"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0,
-                0
-              ],
-              [
-                0,
-                0.1,
-                0
-              ],
-              [
-                0,
-                0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
-          }
-        },
-        "rotating_wheel": null
-      },
-      {
-        "budget": "vehicle_and_driver",
         "component_perimeter": "wheel_FrontRight",
         "properties": {
           "name": "wheel_FrontRight",
-          "mass_kilograms": 20.0,
+          "mass_kilograms": 16.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontRight"
@@ -379,24 +331,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8624000073432594,
+                0.82247,
                 0,
                 0
               ],
               [
                 0,
-                0.5174400044059556,
+                0.47036,
                 0
               ],
               [
                 0,
                 0,
-                0.5174400044059556
+                0.47036
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -406,53 +358,10 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "RearLeft_upright",
-        "properties": {
-          "name": "RearLeft_upright",
-          "mass_kilograms": 5.0,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "RearLeft"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0,
-                0
-              ],
-              [
-                0,
-                0.1,
-                0
-              ],
-              [
-                0,
-                0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
-          }
-        },
-        "rotating_wheel": null
-      },
-      {
-        "budget": "vehicle_and_driver",
         "component_perimeter": "wheel_RearLeft",
         "properties": {
           "name": "wheel_RearLeft",
-          "mass_kilograms": 20.0,
+          "mass_kilograms": 16.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearLeft"
@@ -465,24 +374,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8624000073432594,
+                0.82247,
                 0,
                 0
               ],
               [
                 0,
-                0.5174400044059556,
+                0.47036,
                 0
               ],
               [
                 0,
                 0,
-                0.5174400044059556
+                0.47036
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -492,53 +401,10 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "RearRight_upright",
-        "properties": {
-          "name": "RearRight_upright",
-          "mass_kilograms": 5.0,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "RearRight"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0,
-                0
-              ],
-              [
-                0,
-                0.1,
-                0
-              ],
-              [
-                0,
-                0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated"
-          }
-        },
-        "rotating_wheel": null
-      },
-      {
-        "budget": "vehicle_and_driver",
         "component_perimeter": "wheel_RearRight",
         "properties": {
           "name": "wheel_RearRight",
-          "mass_kilograms": 20.0,
+          "mass_kilograms": 16.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearRight"
@@ -551,42 +417,149 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.8624000073432594,
+                0.82247,
                 0,
                 0
               ],
               [
                 0,
-                0.5174400044059556,
+                0.47036,
                 0
               ],
               [
                 0,
                 0,
-                0.5174400044059556
+                0.47036
               ]
             ]
           },
           "provenance": {
-            "source": "Explicit generated mass-budget estimate, not measured component masses",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
           }
         },
         "rotating_wheel": "RearRight"
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_hubs_brakes_and_moving_suspension_share",
+        "properties": {
+          "name": "front_hubs_brakes_and_moving_suspension_share",
+          "mass_kilograms": 26,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": -1.20174
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.37137,
+                0,
+                0
+              ],
+              [
+                0,
+                4.09819,
+                0
+              ],
+              [
+                0,
+                0,
+                3.99766
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          13,
+          13,
+          0,
+          0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_live_axle_brakes_and_moving_spring_share",
+        "properties": {
+          "name": "rear_live_axle_brakes_and_moving_spring_share",
+          "mass_kilograms": 66,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": 1.201759
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.9427,
+                0,
+                0
+              ],
+              [
+                0,
+                9.67625,
+                0
+              ],
+              [
+                0,
+                0,
+                9.42105
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          0,
+          0,
+          33,
+          33
+        ]
       }
     ],
     "rim_and_tire_mass_kilograms": [
-      20.0,
-      20.0,
-      20.0,
-      20.0
+      16.0,
+      16.0,
+      16.0,
+      16.0
     ],
     "spare_policy": {
       "mass_component_name": "spare_wheels_and_tools",
-      "tools_mass_kg": 7.0,
-      "wheel_mass_kg": 20.0
+      "tools_mass_kg": 7,
+      "wheel_mass_kg": 16.0
+    },
+    "calibration": {
+      "source": "https://historicdb.fia.com/sites/default/files/car_attachment/1601036701/homologation_form_number_599_group_3.pdf",
+      "reference_conditions": "FIA 599 dry mass and 7.7 kg bare rims; estimated axle split.",
+      "road_car_mass_without_fuel_or_tools_kg": 970,
+      "reference_fuel_kg": 0,
+      "reference_front_axle_fraction": 0.55,
+      "estimated_movable_assembly_kg_per_corner_excluding_rotating_wheel": [
+        13,
+        33
+      ],
+      "conditions": "Reference includes one spare; CDI inventory adds crew, tools and a second spare. The fuel domain holds the dynamic fuel load.",
+      "inertia_basis": "Installed component masses and centers are estimates unless the reference notes otherwise. The residual shell tensor uses an equivalent box. The sprung CG height is an engineering target, and wheel positions use the runtime manifest."
     }
   }
 }

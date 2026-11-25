@@ -54,8 +54,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "81df5c442caa8a63e936108dab17c5775b5d20d336b2d1860a261d9f1ca8a867",
-    "size_bytes": 164844,
+    "sha256": "dc4f93c825931c2549147faa8b38125d4d5c3426ee202f4812bda0472ba5168e",
+    "size_bytes": 183748,
     "exported_nodes": [
       "Stratos_Exterior"
     ]
@@ -63,22 +63,22 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "f4995b396945289be43023d6764647cc3ee3d8c0a88ad6ef9f786351731fdf94",
+      "sha256": "13a8f24245ee6b0962f7f32b6556869016a926bf6337fc55f9981b82a587699f",
       "size_bytes": 53232
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "aef8e3285035934589e265f0d49f9b86d2849b634b01177fe224e20448fc5e72",
+      "sha256": "51cafbd3155735a16e7b44734f60b7f0a55e34290edd553fcec298b571ee6bce",
       "size_bytes": 53232
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "018f7e45f4d01d85c50ced89c2d972ad322cb4eea7037fd6fb352c28862cca7e",
+      "sha256": "684a5cc223699134f5df3da5d79d3e3f1eecef193316e67c449c4355bf8e21d0",
       "size_bytes": 53228
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "273bb4735ca53fa0410b548a368c79519510e9d83fec12f8245606695434d120",
+      "sha256": "c4f0ab203937424d29b75982af3112e55844c58a8bbd81b9b09e453790b03250",
       "size_bytes": 53232
     }
   },

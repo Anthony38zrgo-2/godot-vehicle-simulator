@@ -41,22 +41,22 @@
   "wheels": {
     "front_left": {
       "path": "gaz_24_24_volga_wheel_front_left.glb",
-      "sha256": "3e8386330da95dfe94d39e93d57502879a5aae3c1e033f8b7e8fed777b6ae462",
+      "sha256": "0eb7abac136f3d2138985cc925f550b23fdb909f40db1e374b4636a3b0cb300c",
       "size_bytes": 54860
     },
     "front_right": {
       "path": "gaz_24_24_volga_wheel_front_right.glb",
-      "sha256": "6f37ef48778c68c94594dd949e48bd474171f12d05df82909c1a7a9edd816b7c",
+      "sha256": "fc50052defb8539e3b1266801a0e92abc5b44168c393157cf3d5ba9d644210b9",
       "size_bytes": 54864
     },
     "rear_left": {
       "path": "gaz_24_24_volga_wheel_rear_left.glb",
-      "sha256": "706255ae677b55928dba17769d892758050d00b3da5b5ed9830f2cd309dae7da",
+      "sha256": "5f988ee0cdc3a8cd892d5a04f66c88168040259410464c8fe61f6aea010234ee",
       "size_bytes": 54856
     },
     "rear_right": {
       "path": "gaz_24_24_volga_wheel_rear_right.glb",
-      "sha256": "aecba4290785df00a4912ca1299881ef3e8802c78ce776a54195596c9e801645",
+      "sha256": "533bc4d5eab46478dc6453b630bc2b7c66287c8af7818a5b07c5cadfa31f57c0",
       "size_bytes": 54860
     }
   },

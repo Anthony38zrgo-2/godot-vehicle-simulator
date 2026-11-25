@@ -52,7 +52,7 @@ vehicle_path = NodePath("../Vehicle")
 [node name="RallyGaragePanel" parent="." instance=ExtResource("9_garage")]
 vehicle_path = NodePath("../Vehicle")
 team_id = "rt-porsche-356b-2000gs"
-team_name = "Porsche 356B Carrera 2000 GS"
+team_name = "Porsche 356 A 1600 GS Carrera GT"
 circuit_id = "russia-stage-1"
 circuit_name = "Rusia Stage 1"
 circuit_country = "Russia"

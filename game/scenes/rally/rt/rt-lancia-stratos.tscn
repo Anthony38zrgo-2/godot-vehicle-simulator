@@ -39,6 +39,7 @@ banded_paint_materials = PackedStringArray("Stratos_BodyPaint_PSX", "Stratos_FBX
 banded_paint_mask = ExtResource("paint_mask")
 glass_reflection_material = "Stratos_Glazing_And_Seals"
 glass_reflection_mask = ExtResource("glass_mask")
+louver_material = "Stratos_Rear_Louvers"
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("vfx")

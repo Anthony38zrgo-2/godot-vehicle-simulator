@@ -39,7 +39,7 @@ func run() -> void:
 	print("--- VEHICLE LIVERY CONTRACT ---")
 	test_catalog_completeness()
 	test_cortina_and_mini_special_rules()
-	await test_all_17_cdi_cars_shader_binding()
+	await test_all_cdi_cars_shader_binding()
 	await test_menu_livery_picker_and_showroom()
 	test_event_manager_livery_persistence()
 
@@ -78,11 +78,11 @@ func test_cortina_and_mini_special_rules() -> void:
 		check(hood_px.r > 0.9, "Capó del Mini Cooper S debe estar enmascarado como carrocería (R=%.2f)" % hood_px.r)
 
 
-func test_all_17_cdi_cars_shader_binding() -> void:
-	print("[3] Comprobando aplicación PSX livery en los 17 coches de CDI_CARS...")
+func test_all_cdi_cars_shader_binding() -> void:
+	print("[3] Comprobando aplicación PSX livery en los coches de CDI_CARS...")
 	var reg: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/vehicles/registry.json"))
 	var vehicles: Dictionary = reg.get("vehicles", {})
-	check(RallyManiacMenu.CDI_CARS.size() == 17, "CDI_CARS debe contener 17 vehículos")
+	check(RallyManiacMenu.CDI_CARS.size() == 12, "CDI_CARS debe contener 12 vehículos")
 	for car_key in RallyManiacMenu.CDI_CARS:
 		var vcfg := LiveryScript.get_vehicle_config(car_key)
 		check(not vcfg.is_empty(), "Configuración de livery presente para " + car_key)

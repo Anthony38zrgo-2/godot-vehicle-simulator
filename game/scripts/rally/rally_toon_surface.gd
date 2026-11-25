@@ -7,8 +7,12 @@ extends Node3D
 @export var gt2_vehicle_shading := false
 @export var banded_paint_materials: PackedStringArray
 @export var banded_paint_mask: Texture2D
+@export var banded_paint_height_range := Vector2(0.26, 0.90)
+@export var banded_paint_end_drop := Vector2(0.18, 0.10)
 @export var glass_reflection_material := ""
+@export var glass_reflection_materials: PackedStringArray
 @export var glass_reflection_mask: Texture2D
+@export var louver_material := ""
 @export_group("PSX Vehicle Distortion")
 @export var psx_snap_resolution := Vector2(480.0, 360.0)
 @export_range(0.0, 1.0) var psx_snap_strength := 0.22
@@ -234,10 +238,16 @@ func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Diction
 						and banded_paint_materials.has(source.resource_name):
 					surface_material.set_shader_parameter("use_banded_body_paint", true)
 					surface_material.set_shader_parameter("body_paint_mask", banded_paint_mask)
+					surface_material.set_shader_parameter("body_paint_height_range", banded_paint_height_range)
+					surface_material.set_shader_parameter("body_paint_end_drop", banded_paint_end_drop)
 				if not is_wheel and not gt2_vehicle_shading and glass_reflection_mask != null \
-						and source.resource_name == glass_reflection_material:
+						and (source.resource_name == glass_reflection_material \
+						or glass_reflection_materials.has(source.resource_name)):
 					surface_material.set_shader_parameter("use_glass_reflection", true)
 					surface_material.set_shader_parameter("glass_reflection_mask", glass_reflection_mask)
+				if not is_wheel and not gt2_vehicle_shading and not louver_material.is_empty() \
+						and source.resource_name == louver_material:
+					surface_material.set_shader_parameter("use_louver_shading", true)
 				surface_material.resource_name = source.resource_name
 				surface_material.set_meta("source_material_name", source.resource_name)
 				surface_material.set_meta("original_albedo_texture", source.albedo_texture)

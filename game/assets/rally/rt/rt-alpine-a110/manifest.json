@@ -26,7 +26,17 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "cdi_fbx_exterior": {
+      "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Renault Alpine.fbx",
+      "fbx_sha256": "4032b4c46e43bec8766e9bfe90799c89d4ffb34404d26c3bf0b055ad117bf083",
+      "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\renault_alpine_a110_alta.png",
+      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\rt-alpine-a110\\exterior_psx.blend",
+      "finish": "stylized_shadow_dither_psx_v1",
+      "atlas": "Road paint and fixed details without rally graphics",
+      "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -36,8 +46,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "9d0b2b4aedcc75b43ad2b2aa1749a9dfbe89c9260f6edeff10c68b0203d47350",
-    "size_bytes": 836360,
+    "sha256": "3b1c6866e1e7a84156c9e6b4852ca183d86ca03a215af1cbfc0a1338847a4e0c",
+    "size_bytes": 230284,
     "exported_nodes": [
       "AlpineA110Exterior"
     ]
@@ -45,22 +55,22 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "2ee6f4cf9248d6b9a594760a6bd6328a9cd4092ce4a7266297b7fd01c7d20685",
+      "sha256": "a40d6dca47662b7c417d81522661fa2abb93be5733d3b5fe0eb6093112b3a7ab",
       "size_bytes": 45884
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "ea0c08a9e1b4c0ab08713002599fbabb251ebfc0b4f4e31d8f163f5b5d760b53",
+      "sha256": "265cd41e32e6086a1c333a758eb6c0cf208d730dabf3200355b39ae2b96eb4c7",
       "size_bytes": 45888
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "982d73ae30356c1ef0ff51e9c349df8460331c4cfa595c480c85c1df363bbc98",
+      "sha256": "c133169b25f7ec1e9f62c329c4fa4727486f657f702d6709210756b2e2993daa",
       "size_bytes": 45884
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "57746f28c6f978bac6e65f932cb71f46899ee694a2cc8ee28749aaf848c9e330",
+      "sha256": "a2cbeafdc9af612f96f406b4f6623d5239e0fd2eb9ae7af4132dfb166063ffe3",
       "size_bytes": 45884
     }
   },

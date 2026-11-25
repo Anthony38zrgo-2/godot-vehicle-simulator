@@ -1,9 +1,9 @@
 {
   "chassis": {
     "vehicle_name": "Fiat Abarth 131 Rally (Group 4 FIA 647)",
-    "vehicle_mass": 1035.0,
+    "vehicle_mass": 1042.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
-    "front_weight_distribution": 0.52,
+    "front_weight_distribution": 0.494414,
     "center_of_gravity_height_offset": -0.165,
     "inertia_multipliers": {
       "x": 1.0,
@@ -21,12 +21,12 @@
   },
   "physical_mass_inventory": {
     "schema_version": 2,
-    "base_budget_kilograms": 1035.0,
+    "base_budget_kilograms": 1042.0,
     "rim_and_tire_mass_kilograms": [
-      20.0,
-      20.0,
-      20.0,
-      20.0
+      15.0,
+      15.0,
+      15.0,
+      15.0
     ],
     "coordinate_contract": {
       "forward": "-Z",
@@ -35,58 +35,49 @@
     },
     "spare_policy": {
       "mass_component_name": "spare_wheels_and_tools",
-      "tools_mass_kg": 7.0,
-      "wheel_mass_kg": 20.0
+      "tools_mass_kg": 7,
+      "wheel_mass_kg": 15.0
     },
     "components": [
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "body shell, cage, fiberglass flares/hood/trunk, alloy doors, plexiglass",
+        "component_perimeter": "body_structure_trim_and_remaining_fixed_equipment",
         "properties": {
-          "name": "bodywork_and_rollcage",
-          "mass_kilograms": 415.0,
+          "name": "body_structure_trim_and_remaining_fixed_equipment",
+          "mass_kilograms": 407.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.56,
-            "z": 0.02
+            "x": 0,
+            "y": 0.618428,
+            "z": 0.208815
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                265.0,
-                0.0,
-                0.0
+                508.31926,
+                0,
+                0
               ],
               [
-                0.0,
-                325.0,
-                0.0
+                0,
+                562.49096,
+                0
               ],
               [
-                0.0,
-                0.0,
-                96.0
+                0,
+                0,
+                106.70183
               ]
             ]
           },
           "provenance": {
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "FIA Group 4 reinforced 2-door shell with Bertone flares & aluminum/fiberglass panels",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 352.75,
-          "upper_mass_kilograms": 477.25,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
         }
       },
       {
@@ -241,106 +232,6 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "crew driver",
-        "properties": {
-          "name": "driver",
-          "mass_kilograms": 75.0,
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": -0.35,
-            "y": 0.47,
-            "z": 0.18
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                7.5,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                7.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                3.5
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Crew allocation (driver)",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 71.25,
-          "upper_mass_kilograms": 78.75,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "crew co-driver",
-        "properties": {
-          "name": "co_driver",
-          "mass_kilograms": 75.0,
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.35,
-            "y": 0.47,
-            "z": 0.22
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                7.5,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                7.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                3.5
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Crew allocation (co-driver)",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 71.25,
-          "upper_mass_kilograms": 78.75,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
         "component_perimeter": "radiator, oil cooler, dry-sump tank and lines",
         "properties": {
           "name": "cooling_and_dry_sump_tank",
@@ -434,106 +325,6 @@
         "uncertainty": {
           "lower_mass_kilograms": 20.4,
           "upper_mass_kilograms": 27.6,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "rear-mounted competition battery and loom",
-        "properties": {
-          "name": "electrical_and_battery",
-          "mass_kilograms": 16.0,
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.36,
-            "z": 1.35
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.6,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.8,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                0.6
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Rear-relocated battery for ~52:48 competition weight distribution",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 13.6,
-          "upper_mass_kilograms": 18.4,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "duralumin sump guard and gravel armor",
-        "properties": {
-          "name": "skid_plate_and_underbody_protection",
-          "mass_kilograms": 22.0,
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.19,
-            "z": -0.95
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                1.6,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                2.4,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                1.2
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Group 4 front duralumin sump/crossmember protection",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 18.7,
-          "upper_mass_kilograms": 25.3,
           "center_uncertainty_metres": 0.1,
           "inertia_relative_uncertainty": 0.2,
           "rationale": "Historic Group 4 component mass reconstruction"
@@ -641,34 +432,75 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "trunk spare wheel and competition tools",
+        "component_perimeter": "factory_battery_and_loom",
         "properties": {
-          "name": "spare_wheels_and_tools",
-          "mass_kilograms": 27.0,
+          "name": "factory_battery_and_loom",
+          "mass_kilograms": 14,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.4,
-            "z": 1.48
+            "x": 0.38,
+            "y": 0.46,
+            "z": -1.04
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1.2,
+                0.14607,
+                0,
+                0
+              ],
+              [
+                0,
+                0.1722,
+                0
+              ],
+              [
+                0,
+                0,
+                0.18387
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        }
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "driver",
+        "properties": {
+          "name": "driver",
+          "mass_kilograms": 75.0,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": -0.35,
+            "y": 0.47,
+            "z": 0.18
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                7.5,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                1.2,
+                7.0,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                1.8
+                3.5
               ]
             ]
           },
@@ -676,14 +508,14 @@
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
-            "source": "Full-size spare Cromodora 15-inch wheel/tire (20 kg) + jack/tools (7 kg)",
+            "source": "Crew allocation (driver)",
             "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "lower_mass_kilograms": 22.95,
-          "upper_mass_kilograms": 31.05,
+          "lower_mass_kilograms": 71.25,
+          "upper_mass_kilograms": 78.75,
           "center_uncertainty_metres": 0.1,
           "inertia_relative_uncertainty": 0.2,
           "rationale": "Historic Group 4 component mass reconstruction"
@@ -691,35 +523,34 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "upright assembly FrontLeft",
+        "component_perimeter": "codriver",
         "properties": {
-          "name": "upright_frontleft",
-          "mass_kilograms": 6.25,
+          "name": "codriver",
+          "mass_kilograms": 75.0,
           "attachment": {
-            "kind": "upright",
-            "wheel": "FrontLeft"
+            "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0.35,
+            "y": 0.47,
+            "z": 0.22
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.1,
+                7.5,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                0.1,
+                7.0,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                0.1
+                3.5
               ]
             ]
           },
@@ -727,14 +558,14 @@
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
-            "source": "Group 4 upright, alloy AP/Brembo caliper and vented brake rotor",
+            "source": "Crew allocation (co-driver)",
             "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "lower_mass_kilograms": 5.31,
-          "upper_mass_kilograms": 7.19,
+          "lower_mass_kilograms": 71.25,
+          "upper_mass_kilograms": 78.75,
           "center_uncertainty_metres": 0.1,
           "inertia_relative_uncertainty": 0.2,
           "rationale": "Historic Group 4 component mass reconstruction"
@@ -742,361 +573,324 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "upright assembly FrontRight",
+        "component_perimeter": "spare_wheels_and_tools",
         "properties": {
-          "name": "upright_frontright",
-          "mass_kilograms": 6.25,
+          "name": "spare_wheels_and_tools",
+          "mass_kilograms": 37.0,
           "attachment": {
-            "kind": "upright",
-            "wheel": "FrontRight"
+            "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0.39,
+            "z": 1.47
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.1,
-                0.0,
-                0.0
+                1.33447,
+                0,
+                0
               ],
               [
-                0.0,
-                0.1,
-                0.0
+                0,
+                2.40901,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.1
+                0,
+                0,
+                1.37301
               ]
             ]
           },
           "provenance": {
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Group 4 upright, alloy AP/Brembo caliper and vented brake rotor",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 5.31,
-          "upper_mass_kilograms": 7.19,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
         }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "upright assembly RearLeft",
+        "component_perimeter": "wheel_FrontLeft",
         "properties": {
-          "name": "upright_rearleft",
-          "mass_kilograms": 6.25,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "RearLeft"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.1,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Group 4 upright, alloy AP/Brembo caliper and vented brake rotor",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 5.31,
-          "upper_mass_kilograms": 7.19,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "upright assembly RearRight",
-        "properties": {
-          "name": "upright_rearright",
-          "mass_kilograms": 6.25,
-          "attachment": {
-            "kind": "upright",
-            "wheel": "RearRight"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.1,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.1,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                0.1
-              ]
-            ]
-          },
-          "provenance": {
-            "mass_origin": "estimated",
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Group 4 upright, alloy AP/Brembo caliper and vented brake rotor",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "lower_mass_kilograms": 5.31,
-          "upper_mass_kilograms": 7.19,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
-      },
-      {
-        "budget": "rim_and_tire",
-        "component_perimeter": "wheel_assembly_frontleft",
-        "properties": {
-          "name": "wheel_frontleft",
-          "mass_kilograms": 20.0,
+          "name": "wheel_FrontLeft",
+          "mass_kilograms": 15.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontLeft"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1.13,
-                0.0,
-                0.0
+                0.75851,
+                0,
+                0
               ],
               [
-                0.0,
-                0.65,
-                0.0
+                0,
+                0.43447,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.65
+                0,
+                0,
+                0.43447
               ]
             ]
           },
           "provenance": {
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Cromodora 7x15 magnesium rim + 185/70 R15 reinforced gravel tire",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "FrontLeft",
-        "uncertainty": {
-          "lower_mass_kilograms": 18.0,
-          "upper_mass_kilograms": 22.0,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
+        "rotating_wheel": "FrontLeft"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "wheel_assembly_frontright",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_FrontRight",
         "properties": {
-          "name": "wheel_frontright",
-          "mass_kilograms": 20.0,
+          "name": "wheel_FrontRight",
+          "mass_kilograms": 15.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontRight"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1.13,
-                0.0,
-                0.0
+                0.75851,
+                0,
+                0
               ],
               [
-                0.0,
-                0.65,
-                0.0
+                0,
+                0.43447,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.65
+                0,
+                0,
+                0.43447
               ]
             ]
           },
           "provenance": {
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Cromodora 7x15 magnesium rim + 185/70 R15 reinforced gravel tire",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "FrontRight",
-        "uncertainty": {
-          "lower_mass_kilograms": 18.0,
-          "upper_mass_kilograms": 22.0,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
+        "rotating_wheel": "FrontRight"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "wheel_assembly_rearleft",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearLeft",
         "properties": {
-          "name": "wheel_rearleft",
-          "mass_kilograms": 20.0,
+          "name": "wheel_RearLeft",
+          "mass_kilograms": 15.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearLeft"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1.13,
-                0.0,
-                0.0
+                0.75617,
+                0,
+                0
               ],
               [
-                0.0,
-                0.65,
-                0.0
+                0,
+                0.45147,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.65
+                0,
+                0,
+                0.45147
               ]
             ]
           },
           "provenance": {
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Cromodora 7x15 magnesium rim + 185/70 R15 reinforced gravel tire",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "RearLeft",
-        "uncertainty": {
-          "lower_mass_kilograms": 18.0,
-          "upper_mass_kilograms": 22.0,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
+        "rotating_wheel": "RearLeft"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "wheel_assembly_rearright",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearRight",
         "properties": {
-          "name": "wheel_rearright",
-          "mass_kilograms": 20.0,
+          "name": "wheel_RearRight",
+          "mass_kilograms": 15.0,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearRight"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                1.13,
-                0.0,
-                0.0
+                0.75617,
+                0,
+                0
               ],
               [
-                0.0,
-                0.65,
-                0.0
+                0,
+                0.45147,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.65
+                0,
+                0,
+                0.45147
               ]
             ]
           },
           "provenance": {
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "source": "Cromodora 7x15 magnesium rim + 185/70 R15 reinforced gravel tire",
-            "center_of_mass_basis": "Local ground-plane / attachment coordinates; Gr.4 rally packaging estimate"
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "RearRight",
-        "uncertainty": {
-          "lower_mass_kilograms": 18.0,
-          "upper_mass_kilograms": 22.0,
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.2,
-          "rationale": "Historic Group 4 component mass reconstruction"
-        }
+        "rotating_wheel": "RearRight"
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_hubs_brakes_and_moving_suspension_share",
+        "properties": {
+          "name": "front_hubs_brakes_and_moving_suspension_share",
+          "mass_kilograms": 26,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": -1.240877
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.37137,
+                0,
+                0
+              ],
+              [
+                0,
+                5.16212,
+                0
+              ],
+              [
+                0,
+                0,
+                5.06159
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          13,
+          13,
+          0,
+          0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_hubs_brakes_and_moving_suspension_share",
+        "properties": {
+          "name": "rear_hubs_brakes_and_moving_suspension_share",
+          "mass_kilograms": 28,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": 1.240877
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.39993,
+                0,
+                0
+              ],
+              [
+                0,
+                5.56666,
+                0
+              ],
+              [
+                0,
+                0,
+                5.4584
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          0,
+          0,
+          14,
+          14
+        ]
       }
-    ]
+    ],
+    "calibration": {
+      "source": "https://rallybodykits.com/pdf/fia-homologation-papers-fiat-abarth-131-rally-stradale-and-group-4-number-647.pdf",
+      "reference_conditions": "Road-ready Stradale dry mass estimated pending a comparable road-car weighing; FIA 647 lists 850 kg and 6.8 kg bare rims.",
+      "road_car_mass_without_fuel_or_tools_kg": 930,
+      "reference_fuel_kg": 0,
+      "reference_front_axle_fraction": 0.52,
+      "estimated_movable_assembly_kg_per_corner_excluding_rotating_wheel": [
+        13,
+        14
+      ],
+      "conditions": "Reference includes one spare; CDI inventory adds crew, tools and a second spare. The fuel domain holds the dynamic fuel load.",
+      "inertia_basis": "Installed component masses and centers are estimates unless the reference notes otherwise. The residual shell tensor uses an equivalent box. The sprung CG height is an engineering target, and wheel positions use the runtime manifest."
+    }
   }
 }

@@ -64,22 +64,22 @@
   "wheels": {
     "front_left": {
       "path": "vw_golf_mk1_wheel_front_left.glb",
-      "sha256": "161775b5612a6374e2f2934d9d96181cd54bf32676df8278f9d50b7c2e8aff93",
+      "sha256": "e8a34abd5673086eccaaa33e5edc1c003293c3eab57c59dddf1fa5e73b53391a",
       "size_bytes": 55016
     },
     "front_right": {
       "path": "vw_golf_mk1_wheel_front_right.glb",
-      "sha256": "2ecb8bc797ede2a75e44c6ba9ba9c2444accb62fd66d9b30d8ef4bfd3a4207f8",
+      "sha256": "d41440e111561be921c16414fcaea451a8d6613a0da699684f879a6edf8a9b5b",
       "size_bytes": 55016
     },
     "rear_left": {
       "path": "vw_golf_mk1_wheel_rear_left.glb",
-      "sha256": "b740dba1118ea7e704c3bd677dd208cd7d0baae13b1f1e0850b182b281cd67b0",
+      "sha256": "76bb30dc570ab802db0ded19fcb544dcf19e375bdd4f2746ff31d0d08ca474a4",
       "size_bytes": 55012
     },
     "rear_right": {
       "path": "vw_golf_mk1_wheel_rear_right.glb",
-      "sha256": "0e2e7d6f722d5cd6c8858db4902cc0f7aca1ef4aaab9e1a76af4bd1a9dc4f82e",
+      "sha256": "89f720b5fb553a737be347b5cfc65e27e7fd225d71dd1745b37cc8dd5a33f742",
       "size_bytes": 55016
     }
   },

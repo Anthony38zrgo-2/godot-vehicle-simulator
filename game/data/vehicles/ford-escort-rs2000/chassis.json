@@ -1,13 +1,13 @@
 {
   "chassis": {
     "center_of_gravity_height_offset": -0.176701,
-    "front_weight_distribution": 0.52,
+    "front_weight_distribution": 0.55029,
     "inertia_multipliers": {
-      "x": 1.15,
-      "y": 1.22,
-      "z": 1.05
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
     },
-    "vehicle_mass": 1015.0,
+    "vehicle_mass": 1008.0,
     "vehicle_mass_excludes_wheel_assemblies": true,
     "vehicle_name": "Ford Escort RS2000 1971 (Mk1 Works Rally)",
     "target_cg_z_m": 0.505
@@ -20,56 +20,47 @@
     "rear_axle_z": 1.186081
   },
   "physical_mass_inventory": {
-    "base_budget_kilograms": 1015.0,
+    "base_budget_kilograms": 1008.0,
     "components": [
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "body panels and rollcage",
+        "component_perimeter": "body_structure_trim_and_remaining_fixed_equipment",
         "properties": {
+          "name": "body_structure_trim_and_remaining_fixed_equipment",
+          "mass_kilograms": 460.0,
           "attachment": {
             "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.56,
-            "z": -0.05
+            "x": 0,
+            "y": 0.545,
+            "z": -0.059056
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                255.8,
+                525.8145,
                 0,
                 0
               ],
               [
                 0,
-                309.1,
+                576.288,
                 0
               ],
               [
                 0,
                 0,
-                90.6
+                108.5025
               ]
             ]
           },
-          "mass_kilograms": 405.0,
-          "name": "bodywork_and_cage",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
-            "source": "Type 49 seam-welded works shell with rollcage",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.12,
-          "inertia_relative_uncertainty": 0.15,
-          "lower_mass_kilograms": 350.0,
-          "rationale": "Works rally shell weight specification",
-          "upper_mass_kilograms": 410.0
         }
       },
       {
@@ -174,56 +165,6 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "front duralumin sumpguard",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.16,
-            "z": -1.18
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                1.8,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                2.2,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                0.8
-              ]
-            ]
-          },
-          "mass_kilograms": 14.0,
-          "name": "front_sumpguard_dural",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Heavy-duty duralumin skidplate and chassis brackets mounted under crossmember",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.05,
-          "inertia_relative_uncertainty": 0.15,
-          "lower_mass_kilograms": 12.0,
-          "rationale": "Front underbody protection",
-          "upper_mass_kilograms": 16.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
         "component_perimeter": "cooling and radiators",
         "properties": {
           "attachment": {
@@ -287,23 +228,23 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                5.0,
+                2.08333,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                6.0,
+                2.5,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                6.0
+                2.5
               ]
             ]
           },
-          "mass_kilograms": 36.0,
+          "mass_kilograms": 15.0,
           "name": "front_suspension_and_steering",
           "provenance": {
             "center_of_mass_origin": "estimated",
@@ -320,13 +261,7 @@
           "lower_mass_kilograms": 32.0,
           "rationale": "Front suspension assembly",
           "upper_mass_kilograms": 40.0
-        },
-        "unsprung_mass_distribution_kg": [
-          10.5,
-          10.5,
-          0.0,
-          0.0
-        ]
+        }
       },
       {
         "budget": "vehicle_and_driver",
@@ -343,23 +278,23 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                9.0,
+                1.8,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                16.0,
+                3.2,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                16.0
+                3.2
               ]
             ]
           },
-          "mass_kilograms": 85.0,
+          "mass_kilograms": 17.0,
           "name": "rear_live_axle_and_diff",
           "provenance": {
             "center_of_mass_origin": "estimated",
@@ -376,13 +311,7 @@
           "lower_mass_kilograms": 78.0,
           "rationale": "Complete live rear axle and differential assembly",
           "upper_mass_kilograms": 92.0
-        },
-        "unsprung_mass_distribution_kg": [
-          0.0,
-          0.0,
-          34.0,
-          34.0
-        ]
+        }
       },
       {
         "budget": "vehicle_and_driver",
@@ -399,23 +328,23 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                3.0,
+                0.92308,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                3.0,
+                0.92308,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                2.5
+                0.76923
               ]
             ]
           },
-          "mass_kilograms": 26.0,
+          "mass_kilograms": 8.0,
           "name": "brakes_and_pedal_box",
           "provenance": {
             "center_of_mass_origin": "estimated",
@@ -432,212 +361,6 @@
           "lower_mass_kilograms": 23.0,
           "rationale": "Braking equipment",
           "upper_mass_kilograms": 29.0
-        },
-        "unsprung_mass_distribution_kg": [
-          5.0,
-          5.0,
-          4.0,
-          4.0
-        ]
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "driver and bucket seat",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": -0.32,
-            "y": 0.58,
-            "z": 0.12
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                9.0,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                6.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                7.0
-              ]
-            ]
-          },
-          "mass_kilograms": 78.0,
-          "name": "driver_and_seat",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Driver with helmet/suit and fibreglass bucket seat (LHD configuration)",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.08,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 72.0,
-          "rationale": "Driver mass",
-          "upper_mass_kilograms": 84.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "co-driver and bucket seat",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.32,
-            "y": 0.55,
-            "z": 0.22
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                9.0,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                6.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                7.0
-              ]
-            ]
-          },
-          "mass_kilograms": 77.0,
-          "name": "codriver_and_seat",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Co-driver mounted lower and further back with Halda instruments",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.08,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 71.0,
-          "rationale": "Co-driver mass",
-          "upper_mass_kilograms": 83.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "spare wheels, jack and tool roll in boot",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.08,
-            "y": 0.44,
-            "z": 1.48
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                5.0,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                6.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                4.5
-              ]
-            ]
-          },
-          "mass_kilograms": 43.0,
-          "name": "spare_wheels_and_tools",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Two Minilite gravel spare wheels, quick-lift jack and spares strapped in rear boot",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.15,
-          "lower_mass_kilograms": 38.0,
-          "rationale": "Boot rally spares load",
-          "upper_mass_kilograms": 48.0
-        }
-      },
-      {
-        "budget": "vehicle_and_driver",
-        "component_perimeter": "electrical and battery",
-        "properties": {
-          "attachment": {
-            "kind": "body"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": -0.38,
-            "y": 0.36,
-            "z": 1.35
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                1.2,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                1.2,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                1.2
-              ]
-            ]
-          },
-          "mass_kilograms": 15.0,
-          "name": "electrical_and_battery",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Boot-mounted heavy-duty battery and rally loom",
-            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.1,
-          "inertia_relative_uncertainty": 0.15,
-          "lower_mass_kilograms": 13.0,
-          "rationale": "Electrical system",
-          "upper_mass_kilograms": 17.0
         }
       },
       {
@@ -692,412 +415,437 @@
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "front left upright",
+        "component_perimeter": "driver",
         "properties": {
           "attachment": {
-            "kind": "upright",
-            "wheel": "FrontLeft"
+            "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": -0.32,
+            "y": 0.58,
+            "z": 0.12
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.03,
+                9.0,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                0.02,
+                6.0,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                0.02
+                7.0
               ]
             ]
           },
-          "mass_kilograms": 2.0,
-          "name": "front_left_upright",
+          "mass_kilograms": 78.0,
+          "name": "driver",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort Grp4 strengthened front hub upright"
+            "source": "Driver with helmet/suit and fibreglass bucket seat (LHD configuration)",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 1.8,
-          "rationale": "Hub assembly",
-          "upper_mass_kilograms": 2.2
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.1,
+          "lower_mass_kilograms": 72.0,
+          "rationale": "Driver mass",
+          "upper_mass_kilograms": 84.0
         }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "front right upright",
+        "component_perimeter": "codriver",
         "properties": {
           "attachment": {
-            "kind": "upright",
-            "wheel": "FrontRight"
+            "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0.32,
+            "y": 0.55,
+            "z": 0.22
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.03,
+                9.0,
                 0.0,
                 0.0
               ],
               [
                 0.0,
-                0.02,
+                6.0,
                 0.0
               ],
               [
                 0.0,
                 0.0,
-                0.02
+                7.0
               ]
             ]
           },
-          "mass_kilograms": 2.0,
-          "name": "front_right_upright",
+          "mass_kilograms": 77.0,
+          "name": "codriver",
           "provenance": {
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated",
             "mass_origin": "estimated",
-            "source": "Ford Escort Grp4 strengthened front hub upright"
+            "source": "Co-driver mounted lower and further back with Halda instruments",
+            "center_of_mass_basis": "Local ground-plane coordinates; engineering packaging estimate"
           }
         },
         "rotating_wheel": null,
         "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 1.8,
-          "rationale": "Hub assembly",
-          "upper_mass_kilograms": 2.2
+          "center_uncertainty_metres": 0.08,
+          "inertia_relative_uncertainty": 0.1,
+          "lower_mass_kilograms": 71.0,
+          "rationale": "Co-driver mass",
+          "upper_mass_kilograms": 83.0
         }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "rear left upright",
+        "component_perimeter": "spare_wheels_and_tools",
         "properties": {
+          "name": "spare_wheels_and_tools",
+          "mass_kilograms": 33,
           "attachment": {
-            "kind": "upright",
-            "wheel": "RearLeft"
+            "kind": "body"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0.39,
+            "z": 1.56
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.03,
-                0.0,
-                0.0
+                1.1902,
+                0,
+                0
               ],
               [
-                0.0,
-                0.02,
-                0.0
+                0,
+                2.14858,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.02
+                0,
+                0,
+                1.22457
               ]
             ]
           },
-          "mass_kilograms": 2.0,
-          "name": "rear_left_upright",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "CDI road-car mass calibration",
             "mass_origin": "estimated",
-            "source": "Ford Escort full-floating rear hub assembly"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
           }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 1.8,
-          "rationale": "Hub assembly",
-          "upper_mass_kilograms": 2.2
         }
       },
       {
         "budget": "vehicle_and_driver",
-        "component_perimeter": "rear right upright",
+        "component_perimeter": "wheel_FrontLeft",
         "properties": {
-          "attachment": {
-            "kind": "upright",
-            "wheel": "RearRight"
-          },
-          "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "inertia_about_center_of_mass": {
-            "entries_kilogram_square_metres": [
-              [
-                0.03,
-                0.0,
-                0.0
-              ],
-              [
-                0.0,
-                0.02,
-                0.0
-              ],
-              [
-                0.0,
-                0.0,
-                0.02
-              ]
-            ]
-          },
-          "mass_kilograms": 2.0,
-          "name": "rear_right_upright",
-          "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
-            "mass_origin": "estimated",
-            "source": "Ford Escort full-floating rear hub assembly"
-          }
-        },
-        "rotating_wheel": null,
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.2,
-          "lower_mass_kilograms": 1.8,
-          "rationale": "Hub assembly",
-          "upper_mass_kilograms": 2.2
-        }
-      },
-      {
-        "budget": "rim_and_tire",
-        "component_perimeter": "front left wheel assembly",
-        "properties": {
+          "name": "wheel_FrontLeft",
+          "mass_kilograms": 13,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontLeft"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.85,
-                0.0,
-                0.0
+                0.534,
+                0,
+                0
               ],
               [
-                0.0,
-                0.52,
-                0.0
+                0,
+                0.30062,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.52
+                0,
+                0,
+                0.30062
               ]
             ]
           },
-          "mass_kilograms": 20.0,
-          "name": "wheel_frontleft",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
-            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "FrontLeft",
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 19.0,
-          "rationale": "Wheel assembly",
-          "upper_mass_kilograms": 21.0
-        }
+        "rotating_wheel": "FrontLeft"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "front right wheel assembly",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_FrontRight",
         "properties": {
+          "name": "wheel_FrontRight",
+          "mass_kilograms": 13,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "FrontRight"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.85,
-                0.0,
-                0.0
+                0.534,
+                0,
+                0
               ],
               [
-                0.0,
-                0.52,
-                0.0
+                0,
+                0.30062,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.52
+                0,
+                0,
+                0.30062
               ]
             ]
           },
-          "mass_kilograms": 20.0,
-          "name": "wheel_frontright",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
-            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "FrontRight",
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 19.0,
-          "rationale": "Wheel assembly",
-          "upper_mass_kilograms": 21.0
-        }
+        "rotating_wheel": "FrontRight"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "rear left wheel assembly",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearLeft",
         "properties": {
+          "name": "wheel_RearLeft",
+          "mass_kilograms": 13,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearLeft"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.85,
-                0.0,
-                0.0
+                0.53283,
+                0,
+                0
               ],
               [
-                0.0,
-                0.52,
-                0.0
+                0,
+                0.30341,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.52
+                0,
+                0,
+                0.30341
               ]
             ]
           },
-          "mass_kilograms": 20.0,
-          "name": "wheel_rearleft",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
-            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "RearLeft",
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 19.0,
-          "rationale": "Wheel assembly",
-          "upper_mass_kilograms": 21.0
-        }
+        "rotating_wheel": "RearLeft"
       },
       {
-        "budget": "rim_and_tire",
-        "component_perimeter": "rear right wheel assembly",
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "wheel_RearRight",
         "properties": {
+          "name": "wheel_RearRight",
+          "mass_kilograms": 13,
           "attachment": {
             "kind": "wheel_rotor",
             "wheel": "RearRight"
           },
           "center_of_mass_in_attachment_metres": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": 0,
+            "y": 0,
+            "z": 0
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.85,
-                0.0,
-                0.0
+                0.53283,
+                0,
+                0
               ],
               [
-                0.0,
-                0.52,
-                0.0
+                0,
+                0.30341,
+                0
               ],
               [
-                0.0,
-                0.0,
-                0.52
+                0,
+                0,
+                0.30341
               ]
             ]
           },
-          "mass_kilograms": 20.0,
-          "name": "wheel_rearright",
           "provenance": {
-            "center_of_mass_origin": "estimated",
-            "inertia_origin": "estimated",
+            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
             "mass_origin": "estimated",
-            "source": "Minilite magnesium/alloy wheel with 175/70 R13 reinforced gravel tyre"
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated"
           }
         },
-        "rotating_wheel": "RearRight",
-        "uncertainty": {
-          "center_uncertainty_metres": 0.02,
-          "inertia_relative_uncertainty": 0.1,
-          "lower_mass_kilograms": 19.0,
-          "rationale": "Wheel assembly",
-          "upper_mass_kilograms": 21.0
-        }
+        "rotating_wheel": "RearRight"
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "front_hubs_brakes_and_moving_suspension_share",
+        "properties": {
+          "name": "front_hubs_brakes_and_moving_suspension_share",
+          "mass_kilograms": 30,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": -1.186081
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.4285,
+                0,
+                0
+              ],
+              [
+                0,
+                3.90125,
+                0
+              ],
+              [
+                0,
+                0,
+                3.78525
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          15,
+          15,
+          0,
+          0
+        ]
+      },
+      {
+        "budget": "vehicle_and_driver",
+        "component_perimeter": "rear_live_axle_brakes_and_moving_spring_share",
+        "properties": {
+          "name": "rear_live_axle_brakes_and_moving_spring_share",
+          "mass_kilograms": 62,
+          "attachment": {
+            "kind": "body"
+          },
+          "center_of_mass_in_attachment_metres": {
+            "x": 0,
+            "y": 0.29,
+            "z": 1.186081
+          },
+          "inertia_about_center_of_mass": {
+            "entries_kilogram_square_metres": [
+              [
+                0.88557,
+                0,
+                0
+              ],
+              [
+                0,
+                7.64398,
+                0
+              ],
+              [
+                0,
+                0,
+                7.40425
+              ]
+            ]
+          },
+          "provenance": {
+            "source": "CDI road-car mass calibration",
+            "mass_origin": "estimated",
+            "center_of_mass_origin": "estimated",
+            "inertia_origin": "estimated_box"
+          }
+        },
+        "unsprung_mass_distribution_kg": [
+          0,
+          0,
+          31,
+          31
+        ]
       }
     ],
     "rim_and_tire_mass_kilograms": [
-      20.0,
-      20.0,
-      20.0,
-      20.0
+      13,
+      13,
+      13,
+      13
     ],
     "schema_version": 2,
-    "coordinate_contract": "Body -Z forward, +Y up, nominal ground y=0; upright and wheel centres relative to authored wheel pivots"
+    "coordinate_contract": "Body -Z forward, +Y up, nominal ground y=0; upright and wheel centres relative to authored wheel pivots",
+    "spare_policy": {
+      "mass_component_name": "spare_wheels_and_tools",
+      "tools_mass_kg": 7,
+      "wheel_mass_kg": 13
+    },
+    "calibration": {
+      "source": "https://www.motomobil.com/fileadmin/_2020/prospekte/Prospekte_Escort/Ford_Escort_MK1_Originalprospekt_RS_2000_englisch.pdf",
+      "reference_conditions": "Ford 915 kg curb; estimated 30 kg fuel and axle split.",
+      "road_car_mass_without_fuel_or_tools_kg": 885,
+      "reference_fuel_kg": 30,
+      "reference_front_axle_fraction": 0.54,
+      "estimated_movable_assembly_kg_per_corner_excluding_rotating_wheel": [
+        15,
+        31
+      ],
+      "conditions": "Reference includes one spare; CDI inventory adds crew, tools and a second spare. The fuel domain holds the dynamic fuel load.",
+      "inertia_basis": "Installed component masses and centers are estimates unless the reference notes otherwise. The residual shell tensor uses an equivalent box. The sprung CG height is an engineering target, and wheel positions use the runtime manifest."
+    }
   }
 }

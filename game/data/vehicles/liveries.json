@@ -262,7 +262,10 @@
   "vehicles": {
     "fulvia": {
       "default_livery": "burdeos",
-      "materials": ["Fulvia_BodyPaint_PSX"],
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
+      "materials": ["Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos"],
       "data_map": "res://assets/rally/liveries/fulvia_livery_data.png",
       "effective_res": [512, 512]
     },
@@ -282,7 +285,7 @@
       "default_livery": "azul_frances",
       "materials": ["AlpineA110_Stylized_PSX"],
       "data_map": "res://assets/rally/liveries/rt-alpine-a110_livery_data.png",
-      "effective_res": [1024, 1024]
+      "effective_res": [512, 512]
     },
     "rt-fiat-abarth-1000": {
       "default_livery": "negro",
@@ -307,6 +310,7 @@
       "default_livery": "celeste",
       "baked_ao_only": true,
       "paint_rgb555": false,
+      "dither_cell_scale": 2,
       "materials": ["Stratos_BodyPaint_PSX", "Stratos_FBX_Details_PSX", "Stratos_Glazing_And_Seals"],
       "data_map": "res://assets/rally/liveries/rt-lancia-stratos_livery_data.png",
       "effective_res": [512, 512]

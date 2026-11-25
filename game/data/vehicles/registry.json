@@ -24,7 +24,7 @@
       "Provenance": "OPEN_FORMULA_PROVENANCE.json",
       "SoundBank": "gt3-bank/mx-5",
       "ValidateSoundHashes": false,
-      "DisplayName": "Ford Escort RS2000"
+      "DisplayName": "Ford Escort RS1800"
     },
     "rt-alfa-giulia-gta": {
       "Id": "rt-alfa-giulia-gta",
@@ -144,7 +144,7 @@
       "Provenance": "HISTORICAL_PROVENANCE.json",
       "SoundBank": "engine/rt-porsche-356b-2000gs",
       "ValidateSoundHashes": true,
-      "DisplayName": "Porsche 356B Carrera 2"
+      "DisplayName": "Porsche 356 A 1600 GS Carrera GT"
     },
     "f10070": {
       "Id": "ford_f100_1970",

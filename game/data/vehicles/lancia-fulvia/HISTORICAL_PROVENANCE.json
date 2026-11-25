@@ -43,7 +43,7 @@
   "profile_json_sha256": {
     "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
     "brakes.json": "a0a602784c55364081d7ef1c6b65675bd9fe9675ece14a8ec32c75b865717a7e",
-    "chassis.json": "cda622e36d7f31fe6fe6ad6702387e335eabf1a021296d69dd301ea2ec98e116",
+    "chassis.json": "d2469c77eac5c7159e4c083017d84359f8c8f20d54566202f5a160697c300d90",
     "coupled_world.json": "5eba1457fa8d9d19522eec9a3af879c35fddadba802311a47cc9e04ffe0940b6",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
@@ -52,7 +52,7 @@
     "steering.json": "9e0b0c253cbab537b065c116ded0bd4f49d8edae0955003b72f661a534d156fe",
     "suspension.json": "cbf6b978aaeeb401788a893790185df4d8aafe3ba07963305baa4358d06a7387",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "tires.json": "b1ce83f2b1143ad3bb5ce0d9d3abb1338ac6dcf810c7f9b4b552415f15d6c5d1",
+    "tires.json": "6477ff53321df21c5aaff32b467fe41eeccb13a9b453e3773dacd123d702b56a",
     "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
     "vehicle.json": "e051e6ff1427c0f6b0d67efc3782dd8cfef7fa3272f5d38123ece3cbe37167c6"
   },
@@ -72,5 +72,9 @@
       "z": 0.15
     }
   },
-  "audio_source": "Native car_13.bzf EE/EX engine/exhaust; byte-identical originals plus documented derived coast/lift and generic synthesized gearbox tones."
+  "audio_source": "Native car_13.bzf EE/EX engine/exhaust; byte-identical originals plus documented derived coast/lift and generic synthesized gearbox tones.",
+  "mass_calibration": {
+    "location": "chassis.json:physical_mass_inventory.calibration",
+    "reference": "https://historicdb.fia.com/sites/default/files/car_attachment/1649336401/homologation_form_number_3006_group_3.pdf"
+  }
 }
