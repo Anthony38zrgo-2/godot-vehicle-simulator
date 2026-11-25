@@ -547,6 +547,27 @@
       "provenance": "Porsche 356A 1600GS Carrera GT AC mod: FMOD backfire sample 5 alias; cockpit and bonnet low-frequency dry thump",
       "role": "backfire_cockpit_bonnet",
       "sha256": "9bedeedff982c8fa0fd10fc289747d103efd76414a18b064953c58a241f0fe89"
+    },
+    {
+      "dc_offset": -1.2e-05,
+      "duration_s": 2.571338,
+      "file": "missgear.wav",
+      "loop": true,
+      "loop_end_s": 2.571338,
+      "loop_start_s": 0.0,
+      "loudness_dbfs": -14.52,
+      "peak": 0.707092,
+      "provenance": "user-supplied missgear grind sample; mono PCM16 44.1 kHz, DC/30 Hz HPF, presence EQ (+1.5 dB @ 2.2 kHz), -14.5 LUFS, true-peak limited to -3.0 dBFS, TPDF dither",
+      "role": "gearbox_missgear",
+      "sha256": "50193d6100722a9aa3db79bd47ea073f57da31f9a474de3576d209c7d47b066d",
+      "synthesis": {
+        "category": "gearbox",
+        "source_file": "game/sounds/bank_sources/missgear_source.wav",
+        "source_rate": 44100,
+        "target_rate": 44100,
+        "target_lufs": -14.5,
+        "true_peak_ceiling_dbfs": -3.0
+      }
     }
   ],
   "generator": "commons bank with Rush Rally 3 car-contact collisions (speed-tiered), gear clunks, neutral contact, limiter and underfloor scrape; rolling surfaces moved to sounds/banks/surfaces",

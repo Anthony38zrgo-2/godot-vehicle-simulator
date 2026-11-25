@@ -1901,7 +1901,7 @@ func _field_description(path: String) -> String:
 		"powertrain.final_drive":
 			return "Relación final: valores BAJOS alargan marchas (vel. punta); ALTOS acortan (aceleración)."
 		"powertrain.max_rpm":
-			return "Limitador RPM: bajar el corte reduce consumo y desgaste térmico en tramos largos."
+			return "Limitador RPM: bajar el corte reduce consumo, calor y desgaste mecánico del motor en tramos largos."
 		"garage.cooling":
 			return "Refrigeración: abrir el conducto baja temperatura de agua/aceite a costa de algo de resistencia."
 		"garage.lsd":

@@ -121,6 +121,12 @@ const MAX_TRANSMISSION_SHIFT_DELAY_SECONDS := 1.0
 
 var transmission_damage: float = 0.0
 var _shift_damage_delay_seconds: float = 0.0
+var mechanical_damage_config: Dictionary = {}
+var missgear_active: bool = false
+var missgear_intensity: float = 0.0
+var missgear_event_pending: bool = false
+var last_overrev_ratio: float = 0.0
+var _gearbox_popout_cooldown_s: float = 0.0
 var shift_time_seconds: float = 0.0
 var gear_inertia_shift_seconds: float = 0.0
 var shift_remaining_seconds: float = 0.0
@@ -176,6 +182,14 @@ func configure(domains: Dictionary) -> Dictionary:
 	# Commit atómico: solo se copian locales ya validados. Un error anterior
 	# no muta configuración ni estado (plan §3: recarga inválida conserva todo).
 	transmission_damage = 0.0
+	var damage_doc: Dictionary = domains.get("damage", {})
+	var damage_section: Dictionary = damage_doc.get("damage", damage_doc)
+	mechanical_damage_config = (damage_section.get("mechanical", {}) as Dictionary).duplicate(true)
+	missgear_active = false
+	missgear_intensity = 0.0
+	missgear_event_pending = false
+	last_overrev_ratio = 0.0
+	_gearbox_popout_cooldown_s = 0.0
 	idle_rpm = float(values["idle_rpm"])
 	maximum_rpm = float(values["maximum_rpm"])
 	torque_curve_reference_rpm = maximum_rpm
@@ -1025,6 +1039,12 @@ func set_gear(target_gear: int) -> void:
 	shift_remaining_seconds = clutch_release_seconds + shift_time_seconds + gear_inertia_shift_seconds + clutch_reengage_seconds + _shift_damage_delay_seconds
 
 
+func consume_missgear_event() -> bool:
+	var fired := missgear_event_pending
+	missgear_event_pending = false
+	return fired
+
+
 func reset_shift() -> void:
 	freewheel_active = false
 	freewheel_throttle = 0.0
@@ -1178,6 +1198,7 @@ func advance(
 	carrier_omega_rad_s: float = 0.0,
 ) -> void:
 	var dt := maxf(delta, 0.00001)
+	_gearbox_popout_cooldown_s = maxf(_gearbox_popout_cooldown_s - dt, 0.0)
 	# Decisión única de rueda libre por subpaso con el acelerador del
 	# conductor (plan §1); la integración y el solver consumen este estado.
 	resolve_freewheel(throttle, carrier_omega_rad_s)
@@ -1187,10 +1208,11 @@ func advance(
 	var effective_throttle := _autoblip_command(throttle, thermal_derating, carrier_omega_rad_s, dt)
 	_advance_engine_torque(dt, effective_throttle, thermal_derating)
 	var engine_inertia := maxf(engine_inertia_kg_m2, 0.000001)
+	var mechanical_ceiling_rpm := maxf(torque_curve_reference_rpm, maximum_rpm) * 1.30
 	engine_rpm = clampf(
 		engine_rpm + engine_torque_nm / engine_inertia * dt * 60.0 / TAU,
 		idle_rpm * 0.65 if thermal_derating > 0.0 else 0.0,
-		maximum_rpm * 1.25,
+		mechanical_ceiling_rpm,
 	)
 	# Sin rampa directa de rueda libre (plan §2): la caída de régimen la
 	# gobiernan el par (rozamiento + aporte de ralentí) y la inercia.
@@ -1319,7 +1341,14 @@ func solve_rotation(
 	var spring_inverse := output_inverse + carrier_inverse
 	var implicit_damping := torsional_damping_nms_per_rad + h * torsional_stiffness_nm_per_rad
 	var spring_denominator := 1.0 + h * implicit_damping * spring_inverse
-	var backlash_half_rad := 0.5 * driveline_backlash_rad
+	var mech_cfg := mechanical_damage_config
+	var min_clutch_fac := clampf(float(mech_cfg.get("minimum_clutch_capacity_factor", 0.70)), 0.1, 1.0)
+	var clutch_damage_fac := lerpf(1.0, min_clutch_fac, transmission_damage)
+	var min_sync_fac := clampf(float(mech_cfg.get("minimum_synchronizer_factor", 0.35)), 0.05, 1.0)
+	var sync_damage_fac := lerpf(1.0, min_sync_fac, transmission_damage)
+	var damage_backlash := transmission_damage * maxf(float(mech_cfg.get("maximum_damage_backlash_rad", 0.05)), 0.0)
+	var effective_backlash_rad := driveline_backlash_rad + (damage_backlash if driveline_compliance_enabled else 0.0)
+	var backlash_half_rad := 0.5 * effective_backlash_rad
 	var lash_damping := torsional_damping_nms_per_rad * driveline_backlash_damping_ratio
 	var lash_denominator := 1.0 + h * lash_damping * spring_inverse
 	var initial_carrier := 0.0
@@ -1331,10 +1360,10 @@ func solve_rotation(
 	var gear_impulse := 0.0
 	var clutch_work := 0.0
 	var smooth_clutch := clutch_engagement * clutch_engagement * (3.0 - 2.0 * clutch_engagement)
-	var clutch_capacity := clutch_max_torque_nm * smooth_clutch * h
+	var clutch_capacity := clutch_max_torque_nm * clutch_damage_fac * smooth_clutch * h
 	var nominal_sync_time := maxf(shift_time_seconds + gear_inertia_shift_seconds, 0.02)
 	var sync_overtime := clampf(shift_phase_seconds / nominal_sync_time, 1.0, 4.0) if synchronizing else 1.0
-	var effective_sync_cap := synchronizer_capacity_nm * sync_overtime * h
+	var effective_sync_cap := synchronizer_capacity_nm * sync_damage_fac * sync_overtime * h
 	# Diferencial por eje (plan §4): cada eje usa sus parámetros propios; el
 	# eje no motriz (reparto ~0) queda abierto y open genera bloqueo cero.
 	# B2 revertido temporalmente (decisión v1.6): se mantiene el término de
@@ -1609,14 +1638,101 @@ func solve_rotation(
 	_reaction_initialized = true
 	for i in 4:
 		brake_work[i] = maxf(brake_work[i], 0.0)
+	var shaft_torque := (
+		driveline_torque_nm
+		if driveline_compliance_enabled
+		else (-ratio * gear_impulse / h if connected else 0.0)
+	)
+	var overrev_result := _evaluate_mechanical_overrev_and_missgear(
+		h,
+		spins,
+		weights,
+		ratio,
+		connected,
+		synchronizing,
+		nominal_sync_time,
+		shaft_torque,
+	)
 	return {
 		"brake_work_j": brake_work,
-		"shaft_torque_nm": (
-			driveline_torque_nm
-			if driveline_compliance_enabled
-			else (-ratio * gear_impulse / h if connected else 0.0)
-		),
+		"shaft_torque_nm": shaft_torque,
 		"chassis_reaction_torque_local_nm": chassis_reaction_torque_local_nm,
+		"engine_overrev_damage": float(overrev_result["engine_overrev_damage"]),
+		"transmission_overrev_damage": float(overrev_result["transmission_overrev_damage"]),
+		"missgear_active": missgear_active,
+		"missgear_intensity": missgear_intensity,
+	}
+
+
+func _evaluate_mechanical_overrev_and_missgear(
+	h: float,
+	spins: Array[float],
+	weights: Array[float],
+	ratio: float,
+	connected: bool,
+	synchronizing: bool,
+	nominal_sync_time: float,
+	shaft_torque: float,
+) -> Dictionary:
+	var cfg := mechanical_damage_config
+	var ref_rpm := torque_curve_reference_rpm if torque_curve_reference_rpm > 0.0 else maximum_rpm
+	var overrev_start := clampf(float(cfg.get("overrev_start_fraction", 1.03)), 1.0, 1.5)
+	var overrev_full := maxf(float(cfg.get("overrev_full_fraction", 1.20)), overrev_start + 0.01)
+	var ov_eng_dps := maxf(float(cfg.get("overrev_engine_damage_per_second", 0.15)), 0.0)
+	var ov_trans_dps := maxf(float(cfg.get("overrev_transmission_damage_per_second", 0.18)), 0.0)
+	var sync_ov_dps := maxf(float(cfg.get("sync_overrev_damage_per_second", 0.12)), 0.0)
+	var engine_overrev_delta := 0.0
+	var trans_overrev_delta := 0.0
+	var prev_missgear := missgear_active
+	missgear_active = false
+	missgear_intensity = 0.0
+	last_overrev_ratio = engine_rpm / maxf(ref_rpm, 1.0)
+	var input_shaft_rpm := absf(input_shaft_omega_rad_s) * 60.0 / TAU
+	if synchronizing and ref_rpm > 0.0 and pending_gear != 0:
+		var sync_carrier := 0.0
+		for i in 4:
+			sync_carrier += weights[i] * spins[i]
+		var sync_out := output_shaft_omega_rad_s if driveline_compliance_enabled else sync_carrier
+		var sync_target_omega := ratio * sync_out
+		var sync_target_rpm := absf(sync_target_omega) * 60.0 / TAU
+		var sync_mismatch := absf(input_shaft_omega_rad_s - sync_target_omega)
+		if sync_target_rpm > ref_rpm * overrev_start:
+			var s_ratio := sync_target_rpm / ref_rpm
+			var s_sev := pow(clampf((s_ratio - overrev_start) / (overrev_full - overrev_start), 0.0, 1.5), 1.35)
+			trans_overrev_delta += sync_ov_dps * s_sev * h
+			missgear_active = true
+			missgear_intensity = maxf(missgear_intensity, clampf(0.45 + 0.55 * s_sev, 0.0, 1.0))
+		elif transmission_damage >= 0.35 and sync_mismatch > synchronizer_tolerance_rad_s * 6.0 and shift_phase_seconds >= nominal_sync_time * 0.65:
+			missgear_active = true
+			missgear_intensity = maxf(missgear_intensity, clampf(transmission_damage * 0.75, 0.25, 0.85))
+	var max_ov_sev := 0.0
+	if connected and current_gear != 0 and clutch_engagement > 0.05 and ref_rpm > 0.0:
+		var coupled_rpm := maxf(engine_rpm, input_shaft_rpm)
+		var ov_ratio := coupled_rpm / ref_rpm
+		last_overrev_ratio = maxf(last_overrev_ratio, ov_ratio)
+		if ov_ratio > overrev_start:
+			var ov_sev := pow(clampf((ov_ratio - overrev_start) / (overrev_full - overrev_start), 0.0, 1.5), 1.5)
+			max_ov_sev = ov_sev
+			engine_overrev_delta += ov_eng_dps * ov_sev * h
+			trans_overrev_delta += ov_trans_dps * ov_sev * h
+			if clutch_torque_nm < -10.0 or shaft_torque < -10.0 or ov_sev > 0.15:
+				missgear_active = true
+				missgear_intensity = maxf(missgear_intensity, clampf(0.4 + 0.6 * ov_sev, 0.0, 1.0))
+	if transmission_damage >= 0.75 and current_gear > 0 and _gearbox_popout_cooldown_s <= 0.0 and shift_phase == "idle" and (driveline_backlash_impact_rad_s > 6.0 or max_ov_sev > 0.35):
+		current_gear = 0
+		invalidate_freewheel()
+		reset_shift()
+		_gearbox_popout_cooldown_s = 1.2
+		missgear_active = true
+		missgear_intensity = 1.0
+		missgear_event_pending = true
+	if trans_overrev_delta > 0.0:
+		transmission_damage = clampf(transmission_damage + trans_overrev_delta, 0.0, 1.0)
+	if missgear_active and not prev_missgear:
+		missgear_event_pending = true
+	return {
+		"engine_overrev_damage": engine_overrev_delta,
+		"transmission_overrev_damage": trans_overrev_delta,
 	}
 
 

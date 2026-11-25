@@ -14,6 +14,7 @@ var generation: int = -1
 var previous: Dictionary = {}
 var backfire_cooldown: float = 0.0
 var limiter_cooldown: float = 0.0
+var missgear_cooldown: float = 0.0
 var lift_armed: bool = false
 var mix: Dictionary = {}
 
@@ -26,6 +27,7 @@ func accept(packet: Dictionary) -> Dictionary:
 		previous = {}
 		backfire_cooldown = 0.0
 		limiter_cooldown = 0.0
+		missgear_cooldown = 0.0
 		lift_armed = false
 	if int(packet.sequence) <= sequence:
 		return mix
@@ -33,6 +35,7 @@ func accept(packet: Dictionary) -> Dictionary:
 	var dt := float(packet.dt_s)
 	backfire_cooldown = maxf(0.0, backfire_cooldown - dt)
 	limiter_cooldown = maxf(0.0, limiter_cooldown - dt)
+	missgear_cooldown = maxf(0.0, missgear_cooldown - dt)
 	var rpm := float(packet.rpm)
 	var throttle := clampf(float(packet.throttle), 0.0, 1.0)
 	var maximum := maxf(float(packet.rpm_max), 1.0)
@@ -83,6 +86,12 @@ func accept(packet: Dictionary) -> Dictionary:
 		if limiter and float(previous.rpm) <= float(previous.rpm_max) and limiter_cooldown <= 0.0:
 			events.append("limiter")
 			limiter_cooldown = 0.25
+	var missgear := bool(packet.get("missgear", false))
+	var missgear_intensity := clampf(float(packet.get("missgear_intensity", 0.0)), 0.0, 1.0)
+	var missgear_edge := bool(packet.get("missgear_event", false)) or (missgear and not bool(previous.get("missgear", false)))
+	if missgear_edge and missgear_cooldown <= 0.0:
+		events.append("missgear")
+		missgear_cooldown = 0.35
 	mix = {
 		"rpm": rpm,
 		"throttle": throttle,
@@ -94,6 +103,8 @@ func accept(packet: Dictionary) -> Dictionary:
 		"clutch_engagement": clutch_engagement,
 		"limiter": limiter,
 		"limiter_cut": limiter_cut,
+		"missgear": missgear,
+		"missgear_intensity": missgear_intensity,
 		"rpm_max": maximum,
 		"clutch_open": clutch_open,
 		"events": events,

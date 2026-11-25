@@ -43,6 +43,7 @@ RUNTIME_LOOPS = {
     "damaged_rin",
     "bad_brakes",
     "impact_scrape",  # 2.6 s one-shot played through continuous_player()
+    "missgear",
 }
 
 # Per-file runtime gain from game/data/rally/audio_mixer.json (linear volume)

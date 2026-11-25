@@ -106,5 +106,22 @@
     "bonnet_attenuation": 0.35,
     "cold_temperature_c": 75.0,
     "hot_temperature_c": 95.0
+  },
+  "mechanical": {
+    "high_rpm_start_fraction": 0.92,
+    "high_rpm_grace_seconds": 3.0,
+    "high_rpm_damage_per_second": 0.004,
+    "high_rpm_recovery_per_second": 1.5,
+    "high_rpm_exponent": 2.0,
+    "cold_oil_wear_multiplier": 2.0,
+    "low_oil_pressure_multiplier": 2.5,
+    "overrev_start_fraction": 1.03,
+    "overrev_full_fraction": 1.2,
+    "overrev_engine_damage_per_second": 0.15,
+    "overrev_transmission_damage_per_second": 0.18,
+    "sync_overrev_damage_per_second": 0.12,
+    "minimum_synchronizer_factor": 0.35,
+    "minimum_clutch_capacity_factor": 0.7,
+    "maximum_damage_backlash_rad": 0.05
   }
 }

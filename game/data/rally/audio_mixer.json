@@ -54,6 +54,13 @@
         "lpf_hz": 6000.0
       }
     },
+    "missgear": {
+      "volume": 0.72,
+      "filter": {
+        "hpf_hz": 120.0,
+        "lpf_hz": 5500.0
+      }
+    },
     "impact_scrape": {
       "volume": 0.55,
       "pan": 0.0,

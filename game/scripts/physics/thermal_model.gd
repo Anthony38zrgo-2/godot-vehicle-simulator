@@ -44,9 +44,11 @@ var compound_catalog: Dictionary = {}
 var radiator_damage: float = 0.0
 var engine_damage: float = 0.0
 var overheat_exposure_s: float = 0.0
+var high_rpm_exposure_s: float = 0.0
 # Política de temperatura de salida del compuesto (tire_rules del evento).
 var start_temperature_policy: String = "selected_compound_optimum"
 var damage_config: Dictionary = {}
+var mechanical_damage_config: Dictionary = {}
 var oil_pressure_bar: float = 0.0
 var oil_healthy_pressure_bar: float = 0.0
 
@@ -54,6 +56,8 @@ var oil_healthy_pressure_bar: float = 0.0
 func configure(domains: Dictionary) -> Dictionary:
 	var damage_doc: Dictionary = domains.get("damage", {})
 	damage_config = (damage_doc.get("damage", damage_doc) as Dictionary).duplicate(true)
+	mechanical_damage_config = (damage_config.get("mechanical", {}) as Dictionary).duplicate(true)
+	high_rpm_exposure_s = 0.0
 	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
 	engine_config = powertrain.get("thermal", {}).duplicate(true)
 	if engine_config.is_empty():
@@ -237,6 +241,7 @@ func reset_for_stage(domains: Dictionary) -> void:
 	water_temperature_c = maxf(water_temperature_c - cold_pull, ambient_temperature_c)
 	oil_temperature_c = maxf(oil_temperature_c - cold_pull, ambient_temperature_c)
 	overheat_exposure_s = 0.0
+	high_rpm_exposure_s = 0.0
 	oil_pressure_bar = 0.0
 	oil_healthy_pressure_bar = 0.0
 	fuel_remaining_litres = clampf(remaining_fuel, 0.0, fuel_capacity_litres)
@@ -343,7 +348,7 @@ func oil_pressure_state() -> String:
 	return "ok"
 
 
-func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float, irradiance_w_m2: float = 0.0) -> void:
+func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float, air_density_kg_m3: float, irradiance_w_m2: float = 0.0, design_max_rpm: float = 0.0, peak_rpm: float = -1.0) -> void:
 	# Un solo radiador de agua enfria todo el motor. El aceite solo cede calor
 	# al bloque, al agua (oil_to_water) y, muy poco, al aire por el carter.
 	var water_duct: Dictionary = engine_config.get("water_cooling_duct", {})
@@ -357,6 +362,10 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	var engine_omega := maxf(rpm, 0.0) * TAU / 60.0
 	var mechanical_power := maxf(torque_nm * engine_omega, 0.0)
 	var generated_heat := float(engine_config.get("idle_heat_generation_watts", 0.0)) + mechanical_power * float(engine_config.get("heat_generation_per_mechanical_power", 0.0))
+	if design_max_rpm > 0.0:
+		var rpm_norm := clampf(maxf(rpm, 0.0) / design_max_rpm, 0.0, 1.35)
+		var friction_heat := float(engine_config.get("rpm_friction_heat_watts", 2200.0)) * rpm_norm * rpm_norm
+		generated_heat += friction_heat
 	# Calor solar del vano motor: pequeño frente al idle, pero sube el techo
 	# en paradas al sol (Kenia) y desaparece con cielo frío/nublado (Suecia).
 	generated_heat += float(engine_config.get("solar_heat_gain_w_per_kw_m2", 0.0)) * maxf(irradiance_w_m2, 0.0) / 1000.0
@@ -391,7 +400,41 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	else:
 		overheat_exposure_s = maxf(overheat_exposure_s - recovery_rate * dt, 0.0)
 
+	if design_max_rpm > 0.0:
+		_advance_high_rpm_wear(dt, rpm, peak_rpm, design_max_rpm)
+
 	_update_torque_derating()
+
+
+func _advance_high_rpm_wear(dt: float, rpm: float, peak_rpm: float, design_max_rpm: float) -> void:
+	var cfg := mechanical_damage_config
+	var start_frac := clampf(float(cfg.get("high_rpm_start_fraction", 0.92)), 0.5, 0.999)
+	var grace_s := maxf(float(cfg.get("high_rpm_grace_seconds", 3.0)), 0.0)
+	var max_rate := maxf(float(cfg.get("high_rpm_damage_per_second", 0.004)), 0.0)
+	var rec_rate := maxf(float(cfg.get("high_rpm_recovery_per_second", 1.5)), 0.0)
+	var exponent := maxf(float(cfg.get("high_rpm_exponent", 2.0)), 0.1)
+	var effective_rpm := maxf(rpm, peak_rpm) if peak_rpm > 0.0 else maxf(rpm, 0.0)
+	var rpm_ratio := maxf(rpm, 0.0) / design_max_rpm
+	var spike_ratio := effective_rpm / design_max_rpm
+	if rpm_ratio >= start_frac or spike_ratio >= 1.0:
+		high_rpm_exposure_s += dt
+		if high_rpm_exposure_s > grace_s or spike_ratio >= float(cfg.get("overrev_start_fraction", 1.03)):
+			var band := maxf(1.0 - start_frac, 0.01)
+			var excess := clampf((maxf(rpm_ratio, spike_ratio) - start_frac) / band, 0.0, 1.5)
+			var severity := pow(excess, exponent)
+			var oil_opt_min := float(engine_config.get("oil_optimal_minimum_temperature_celsius", 80.0))
+			var cold_mult := maxf(float(cfg.get("cold_oil_wear_multiplier", 2.0)), 1.0)
+			var cold_severity := clampf((oil_opt_min - oil_temperature_c) / 40.0, 0.0, 1.0)
+			var oil_mult := lerpf(1.0, cold_mult, cold_severity)
+			var low_press_mult := maxf(float(cfg.get("low_oil_pressure_multiplier", 2.5)), 1.0)
+			var p_state := oil_pressure_state()
+			if p_state == "critical":
+				oil_mult *= low_press_mult
+			elif p_state == "low":
+				oil_mult *= lerpf(1.0, low_press_mult, 0.5)
+			engine_damage = clampf(engine_damage + max_rate * severity * oil_mult * dt, 0.0, 1.0)
+	else:
+		high_rpm_exposure_s = maxf(high_rpm_exposure_s - rec_rate * dt, 0.0)
 
 
 func advance_tire(index: int, friction_power_w: float, braking_power_w: float, speed_m_s: float, delta: float, camber_rad: float = 0.0, radial_damping_power_w: float = 0.0, longitudinal_slip_speed_m_s: float = 0.0, surface_name: String = "Gravel", normal_load_n: float = 0.0, lateral_force_n: float = 0.0, wheel_omega_rad_s: float = 0.0, longitudinal_speed_m_s: float = 0.0, wheel_radius_m: float = 0.28, water_mm: float = 0.0, snow_mm: float = 0.0, ground_c: float = 9999.0, air_c: float = 9999.0, advance_pressure_leak: bool = true, irradiance_w_m2: float = 0.0) -> void:
@@ -743,6 +786,7 @@ func get_engine_thermal_state_snapshot() -> Dictionary:
 		"radiator_damage_percent": radiator_damage * 100.0,
 		"engine_damage_percent": engine_damage * 100.0,
 		"overheat_exposure_s": overheat_exposure_s,
+		"high_rpm_exposure_s": high_rpm_exposure_s,
 	}
 
 

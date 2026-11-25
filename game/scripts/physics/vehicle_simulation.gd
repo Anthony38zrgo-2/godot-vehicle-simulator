@@ -75,6 +75,7 @@ var _tire_thermal_elapsed := 0.0
 var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var _engine_thermal_elapsed := 0.0
 var _engine_thermal_inputs := Vector4.ZERO
+var _engine_thermal_peak_rpm := 0.0
 var _fuel_elapsed := 0.0
 var _fuel_work_j := 0.0
 var last_step_seconds: float = 0.0
@@ -1899,6 +1900,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			brake_torques,
 			spin_damping,
 		)
+		var engine_overrev_dmg := float(rotation.get("engine_overrev_damage", 0.0))
+		if engine_overrev_dmg > 0.0:
+			thermal_model.apply_damage(0.0, engine_overrev_dmg)
+		_engine_thermal_peak_rpm = maxf(_engine_thermal_peak_rpm, powertrain_model.engine_rpm)
 		var brake_work: Array = rotation.brake_work_j
 		for i in 4:
 			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * h, TAU)
@@ -1930,9 +1935,19 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	_engine_thermal_inputs += Vector4(rpm, torque, velocity.length(), aero_model.air_density_kg_m3) * dt
 	if _engine_thermal_elapsed + 1.0e-6 >= ENGINE_THERMAL_PERIOD:
 		var average := _engine_thermal_inputs / _engine_thermal_elapsed
-		thermal_model.advance_engine(_engine_thermal_elapsed, average.x, average.y, average.z, average.w, _ambient_irradiance_w_m2)
+		thermal_model.advance_engine(
+			_engine_thermal_elapsed,
+			average.x,
+			average.y,
+			average.z,
+			average.w,
+			_ambient_irradiance_w_m2,
+			powertrain_model.torque_curve_reference_rpm,
+			_engine_thermal_peak_rpm,
+		)
 		_engine_thermal_elapsed = 0.0
 		_engine_thermal_inputs = Vector4.ZERO
+		_engine_thermal_peak_rpm = 0.0
 
 	_fuel_elapsed += dt
 	_fuel_work_j += maxf(torque * rpm * TAU / 60.0, 0.0) * dt
@@ -2010,8 +2025,12 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"dt_s": dt,
 		"rpm": powertrain_model.engine_rpm,
 		"rpm_max": powertrain_model.maximum_rpm,
+		"rpm_design_max": powertrain_model.torque_curve_reference_rpm,
 		"rpm_idle": powertrain_model.idle_rpm,
 		"gear": powertrain_model.current_gear,
+		"missgear": powertrain_model.missgear_active,
+		"missgear_intensity": powertrain_model.missgear_intensity,
+		"missgear_event": powertrain_model.consume_missgear_event(),
 		"torque_nm": powertrain_model.engine_torque_nm,
 		"autoblip_active": powertrain_model.autoblip_active,
 		"autoblip_target_rpm": powertrain_model.autoblip_target_rpm,
@@ -2062,6 +2081,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"engine": thermal_model.engine_damage,
 			"transmission": powertrain_model.transmission_damage,
 			"overheat_exposure_s": thermal_model.overheat_exposure_s,
+			"high_rpm_exposure_s": thermal_model.high_rpm_exposure_s,
 		},
 		"fuel": thermal_model.get_fuel_state_snapshot(),
 		"wheels": wheels,

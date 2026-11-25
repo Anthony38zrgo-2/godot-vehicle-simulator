@@ -35,7 +35,7 @@ BANK = ROOT / "game" / "sounds" / "banks" / "commons"
 OUT = ROOT / "tmp" / "commons_clean_v1"
 
 # Runtime loops (see rally_vehicle_audio.gd) and the one-shot played as a loop.
-RUNTIME_LOOPS = {"limiter_cut_loop", "flat_tyre_mono", "damaged_rin", "bad_brakes"}
+RUNTIME_LOOPS = {"limiter_cut_loop", "flat_tyre_mono", "damaged_rin", "bad_brakes", "missgear"}
 LOOPED_ONE_SHOTS = {"impact_scrape"}
 
 # Samples the runtime picks between for the same event: they must match in level.

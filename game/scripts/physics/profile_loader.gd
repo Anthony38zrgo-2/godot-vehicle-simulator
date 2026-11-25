@@ -319,6 +319,43 @@ static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
 		return _failure("damage.steam damage thresholds must be finite.")
 	if not (0.0 <= s_start and s_start < s_cont and s_cont < s_heavy and s_heavy <= 1.0):
 		return _failure("damage.steam: 0.0 <= start_damage < continuous_damage < heavy_damage <= 1.0 required.")
+
+	if doc.has("mechanical"):
+		var mech: Variant = doc.get("mechanical", null)
+		if not mech is Dictionary:
+			return _failure("damage.mechanical must be a dictionary.")
+		var m := mech as Dictionary
+		var hr_start := float(m.get("high_rpm_start_fraction", 0.92))
+		var hr_grace := float(m.get("high_rpm_grace_seconds", 3.0))
+		var hr_rate := float(m.get("high_rpm_damage_per_second", 0.004))
+		var hr_rec := float(m.get("high_rpm_recovery_per_second", 1.5))
+		var hr_exp := float(m.get("high_rpm_exponent", 2.0))
+		if not is_finite(hr_start) or hr_start <= 0.5 or hr_start >= 1.0:
+			return _failure("damage.mechanical.high_rpm_start_fraction must be in (0.5, 1.0).")
+		if not is_finite(hr_grace) or hr_grace < 0.0 or not is_finite(hr_rate) or hr_rate < 0.0 or not is_finite(hr_rec) or hr_rec < 0.0:
+			return _failure("damage.mechanical high-RPM rates and grace must be finite and >= 0.0.")
+		if not is_finite(hr_exp) or hr_exp <= 0.0:
+			return _failure("damage.mechanical.high_rpm_exponent must be positive.")
+		var ov_start := float(m.get("overrev_start_fraction", 1.03))
+		var ov_full := float(m.get("overrev_full_fraction", 1.20))
+		var ov_eng := float(m.get("overrev_engine_damage_per_second", 0.15))
+		var ov_trans := float(m.get("overrev_transmission_damage_per_second", 0.18))
+		var sync_ov := float(m.get("sync_overrev_damage_per_second", 0.12))
+		if not is_finite(ov_start) or ov_start < 1.0 or not is_finite(ov_full) or ov_full <= ov_start:
+			return _failure("damage.mechanical: 1.0 <= overrev_start_fraction < overrev_full_fraction required.")
+		if not is_finite(ov_eng) or ov_eng < 0.0 or not is_finite(ov_trans) or ov_trans < 0.0 or not is_finite(sync_ov) or sync_ov < 0.0:
+			return _failure("damage.mechanical overrev damage rates must be finite and >= 0.0.")
+		var min_sync := float(m.get("minimum_synchronizer_factor", 0.35))
+		var min_clutch := float(m.get("minimum_clutch_capacity_factor", 0.70))
+		var max_lash := float(m.get("maximum_damage_backlash_rad", 0.05))
+		var cold_oil := float(m.get("cold_oil_wear_multiplier", 2.0))
+		var low_press := float(m.get("low_oil_pressure_multiplier", 2.5))
+		if not is_finite(min_sync) or min_sync <= 0.0 or min_sync > 1.0:
+			return _failure("damage.mechanical.minimum_synchronizer_factor must be in (0.0, 1.0].")
+		if not is_finite(min_clutch) or min_clutch <= 0.0 or min_clutch > 1.0:
+			return _failure("damage.mechanical.minimum_clutch_capacity_factor must be in (0.0, 1.0].")
+		if not is_finite(max_lash) or max_lash < 0.0 or not is_finite(cold_oil) or cold_oil < 1.0 or not is_finite(low_press) or low_press < 1.0:
+			return _failure("damage.mechanical multipliers and backlash offset out of range.")
 	return {"ok": true}
 
 

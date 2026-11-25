@@ -84,6 +84,8 @@ const BACKFIRE_RETRIGGER_SECONDS := 1.0
 const LIMITER_SAMPLE_PATH := "res://sounds/banks/commons/limiter_cut_loop.wav"
 const LIMITER_NATIVE_RPM := 18000.0
 const LIMITER_GAIN := 0.0448917 # -14 dB relative to the original 0.225.
+const MISSGEAR_SAMPLE_PATH := "res://sounds/banks/commons/missgear.wav"
+const MISSGEAR_GAIN := 0.28
 const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
 const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
@@ -230,6 +232,8 @@ var wheel_damage_players: Array[Array] = []
 var surface_players: Dictionary = { }
 var scrape_player: AudioStreamPlayer3D
 var limiter_player: AudioStreamPlayer3D
+var missgear_player: AudioStreamPlayer3D
+var missgear_hold_s: float = 0.0
 var whine_players: Array[AudioStreamPlayer3D] = []
 var whine_level_gains: Array[float] = []
 var coast_engine_voices: Array[SampleVoice] = []
@@ -528,6 +532,7 @@ func _physics_process(delta: float) -> void:
 	downshift_cooldown = maxf(0.0, downshift_cooldown - delta)
 	backfire_event_cooldown = maxf(0.0, backfire_event_cooldown - delta)
 	exhaust_crackle_s = maxf(0.0, exhaust_crackle_s - delta)
+	missgear_hold_s = maxf(0.0, missgear_hold_s - delta)
 
 	var packet := vehicle.get_presentation_snapshot()
 	if packet.is_empty():
@@ -550,6 +555,10 @@ func _physics_process(delta: float) -> void:
 				play_downshift_event(target_gear)
 			elif event == "backfire":
 				play_backfire_event(target_gear)
+			elif event == "missgear":
+				missgear_hold_s = maxf(missgear_hold_s, 0.55)
+		if bool(acoustic.get("missgear", false)):
+			missgear_hold_s = maxf(missgear_hold_s, 0.18)
 		accepted_generation = int(packet.generation)
 		accepted_sequence = int(packet.sequence)
 
@@ -621,6 +630,7 @@ func _update_continuous_audio(packet: Dictionary, delta: float, wheel_samples: A
 		update_layer(engine_voices, smoothed_revolutions, smoothing)
 		update_layer(exhaust_voices, smoothed_revolutions, smoothing)
 	update_limiter_audio(smoothing)
+	update_missgear_audio(smoothing)
 
 	update_surface_audio(packet, delta)
 	update_wheel_damage_audio(packet.get("wheels", []), delta, wheel_samples)
@@ -659,6 +669,8 @@ func update_cockpit_audio(delta: float) -> void:
 		players.append(rain_ambience_player)
 	if neutral_player != null:
 		players.append(neutral_player)
+	if missgear_player != null:
+		players.append(missgear_player)
 	for player: AudioStreamPlayer3D in players:
 		var bus := AudioServer.get_bus_index(player.bus)
 		if bus < 0:
@@ -1149,6 +1161,7 @@ func play_impact(_other_body: Node) -> void:
 func build_auxiliary_audio() -> void:
 	scrape_player = continuous_player("res://sounds/banks/commons/impact_scrape.wav")
 	limiter_player = build_limiter_player()
+	missgear_player = build_missgear_player()
 	build_event_voice_pool(
 		backfire_players,
 		backfire_paths,
@@ -1300,6 +1313,50 @@ func update_limiter_audio(smoothing: float) -> void:
 	)
 	limiter_player.pitch_scale = clampf(rpm / LIMITER_NATIVE_RPM, 0.30, 1.0)
 	limiter_player.stream_paused = limiter_player.volume_linear < 0.00001
+
+
+func build_missgear_player() -> AudioStreamPlayer3D:
+	var stream := load_looping_stream(MISSGEAR_SAMPLE_PATH)
+	if stream == null:
+		return null
+	var player := AudioStreamPlayer3D.new()
+	player.stream = stream
+	player.position = SHIFT_EVENT_POSITION
+	routing.route(player, "missgear")
+	player.volume_linear = 0.0
+	player.unit_size = 12.0
+	player.max_distance = 80.0
+	player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+	add_child(player)
+	player.play()
+	player.stream_paused = true
+	return player
+
+
+func update_missgear_audio(smoothing: float) -> void:
+	if missgear_player == null:
+		return
+	var active := bool(acoustic.get("missgear", false)) or missgear_hold_s > 0.0
+	var intensity := clampf(float(acoustic.get("missgear_intensity", 0.0)), 0.0, 1.0)
+	if active and intensity < 0.55:
+		intensity = 0.55
+	var view_gain := lerpf(1.0, 0.85, cockpit_audio_blend)
+	var target := (intensity * MISSGEAR_GAIN * view_gain * camera_distance_compensation(missgear_player)) if active else 0.0
+	var was_silent := missgear_player.stream_paused or missgear_player.volume_linear < 0.0001
+	missgear_player.volume_linear = lerpf(missgear_player.volume_linear, target, smoothing)
+	var rpm_max := maxf(float(acoustic.get("rpm_max", 7200.0)), 1000.0)
+	var rpm_ratio := clampf(float(acoustic.get("rpm", 1000.0)) / rpm_max, 0.5, 1.3)
+	missgear_player.pitch_scale = clampf(lerpf(0.86, 1.24, (rpm_ratio - 0.5) / 0.8), 0.78, 1.32)
+	var silent := missgear_player.volume_linear < 0.0001 and not active
+	if silent:
+		missgear_player.stream_paused = true
+	else:
+		if was_silent:
+			missgear_player.stream_paused = false
+			missgear_player.play(0.0)
+		else:
+			missgear_player.stream_paused = false
 
 
 func continuous_player(path: String) -> AudioStreamPlayer3D:
