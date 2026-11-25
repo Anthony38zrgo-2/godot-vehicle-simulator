@@ -39,8 +39,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "1befe750b8742fd32e095bab2bf0ff0ba208fa3fcebbb78e9a5ffcfaa4019c83",
-    "size_bytes": 2685520,
+    "sha256": "d63381b2b2dee4cfa3f302dac4aaebbf75846f15cf04c88ab6c64fa090dc00e3",
+    "size_bytes": 2662816,
     "exported_nodes": [
       "Saab96_Exterior"
     ]
@@ -48,23 +48,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "c4af130fbe2a18785928da63786abc5035edd23c13c26ddeabdee93c64c3df9e",
-      "size_bytes": 227740
+      "sha256": "3db97a6d9620c61b0528432212956afb921fb66f6959410047cc999d4815d6f8",
+      "size_bytes": 251816
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "ebde96b1def8ee9bddc2bd6e27e3c8f614c0d258af3834a538828227ed4a9e80",
-      "size_bytes": 216088
+      "sha256": "04b1ccf4fec34d208e80ef56141a60a3da58a584bf91c4f45b10e40a212d9c4a",
+      "size_bytes": 240132
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "f650e3ac1c223cf2a4d1d110592b266311a49c29c2f2b168c27893a28e695f85",
-      "size_bytes": 231228
+      "sha256": "1c2983b846ccb1e50af6222292df5e13c9c3a6f20eb884ec11418822707b5374",
+      "size_bytes": 251216
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "7a23b111f52eba84460501eb555cca9cd61f6f0b10ee01c226beabb6c892b2dd",
-      "size_bytes": 222948
+      "sha256": "9381f210764cd2b5b5ba128a302ade73f27d32eea4d9baee7027c7f22a668017",
+      "size_bytes": 247096
     }
   },
   "wheel_pivots": {
