@@ -275,15 +275,9 @@ SPECS: list[dict] = [
         "flat_body": True,
     },
     # --- Group B: Dedicated Paint material on shared atlas (1 car) ---
-    {
-        "car_key": "f10070",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "cdi_stylized" / "f10070" / "f10070_lightmap.png",
-        "albedo_raw": REPO / "game" / "assets" / "rally" / "ford_f100_1970" / "chassis_pickup_body_ps1.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    road_exterior_spec(
+        "f10070", ASSETS_ROOT / "cdi_stylized" / "f10070" / "revision_livery", "f250"
+    ),
     # --- Group C: Single/Combined Exterior Atlas (6 cars) ---
     road_exterior_spec("rt-alpine-a110", ASSETS_ROOT / "cdi_fbx_psx" / "rt-alpine-a110" / "revision_blender", "alpine"),
     {

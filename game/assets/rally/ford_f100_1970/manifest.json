@@ -70,8 +70,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "48db17ff64eebe7947625dff8d702071f82d5f2641e8b3bb103042bfc2232752",
-    "size_bytes": 395300
+    "sha256": "68dc28af02532dafbde74093c57be14c3be61b084eb769fe104032bf8b6fc541",
+    "size_bytes": 400788
   },
   "collision": {
     "path": "ford_f100_1970_collision.json",

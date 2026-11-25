@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="1_vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/ford_f100_1970/chassis.glb" id="2_chassis"]
@@ -9,6 +9,10 @@
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_audio.gd" id="7_audio"]
 [ext_resource type="Script" path="res://scripts/rally/rally_vehicle_vfx.gd" id="8_vfx"]
 [ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="9_toon"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/f10070_glass_reflection.png" id="glass_mask"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/f10070_livery_data.png" id="paint_mask"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_f100"]
 friction = 0.9
@@ -31,6 +35,12 @@ cockpit_camera_enabled = false
 [node name="Chassis" parent="." instance=ExtResource("2_chassis")]
 script = ExtResource("9_toon")
 pixel_albedo = true
+banded_paint_materials = PackedStringArray("Paint")
+banded_paint_mask = ExtResource("paint_mask")
+banded_paint_height_range = Vector2(0.40, 1.24)
+banded_paint_end_drop = Vector2(0.045, 0.025)
+glass_reflection_material = "Glass"
+glass_reflection_mask = ExtResource("glass_mask")
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("8_vfx")

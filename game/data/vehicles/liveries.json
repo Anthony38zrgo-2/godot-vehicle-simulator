@@ -344,6 +344,9 @@
     },
     "f10070": {
       "default_livery": "verde_oliva",
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
       "materials": ["Paint"],
       "data_map": "res://assets/rally/liveries/f10070_livery_data.png",
       "effective_res": [512, 512]
