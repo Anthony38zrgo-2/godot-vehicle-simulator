@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/chassis.glb" id="chassis"]
@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/wheel_rear_left.glb" id="rear_left"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-porsche-356b-2000gs/wheel_rear_right.glb" id="rear_right"]
 [ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="toon_stylized"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/rt-porsche-356b-2000gs_livery_data.png" id="paint_mask"]
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/rt-porsche-356b-2000gs_glass_reflection.png" id="glass_mask"]
 
 [sub_resource type="PhysicsMaterial" id="surface"]
 friction = 0.35
@@ -31,6 +34,12 @@ cockpit_camera_enabled = false
 [node name="Chassis" parent="." instance=ExtResource("chassis")]
 script = ExtResource("toon_stylized")
 pixel_albedo = true
+banded_paint_materials = PackedStringArray("Porsche356_BodyPaint_PSX")
+banded_paint_mask = ExtResource("paint_mask")
+banded_paint_height_range = Vector2(0.30, 0.92)
+banded_paint_end_drop = Vector2(0.045, 0.025)
+glass_reflection_materials = PackedStringArray("Porsche356_Details_PSX")
+glass_reflection_mask = ExtResource("glass_mask")
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("vfx")
