@@ -25,9 +25,11 @@
       "finish": "stylized_shadow_dither_psx_v1",
       "fit": "Exterior fitted to existing runtime chassis bounds with piecewise-linear longitudinal axle alignment and hub height preserved; wheel meshes match original manifest radius and width.",
       "cockpit_enabled": false,
-      "visual_damage_enabled": false
+      "visual_damage_enabled": false,
+      "atlas": "D:\\RallyManiacAssets\\cdi_stylized\\rt-mini-cooper-s\\revision_livery\\variantes_psx\\mini_rojo_brillante.png",
+      "livery_edit": "Removed hood graphics, door race numbers and rear GB oval"
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "rgb888_4x4_texel_dither_ao"
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -37,8 +39,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "ba78996ea4fd044f30f1c48e1f7bcde6c247978ded9cdb36cdf31313574bbdc5",
-    "size_bytes": 229992,
+    "sha256": "13e7b4e4eb625b7619886b6cb723fad21cde476e24c8108ef959e8b6eeb4bda4",
+    "size_bytes": 285436,
     "exported_nodes": [
       "MiniCooperExterior"
     ]

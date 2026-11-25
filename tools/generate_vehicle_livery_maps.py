@@ -96,9 +96,7 @@ def _porsche911_mask(size: tuple[int, int]) -> np.ndarray:
 
 
 def _mini_cooper_mask(src_path: Path, size: tuple[int, int]) -> np.ndarray:
-    """Select only the red body paint on Mini Cooper S, preserving the white roof,
-    #2 door roundels, Rallye Monte Carlo hood plaque, 10NZ/GB plates, grille,
-    headlights, taillights, glass, wheels, and underbody."""
+    """Select pre-cleanup Mini body paint while protecting the original details."""
     with Image.open(src_path) as im:
         rgb = im.convert("RGB")
         if rgb.size != size:
@@ -298,15 +296,9 @@ SPECS: list[dict] = [
         "id_map": ASSETS_ROOT / "lotus_cortina_mk1_psx" / "cortina_chassis_part_mask.png",
         "flat_body": True,
     },
-    {
-        "car_key": "rt-mini-cooper-s",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "cdi_stylized" / "rt-mini-cooper-s" / "rt-mini-cooper-s_lightmap.png",
-        "albedo_raw": REPO / "game" / "assets" / "rally" / "rt" / "rt-mini-cooper-s" / "chassis_mini_cooper_S_alta.png",
-        "mask_mode": "mini_cooper",
-        "flat_body": False,
-    },
+    road_exterior_spec(
+        "rt-mini-cooper-s", ASSETS_ROOT / "cdi_stylized" / "rt-mini-cooper-s" / "revision_livery", "mini"
+    ),
     {
         "car_key": "mustang67",
         "size": (1024, 1024),

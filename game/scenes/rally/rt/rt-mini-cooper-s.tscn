@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/rally/rally_escort_vehicle.gd" id="vehicle"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-mini-cooper-s/chassis.glb" id="chassis"]
@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-mini-cooper-s/wheel_rear_left.glb" id="rear_left"]
 [ext_resource type="PackedScene" path="res://assets/rally/rt/rt-mini-cooper-s/wheel_rear_right.glb" id="rear_right"]
 [ext_resource type="Script" path="res://scripts/rally/rally_toon_surface.gd" id="toon_stylized"]
+
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/rt-mini-cooper-s_livery_data.png" id="paint_mask"]
+[ext_resource type="Texture2D" path="res://assets/rally/liveries/rt-mini-cooper-s_glass_reflection.png" id="glass_mask"]
 
 [sub_resource type="PhysicsMaterial" id="surface"]
 friction = 0.35
@@ -31,6 +34,12 @@ cockpit_camera_enabled = false
 [node name="Chassis" parent="." instance=ExtResource("chassis")]
 script = ExtResource("toon_stylized")
 pixel_albedo = true
+banded_paint_materials = PackedStringArray("MiniCooperExterior_Mat")
+banded_paint_mask = ExtResource("paint_mask")
+banded_paint_height_range = Vector2(0.27, 0.87)
+banded_paint_end_drop = Vector2(0.035, 0.025)
+glass_reflection_material = "MiniCooperExterior_Mat"
+glass_reflection_mask = ExtResource("glass_mask")
 
 [node name="VehicleVFX" type="Node3D" parent="."]
 script = ExtResource("vfx")

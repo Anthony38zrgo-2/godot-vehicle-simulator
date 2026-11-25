@@ -308,6 +308,9 @@
     },
     "rt-mini-cooper-s": {
       "default_livery": "rojo_brillante",
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
       "materials": ["MiniCooperExterior_Mat"],
       "data_map": "res://assets/rally/liveries/rt-mini-cooper-s_livery_data.png",
       "effective_res": [512, 512]
