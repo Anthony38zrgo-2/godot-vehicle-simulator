@@ -271,7 +271,10 @@
     },
     "escort": {
       "default_livery": "marfil",
-      "materials": ["EscortMk1_BodyPaint_PSX"],
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
+      "materials": ["EscortMk1_BodyPaint_PSX", "Escort_Cristales_y_Juntas"],
       "data_map": "res://assets/rally/liveries/escort_livery_data.png",
       "effective_res": [512, 512]
     },

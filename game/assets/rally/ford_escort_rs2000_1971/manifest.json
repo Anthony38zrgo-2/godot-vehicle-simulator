@@ -18,10 +18,10 @@
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Ford Escort RS1800.fbx",
       "fbx_sha256": "08e102bfc40fec1bacc23779250b4ac661d3293a7015f53a812465a8bdd90ad8",
       "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\ford_escort_RS1800_alta.png",
-      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
-      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\escort\\exterior_psx.blend",
-      "finish": "stylized_shadow_dither_psx_v1",
-      "atlas": "Road paint and fixed details without rally graphics",
+      "generator": "D:\\RallyManiacAssets\\tools\\install_escort_road_exterior.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\escort\\revision_blender\\escort_rs1800_rehecho_blender.blend",
+      "finish": "rgb888_4x4_texel_dither_ao",
+      "atlas": "Escort RS1800 road atlas with six glazing masks, RGB888",
       "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
     }
   },
@@ -42,10 +42,10 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "4db81e915af7302a3b61443c275160526e41c526b2021f577d5118f63d05a60b",
-    "size_bytes": 233732,
+    "sha256": "36311db80d26e88591bd5360c80267ed2441c7a434ce9ce143caea491402625b",
+    "size_bytes": 208096,
     "exported_nodes": [
-      "EscortMk1_Exterior"
+      "Ford_Escort_RS1800_Carroceria"
     ]
   },
   "wheels": {

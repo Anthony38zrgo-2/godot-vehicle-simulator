@@ -201,18 +201,22 @@ def fbx_exterior_spec(car_key: str, work: Path) -> dict:
     }
 
 
-def fulvia_road_spec(work: Path) -> dict:
-    spec = fbx_exterior_spec("fulvia", work)
-    spec["lightmap"] = work / "fulvia_lightmap_pulido.png"
-    spec["albedo_raw"] = work / "fulvia_atlas_neutro.png"
-    spec["id_map"] = work / "fulvia_mascara_pintura_id.png"
+def road_exterior_spec(car_key: str, work: Path) -> dict:
+    spec = fbx_exterior_spec(car_key, work)
+    spec["lightmap"] = work / f"{car_key}_lightmap_pulido.png"
+    spec["albedo_raw"] = work / f"{car_key}_atlas_neutro.png"
+    spec["id_map"] = work / f"{car_key}_mascara_pintura_id.png"
     return spec
+
+
+def fulvia_road_spec(work: Path) -> dict:
+    return road_exterior_spec("fulvia", work)
 
 
 SPECS: list[dict] = [
     # --- Group A: Dedicated *_BodyPaint_PSX material (10 cars) ---
     fulvia_road_spec(ASSETS_ROOT / "cdi_fbx_psx" / "fulvia" / "revision_blender"),
-    fbx_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort"),
+    road_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort" / "revision_blender"),
     {
         "car_key": "rt-alfa-giulia-gta",
         "size": (1024, 1024),
