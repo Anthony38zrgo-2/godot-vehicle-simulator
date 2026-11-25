@@ -356,7 +356,10 @@
     },
     "fiat131": {
       "default_livery": "azul_oscuro",
-      "materials": ["Fiat131_BodyPaint_PSX"],
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
+      "materials": ["Fiat131_BodyPaint_PSX", "Fiat131_Cristales_y_Juntas"],
       "data_map": "res://assets/rally/liveries/fiat131_livery_data.png",
       "effective_res": [512, 512]
     },

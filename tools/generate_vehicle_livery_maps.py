@@ -264,7 +264,7 @@ SPECS: list[dict] = [
         "mask_mode": "full",
         "flat_body": True,
     },
-    fbx_exterior_spec("fiat131", ASSETS_ROOT / "cdi_fbx_psx" / "fiat131"),
+    road_exterior_spec("fiat131", ASSETS_ROOT / "cdi_fbx_psx" / "fiat131" / "revision_blender"),
     {
         "car_key": "gaz24",
         "size": (512, 512),

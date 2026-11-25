@@ -18,10 +18,10 @@
       "fbx": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Fiat 131.fbx",
       "fbx_sha256": "9d0b638ab14c92b8c1924c6900408e1dbaf797588dc0e79cb283b8956cd6e982",
       "texture": "D:\\RallyManiacAssets\\cars\\1965-2002-rally-cars\\source\\Cars\\Texture2D\\fiat_131_abarth_alta.png",
-      "generator": "D:\\RallyManiacAssets\\tools\\build_cdi_fbx_exteriors.py",
-      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fiat131\\exterior_psx.blend",
-      "finish": "stylized_shadow_dither_psx_v1",
-      "atlas": "Road paint and fixed details without rally graphics",
+      "generator": "D:\\RallyManiacAssets\\tools\\install_fiat131_road_exterior.py",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fiat131\\revision_blender\\fiat_131_abarth_gr4_rehecho_blender.blend",
+      "finish": "rgb888_4x4_texel_dither_ao",
+      "atlas": "Fiat 131 street atlas, original arch flares and six reflective panes",
       "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
     }
   },
@@ -42,10 +42,10 @@
   },
   "chassis": {
     "path": "fiat_131_abarth_chassis.glb",
-    "sha256": "ef40ce69f7c3c6cedf59a08e62035d0688884b6806ef780b93d7b9548bf5767e",
-    "size_bytes": 266096,
+    "sha256": "905cd6db5a238bf2dc5d4306b602a557500182074ac8e7eab0920b4de21824e8",
+    "size_bytes": 215560,
     "exported_nodes": [
-      "Fiat131Abarth_Exterior"
+      "Fiat_131_Abarth_Gr4_Carroceria"
     ]
   },
   "wheels": {
