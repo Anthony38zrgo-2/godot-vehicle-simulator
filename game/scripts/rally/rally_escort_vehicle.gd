@@ -978,7 +978,7 @@ func set_controls_enabled(enabled: bool) -> void:
 
 func get_setup_snapshot() -> Dictionary:
 	ensure_tire_inventory()
-	var values := simulation.filter_garage_values(RallySetupCatalog.defaults(simulation.domains))
+	var values := simulation.current_setup_values()
 	values["fuel.initial_kg"] = simulation.thermal_model.fuel_remaining_litres * simulation.mass_model.fuel_density_kg_per_litre
 	values["strategy.spare_wheels"] = tire_inventory.spares.size()
 	for i in 4:

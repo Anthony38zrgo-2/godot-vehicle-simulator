@@ -3,7 +3,7 @@
     "contact_shape_count": 1,
     "contact_query_type": "ShapeCast3D",
     "front": {
-      "spring_architecture": "equivalent_unverified",
+      "spring_architecture": "double_wishbone_transverse_leaf",
       "spring_can_unseat": true,
       "arb_ratio": 0.16,
       "bump_damp_multiplier": 1.0,
@@ -16,7 +16,7 @@
       "spring_length": 0.28,
       "toe": 0.001745,
       "toe_gain_rad_per_m": 0.01,
-      "ride_frequency_hz": 1.7
+      "ride_frequency_hz": 1.45
     },
     "geometry_physical": {
       "front": {
@@ -39,8 +39,8 @@
         "spring_free_length_m": 0.28,
         "spring_installed_length_m": 0.24,
         "spring_rate_N_per_m": 28000.0,
-        "wheel_bump_m": 0.22,
-        "wheel_droop_m": 0.18
+        "wheel_bump_m": 0.165,
+        "wheel_droop_m": 0.135
       },
       "front_arb": {
         "mode": "legacy_ratio",
@@ -66,8 +66,8 @@
         "spring_free_length_m": 0.28,
         "spring_installed_length_m": 0.24,
         "spring_rate_N_per_m": 24000.0,
-        "wheel_bump_m": 0.22,
-        "wheel_droop_m": 0.18
+        "wheel_bump_m": 0.165,
+        "wheel_droop_m": 0.135
       },
       "rear_arb": {
         "mode": "legacy_ratio",
@@ -91,7 +91,7 @@
       "spring_length": 0.28,
       "toe": 0.0,
       "toe_gain_rad_per_m": 0.0,
-      "ride_frequency_hz": 1.8
+      "ride_frequency_hz": 1.70
     },
     "tri_ray_spacing_ratio": 0.35,
     "use_authored_wheel_centers": true,

@@ -3,7 +3,6 @@ extends RefCounted
 
 const PROFILE_PATH := "res://data/vehicles/ford-escort-rs2000/vehicle.json"
 # preload directo: no depende de la caché global de clases del editor.
-const RallyDifferentialCatalog = preload("res://scripts/rally/rally_differential_catalog.gd")
 const TIRE_THERMAL_PERIOD := 1.0 / 30.0
 const ENGINE_THERMAL_PERIOD := 1.0 / 20.0
 const FUEL_PERIOD := 1.0 / 10.0
@@ -83,8 +82,10 @@ var published_state: Dictionary = { }
 var publication_sequence: int = 0
 var simulation_time_s: float = 0.0
 var session_generation: int = 0
-var setup_design_axles: Array[Dictionary] = []
-var setup_design_values: Dictionary = { }
+var setup_design_values: Dictionary = {}
+var setup_values: Dictionary = {}
+var setup_design_suspension: Dictionary = {}
+var setup_design_powertrain: Dictionary = {}
 var wheelbase_m: float = 2.41
 var ackermann: float = 0.18
 var maximum_steering_angle_rad: float = 0.5585053606381855
@@ -144,17 +145,7 @@ var _water_wheel_positions: PackedVector3Array = PackedVector3Array()
 # filtrado temporal sigue haciendo falta para evitar retraso duplicado.
 var tandem_cam_enabled := false
 var tandem_cam_patch_scale := 1.0
-# v1 presets de diferencial: perfil activo y preset aplicado.
-# El perfil activo nunca se toma de un payload: solo de configure().
-const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
-const LEGACY_DIFFERENTIAL_PATHS: Array[String] = [
-	"powertrain.differential.preload_nm",
-	"powertrain.differential.power_ramp_angle_deg",
-	"powertrain.differential.coast_ramp_angle_deg",
-	"powertrain.differential.clutches",
-]
 var active_profile_id: String = ""
-var active_differential_preset_id: String = ""
 
 
 func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH) -> Dictionary:
@@ -256,10 +247,18 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 		"automatic_transmission": bool(powertrain_model.automatic_transmission),
 	}
 	active_profile_id = str(loaded.get("profile_id", ""))
-	_apply_default_differential_preset()
-	setup_design_values = filter_garage_values(RallySetupCatalog.defaults(domains))
-	_capture_setup_design()
+	setup_design_suspension = domains.get("suspension", {}).get("suspension", {}).duplicate(true)
+	setup_design_powertrain = domains.get("powertrain", {}).get("powertrain", {}).duplicate(true)
+	for axle_index in 2:
+		var axle := "front" if axle_index == 0 else "rear"
+		setup_design_suspension[axle]["ride_frequency_hz"] = suspension_model.axle_parameters[axle_index * 2].ride_frequency_hz
+	setup_design_values = RallySetupCatalog.defaults(domains)
+	setup_design_values["powertrain.max_rpm"] = powertrain_model.maximum_rpm
+	setup_design_values["brakes.front_brake_bias"] = brake_model.front_brake_bias
+	setup_design_values["fuel.initial_kg"] = mass_model.fuel_initial_kg
+	setup_values = setup_design_values.duplicate()
 	set_compound(active_compound_id)
+	_apply_setup_pressures(setup_values)
 	return {
 		"ok": true,
 		"profile_id": str(loaded.get("profile_id", "")),
@@ -496,11 +495,10 @@ func adjust_live_tire_pressure(delta_kpa: float) -> void:
 	var reference_temp := float(pressure.get("reference_temperature_c", 25.0))
 	for i in 4:
 		var key: String = ["FL", "FR", "RL", "RR"][i]
-		var field := RallySetupCatalog.field_for_path("tires.pressure.cold_kpa_gauge." + key)
 		var next_kpa := clampf(
 			float(cold.get(key, 180.0)) + delta_kpa,
-			float(field.min),
-			float(field.max),
+			RallySetupCatalog.PRESSURE_MIN,
+			RallySetupCatalog.PRESSURE_MAX,
 		)
 		cold[key] = next_kpa
 		# Función común §1: conserva gas, pérdida y fuga; solo cambia la
@@ -515,148 +513,24 @@ func active_differential_profile() -> String:
 	return str(profile.get("vehicle_identifier", ""))
 
 
-## Modo dual de diferencial (v1):
-## historic = presets de catálogo (solo si el perfil está cubierto);
-## modern (defecto) = LSD autoblocante moderno totalmente configurable.
-func is_historic_differential() -> bool:
-	if RallyDifferentialCatalog.differential_mode() != RallyDifferentialCatalog.MODE_HISTORIC:
-		return false
-	return not RallyDifferentialCatalog.list_for_profile(active_differential_profile()).is_empty()
-
-
-## Conjunto de valores apto para garaje/snapshots/fábrica según el modo:
-## historic cubierto = preset + sin números libres; resto = números + sin preset.
-func filter_garage_values(values: Dictionary) -> Dictionary:
-	var out := values.duplicate(true)
-	if is_historic_differential():
-		for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
-			out.erase(legacy_path)
-		out[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
-	else:
-		out.erase(DIFFERENTIAL_PRESET_PATH)
-	return out
-
-
-func _base_differential_mu() -> Dictionary:
-	return {
-		"power": float(powertrain_model.base_differential_power_ratio),
-		"coast": float(powertrain_model.base_differential_coast_ratio),
-	}
-
-
-func _sync_differential_to_domains(target_domains: Dictionary, resolved: Dictionary) -> void:
-	var powertrain: Dictionary = (target_domains.get("powertrain", {}) as Dictionary).get("powertrain", {})
-	var differential: Dictionary = powertrain.get("differential", {})
-	differential["preset_id"] = str(resolved.get("preset_id", ""))
-	differential["type"] = str(resolved.get("type", "clutch_lsd"))
-	differential["preload_nm"] = float(resolved.get("preload_nm", 0.0))
-	differential["power_ramp_angle_deg"] = float(resolved.get("power_ramp_deg", 45.0))
-	differential["coast_ramp_angle_deg"] = float(resolved.get("coast_ramp_deg", 45.0))
-	differential["clutches"] = float(resolved.get("active_friction_surfaces", 4))
-	differential["clutch_friction_coefficient"] = float(resolved.get("friction_mu_power", 0.0))
-	differential["coast_friction_coefficient"] = float(resolved.get("friction_mu_coast", 0.0))
-	powertrain["differential"] = differential
-	(target_domains.get("powertrain", {}) as Dictionary)["powertrain"] = powertrain
-
-
-func _apply_default_differential_preset() -> void:
-	if not is_historic_differential():
-		return
-	var pid := active_differential_profile()
-	if pid.is_empty():
-		return
-	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
-	var differential: Dictionary = powertrain.get("differential", {})
-	var configured_id := str(differential.get("preset_id", ""))
-	var wanted := configured_id
-	if wanted.is_empty() or not RallyDifferentialCatalog.is_allowed(pid, wanted):
-		wanted = RallyDifferentialCatalog.default_for_profile(pid)
-	if wanted.is_empty():
-		return
-	var resolved := RallyDifferentialCatalog.resolve(pid, wanted, _base_differential_mu())
-	if not bool(resolved.get("ok", false)):
-		push_warning("Diferencial por defecto no resoluble: " + str(resolved.get("error", "")))
-		return
-	_sync_differential_to_domains(domains, resolved)
-	var runtime := powertrain_model.apply_differential_preset(resolved)
-	if bool(runtime.get("ok", false)):
-		active_differential_preset_id = wanted
+func current_setup_values() -> Dictionary:
+	var values := setup_values.duplicate()
+	var cold: Dictionary = domains.get("tires", {}).get("tires", {}).get("pressure", {}).get("cold_kpa_gauge", {})
+	values["garage.front_pressure"] = RallySetupCatalog.axle_pressure(cold, "F")
+	values["garage.rear_pressure"] = RallySetupCatalog.axle_pressure(cold, "R")
+	return values
 
 
 func apply_setup_values(values: Dictionary) -> Dictionary:
-	# Modo dual v1: historic = presets de catálogo (validación estricta);
-	# modern (defecto) = LSD autoblocante moderno libre (números directos).
-	# El perfil activo nunca sale del payload.
-	var historic := is_historic_differential()
-	var pid := active_differential_profile()
-	if historic:
-		for legacy_path in LEGACY_DIFFERENTIAL_PATHS:
-			if values.has(legacy_path):
-				return {
-					"ok": false,
-					"error": "Reglaje de diferencial antiguo incompatible: use el preset " + DIFFERENTIAL_PRESET_PATH + " o restaure fábrica.",
-				}
-	var incoming := values.duplicate(true)
-	var requested_preset: Variant = null
-	if historic and incoming.has(DIFFERENTIAL_PRESET_PATH):
-		var requested: Variant = incoming[DIFFERENTIAL_PRESET_PATH]
-		if not requested is String or (requested as String).is_empty():
-			return {
-				"ok": false,
-				"error": "preset_id inválido.",
-			}
-		requested_preset = incoming[DIFFERENTIAL_PRESET_PATH]
-	incoming.erase(DIFFERENTIAL_PRESET_PATH)
-	var validation := RallySetupCatalog.validate(incoming)
+	var validation := RallySetupCatalog.validate(values, setup_design_values, setup_design_suspension)
 	if not bool(validation.get("ok", false)):
 		return validation
-	var effective_values: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
-	effective_values["fuel.initial_kg"] = minf(
-		float(effective_values.get("fuel.initial_kg", 0.0)),
-		mass_model.fuel_capacity_kg,
+	var effective_values: Dictionary = validation.values
+	effective_values["fuel.initial_kg"] = clampf(
+		float(effective_values["fuel.initial_kg"]), 0.0, mass_model.fuel_capacity_kg
 	)
-	# Resolver preset (solicitado > activo > defecto) sin mutar estado.
-	var resolved_preset: Dictionary = {}
-	if historic:
-		var wanted := ""
-		if requested_preset is String and not (requested_preset as String).is_empty():
-			wanted = str(requested_preset)
-		elif not active_differential_preset_id.is_empty():
-			wanted = active_differential_preset_id
-		else:
-			wanted = RallyDifferentialCatalog.default_for_profile(pid)
-		if wanted.is_empty():
-			return {"ok": false, "error": "Sin preset de diferencial por defecto para: " + pid}
-		if requested_preset is String and not (requested_preset as String).is_empty():
-			if not RallyDifferentialCatalog.is_allowed(pid, wanted):
-				return {"ok": false, "error": "Preset no permitido para este vehículo: " + wanted}
-			if not RallyDifferentialCatalog.is_enabled(pid, wanted):
-				return {"ok": false, "error": "Preset deshabilitado pendiente de calibración: " + wanted}
-		resolved_preset = RallyDifferentialCatalog.resolve(pid, wanted, _base_differential_mu())
-		if not bool(resolved_preset.get("ok", false)):
-			return resolved_preset
-	# Staging atómico (§4): aplicar numérico + diferencial sobre copia y
-	# validar el runtime ANTES de publicar domains. apply_differential_preset
-	# valida antes de mutar, así que un rechazo deja domains, preset activo
-	# y solver intactos. Solo tras superar los pasos que devuelven error se
-	# publican domains, ID activo y valores aceptados.
-	var staging := domains.duplicate(true)
-	var applied := RallySetupCatalog.apply(staging, effective_values)
-	if not bool(applied.get("ok", false)):
-		return applied
-	if historic:
-		_sync_differential_to_domains(staging, resolved_preset)
-		var runtime := powertrain_model.apply_differential_preset(resolved_preset)
-		if not bool(runtime.get("ok", false)):
-			return runtime
-	# Commit: a partir de aquí el runtime se sincroniza desde staging.
-	domains = staging
-	if historic:
-		active_differential_preset_id = str(resolved_preset.get("preset_id", ""))
-		effective_values[DIFFERENTIAL_PRESET_PATH] = active_differential_preset_id
-	else:
-		# Modern: sin preset activo; el solver usa los números libres.
-		active_differential_preset_id = ""
+	RallySetupCatalog.apply(domains, effective_values)
+	setup_values = effective_values.duplicate()
 	var fuel: Dictionary = domains.get("fuel", { }).get("fuel", { })
 	var fuel_kg := clampf(
 		float(fuel.get("initial_kg", mass_model.fuel_initial_kg)),
@@ -672,39 +546,34 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		0.000001,
 	)
 	var suspension: Dictionary = domains.get("suspension", { }).get("suspension", { })
-	var physical: Dictionary = suspension.get("geometry_physical", { })
+	var stock_geometry: Dictionary = setup_design_suspension.get("geometry_physical", {})
+	var suspension_index := int(effective_values["garage.suspension"]) - 1
+	var spring_factor: float = RallySetupCatalog.SPRING_FACTORS[suspension_index]
+	var damping_factor := lerpf(1.05, 0.95, suspension_index / 4.0)
+	var stop_factor := lerpf(1.10, 0.90, suspension_index / 4.0)
+	var height_delta := (suspension_index - 2) * 0.006
 	for axle_index in 2:
 		var axle := "front" if axle_index == 0 else "rear"
 		var trim: Dictionary = suspension.get(axle, { })
-		var design: Dictionary = setup_design_axles[axle_index]
-		var stop_base := maxf(float(design.get("stop_multiplier", 1.0)), 0.000001)
-		var stop_multiplier := float(trim.get("bump_stop_multiplier", stop_base)) / stop_base
-		var bump_stop_mult := float(design.get("physical_bump_stop_multiplier", 1.0)) * stop_multiplier
+		var stock: Dictionary = setup_design_suspension[axle]
+		var stock_elements: Dictionary = stock_geometry.get(axle, {})
+		var bump_stop_mult := float(stock_elements.get("bump_stop_mult", 1.0)) * stop_factor
 		for wheel_index in ([0, 1] if axle_index == 0 else [2, 3]):
 			var parameters: Dictionary = suspension_model.axle_parameters[wheel_index]
 			parameters.camber = float(trim.get("camber", 0.0))
 			parameters.toe = float(trim.get("toe", 0.0))
-			# Precarga (§3): el offset desplaza el neutro sin cambiar la masa
-			# de referencia ni la frecuencia vigente; conserva equilibrio
-			# total y longitudinal. Registrar la decisión antes de cambiar
-			# perfiles o fuerzas y comprobar frecuencias dentro de tolerancia.
-			var current_rest := float(trim.get("spring_length", 0.3)) * float(
-				trim.get("resting_ratio", 0.35)
+			# Positive travel compresses the spring and lowers the chassis.
+			parameters.rest_compression_offset = clampf(
+				-height_delta, -float(parameters.droop_m) * 0.25, float(parameters.bump_m) * 0.25
 			)
-			parameters.rest_compression_offset = current_rest - float(
-				design.get("rest_compression", current_rest)
-			)
-			# Cálculo compartido §6: misma precedencia de frecuencia
-			# declarada y misma masa de referencia ya calibrada que en
-			# configure(). Geometría y joints quedan fuera.
 			var reference_mass := float(parameters.frequency_reference_mass_kg)
-			var frequency := float(trim.get("ride_frequency_hz", parameters.ride_frequency_hz))
+			var frequency := float(stock.ride_frequency_hz) * sqrt(spring_factor)
 			var rates := VehicleSuspensionModel.corner_rates(
 				reference_mass,
 				frequency,
-				float(trim.get("damping_ratio", 0.65)),
-				float(trim.get("bump_damp_multiplier", 1.0)),
-				float(trim.get("rebound_damp_multiplier", 1.0)),
+				float(stock.get("damping_ratio", 0.65)),
+				float(stock.get("bump_damp_multiplier", 1.0)) * damping_factor,
+				float(stock.get("rebound_damp_multiplier", 1.0)),
 				bump_stop_mult
 			)
 			parameters.ride_frequency_hz = frequency
@@ -713,16 +582,18 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 			parameters.rebound_damping = float(rates["rebound_damping"])
 			parameters.bump_stop_stiffness = float(rates["bump_stop_stiffness"])
 			suspension_model.axle_parameters[wheel_index] = parameters
-		var arb: Dictionary = physical.get(axle + "_arb", { })
+		var stock_bar: Dictionary = stock_geometry.get(axle + "_arb", {})
+		var stock_ratio := float(stock_bar.get("ratio", 0.0))
+		var arb_index := int(effective_values["garage." + axle + "_arb"]) - 1
+		var target_ratio := stock_ratio * float(RallySetupCatalog.ARB_FACTORS[arb_index])
+		if stock_ratio <= 0.0:
+			target_ratio = maxf(2.0 - arb_index, 0.0) * 0.05
 		var spring_rate := float(suspension_model.axle_parameters[axle_index * 2].spring_rate)
+		var stiffness := VehicleSuspensionModel.arb_stiffness_n_per_m(spring_rate / spring_factor, target_ratio)
 		if axle_index == 0:
-			suspension_model.front_arb_stiffness_n_per_m = VehicleSuspensionModel.arb_stiffness_n_per_m(
-				spring_rate, float(arb.get("ratio", 0.0))
-			)
+			suspension_model.front_arb_stiffness_n_per_m = stiffness
 		else:
-			suspension_model.rear_arb_stiffness_n_per_m = VehicleSuspensionModel.arb_stiffness_n_per_m(
-				spring_rate, float(arb.get("ratio", 0.0))
-			)
+			suspension_model.rear_arb_stiffness_n_per_m = stiffness
 	var brakes: Dictionary = domains.get("brakes", { }).get("brakes", { })
 	var thermal_brakes: Dictionary = brakes.get("thermal", {})
 	for key in ["front_duct", "rear_duct"]:
@@ -733,11 +604,21 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		brakes.get("max_brake_torque", brake_model.maximum_brake_torque_nm)
 	)
 	var powertrain: Dictionary = domains.get("powertrain", { }).get("powertrain", { })
-	var differential: Dictionary = powertrain.get("differential", { })
-	powertrain_model.maximum_rpm = float(powertrain.get("max_rpm", powertrain_model.maximum_rpm))
+	powertrain_model.maximum_rpm = float(effective_values["powertrain.max_rpm"])
+	var stock_thermal: Dictionary = setup_design_powertrain.get("thermal", {})
+	var duct: Dictionary = stock_thermal.get("water_cooling_duct", {})
+	if not duct.is_empty():
+		duct = duct.duplicate()
+		var opening := int(effective_values["garage.cooling"])
+		if opening > 0:
+			duct["opening"] = opening * 0.25
+		thermal_model.engine_config["water_cooling_duct"] = duct
 	powertrain_model.final_drive_gravel = float(powertrain.get("final_drive_gravel", powertrain_model.final_drive_gravel))
 	powertrain_model.final_drive_tarmac = float(powertrain.get("final_drive_tarmac", powertrain_model.final_drive_tarmac))
-	var _preset := str(powertrain.get("final_drive_preset", ""))
+	var _preset := str(setup_design_powertrain.get("final_drive_preset", ""))
+	if not is_equal_approx(float(effective_values["powertrain.final_drive"]), float(setup_design_values["powertrain.final_drive"])):
+		_preset = ""
+	powertrain_model.final_drive_preset = _preset
 	if _preset == "gravel" and powertrain_model.final_drive_gravel > 0.0:
 		powertrain_model.final_drive_ratio = powertrain_model.final_drive_gravel
 	elif _preset == "tarmac" and powertrain_model.final_drive_tarmac > 0.0:
@@ -758,14 +639,10 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		powertrain_model.maximum_forward_gear = powertrain_model.gear_ratios.size()
 	if powertrain.has("reverse_ratio"):
 		powertrain_model.reverse_ratio = -absf(float(powertrain.get("reverse_ratio", powertrain_model.reverse_ratio)))
-	# Sincronía de diferenciales (hallazgo 3): en AWD cada eje se alimenta
-	# de su bloque (differential_front/rear); en FWD/RWD el bloque histórico
-	# alimenta el espejo y el eje motriz. Los bloques llegan validados del
-	# perfil o acotados del garaje; uno inválido conserva los valores en curso.
 	powertrain_model.sync_setup_differentials(
-		differential,
-		powertrain.get("differential_front", null),
-		powertrain.get("differential_rear", null)
+		_setup_differential("differential", effective_values),
+		_setup_differential("differential_front", effective_values),
+		_setup_differential("differential_rear", effective_values)
 	)
 	powertrain_model.engine_rpm = minf(
 		powertrain_model.engine_rpm,
@@ -777,6 +654,12 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	)
 	var aero: Dictionary = domains.get("aerodynamics", { }).get("aero", { })
 	aero_model.aero_model = aero.get("model", { }).duplicate(true)
+	_apply_setup_pressures(effective_values)
+	return {"ok": true, "values": effective_values}
+
+
+func _apply_setup_pressures(values: Dictionary) -> void:
+	RallySetupCatalog.apply_pressures(domains, values)
 	var pressure: Dictionary = domains.get("tires", { }).get("tires", { }).get("pressure", { })
 	var cold_pressures: Dictionary = pressure.get("cold_kpa_gauge", { })
 	var temperature_reference := float(pressure.get("reference_temperature_c", 25.0))
@@ -786,29 +669,35 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		# Función común §1: actualiza la referencia en frío y refleja la
 		# pérdida existente en la misma llamada; conserva gas y fuga.
 		thermal_model.set_pressure_reference(wheel_index, cold_bar, temperature_reference)
-	return { "ok": true, "values": effective_values }
 
 
-func _capture_setup_design() -> void:
-	setup_design_axles.clear()
-	var suspension: Dictionary = domains.get("suspension", { }).get("suspension", { })
-	var physical: Dictionary = suspension.get("geometry_physical", { })
-	for axle in ["front", "rear"]:
-		var elements: Dictionary = physical.get(axle, { })
-		var trim: Dictionary = suspension.get(axle, { })
-		setup_design_axles.append(
-			{
-				"bump_damping": float(elements.get("damper_bump_Ns_per_m", 0.0)),
-				"rebound_damping": float(elements.get("damper_rebound_Ns_per_m", 0.0)),
-				"physical_bump_stop_multiplier": float(elements.get("bump_stop_mult", 1.0)),
-				"damping_ratio": float(trim.get("damping_ratio", 1.0)),
-				"bump_multiplier": float(trim.get("bump_damp_multiplier", 1.0)),
-				"rebound_multiplier": float(trim.get("rebound_damp_multiplier", 1.0)),
-				"stop_multiplier": float(trim.get("bump_stop_multiplier", 1.0)),
-				"rest_compression": float(trim.get("spring_length", 0.3))
-				* float(trim.get("resting_ratio", 0.35)),
-			}
-		)
+func _setup_differential(block: String, values: Dictionary) -> Variant:
+	if block != "differential" and not setup_design_powertrain.has(block):
+		return null
+	var stock: Dictionary = setup_design_powertrain.get(block, {})
+	var differential := stock.duplicate()
+	var prefix := RallySetupCatalog.DIFFERENTIAL_PREFIX
+	var adjustable := bool(values["garage.lsd"])
+	var stock_type := str(stock.get("type", "clutch_lsd"))
+	var stock_open := stock_type == "open"
+	differential["type"] = stock_type
+	if not adjustable:
+		differential["type"] = "open"
+		if not stock_open:
+			differential["preset_id"] = ""
+		return differential
+	if stock_open:
+		differential["type"] = "clutch_lsd"
+		differential["preload_nm"] = 15.0
+		differential["clutch_friction_coefficient"] = 0.10
+		differential["coast_friction_coefficient"] = 0.10
+		differential["ramp_gain"] = 0.16
+	for key in ["clutches", "power_ramp_angle_deg", "coast_ramp_angle_deg"]:
+		var path: String = prefix + key
+		if stock_open or not is_equal_approx(float(values[path]), float(setup_design_values[path])):
+			differential[key] = values[path]
+			differential["preset_id"] = ""
+	return differential
 
 
 func bind_wheel_visuals(pivots: Array[Node3D], visuals: Array[Node3D]) -> void:
@@ -2185,7 +2074,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		},
 		"aids_available": assistance_available.duplicate(),
 		"differential": {
-			"preset_id": active_differential_preset_id,
+			"preset_id": powertrain_model.differential_preset_id,
 			"profile_id": active_differential_profile(),
 			"type": powertrain_model.differential_type,
 			"diff_speed_rad_s": powertrain_model.last_diff_speed_rad_s,

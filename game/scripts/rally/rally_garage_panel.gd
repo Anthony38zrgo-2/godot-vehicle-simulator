@@ -81,66 +81,17 @@ const PANEL := Rect2(24.0, 100.0, 1232.0, 586.0)
 const PAGE_TOP := 156.0
 const PAGE_BOTTOM := 674.0
 
-const BRAKE_DUCT_PATHS := ["brakes.thermal.front_duct.opening", "brakes.thermal.rear_duct.opening"]
-const QUICK_PATHS: Array[String] = [
-	"balance",
-	"brakes.front_brake_bias",
-	"height",
-	"powertrain.final_drive",
-]
-const SUSPENSION_PATHS: Array[String] = [
-	"suspension.front.ride_frequency_hz",
-	"suspension.front.resting_ratio",
-	"suspension.front.damping_ratio",
-	"suspension.front.bump_damp_multiplier",
-	"suspension.front.rebound_damp_multiplier",
-	"suspension.front.bump_stop_multiplier",
-	"suspension.rear.ride_frequency_hz",
-	"suspension.rear.resting_ratio",
-	"suspension.rear.damping_ratio",
-	"suspension.rear.bump_damp_multiplier",
-	"suspension.rear.rebound_damp_multiplier",
-	"suspension.rear.bump_stop_multiplier",
-	"suspension.geometry_physical.front_arb.ratio",
-	"suspension.geometry_physical.rear_arb.ratio",
-	"steering.max_steering_angle",
-	"steering.steering_speed",
-]
+const SUSPENSION_PATHS: Array[String] = ["garage.suspension", "garage.front_arb", "garage.rear_arb"]
+const QUICK_PATHS: Array[String] = ["garage.suspension", "brakes.front_brake_bias", "powertrain.final_drive"]
 const WHEELS_PATHS: Array[String] = [
-	"tires.pressure.cold_kpa_gauge.FL",
-	"tires.pressure.cold_kpa_gauge.FR",
-	"tires.pressure.cold_kpa_gauge.RL",
-	"tires.pressure.cold_kpa_gauge.RR",
-	"suspension.front.camber",
-	"suspension.rear.camber",
-	"suspension.front.toe",
-	"suspension.rear.toe",
-	"aero.model.front_wing.incidence_deg",
-	"aero.model.rear_wing.incidence_deg",
+	"garage.front_pressure", "garage.rear_pressure",
+	"suspension.front.camber", "suspension.rear.camber", "suspension.front.toe", "suspension.rear.toe",
 	"brakes.front_brake_bias",
-	"brakes.max_brake_torque",
 ]
 const POWERTRAIN_PATHS: Array[String] = [
-	"powertrain.max_rpm",
-	"powertrain.final_drive",
-	"powertrain.reverse_ratio",
-	"powertrain.gear_ratios.0",
-	"powertrain.gear_ratios.1",
-	"powertrain.gear_ratios.2",
-	"powertrain.gear_ratios.3",
-	"steering.max_steering_angle",
-	"steering.steering_speed",
-]
-# v1: el diferencial es selección discreta por preset, no 4 sliders.
-const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
-# preload directo: no depende de la caché global de clases del editor.
-const RallyDifferentialCatalog = preload("res://scripts/rally/rally_differential_catalog.gd")
-# Modo modern: LSD libre con los 4 números (como antes de los presets).
-const MODERN_DIFFERENTIAL_PATHS: Array[String] = [
-	"powertrain.differential.preload_nm",
-	"powertrain.differential.power_ramp_angle_deg",
-	"powertrain.differential.coast_ramp_angle_deg",
+	"powertrain.max_rpm", "garage.cooling", "powertrain.final_drive", "garage.lsd",
 	"powertrain.differential.clutches",
+	"powertrain.differential.power_ramp_angle_deg", "powertrain.differential.coast_ramp_angle_deg",
 ]
 const STRATEGY_PATHS: Array[String] = ["fuel.initial_kg", "footer:cancel", "footer:apply"]
 
@@ -202,7 +153,7 @@ var selected_setup_id: int = -1
 var setup_scroll_offset: int = 0
 var pad_character_index: int = 0
 var active_setup_id: int = -1
-var active_setup_name: String = "BASE"
+var active_setup_name: String = "DE SERIE"
 var setup_rows: Array[Dictionary] = []
 var draft_values: Dictionary = { }
 var opening_values: Dictionary = { }
@@ -348,7 +299,7 @@ func open_garage() -> void:
 		event_forecast = ""
 	_restore_tree_paused = get_tree().paused
 	_restore_controls_enabled = input_controller.controls_enabled if input_controller != null else true
-	opening_values = vehicle.simulation.filter_garage_values(RallySetupCatalog.defaults(vehicle.simulation.domains))
+	opening_values = vehicle.simulation.current_setup_values()
 	opening_values["fuel.initial_kg"] = vehicle.simulation.thermal_model.fuel_remaining_litres * vehicle \
 			.simulation \
 			.mass_model \
@@ -369,7 +320,7 @@ func open_garage() -> void:
 	_set_page(0, false)
 	_ensure_stage_route_cache()
 	active_setup_id = -1
-	active_setup_name = "BASE"
+	active_setup_name = "REGLAJE ACTUAL"
 	modal_mode = ""
 	modal_text = ""
 	notice = ""
@@ -957,17 +908,6 @@ func _handle_click(point: Vector2) -> void:
 			"section":
 				advanced_section = int(region.index)
 				_set_page(1)
-			"quick":
-				selected_field_path = str(region.path)
-				if bool(region.get("slider", false)):
-					_quick_slide(str(region.path), point.x, region.rect as Rect2)
-				else:
-					_quick_adjust(str(region.path), float(region.amount))
-			"quick_slide":
-				selected_field_path = str(region.path)
-				_dragging_path = str(region.path)
-				_dragging_rect = region.get("track", region.rect) as Rect2
-				_drag_to(point)
 			"all_compound":
 				if not _may_service_tires():
 					_show_notice("Asistencia bloqueada en tramo: cambia ruedas desde Pausa.", true)
@@ -1008,9 +948,6 @@ func _handle_click(point: Vector2) -> void:
 			"adjust":
 				selected_field_path = str(region.path)
 				_adjust_field(str(region.path), float(region.amount))
-			"preset_adjust":
-				selected_field_path = DIFFERENTIAL_PRESET_PATH
-				_cycle_preset(float(region.amount))
 			"button":
 				_run_button(str(region.action))
 			"setup_row":
@@ -1028,10 +965,7 @@ func _handle_click(point: Vector2) -> void:
 func _drag_to(point: Vector2) -> void:
 	if _dragging_path.is_empty():
 		return
-	if _dragging_path in ["balance", "height"]:
-		_quick_slide(_dragging_path, point.x, _dragging_rect)
-	else:
-		_set_from_slider(_dragging_path, point.x, _dragging_rect)
+	_set_from_slider(_dragging_path, point.x, _dragging_rect)
 
 
 func _set_page(next_page: int, play_sound: bool = true) -> void:
@@ -1043,10 +977,7 @@ func _set_page(next_page: int, play_sound: bool = true) -> void:
 	var source: Array[String] = []
 	match page:
 		0:
-			source = QUICK_PATHS.duplicate()
-			for path in BRAKE_DUCT_PATHS:
-				if draft_values.has(path):
-					source.append(path)
+			source = QUICK_PATHS
 		1:
 			match advanced_section:
 				0:
@@ -1054,11 +985,7 @@ func _set_page(next_page: int, play_sound: bool = true) -> void:
 				1:
 					source = WHEELS_PATHS
 				_:
-					source = POWERTRAIN_PATHS.duplicate()
-					if is_instance_valid(vehicle) and vehicle.simulation.is_historic_differential():
-						source.append(DIFFERENTIAL_PRESET_PATH)
-					else:
-						source.append_array(MODERN_DIFFERENTIAL_PATHS)
+					source = POWERTRAIN_PATHS
 		2:
 			source = STRATEGY_PATHS
 	for path in source:
@@ -1100,16 +1027,10 @@ func _adjust_selected(direction: float) -> void:
 		return
 	if selected_field_path.is_empty() and not _page_field_paths.is_empty():
 		selected_field_path = _page_field_paths[0]
-	if selected_field_path in ["balance", "height"]:
-		_quick_adjust(selected_field_path, direction)
-		return
 	_adjust_field(selected_field_path, direction)
 
 
 func _adjust_field(path: String, direction: float) -> void:
-	if path == DIFFERENTIAL_PRESET_PATH:
-		_cycle_preset(direction)
-		return
 	if page == 2:
 		if path == "spares" and not _is_pool_mode():
 			if _may_service_tires():
@@ -1124,7 +1045,7 @@ func _adjust_field(path: String, direction: float) -> void:
 					var cur := ids.find(str(draft_wheel_compounds.get(corner, "")))
 					draft_wheel_compounds[corner] = str(ids[posmod(cur + int(signf(direction)), ids.size())])
 			return
-	var field := RallySetupCatalog.field_for_path(path)
+	var field := _setup_field(path)
 	if field.is_empty():
 		return
 	var current := float(draft_values.get(path, 0.0))
@@ -1133,70 +1054,29 @@ func _adjust_field(path: String, direction: float) -> void:
 
 
 func _set_from_slider(path: String, x: float, rect: Rect2) -> void:
-	var field := RallySetupCatalog.field_for_path(path)
+	var field := _setup_field(path)
 	if field.is_empty():
 		return
 	var normalized := clampf((x - rect.position.x) / maxf(rect.size.x, 1.0), 0.0, 1.0)
 	_update_value(path, lerpf(float(field.min), float(field.max), normalized))
 
 
+func _setup_field(path: String) -> Dictionary:
+	return RallySetupCatalog.field_for_vehicle(path, vehicle.simulation.setup_design_values)
+
+
 func _update_value(path: String, value: float) -> void:
-	var field := RallySetupCatalog.field_for_path(path)
+	var field := _setup_field(path)
 	if field.is_empty():
 		return
-	var clamped := snappedf(clampf(value, float(field.min), float(field.max)), float(field.step))
-	draft_values[path] = clamped
-	var result := vehicle.apply_setup_values(draft_values)
+	var next_value := RallySetupCatalog.clamp_field(field, value, vehicle.simulation.setup_design_values)
+	if is_equal_approx(next_value, float(draft_values.get(path, INF))):
+		return
+	var next := draft_values.duplicate()
+	next[path] = next_value
+	var result := vehicle.apply_setup_values(next)
 	if not bool(result.get("ok", false)):
 		_show_notice(str(result.get("error", "Error de ajuste.")), true)
-	else:
-		draft_values = result.values
-	queue_redraw()
-
-
-# --- v1 diferencial por preset (selección discreta) ---
-func _garage_profile_id() -> String:
-	if vehicle == null or vehicle.simulation == null:
-		return ""
-	return str(vehicle.simulation.active_differential_profile())
-
-
-func _preset_options() -> Array[Dictionary]:
-	return RallyDifferentialCatalog.list_for_profile(_garage_profile_id())
-
-
-func _draft_preset_id() -> String:
-	var pid := _garage_profile_id()
-	var current := str(draft_values.get(DIFFERENTIAL_PRESET_PATH, ""))
-	if current.is_empty() or not RallyDifferentialCatalog.is_allowed(pid, current):
-		current = vehicle.simulation.active_differential_preset_id
-	if current.is_empty():
-		current = RallyDifferentialCatalog.default_for_profile(pid)
-	return current
-
-
-func _cycle_preset(direction: float) -> void:
-	var options := _preset_options()
-	if options.is_empty():
-		_show_notice("Este vehículo no tiene catálogo de diferencial.", true)
-		return
-	var enabled_ids: Array[String] = []
-	for p in options:
-		if bool(p.get("enabled", false)):
-			enabled_ids.append(str(p.get("id", "")))
-	if enabled_ids.is_empty():
-		_show_notice("Sin presets habilitados (pendiente de calibración).", true)
-		return
-	var current := _draft_preset_id()
-	var index := enabled_ids.find(current)
-	if index < 0:
-		index = 0
-	else:
-		index = posmod(index + int(signf(direction)), enabled_ids.size())
-	draft_values[DIFFERENTIAL_PRESET_PATH] = enabled_ids[index]
-	var result := vehicle.apply_setup_values(draft_values)
-	if not bool(result.get("ok", false)):
-		_show_notice(str(result.get("error", "Error de diferencial.")), true)
 	else:
 		draft_values = result.values
 	queue_redraw()
@@ -1234,109 +1114,18 @@ func _confirm_selection() -> void:
 	queue_redraw()
 
 
-func _quick_adjust(path: String, amount: float) -> void:
-	if path == "height":
-		var current := _average_ride_height()
-		var value := clampf(current + amount * 0.02, 0.2, 0.8)
-		draft_values["suspension.front.resting_ratio"] = value
-		draft_values["suspension.rear.resting_ratio"] = value
-	elif path == "balance":
-		var front := float(draft_values.get("suspension.geometry_physical.front_arb.ratio", 1.0))
-		var rear := float(draft_values.get("suspension.geometry_physical.rear_arb.ratio", 1.0))
-		draft_values["suspension.geometry_physical.front_arb.ratio"] = clampf(
-			front + amount * 0.04, 0.0, 2.0
-		)
-		draft_values["suspension.geometry_physical.rear_arb.ratio"] = clampf(
-			rear - amount * 0.04, 0.0, 2.0
-		)
-	else:
-		_adjust_field(path, amount)
-		return
-	_apply_draft()
-
-
-# Arrastrar una fila rápida traduce la posición a los valores reales que hay
-# detrás: el equilibrio es un diferencial de barras y la altura un promedio.
-func _quick_slide(path: String, x: float, rect: Rect2) -> void:
-	var fraction := clampf((x - rect.position.x) / maxf(rect.size.x, 1.0), 0.0, 1.0)
-	match path:
-		"balance":
-			var front := float(draft_values.get("suspension.geometry_physical.front_arb.ratio", 1.0))
-			var rear := float(draft_values.get("suspension.geometry_physical.rear_arb.ratio", 1.0))
-			var mean := (front + rear) * 0.5
-			var delta := (fraction - 0.5) * 4.0
-			draft_values["suspension.geometry_physical.front_arb.ratio"] = clampf(
-				mean + delta * 0.5, 0.0, 2.0
-			)
-			draft_values["suspension.geometry_physical.rear_arb.ratio"] = clampf(
-				mean - delta * 0.5, 0.0, 2.0
-			)
-		"height":
-			var value := lerpf(0.2, 0.8, fraction)
-			draft_values["suspension.front.resting_ratio"] = value
-			draft_values["suspension.rear.resting_ratio"] = value
-		"powertrain.final_drive":
-			var field := RallySetupCatalog.field_for_path(path)
-			if field.is_empty():
-				return
-			_update_value(path, lerpf(float(field.max), float(field.min), fraction))
-			return
-		_:
-			var field := RallySetupCatalog.field_for_path(path)
-			if field.is_empty():
-				return
-			_update_value(path, lerpf(float(field.min), float(field.max), fraction))
-			return
-	_apply_draft()
-
-
-func _apply_draft() -> void:
-	var result := vehicle.apply_setup_values(draft_values)
-	if bool(result.get("ok", false)):
-		draft_values = result.values
-	else:
-		_show_notice(str(result.get("error", "Error")), true)
-	queue_redraw()
-
-
-func _get_quick_fraction(path: String) -> float:
-	match path:
-		"balance":
-			var front := float(draft_values.get("suspension.geometry_physical.front_arb.ratio", 1.0))
-			var rear := float(draft_values.get("suspension.geometry_physical.rear_arb.ratio", 1.0))
-			return clampf(0.5 + (front - rear) * 0.25, 0.0, 1.0)
-		"height":
-			return clampf((_average_ride_height() - 0.2) / 0.6, 0.0, 1.0)
-		"powertrain.final_drive":
-			var field := RallySetupCatalog.field_for_path(path)
-			if field.is_empty():
-				return 0.5
-			var scaled := (float(draft_values.get(path, 4.0)) - float(field.min)) / maxf(
-				float(field.max) - float(field.min), 0.001
-			)
-			return clampf(1.0 - scaled, 0.0, 1.0)
-		_:
-			var field := RallySetupCatalog.field_for_path(path)
-			if field.is_empty():
-				return 0.5
-			return _field_fraction(field, path)
-
-
-func _average_ride_height() -> float:
-	return (
-		float(draft_values.get("suspension.front.resting_ratio", 0.35))
-		+ float(draft_values.get("suspension.rear.resting_ratio", 0.35))
-	) * 0.5
-
-
 func _run_button(action: String) -> void:
 	match action:
 		"reset":
 			draft_values = vehicle.simulation.setup_design_values.duplicate(true)
 			active_setup_id = -1
-			active_setup_name = "BASE"
-			vehicle.apply_setup_values(draft_values)
-			_show_notice("Valores restaurados.")
+			active_setup_name = "DE SERIE"
+			var restored := vehicle.apply_setup_values(draft_values)
+			if bool(restored.get("ok", false)):
+				draft_values = restored.values
+				_show_notice("Reglaje de serie restaurado.")
+			else:
+				_show_notice(str(restored.get("error", "Error al restaurar.")), true)
 		"cancel":
 			close_garage(false)
 		"apply":
@@ -1417,7 +1206,7 @@ func _save_selected_setup() -> void:
 		target_id = active_setup_id
 	if target_id < 0:
 		modal_mode = "name"
-		modal_text = active_setup_name if not (active_setup_name in ["BASE", "FÁBRICA", "RESTAURAR"]) else ""
+		modal_text = active_setup_name if not (active_setup_name in ["REGLAJE ACTUAL", "DE SERIE"]) else ""
 		return
 	var result := database.update_setup(_database_context(), target_id, target_name, _build_savable_setup_values())
 	if bool(result.get("ok", false)):
@@ -1475,29 +1264,12 @@ func _load_selected_setup() -> void:
 		if str(k).begins_with("strategy.wheel_compound."):
 			stored_compounds[str(k).trim_prefix("strategy.wheel_compound.")] = str(stored[k])
 			stored.erase(k)
-	# v1: el preset es string y no pasa por validate() numérico.
-	# Si el campo existe, reenviar su valor original (incluso inválido) a
-	# vehicle.apply_setup_values() para validación centralizada.
-	# No descartar silenciosamente un preset_id inválido de SQLite.
-	var has_stored_preset := stored.has(DIFFERENTIAL_PRESET_PATH)
-	var stored_preset: Variant = null
-	if has_stored_preset:
-		stored_preset = stored[DIFFERENTIAL_PRESET_PATH]
-		stored.erase(DIFFERENTIAL_PRESET_PATH)
-	var validation := RallySetupCatalog.validate(stored)
-	if not bool(validation.get("ok", false)):
-		_show_notice(str(validation.get("error", "Incompatible.")), true)
-		return
-	var to_apply: Dictionary = (validation as Dictionary).get("values", {}).duplicate(true)
-	if has_stored_preset and vehicle.simulation.is_historic_differential():
-		to_apply[DIFFERENTIAL_PRESET_PATH] = stored_preset
 	var available_ids := _available_compound_ids()
 	for corner in stored_compounds:
 		if not str(stored_compounds[corner]) in available_ids:
 			_show_notice("Compuesto no permitido en este evento.", true)
 			return
-	# En modo modern el preset guardado se ignora: manda el LSD libre.
-	var applied := vehicle.apply_setup_values(to_apply)
+	var applied := vehicle.apply_setup_values(stored)
 	if not bool(applied.get("ok", false)):
 		_show_notice(str(applied.get("error", "Error al aplicar.")), true)
 		return
@@ -1533,7 +1305,7 @@ func _delete_selected_setup() -> void:
 	if bool(result.get("ok", false)):
 		if active_setup_id == selected_setup_id:
 			active_setup_id = -1
-			active_setup_name = "BASE"
+			active_setup_name = "REGLAJE ACTUAL"
 		_show_notice("Eliminado.")
 		_refresh_setups()
 	else:
@@ -1723,7 +1495,7 @@ func _draw_chrome_header() -> void:
 func _draw_chrome_footer() -> void:
 	_glass_window(Rect2(24, 692, 1232, 88), RallyUITheme.CORNER_RADIUS)
 
-	_chrome_button(Rect2(46, 714, 168, 46), "RESTAURAR", "reset")
+	_chrome_button(Rect2(46, 714, 168, 46), "VOLVER A SERIE", "reset")
 
 	# Franja reservada para el aviso: nunca se dibuja encima del contenido.
 	var lane := Rect2(400, 700, 470, 72)
@@ -1844,127 +1616,14 @@ func _tab(rect: Rect2, label: String, active: bool) -> void:
 
 
 func _draw_quick_page() -> void:
-	var section := Rect2(36, PAGE_TOP, 816, PAGE_BOTTOM - PAGE_TOP)
+	var section := Rect2(36, PAGE_TOP, 816, 206)
 	_group(section, "AJUSTES RÁPIDOS")
-
-	var rows := [
-		{
-			"key": "balance",
-			"name": "EQUILIBRIO",
-			"hint": "SOBREVIRAJE / SUBVIRAJE",
-			"left": "SUELTA",
-			"right": "DURO",
-			"value": _balance_text(),
-			"numeric": false,
-		},
-		{
-			"key": "brakes.front_brake_bias",
-			"name": "FRENADA",
-			"hint": "REPARTO DELANTERO / TRASERO",
-			"left": "TRASERA",
-			"right": "DELANTERA",
-			"value": "%0.1f %%" % (float(draft_values.get("brakes.front_brake_bias", 0.6)) * 100.0),
-		},
-		{
-			"key": "height",
-			"name": "ALTURA",
-			"hint": "ALTURA DE MARCHA MEDIA",
-			"left": "BAJA",
-			"right": "ALTA",
-			"value": "%0.3f" % _average_ride_height(),
-		},
-		{
-			"key": "powertrain.final_drive",
-			"name": "TRANSMISIÓN",
-			"hint": "RELACIÓN FINAL",
-			"left": "ACELERACIÓN",
-			"right": "VEL. PUNTA",
-			"value": "%0.2f" % float(draft_values.get("powertrain.final_drive", 4.0)),
-		},
-	]
-	for path in BRAKE_DUCT_PATHS:
-		if not draft_values.has(path):
-			continue
-		var field := RallySetupCatalog.field_for_path(path)
-		rows.append({
-			"key": path,
-			"name": str(field.label).to_upper(),
-			"hint": "APERTURA",
-			"left": "CERRADO",
-			"right": "ABIERTO",
-			"value": "%d %%" % roundi(float(draft_values[path]) * 100.0),
-		})
-	var inner := _group_inner(section)
-	var height := floorf(inner.size.y / float(rows.size()))
-	var offset := (inner.size.y - height * float(rows.size())) * 0.5
-	for i in rows.size():
-		_quick_row(
-			Rect2(inner.position.x, inner.position.y + float(i) * height + offset, inner.size.x, height),
-			rows[i],
-			i == rows.size() - 1
-		)
-
+	_field_rows(section, [
+		{"p": "garage.suspension", "l": "Suspensión"},
+		{"p": "brakes.front_brake_bias", "l": "Reparto delantero de frenada"},
+		{"p": "powertrain.final_drive", "l": "Relación final"},
+	])
 	_draw_stage_info_group(Rect2(864, PAGE_TOP, 380, PAGE_BOTTOM - PAGE_TOP))
-
-
-func _balance_text() -> String:
-	var fraction := _get_quick_fraction("balance")
-	if absf(fraction - 0.5) < 0.04:
-		return "NEUTRO"
-	return "SUBVIRAJE" if fraction > 0.5 else "SOBREVIRAJE"
-
-
-func _quick_row(rect: Rect2, data: Dictionary, last: bool) -> void:
-	var key: String = str(data.key)
-	var selected := selected_field_path == key
-	_row_frame(rect, selected, last, _mouse_over(rect))
-	_hit_regions.append({ "rect": rect, "kind": "select", "path": key })
-
-	var mid_y := rect.position.y + rect.size.y * 0.5
-	var title_size := 12 if rect.size.y >= 96.0 else 11
-	_text(_box(rect.position.x + 14, mid_y - 22.0, 250, 24), str(data.name), title_size, C_TEXT, true)
-	_hint(_box(rect.position.x + 14, mid_y + 4.0, 250, 18), str(data.hint))
-
-	var track_x := rect.position.x + 242.0
-	var track_w := 340.0
-	_text(_box(track_x, mid_y - 22.0, 150, 14), str(data.left), 8, C_DIM, true)
-	_text(
-		_box(track_x + track_w - 150, mid_y - 22.0, 150, 14),
-		str(data.right),
-		8,
-		C_DIM,
-		true,
-		HORIZONTAL_ALIGNMENT_RIGHT,
-		150
-	)
-
-	var stepper_y := mid_y - 3.0
-	var track_y := mid_y + 5.5
-	_stepper(Rect2(track_x - 36, stepper_y, 28, 28), false)
-	_track(Rect2(track_x, track_y, track_w, 11), _get_quick_fraction(key), selected)
-	_stepper(Rect2(track_x + track_w + 6, stepper_y, 28, 28), true)
-
-	_field_box(
-		Rect2(rect.position.x + 624, mid_y - 19.0, 164, 38),
-		str(data.value),
-		13,
-		C_GOLD if selected else C_TEXT,
-		bool(data.get("numeric", true))
-	)
-
-	var minus := Rect2(track_x - 38, stepper_y - 4.0, 32, 36)
-	var plus := Rect2(track_x + track_w + 4, stepper_y - 4.0, 32, 36)
-	_hit_regions.append({ "rect": minus, "kind": "quick", "path": key, "amount": -1.0 })
-	_hit_regions.append({ "rect": plus, "kind": "quick", "path": key, "amount": 1.0 })
-	_hit_regions.append(
-		{
-			"rect": Rect2(track_x, stepper_y - 4.0, track_w, 36),
-			"kind": "quick_slide",
-			"path": key,
-			"track": Rect2(track_x, track_y, track_w, 11),
-		}
-	)
-	_hit_regions.append({ "rect": Rect2(track_x - 6, track_y - 6.0, track_w + 12, 23), "kind": "select", "path": key })
 
 
 func _resolve_stage_route_path() -> String:
@@ -2359,50 +2018,17 @@ func _draw_section_bar() -> void:
 
 
 func _draw_suspension_section() -> void:
-	var top := 200.0
-	_group(Rect2(36, top, 592, 322), "TREN DELANTERO")
-	_field_rows(
-		Rect2(36, top, 592, 322),
-		[
-			{"p": "suspension.front.ride_frequency_hz", "l": "Frecuencia natural"},
-			{"p": "suspension.front.resting_ratio", "l": "Altura de marcha"},
-			{"p": "suspension.front.damping_ratio", "l": "Amortiguación"},
-			{"p": "suspension.front.bump_damp_multiplier", "l": "Compresión"},
-			{"p": "suspension.front.rebound_damp_multiplier", "l": "Rebote"},
-			{"p": "suspension.front.bump_stop_multiplier", "l": "Tope de suspensión"},
-		]
-	)
+	var suspension_panel := Rect2(36, 200, 592, 100)
+	_group(suspension_panel, "SUSPENSIÓN")
+	_field_rows(suspension_panel, [{"p": "garage.suspension", "l": "Configuración"}])
+	_hint(Rect2(48, 312, 568, 32), "RÍGIDA Y BAJA PARA ASFALTO LISO · BLANDA Y ALTA PARA BACHES")
 
-	_group(Rect2(652, top, 592, 322), "TREN TRASERO")
-	_field_rows(
-		Rect2(652, top, 592, 322),
-		[
-			{"p": "suspension.rear.ride_frequency_hz", "l": "Frecuencia natural"},
-			{"p": "suspension.rear.resting_ratio", "l": "Altura de marcha"},
-			{"p": "suspension.rear.damping_ratio", "l": "Amortiguación"},
-			{"p": "suspension.rear.bump_damp_multiplier", "l": "Compresión"},
-			{"p": "suspension.rear.rebound_damp_multiplier", "l": "Rebote"},
-			{"p": "suspension.rear.bump_stop_multiplier", "l": "Tope de suspensión"},
-		]
-	)
-
-	_group(Rect2(36, 534, 592, 130), "ESTABILIZADORAS")
-	_field_rows(
-		Rect2(36, 534, 592, 130),
-		[
-			{"p": "suspension.geometry_physical.front_arb.ratio", "l": "Barra delantera"},
-			{"p": "suspension.geometry_physical.rear_arb.ratio", "l": "Barra trasera"},
-		]
-	)
-
-	_group(Rect2(652, 534, 592, 130), "DIRECCIÓN")
-	_field_rows(
-		Rect2(652, 534, 592, 130),
-		[
-			{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
-			{"p": "steering.steering_speed", "l": "Velocidad de giro"},
-		]
-	)
+	var bars_panel := Rect2(652, 200, 592, 152)
+	_group(bars_panel, "ESTABILIZADORAS")
+	_field_rows(bars_panel, [
+		{"p": "garage.front_arb", "l": "Barra delantera"},
+		{"p": "garage.rear_arb", "l": "Barra trasera"},
+	])
 
 
 func _draw_wheels_section() -> void:
@@ -2410,10 +2036,8 @@ func _draw_wheels_section() -> void:
 	_field_rows(
 		Rect2(36, 200, 592, 230),
 		[
-			{"p": "tires.pressure.cold_kpa_gauge.FL", "l": "Delantera izquierda"},
-			{"p": "tires.pressure.cold_kpa_gauge.FR", "l": "Delantera derecha"},
-			{"p": "tires.pressure.cold_kpa_gauge.RL", "l": "Trasera izquierda"},
-			{"p": "tires.pressure.cold_kpa_gauge.RR", "l": "Trasera derecha"},
+			{"p": "garage.front_pressure", "l": "Eje delantero"},
+			{"p": "garage.rear_pressure", "l": "Eje trasero"},
 		]
 	)
 
@@ -2447,112 +2071,33 @@ func _draw_wheels_section() -> void:
 		if can_service:
 			_hit_regions.append({ "rect": rect, "kind": "compound", "corner": codes[i] })
 
-	_group(Rect2(652, 442, 592, 230), "AERODINÁMICA Y FRENOS")
-	_field_rows(
-		Rect2(652, 442, 592, 230),
-		[
-			{"p": "aero.model.front_wing.incidence_deg", "l": "Ala delantera"},
-			{"p": "aero.model.rear_wing.incidence_deg", "l": "Ala trasera"},
-			{"p": "brakes.front_brake_bias", "l": "Reparto de frenada"},
-			{"p": "brakes.max_brake_torque", "l": "Par máximo de freno"},
-		]
-	)
+	var brakes_panel := Rect2(652, 442, 592, 100)
+	_group(brakes_panel, "FRENOS")
+	_field_rows(brakes_panel, [{"p": "brakes.front_brake_bias", "l": "Reparto delantero"}])
+	_hint(Rect2(664, 554, 568, 32), "CONVERGENCIA POR RUEDA · + CERRADA / − ABIERTA")
 
 
 func _draw_powertrain_section() -> void:
-	_group(Rect2(36, 200, 592, 370), "MOTOR Y TRANSMISIÓN")
-	_field_rows(
-		Rect2(36, 200, 592, 370),
-		[
-			{"p": "powertrain.max_rpm", "l": "Régimen máximo"},
-			{"p": "powertrain.final_drive", "l": "Relación final"},
-			{"p": "powertrain.reverse_ratio", "l": "Marcha atrás"},
-			{"p": "powertrain.gear_ratios.0", "l": "1ª marcha"},
-			{"p": "powertrain.gear_ratios.1", "l": "2ª marcha"},
-			{"p": "powertrain.gear_ratios.2", "l": "3ª marcha"},
-			{"p": "powertrain.gear_ratios.3", "l": "4ª marcha"},
-		]
-	)
+	var engine_panel := Rect2(36, 200, 592, 208)
+	_group(engine_panel, "MOTOR Y TRANSMISIÓN")
+	_field_rows(engine_panel, [
+		{"p": "powertrain.max_rpm", "l": "Limitador de RPM"},
+		{"p": "garage.cooling", "l": "Apertura de refrigeración"},
+		{"p": "powertrain.final_drive", "l": "Relación final"},
+	])
 
-	if is_instance_valid(vehicle) and vehicle.simulation.is_historic_differential():
-		_group(Rect2(652, 200, 592, 240), "DIFERENCIAL — TIPO / CONFIGURACIÓN")
-		_draw_differential_preset_row(Rect2(652, 200, 592, 240))
-
-		_group(Rect2(652, 452, 592, 118), "DIRECCIÓN")
-		_field_rows(
-			Rect2(652, 452, 592, 118),
-			[
-				{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
-				{"p": "steering.steering_speed", "l": "Velocidad de giro"},
-			]
-		)
-	else:
-		# Modo modern: LSD autoblocante moderno con los 4 números libres.
-		_group(Rect2(652, 200, 592, 322), "DIFERENCIAL Y DIRECCIÓN")
-		_field_rows(
-			Rect2(652, 200, 592, 322),
-			[
-				{"p": "powertrain.differential.preload_nm", "l": "Precarga"},
-				{"p": "powertrain.differential.power_ramp_angle_deg", "l": "Rampa de aceleración"},
-				{"p": "powertrain.differential.coast_ramp_angle_deg", "l": "Rampa de retención"},
-				{"p": "powertrain.differential.clutches", "l": "Paquetes de discos"},
-				{"p": "steering.max_steering_angle", "l": "Ángulo máximo"},
-				{"p": "steering.steering_speed", "l": "Velocidad de giro"},
-			]
-		)
+	var differential_panel := Rect2(652, 200, 592, 244)
+	_group(differential_panel, "DIFERENCIAL")
+	_field_rows(differential_panel, [
+		{"p": "garage.lsd", "l": "Tipo"},
+		{"p": "powertrain.differential.clutches", "l": "Superficies de fricción"},
+		{"p": "powertrain.differential.power_ramp_angle_deg", "l": "Rampa de aceleración"},
+		{"p": "powertrain.differential.coast_ramp_angle_deg", "l": "Rampa de retención"},
+	])
+	if not bool(draft_values.get("garage.lsd", 0.0)):
+		_hint(Rect2(664, 452, 568, 32), "LOS AJUSTES DE RAMPA Y DISCOS SE APLICAN AL AUTOBLOCANTE")
 
 	_draw_gear_chart(Rect2(36, 582, 1208, 92))
-
-
-func _draw_differential_preset_row(group_rect: Rect2) -> void:
-	var options := _preset_options()
-	var selected := selected_field_path == DIFFERENTIAL_PRESET_PATH
-	var current_id := _draft_preset_id()
-	var current := RallyDifferentialCatalog.get_preset(_garage_profile_id(), current_id)
-	var inner := _group_inner(group_rect)
-	var row := Rect2(inner.position.x, inner.position.y, inner.size.x, 44)
-	_row_frame(row, selected, false, _mouse_over(row))
-	_hit_regions.append({"rect": row, "kind": "select", "path": DIFFERENTIAL_PRESET_PATH})
-	_text_with(FONT_UI, _box(row.position.x + 12, row.position.y, 150, row.size.y), "Configuración", 10, C_TEXT if selected else C_DIM, HORIZONTAL_ALIGNMENT_LEFT, -1.0)
-	var minus := Rect2(row.position.x + 168, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
-	var plus := Rect2(row.end.x - 36, row.position.y + (row.size.y - 26.0) * 0.5, 26, 26)
-	_stepper(minus, false)
-	_stepper(plus, true)
-	_hit_regions.append({"rect": minus, "kind": "preset_adjust", "amount": -1.0})
-	_hit_regions.append({"rect": plus, "kind": "preset_adjust", "amount": 1.0})
-	var name_rect := Rect2(minus.end.x + 8, row.position.y + (row.size.y - 32.0) * 0.5, plus.position.x - minus.end.x - 16, 32)
-	if options.is_empty():
-		_field_box(name_rect, "SIN CATÁLOGO", 10, C_DIM, false)
-		_hint(_box(inner.position.x + 12, row.end.y + 6, inner.size.x - 24, 18), "Legado temporal: sin presets históricos.")
-		return
-	var label := str(current.get("label", current_id)) if not current.is_empty() else current_id
-	_field_box(name_rect, label, 10, C_GOLD if selected else C_TEXT, false)
-	var y := row.end.y + 8.0
-	if current.is_empty():
-		_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), "Preset no resuelto.")
-		return
-	if not bool(current.get("enabled", false)):
-		_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), "Pendiente de calibración: no seleccionable.")
-		return
-	var bench: Dictionary = current.get("bench_preload_nm", {})
-	var reported: Dictionary = current.get("reported_nominal_lock_pct", {})
-	var discs: Variant = current.get("physical_disc_count", null)
-	var discs_txt := str(int(discs)) if discs is int or discs is float else "—"
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), str(current.get("supplier_or_family", "")) + " · " + str(current.get("model_reference", "")), 9, C_DIM, false)
-	y += 16.0
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Rampas %d°/%d° · Superficies %d · Discos %s" % [int((current.get("ramp_deg", {}) as Dictionary).get("power", 0)), int((current.get("ramp_deg", {}) as Dictionary).get("coast", 0)), int(current.get("active_friction_surfaces", 0)), discs_txt], 9, C_TEXT, false)
-	y += 16.0
-	_text(_box(inner.position.x + 12, y, inner.size.x - 24, 16), "Banco %.0f–%.0f Nm · Ficha %d%%/%d%% (no bloqueo dinámico)" % [float(bench.get("min", 0.0)), float(bench.get("max", 0.0)), int(reported.get("power", 0)), int(reported.get("coast", 0))], 9, C_DIM, false)
-	y += 18.0
-	var names: Array[String] = []
-	for p in options:
-		var n := str(p.get("label", p.get("id", "")))
-		if not bool(p.get("enabled", false)):
-			n += " (pendiente)"
-		if str(p.get("id", "")) == current_id:
-			n = "«" + n + "»"
-		names.append(n)
-	_hint(_box(inner.position.x + 12, y, inner.size.x - 24, 18), " · ".join(names))
 
 
 func _draw_gear_chart(rect: Rect2) -> void:
@@ -3090,14 +2635,14 @@ func _stepper(rect: Rect2, plus: bool) -> void:
 		draw_rect(Rect2(cx - 1, cy - 4, 2, 9), glyph)
 
 
-func _track(rect: Rect2, fraction: float, selected: bool) -> void:
+func _track(rect: Rect2, fraction: float, selected: bool, intervals: int) -> void:
 	draw_rect(rect, C_FIELD)
 	draw_rect(rect, BORDER_SUBTLE, false, 1.0)
 	var inner := rect.grow(-2.0)
 	var fill_w: float = maxf(inner.size.x * clampf(fraction, 0.0, 1.0), 2.0)
 	draw_rect(Rect2(inner.position, Vector2(fill_w, inner.size.y)), C_BLUE)
-	for i in 4:
-		var tx := inner.position.x + inner.size.x * (0.2 + 0.2 * float(i))
+	for i in range(1, intervals):
+		var tx := inner.position.x + inner.size.x * float(i) / intervals
 		draw_rect(Rect2(tx, inner.position.y, 1, inner.size.y), Color(1.0, 1.0, 1.0, 0.12))
 
 	var thumb := Rect2(inner.position.x + fill_w - 6.0, rect.position.y - 5.0, 12.0, rect.size.y + 10.0)
@@ -3194,7 +2739,7 @@ func _field_rows(group_rect: Rect2, rows: Array) -> void:
 
 
 func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
-	var field := RallySetupCatalog.field_for_path(path)
+	var field := _setup_field(path)
 	if field.is_empty():
 		return
 	var selected := selected_field_path == path
@@ -3212,7 +2757,9 @@ func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
 		-1.0
 	)
 
-	var field_rect := Rect2(rect.end.x - 96, rect.position.y + (rect.size.y - 32.0) * 0.5, 94, 32)
+	var named := path in SUSPENSION_PATHS or path in ["garage.cooling", "garage.lsd"]
+	var value_width := 124.0 if named else 94.0
+	var field_rect := Rect2(rect.end.x - value_width - 2, rect.position.y + (rect.size.y - 32.0) * 0.5, value_width, 32)
 	var minus := Rect2(rect.position.x + 240, rect.position.y + (rect.size.y - 26.0) * 0.5, 26, 26)
 	var plus := Rect2(field_rect.position.x - 36, rect.position.y + (rect.size.y - 26.0) * 0.5, 26, 26)
 	var track := Rect2(
@@ -3222,9 +2769,12 @@ func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
 		11
 	)
 
-	_field_box(field_rect, _format_field(field, path), 10, C_GOLD if selected else C_TEXT)
+	_field_box(field_rect, _format_field(field, path), 10, C_GOLD if selected else C_TEXT, not named)
 	_stepper(minus, false)
-	_track(track, _field_fraction(field, path), selected)
+	var intervals := 5
+	if named or path.begins_with(RallySetupCatalog.DIFFERENTIAL_PREFIX):
+		intervals = roundi((float(field.max) - float(field.min)) / float(field.step))
+	_track(track, _field_fraction(field, path), selected, intervals)
 	_stepper(plus, true)
 
 	_hit_regions.append({ "rect": minus, "kind": "adjust", "path": path, "amount": -1.0 })
@@ -3235,9 +2785,19 @@ func _field_row(rect: Rect2, path: String, label: String, last: bool) -> void:
 func _format_field(field: Dictionary, path: String) -> String:
 	if path == "fuel.initial_kg":
 		return "%.1f L" % (float(draft_values.get(path, 0.0)) / _fuel_density())
-	var scaled := float(draft_values.get(path, 0.0)) * float(field.scale)
+	var value := float(draft_values.get(path, 0.0))
+	if path in SUSPENSION_PATHS:
+		return RallySetupCatalog.POSITION_LABELS[clampi(int(value) - 1, 0, 4)]
+	if path == "garage.cooling":
+		return "De serie" if value == 0.0 else "%d %%" % int(value * 25.0)
+	if path == "garage.lsd":
+		return "Autoblocante" if bool(value) else "Abierto"
+	var scaled := value * float(field.scale)
 	var pattern := "%." + str(int(field.digits)) + "f"
-	return (pattern % scaled) + str(field.suffix)
+	var formatted := (pattern % scaled) + str(field.suffix)
+	if path.begins_with(RallySetupCatalog.DIFFERENTIAL_PREFIX) and value < float(field.min):
+		formatted += " serie"
+	return formatted
 
 
 func _field_fraction(field: Dictionary, path: String) -> float:

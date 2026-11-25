@@ -114,10 +114,17 @@
     "fuel.json": "b9d5722492a3af5f6537d193856be08d9e7a3c88ec1c6efc8e8c44c56ec8fec6",
     "powertrain.json": "ae0ba33b045c136974453d495399e7082eb0970f24c96c6abb2b9a9720205994",
     "steering.json": "914a00ac47cec9549206446081dc599cbec8083c26c2be863d258c3ef7dd6273",
-    "suspension.json": "40757548575e41229bf414f570061a349c1556f4c0a396e41cdaf21cae521d06",
+    "suspension.json": "36515fcd421637767f573ec11dd414221a7f7aa4ec6a83a446c641a6b4f6656e",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
     "tires.json": "ff2bad71b1bd10fd035fc6a60981bfd1c8c9460ccc9e069a75b1a746a072ca62",
     "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
     "vehicle.json": "e256eef0b190ad9c1d06764b8b89f0c465f6a7da36416431ef966406d6ba2a49"
+  },
+  "suspension_calibration": {
+    "provenance": "Estimated balanced garage baseline",
+    "front_ride_frequency_hz": 1.45,
+    "rear_ride_frequency_hz": 1.55,
+    "wheel_bump_m": 0.200,
+    "wheel_droop_m": 0.165
   }
 }

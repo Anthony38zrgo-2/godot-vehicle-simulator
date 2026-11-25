@@ -5,6 +5,7 @@ const GEVP_GEAR_INERTIA := 0.02
 
 var idle_rpm: float = 900.0
 var maximum_rpm: float = 7200.0
+var torque_curve_reference_rpm: float = 0.0
 var peak_torque_nm: float = 0.0
 var torque_curve: Array[Vector2] = []
 var variable_drag_ratio: float = 0.0
@@ -177,6 +178,7 @@ func configure(domains: Dictionary) -> Dictionary:
 	transmission_damage = 0.0
 	idle_rpm = float(values["idle_rpm"])
 	maximum_rpm = float(values["maximum_rpm"])
+	torque_curve_reference_rpm = maximum_rpm
 	peak_torque_nm = float(values["max_torque"])
 	torque_curve.clear()
 	for point in values["torque_curve"]:
@@ -1112,11 +1114,12 @@ func _idle_target_rpm() -> float:
 static func _engine_torque_terms(
 	rpm: float, throttle: float, peak_torque: float, max_rpm: float,
 	idle: float, curve_val: float, variable_drag_ratio_value: float,
-	constant_brake_ratio_value: float, thermal_derating: float
+	constant_brake_ratio_value: float, thermal_derating: float, curve_reference_rpm: float = 0.0
 ) -> Dictionary:
 	var throttle_value := clampf(throttle, 0.0, 1.0)
 	var closed_throttle := 1.0 - throttle_value
-	var rpm_fraction := clampf(rpm / maxf(max_rpm, 1.0), 0.0, 1.25)
+	var reference_rpm := curve_reference_rpm if curve_reference_rpm > 0.0 else max_rpm
+	var rpm_fraction := clampf(rpm / maxf(reference_rpm, 1.0), 0.0, 1.25)
 	var rev_limit_band := maxf(max_rpm * 0.025, 100.0)
 	var rev_cut := clampf((max_rpm - rpm) / rev_limit_band, 0.0, 1.0)
 	var positive_requested := curve_val * peak_torque * throttle_value * clampf(
@@ -1145,11 +1148,11 @@ static func _engine_torque_terms(
 # rozamiento interno se mantiene y la rueda libre solo corta la transmisión.
 # freewheeling_override se conserva por compatibilidad pero ya no altera el par.
 func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float = 1.0, freewheeling_override: float = -1.0) -> float:
-	var rpm_fraction := clampf(rpm / maxf(maximum_rpm, 1.0), 0.0, 1.0)
+	var rpm_fraction := clampf(rpm / maxf(torque_curve_reference_rpm if torque_curve_reference_rpm > 0.0 else maximum_rpm, 1.0), 0.0, 1.0)
 	var terms := _engine_torque_terms(
 		rpm, throttle, peak_torque_nm, maximum_rpm, _idle_target_rpm(),
 		_evaluate_torque_curve(rpm_fraction), variable_drag_ratio,
-		constant_brake_ratio, thermal_derating
+		constant_brake_ratio, thermal_derating, torque_curve_reference_rpm
 	)
 	return float(terms["positive_requested"]) + float(terms["idle_support"]) * thermal_derating - float(terms["variable_drag"]) - float(terms["constant_brake"])
 
@@ -1158,11 +1161,11 @@ func engine_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float =
 # estimador (sin mutar estado). A límite estabilizado
 # (engine_attack_limited == positive_requested) coincide con la estimación.
 func engine_delivered_torque_at_rpm(rpm: float, throttle: float, thermal_derating: float = 1.0) -> float:
-	var rpm_fraction := clampf(rpm / maxf(maximum_rpm, 1.0), 0.0, 1.0)
+	var rpm_fraction := clampf(rpm / maxf(torque_curve_reference_rpm if torque_curve_reference_rpm > 0.0 else maximum_rpm, 1.0), 0.0, 1.0)
 	var terms := _engine_torque_terms(
 		rpm, throttle, peak_torque_nm, maximum_rpm, _idle_target_rpm(),
 		_evaluate_torque_curve(rpm_fraction), variable_drag_ratio,
-		constant_brake_ratio, thermal_derating
+		constant_brake_ratio, thermal_derating, torque_curve_reference_rpm
 	)
 	return engine_attack_limited_torque_nm * (1.0 if thermal_derating > 0.0 else 0.0) + float(terms["idle_support"]) * thermal_derating - float(terms["variable_drag"]) - float(terms["constant_brake"])
 
@@ -1459,7 +1462,7 @@ func solve_rotation(
 			var friction_mu := lerpf(
 				float(axle_coast_ratios[axle]), float(axle_power_ratios[axle]), power_blend
 			)
-			var cot_ramp := 1.0 / tan(clampf(deg_to_rad(ramp_deg), deg_to_rad(15.0), deg_to_rad(85.0)))
+			var cot_ramp := 0.0 if ramp_deg >= 90.0 else 1.0 / tan(deg_to_rad(maxf(ramp_deg, 15.0)))
 			var ramp_capacity := absf(axle_input) * cot_ramp * maxf(float(axle_clutches[axle]), 1.0) * maxf(
 				friction_mu,
 				0.0,
@@ -1621,11 +1624,11 @@ func _advance_engine_torque(delta: float, throttle: float, thermal_derating: flo
 	# Mismos términos que el estimador (plan §2): par solicitado vs entregado
 	# se distinguen solo por el límite de ataque; el rozamiento interno se
 	# mantiene siempre y la rueda libre corta la transmisión en el solver.
-	var rpm_fraction_full := clampf(engine_rpm / maxf(maximum_rpm, 1.0), 0.0, 1.0)
+	var rpm_fraction_full := clampf(engine_rpm / maxf(torque_curve_reference_rpm if torque_curve_reference_rpm > 0.0 else maximum_rpm, 1.0), 0.0, 1.0)
 	var terms := _engine_torque_terms(
 		engine_rpm, throttle, peak_torque_nm, maximum_rpm, _idle_target_rpm(),
 		_evaluate_torque_curve(rpm_fraction_full), variable_drag_ratio,
-		constant_brake_ratio, thermal_derating
+		constant_brake_ratio, thermal_derating, torque_curve_reference_rpm
 	)
 	var positive_target := float(terms["positive_requested"])
 	if torque_attack_rate_nm_s > 0.0:

@@ -1,139 +1,184 @@
 class_name RallySetupCatalog
 extends RefCounted
 
+const PRESSURE_MIN := 100.0
+const PRESSURE_MAX := 200.0
+const RAD_TO_DEG := 180.0 / PI
+const ANGLE_STEP := PI / 1800.0
+const POSITION_LABELS := ["Rígida", "Semi-rígida", "Equilibrada", "Semi-blanda", "Blanda"]
+const SPRING_FACTORS := [1.20, 1.10, 1.0, 0.90, 0.80]
+const ARB_FACTORS := [1.30, 1.15, 1.0, 0.85, 0.70]
+const DIFFERENTIAL_PREFIX := "powertrain.differential."
+const DIFFERENTIAL_PRESET_PATH := DIFFERENTIAL_PREFIX + "preset_id"
+
 const FIELDS: Array[Dictionary] = [
-	{"page": 0, "label": "Frecuencia natural delantera", "path": "suspension.front.ride_frequency_hz", "min": 0.5, "max": 3.5, "step": 0.01, "suffix": " Hz", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA", "default": 1.67},
-	{"page": 0, "label": "Frecuencia natural trasera", "path": "suspension.rear.ride_frequency_hz", "min": 0.5, "max": 3.5, "step": 0.01, "suffix": " Hz", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA", "default": 1.70},
-	{"page": 0, "label": "Altura de marcha delantera", "path": "suspension.front.resting_ratio", "min": 0.20, "max": 0.80, "step": 0.005, "suffix": "", "scale": 1.0, "digits": 3, "group": "SUSPENSION DELANTERA"},
-	{"page": 0, "label": "Altura de marcha trasera", "path": "suspension.rear.resting_ratio", "min": 0.20, "max": 0.80, "step": 0.005, "suffix": "", "scale": 1.0, "digits": 3, "group": "SUSPENSION TRASERA"},
-	{"page": 0, "label": "Relación de amortiguación delantera", "path": "suspension.front.damping_ratio", "min": 0.05, "max": 1.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA"},
-	{"page": 0, "label": "Relación de amortiguación trasera", "path": "suspension.rear.damping_ratio", "min": 0.05, "max": 1.20, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA"},
-	{"page": 0, "label": "Compresión delantera", "path": "suspension.front.bump_damp_multiplier", "min": 0.20, "max": 3.00, "step": 0.01, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA"},
-	{"page": 0, "label": "Compresión trasera", "path": "suspension.rear.bump_damp_multiplier", "min": 0.20, "max": 3.00, "step": 0.01, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA"},
-	{"page": 0, "label": "Rebote delantero", "path": "suspension.front.rebound_damp_multiplier", "min": 0.20, "max": 3.00, "step": 0.01, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA"},
-	{"page": 0, "label": "Rebote trasero", "path": "suspension.rear.rebound_damp_multiplier", "min": 0.20, "max": 3.00, "step": 0.01, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA"},
-	{"page": 0, "label": "Barra estabilizadora delantera", "path": "suspension.geometry_physical.front_arb.ratio", "min": 0.00, "max": 2.00, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 0, "label": "Barra estabilizadora trasera", "path": "suspension.geometry_physical.rear_arb.ratio", "min": 0.00, "max": 2.00, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 1, "label": "Convergencia delantera", "path": "suspension.front.toe", "min": -0.05, "max": 0.05, "step": 0.001, "suffix": "°", "scale": 57.2957795, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 1, "label": "Convergencia trasera", "path": "suspension.rear.toe", "min": -0.05, "max": 0.05, "step": 0.001, "suffix": "°", "scale": 57.2957795, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 1, "label": "Caída delantera", "path": "suspension.front.camber", "min": -0.10, "max": 0.05, "step": 0.001, "suffix": "°", "scale": 57.2957795, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 1, "label": "Caída trasera", "path": "suspension.rear.camber", "min": -0.10, "max": 0.05, "step": 0.001, "suffix": "°", "scale": 57.2957795, "digits": 2, "group": "GEOMETRÍA"},
-	{"page": 0, "label": "Tope de suspensión delantero", "path": "suspension.front.bump_stop_multiplier", "min": 0.00, "max": 4.00, "step": 0.05, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION DELANTERA"},
-	{"page": 0, "label": "Tope de suspensión trasero", "path": "suspension.rear.bump_stop_multiplier", "min": 0.00, "max": 4.00, "step": 0.05, "suffix": "x", "scale": 1.0, "digits": 2, "group": "SUSPENSION TRASERA"},
-	{"page": 1, "label": "Presión delantera izquierda", "path": "tires.pressure.cold_kpa_gauge.FL", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
-	{"page": 1, "label": "Presión delantera derecha", "path": "tires.pressure.cold_kpa_gauge.FR", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
-	{"page": 1, "label": "Presión trasera izquierda", "path": "tires.pressure.cold_kpa_gauge.RL", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
-	{"page": 1, "label": "Presión trasera derecha", "path": "tires.pressure.cold_kpa_gauge.RR", "min": 80.0, "max": 220.0, "step": 1.0, "suffix": " kPa", "scale": 1.0, "digits": 0, "group": "NEUMÁTICOS"},
-	{"page": -1, "label": "Ala delantera", "path": "aero.model.front_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
-	{"page": -1, "label": "Ala trasera", "path": "aero.model.rear_wing.incidence_deg", "min": 0.0, "max": 20.0, "step": 0.5, "suffix": "°", "scale": 1.0, "digits": 1, "group": "AERODINÁMICA", "default": 0.0},
+	{"path": "garage.suspension", "min": 1, "max": 5, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "garage.front_arb", "min": 1, "max": 5, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "garage.rear_arb", "min": 1, "max": 5, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "suspension.front.camber", "min": -40.0 * ANGLE_STEP, "max": 0, "step": ANGLE_STEP, "suffix": "°", "scale": RAD_TO_DEG, "digits": 1},
+	{"path": "suspension.rear.camber", "min": -40.0 * ANGLE_STEP, "max": 0, "step": ANGLE_STEP, "suffix": "°", "scale": RAD_TO_DEG, "digits": 1},
+	{"path": "suspension.front.toe", "min": -10.0 * ANGLE_STEP, "max": 10.0 * ANGLE_STEP, "step": ANGLE_STEP, "suffix": "°", "scale": RAD_TO_DEG, "digits": 1},
+	{"path": "suspension.rear.toe", "min": -10.0 * ANGLE_STEP, "max": 10.0 * ANGLE_STEP, "step": ANGLE_STEP, "suffix": "°", "scale": RAD_TO_DEG, "digits": 1},
+	{"path": "garage.front_pressure", "min": PRESSURE_MIN, "max": PRESSURE_MAX, "step": 1, "suffix": " kPa", "scale": 1, "digits": 0},
+	{"path": "garage.rear_pressure", "min": PRESSURE_MIN, "max": PRESSURE_MAX, "step": 1, "suffix": " kPa", "scale": 1, "digits": 0},
+	{"path": "powertrain.max_rpm", "min": 0, "max": 10000, "step": 50, "suffix": " rpm", "scale": 1, "digits": 0},
+	{"path": "garage.cooling", "min": 0, "max": 4, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "garage.lsd", "min": 0, "max": 1, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "powertrain.differential.clutches", "min": 2, "max": 8, "step": 2, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "powertrain.differential.power_ramp_angle_deg", "min": 45, "max": 90, "step": 5, "suffix": "°", "scale": 1, "digits": 0},
+	{"path": "powertrain.differential.coast_ramp_angle_deg", "min": 45, "max": 90, "step": 5, "suffix": "°", "scale": 1, "digits": 0},
 	{"page": 1, "label": "Reparto de frenada delantero", "path": "brakes.front_brake_bias", "min": 0.30, "max": 0.80, "step": 0.005, "suffix": "%", "scale": 100.0, "digits": 1, "group": "FRENOS"},
-	{"page": 0, "label": "Conducto de freno delantero", "path": "brakes.thermal.front_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
-	{"page": 0, "label": "Conducto de freno trasero", "path": "brakes.thermal.rear_duct.opening", "min": 0.0, "max": 1.0, "step": 0.01, "suffix": "%", "scale": 100.0, "digits": 0, "group": "FRENOS", "optional": true},
-	{"page": 1, "label": "Par máximo de freno", "path": "brakes.max_brake_torque", "min": 500.0, "max": 8000.0, "step": 50.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "FRENOS"},
-	{"page": 2, "label": "Régimen máximo", "path": "powertrain.max_rpm", "min": 4500.0, "max": 7200.0, "step": 50.0, "suffix": " rpm", "scale": 1.0, "digits": 0, "group": "MOTOR", "default": 7200.0},
 	{"page": 2, "label": "Relación final", "path": "powertrain.final_drive", "min": 2.0, "max": 6.0, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN"},
-	{"page": 2, "label": "1ª Marcha", "path": "powertrain.gear_ratios.0", "min": 1.80, "max": 7.00, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 2.54},
-	{"page": 2, "label": "2ª Marcha", "path": "powertrain.gear_ratios.1", "min": 1.20, "max": 3.60, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.66},
-	{"page": 2, "label": "3ª Marcha", "path": "powertrain.gear_ratios.2", "min": 0.90, "max": 1.80, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.25},
-	{"page": 2, "label": "4ª Marcha", "path": "powertrain.gear_ratios.3", "min": 0.70, "max": 1.40, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 1.00},
-	{"page": 2, "label": "Marcha atrás (R)", "path": "powertrain.reverse_ratio", "min": 2.20, "max": 8.50, "step": 0.01, "suffix": "", "scale": 1.0, "digits": 2, "group": "TRANSMISIÓN", "default": 3.32},
-	# Modo modern: LSD autoblocante totalmente configurable (precarga,
-	# rampas y discos libres). En modo historic estos paths los resuelve
-	# el catálogo de presets y vehicle_simulation rechaza valores libres.
-	{"page": 2, "label": "Precarga del diferencial", "path": "powertrain.differential.preload_nm", "min": 0.0, "max": 120.0, "step": 1.0, "suffix": " Nm", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Rampa de aceleración", "path": "powertrain.differential.power_ramp_angle_deg", "min": 5.0, "max": 85.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Rampa de retención", "path": "powertrain.differential.coast_ramp_angle_deg", "min": 5.0, "max": 85.0, "step": 1.0, "suffix": "°", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 2, "label": "Paquetes de discos", "path": "powertrain.differential.clutches", "min": 1.0, "max": 8.0, "step": 1.0, "suffix": "", "scale": 1.0, "digits": 0, "group": "DIFERENCIAL"},
-	{"page": 0, "label": "Ángulo máximo de dirección", "path": "steering.max_steering_angle", "min": 0.15, "max": 0.70, "step": 0.005, "suffix": "°", "scale": 57.2957795, "digits": 1, "group": "DIRECCIÓN"},
-	{"page": 2, "label": "Velocidad de dirección", "path": "steering.steering_speed", "min": 1.0, "max": 12.0, "step": 0.05, "suffix": " /s", "scale": 1.0, "digits": 2, "group": "DIRECCIÓN"},
 	{"page": 3, "label": "Combustible inicial", "path": "fuel.initial_kg", "min": 5.0, "max": 55.0, "step": 0.5, "suffix": " kg", "scale": 1.0, "digits": 1, "group": "ESTRATEGIA", "default": 25.0},
 ]
 
-const PAGE_TITLES := ["SUSPENSIÓN", "RUEDAS", "MOTOR / TRANSMISIÓN", "ESTRATEGIA / BOXES", "REGLAJES"]
-
-# v1 presets: los 4 números libres del diferencial salen del contrato numérico.
-# El preset se valida/resuelve vía RallyDifferentialCatalog, nunca como float.
-const DIFFERENTIAL_PRESET_PATH := "powertrain.differential.preset_id"
-const LEGACY_DIFFERENTIAL_PATHS: Array[String] = [
+const LEGACY_PATHS := [
+	"suspension.front.ride_frequency_hz",
+	"suspension.rear.ride_frequency_hz",
+	"suspension.front.resting_ratio",
+	"suspension.rear.resting_ratio",
+	"suspension.front.damping_ratio",
+	"suspension.rear.damping_ratio",
+	"suspension.front.bump_damp_multiplier",
+	"suspension.rear.bump_damp_multiplier",
+	"suspension.front.rebound_damp_multiplier",
+	"suspension.rear.rebound_damp_multiplier",
+	"suspension.geometry_physical.front_arb.ratio",
+	"suspension.geometry_physical.rear_arb.ratio",
+	"suspension.front.bump_stop_multiplier",
+	"suspension.rear.bump_stop_multiplier",
+	"tires.pressure.cold_kpa_gauge.FL",
+	"tires.pressure.cold_kpa_gauge.FR",
+	"tires.pressure.cold_kpa_gauge.RL",
+	"tires.pressure.cold_kpa_gauge.RR",
+	"aero.model.front_wing.incidence_deg",
+	"aero.model.rear_wing.incidence_deg",
+	"brakes.thermal.front_duct.opening",
+	"brakes.thermal.rear_duct.opening",
+	"brakes.max_brake_torque",
+	"powertrain.gear_ratios.0",
+	"powertrain.gear_ratios.1",
+	"powertrain.gear_ratios.2",
+	"powertrain.gear_ratios.3",
+	"powertrain.reverse_ratio",
 	"powertrain.differential.preload_nm",
-	"powertrain.differential.power_ramp_angle_deg",
-	"powertrain.differential.coast_ramp_angle_deg",
-	"powertrain.differential.clutches",
+	"steering.max_steering_angle",
+	"steering.steering_speed",
 ]
 
 
 static func defaults(domains: Dictionary) -> Dictionary:
-	var result: Dictionary = {}
+	var result := {
+		"garage.suspension": 3.0,
+		"garage.front_arb": 3.0,
+		"garage.rear_arb": 3.0,
+		"garage.cooling": 0.0,
+	}
+	var powertrain: Dictionary = domains.get("powertrain", {}).get("powertrain", {})
+	var differential: Dictionary = powertrain.get("differential", {})
+	var open := str(differential.get("type", "clutch_lsd")) == "open"
+	result["garage.lsd"] = 0.0 if open else 1.0
 	for field in FIELDS:
 		var path: String = field.path
-		var segments := _domain_segments(path)
-		var value: Variant = _read_segments(domains, segments, 0)
-		if value is int or value is float:
-			result[path] = float(value)
+		if path.begins_with("garage."):
+			continue
+		var value: Variant = _read_segments(domains, _domain_segments(path), 0)
+		if open and path.begins_with(DIFFERENTIAL_PREFIX):
+			value = 4.0 if path.ends_with(".clutches") else 45.0
+		result[path] = float(value) if value is int or value is float else float(field.get("default", 0.0))
+	var pressures: Dictionary = domains.get("tires", {}).get("tires", {}).get("pressure", {}).get("cold_kpa_gauge", {})
+	result["garage.front_pressure"] = axle_pressure(pressures, "F")
+	result["garage.rear_pressure"] = axle_pressure(pressures, "R")
 	return result
 
 
-static func apply(domains: Dictionary, values: Dictionary) -> Dictionary:
-	var sanitized := validate(values)
-	if not bool(sanitized.get("ok", false)):
-		return sanitized
+static func axle_pressure(pressures: Dictionary, axle: String) -> float:
+	return clampf((float(pressures.get(axle + "L", 180.0)) + float(pressures.get(axle + "R", 180.0))) * 0.5, PRESSURE_MIN, PRESSURE_MAX)
+
+
+static func validate(values: Dictionary, design: Dictionary, stock_suspension: Dictionary) -> Dictionary:
+	for raw_key in values:
+		var key := str(raw_key)
+		if key == DIFFERENTIAL_PRESET_PATH:
+			continue
+		if not key in LEGACY_PATHS and field_for_path(key).is_empty():
+			return {"ok": false, "error": "Campo de reglaje no reconocido: " + key}
+		var value: Variant = values[raw_key]
+		if not (value is int or value is float) or not is_finite(float(value)):
+			return {"ok": false, "error": "Valor numérico inválido en " + key}
+	if not values.has("garage.suspension"):
+		values = _migrate_suspension(values, stock_suspension)
+	var result := design.duplicate()
+	var has_old_preset := values.has(DIFFERENTIAL_PRESET_PATH)
 	for field in FIELDS:
 		var path: String = field.path
-		if not sanitized.values.has(path):
+		if not values.has(path) or (has_old_preset and path.begins_with(DIFFERENTIAL_PREFIX)):
 			continue
-		var segments := _domain_segments(path)
-		_write_segments(domains, segments, 0, float(sanitized.values[path]))
-	# These two representations describe the same legacy anti-roll quantity. The
-	# geometric control is the garage authority; copy it to the value read by the solver.
-	var suspension: Dictionary = domains.get("suspension", {}).get("suspension", {})
-	var physical: Dictionary = suspension.get("geometry_physical", {})
+		result[path] = clamp_field(field_for_vehicle(path, design), float(values[path]), design)
 	for axle in ["front", "rear"]:
-		var bar: Dictionary = physical.get(axle + "_arb", {})
-		var tune: Dictionary = suspension.get(axle, {})
-		tune["arb_ratio"] = float(bar.get("ratio", tune.get("arb_ratio", 0.0)))
-		suspension[axle] = tune
-		physical[axle + "_arb"] = bar
-	suspension["geometry_physical"] = physical
-	domains["suspension"]["suspension"] = suspension
-	return {"ok": true, "values": sanitized.values}
-
-
-static func validate(values: Dictionary) -> Dictionary:
-	var allowed: Dictionary = {}
-	for field in FIELDS:
-		allowed[field.path] = field
-	var result: Dictionary = {}
-	for key in values:
-		# En modo historic, los valores libres del diferencial los rechaza
-		# vehicle_simulation con aviso de migración; aquí solo se valida
-		# que la clave exista (modo modern: LSD libremente configurable).
-		if not allowed.has(str(key)):
-			return {"ok": false, "error": "Campo de reglaje no reconocido: " + str(key)}
-		var value: Variant = values[key]
-		if not (value is int or value is float) or not is_finite(float(value)):
-			return {"ok": false, "error": "Valor numerico invalido en " + str(key)}
-		var field: Dictionary = allowed[str(key)]
-		result[str(key)] = snappedf(clampf(float(value), float(field.min), float(field.max)), float(field.step))
-	for field in FIELDS:
-		if not result.has(str(field.path)):
-			if field.has("default"):
-				result[str(field.path)] = float(field.default)
-				continue
-			# Los 4 números del diferencial son opcionales: en historic los
-			# resuelve el catálogo de presets; en modern pueden actualizarse
-			# por separado sin reenviar el reglaje completo.
-			if bool(field.get("optional", false)) or str(field.path) in LEGACY_DIFFERENTIAL_PATHS:
-				continue
-			return {"ok": false, "error": "El reglaje no incluye " + str(field.path)}
+		var path: String = "garage." + axle + "_pressure"
+		var prefix := "tires.pressure.cold_kpa_gauge." + ("F" if axle == "front" else "R")
+		if not values.has(path) and values.has(prefix + "L") and values.has(prefix + "R"):
+			result[path] = clampf((float(values[prefix + "L"]) + float(values[prefix + "R"])) * 0.5, PRESSURE_MIN, PRESSURE_MAX)
 	return {"ok": true, "values": result}
 
 
-static func fields_for_page(page: int) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for field in FIELDS:
-		if int(field.page) == page:
-			result.append(field)
-	return result
+static func _migrate_suspension(values: Dictionary, stock: Dictionary) -> Dictionary:
+	var migrated := values.duplicate()
+	var spring_sum := 0.0
+	var spring_count := 0
+	var height_sum := 0.0
+	var height_count := 0
+	for axle in ["front", "rear"]:
+		var tune: Dictionary = stock.get(axle, {})
+		var frequency_path: String = "suspension." + axle + ".ride_frequency_hz"
+		var frequency := maxf(float(tune.get("ride_frequency_hz", 1.0)), 0.01)
+		var spring_factor := pow(float(values.get(frequency_path, frequency)) / frequency, 2.0)
+		if values.has(frequency_path):
+			spring_sum += spring_factor
+			spring_count += 1
+		var height_path: String = "suspension." + axle + ".resting_ratio"
+		if values.has(height_path):
+			height_sum += (float(tune.get("resting_ratio", 0.35)) - float(values[height_path])) * float(tune.get("spring_length", 0.3))
+			height_count += 1
+		var ratio_path: String = "suspension.geometry_physical." + axle + "_arb.ratio"
+		var ratio := float(stock.get("geometry_physical", {}).get(axle + "_arb", {}).get("ratio", 0.0))
+		var position_path: String = "garage." + axle + "_arb"
+		if not values.has(position_path) and values.has(ratio_path):
+			var factors := ARB_FACTORS if ratio > 0.0 else [0.10, 0.05, 0.0, 0.0, 0.0]
+			var target := float(values[ratio_path]) * spring_factor
+			migrated[position_path] = _nearest_position(factors, target / ratio if ratio > 0.0 else target)
+	if not values.has("garage.suspension"):
+		var spring_position := _nearest_position(SPRING_FACTORS, spring_sum / spring_count) if spring_count > 0 else 3.0
+		if spring_position == 3.0 and height_count > 0:
+			spring_position = clampf(3.0 + roundf(height_sum / height_count / 0.006), 1.0, 5.0)
+		migrated["garage.suspension"] = spring_position
+	return migrated
+
+
+static func _nearest_position(factors: Array, target: float) -> float:
+	var closest := 2
+	for i in factors.size():
+		if absf(float(factors[i]) - target) < absf(float(factors[closest]) - target):
+			closest = i
+	return float(closest + 1)
+
+
+static func apply(domains: Dictionary, values: Dictionary) -> void:
+	for path in values:
+		if path.begins_with("garage.") or path == "powertrain.max_rpm" or path.begins_with(DIFFERENTIAL_PREFIX):
+			continue
+		_write_segments(domains, _domain_segments(path), 0, float(values[path]))
+
+
+static func apply_pressures(domains: Dictionary, values: Dictionary) -> void:
+	var tires: Dictionary = domains["tires"]["tires"]
+	var pressure: Dictionary = tires.get("pressure", {})
+	pressure["cold_kpa_gauge"] = {
+		"FL": values["garage.front_pressure"], "FR": values["garage.front_pressure"],
+		"RL": values["garage.rear_pressure"], "RR": values["garage.rear_pressure"],
+	}
+	tires["pressure"] = pressure
 
 
 static func field_for_path(path: String) -> Dictionary:
@@ -141,6 +186,23 @@ static func field_for_path(path: String) -> Dictionary:
 		if str(field.path) == path:
 			return field
 	return {}
+
+
+static func field_for_vehicle(path: String, design: Dictionary) -> Dictionary:
+	var field := field_for_path(path)
+	if path == "powertrain.max_rpm" and design.has(path):
+		field = field.duplicate()
+		field.max = float(design[path])
+		field.min = float(field.max) - floorf(float(field.max) * 0.10 / 50.0) * 50.0
+	return field
+
+
+static func clamp_field(field: Dictionary, value: float, design: Dictionary) -> float:
+	if is_equal_approx(value, float(design.get(field.path, INF))):
+		return value
+	var minimum := float(field.min)
+	var maximum := float(field.max)
+	return clampf(minimum + snappedf(clampf(value, minimum, maximum) - minimum, float(field.step)), minimum, maximum)
 
 
 static func _domain_segments(path: String) -> PackedStringArray:
