@@ -41,23 +41,23 @@
   "wheels": {
     "front_left": {
       "path": "ford_escort_rs2000_1971_wheel_front_left.glb",
-      "sha256": "d03a82e30a0e15ec9fdf08025abd1afb2a17a090f8d5bf1eb2cbb49e28a0795a",
-      "size_bytes": 125816
+      "sha256": "1d7d4dd7e92140c82acc05ff7582043d9c8dcaf2827ba6c1721c07d4e4e4c110",
+      "size_bytes": 56244
     },
     "front_right": {
       "path": "ford_escort_rs2000_1971_wheel_front_right.glb",
-      "sha256": "2cea4294f3b015997ea38a5f1cc6431f8714778e00e7818e2bc257ef347a5530",
-      "size_bytes": 127132
+      "sha256": "7f5f4d8ac1232b685c1bed5bcddc5407aa1cf66d528c336a0c4642bad2672095",
+      "size_bytes": 56248
     },
     "rear_left": {
       "path": "ford_escort_rs2000_1971_wheel_rear_left.glb",
-      "sha256": "bceb3883340787062756af27bea4e68a51d597f0ae8d7b4d0cb55c4b751a670b",
-      "size_bytes": 121804
+      "sha256": "e0155f3c231e1a49506dcdc2e4b9d602a255b9bc94e7359d71b291c7b12161e4",
+      "size_bytes": 56244
     },
     "rear_right": {
       "path": "ford_escort_rs2000_1971_wheel_rear_right.glb",
-      "sha256": "0a1d20264b0dcde4f40f47ad1e880e61f060b6b50ab7bc16abbed37ab88cc3ea",
-      "size_bytes": 124528
+      "sha256": "9e097b3fbf24ea9b0aceea388fa7918c060033e3d7a7ec4e78db566d3aa8219c",
+      "size_bytes": 56248
     }
   },
   "collision": {

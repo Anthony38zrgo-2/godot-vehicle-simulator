@@ -23,8 +23,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "46ef19a6dc179324122be7dea3022f9b0c7109ce629b942f05c13c3e11649627",
-    "size_bytes": 3839848,
+    "sha256": "e862000ddf7fb9ef4227aeb669bfbd37422df01ca7a8955145ab988aa07bdf15",
+    "size_bytes": 920720,
     "exported_nodes": [
       "Alfa1750GTV_Exterior"
     ]
@@ -32,23 +32,23 @@
   "wheels": {
     "front_left": {
       "path": "wheel_front_left.glb",
-      "sha256": "a50421148c47f987a8a9d320312ae929ed5e0a7936db974a426c3e1a20de7eec",
-      "size_bytes": 226892
+      "sha256": "f5d548a0e7113239acb8d230b5bbd51378977ad765ea9bf19378d8fd55528803",
+      "size_bytes": 54872
     },
     "front_right": {
       "path": "wheel_front_right.glb",
-      "sha256": "682f848880776d2ccf3bfe5a0480005f0eb3341201dd6699141d29c0a79ab619",
-      "size_bytes": 231684
+      "sha256": "1bf828acc35158888f6bcbbfb176d8b3981b97d6293fd19706f0dc863f000fcf",
+      "size_bytes": 54872
     },
     "rear_left": {
       "path": "wheel_rear_left.glb",
-      "sha256": "06f79a1784e7ecef8f26e951b51856bc2a463861b95c7ac35da1e204d320fdb8",
-      "size_bytes": 222476
+      "sha256": "dc4552661a021676762270749108adc98b0c2cbd2ebea27da50e371f1146357c",
+      "size_bytes": 54868
     },
     "rear_right": {
       "path": "wheel_rear_right.glb",
-      "sha256": "33309fa44b2f15c47fc292078d55ac67647f34ff19c79ed1ea6703432d4ed5de",
-      "size_bytes": 233244
+      "sha256": "51ce34f236db2634054f27c5fab1d75770d298fd30ed47267bfa2fde4eb9d736",
+      "size_bytes": 54872
     }
   },
   "wheel_pivots": {

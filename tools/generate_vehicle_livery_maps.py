@@ -209,11 +209,12 @@ SPECS: list[dict] = [
     },
     {
         "car_key": "rt-alfa-giulia-gta",
-        "size": (512, 512),
+        "size": (1024, 1024),
         "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "alfa1750_ocra_psx" / "alfa1750_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "alfa1750_ocra_psx" / "alfa1750_body_albedo_raw.png",
-        "mask_mode": "full",
+        "lightmap": ASSETS_ROOT / "alfa1750_clean_uv" / "body_lightmap.png",
+        "albedo_raw": ASSETS_ROOT / "alfa1750_clean_uv" / "body_albedo_raw_ocra.png",
+        "mask_mode": "exclude_baked_mask",
+        "exclude_mask": ASSETS_ROOT / "alfa1750_clean_uv" / "body_baked_details_mask.png",
         "flat_body": True,
     },
     {

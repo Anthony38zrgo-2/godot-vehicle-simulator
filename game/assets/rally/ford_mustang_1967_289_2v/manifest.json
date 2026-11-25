@@ -33,26 +33,26 @@
   "wheels": {
     "front_left": {
       "path": "ford_mustang_1967_289_2v_wheel_front_left.glb",
-      "sha256": "3372858b0f69c79f933f29f6de6710375ae97857c9b0f82215756eb3203cccdc",
-      "size_bytes": 128496,
+      "sha256": "19884d55121014850e68dd7558b8a67ad57255452f4d42b23b7264e0fae227d5",
+      "size_bytes": 47748,
       "source_object": "PalominoSpecial67_WheelStock_FL"
     },
     "front_right": {
       "path": "ford_mustang_1967_289_2v_wheel_front_right.glb",
-      "sha256": "9c010ea3443451c4034a3b9f37b1b51ecfb3c88427e6d4a1817ef5873b73c3ad",
-      "size_bytes": 128576,
+      "sha256": "4a232b6f17f74b519ba48444f2757c59e949cb03784184856639e73635265f5b",
+      "size_bytes": 47748,
       "source_object": "PalominoSpecial67_WheelStock_FR"
     },
     "rear_left": {
       "path": "ford_mustang_1967_289_2v_wheel_rear_left.glb",
-      "sha256": "daf8316061b546cfee792eaeb673329a23c3ef88716ec8ef929467ecb881f2fe",
-      "size_bytes": 128492,
+      "sha256": "e5b987499d95530c1c7e37d000ae954c396665f4a0823027926723eebd82e33b",
+      "size_bytes": 47748,
       "source_object": "PalominoSpecial67_WheelStock_RL"
     },
     "rear_right": {
       "path": "ford_mustang_1967_289_2v_wheel_rear_right.glb",
-      "sha256": "fab4f5a2e34bca86bcb577ce758530c4eabcf03d1ae916b7788893fabb9516d8",
-      "size_bytes": 128572,
+      "sha256": "83f9c82921fbf31030b2d634790a69a3063602b209c64ce678a357fbb44a06c2",
+      "size_bytes": 47748,
       "source_object": "PalominoSpecial67_WheelStock_RR"
     }
   },

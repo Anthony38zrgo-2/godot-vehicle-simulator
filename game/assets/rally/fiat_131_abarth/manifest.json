@@ -41,23 +41,23 @@
   "wheels": {
     "front_left": {
       "path": "fiat_131_abarth_wheel_front_left.glb",
-      "sha256": "050cca2edaff9a817b7353e1228cb6b02a3afdf3fea16cb6f25cfdae4a01fbef",
-      "size_bytes": 188016
+      "sha256": "e4b1fecd9071d5cffd2954243446ea19d040ab30f27e87902c6f00942a226ecb",
+      "size_bytes": 48592
     },
     "front_right": {
       "path": "fiat_131_abarth_wheel_front_right.glb",
-      "sha256": "7913ac29092aebcdab9ffb06aa056a06a0df7f496cf03ed7fd3cf310a0ea6cf6",
-      "size_bytes": 185232
+      "sha256": "a6878eae41a32dd6ee5c84d89382c0a75f0f31b8cb241b93ea262ca007e87d85",
+      "size_bytes": 48596
     },
     "rear_left": {
       "path": "fiat_131_abarth_wheel_rear_left.glb",
-      "sha256": "a6aaf556b21b7c413b64fa65846b71ac4dc2207228348b97b73accd2d6878049",
-      "size_bytes": 185928
+      "sha256": "80ea9106b4e20990a567931c0a300c1158bd7da4bffde2f399098781fec9cdb8",
+      "size_bytes": 48592
     },
     "rear_right": {
       "path": "fiat_131_abarth_wheel_rear_right.glb",
-      "sha256": "b419531ba445aced242d05b32d0f7962a64b5bc583ea0cc2286f1c3866735626",
-      "size_bytes": 182700
+      "sha256": "6c3067f7396593f184b4466f8ea2efa9c17be2edf7a2bd310f710f0ca3fa05d8",
+      "size_bytes": 48592
     }
   },
   "collision": {

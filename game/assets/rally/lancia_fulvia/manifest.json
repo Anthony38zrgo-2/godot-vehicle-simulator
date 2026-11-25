@@ -36,23 +36,23 @@
   "wheels": {
     "front_left": {
       "path": "lancia_fulvia_wheel_front_left.glb",
-      "sha256": "70f71b4d33945f7e3ffba8ea171df73e262d515f23f70eb9b19dfd6a8323b7eb",
-      "size_bytes": 208640
+      "sha256": "c5d329e1e6e9b2256ddadd6600c66479e93c5e1757175191913d16df3c7f0e83",
+      "size_bytes": 60528
     },
     "front_right": {
       "path": "lancia_fulvia_wheel_front_right.glb",
-      "sha256": "1523001a6f3b8cd2395b1a0ba40464760e2da7dcedad19c0ac83bd683715a643",
-      "size_bytes": 214604
+      "sha256": "b432745bb5aa83ed0479015da228657510220b52317d435c1a37664d641aa583",
+      "size_bytes": 60532
     },
     "rear_left": {
       "path": "lancia_fulvia_wheel_rear_left.glb",
-      "sha256": "d4224f7ece995a0d2d7a0adc5a791ca1554e3eb2d380329147fbd818357b32b6",
-      "size_bytes": 205072
+      "sha256": "5a9b566793b60d749a01864fbd6486fb6997724d2314eee5bc33f29b7e1e152c",
+      "size_bytes": 60532
     },
     "rear_right": {
       "path": "lancia_fulvia_wheel_rear_right.glb",
-      "sha256": "a7854df17ef2498e59d4b78545e52fbf1ba34f2df359d48459954d71c7996dfc",
-      "size_bytes": 214108
+      "sha256": "16c70c6aef49d2c5d01567d5b87cdbe7e552fe1ef2938e4421f3ae5502124391",
+      "size_bytes": 60532
     }
   },
   "wheel_pivots": {
