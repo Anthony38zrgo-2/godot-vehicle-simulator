@@ -13,11 +13,11 @@
     "target_cg_z_m": 0.475
   },
   "geometry": {
-    "wheelbase": 2.349551,
-    "front_track": 1.379109,
-    "rear_track": 1.328567,
-    "front_axle_z": -1.174776,
-    "rear_axle_z": 1.174776
+    "front_axle_z": -1.165,
+    "rear_axle_z": 1.165,
+    "wheelbase": 2.33,
+    "front_track": 1.39,
+    "rear_track": 1.335
   },
   "physical_mass_inventory": {
     "schema_version": 2,
@@ -564,24 +564,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.68295,
+                0.659725,
                 0,
                 0
               ],
               [
                 0,
-                0.38323,
+                0.363032,
                 0
               ],
               [
                 0,
                 0,
-                0.38323
+                0.363032
               ]
             ]
           },
           "provenance": {
-            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
+            "source": "Existing estimated wheel mass; inertia rescaled to nominal 175 HR 13 dimensions.",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -607,24 +607,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.68295,
+                0.659725,
                 0,
                 0
               ],
               [
                 0,
-                0.38323,
+                0.363032,
                 0
               ],
               [
                 0,
                 0,
-                0.38323
+                0.363032
               ]
             ]
           },
           "provenance": {
-            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
+            "source": "Existing estimated wheel mass; inertia rescaled to nominal 175 HR 13 dimensions.",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -650,24 +650,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.68209,
+                0.659957,
                 0,
                 0
               ],
               [
                 0,
-                0.37754,
+                0.363155,
                 0
               ],
               [
                 0,
                 0,
-                0.37754
+                0.363155
               ]
             ]
           },
           "provenance": {
-            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
+            "source": "Existing estimated wheel mass; inertia rescaled to nominal 175 HR 13 dimensions.",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -693,24 +693,24 @@
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
               [
-                0.68209,
+                0.659957,
                 0,
                 0
               ],
               [
                 0,
-                0.37754,
+                0.363155,
                 0
               ],
               [
                 0,
                 0,
-                0.37754
+                0.363155
               ]
             ]
           },
           "provenance": {
-            "source": "Rim and tire mass with radius-of-gyration estimates; installed scale and tire mass are not measured",
+            "source": "Existing estimated wheel mass; inertia rescaled to nominal 175 HR 13 dimensions.",
             "mass_origin": "estimated",
             "center_of_mass_origin": "estimated",
             "inertia_origin": "estimated"
@@ -730,7 +730,7 @@
           "center_of_mass_in_attachment_metres": {
             "x": 0,
             "y": 0.29,
-            "z": -1.174776
+            "z": -1.165
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [
@@ -777,7 +777,7 @@
           "center_of_mass_in_attachment_metres": {
             "x": 0,
             "y": 0.29,
-            "z": 1.174776
+            "z": 1.165
           },
           "inertia_about_center_of_mass": {
             "entries_kilogram_square_metres": [

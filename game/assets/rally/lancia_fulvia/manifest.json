@@ -27,6 +27,13 @@
       "finish": "stylized_shadow_dither_psx_v1",
       "atlas": "Fulvia road atlas, RGB888 with 4x4 texel dither",
       "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    },
+    "active_exterior": {
+      "model": "Lampadati Maresia by Syke, fitted to Fulvia 818.540",
+      "source_file": "D:\\RallyManiacAssets\\cars\\1966-1975-lampadati-maresia_1767009614_550278\\Lampadati Maresia\\maresia.dff",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_maresia\\fulvia_818540_maresia_pasos_traseros.blend",
+      "generator": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_maresia\\install_maresia_fulvia.py",
+      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, generated optics"
     }
   },
   "coordinate_system": {
@@ -37,8 +44,8 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "810266db4170fd1cd3210d59ffa7e760bcd17df1526bdb128acc27f2d59cfde8",
-    "size_bytes": 212960,
+    "sha256": "1dc66a755ff1dd8c7569f3a2f02ed51a04ba23392dc83b165982bc1686622b70",
+    "size_bytes": 203828,
     "exported_nodes": [
       "Fulvia_Exterior"
     ]
@@ -46,79 +53,85 @@
   "wheels": {
     "front_left": {
       "path": "lancia_fulvia_wheel_front_left.glb",
-      "sha256": "6246ccdb90f763e69d7c4df6504a868e12bcfaae80c5d1cdf8e78cf101ec7318",
-      "size_bytes": 60528
+      "sha256": "a5b5b853599fdf4135ea484fe0493114688269845d9f80db1a18987faaec0792",
+      "size_bytes": 60532
     },
     "front_right": {
       "path": "lancia_fulvia_wheel_front_right.glb",
-      "sha256": "6c6c0027083c7311638f0dafe5ca4d9afb7b95d6e63ae9e6dd68c591f09c247a",
+      "sha256": "01034821376c861a9716c9dff6ec3b7417efaca563e115698fe5144f881274ee",
       "size_bytes": 60532
     },
     "rear_left": {
       "path": "lancia_fulvia_wheel_rear_left.glb",
-      "sha256": "4624169a0a5fc4810d513503c880dc174b5b4d7e856a8cf5c82152cd031a8067",
-      "size_bytes": 60532
+      "sha256": "a20e78b0ed1aecbb9c789628f4372f4e0181104faefdea009174b711934648df",
+      "size_bytes": 60528
     },
     "rear_right": {
       "path": "lancia_fulvia_wheel_rear_right.glb",
-      "sha256": "0ae79cc9743bff7ffc37002e819aebe4483a7048416a4801d33dce012ead17a8",
+      "sha256": "90408b04e484887f7dbd173134b5df450f33ee01946b4b90c65cc7ced8ee7a92",
       "size_bytes": 60532
     }
   },
   "wheel_pivots": {
     "front_left": {
       "center_metres": {
-        "x": -0.689554,
-        "y": 0.321967,
-        "z": -1.174775
+        "x": -0.695,
+        "y": 0.3051,
+        "z": -1.165
       },
-      "radius_metres": 0.310424,
-      "width_metres": 0.196346
+      "radius_metres": 0.3051,
+      "width_metres": 0.175
     },
     "front_right": {
       "center_metres": {
-        "x": 0.689554,
-        "y": 0.321967,
-        "z": -1.174775
+        "x": 0.695,
+        "y": 0.3051,
+        "z": -1.165
       },
-      "radius_metres": 0.310424,
-      "width_metres": 0.196346
+      "radius_metres": 0.3051,
+      "width_metres": 0.175
     },
     "rear_left": {
       "center_metres": {
-        "x": -0.664284,
-        "y": 0.310702,
-        "z": 1.174775
+        "x": -0.6675,
+        "y": 0.3051,
+        "z": 1.165
       },
-      "radius_metres": 0.310174,
-      "width_metres": 0.183543
+      "radius_metres": 0.3051,
+      "width_metres": 0.175
     },
     "rear_right": {
       "center_metres": {
-        "x": 0.664284,
-        "y": 0.310702,
-        "z": 1.174775
+        "x": 0.6675,
+        "y": 0.3051,
+        "z": 1.165
       },
-      "radius_metres": 0.310174,
-      "width_metres": 0.183543
+      "radius_metres": 0.3051,
+      "width_metres": 0.175
     }
   },
   "collision": {
     "path": "lancia_fulvia_collision.json",
-    "sha256": "f155be4e6635d56fefeaab619e60d02adce8aed8eb2facd5a8f2a7d5d027fc9e"
+    "sha256": "54cc333b38bc9f53a163f91c49c3dbd553eda39653d4e2db4466625751679b15"
   },
   "geometry": {
-    "front_axle_z": -1.174775,
-    "rear_axle_z": 1.174775,
-    "wheelbase": 2.349551,
-    "front_track": 1.379109,
-    "rear_track": 1.328567
+    "front_axle_z": -1.165,
+    "rear_axle_z": 1.165,
+    "wheelbase": 2.33,
+    "front_track": 1.39,
+    "rear_track": 1.335
   },
   "measurement": {
-    "method": "Measured directly from KN5 Lancia Fulvia Coupe 1.3 S native metric geometry.",
-    "geometry_policy": "kn5_native_dimensions",
-    "uniform_scale": 1.0,
-    "native_wheelbase_m": 2.349551
+    "method": "Lancia road homologation DGM 6925 OM, type 818.540",
+    "geometry_policy": "production_homologation_818540",
+    "source_url": "https://www.fulviaclub.it/wp-content/uploads/2017/03/818.540-Fulvia-Coupe-Rallye-16-H.F.-06-1969.pdf",
+    "unloaded_height_metres": 1.33,
+    "front_overhang_metres": 0.805,
+    "rear_overhang_metres": 0.8,
+    "tire_designation": "175 HR 13",
+    "rim_designation": "6Jx13",
+    "tire_outer_diameter_metres": 0.6102,
+    "tire_diameter_basis": "Nominal 175/80 R13 geometry; not an original manufacturer's measured diameter."
   },
   "visual_damage": {
     "archive": "car_13.bzf",
@@ -140,14 +153,14 @@
   },
   "bounds_world_metres": {
     "min_godot": [
-      -0.799266,
-      0.176354,
-      -1.995333
+      -0.7850000262260437,
+      0.17635400593280792,
+      -1.9700000286102295
     ],
     "max_godot": [
-      0.793572,
-      1.282604,
-      1.979056
+      0.7850000262260437,
+      1.3300000429153442,
+      1.965000033378601
     ]
   }
 }

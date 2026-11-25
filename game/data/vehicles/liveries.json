@@ -265,7 +265,7 @@
       "baked_ao_only": true,
       "paint_rgb555": false,
       "dither_cell_scale": 2,
-      "materials": ["Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos"],
+      "materials": ["Fulvia_BodyPaint_PSX"],
       "data_map": "res://assets/rally/liveries/fulvia_livery_data.png",
       "effective_res": [512, 512]
     },

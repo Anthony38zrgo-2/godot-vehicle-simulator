@@ -2,6 +2,13 @@
   "vehicle": "Lancia Fulvia Coupe Rallye 1.6 HF, early-1970s rally reconstruction",
   "sources": [
     {
+      "url": "https://www.fulviaclub.it/wp-content/uploads/2017/03/818.540-Fulvia-Coupe-Rallye-16-H.F.-06-1969.pdf",
+      "facts": [
+        "DGM 6925 OM, 818.540 road car: 3935 x 1570 x 1330 mm unloaded, wheelbase 2330 mm, tracks 1390/1335 mm.",
+        "Both axles: 6J x 13 rims and 175 HR 13 tyres."
+      ]
+    },
+    {
       "url": "https://historicdb.fia.com/car/lancia-fulvia-coup%C3%A9-rallye-16-hf",
       "facts": [
         "1584 cc",
@@ -29,7 +36,7 @@
     "Component masses, inertias, CG, damping, rates, tire force/thermal coefficients, cooling, aero and damage calibration",
     "Suspension kinematics are a four-hub solver proxy; no mechanically coupled rear beam or transverse leaf",
     "120 Hz minimum Jolt world step for the lighter 19 kg hub assemblies; numerical stability setting.",
-    "Rally Trophy geometry retained at native scale: 2.480 m wheelbase, 1.220 m tracks, 0.280 m tire radius. The source game model differs from homologation dimensions; simulation follows its measured wheel pivots."
+    "Nominal 610.2 mm tyre diameter from 175/80 R13 sizing; road height is unloaded mesh geometry."
   ],
   "shared_calibration": [
     "coupled_world",
@@ -43,16 +50,16 @@
   "profile_json_sha256": {
     "aerodynamics.json": "a2c8b476064ac986d1b9dfce26e596752c1956c0fcdd490645603b66c0dbadd9",
     "brakes.json": "a0a602784c55364081d7ef1c6b65675bd9fe9675ece14a8ec32c75b865717a7e",
-    "chassis.json": "d2469c77eac5c7159e4c083017d84359f8c8f20d54566202f5a160697c300d90",
+    "chassis.json": "1cd43ae5fe13c206c8668c54f29b6de9f772f5c42817df9b68d5d61b0dcc2dd5",
     "coupled_world.json": "5eba1457fa8d9d19522eec9a3af879c35fddadba802311a47cc9e04ffe0940b6",
     "damage.json": "68259c9980d713aef51079595922e9c22950d77cf863d83a992b277fc11073e6",
     "driving_assistance.json": "a4bb646be31d17d11207e4a0286896753ae802776abf4a7da08e424d35118835",
     "fuel.json": "43ef1121531c762ea751d0ace291c86d9737ee9989c9a919e0b335af33ad2481",
     "powertrain.json": "cddf4b20536ed08322f121273fb6a8672a357c08b89fef333e8e8a4f085961a7",
     "steering.json": "9e0b0c253cbab537b065c116ded0bd4f49d8edae0955003b72f661a534d156fe",
-    "suspension.json": "cbf6b978aaeeb401788a893790185df4d8aafe3ba07963305baa4358d06a7387",
+    "suspension.json": "23b0f20e4862ec1e0d464e7e8dc104295a9aa9a383e0132c5da803b74eb5e2ef",
     "suspension_filters.json": "c16c1e47656d8fffbb012fda5239e40b2df278190986a34da4cb11072d04338e",
-    "tires.json": "6477ff53321df21c5aaff32b467fe41eeccb13a9b453e3773dacd123d702b56a",
+    "tires.json": "9d259a642f31bb1c55f04a7a4b2a77435ea0f35b9133ecd9de3f8974dcb2781c",
     "underfloor_contact.json": "1da3d6709505e6e8a08661e86dab59f3f3b3fa0823d40e5744679fd84dc3c3d2",
     "vehicle.json": "e051e6ff1427c0f6b0d67efc3782dd8cfef7fa3272f5d38123ece3cbe37167c6"
   },
@@ -65,7 +72,7 @@
     "sprung_offset_metres": 0.1
   },
   "geometry_measurement": {
-    "method": "Native metric FBX geometry, no GTA scaling. Four high-detail wheel mesh bounds and pivots. Source Rally Trophy geometry retained; geometric source is not a measured historical chassis.",
+    "method": "Lancia 818.540 road dimensions and tyre sizing. Existing rally mass, engine, gearing and spring calibrations retained.",
     "cockpit_eye_metres": {
       "x": -0.3,
       "y": 1.0,

@@ -36,11 +36,11 @@ dc_blob_shadow_size = Vector2(2.1, 4.6)
 [node name="Chassis" parent="." instance=ExtResource("2_chassis")]
 script = ExtResource("toon_stylized")
 pixel_albedo = true
-banded_paint_materials = PackedStringArray("Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos")
+banded_paint_materials = PackedStringArray("Fulvia_BodyPaint_PSX")
 banded_paint_mask = ExtResource("paint_mask")
 banded_paint_height_range = Vector2(0.28, 0.87)
 banded_paint_end_drop = Vector2(0.045, 0.025)
-glass_reflection_materials = PackedStringArray("Fulvia_BodyPaint_PSX", "Fulvia_Cristales_Y_Marcos")
+glass_reflection_material = "Fulvia_Cristales_Y_Marcos"
 glass_reflection_mask = ExtResource("glass_mask")
 
 [node name="VehicleVFX" type="Node3D" parent="."]

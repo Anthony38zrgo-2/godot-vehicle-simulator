@@ -214,7 +214,7 @@ def fulvia_road_spec(work: Path) -> dict:
 
 SPECS: list[dict] = [
     # --- Group A: Dedicated *_BodyPaint_PSX material (10 cars) ---
-    fulvia_road_spec(ASSETS_ROOT / "cdi_fbx_psx" / "fulvia" / "revision_blender"),
+    fulvia_road_spec(ASSETS_ROOT / "cdi_fbx_psx" / "fulvia" / "revision_maresia"),
     road_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort" / "revision_blender"),
     {
         "car_key": "rt-alfa-giulia-gta",
