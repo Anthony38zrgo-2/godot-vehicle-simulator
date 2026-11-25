@@ -62,6 +62,9 @@ var start_click: AudioStreamPlayer
 var start_horn: AudioStreamPlayer
 var repair_sound: AudioStreamPlayer
 var course := RallyStageProgress.new()
+const StageMarkers := preload("res://scripts/rally/rally_stage_markers.gd")
+const START_STRIPE_OFFSET_M := 3.0
+var stage_markers: StageMarkers
 var competition = preload("res://scripts/rally/rally_competition.gd").new()
 var pacenotes = preload("res://scripts/rally/rally_pacenote_controller.gd").new()
 const StageLoaderScript := preload("res://scripts/rally/rally_stage_loader.gd")
@@ -229,6 +232,7 @@ func _ready() -> void:
 	_build_rivers()
 	_build_stage_grass()
 	place_vehicle_on_stage()
+	_build_stage_markers()
 	_refresh_stage_weather()
 	connect_runtime_signals()
 	configure_runtime_paths()
@@ -644,6 +648,18 @@ func _wheel_lowest_offset() -> float:
 	return 0.0 if not is_finite(lowest) else lowest
 
 
+func _build_stage_markers() -> void:
+	if is_instance_valid(stage_markers):
+		remove_child(stage_markers)
+		stage_markers.queue_free()
+	stage_markers = StageMarkers.new()
+	stage_markers.name = "StageMarkers"
+	add_child(stage_markers)
+	var forward := Basis(Vector3.UP, start_heading) * Vector3.FORWARD
+	var finish: Dictionary = course.timing_gates.back() if not course.timing_gates.is_empty() else {}
+	stage_markers.build(start_position + forward * START_STRIPE_OFFSET_M, forward, finish, track_collision.collision_layer)
+
+
 func place_vehicle_on_stage() -> void:
 	var ground_query := PhysicsRayQueryParameters3D.create(
 		Vector3(start_position.x, start_position.y + 30.0, start_position.z),
@@ -858,6 +874,7 @@ var _weather_visual_elapsed := 0.1
 func _physics_process(delta: float) -> void:
 	if not session_ready or vehicle == null:
 		return
+	stage_markers.update_finish(vehicle.global_position)
 	elapsed_seconds += delta
 	# Mientras se elige reglaje: cuenta atrás, reloj y coche detenidos.
 	if awaiting_setup:
@@ -893,6 +910,7 @@ func _physics_process(delta: float) -> void:
 			_advance_rivers(delta)
 	if not competition.complete:
 		var signal_state: Dictionary = start_sequence.advance(delta, vehicle.global_position, vehicle.linear_velocity.length())
+		stage_markers.set_phase(start_sequence.readout().phase)
 		for event: String in signal_state.events:
 			if event == "click":
 				start_click.play()
@@ -1143,6 +1161,8 @@ func reset_start_sequence() -> void:
 	course.generation = vehicle.simulation.session_generation
 	course.previous_position = vehicle.global_position
 	start_sequence.reset(vehicle.global_position)
+	if is_instance_valid(stage_markers):
+		stage_markers.set_phase("off")
 	if start_click != null:
 		start_click.stop()
 		start_horn.stop()
@@ -1242,6 +1262,7 @@ func load_event_stage(next_id: String) -> void:
 	_build_rivers()
 	_build_stage_grass()
 	place_vehicle_on_stage()
+	_build_stage_markers()
 	course.generation = vehicle.simulation.session_generation
 	camera_rig.snap_to_target()
 	reset_start_sequence()

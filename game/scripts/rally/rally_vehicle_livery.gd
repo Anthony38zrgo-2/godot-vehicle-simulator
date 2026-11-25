@@ -244,7 +244,8 @@ static func bake_and_apply(tree: SceneTree, mats: Array, params: Dictionary) -> 
 	elif orig_tex != null:
 		bake_size = Vector2i(maxi(orig_tex.get_width(), 64), maxi(orig_tex.get_height(), 64))
 
-	_run_gpu_bake(tree, mats, orig_tex, params, bake_size, cache_key, req_id)
+	# Menu previews can request the first bake while the root is adding its children.
+	_run_gpu_bake.call_deferred(tree, mats, orig_tex, params, bake_size, cache_key, req_id)
 
 
 static func _run_gpu_bake(
@@ -256,6 +257,8 @@ static func _run_gpu_bake(
 	cache_key: String,
 	req_id: int
 ) -> void:
+	if not is_instance_valid(tree) or tree.root == null:
+		return
 	var vp := SubViewport.new()
 	vp.name = "_LiveryBakeVP_%d" % req_id
 	vp.size = bake_size
