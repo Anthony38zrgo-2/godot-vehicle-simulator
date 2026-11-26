@@ -24,6 +24,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var vehicle := TestVehicle.new()
+	vehicle.rally_profile_path = ""
 	vehicle.name = "Vehicle"
 	root.add_child(vehicle)
 	var rig := RallyChaseCameraRig.new()
@@ -72,6 +73,15 @@ func _run() -> void:
 	rig.toggle_camera_mode()
 	_check(rig.camera_mode == RallyChaseCameraRig.Mode.BONNET, "CHASE must still toggle to bonnet")
 	_check(rig.global_position.is_equal_approx(vehicle.global_transform * rig.bonnet_offset_metres), "Bonnet must use its original mount")
+	var registry := preload("res://data/vehicles/registry.json")
+	for key: String in registry.data.vehicles:
+		var profile: String = registry.data.vehicles[key].Profile
+		vehicle.rally_profile_path = "res://data/vehicles/%s/vehicle.json" % profile
+		rig.set_vehicle(vehicle)
+		var offset := vehicle.to_local(rig.global_position)
+		_check(offset.z < -0.7 and offset.y > 0.7, key + ": bonnet must use a forward mount at hood height")
+		_check(is_equal_approx(camera.near, 0.08), key + ": bonnet must retain the near hood geometry")
+		_check(is_equal_approx((-rig.global_basis.z).y, sin(deg_to_rad(-2.0))), key + ": bonnet must use the calibrated pitch")
 	if _failures == 0:
 		print("RALLY_CHASE_CAMERA_CONTRACT PASS")
 	quit(0 if _failures == 0 else 1)

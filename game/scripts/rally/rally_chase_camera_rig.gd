@@ -19,6 +19,9 @@ enum Mode { CHASE, BONNET, COCKPIT }
 const LOOK_LIMIT := deg_to_rad(110.0)
 const LOOK_SPEED := deg_to_rad(540.0)
 const CHASE_PROFILE := "res://data/rally/camera/chase_default.json"
+const BONNET_MOUNTS := preload("res://data/rally/camera/bonnet_mounts.json")
+const BONNET_PITCH_DEGREES := -2.0
+const BONNET_NEAR_METRES := 0.08
 
 var vehicle: RallyEscortVehicle
 var camera: Camera3D
@@ -28,6 +31,8 @@ var _chase: Dictionary
 var _follow_angles := Vector3.ZERO
 var _ground_lift := 0.0
 var _required_ground_lift := 0.0
+var _bonnet_mount: Vector3
+var _has_calibrated_bonnet := false
 
 
 func _ready() -> void:
@@ -44,6 +49,7 @@ func _ready() -> void:
 		set_process(false)
 		return
 	_resolve_vehicle_eye()
+	_resolve_bonnet_mount()
 	_load_chase_profile()
 	snap_to_target()
 
@@ -52,6 +58,7 @@ func set_vehicle(target_vehicle: RallyEscortVehicle) -> void:
 	vehicle = target_vehicle
 	vehicle_path = vehicle.get_path()
 	_resolve_vehicle_eye()
+	_resolve_bonnet_mount()
 	_load_chase_profile()
 	snap_to_target()
 
@@ -60,6 +67,13 @@ func _resolve_vehicle_eye() -> void:
 	var eye := vehicle.get_node_or_null("Chassis/CockpitEye") as Node3D
 	if eye != null:
 		cockpit_eye_offset_metres = vehicle.to_local(eye.global_position)
+
+
+func _resolve_bonnet_mount() -> void:
+	var profile := vehicle.rally_profile_path.trim_prefix("res://data/vehicles/").trim_suffix("/vehicle.json")
+	var mount: Array = BONNET_MOUNTS.data.get(profile, [])
+	_has_calibrated_bonnet = mount.size() == 2
+	_bonnet_mount = Vector3(0.0, float(mount[0]), float(mount[1])) if _has_calibrated_bonnet else bonnet_offset_metres
 
 
 func toggle_camera_mode() -> void:
@@ -199,14 +213,14 @@ func _update_camera_transform(anchor: Vector3) -> void:
 	global_position = calculate_desired_position()
 	look_at(calculate_look_target(), Vector3.UP)
 	camera.fov = base_field_of_view_degrees
-	camera.near = 0.25
+	camera.near = BONNET_NEAR_METRES if _has_calibrated_bonnet else 0.25
 
 
 func calculate_desired_position() -> Vector3:
 	if camera_mode == Mode.COCKPIT:
 		return vehicle.global_transform * cockpit_eye_offset_metres
 	if camera_mode == Mode.BONNET:
-		return vehicle.global_transform * bonnet_offset_metres
+		return vehicle.global_transform * _bonnet_mount
 	return vehicle.global_position + _chase_position_offset()
 
 
@@ -218,8 +232,10 @@ func calculate_look_target() -> Vector3:
 	if camera_mode == Mode.COCKPIT:
 		return calculate_desired_position() - global_basis.z * 12.0
 	if camera_mode == Mode.BONNET:
-		var direction := Vector3(0.0, 0.95, -bonnet_look_ahead_metres) - bonnet_offset_metres
-		return vehicle.global_transform * (bonnet_offset_metres + direction.rotated(Vector3.UP, _look_yaw))
+		var direction := Vector3(0.0, 0.95, -bonnet_look_ahead_metres) - _bonnet_mount
+		if _has_calibrated_bonnet:
+			direction = Vector3.FORWARD.rotated(Vector3.RIGHT, deg_to_rad(BONNET_PITCH_DEGREES))
+		return vehicle.global_transform * (_bonnet_mount + direction.rotated(Vector3.UP, _look_yaw))
 	return vehicle.global_position + _chase_target_offset()
 
 

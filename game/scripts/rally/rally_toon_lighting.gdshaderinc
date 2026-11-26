@@ -22,6 +22,7 @@ uniform sampler2D ramp : source_color, filter_linear, repeat_disable, hint_defau
 uniform float toon_blend : hint_range(0.0, 1.0) = 1.0;
 uniform bool crisp_shadows = false;
 uniform float paint_spec_strength : hint_range(0.0, 1.0) = 0.0;
+uniform bool enable_vehicle_reflections = false;
 uniform float paint_env_strength : hint_range(0.0, 1.0) = 0.0;
 uniform sampler2D paint_env_map : source_color, filter_linear, repeat_disable;
 uniform sampler2D paint_env_mask : hint_default_white, filter_nearest, repeat_disable;
@@ -142,7 +143,7 @@ void fragment() {
 		NORMAL = normalize(NORMAL - normalize(louver_up_view) * bias);
 	}
 	reflection_dither = 0.0;
-	if (use_glass_reflection || use_banded_body_paint) {
+	if (use_glass_reflection || (enable_vehicle_reflections && use_banded_body_paint)) {
 		vec2 cell = mod(floor(FRAGCOORD.xy * psx_snap_resolution / max(VIEWPORT_SIZE, vec2(1.0))), 2.0);
 		reflection_dither = (mod(cell.x + cell.y, 2.0) * 2.0 + cell.y - 1.5) * 0.12;
 	}
@@ -152,7 +153,7 @@ void fragment() {
 		dirt.a *= 1.0 - step(0.1, max(glass_mask.x, glass_mask.y));
 	}
 	ALBEDO = mix(paint.rgb, dirt.rgb, dirt.a);
-	if (paint_env_strength > 0.001) {
+	if (enable_vehicle_reflections && paint_env_strength > 0.001) {
 		float coverage = use_banded_body_paint ? body_paint_coverage
 			: step(paint_env_mask_threshold, texture(paint_env_mask, tex_uv).r);
 		if (coverage > 0.0) {
@@ -228,7 +229,7 @@ void light() {
 		rim_term = smoothstep(0.57, 0.87, 1.0 - max(dot(NORMAL, VIEW), 0.0)) * band * rim_strength;
 	}
 	vec3 spec_dab = vec3(0.0);
-	if (paint_spec_strength > 0.001 && facing > 0.0) {
+	if (enable_vehicle_reflections && paint_spec_strength > 0.001 && facing > 0.0) {
 		vec3 half_vec = normalize(LIGHT + VIEW);
 		float ndh = max(dot(NORMAL, half_vec), 0.0);
 		float dab = smoothstep(
@@ -249,11 +250,15 @@ void light() {
 			+ 0.31 * smoothstep(0.70, 0.72, side_height);
 		float upward = smoothstep(0.73, 0.94, body_surface_up);
 		float tone = mix(side_tone, mix(0.73, 0.94, facing), upward);
-		float alignment = dot(NORMAL, normalize(LIGHT + VIEW));
-		float shoulder_light = smoothstep(0.61, 0.82, body_height);
-		float clearcoat = smoothstep(0.942, 0.967, alignment)
-			* smoothstep(0.18, 0.38, facing) * shoulder_light;
-		lighting = vec3(tone + 0.42 * reflection_bands(clearcoat, reflection_dither));
+		// Keep the painted light ramp visible on the height-banded bodywork.
+		lighting = vec3(tone) * mix(vec3(1.0), diffuse_color, 0.40 * toon_blend);
+		if (enable_vehicle_reflections) {
+			float alignment = dot(NORMAL, normalize(LIGHT + VIEW));
+			float shoulder_light = smoothstep(0.61, 0.82, body_height);
+			float clearcoat = smoothstep(0.942, 0.967, alignment)
+				* smoothstep(0.18, 0.38, facing) * shoulder_light;
+			lighting += vec3(0.42 * reflection_bands(clearcoat, reflection_dither));
+		}
 	}
 	DIFFUSE_LIGHT += lighting * reach * LIGHT_COLOR / PI;
 }
