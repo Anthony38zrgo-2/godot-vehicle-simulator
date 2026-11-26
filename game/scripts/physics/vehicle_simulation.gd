@@ -1593,6 +1593,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				local["snow_mm"] = maxf(float(local.get("snow_mm", 0.0)), snow_patch.x)
 				# Cap tire-compound snow_coverage modestly so snow patches retain grip while snow_contact_response delivers plowing drag & impact.
 				local["snow_coverage"] = maxf(float(local.get("snow_coverage", 0.0)), minf(smoothstep(0.0, 3.5, snow_patch.x) * 0.25, 0.25))
+				# Snow patches replace underlying loose gravel and mud so snow_contact_response never double-stacks with mud plowing.
+				var patch_snow_keep := 1.0 - smoothstep(0.05, 0.80, snow_patch.x)
+				local["loose_gravel_coverage"] = float(local.get("loose_gravel_coverage", 0.0)) * patch_snow_keep
+				local["mud_factor"] = float(local.get("mud_factor", 0.0)) * patch_snow_keep
 		var current_puddle_depth := float(local.get("puddle_depth_mm", 0.0))
 		var depth_rate := maxf(current_puddle_depth - last_puddle_depths_mm[i], 0.0) / maxf(dt, 0.001)
 		last_puddle_depths_mm[i] = current_puddle_depth
@@ -1820,8 +1824,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 					if mud_factor_here > 0.0:
 						mud_drag_n = mud_plowing_force_n(mud_factor_here, normal_load, point_surf_speed)
 						drag_n += mud_drag_n
-						hydro_wheel_torque_mag += mud_drag_n * 0.45 * wheel_radii[i]
-						steering_pull_mag += mud_drag_n * 0.025
+						hydro_wheel_torque_mag += mud_drag_n * 0.82 * wheel_radii[i]
+						steering_pull_mag += mud_drag_n * 0.055
 			last_local_conditions[i]["puddle_support"] = minf(eff_sup_x, eff_sup_y)
 			last_local_conditions[i]["puddle_drag_n"] = drag_n
 			last_local_conditions[i]["mud_drag_n"] = mud_drag_n
@@ -2138,11 +2142,15 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 
 
 static func mud_plowing_force_n(mud: float, load_n: float, speed_m_s: float) -> float:
-	# Clay displaced at low speed plus speed-dependent resistance. Cap the viscous
-	# term so brief high-speed crossings do not produce a braking impulse.
-	var low_speed := smoothstep(0.0, 3.0, speed_m_s)
-	var speed_ratio := clampf(speed_m_s / 18.0, 0.0, 1.25)
-	return clampf(mud, 0.0, 1.0) * maxf(load_n, 0.0) * (0.115 * low_speed + 0.19 * speed_ratio * speed_ratio)
+	# Lateral mud berms exert strong plastic sinkage/suction resistance from low speeds
+	# plus speed-dependent clay displacement so stepping into the mud noticeably brakes the car.
+	var abs_speed := absf(speed_m_s)
+	if mud <= 0.0 or load_n <= 0.0 or abs_speed <= 0.001:
+		return 0.0
+	var low_speed := smoothstep(0.0, 2.2, abs_speed)
+	var speed_ratio := clampf(abs_speed / 16.0, 0.0, 1.35)
+	var coeff := minf(0.26 * low_speed + 0.16 * speed_ratio + 0.24 * speed_ratio * speed_ratio, 0.74)
+	return clampf(mud, 0.0, 1.0) * load_n * coeff
 
 
 func sync_dirt_factors() -> void:

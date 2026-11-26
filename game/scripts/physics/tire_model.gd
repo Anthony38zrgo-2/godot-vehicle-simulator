@@ -479,12 +479,12 @@ func evaluate(
 		var base_stiff := float(target_surface.get("stiffness", 0.90))
 		var base_roll := float(target_surface.get("rolling_resistance", 2.2))
 		var base_lat_assist := float(target_surface.get("lateral_grip_assist", 0.03))
-		# At the weather model's peak coverage of 0.70, loose gravel loses 8% of
-		# base grip and fully converted mud loses 32%. Mud plowing is applied by the simulation.
-		var fric_scale := 1.0 - 0.11 * dry_loose - 0.46 * eff_mud
-		var stiff_scale := 1.0 - 0.16 * dry_loose - 0.52 * eff_mud
-		var roll_scale := 1.0 + 0.08 * dry_loose + 0.85 * eff_mud
-		var lat_assist_scale := 1.0 - 0.12 * dry_loose - 0.60 * eff_mud
+		# Lateral loose gravel berms lose modest grip, while converted mud loses substantial
+		# grip and adds strong rolling resistance so excursions into mud berms bog down the car.
+		var fric_scale := 1.0 - 0.11 * dry_loose - 0.48 * eff_mud
+		var stiff_scale := 1.0 - 0.16 * dry_loose - 0.54 * eff_mud
+		var roll_scale := 1.0 + 0.08 * dry_loose + 1.75 * eff_mud
+		var lat_assist_scale := 1.0 - 0.12 * dry_loose - 0.62 * eff_mud
 		target_surface["friction"] = base_fric * fric_scale
 		target_surface["stiffness"] = base_stiff * stiff_scale
 		target_surface["rolling_resistance"] = base_roll * roll_scale
