@@ -74,6 +74,10 @@ var front_abs_spin_difference_threshold: float = INF
 var rear_abs_spin_difference_threshold: float = INF
 var last_impact_speed_metres_per_second: float = 0.0
 var _physics_ready: bool = false
+var _previous_impact_pose := Transform3D.IDENTITY
+var _previous_impact_linear := Vector3.ZERO
+var _previous_impact_angular := Vector3.ZERO
+var _previous_impact_valid := false
 var _reset_pending: bool = false
 var _rescue_pose: Variant = null
 @onready var _visual_damage := get_node_or_null("VisualDamage")
@@ -554,8 +558,10 @@ func state_linear_velocity_safe() -> Vector3:
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	body_contact_vfx.clear()
 	if not _physics_ready or freeze:
+		_previous_impact_valid = false
 		return
 	if _rescue_pose is Transform3D:
+		_previous_impact_valid = false
 		var rescue_pose: Transform3D = _rescue_pose
 		_log_teleport("rescue_callback_pre", rescue_pose)
 		state.transform = rescue_pose
@@ -607,6 +613,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var peak_qualifying_local_pos := Vector3.ZERO
 	var peak_qualifying_normal := Vector3.ZERO
 	var body_contact_locals: Array[Vector3] = []
+	var obstacle_impacts := {}
 
 	for index in contact_count:
 		var contact_impulse := state.get_contact_impulse(index)
@@ -668,16 +675,25 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 		if _visual_damage != null and impulse >= min_impulse and closing_speed >= min_col_speed:
 			var local_normal := state.transform.basis.transposed() * normal
-			if is_obstacle or (contact_local_pos.y > 0.92 and local_normal.y < -0.35):
+			if not is_obstacle and contact_local_pos.y > 0.92 and local_normal.y < -0.35:
 				var visual_severity := pow(clampf((closing_speed - min_col_speed) / maxf(full_col_speed - min_col_speed, 0.001), 0.0, 1.0), col_exponent)
 				_visual_damage.register_impact(contact_local_pos, local_normal, visual_severity, visual_cfg)
 
-		# Collision damage qualification
-		if not collision_cfg.is_empty() and is_obstacle and impulse >= min_impulse and closing_speed >= min_col_speed:
-			if closing_speed > peak_qualifying_closing_speed:
-				peak_qualifying_closing_speed = closing_speed
-				peak_qualifying_local_pos = contact_local_pos
-				peak_qualifying_normal = state.transform.basis.transposed() * normal
+		if collider != null and not collision_cfg.is_empty() and is_obstacle:
+			var approach := closing_speed
+			var world_point := state.get_contact_collider_position(index)
+			if _previous_impact_valid:
+				var previous_com := _previous_impact_pose * center_of_mass
+				var previous_velocity := _previous_impact_linear + _previous_impact_angular.cross(world_point - previous_com)
+				approach = maxf(approach, -(previous_velocity - state.get_contact_collider_velocity_at_position(index)).dot(normal))
+			var key: int = collider.get_instance_id()
+			var event: Dictionary = obstacle_impacts.get(key, {"impulse": 0.0, "speed": 0.0, "position": contact_local_pos, "normal": state.transform.basis.transposed() * normal})
+			event.impulse += impulse
+			if approach > float(event.speed):
+				event.speed = approach
+				event.position = contact_local_pos
+				event.normal = state.transform.basis.transposed() * normal
+			obstacle_impacts[key] = event
 
 		var tangent_speed := (velocity - normal * velocity.dot(normal)).length()
 		var vfx_collider := state.get_contact_collider_object(index) as Node
@@ -703,6 +719,15 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			else:
 				scrape_power += force * tangent_speed
 
+	for event: Dictionary in obstacle_impacts.values():
+		if float(event.impulse) >= min_impulse and float(event.speed) >= min_col_speed and float(event.speed) > peak_qualifying_closing_speed:
+			peak_qualifying_closing_speed = float(event.speed)
+			peak_qualifying_local_pos = event.position
+			peak_qualifying_normal = event.normal
+			if _visual_damage != null:
+				var severity := pow(clampf((float(event.speed) - min_col_speed) / maxf(full_col_speed - min_col_speed, 0.001), 0.0, 1.0), col_exponent)
+				_visual_damage.register_impact(event.position, event.normal, severity, visual_cfg)
+
 	# Resolve single debounced collision event this frame
 	last_body_contact_vertical_impulse_ns = body_vertical_impulse if diagnostic_body_contacts_enabled else 0.0
 	if peak_qualifying_closing_speed > 0.0:
@@ -722,6 +747,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		_separation_frames += 1
 		if _separation_frames >= 6:
 			_active_collision_zone = ""
+
+	_previous_impact_pose = state.transform
+	_previous_impact_linear = state.linear_velocity
+	_previous_impact_angular = state.angular_velocity
+	_previous_impact_valid = true
 
 	simulation.step(self, state, {
 		"throttle": throttle_amount,
@@ -861,6 +891,7 @@ func rescue_to_pose(pose: Transform3D) -> void:
 
 
 func reset_to_pose(target_position: Vector3, target_yaw: float) -> void:
+	_previous_impact_valid = false
 	_reset_to_transform(Transform3D(Basis(Vector3.UP, target_yaw), target_position))
 
 
