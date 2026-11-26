@@ -93,6 +93,19 @@ func test_high_rpm_wear_and_limiter_protection() -> void:
 	redline.reset_for_stage(domains)
 	check(redline.high_rpm_exposure_s == 0.0, "reset_for_stage clears high_rpm_exposure_s")
 	check(is_equal_approx(redline.engine_damage, saved_dmg), "reset_for_stage preserves permanent engine_damage")
+
+	# 5. Multiplier verification: MECHANICAL_ENGINE_DAMAGE_MULTIPLIER == 2.0 and engine_damage_multiplier scales 2x
+	check(is_equal_approx(VehicleThermalModel.MECHANICAL_ENGINE_DAMAGE_MULTIPLIER, 2.0), "MECHANICAL_ENGINE_DAMAGE_MULTIPLIER is 2.0")
+	var base_1x := VehicleThermalModel.new()
+	base_1x.configure(domains)
+	base_1x.mechanical_damage_config["engine_damage_multiplier"] = 0.5
+	base_1x.water_temperature_c = 88.0
+	base_1x.oil_temperature_c = 95.0
+	for i in 200:
+		base_1x.advance_engine(0.05, design_max_rpm * 0.99, 150.0, 25.0, 1.2, 0.0, design_max_rpm, design_max_rpm * 0.99)
+		base_1x.water_temperature_c = 88.0
+		base_1x.oil_temperature_c = 95.0
+	check(is_equal_approx(saved_dmg, base_1x.engine_damage * 2.0), "2.0x multiplier doubles high-RPM engine damage")
 	print("PASS: test_high_rpm_wear_and_limiter_protection")
 
 
@@ -148,6 +161,20 @@ func test_coupled_overrev_and_gearbox_degradation() -> void:
 		total_eng_ov += float(r.get("engine_overrev_damage", 0.0))
 	check(total_eng_ov > 0.01, "Coupled over-rev outputs engine_overrev_damage, got %f" % total_eng_ov)
 	check(pm.transmission_damage > 0.01, "Coupled over-rev damages gearbox transmission_damage, got %f" % pm.transmission_damage)
+
+	var pm_half := VehiclePowertrainModel.new()
+	pm_half.configure(domains)
+	pm_half.mechanical_damage_config["engine_damage_multiplier"] = 0.5
+	pm_half.current_gear = 1
+	pm_half.clutch_engagement = 1.0
+	pm_half.engine_rpm = ref_rpm * 1.18
+	pm_half.input_shaft_omega_rad_s = ref_rpm * 1.18 * TAU / 60.0
+	pm_half.output_shaft_omega_rad_s = overrev_carrier
+	var half_eng_ov := 0.0
+	for _i in 40:
+		var r2 := pm_half.solve_rotation(0.005, spins.duplicate(), inertias, zeros, zeros)
+		half_eng_ov += float(r2.get("engine_overrev_damage", 0.0))
+	check(absf(total_eng_ov - half_eng_ov * 2.0) < 0.0005, "2.0x multiplier doubles missgear/over-rev engine damage")
 
 	# 4. Degraded gearbox slows synchros under real speed & pops out of gear on hard shock
 	var healthy := VehiclePowertrainModel.new()

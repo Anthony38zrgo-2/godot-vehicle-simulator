@@ -1678,7 +1678,7 @@ func _evaluate_mechanical_overrev_and_missgear(
 	var ref_rpm := torque_curve_reference_rpm if torque_curve_reference_rpm > 0.0 else maximum_rpm
 	var overrev_start := clampf(float(cfg.get("overrev_start_fraction", 1.03)), 1.0, 1.5)
 	var overrev_full := maxf(float(cfg.get("overrev_full_fraction", 1.20)), overrev_start + 0.01)
-	var ov_eng_dps := maxf(float(cfg.get("overrev_engine_damage_per_second", 0.15)), 0.0)
+	var ov_eng_dps := maxf(float(cfg.get("overrev_engine_damage_per_second", 0.15)), 0.0) * VehicleThermalModel.MECHANICAL_ENGINE_DAMAGE_MULTIPLIER * maxf(float(cfg.get("engine_damage_multiplier", 1.0)), 0.0)
 	var ov_trans_dps := maxf(float(cfg.get("overrev_transmission_damage_per_second", 0.18)), 0.0)
 	var sync_ov_dps := maxf(float(cfg.get("sync_overrev_damage_per_second", 0.12)), 0.0)
 	var engine_overrev_delta := 0.0

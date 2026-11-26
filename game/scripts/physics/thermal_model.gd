@@ -3,6 +3,7 @@ extends RefCounted
 
 const NATURAL_WEAR_MULTIPLIER := 4.0
 const BRAKE_WEAR_MULTIPLIER := 2.0
+const MECHANICAL_ENGINE_DAMAGE_MULTIPLIER := 2.0
 
 var engine_config: Dictionary = {}
 var tire_config: Dictionary = {}
@@ -432,7 +433,8 @@ func _advance_high_rpm_wear(dt: float, rpm: float, peak_rpm: float, design_max_r
 				oil_mult *= low_press_mult
 			elif p_state == "low":
 				oil_mult *= lerpf(1.0, low_press_mult, 0.5)
-			engine_damage = clampf(engine_damage + max_rate * severity * oil_mult * dt, 0.0, 1.0)
+			var eng_mult := MECHANICAL_ENGINE_DAMAGE_MULTIPLIER * maxf(float(cfg.get("engine_damage_multiplier", 1.0)), 0.0)
+			engine_damage = clampf(engine_damage + max_rate * severity * oil_mult * eng_mult * dt, 0.0, 1.0)
 	else:
 		high_rpm_exposure_s = maxf(high_rpm_exposure_s - rec_rate * dt, 0.0)
 

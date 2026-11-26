@@ -350,6 +350,9 @@ static func _validate_damage_domain(doc: Dictionary) -> Dictionary:
 		var max_lash := float(m.get("maximum_damage_backlash_rad", 0.05))
 		var cold_oil := float(m.get("cold_oil_wear_multiplier", 2.0))
 		var low_press := float(m.get("low_oil_pressure_multiplier", 2.5))
+		var eng_mult := float(m.get("engine_damage_multiplier", 1.0))
+		if not is_finite(eng_mult) or eng_mult < 0.0:
+			return _failure("damage.mechanical.engine_damage_multiplier must be finite and >= 0.0.")
 		if not is_finite(min_sync) or min_sync <= 0.0 or min_sync > 1.0:
 			return _failure("damage.mechanical.minimum_synchronizer_factor must be in (0.0, 1.0].")
 		if not is_finite(min_clutch) or min_clutch <= 0.0 or min_clutch > 1.0:
