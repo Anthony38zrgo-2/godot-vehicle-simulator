@@ -249,15 +249,9 @@ SPECS: list[dict] = [
     road_exterior_spec(
         "rt-saab-96-v4", ASSETS_ROOT / "saab_96_psx" / "revision_zinger", "saab"
     ),
-    {
-        "car_key": "rt-volvo-amazon",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "volvo_123gt_psx" / "volvo123_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "volvo_123gt_psx" / "volvo123_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    road_exterior_spec(
+        "rt-volvo-amazon", ASSETS_ROOT / "volvo_123gt_psx" / "revision_oceanic", "volvo"
+    ),
     road_exterior_spec("fiat131", ASSETS_ROOT / "cdi_fbx_psx" / "fiat131" / "revision_blender"),
     {
         "car_key": "gaz24",

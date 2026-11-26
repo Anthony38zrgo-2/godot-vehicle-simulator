@@ -15,9 +15,12 @@ extends Node3D
 @export var louver_material := ""
 @export_group("PSX Vehicle Distortion")
 @export var psx_snap_resolution := Vector2(480.0, 360.0)
-@export_range(0.0, 1.0) var psx_snap_strength := 0.22
-@export_range(0.0, 1.0) var psx_affine_strength := 0.18
-@export var include_vehicle_wheels := true
+const DEFAULT_PSX_SNAP_STRENGTH := 0.27
+const DEFAULT_PSX_AFFINE_STRENGTH := 0.23
+
+@export_range(0.0, 1.0) var psx_snap_strength := DEFAULT_PSX_SNAP_STRENGTH
+@export_range(0.0, 1.0) var psx_affine_strength := DEFAULT_PSX_AFFINE_STRENGTH
+@export var include_vehicle_wheels := false
 
 const TOON := preload("res://scripts/rally/rally_toon_surface.gdshader")
 const TOON_CUTOUT := preload("res://scripts/rally/rally_toon_cutout.gdshader")
@@ -87,8 +90,8 @@ static func make_gt2_vehicle_material(
 	source: StandardMaterial3D,
 	cutout: bool = false,
 	snap_resolution: Vector2 = Vector2(480.0, 360.0),
-	snap_strength: float = 0.22,
-	affine_strength: float = 0.18,
+	snap_strength: float = DEFAULT_PSX_SNAP_STRENGTH,
+	affine_strength: float = DEFAULT_PSX_AFFINE_STRENGTH,
 ) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = GT2_VEHICLE
@@ -153,8 +156,8 @@ static func make_toon_material(
 	source: StandardMaterial3D,
 	cutout: bool = false,
 	snap_resolution: Vector2 = Vector2(480.0, 360.0),
-	snap_strength: float = 0.22,
-	affine_strength: float = 0.18,
+	snap_strength: float = DEFAULT_PSX_SNAP_STRENGTH,
+	affine_strength: float = DEFAULT_PSX_AFFINE_STRENGTH,
 ) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = TOON_CUTOUT if cutout else TOON
@@ -240,6 +243,8 @@ func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Diction
 					surface_material.set_shader_parameter("body_paint_mask", banded_paint_mask)
 					surface_material.set_shader_parameter("body_paint_height_range", banded_paint_height_range)
 					surface_material.set_shader_parameter("body_paint_end_drop", banded_paint_end_drop)
+					surface_material.set_shader_parameter("paint_env_map", _gt2_env_map())
+					surface_material.set_shader_parameter("paint_env_strength", 0.12)
 				if not is_wheel and not gt2_vehicle_shading and glass_reflection_mask != null \
 						and (source.resource_name == glass_reflection_material \
 						or glass_reflection_materials.has(source.resource_name)):
@@ -300,6 +305,13 @@ func apply_livery_parameters(params: Dictionary) -> int:
 			var sm := m as ShaderMaterial
 			if sm == null:
 				continue
+			if not gt2_vehicle_shading and not target_names.is_empty() and is_target:
+				var paint_data := params.get("data_map") as Texture2D
+				if paint_data != null:
+					sm.set_shader_parameter("paint_env_map", _gt2_env_map())
+					sm.set_shader_parameter("paint_env_mask", paint_data)
+					sm.set_shader_parameter("paint_env_mask_threshold", float(params.get("mask_threshold", 0.30)))
+					sm.set_shader_parameter("paint_env_strength", 0.12)
 			if not is_target or not enabled:
 				sm.set_meta("livery_enabled", false)
 				if sm.has_meta("original_albedo_texture"):

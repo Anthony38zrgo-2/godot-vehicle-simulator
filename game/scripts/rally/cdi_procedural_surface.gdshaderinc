@@ -178,7 +178,7 @@ vec2 proc_sample_loose_gravel_and_mud(float station_m, float uv_x, float snow_co
 	float rut_sweep = 1.0 - clamp(abs(abs_lat - 0.46) / 0.22, 0.0, 1.0);
 	float rut_thin = mix(0.24, 0.06, smoothstep(0.60, 0.80, damage_field));
 	float snow_mask = clamp(1.0 - snow_cov, 0.0, 1.0);
-	float loose_cov = clamp(sector_gate * (1.0 - rut_thin * rut_sweep), 0.0, 1.0) * snow_mask;
+	float loose_cov = clamp(sector_gate * (1.0 - rut_thin * rut_sweep), 0.0, 1.0) * 0.70 * snow_mask;
 	float wet_drive = clamp(road_water_mm / 0.55 + saturation * 0.45, 0.0, 1.0);
 	float mud_raw = smoothstep(0.32, 0.82, wet_drive);
 	float mud = clamp(loose_cov * mud_raw, 0.0, 1.0);

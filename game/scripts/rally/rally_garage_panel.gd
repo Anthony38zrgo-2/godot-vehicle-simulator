@@ -1903,7 +1903,7 @@ func _field_description(path: String) -> String:
 		"powertrain.max_rpm":
 			return "Limitador RPM: bajar el corte reduce consumo, calor y desgaste mecánico del motor en tramos largos."
 		"garage.cooling":
-			return "Refrigeración: abrir el conducto baja temperatura de agua/aceite a costa de algo de resistencia."
+			return "Mínima (3 %) reduce el flujo de aire en frío. Abrir el conducto enfría el motor y aumenta la resistencia."
 		"garage.lsd":
 			return "Diferencial: ABIERTO gira libre; AUTOBLOCANTE reparte par para traccionar en salida."
 		"powertrain.differential.clutches":
@@ -2173,6 +2173,8 @@ func _ensure_stage_briefing() -> void:
 		var is_sweden := sid.begins_with("sweden_") or sid == "russia_stage7" or sid == "russia_stage8"
 		var is_rain := "lluvia" in w_low or "rain" in w_low or "llovizna" in w_low
 		var loose_est := clampf(0.18 + roughness * 0.35, 0.10, 0.50) if not is_asphalt else 0.0
+		if sid.begins_with("cdi_"):
+			loose_est *= 0.70
 		var mud_est := clampf((wetness * 0.45 + water_cfg * 0.35) * (1.4 if is_rain else 0.5), 0.0, 0.42) if not is_asphalt else 0.0
 		var water_est := clampf((wetness * 0.5 + (0.35 if is_rain else 0.0)), 0.0, 0.75) if is_asphalt else 0.0
 		var snow_est := 0.72 if is_sweden else 0.0
@@ -2736,8 +2738,8 @@ func _draw_powertrain_page() -> void:
 		Rect2(e_inner.position.x, e_inner.position.y + e_row_h * 2.0, e_inner.size.x, e_row_h),
 		"garage.cooling",
 		"Refrigeración",
-		["Serie", "25%", "50%", "75%", "100%"],
-		[0.0, 1.0, 2.0, 3.0, 4.0],
+		["Mínima", "Serie", "25%", "50%", "75%", "100%"],
+		[-1.0, 0.0, 1.0, 2.0, 3.0, 4.0],
 		"◀ MENOS RESISTENCIA",
 		"MÁS FRÍO ▶",
 		true
@@ -3470,6 +3472,8 @@ func _format_field(field: Dictionary, path: String) -> String:
 	if path in INVERTED_DISCRETE_PATHS:
 		return RallySetupCatalog.POSITION_LABELS[clampi(int(value) - 1, 0, 4)]
 	if path == "garage.cooling":
+		if value < 0.0:
+			return "Mínima (%d %%)" % roundi(RallySetupCatalog.MINIMUM_COOLING_OPENING * 100.0)
 		return "De serie" if value == 0.0 else "%d %%" % int(value * 25.0)
 	if path == "garage.lsd":
 		return "Autoblocante" if bool(value) else "Abierto"

@@ -341,6 +341,9 @@
     },
     "rt-volvo-amazon": {
       "default_livery": "negro",
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
       "materials": ["Volvo123_BodyPaint_PSX"],
       "data_map": "res://assets/rally/liveries/rt-volvo-amazon_livery_data.png",
       "effective_res": [512, 512]

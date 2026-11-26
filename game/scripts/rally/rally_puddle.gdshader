@@ -6,6 +6,7 @@ varying vec2 patch_uv;
 varying vec3 world_position;
 varying float v_road_weight;
 
+uniform bool enable_water_reflections = false;
 uniform bool has_sky = false;
 uniform samplerCube sky_a : source_color, filter_linear_mipmap;
 uniform samplerCube sky_b : source_color, filter_linear_mipmap;
@@ -280,7 +281,7 @@ void fragment() {
 		vec3 reflected = reflect(view_dir_world, normal_world);
 		vec3 refl_dir = normalize(vec3(reflected.x, max(reflected.y, 0.015), reflected.z));
 		vec3 sky = horizon_color;
-		if (has_sky) {
+		if (enable_water_reflections && has_sky) {
 			// Skip redundant cubemap fetches when a sky layer has negligible weight.
 			if (weather_mix <= 0.02) {
 				sky = texture(sky_a, refl_dir).rgb * tint_a;
@@ -314,25 +315,30 @@ void fragment() {
 		// Water body color: shore absorption into turbid basin + crisp rippled sky reflection in deeper core
 		vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
 		base_puddle = mix(soil_albedo, base_puddle, shore_depth);
-		vec3 highlight = mix(base_puddle * 1.45 + sky * 0.28, sky * 0.74, 0.52);
+		vec3 highlight = base_puddle * 1.45;
+		if (enable_water_reflections) {
+			highlight = mix(highlight + sky * 0.28, sky * 0.74, 0.52);
+		}
 		vec3 water_color = mix(base_puddle * 0.82, highlight, pattern * detail_k * shore_depth);
-		vec3 water_albedo = mix(water_color, sky * 0.96, schlick_fresnel);
+		vec3 water_albedo = enable_water_reflections ? mix(water_color, sky * 0.96, schlick_fresnel) : water_color;
 
 		ALBEDO = mix(soil_albedo, water_albedo, water_body);
 		// EMISSION carries ONLY the crisp sky vault reflection (visible in shadow), deliberately
 		// stronger and sharper than the diffuse wet road film surrounding the puddle.
-		EMISSION = (sky * (0.14 * pattern * detail_k * shore_depth + 0.66 * schlick_fresnel) + sky * (meniscus_glint * 0.24)) * water_body;
+		if (enable_water_reflections) {
+			EMISSION = (sky * (0.14 * pattern * detail_k * shore_depth + 0.66 * schlick_fresnel) + sky * (meniscus_glint * 0.24)) * water_body;
+		}
 
 		// Differentiated PBR surface response: satin damp rim vs glossy liquid water mirror
-		ROUGHNESS = mix(0.42, 0.02 + 0.08 * (1.0 - shore_depth), water_body);
+		ROUGHNESS = mix(0.42, enable_water_reflections ? 0.02 + 0.08 * (1.0 - shore_depth) : 0.62, water_body);
 		METALLIC = 0.0;
-		SPECULAR = mix(0.20, 0.98, water_body * (0.45 + 0.55 * shore_mirror));
+		SPECULAR = enable_water_reflections ? mix(0.20, 0.98, water_body * (0.45 + 0.55 * shore_mirror)) : 0.0;
 
 		// Translucent water opacity: clear enough from steep angles to show pavement/gravel underneath,
 		// rising smoothly to a reflective mirror at grazing Fresnel angles.
 		float soil_alpha = wet_soil * (1.0 - water_body * 0.85) * 0.18 * smoothstep(0.0, 0.12, fill);
 		float vertical_water_alpha = mix(0.14, 0.48, turbidity_alpha);
-		float base_water_alpha = clamp(mix(vertical_water_alpha, 0.82, schlick_fresnel * 0.88), 0.12, 0.82);
+		float base_water_alpha = enable_water_reflections ? clamp(mix(vertical_water_alpha, 0.82, schlick_fresnel * 0.88), 0.12, 0.82) : vertical_water_alpha;
 		float water_alpha = base_water_alpha * water_body * pow(clamp(water_mask * 1.45, 0.0, 1.0), 0.78);
 		ALPHA = max(soil_alpha, water_alpha);
 	}

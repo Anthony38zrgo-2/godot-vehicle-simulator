@@ -22,6 +22,10 @@ uniform sampler2D ramp : source_color, filter_linear, repeat_disable, hint_defau
 uniform float toon_blend : hint_range(0.0, 1.0) = 1.0;
 uniform bool crisp_shadows = false;
 uniform float paint_spec_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float paint_env_strength : hint_range(0.0, 1.0) = 0.0;
+uniform sampler2D paint_env_map : source_color, filter_linear, repeat_disable;
+uniform sampler2D paint_env_mask : hint_default_white, filter_nearest, repeat_disable;
+uniform float paint_env_mask_threshold = 0.30;
 uniform float paint_spec_threshold : hint_range(0.5, 0.99) = 0.88;
 uniform vec3 paint_spec_color : source_color = vec3(1.0, 0.97, 0.90);
 
@@ -129,6 +133,19 @@ void fragment() {
 		reflection_dither = (mod(cell.x + cell.y, 2.0) * 2.0 + cell.y - 1.5) * 0.12;
 	}
 	ALBEDO = paint.rgb;
+	if (paint_env_strength > 0.001) {
+		float coverage = use_banded_body_paint ? body_paint_coverage
+			: step(paint_env_mask_threshold, texture(paint_env_mask, tex_uv).r);
+		if (coverage > 0.0) {
+			vec3 n = normalize(NORMAL);
+			vec3 reflected = mat3(INV_VIEW_MATRIX) * reflect(-VIEW, n);
+			vec2 env_uv = vec2(0.5 + reflected.x * 0.45, 0.5 - reflected.y * 0.48);
+			vec3 streak = texture(paint_env_map, env_uv).rgb;
+			float grazing = 1.0 - clamp(dot(n, VIEW), 0.0, 1.0);
+			float sheen = paint_env_strength * (0.35 + 0.65 * grazing * grazing);
+			EMISSION += streak * sheen * smoothstep(-0.30, 0.16, body_surface_up);
+		}
+	}
 	if (use_glass_reflection) {
 		vec2 glass = texture(glass_reflection_mask, tex_uv).rg * (1.0 - body_paint_coverage);
 		vec3 reflected = (INV_VIEW_MATRIX * vec4(reflect(-VIEW, normalize(NORMAL)), 0.0)).xyz;
@@ -136,7 +153,7 @@ void fragment() {
 		float grazing = 1.0 - clamp(dot(normalize(NORMAL), VIEW), 0.0, 1.0);
 		float windshield = reflection_bands(glass.x * (0.35 + 0.65 * sky) * (0.62 + 0.38 * grazing), reflection_dither);
 		float side_window = reflection_bands(glass.y * (0.32 + 0.68 * sky), reflection_dither);
-		EMISSION = vec3(0.016, 0.065, 0.095) * windshield
+		EMISSION += vec3(0.016, 0.065, 0.095) * windshield
 			+ vec3(0.014, 0.050, 0.077) * side_window;
 	}
 	if (use_louver_shading) {

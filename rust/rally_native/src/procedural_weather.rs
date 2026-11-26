@@ -1940,7 +1940,7 @@ pub fn loose_gravel_and_mud_coverage(
     let abs_lat = lateral_t.abs().clamp(0.0, 1.0);
     let rut_sweep = 1.0 - ((abs_lat - 0.46).abs() / 0.22).clamp(0.0, 1.0);
     let rut_thin = lerpf(0.24, 0.06, smoothstep(0.60, 0.80, damage_field));
-    let loose_cov = (sector_gate * (1.0 - rut_thin * rut_sweep)).clamp(0.0, 1.0);
+    let loose_cov = (sector_gate * (1.0 - rut_thin * rut_sweep)).clamp(0.0, 1.0) * 0.70;
 
     let wet_drive = (road_water_mm / 0.55 + saturation.clamp(0.0, 1.0) * 0.45).clamp(0.0, 1.0);
     let mud_raw = smoothstep(0.32, 0.82, wet_drive);
@@ -5912,7 +5912,7 @@ mod tests {
             assert_eq!(s_a.loose_gravel_coverage, 0.0, "asphalt must never have loose gravel sectors");
             assert_eq!(s_a.mud_factor, 0.0);
             assert_eq!(s_g.mud_factor, 0.0, "dry gravel must have zero mud_factor");
-            if s_g.loose_gravel_coverage >= 0.35 {
+            if s_g.loose_gravel_coverage >= 0.245 {
                 active_loose += 1;
             }
         }
@@ -5942,9 +5942,9 @@ mod tests {
         for i in 0..=n_samples {
             let p = route.total_distance_m * (i as f32) / (n_samples as f32);
             let s_w = snap_wet.sample_surface_at(&j_wet, p, 0.0);
-            if s_w.loose_gravel_coverage >= 0.50 {
+            if s_w.loose_gravel_coverage >= 0.35 {
                 assert!(
-                    s_w.mud_factor > 0.45,
+                    s_w.mud_factor > 0.315,
                     "loose gravel sector under heavy rain must convert to mud (loose={} mud={})",
                     s_w.loose_gravel_coverage,
                     s_w.mud_factor

@@ -148,6 +148,7 @@ const CDI_CARS := [
 	"rt-lancia-stratos",
 	"rt-porsche-356b-2000gs",
 	"rt-saab-96-v4",
+	"rt-volvo-amazon",
 	"f10070",
 	"mustang67",
 	"fiat131",
@@ -1287,11 +1288,6 @@ func _build_car_select_screen() -> void:
 
 		var k := str(car_key)
 		btn.pressed.connect(func(): _on_car_button_pressed(k))
-		btn.focus_entered.connect(func(): _preview_car(k))
-		btn.mouse_entered.connect(func():
-			if _confirmed_car_click_key.is_empty():
-				_preview_car(k)
-		)
 
 		cars_vbox.add_child(btn)
 		car_buttons.append(btn)

@@ -31,8 +31,8 @@
   },
   "chassis": {
     "path": "porsche_911_24s_chassis.glb",
-    "sha256": "5b4c612a38cab6174cf09c31bc521ce51c911665ff28b480464b52f978c48684",
-    "size_bytes": 531476,
+    "sha256": "5e11697644307f8af2ee12a1e2f2962b0b530391099f8193139f259fc5db4744",
+    "size_bytes": 551096,
     "exported_nodes": [
       "Porsche911_24S_Exterior"
     ]

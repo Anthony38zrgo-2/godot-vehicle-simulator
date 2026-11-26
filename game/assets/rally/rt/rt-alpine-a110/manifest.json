@@ -46,11 +46,12 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "5c3370910d4a75bf849acfe3208c3fb3f0aa967ca40d3a2a13e0a3da1942dc3f",
-    "size_bytes": 254252,
+    "sha256": "fe95e977561f5cc92403e2b089206aa0d43cbf3bf7aa439d3241013c171a4520",
+    "size_bytes": 256320,
     "exported_nodes": [
       "Alpine_A110_1600_Carroceria"
-    ]
+    ],
+    "mirror_source": "rt-saab-96-v4 / Saab96_Retrovisores_Plateados"
   },
   "wheels": {
     "front_left": {

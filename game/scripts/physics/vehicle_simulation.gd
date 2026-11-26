@@ -611,7 +611,9 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 	if not duct.is_empty():
 		duct = duct.duplicate()
 		var opening := int(effective_values["garage.cooling"])
-		if opening > 0:
+		if opening < 0:
+			duct["opening"] = RallySetupCatalog.MINIMUM_COOLING_OPENING
+		elif opening > 0:
 			duct["opening"] = opening * 0.25
 		thermal_model.engine_config["water_cooling_duct"] = duct
 	powertrain_model.final_drive_gravel = float(powertrain.get("final_drive_gravel", powertrain_model.final_drive_gravel))

@@ -35,7 +35,7 @@
       "source_file": "D:\\RallyManiacAssets\\cars\\vulcar-car-packs_1719319931_142266\\Zinger\\zinger.dff",
       "blend": "D:\\RallyManiacAssets\\saab_96_psx\\revision_zinger\\saab_96_zinger_faros_espejos.blend",
       "generator": "D:\\RallyManiacAssets\\saab_96_psx\\revision_zinger\\install_zinger_saab96.py",
-      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, photographic headlamp textures and silver mirrors"
+      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, RGB888 ordered dithering on photographic headlamps and glazing, silver mirrors"
     }
   },
   "coordinate_system": {
@@ -46,8 +46,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "6cf6bd5ea55b78488a37fd86dcb70d3693b976dc29f96ac44b1a1f2b657ca17a",
-    "size_bytes": 182588,
+    "sha256": "85cfaf2db78b1b162de515f93626f1434eae6d56eb38ed09374ad563da17504f",
+    "size_bytes": 170260,
     "exported_nodes": [
       "Saab96_Exterior"
     ]

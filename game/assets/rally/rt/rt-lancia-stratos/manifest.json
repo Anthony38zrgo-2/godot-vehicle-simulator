@@ -54,11 +54,12 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "bcf58e632c2e6d8c51ac8ccd6e180e1f17be1839f9b7f8cdabf619bca1c6479c",
-    "size_bytes": 185916,
+    "sha256": "79644362c904841bb6ba692ea56af163a69079a3af9bc77345a64c1c363eb6d6",
+    "size_bytes": 187988,
     "exported_nodes": [
       "Stratos_Exterior"
-    ]
+    ],
+    "mirror_source": "rt-saab-96-v4 / Saab96_Retrovisores_Plateados"
   },
   "wheels": {
     "front_left": {

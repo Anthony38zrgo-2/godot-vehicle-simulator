@@ -42,11 +42,12 @@
   },
   "chassis": {
     "path": "fiat_131_abarth_chassis.glb",
-    "sha256": "905cd6db5a238bf2dc5d4306b602a557500182074ac8e7eab0920b4de21824e8",
-    "size_bytes": 215560,
+    "sha256": "5f226fe5928e5cc8b2fc8218cbb29907f2fe646ae37a4e475b313c41207318b9",
+    "size_bytes": 217632,
     "exported_nodes": [
       "Fiat_131_Abarth_Gr4_Carroceria"
-    ]
+    ],
+    "mirror_source": "rt-saab-96-v4 / Saab96_Retrovisores_Plateados"
   },
   "wheels": {
     "front_left": {

@@ -39,11 +39,12 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "13e7b4e4eb625b7619886b6cb723fad21cde476e24c8108ef959e8b6eeb4bda4",
-    "size_bytes": 285436,
+    "sha256": "349238e51adab77b19434863808b9ea140732b6aa1d6de215e2ee503e0bf9b80",
+    "size_bytes": 307116,
     "exported_nodes": [
       "MiniCooperExterior"
-    ]
+    ],
+    "mirror_source": "rt-saab-96-v4 / Saab96_Retrovisores_Plateados"
   },
   "wheels": {
     "front_left": {

@@ -28,7 +28,15 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "active_exterior": {
+      "model": "GTA SA Oceanic donor fitted to Volvo Amazon 123GT",
+      "source_file": "D:\\RallyManiacAssets\\cars\\volvo-amazon-1968_1689525938_95731\\Volvo Amazon 1968\\Volvo Amazon 1968\\oceanic.dff",
+      "blend": "D:\\RallyManiacAssets\\volvo_123gt_psx\\revision_oceanic\\volvo_amazon_bandas.blend",
+      "generator": "D:\\RallyManiacAssets\\volvo_123gt_psx\\revision_oceanic\\install_oceanic_volvo.py",
+      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, RGB888 ordered dithering on photographic headlamps and glazing, original exterior trim",
+      "front_trim": "Hood lettering removed and grille slats refinished charcoal."
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -38,10 +46,10 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "6b7d5d762f6852e2c6bae85162a385d2f4c6a0932acebe6620d6807b688405bc",
-    "size_bytes": 3444144,
+    "sha256": "caf6b4ff012da19f4fa67f67e48956f175cf817f7fa8afb2e256014fd652c0a4",
+    "size_bytes": 1641004,
     "exported_nodes": [
-      "Volvo123GT_Exterior"
+      "Volvo123_Exterior"
     ]
   },
   "wheels": {

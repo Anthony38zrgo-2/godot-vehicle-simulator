@@ -67,6 +67,8 @@ $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/r
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-saab-96-v4') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
+$assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/rt/rt-volvo-amazon') -Filter '*.glb' -File |
+    ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/ford_f100_1970') -Filter '*.glb' -File |
     ForEach-Object { $_.FullName })
 $assetPaths += @(Get-ChildItem -LiteralPath (Join-Path $gameRoot 'assets/rally/ford_mustang_1967_289_2v') -Filter '*.glb' -File |

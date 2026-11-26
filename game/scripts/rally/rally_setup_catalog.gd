@@ -10,6 +10,7 @@ const SPRING_FACTORS := [1.20, 1.10, 1.0, 0.90, 0.80]
 const ARB_FACTORS := [1.30, 1.15, 1.0, 0.85, 0.70]
 const DIFFERENTIAL_PREFIX := "powertrain.differential."
 const DIFFERENTIAL_PRESET_PATH := DIFFERENTIAL_PREFIX + "preset_id"
+const MINIMUM_COOLING_OPENING := 0.03
 
 const FIELDS: Array[Dictionary] = [
 	{"path": "garage.suspension", "min": 1, "max": 5, "step": 1, "suffix": "", "scale": 1, "digits": 0},
@@ -22,7 +23,7 @@ const FIELDS: Array[Dictionary] = [
 	{"path": "garage.front_pressure", "min": PRESSURE_MIN, "max": PRESSURE_MAX, "step": 1, "suffix": " kPa", "scale": 1, "digits": 0},
 	{"path": "garage.rear_pressure", "min": PRESSURE_MIN, "max": PRESSURE_MAX, "step": 1, "suffix": " kPa", "scale": 1, "digits": 0},
 	{"path": "powertrain.max_rpm", "min": 0, "max": 10000, "step": 50, "suffix": " rpm", "scale": 1, "digits": 0},
-	{"path": "garage.cooling", "min": 0, "max": 4, "step": 1, "suffix": "", "scale": 1, "digits": 0},
+	{"path": "garage.cooling", "min": -1, "max": 4, "step": 1, "suffix": "", "scale": 1, "digits": 0},
 	{"path": "garage.lsd", "min": 0, "max": 1, "step": 1, "suffix": "", "scale": 1, "digits": 0},
 	{"path": "powertrain.differential.clutches", "min": 2, "max": 8, "step": 2, "suffix": "", "scale": 1, "digits": 0},
 	{"path": "powertrain.differential.power_ramp_angle_deg", "min": 45, "max": 90, "step": 5, "suffix": "°", "scale": 1, "digits": 0},

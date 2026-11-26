@@ -49,11 +49,12 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "2aafa9d28b85fefc642b6628e8ce6157234aa61d095907469701ca28086ea6cf",
-    "size_bytes": 533916,
+    "sha256": "14eea4a023928b602d0b1359a563b01820ae62120ebf83c796de300a69c02113",
+    "size_bytes": 555608,
     "exported_nodes": [
       "Ford_Escort_RS1600_Carroceria"
-    ]
+    ],
+    "mirror_source": "rt-saab-96-v4 / Saab96_Retrovisores_Plateados"
   },
   "wheels": {
     "front_left": {
