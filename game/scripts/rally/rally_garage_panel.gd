@@ -2086,22 +2086,27 @@ func _ensure_stage_briefing() -> void:
 						var sw := 0.0
 						var ss := 0.0
 						var sic := 0.0
+						var lat_pts := [-0.92, -0.46, 0.0, 0.46, 0.92]
+						var sec_samples := 0
 						for k in 5:
 							var d := lerpf(s0, s1, (float(k) + 0.5) / 5.0)
-							var samp: Variant = eng.call("sample_surface_at", d, 0.0)
-							if samp is Dictionary and bool((samp as Dictionary).get("ok", false)):
-								var sd := samp as Dictionary
-								sl += float(sd.get("loose_gravel_coverage", 0.0))
-								sm += float(sd.get("mud_factor", 0.0))
-								sw += float(sd.get("water_coverage", 0.0))
-								ss += float(sd.get("snow_coverage", 0.0))
-								sic += float(sd.get("ice_coverage", 0.0))
-								samples += 1
-						s_row["loose_gravel_coverage"] = sl / 5.0
-						s_row["mud_factor"] = sm / 5.0
-						s_row["water_coverage"] = sw / 5.0
-						s_row["snow_coverage"] = ss / 5.0
-						s_row["ice_coverage"] = sic / 5.0
+							for lt in lat_pts:
+								var samp: Variant = eng.call("sample_surface_at", d, lt)
+								if samp is Dictionary and bool((samp as Dictionary).get("ok", false)):
+									var sd := samp as Dictionary
+									sl += float(sd.get("loose_gravel_coverage", 0.0))
+									sm += float(sd.get("mud_factor", 0.0))
+									sw += float(sd.get("water_coverage", 0.0))
+									ss += float(sd.get("snow_coverage", 0.0))
+									sic += float(sd.get("ice_coverage", 0.0))
+									samples += 1
+									sec_samples += 1
+						var denom := float(maxi(sec_samples, 1))
+						s_row["loose_gravel_coverage"] = sl / denom
+						s_row["mud_factor"] = sm / denom
+						s_row["water_coverage"] = sw / denom
+						s_row["snow_coverage"] = ss / denom
+						s_row["ice_coverage"] = sic / denom
 						_stage_sectors[si] = s_row
 						l_sum += sl
 						m_sum += sm

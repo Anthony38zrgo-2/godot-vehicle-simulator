@@ -135,13 +135,22 @@ vec3 proc_sample_surface(float station_m, float uv_x) {
 	return vec3(water_cov, snow_cov, 0.0);
 }
 
-// Shared CPU/GPU procedural damaged-track sandy/clayey loose gravel and heavy-rain mud factor.
-// Models irregular, unpredictable damaged sections of Andean gravel stages (SS01/SS02):
-// domain-warped multi-scale damage clusters, asymmetric lateral bias, intact gravel islands,
-// and subtle wheel-rut sweeping.
+// Shared CPU/GPU procedural lateral-berm fine gravel coverage and mud conversion factor.
+// Mirrors the lateral-berm ribbon architecture of proc_local_pattern_coverage (independent L/R
+// edges with slightly irregular width), continuous along 100% of gravel stages, with NO central
+// crown line (|lateral_t| < 0.68 stays clean), and decisively replaced by snow wherever snow accumulates.
 // Returns vec2(loose_gravel_coverage, mud_factor) in [0, 1].
 vec2 proc_sample_loose_gravel_and_mud(float station_m, float uv_x, float snow_cov) {
 	float signed_lateral = (clamp(uv_x, 0.0, 1.0) - 0.5) * 2.0;
+	float abs_t = clamp(abs(signed_lateral), 0.0, 1.0);
+	if (abs_t < 0.68) {
+		return vec2(0.0);
+	}
+	float snow_replace = smoothstep(0.02, 0.22, snow_cov);
+	if (snow_replace >= 0.999) {
+		return vec2(0.0);
+	}
+
 	float span_m = max(surface_station_range_m.y - surface_station_range_m.x, 1.0);
 	float norm_u = clamp((station_m - surface_station_range_m.x) / span_m, 0.0, 1.0);
 	float nw = max(surface_field_width, 2.0);
@@ -150,37 +159,26 @@ vec2 proc_sample_loose_gravel_and_mud(float station_m, float uv_x, float snow_co
 	float road_water_mm = tex_rgba.r * surface_max_encode_mm;
 	float saturation = clamp(tex_rgba.a, 0.0, 1.0);
 
-	vec2 s0 = surface_seed_offsets.zw + vec2(31.4, 59.2);
+	vec2 seed_offset = surface_seed_offsets.zw;
+	vec2 side_off = signed_lateral >= 0.0 ? vec2(0.0, 0.0) : vec2(41.7, 29.3);
+	vec2 s_off = seed_offset + side_off;
 
-	// 1. 2D domain warp breaks longitudinal periodicity and slants/curves damaged borders organically.
-	float warp_long = (proc_value_noise2(vec2(station_m * 0.0093, signed_lateral * 0.65 + 1.1), s0 + vec2(5.3, 19.7)) - 0.5) * 46.0;
-	float warp_lat = (proc_value_noise2(vec2(station_m * 0.029, signed_lateral * 1.3 + 4.7), s0 + vec2(27.9, 8.4)) - 0.5) * 0.72;
-	float sw = station_m + warp_long;
-	float lw = signed_lateral + warp_lat;
+	float width_field = proc_spatial_patch_field(station_m, signed_lateral, seed_offset);
+	float edge_jit1 = proc_value_noise2(vec2(station_m * 0.32, abs_t * 6.0), s_off + vec2(7.1, 13.9));
+	float edge_jit2 = proc_value_noise2(vec2(station_m * 1.15, abs_t * 14.0), s_off + vec2(23.4, 41.8));
+	float scallop = (edge_jit1 - 0.5) * 0.065 + (edge_jit2 - 0.5) * 0.032;
+	float ribbon_width = clamp(0.21 + (width_field - 0.5) * 0.16 + scallop, 0.13, 0.30);
 
-	// 2. Multi-scale irregular damage envelope (clusters + irregular patches + localized pockets).
-	float cluster_env = proc_value_noise2(vec2(sw * 0.0037, 0.41), s0 + vec2(11.2, 3.8));
-	float medium_patch = proc_value_noise2(vec2(sw * 0.0173, lw * 0.52 + 2.3), s0 + vec2(43.6, 21.5));
-	float short_pocket = proc_value_noise2(vec2(sw * 0.057, lw * 1.35 + 5.1), s0 + vec2(71.1, 37.9));
-
-	// 3. Asymmetric lateral damage focus (shifts unpredictably between left edge, center, right edge).
-	float bias_noise = proc_value_noise2(vec2(sw * 0.0061, 3.7), s0 + vec2(61.4, 14.2));
-	float bias_center = (bias_noise - 0.5) * 2.4;
-	float lat_affinity = 1.0 - smoothstep(0.35, 1.35, abs(lw - bias_center));
-
-	float damage_field = 0.34 * cluster_env + 0.36 * medium_patch + 0.18 * short_pocket + 0.12 * lat_affinity;
-	float sector_gate = smoothstep(0.548, 0.652, damage_field);
-	if (sector_gate <= 0.001) {
+	float dist_from_edge = 1.0 - abs_t;
+	float profile = 1.0 - smoothstep(ribbon_width * 0.28, ribbon_width, dist_from_edge);
+	if (profile <= 0.001) {
 		return vec2(0.0);
 	}
 
-	float abs_lat = clamp(abs(signed_lateral), 0.0, 1.0);
-	float rut_sweep = 1.0 - clamp(abs(abs_lat - 0.46) / 0.22, 0.0, 1.0);
-	float rut_thin = mix(0.24, 0.06, smoothstep(0.60, 0.80, damage_field));
-	float snow_mask = clamp(1.0 - snow_cov, 0.0, 1.0);
-	float loose_cov = clamp(sector_gate * (1.0 - rut_thin * rut_sweep), 0.0, 1.0) * 0.70 * snow_mask;
+	float snow_keep = clamp(1.0 - snow_replace, 0.0, 1.0);
+	float loose_cov = clamp(profile * snow_keep, 0.0, 1.0);
 	float wet_drive = clamp(road_water_mm / 0.55 + saturation * 0.45, 0.0, 1.0);
-	float mud_raw = smoothstep(0.32, 0.82, wet_drive);
+	float mud_raw = smoothstep(0.28, 0.78, wet_drive);
 	float mud = clamp(loose_cov * mud_raw, 0.0, 1.0);
 	return vec2(loose_cov, mud);
 }

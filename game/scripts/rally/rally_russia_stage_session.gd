@@ -1854,21 +1854,26 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 			var s_snow := 0.0
 			var s_ice := 0.0
 			var sub_n := 5
+			var lat_pts := [-0.92, -0.46, 0.0, 0.46, 0.92]
+			var sec_samples := 0
 			for k in sub_n:
 				var d := lerpf(s_start, s_end, (float(k) + 0.5) / float(sub_n))
-				var st: Dictionary = event_weather.local_surface_state_at_distance(d, 0.0)
-				if not st.is_empty():
-					s_loose += float(st.get("loose_gravel_coverage", 0.0))
-					s_mud += float(st.get("mud_factor", 0.0))
-					s_water += float(st.get("water_coverage", 0.0))
-					s_snow += float(st.get("snow_coverage", 0.0))
-					s_ice += float(st.get("ice_coverage", 0.0))
-					rust_samples += 1
-			row["loose_gravel_coverage"] = s_loose / float(sub_n)
-			row["mud_factor"] = s_mud / float(sub_n)
-			row["water_coverage"] = s_water / float(sub_n)
-			row["snow_coverage"] = s_snow / float(sub_n)
-			row["ice_coverage"] = s_ice / float(sub_n)
+				for lt in lat_pts:
+					var st: Dictionary = event_weather.local_surface_state_at_distance(d, lt)
+					if not st.is_empty():
+						s_loose += float(st.get("loose_gravel_coverage", 0.0))
+						s_mud += float(st.get("mud_factor", 0.0))
+						s_water += float(st.get("water_coverage", 0.0))
+						s_snow += float(st.get("snow_coverage", 0.0))
+						s_ice += float(st.get("ice_coverage", 0.0))
+						rust_samples += 1
+						sec_samples += 1
+			var sec_denom := float(maxi(sec_samples, 1))
+			row["loose_gravel_coverage"] = s_loose / sec_denom
+			row["mud_factor"] = s_mud / sec_denom
+			row["water_coverage"] = s_water / sec_denom
+			row["snow_coverage"] = s_snow / sec_denom
+			row["ice_coverage"] = s_ice / sec_denom
 			if reverse_route:
 				row["sector_index"] = raw_sectors.size() - 1 - si
 				row["start_m"] = maxf(0.0, total_m - s_end)
@@ -1894,16 +1899,21 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 			var s_snow := 0.0
 			var s_ice := 0.0
 			var sub_n := 5
+			var lat_pts := [-0.92, -0.46, 0.0, 0.46, 0.92]
+			var sec_samples := 0
 			for k in sub_n:
 				var d := lerpf(s_start, s_end, (float(k) + 0.5) / float(sub_n))
-				var st: Dictionary = event_weather.local_surface_state_at_distance(total_m - d if reverse_route else d, 0.0)
-				if not st.is_empty():
-					s_loose += float(st.get("loose_gravel_coverage", 0.0))
-					s_mud += float(st.get("mud_factor", 0.0))
-					s_water += float(st.get("water_coverage", 0.0))
-					s_snow += float(st.get("snow_coverage", 0.0))
-					s_ice += float(st.get("ice_coverage", 0.0))
-					rust_samples += 1
+				for lt in lat_pts:
+					var st: Dictionary = event_weather.local_surface_state_at_distance(total_m - d if reverse_route else d, lt)
+					if not st.is_empty():
+						s_loose += float(st.get("loose_gravel_coverage", 0.0))
+						s_mud += float(st.get("mud_factor", 0.0))
+						s_water += float(st.get("water_coverage", 0.0))
+						s_snow += float(st.get("snow_coverage", 0.0))
+						s_ice += float(st.get("ice_coverage", 0.0))
+						rust_samples += 1
+						sec_samples += 1
+			var sec_denom := float(maxi(sec_samples, 1))
 			sectors_out.append({
 				"sector_index": si,
 				"start_m": s_start,
@@ -1916,11 +1926,11 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 				"water_mm": float(mid_st.get("water_mm", 0.0)),
 				"snow_mm": float(mid_st.get("snow_mm", 0.0)),
 				"ice_mm": float(mid_st.get("ice_mm", 0.0)),
-				"loose_gravel_coverage": s_loose / float(sub_n),
-				"mud_factor": s_mud / float(sub_n),
-				"water_coverage": s_water / float(sub_n),
-				"snow_coverage": s_snow / float(sub_n),
-				"ice_coverage": s_ice / float(sub_n),
+				"loose_gravel_coverage": s_loose / sec_denom,
+				"mud_factor": s_mud / sec_denom,
+				"water_coverage": s_water / sec_denom,
+				"snow_coverage": s_snow / sec_denom,
+				"ice_coverage": s_ice / sec_denom,
 			})
 			loose_sum += s_loose
 			mud_sum += s_mud

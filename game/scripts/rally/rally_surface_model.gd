@@ -209,7 +209,7 @@ func _procedural_state_at(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
 		"snow_coverage": float(s.get("snow_coverage", 0.0)),
 		"ice_coverage": float(s.get("ice_coverage", 0.0)),
 		"loose_gravel_coverage": float(s.get("loose_gravel_coverage", 0.0)) * loose_gravel_scale,
-		"mud_factor": float(s.get("mud_factor", 0.0)),
+		"mud_factor": float(s.get("mud_factor", 0.0)) * loose_gravel_scale,
 		"dry_weight": float(s.get("dry_weight", 1.0)),
 		"snow_weight": float(s.get("snow_weight", 0.0)),
 		"ice_weight": float(s.get("ice_weight", 0.0)),

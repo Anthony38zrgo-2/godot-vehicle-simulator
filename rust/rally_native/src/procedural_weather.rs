@@ -1869,81 +1869,62 @@ pub fn loose_gravel_seed_offset_u32(seed: u32) -> [f32; 2] {
     [ix, iy]
 }
 
-/// Shared CPU/GPU procedural damaged-track sandy/clayey loose-gravel coverage
-/// and heavy-rain mud conversion factor `(loose_gravel_coverage, mud_factor)` in `[0, 1]`.
+/// Shared CPU/GPU procedural lateral-berm fine gravel coverage and mud conversion factor
+/// `(loose_gravel_coverage, mud_factor)` in `[0, 1]`.
 ///
-/// Models irregular, unpredictable damaged sections of Andean gravel stages (SS01/SS02)
-/// covered with sandy/clayey loose gravel: domain-warped multi-scale damage clusters,
-/// asymmetric lateral bias (shoulder washouts, center breakdown, or full-width degraded cuts),
-/// broken intact-gravel islands, and subtle wheel-rut sweeping.
+/// Mirrors the lateral-berm ribbon architecture of `local_pattern_coverage` (independent L/R
+/// edges with dual-frequency irregular width), but continuous along 100% of gravel/dirt stages,
+/// with NO central crown line (`|lateral_t| < 0.68` stays clean), and decisively replaced by
+/// snow wherever `snow_cov` accumulates.
 pub fn loose_gravel_and_mud_coverage(
     is_gravel_surface: bool,
     shader_station_m: f32,
     lateral_t: f32,
     road_water_mm: f32,
     saturation: f32,
+    snow_cov: f32,
     seed_offset: [f32; 2],
 ) -> (f32, f32) {
     if !is_gravel_surface {
         return (0.0, 0.0);
     }
-    let s0 = [seed_offset[0] + 31.4, seed_offset[1] + 59.2];
-
-    // 1. 2D domain warp breaks longitudinal periodicity and slants/curves damaged borders organically.
-    let warp_long = (value_noise2(
-        shader_station_m * 0.0093,
-        lateral_t * 0.65 + 1.1,
-        [s0[0] + 5.3, s0[1] + 19.7],
-    ) - 0.5)
-        * 46.0;
-    let warp_lat = (value_noise2(
-        shader_station_m * 0.029,
-        lateral_t * 1.3 + 4.7,
-        [s0[0] + 27.9, s0[1] + 8.4],
-    ) - 0.5)
-        * 0.72;
-    let sw = shader_station_m + warp_long;
-    let lw = lateral_t + warp_lat;
-
-    // 2. Multi-scale irregular damage envelope:
-    //    - cluster_env (~270m warped): long intact stretches alternating with degraded zones
-    //    - medium_patch (~58m 2D): individual irregular damaged road patches (20-90m)
-    //    - short_pocket (~17m 2D): localized pothole/washout repairs & intact gravel islands
-    let cluster_env = value_noise2(sw * 0.0037, 0.41, [s0[0] + 11.2, s0[1] + 3.8]);
-    let medium_patch = value_noise2(
-        sw * 0.0173,
-        lw * 0.52 + 2.3,
-        [s0[0] + 43.6, s0[1] + 21.5],
-    );
-    let short_pocket = value_noise2(
-        sw * 0.057,
-        lw * 1.35 + 5.1,
-        [s0[0] + 71.1, s0[1] + 37.9],
-    );
-
-    // 3. Asymmetric lateral damage focus (shifts unpredictably between left edge, center, right edge).
-    let bias_noise = value_noise2(sw * 0.0061, 3.7, [s0[0] + 61.4, s0[1] + 14.2]);
-    let bias_center = (bias_noise - 0.5) * 2.4;
-    let lat_affinity = 1.0 - smoothstep(0.35, 1.35, (lw - bias_center).abs());
-
-    let damage_field =
-        0.34 * cluster_env + 0.36 * medium_patch + 0.18 * short_pocket + 0.12 * lat_affinity;
-
-    // Crisper threshold calibrated so ~35-42% of the stage has distinct broken/gravel-covered track areas.
-    let sector_gate = smoothstep(0.548, 0.652, damage_field);
-    if sector_gate <= 0.001 {
+    let abs_t = lateral_t.abs().clamp(0.0, 1.0);
+    if abs_t < 0.68 {
+        return (0.0, 0.0);
+    }
+    let snow_replace = smoothstep(0.02, 0.22, snow_cov);
+    if snow_replace >= 0.999 {
         return (0.0, 0.0);
     }
 
-    // Previous traffic partially sweeps loose gravel out of the wheel ruts on lighter patches,
-    // while severely damaged washouts stay deeply covered across the full rut width.
-    let abs_lat = lateral_t.abs().clamp(0.0, 1.0);
-    let rut_sweep = 1.0 - ((abs_lat - 0.46).abs() / 0.22).clamp(0.0, 1.0);
-    let rut_thin = lerpf(0.24, 0.06, smoothstep(0.60, 0.80, damage_field));
-    let loose_cov = (sector_gate * (1.0 - rut_thin * rut_sweep)).clamp(0.0, 1.0) * 0.70;
+    let side_off = if lateral_t >= 0.0 { [0.0_f32, 0.0] } else { [41.7_f32, 29.3] };
+    let s_off = [seed_offset[0] + side_off[0], seed_offset[1] + side_off[1]];
+
+    let width_field = spatial_patch_field(shader_station_m, lateral_t, seed_offset);
+    let edge_jit1 = value_noise2(
+        shader_station_m * 0.32,
+        abs_t * 6.0,
+        [s_off[0] + 7.1, s_off[1] + 13.9],
+    );
+    let edge_jit2 = value_noise2(
+        shader_station_m * 1.15,
+        abs_t * 14.0,
+        [s_off[0] + 23.4, s_off[1] + 41.8],
+    );
+    let scallop = (edge_jit1 - 0.5) * 0.065 + (edge_jit2 - 0.5) * 0.032;
+    let ribbon_width = (0.21 + (width_field - 0.5) * 0.16 + scallop).clamp(0.13, 0.30);
+
+    let dist_from_edge = 1.0 - abs_t;
+    let profile = 1.0 - smoothstep(ribbon_width * 0.28, ribbon_width, dist_from_edge);
+    if profile <= 0.001 {
+        return (0.0, 0.0);
+    }
+
+    let snow_keep = (1.0 - snow_replace).clamp(0.0, 1.0);
+    let loose_cov = (profile * snow_keep).clamp(0.0, 1.0);
 
     let wet_drive = (road_water_mm / 0.55 + saturation.clamp(0.0, 1.0) * 0.45).clamp(0.0, 1.0);
-    let mud_raw = smoothstep(0.32, 0.82, wet_drive);
+    let mud_raw = smoothstep(0.28, 0.78, wet_drive);
     let mud = (loose_cov * mud_raw).clamp(0.0, 1.0);
     (loose_cov, mud)
 }
@@ -2391,11 +2372,9 @@ impl SurfaceGrid {
             lat,
             road_water_mm,
             cell.saturation,
+            snow_cov,
             ice_seed_off,
-        )
-        ;
-        let loose_gravel_cov = loose_gravel_cov * (1.0 - snow_cov).clamp(0.0, 1.0);
-        let mud_factor = mud_factor * (1.0 - snow_cov).clamp(0.0, 1.0);
+        );
 
         // Normalized footprint weights: snow, exposed base road (dry/wet).
         let snow_w = snow_cov.clamp(0.0, 1.0);
@@ -4257,16 +4236,15 @@ impl FiveSectorSnapshot {
             0.0
         };
         let is_gravel = matches!(self.surface_type.as_str(), "gravel" | "gravel_mud" | "dirt");
-        let (raw_loose_cov, raw_mud) = loose_gravel_and_mud_coverage(
+        let (loose_gravel_cov, mud_factor) = loose_gravel_and_mud_coverage(
             is_gravel,
             shader_station_m,
             lat,
             water_mm,
             saturation,
+            snow_cov,
             ice_seed_off,
         );
-        let loose_gravel_cov = raw_loose_cov * (1.0 - snow_cov).clamp(0.0, 1.0);
-        let mud_factor = raw_mud * (1.0 - snow_cov).clamp(0.0, 1.0);
 
         let snow_w = snow_cov.clamp(0.0, 1.0);
         let ice_w = 0.0;
@@ -5892,7 +5870,8 @@ mod tests {
         let (climate, route) = load_ss01_profiles();
         let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
 
-        // 1. Dry gravel stage: ~40% of the stage has loose clay-gravel sectors, mud_factor == 0 everywhere.
+        // 1. Dry gravel stage: continuous lateral fine-gravel berms along 100% of stage,
+        //    zero at center & driving tracks, zero on asphalt, mud_factor == 0 everywhere when dry.
         let j_dry = FiveSectorJourney::build(
             route.clone(),
             climate.clone(),
@@ -5904,27 +5883,29 @@ mod tests {
         let snap_dry = j_dry.build_snapshot_at(base_s, "gravel");
         let snap_asphalt = j_dry.build_snapshot_at(base_s, "asphalt");
         let n_samples = 250usize;
-        let mut active_loose = 0usize;
         for i in 0..=n_samples {
             let p = route.total_distance_m * (i as f32) / (n_samples as f32);
-            let s_g = snap_dry.sample_surface_at(&j_dry, p, 0.0);
-            let s_a = snap_asphalt.sample_surface_at(&j_dry, p, 0.0);
-            assert_eq!(s_a.loose_gravel_coverage, 0.0, "asphalt must never have loose gravel sectors");
+            let s_c = snap_dry.sample_surface_at(&j_dry, p, 0.0);
+            let s_t = snap_dry.sample_surface_at(&j_dry, p, 0.50);
+            let s_l = snap_dry.sample_surface_at(&j_dry, p, -0.94);
+            let s_r = snap_dry.sample_surface_at(&j_dry, p, 0.94);
+            let s_a = snap_asphalt.sample_surface_at(&j_dry, p, 0.94);
+            assert_eq!(s_a.loose_gravel_coverage, 0.0, "asphalt must never have loose gravel berms");
             assert_eq!(s_a.mud_factor, 0.0);
-            assert_eq!(s_g.mud_factor, 0.0, "dry gravel must have zero mud_factor");
-            if s_g.loose_gravel_coverage >= 0.245 {
-                active_loose += 1;
-            }
+            assert_eq!(s_c.loose_gravel_coverage, 0.0, "centerline must have NO loose gravel line");
+            assert_eq!(s_t.loose_gravel_coverage, 0.0, "driving wheel tracks must remain free of loose gravel");
+            assert_eq!(s_l.mud_factor, 0.0, "dry gravel berm must have zero mud_factor");
+            assert_eq!(s_r.mud_factor, 0.0, "dry gravel berm must have zero mud_factor");
+            assert!(
+                s_l.loose_gravel_coverage > 0.25 && s_r.loose_gravel_coverage > 0.25,
+                "both outer berms must have continuous fine gravel along 100% of stage at p={} (L={} R={})",
+                p,
+                s_l.loose_gravel_coverage,
+                s_r.loose_gravel_coverage
+            );
         }
-        let share = (active_loose as f32) / ((n_samples + 1) as f32);
-        eprintln!("SS01_LOOSE_GRAVEL_SHARE={:.3}", share);
-        assert!(
-            (0.33..=0.47).contains(&share),
-            "expected ~40% loose gravel coverage on SS01, got {:.1}%",
-            share * 100.0
-        );
 
-        // 2. Heavy rain on the same gravel stage converts loose-gravel sectors into thick mud.
+        // 2. Heavy rain converts lateral fine-gravel berms into thick mud, while center stays mud-free.
         let j_wet = FiveSectorJourney::build(
             route.clone(),
             climate,
@@ -5937,24 +5918,47 @@ mod tests {
         for ss in &mut snap_wet.sector_surface {
             ss.water_mm = 1.4;
             ss.saturation = 0.55;
+            ss.snow_mm = 0.0;
         }
-        let mut mud_active = 0usize;
         for i in 0..=n_samples {
             let p = route.total_distance_m * (i as f32) / (n_samples as f32);
-            let s_w = snap_wet.sample_surface_at(&j_wet, p, 0.0);
-            if s_w.loose_gravel_coverage >= 0.35 {
-                assert!(
-                    s_w.mud_factor > 0.315,
-                    "loose gravel sector under heavy rain must convert to mud (loose={} mud={})",
-                    s_w.loose_gravel_coverage,
-                    s_w.mud_factor
+            let s_wc = snap_wet.sample_surface_at(&j_wet, p, 0.0);
+            let s_wr = snap_wet.sample_surface_at(&j_wet, p, 0.94);
+            assert_eq!(s_wc.mud_factor, 0.0, "centerline stays mud_factor=0");
+            assert!(
+                s_wr.mud_factor > 0.50,
+                "wet lateral fine-gravel berm must convert strongly to mud at p={} (loose={} mud={})",
+                p,
+                s_wr.loose_gravel_coverage,
+                s_wr.mud_factor
+            );
+        }
+
+        // 3. Snow accumulation decisively replaces both fine gravel and mud on the berm.
+        for ss in &mut snap_wet.sector_surface {
+            ss.snow_mm = 4.5;
+        }
+        let mut snow_replaced = 0usize;
+        for i in 0..=n_samples {
+            let p = route.total_distance_m * (i as f32) / (n_samples as f32);
+            let s_sn = snap_wet.sample_surface_at(&j_wet, p, 0.94);
+            if s_sn.snow_coverage >= 0.22 {
+                assert_eq!(
+                    s_sn.loose_gravel_coverage, 0.0,
+                    "snow must completely replace loose gravel at p={} (snow_cov={})",
+                    p,
+                    s_sn.snow_coverage
                 );
-                mud_active += 1;
-            } else if s_w.loose_gravel_coverage == 0.0 {
-                assert_eq!(s_w.mud_factor, 0.0, "compact gravel outside clay sectors stays mud_factor=0");
+                assert_eq!(
+                    s_sn.mud_factor, 0.0,
+                    "snow must completely replace mud at p={} (snow_cov={})",
+                    p,
+                    s_sn.snow_coverage
+                );
+                snow_replaced += 1;
             }
         }
-        assert!(mud_active > 60, "expected substantial mud sectors under heavy rain (got {})", mud_active);
+        assert!(snow_replaced > 40, "expected substantial snow-replaced berm samples (got {})", snow_replaced);
     }
 
     #[test]
@@ -5995,92 +5999,55 @@ mod tests {
             off2
         );
 
-        // 2. Measure lateral asymmetry, patch length variability, and SS01/SS02 distinctness.
+        // 2. Measure irregular lateral berm width along the inner transition (|lateral_t| = 0.80),
+        //    left/right asymmetry, and SS01/SS02 distinctness.
         let step_m = 10.0_f32;
         let steps = (ss01_route.total_distance_m / step_m).floor() as usize;
         let mut asymmetric_count = 0usize;
         let mut ss01_vs_ss02_diff = 0usize;
-        let mut patch_lengths_m: Vec<f32> = Vec::new();
-        let mut gap_lengths_m: Vec<f32> = Vec::new();
-        let mut in_patch = false;
-        let mut run_len = 0.0_f32;
+        let mut min_edge_cov = f32::INFINITY;
+        let mut max_edge_cov = 0.0_f32;
 
         for i in 0..=steps {
             let p = (i as f32 * step_m).min(ss01_route.total_distance_m);
-            let s_l = snap1.sample_surface_at(&j1, p, -0.65).loose_gravel_coverage;
             let s_c = snap1.sample_surface_at(&j1, p, 0.0).loose_gravel_coverage;
-            let s_r = snap1.sample_surface_at(&j1, p, 0.65).loose_gravel_coverage;
-            if (s_l - s_r).abs() >= 0.25 {
+            assert_eq!(s_c, 0.0, "centerline must always be 0.0");
+            let s_l = snap1.sample_surface_at(&j1, p, -0.83).loose_gravel_coverage;
+            let s_r = snap1.sample_surface_at(&j1, p, 0.83).loose_gravel_coverage;
+            min_edge_cov = min_edge_cov.min(s_r);
+            max_edge_cov = max_edge_cov.max(s_r);
+            if (s_l - s_r).abs() >= 0.08 {
                 asymmetric_count += 1;
             }
             let p2 = (i as f32 * step_m).min(ss02_route.total_distance_m);
-            let s2_c = snap2.sample_surface_at(&j2, p2, 0.0).loose_gravel_coverage;
-            if (s_c - s2_c).abs() >= 0.20 {
+            let s2_r = snap2.sample_surface_at(&j2, p2, 0.83).loose_gravel_coverage;
+            if (s_r - s2_r).abs() >= 0.08 {
                 ss01_vs_ss02_diff += 1;
             }
-            let active = s_c >= 0.30;
-            if i == 0 {
-                in_patch = active;
-                run_len = step_m;
-            } else if active == in_patch {
-                run_len += step_m;
-            } else {
-                if in_patch {
-                    patch_lengths_m.push(run_len);
-                } else {
-                    gap_lengths_m.push(run_len);
-                }
-                in_patch = active;
-                run_len = step_m;
-            }
-        }
-        if in_patch {
-            patch_lengths_m.push(run_len);
-        } else {
-            gap_lengths_m.push(run_len);
         }
 
         let asym_share = (asymmetric_count as f32) / ((steps + 1) as f32);
         let diff_share = (ss01_vs_ss02_diff as f32) / ((steps + 1) as f32);
-        let min_patch = patch_lengths_m.iter().copied().fold(f32::INFINITY, f32::min);
-        let max_patch = patch_lengths_m.iter().copied().fold(0.0_f32, f32::max);
-        let min_gap = gap_lengths_m.iter().copied().fold(f32::INFINITY, f32::min);
-        let max_gap = gap_lengths_m.iter().copied().fold(0.0_f32, f32::max);
         eprintln!(
-            "DAMAGED_GRAVEL_STATS asym={:.3} ss01_vs_ss02_diff={:.3} patches={} ({:.0}..{:.0}m) gaps={} ({:.0}..{:.0}m)",
-            asym_share,
-            diff_share,
-            patch_lengths_m.len(),
-            min_patch,
-            max_patch,
-            gap_lengths_m.len(),
-            min_gap,
-            max_gap
+            "LATERAL_GRAVEL_BERM_STATS asym={:.3} ss01_vs_ss02_diff={:.3} edge80_range={:.3}..{:.3}",
+            asym_share, diff_share, min_edge_cov, max_edge_cov
         );
 
         assert!(
-            asym_share >= 0.12,
-            "expected meaningful left/right damaged-track asymmetry (>=12%), got {:.1}%",
+            max_edge_cov - min_edge_cov >= 0.30,
+            "expected irregular berm width variation at |lateral_t|=0.80, got {}..{}",
+            min_edge_cov,
+            max_edge_cov
+        );
+        assert!(
+            asym_share >= 0.20,
+            "expected left/right lateral berm width asymmetry (>=20%), got {:.1}%",
             asym_share * 100.0
         );
         assert!(
-            diff_share >= 0.25,
-            "expected SS01 and SS02 damaged-gravel layouts to differ substantially, got {:.1}%",
+            diff_share >= 0.20,
+            "expected SS01 and SS02 lateral berm profiles to differ, got {:.1}%",
             diff_share * 100.0
-        );
-        assert!(
-            patch_lengths_m.len() >= 10 && max_patch >= min_patch * 3.0,
-            "expected irregular non-periodic patch lengths, got count={} range={}..{}m",
-            patch_lengths_m.len(),
-            min_patch,
-            max_patch
-        );
-        assert!(
-            gap_lengths_m.len() >= 10 && max_gap >= min_gap * 3.0,
-            "expected irregular non-periodic intact gaps, got count={} range={}..{}m",
-            gap_lengths_m.len(),
-            min_gap,
-            max_gap
         );
     }
 }
