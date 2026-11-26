@@ -7,6 +7,7 @@ const PRESETS_PATH := "res://data/weather/rally_weather_presets.json"
 var variants := {"day": "day_1", "cloudy": "cloudy_1", "verycloudy": "verycloudy_4", "dusk": "dusk_3", "night": "night_2"}
 
 var event_seed := 0
+var solar_sunrise_hour := 7.0
 # Original IDs remain stable; windows come from mapping-time-of-day.csv.
 const WINDOWS := {
 	"day_1": [11.0,14.0], "day_4": [11.0,15.0], "day_5": [10.0,14.0], "day_6": [10.0,16.0], "day_3": [15.0,17.0],
@@ -17,6 +18,8 @@ const WINDOWS := {
 
 func configure_event(rally_id: String, stage_id: String, date: String) -> void:
 	event_seed = hash(JSON.stringify([rally_id, stage_id, date]))
+	# Across the CDI route the tropical daylight cycle is close to 06:00–18:00.
+	solar_sunrise_hour = 6.0 if rally_id == "cdi" else 7.0
 
 func _pick(ids: Array, hour: float) -> String:
 	var eligible: Array = []
@@ -118,7 +121,7 @@ func update_visuals(delta: float) -> void:
 		var tau := 6.0 if key == "cumulus_coverage" else 4.0
 		climate[key] = lerpf(float(climate[key]), float(_practice_target[key]), 1.0 - exp(-delta / tau))
 	_select_hour(current_time)
-	var angle := (current_time - 7.0) * TAU / 24.0
+	var angle := (current_time - solar_sunrise_hour) * TAU / 24.0
 	var altitude := sin(angle)
 	var morning := cos(angle) >= 0.0
 	var daylight := smoothstep(-0.12, 0.18, altitude)

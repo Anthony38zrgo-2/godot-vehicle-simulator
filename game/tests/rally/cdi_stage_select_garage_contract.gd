@@ -19,10 +19,10 @@ func _verify() -> void:
 	var menu := (load("res://scenes/rally/rally_maniac_menu.tscn") as PackedScene).instantiate() as RallyManiacMenu
 	root.add_child(menu)
 	current_scene = menu
-	if not _require(menu.current_screen == "stage_select" and menu.stage_buttons.size() == 4,
-			"CDI did not start with the four stages"):
+	if not _require(menu.current_screen == "stage_select" and menu.stage_buttons.size() == 8,
+			"CDI did not start with eight stages"):
 		return
-	for i in range(4):
+	for i in range(8):
 		var stage_id := "cdi_stage%d" % (i + 1)
 		menu.stage_buttons[i].pressed.emit()
 		if not _require(menu.selected_stage_id == stage_id and menu.current_screen == "car_select"
@@ -49,7 +49,7 @@ func _verify() -> void:
 				break
 	if not _require(session != null and session.session_track_id == "cdi_stage3"
 			and session.stage_place == "Chinchán Asfalto"
-			and session.event_manager.stage_order == ["cdi_stage3", "cdi_stage4"]
+			and session.event_manager.stage_order == ["cdi_stage3", "cdi_stage4", "cdi_stage5", "cdi_stage6", "cdi_stage7", "cdi_stage8"]
 			and strategy != null and paused and not session.garage_panel.visible,
 			"Launching from SS03 did not reach the tire strategy"):
 		return

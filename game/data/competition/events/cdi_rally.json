@@ -3,14 +3,14 @@
   "event_id": "cdi_rally",
   "event_name": "Caminos del Inca",
   "base_date": "2026-11-18",
-  "stages_explicit_order": ["cdi_stage1", "cdi_stage2", "cdi_stage3", "cdi_stage4"],
+  "stages_explicit_order": ["cdi_stage1", "cdi_stage2", "cdi_stage3", "cdi_stage4", "cdi_stage5", "cdi_stage6", "cdi_stage7", "cdi_stage8"],
   "itinerary_default": {
     "days": [
       {
         "label": "Día 1",
         "date": "2026-11-18",
-        "starts": ["08:00", "08:20", "09:15", "09:40"],
-        "stage_ids": ["cdi_stage1", "cdi_stage2", "cdi_stage3", "cdi_stage4"]
+        "starts": ["08:00", "08:20", "09:15", "09:40", "16:30", "17:00", "17:55", "18:25"],
+        "stage_ids": ["cdi_stage1", "cdi_stage2", "cdi_stage3", "cdi_stage4", "cdi_stage5", "cdi_stage6", "cdi_stage7", "cdi_stage8"]
       }
     ]
   },
@@ -60,7 +60,7 @@
       }
     }
   },
-  "service": {"after_stage_ids": ["cdi_stage2"]},
+  "service": {"after_stage_ids": ["cdi_stage2", "cdi_stage4", "cdi_stage6"]},
   "setup_windows": [
     {
       "before_stage_id": "cdi_stage1",
@@ -70,6 +70,22 @@
     {
       "after_stage_id": "cdi_stage2",
       "before_stage_id": "cdi_stage3",
+      "initial_tab": "tires",
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
+    },
+    {
+      "after_stage_id": "cdi_stage4",
+      "before_stage_id": "cdi_stage5",
+      "initial_tab": "tires",
+      "confirmation_required": true,
+      "repair_minutes": 30,
+      "repair_penalty_seconds_per_minute": 10
+    },
+    {
+      "after_stage_id": "cdi_stage6",
+      "before_stage_id": "cdi_stage7",
       "initial_tab": "tires",
       "confirmation_required": true,
       "repair_minutes": 30,

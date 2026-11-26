@@ -896,10 +896,16 @@ func _run_overlap_signature_diagnostic(
 ## (`_query_shapecast_contact()`). En pendiente no se proyecta el punto como
 ## si viniera de un rayo: la altura sale del barrido del cilindro.
 ## Devuelve {} sin apoyo válido.
+static func _is_road_sign(collider: Variant) -> bool:
+	return collider is CollisionObject3D and collider.get_meta("collision_role", "") in ["road_sign", "fallen_sign"]
+
+
 static func select_shapecast_support(cast: ShapeCast3D, chassis_up: Vector3) -> Dictionary:
 	var best := {}
 	var best_alignment := 0.25
 	for collision_index in cast.get_collision_count():
+		if _is_road_sign(cast.get_collider(collision_index)):
+			continue
 		var normal := (cast.get_collision_normal(collision_index) as Vector3).normalized()
 		var alignment := normal.dot(chassis_up)
 		if alignment > best_alignment:
@@ -1335,7 +1341,11 @@ func _query_tandem_contact(
 		)
 		var sample := state.get_space_state().intersect_ray(query)
 		contact_query_count += 1
-		if not sample.is_empty() and (sample.normal as Vector3).dot(up) <= 0.25:
+		if _is_road_sign(sample.get("collider")):
+			query.exclude = [body.get_rid(), sample.rid]
+			sample = state.get_space_state().intersect_ray(query)
+			contact_query_count += 1
+		if not sample.is_empty() and (_is_road_sign(sample.collider) or (sample.normal as Vector3).dot(up) <= 0.25):
 			sample = {}
 		hits.append(sample)
 	var rear := hits[0]

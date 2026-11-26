@@ -104,8 +104,6 @@ void vertex() {
 	v_sky_facing = smoothstep(-0.35, 0.30, n_world.y);
 }
 
-varying float dirt_specular;
-
 void fragment() {
 	vec2 persp_uv = UV * uv_scale + uv_offset;
 	vec2 tex_uv = persp_uv;
@@ -126,21 +124,8 @@ void fragment() {
 		NORMAL_MAP_DEPTH = normal_strength;
 	}
 
-	// Sample GT2 reflection streak map (high-contrast sky/cloud bands over dark horizon)
-	vec3 env_sample = texture(env_map, v_env_uv).rgb;
-	vec3 env_streak = pow(max(env_sample, vec3(0.0)), vec3(env_contrast));
-	// Gently protect deep black rubber/gaps on single-atlas cars while letting dark glass shine
-	float luma = dot(paint.rgb, vec3(0.2126, 0.7152, 0.0722));
-	float mask = smoothstep(0.015, 0.09, luma);
-	vec3 refl_add = env_streak * (env_strength * v_fresnel * v_sky_facing * mask);
-	if (psx_dither_env && env_strength > 0.001) {
-		refl_add = psx_quantize_rgb555(refl_add, FRAGCOORD.xy);
-	}
-
 	vec4 dirt = dirt_sample();
 	ALBEDO = mix(paint.rgb, psx_quantize_rgb555(dirt.rgb, FRAGCOORD.xy), dirt.a);
-	EMISSION = refl_add * (1.0 - dirt.a);
-	dirt_specular = 1.0 - dirt.a;
 }
 
 void light() {
@@ -151,11 +136,4 @@ void light() {
 	float diffuse = mix(0.28, 0.96, wrap);
 	float reach = ATTENUATION;
 	DIFFUSE_LIGHT += diffuse_tint * diffuse * reach * LIGHT_COLOR / PI;
-
-	// Crisp GT2 solar clearcoat highlight
-	if (spec_strength > 0.001 && ndl > 0.0) {
-		vec3 half_vec = normalize(LIGHT + VIEW);
-		float spec = pow(max(dot(NORMAL, half_vec), 0.0), spec_shininess) * spec_strength * dirt_specular;
-		SPECULAR_LIGHT += spec * reach * LIGHT_COLOR;
-	}
 }

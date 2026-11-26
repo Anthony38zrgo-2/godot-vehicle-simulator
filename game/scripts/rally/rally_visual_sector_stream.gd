@@ -167,6 +167,8 @@ func _apply_procedural_uniforms(mat: ShaderMaterial, packet: Dictionary) -> void
 	mat.set_shader_parameter("procedural_surface_enabled", true)
 	if mat == _asphalt_material:
 		mat.set_shader_parameter("snow_station_m", -1.0)
+	else:
+		mat.set_shader_parameter("loose_gravel_scale", float(packet.get("loose_gravel_scale", 1.0)))
 	if _surface_field_texture != null:
 		mat.set_shader_parameter("surface_field_tex", _surface_field_texture)
 	mat.set_shader_parameter(

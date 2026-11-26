@@ -38,7 +38,7 @@ func _ready() -> void:
 	_setup_audio()
 	_load_sound_bank()
 
-func configure(stage_data_path: String) -> bool:
+func configure(stage_data_path: String, reverse_points: Array = []) -> bool:
 	active = false
 	tracker = PacenoteGateTracker.new()
 	call_queue.clear()
@@ -60,15 +60,20 @@ func configure(stage_data_path: String) -> bool:
 	route_points.clear()
 	route_distances.clear()
 	var route_path := stage_data_path.replace("/pacenotes/", "/").trim_suffix(".json") + "_route.json"
-	if FileAccess.file_exists(route_path):
+	if not reverse_points.is_empty():
+		# The source CDI stages currently have no recorded calls. Reversed
+		# practice still uses the correct route for position tracking.
+		data = {}
+		route_points.assign(reverse_points)
+	elif FileAccess.file_exists(route_path):
 		var route: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(route_path))
-		var distance := 0.0
 		for p in route.get("points", []):
-			var point := Vector3(p[0], p[1], p[2])
-			if not route_points.is_empty():
-				distance += route_points[-1].distance_to(point)
-			route_points.append(point)
-			route_distances.append(distance)
+			route_points.append(Vector3(p[0], p[1], p[2]))
+	var distance := 0.0
+	for i in route_points.size():
+		if i > 0:
+			distance += route_points[i - 1].distance_to(route_points[i])
+		route_distances.append(distance)
 	off_route = false
 	
 	# Load call table words

@@ -90,14 +90,23 @@ func resolve(track_id: String) -> Dictionary:
 	if not is_valid_track_id(track_id):
 		error = "track_id inválido: %s (esperado <pais>_stage<N>)" % track_id
 		return {}
+	var config_path := stage_config_path(track_id)
+	var stage_config := _read_json(config_path)
+	if stage_config.is_empty() or str(stage_config.get("id", "")) != track_id:
+		error = "Configuración de competición incoherente para %s" % track_id
+		return {}
+	var map_id := str(stage_config.get("map_id", track_id))
+	if not is_valid_track_id(map_id):
+		error = "map_id inválido: " + map_id
+		return {}
 	var paths := {
-		"manifest": manifest_path(track_id),
-		"visual": visual_path(track_id),
-		"collision": collision_path(track_id),
-		"route": route_path(track_id),
-		"stage_config": stage_config_path(track_id),
-		"timing_gates": timing_gates_path(track_id),
-		"pacenotes": pacenotes_path(track_id),
+		"manifest": manifest_path(map_id),
+		"visual": visual_path(map_id),
+		"collision": collision_path(map_id),
+		"route": str(stage_config.get("route_path", route_path(map_id))),
+		"stage_config": config_path,
+		"timing_gates": str(stage_config.get("timing_gates_path", timing_gates_path(map_id))),
+		"pacenotes": pacenotes_path(map_id),
 	}
 	var missing: Array = []
 	for key in paths:
@@ -112,17 +121,14 @@ func resolve(track_id: String) -> Dictionary:
 	if manifest.is_empty():
 		error = "Manifiesto ilegible: %s" % paths["manifest"]
 		return {}
-	if str(manifest.get("track_id", "")) != track_id:
-		error = "Manifiesto de %s declara track_id=%s" % [track_id, manifest.get("track_id")]
+	if str(manifest.get("track_id", "")) != map_id:
+		error = "Manifiesto de %s declara track_id=%s" % [map_id, manifest.get("track_id")]
 		return {}
 	last_diagnostics["manifest_track_id"] = manifest.get("track_id")
-	var stage_config: Dictionary = _read_json(paths["stage_config"])
-	if stage_config.is_empty() or str(stage_config.get("id", "")) != track_id:
-		error = "Configuración de competición incoherente para %s" % track_id
-		last_diagnostics["stage_config_id"] = stage_config.get("id", "")
-		return {}
 	return {
 		"track_id": track_id,
+		"map_id": map_id,
+		"reverse_route": bool(stage_config.get("reverse_route", false)),
 		"paths": paths,
 		"manifest": manifest,
 		"stage_config": stage_config,

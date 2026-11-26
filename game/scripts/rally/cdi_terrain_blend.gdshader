@@ -6,6 +6,7 @@ render_mode fog_disabled;
 #include "res://scripts/rally/cdi_procedural_surface.gdshaderinc"
 
 uniform int terrain_mode = 0;
+uniform float loose_gravel_scale : hint_range(0.0, 1.0) = 1.0;
 varying vec3 world_point;
 varying vec3 world_normal;
 
@@ -53,7 +54,7 @@ void fragment() {
 		vec2 loose_mud = proc_sample_loose_gravel_and_mud(UV2.y, UV.x, proc.y);
 		float loose_cov = loose_mud.x;
 		float mud_factor = loose_mud.y;
-		float dry_clay_cov = clamp(loose_cov - mud_factor, 0.0, 1.0);
+		float dry_clay_cov = clamp(loose_cov - mud_factor, 0.0, 1.0) * loose_gravel_scale;
 
 		float local_wetness = proc.x;
 		float tracks = 0.0;
@@ -82,7 +83,7 @@ void fragment() {
 			1.0
 		);
 		float damage_vis = smoothstep(0.06, 0.74, broken_mask) * smoothstep(0.0, 0.08, loose_cov);
-		float dry_damage_vis = clamp(damage_vis * (1.0 - mud_factor), 0.0, 1.0);
+		float dry_damage_vis = clamp(damage_vis * (1.0 - mud_factor), 0.0, 1.0) * loose_gravel_scale;
 		// Fractured crust rim around the eroded depression where compacted track breaks away.
 		float fracture_rim = smoothstep(0.04, 0.28, damage_vis) * (1.0 - smoothstep(0.42, 0.78, damage_vis));
 		// Disturbed sub-base + sandy-ochre & Andean clay loose gravilla fill.
@@ -96,7 +97,7 @@ void fragment() {
 		vec3 damaged_surface = mix(disturbed_soil * vec3(1.12, 0.96, 0.80), loose_aggregate, 0.62);
 		damaged_surface *= mix(1.0, 0.88, tracks * 0.55);
 		damaged_surface = mix(damaged_surface, damaged_surface * 1.14, pebble_fleck * 0.45);
-		ALBEDO *= mix(1.0, 0.84, fracture_rim * (1.0 - mud_factor * 0.5) * 0.65);
+		ALBEDO *= mix(1.0, 0.84, fracture_rim * (1.0 - mud_factor * 0.5) * 0.65 * loose_gravel_scale);
 		ALBEDO = mix(ALBEDO, damaged_surface, dry_damage_vis * 0.86);
 
 		float mud_vis = clamp(mud_factor * mix(0.75, 1.15, damage_vis), 0.0, 1.0);

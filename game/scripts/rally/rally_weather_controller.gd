@@ -93,6 +93,7 @@ func configure_procedural(
 	if not surface.configure_procedural(procedural_atmosphere, surface_type):
 		error = "Fallo al configurar modelo de superficie procedural para " + for_stage_id
 		return false
+	surface.loose_gravel_scale = float(SchedulerScript.resolve_procedural_climate_config(stage_id).get("loose_gravel_scale", 1.0))
 	route_points.clear()
 	if FileAccess.file_exists(route_path):
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(route_path))
@@ -157,6 +158,7 @@ func configure_five_sector_snapshot(
 	if not surface.configure_five_sector_snapshot(procedural_atmosphere, surface_type):
 		error = "Fallo al configurar instantanea de superficie para " + for_stage_id
 		return false
+	surface.loose_gravel_scale = float(SchedulerScript.resolve_procedural_climate_config(stage_id).get("loose_gravel_scale", 1.0))
 	route_points.clear()
 	if FileAccess.file_exists(route_path):
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(route_path))
@@ -235,6 +237,8 @@ func surface_field_packet(known_revision: int = -1) -> Dictionary:
 	if not procedural_active:
 		return {"ok": false}
 	var packet := surface.surface_field_packet(known_revision)
+	if packet.has("rgba8"):
+		packet["loose_gravel_scale"] = surface.loose_gravel_scale
 	# Keep the native reserves available for preparing the localized patches.
 	if uses_localized_road_ice() and packet.has("rgba8"):
 		var pixels: PackedByteArray = packet["rgba8"]

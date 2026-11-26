@@ -130,6 +130,41 @@ func configure_timing_gates(definitions: Array) -> bool:
 		route_distances.append(route_distances[-1] + points[i - 1].distance_to(points[i]))
 	return true
 
+## Keeps the source map in its authored order and derives the race from its gates.
+func configure_reverse(source: RallyStageProgress, finish_origin: Vector3, finish_forward: Vector3) -> void:
+	radius_m = source.radius_m
+	points.assign(source.points)
+	points.reverse()
+	points[-1] = finish_origin
+	reset_attempt()
+	last_s = null
+	best_s = null
+	sector_indices = []
+	route_distances = PackedFloat64Array([0.0])
+	for i in range(1, points.size()):
+		route_distances.append(route_distances[-1] + points[i - 1].distance_to(points[i]))
+	timing_gates.clear()
+	for i in range(source.timing_gates.size() - 2, -1, -1):
+		var gate: Dictionary = source.timing_gates[i].duplicate()
+		var index := points.size() - 1 - int(gate.route_index)
+		gate.forward = -gate.forward
+		gate.right = -gate.right
+		gate.id = "split_%02d" % (timing_gates.size() + 1)
+		gate.route_index = index
+		gate.route_distance_m = route_distances[index]
+		timing_gates.append(gate)
+		sector_indices.append(index)
+	var finish: Dictionary = source.timing_gates[-1].duplicate()
+	finish.origin = finish_origin
+	finish.route_position = finish_origin
+	finish.forward = finish_forward
+	finish.right = finish_forward.cross(Vector3.UP)
+	finish.route_index = points.size() - 1
+	finish.route_distance_m = route_distances[-1]
+	timing_gates.append(finish)
+	sector_indices.append(finish.route_index)
+
+
 func advance_timing_gates(displacement: Vector3, step: float, speed_m_s: float) -> void:
 	var old_progress := route_progress_m
 	var valid_move := displacement.length() <= maxf(50.0, speed_m_s * step * 2.0)

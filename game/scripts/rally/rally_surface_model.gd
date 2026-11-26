@@ -22,6 +22,7 @@ var procedural_mode: bool = false
 var fixed_snapshot_mode: bool = false
 var procedural_engine: RefCounted = null
 var procedural_surface_type: String = "asphalt"
+var loose_gravel_scale := 1.0
 
 
 func configure_from_schedule(entry: Dictionary, catalog: Dictionary) -> bool:
@@ -207,7 +208,7 @@ func _procedural_state_at(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
 		"water_coverage": float(s.get("water_coverage", 0.0)),
 		"snow_coverage": float(s.get("snow_coverage", 0.0)),
 		"ice_coverage": float(s.get("ice_coverage", 0.0)),
-		"loose_gravel_coverage": float(s.get("loose_gravel_coverage", 0.0)),
+		"loose_gravel_coverage": float(s.get("loose_gravel_coverage", 0.0)) * loose_gravel_scale,
 		"mud_factor": float(s.get("mud_factor", 0.0)),
 		"dry_weight": float(s.get("dry_weight", 1.0)),
 		"snow_weight": float(s.get("snow_weight", 0.0)),

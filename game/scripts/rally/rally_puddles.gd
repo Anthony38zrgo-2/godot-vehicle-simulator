@@ -282,6 +282,7 @@ var sky_node: Node
 var wetness_node: Node
 var route: Array[Vector3] = []
 var stage_seed: int = 0
+var minimum_water_scale := 1.0
 var patches: Array[Dictionary] = []
 var buckets: Dictionary = {}
 var elapsed := 0.0
@@ -311,7 +312,8 @@ static func get_mask_image(tex: Texture2D) -> Image:
 	return _mask_images[path]
 
 
-func configure(points: Array[Vector3], seed_value: int, weather, wetness: Node) -> void:
+func configure(points: Array[Vector3], seed_value: int, weather, wetness: Node, threshold_scale: float = 1.0) -> void:
+	minimum_water_scale = threshold_scale
 	route = points.duplicate()
 	stage_seed = seed_value
 	provider = weather
@@ -344,7 +346,7 @@ func _physics_process(delta: float) -> void:
 
 		var water := float(local_state.get("water_mm", 0.0))
 		var ice := float(local_state.get("ice_mm", 0.0))
-		var min_w := float(profile.get("min_water", 0.75))
+		var min_w := float(profile.get("min_water", 0.75)) * minimum_water_scale
 
 		# Zero puddles in dry conditions (liquid water below basin threshold).
 		# Frozen water (`ice_mm`) is excluded from liquid fill so puddle drag never acts on ice.
@@ -1031,7 +1033,7 @@ func _rebuild_candidate_arrays() -> void:
 		var prof: Dictionary = p["profile"] as Dictionary
 		_cand_distances[i] = float(p.get("distance", 0.0))
 		_cand_twis[i] = float(p.get("twi", 1.0))
-		_cand_min_waters[i] = float(prof.get("min_water", 0.75))
+		_cand_min_waters[i] = float(prof.get("min_water", 0.75)) * minimum_water_scale
 		_cand_retentions[i] = float(prof.get("retention", 1.0))
 
 
@@ -1063,9 +1065,12 @@ func apply_fixed_snapshot_fills() -> bool:
 			# Deep basins shelter snow earlier than shallow, exposed hollows.
 			var shelter := smoothstep(5.0, 48.0, float(patch.depth_mm))
 			var snow_threshold_mm := lerpf(5.0, 1.5, shelter)
-			if snow_mm * retention >= snow_threshold_mm:
+			var retained_snow_mm := snow_mm * retention
+			# Keep liquid in a basin when its depth exceeds the snow retained there.
+			var liquid_depth_mm := fill * float(patch.depth_mm)
+			if retained_snow_mm >= snow_threshold_mm and retained_snow_mm > liquid_depth_mm:
 				winter_kind = 1
-				winter_depth_mm = clampf(snow_mm * retention, 0.0, 30.0)
+				winter_depth_mm = minf(retained_snow_mm, 30.0)
 		if winter_kind != 0:
 			fill = 0.0
 			has_winter_patches = true

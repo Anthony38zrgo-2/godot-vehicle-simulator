@@ -622,6 +622,16 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 		var collider := state.get_contact_collider_object(index)
 		var role := str(collider.get_meta("collision_role", "")) if (collider != null and collider.has_meta("collision_role")) else ""
+		if collider != null and collider.has_meta("sign_impact"):
+			var world_point := state.get_contact_collider_position(index)
+			var against_anchor := maxf(0.0, -state.get_contact_local_velocity_at_position(index).dot(normal))
+			var approach_speed := maxf(closing_speed, against_anchor + impulse / mass)
+			var sign_mass := (collider as RigidBody3D).mass
+			var reduced_mass := mass * sign_mass / (mass + sign_mass)
+			_apply_sign_impact(collider, approach_speed, maxf(impulse, reduced_mass * approach_speed), normal, world_point, state.transform)
+			continue
+		if role == "fallen_sign":
+			continue
 		var is_obstacle: bool = (role in ["barrier", "obstacle"]) or (absf(normal.y) < 0.5)
 
 		if is_obstacle and not wheel_cfg.is_empty():
@@ -914,6 +924,28 @@ func prepare_for_stage() -> void:
 	_wheel_impact_peak.fill(0.0)
 	_wheel_quiet_frames.fill(0)
 
+func _apply_sign_impact(collider: Object, speed: float, impulse: float, normal: Vector3,
+		point: Vector3, pose: Transform3D, wheel_only: bool = false) -> void:
+	if not is_instance_valid(collider) or not collider.has_meta("sign_impact"):
+		return
+	var request: Callable = collider.get_meta("sign_impact")
+	var retained: float = request.call(speed, impulse, normal, point, wheel_only)
+	if retained <= 0.0:
+		return
+	var severity := minf(retained / 84.0, 1.0) * 0.20
+	var damage_cfg: Dictionary = simulation.domains.get("damage", {})
+	var collision_cfg: Dictionary = damage_cfg.get("collision", {})
+	var local_point := pose.affine_inverse() * point
+	var local_normal := pose.basis.transposed() * normal
+	if _visual_damage != null:
+		_visual_damage.register_impact(local_point, local_normal, severity, damage_cfg.get("visual", {}))
+	var zone := _resolve_impact_zone(local_point, local_normal)
+	var weights: Dictionary = collision_cfg.get("zone_weights", {}).get(zone, {})
+	var radiator := float(collision_cfg.get("maximum_radiator_damage", 0.55)) * float(weights.get("radiator", 0.5))
+	var engine := float(collision_cfg.get("maximum_engine_damage", 0.26)) * float(weights.get("engine", 0.5))
+	simulation.thermal_model.apply_damage(severity * radiator, severity * engine)
+
+
 func _collect_wheel_cast_impacts(state: PhysicsDirectBodyState3D, contacts: Array[bool], speeds: Array[float], cfg: Dictionary, lateral: Array[float]) -> void:
 	# The hubs use suspension casts for contact instead of solid collision shapes.
 	# Paso 2.3 Jolt fix: NO releer el ShapeCast ya modificado al final del
@@ -929,6 +961,13 @@ func _collect_wheel_cast_impacts(state: PhysicsDirectBodyState3D, contacts: Arra
 			var bcollider: Variant = bdict.get("collider")
 			var bpoint: Vector3 = bdict.get("position", Vector3.ZERO)
 			var bnormal: Vector3 = (bdict.get("normal", Vector3.UP) as Vector3).normalized()
+			if bcollider is CollisionObject3D and bcollider.has_meta("sign_impact"):
+				var wheel_velocity := state.linear_velocity + state.angular_velocity.cross(bpoint - com_world)
+				var sign_speed := maxf(0.0, -wheel_velocity.dot(bnormal))
+				_apply_sign_impact(bcollider, sign_speed, sign_speed * mass * 0.25, bnormal, bpoint, state.transform, true)
+				continue
+			if bcollider is RigidBody3D and bcollider.get_meta("collision_role", "") == "fallen_sign":
+				continue
 			if bcollider is StaticBody3D:
 				var sbody := bcollider as StaticBody3D
 				if _impact_wheel(inverse * bpoint, cfg) != i:
@@ -965,19 +1004,24 @@ func _collect_wheel_cast_impacts(state: PhysicsDirectBodyState3D, contacts: Arra
 	for i in simulation.wheel_contact_casts.size():
 		var cast: ShapeCast3D = simulation.wheel_contact_casts[i]
 		for hit in cast.get_collision_count():
-			var collider := cast.get_collider(hit) as StaticBody3D
-			if collider == null:
+			var collider := cast.get_collider(hit) as PhysicsBody3D
+			if not (collider is StaticBody3D or (collider != null and collider.has_meta("sign_impact"))):
 				continue
 			var role := str(collider.get_meta("collision_role", ""))
 			var normal := cast.get_collision_normal(hit)
-			if role not in ["barrier", "obstacle"] and absf(normal.y) >= 0.5:
+			if role not in ["barrier", "obstacle", "road_sign"] and absf(normal.y) >= 0.5:
 				continue
 			var point := cast.get_collision_point(hit)
-			if _impact_wheel(inverse * point, cfg) != i:
+			var is_sign := collider.has_meta("sign_impact")
+			if not is_sign and _impact_wheel(inverse * point, cfg) != i:
+				continue
+			var velocity := state.linear_velocity + state.angular_velocity.cross(point - com_world)
+			var obstacle_velocity := Vector3.ZERO if is_sign else (collider as StaticBody3D).constant_linear_velocity
+			var closing_speed := maxf(0.0, -(velocity - obstacle_velocity).dot(normal))
+			if is_sign:
+				_apply_sign_impact(collider, closing_speed, closing_speed * mass * 0.25, normal, point, state.transform, true)
 				continue
 			contacts[i] = true
-			var velocity := state.linear_velocity + state.angular_velocity.cross(point - com_world)
-			var closing_speed := maxf(0.0, -(velocity - collider.constant_linear_velocity).dot(normal))
 			# Casts have no solved impulse. Use the effective corner mass as a proxy.
 			if closing_speed * mass * 0.25 >= float(cfg.minimum_impulse_ns) and closing_speed > speeds[i]:
 				speeds[i] = closing_speed

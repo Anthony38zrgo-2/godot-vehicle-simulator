@@ -15,10 +15,12 @@ var _physics: PhysicsDirectSpaceState3D
 var _mask: int
 var _stream: RallyVisualSectorStream
 var _occupied: Array[Vector3] = []
+var _add_road_sign: Callable
 
 
 func build(course: RallyStageProgress, route_doc: Dictionary, mask: int,
-		stream: RallyVisualSectorStream, occupied: Array[Vector3], arrival_enabled: bool = true) -> void:
+		stream: RallyVisualSectorStream, occupied: Array[Vector3], arrival_enabled: bool = true, add_road_sign: Callable = Callable()) -> void:
+	_add_road_sign = add_road_sign
 	_route.assign(course.points)
 	for xyz: Array in route_doc.get("runout_probes", []):
 		_route.append(Vector3(xyz[0], xyz[1], xyz[2]))
@@ -91,8 +93,11 @@ func _place_monuments(finish: float) -> void:
 		sign_center.y = maxf(float(sign_left.position.y), float(sign_right.position.y)) - 0.19
 		_stream.register_content(_stream.sector_for_point(arch), _spawn_monument.bind(
 			"arco_ticlio", arch, forward, 4.93, Vector3(1.06, 3.80, 0.69)))
-		_stream.register_content(_stream.sector_for_point(sign_center), _spawn_monument.bind(
-			"cartel_verde_ticlio", sign_center, forward, 1.22, Vector3(0.28, 3.16, 0.30)))
+		if _add_road_sign.is_valid():
+			_add_road_sign.call(sign_center, forward, _mask, _stream)
+		else:
+			_stream.register_content(_stream.sector_for_point(sign_center), _spawn_monument.bind(
+				"cartel_verde_ticlio", sign_center, forward, 1.22, Vector3(0.28, 3.16, 0.30)))
 		set_meta("monument_station_m", station)
 		set_meta("parking_end_m", parking_end)
 		print("TICLIO_MONUMENTS_READY station_m=", station, " parking_end_m=", parking_end)

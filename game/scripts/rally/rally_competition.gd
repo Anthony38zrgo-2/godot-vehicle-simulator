@@ -85,10 +85,13 @@ func configure(stage_path: String = DATA + "stages/russia_stage1.json", race_see
 		var data := entry.duplicate(true)
 		data.merge({"name": driver.name, "ratings": ratings, "car": vehicles[entry.vehicle_id].name})
 		entries.append(data)
+	var reverse_route := bool(stage.get("reverse_route", false))
+	if reverse_route:
+		stage.sector_lengths_km.reverse()
 	var original := read_json(stage.fallback_path)
 	reference.clear()
 	for i in stage.sector_checkpoint_indices.size():
-		var key := "CPUSplit%d" % i
+		var key := "CPUSplit%d" % (stage.sector_checkpoint_indices.size() - 1 - i if reverse_route else i)
 		if not original.get("values_seconds", {}).has(key):
 			error = "Este tramo no tiene respaldo CPU original"
 			return false
@@ -264,6 +267,15 @@ func _zone_water_for_sector(sector_index: int) -> float:
 	var zones: Array = weather_entry.get("zones", [])
 	if zones.is_empty():
 		return 0.0
+	if bool(stage.get("reverse_route", false)):
+		var lengths: Array = stage.sector_lengths_km
+		var map_distance := float(lengths[sector_index]) * 500.0
+		for i in range(sector_index + 1, lengths.size()):
+			map_distance += float(lengths[i]) * 1000.0
+		for zone: Dictionary in zones:
+			if map_distance <= float(zone.get("end_distance_m", 0.0)):
+				return float(zone.get("initial_water_mm", 0.0))
+		return float(zones[-1].get("initial_water_mm", 0.0))
 	# 10 sectores deportivos sobre 3 zonas climáticas: mapeo por fracción.
 	var frac := clampf(float(sector_index) / 10.0, 0.0, 0.999)
 	var zi := clampi(int(frac * 3.0), 0, 2)

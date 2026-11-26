@@ -175,7 +175,7 @@ const SURFACE_PRESETS: Array[Dictionary] = [
 
 var _vehicle_registry_cache: Array = []
 var _vehicle_registry_loaded: bool = false
-var _cached_route_path: String = ""
+var _cached_route_key: String = ""
 var _cached_route_points: PackedVector2Array = PackedVector2Array()
 var _cached_route_heights: PackedFloat32Array = PackedFloat32Array()
 var _cached_profile_altitudes: PackedFloat32Array = PackedFloat32Array()
@@ -3150,9 +3150,11 @@ func _compute_vertical_stage_points(raw_points: Array) -> PackedVector2Array:
 
 func _ensure_stage_route_cache() -> void:
 	var rpath := _resolve_stage_route_path()
-	if rpath == _cached_route_path and not _cached_route_points.is_empty():
+	var sid := _resolve_briefing_stage_id()
+	var key := sid + "|" + rpath
+	if key == _cached_route_key and not _cached_route_points.is_empty():
 		return
-	_cached_route_path = rpath
+	_cached_route_key = key
 	_cached_route_points = PackedVector2Array()
 	_cached_route_heights = PackedFloat32Array()
 	_cached_profile_altitudes = PackedFloat32Array()
@@ -3167,14 +3169,23 @@ func _ensure_stage_route_cache() -> void:
 		return
 	var doc := parsed as Dictionary
 	_cached_route_length_m = float(doc.get("total_route_length_m", 0.0))
+	var config_path := "res://data/competition/stages/%s.json" % sid
+	var config: Dictionary = {}
+	if FileAccess.file_exists(config_path):
+		var config_doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(config_path))
+		if config_doc is Dictionary:
+			config = config_doc
+	var reverse_route := bool(config.get("reverse_route", false))
 	var raw_pts: Variant = doc.get("points", [])
 	if raw_pts is Array:
+		if reverse_route:
+			raw_pts.reverse()
 		_cached_route_points = _compute_vertical_stage_points(raw_pts as Array)
 		for p in (raw_pts as Array):
 			if p is Array and (p as Array).size() >= 3:
 				_cached_route_heights.append(float((p as Array)[1]))
-	var sid := _resolve_briefing_stage_id()
-	var prof_path := "res://assets/rally/%s/climate_route_profile.json" % sid
+	var map_id := str(config.get("map_id", sid))
+	var prof_path := "res://assets/rally/%s/climate_route_profile.json" % map_id
 	if not sid.is_empty() and FileAccess.file_exists(prof_path):
 		var prof_parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(prof_path))
 		if prof_parsed is Dictionary:
@@ -3183,6 +3194,9 @@ func _ensure_stage_route_cache() -> void:
 				for s in (samples as Array):
 					if s is Dictionary and (s as Dictionary).has("altitude_m"):
 						_cached_profile_altitudes.append(float((s as Dictionary)["altitude_m"]))
+
+	if reverse_route:
+		_cached_profile_altitudes.reverse()
 
 
 func _get_stage_weather_text() -> String:

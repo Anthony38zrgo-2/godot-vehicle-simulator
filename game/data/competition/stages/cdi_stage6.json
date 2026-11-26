@@ -1,0 +1,29 @@
+{
+  "id": "cdi_stage6",
+  "name": "Caminos del Inca · SS06 Chinchán Asfalto (reversa)",
+  "route_path": "res://data/rally/cdi_stage3_route.json",
+  "timing_gates_path": "res://data/competition/stages/cdi_stage3_timing_gates.json",
+  "surface": "asphalt",
+  "fallback_path": "res://data/competition/stages/cdi_stage3_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    196,
+    392,
+    587,
+    782
+  ],
+  "sector_lengths_km": [
+    1.5629013111980439,
+    1.5549111288635127,
+    1.561826307807189,
+    1.5585611040131562
+  ],
+  "map_id": "cdi_stage3",
+  "reverse_route": true
+}

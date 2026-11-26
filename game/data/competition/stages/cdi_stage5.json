@@ -1,0 +1,35 @@
+{
+  "id": "cdi_stage5",
+  "name": "Caminos del Inca · SS05 Abra Ticlio (reversa)",
+  "route_path": "res://data/rally/cdi_stage4_route.json",
+  "timing_gates_path": "res://data/competition/stages/cdi_stage4_timing_gates.json",
+  "surface": "asphalt",
+  "fallback_path": "res://data/competition/stages/cdi_stage4_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    194,
+    389,
+    586,
+    782
+  ],
+  "sector_lengths_km": [
+    1.5477324011346014,
+    1.550906963882759,
+    1.544362444643306,
+    1.5519035928848852
+  ],
+  "procedural_climate": {
+    "enabled": true,
+    "mode": "five_sector_snapshot",
+    "climate_profile_path": "res://data/weather/cdi_ss04_climate.json",
+    "route_profile_path": "res://assets/rally/cdi_stage4/climate_route_profile.json"
+  },
+  "map_id": "cdi_stage4",
+  "reverse_route": true
+}

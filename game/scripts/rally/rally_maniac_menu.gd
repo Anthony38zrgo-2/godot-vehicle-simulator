@@ -117,7 +117,7 @@ const COUNTRY_LABELS := {
 	"switzerland": "Switzerland",
 }
 const COUNTRY_STAGE_COUNTS := {
-	"cdi": 4,
+	"cdi": 8,
 	"russia": 10,
 	"kenya": 8,
 	"finland": 8,
@@ -139,6 +139,10 @@ const CDI_STAGES := {
 	"cdi_stage2": {"name": "Quebrada Chinchán", "surface": "Grava"},
 	"cdi_stage3": {"name": "Chinchán Asfalto", "surface": "Asfalto"},
 	"cdi_stage4": {"name": "Abra Ticlio", "surface": "Asfalto / nieve"},
+	"cdi_stage5": {"name": "Abra Ticlio (reversa)", "surface": "Asfalto / nieve"},
+	"cdi_stage6": {"name": "Chinchán Asfalto (reversa)", "surface": "Asfalto"},
+	"cdi_stage7": {"name": "Quebrada Chinchán (reversa)", "surface": "Grava"},
+	"cdi_stage8": {"name": "Rajuntay Alto (reversa)", "surface": "Grava"},
 }
 const CDI_CARS := [
 	"fulvia",
@@ -2234,6 +2238,13 @@ func _load_all_stage_routes() -> void:
 		all_ids = _country_stage_ids()
 	for sid in all_ids:
 		var path := "res://data/rally/%s_route.json" % sid
+		var reverse_route := false
+		if _cdi_launch:
+			var config_path := "res://data/competition/stages/%s.json" % sid
+			var config: Variant = JSON.parse_string(FileAccess.get_file_as_string(config_path))
+			if config is Dictionary:
+				path = str(config.get("route_path", path))
+				reverse_route = bool(config.get("reverse_route", false))
 		if not FileAccess.file_exists(path):
 			continue
 		var json_str := FileAccess.get_file_as_string(path)
@@ -2241,6 +2252,8 @@ func _load_all_stage_routes() -> void:
 		if not (parsed is Dictionary):
 			continue
 		var raw_pts: Array = parsed.get("points", [])
+		if reverse_route:
+			raw_pts.reverse()
 		var norm_pts := _compute_vertical_route_points(raw_pts)
 		stage_routes_cache[sid] = norm_pts
 

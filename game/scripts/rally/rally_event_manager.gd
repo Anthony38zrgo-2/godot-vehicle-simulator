@@ -415,7 +415,8 @@ func _generate_weather_schedule() -> bool:
 	var sched := SchedulerScript.new()
 	var route_paths := {}
 	for sid in stage_order:
-		route_paths[str(sid)] = "res://data/rally/%s_route.json" % str(sid)
+		var stage_cfg := _read_json(loader.stage_config_path(str(sid)))
+		route_paths[str(sid)] = str(stage_cfg.get("route_path", loader.route_path(str(sid))))
 	var result := sched.generate_event_schedule(event_doc, stage_order, itinerary, seed_value, route_paths, initial_weather)
 	if not bool(result.get("ok", false)):
 		error = "Clima incompatible: " + str(result.get("error", "sin detalle"))
@@ -752,6 +753,12 @@ func restore() -> bool:
 	difficulty = int(doc.get("difficulty", difficulty))
 	single_day = bool(doc.get("single_day", false))
 	itinerary = doc.get("itinerary", [])
+	# The saved itinerary owns the stage order of an event already in progress.
+	if not itinerary.is_empty():
+		var saved_order: Array = []
+		for entry: Dictionary in itinerary:
+			saved_order.append(str(entry.get("stage_id", "")))
+		stage_order = saved_order
 	for it_entry in itinerary:
 		if it_entry is Dictionary:
 			var ed := it_entry as Dictionary

@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode vertex_lighting, cull_back, diffuse_lambert, specular_schlick_ggx;
+render_mode vertex_lighting, cull_back, diffuse_lambert, specular_disabled;
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform vec4 albedo_color : source_color = vec4(1.0);
@@ -94,14 +94,10 @@ void fragment() {
 		c *= texture(albedo_tex, UV);
 	}
 
-	vec3 env = use_env_texture ? texture(env_map, v_sphere_uv).rgb : v_env_reflection;
-	float refl = reflectivity * mix(0.02, 1.0, v_fresnel);
-
-	// Conservar el color original íntegro y limitar el reflejo aditivo a los bordes
 	vec4 dirt = dirt_sample();
 	ALBEDO = mix(c.rgb, dirt.rgb, dirt.a);
 
-	vec3 total_emission = env * refl + (sun_color * v_spec * reflectivity) + (emission_color * emission_energy);
+	vec3 total_emission = emission_color * emission_energy;
 
 	total_emission *= 1.0 - dirt.a;
 
@@ -116,5 +112,5 @@ void fragment() {
 
 	EMISSION = total_emission;
 	ROUGHNESS = roughness_value;
-	SPECULAR = specular_value * (1.0 - dirt.a);
+	SPECULAR = 0.0;
 }

@@ -62,6 +62,9 @@ var start_click: AudioStreamPlayer
 var start_horn: AudioStreamPlayer
 var repair_sound: AudioStreamPlayer
 var course := RallyStageProgress.new()
+var map_course := course
+var map_id: String
+var start_line: Vector3
 const StageMarkers := preload("res://scripts/rally/rally_stage_markers.gd")
 const START_STRIPE_OFFSET_M := 3.0
 var stage_markers: StageMarkers
@@ -112,10 +115,6 @@ func _ready() -> void:
 	if resolved_stage.is_empty():
 		push_error("Rally stage: " + stage_loader.error + " (sin sustitución por Stage 1)")
 		return
-	var route_path: String = (resolved_stage["paths"] as Dictionary)["route"]
-	if not course.configure(route_path):
-		push_error("Russia course timing route is missing: " + route_path)
-		return
 	var stage_config_path: String = (resolved_stage["paths"] as Dictionary)["stage_config"]
 	if practice_mode or session_mode == "single_stage":
 		competition.save_path = ""
@@ -136,9 +135,7 @@ func _ready() -> void:
 		competition.save_path = ""
 		event_manager.sim = competition
 		competition.set_weather_context(event_manager.weather_entry_for(session_track_id), event_manager.rival_compounds.get(session_track_id, {}))
-	course.sector_indices = competition.stage.sector_checkpoint_indices
-	if not course.configure_timing_gates(competition.stage.timing_gates):
-		push_error("Original rally split gates could not be configured")
+	if not _configure_course():
 		return
 	if practice_mode:
 		if competition.restore() and not competition.complete and competition.started:
@@ -194,7 +191,6 @@ func _ready() -> void:
 		var initial_compound := str(initial_rules.get("default_compound_id", "gravel_normal"))
 		if not initial_compound.is_empty() and vehicle.has_method("set_tire_compound"):
 			vehicle.set_tire_compound(initial_compound)
-	apply_start_pose_from_manifest()
 	vehicle.ensure_tire_inventory()
 	if not practice_mode and event_manager != null and not event_manager.tire_inventory_state.is_empty():
 		if not vehicle.tire_inventory.restore(event_manager.tire_inventory_state):
@@ -358,30 +354,33 @@ func _build_stage_grass() -> void:
 	# La nieve de Suecia usa Collision_Terrain_Grass para el manto nevado:
 	# no generar matas de hierba de verano sobre la nieve. En Finlandia el
 	# suelo es Dirt/Sand (grass=0) y RallyStageGrass retorna limpio sin error.
-	if session_track_id.begins_with("sweden_"):
+	if map_id.begins_with("sweden_"):
 		return
 	var grass := preload("res://scripts/rally/rally_stage_grass.gd").new()
 	grass.name = "StageGrass"
 	var occupied: Array[Vector3] = []
 	var sector_stream := track_visual.get_node_or_null("VisualSectorStream") as RallyVisualSectorStream
-	grass.aged_only = session_track_id in ["raura_stage2", "raurasr_stage2", "raurastart_stage2", "rauraearth_stage2"]
-	if session_track_id.begins_with("cdi_stage"):
+	grass.aged_only = map_id in ["raura_stage2", "raurasr_stage2", "raurastart_stage2", "rauraearth_stage2"]
+	if map_id.begins_with("cdi_stage"):
 		var props := preload("res://scripts/rally/cdi_stage_props.gd").new()
 		props.name = "StageProps"
 		props.sector_stream = sector_stream
-		if session_track_id == "cdi_stage2":
+		if map_id == "cdi_stage2":
 			props.finish_spectator_approach_m = 150.0
 		add_child(props)
-		props.build(course, hash(session_track_id + "_props"), track_collision.collision_layer)
+		props.build(map_course, hash(map_id + "_props"), track_collision.collision_layer)
 		occupied = props.occupied_points()
+		var signs := preload("res://scripts/rally/ticlio_road_signs.gd").new()
+		signs.name = "TiclioRoadSigns"
+		add_child(signs)
 		var parking_ref: Node = null
-		if session_track_id in ["cdi_stage3", "cdi_stage4"] and sector_stream != null:
+		if map_id in ["cdi_stage3", "cdi_stage4"] and sector_stream != null:
 			var parking := preload("res://scripts/rally/ticlio_parked_vehicles.gd").new()
 			parking.name = "TiclioParking"
 			add_child(parking)
 			var route_doc: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(resolved_stage.paths.route))
-			var ticlio := session_track_id == "cdi_stage4"
-			parking.build(course, route_doc, track_collision.collision_layer, sector_stream, occupied, ticlio)
+			var ticlio := map_id == "cdi_stage4"
+			parking.build(map_course, route_doc, track_collision.collision_layer, sector_stream, occupied, ticlio, signs.add_ticlio_panel)
 			parking_ref = parking
 			grass.parking_covers = parking.covers
 			if ticlio:
@@ -391,16 +390,16 @@ func _build_stage_grass() -> void:
 				parking.add_viewing_group(1187.0, 1.0, 15.0, props)
 			occupied = props.occupied_points()
 		if sector_stream != null:
-			if session_track_id in ["cdi_stage1", "cdi_stage2"]:
+			if map_id in ["cdi_stage1", "cdi_stage2"]:
 				var guardrails := preload("res://scripts/rally/cdi_stage_guardrails.gd").new()
 				guardrails.name = "CdiStageGuardrails"
 				add_child(guardrails)
-				guardrails.build(session_track_id, course, track_collision.collision_layer, sector_stream)
-			if session_track_id in ["cdi_stage2", "cdi_stage3"]:
+				guardrails.build(map_id, map_course, track_collision.collision_layer, sector_stream)
+			if map_id in ["cdi_stage2", "cdi_stage3"]:
 				var houses := preload("res://scripts/rally/cdi_stage_houses.gd").new()
 				houses.name = "CdiStageHouses"
 				add_child(houses)
-				houses.build(session_track_id, course, track_collision.collision_layer, sector_stream, occupied)
+				houses.build(map_id, map_course, track_collision.collision_layer, sector_stream, occupied)
 				occupied = occupied.duplicate()
 				occupied.append_array(houses.occupied_points())
 				if parking_ref != null:
@@ -408,10 +407,7 @@ func _build_stage_grass() -> void:
 						return bool(parking_ref.call("covers", pt)) or houses.covers(pt)
 				else:
 					grass.parking_covers = houses.covers
-			var signs := preload("res://scripts/rally/ticlio_road_signs.gd").new()
-			signs.name = "TiclioRoadSigns"
-			add_child(signs)
-			signs.build(course, track_collision.collision_layer, sector_stream, session_track_id)
+			signs.build(map_course, track_collision.collision_layer, sector_stream, map_id, bool(resolved_stage.reverse_route))
 		grass.ground_group = &"RauraGrassGround"
 		grass.use_standard_variant_profile = true
 		grass.density_scale = 0.45 * 0.35
@@ -426,21 +422,21 @@ func _build_stage_grass() -> void:
 		grass.sector_stream = sector_stream
 		if sector_stream != null:
 			grass.grass_gis = sector_stream.grass_gis_at
-		if session_track_id == "cdi_stage4" and sector_stream != null:
+		if map_id == "cdi_stage4" and sector_stream != null:
 			grass.snow_coverage = sector_stream.snow_coverage_at
 		grass.reserved_points = occupied
 		grass.fog_enabled = false
 		for number in range(1, 5):
 			grass.custom_variants.append(load("res://assets/rally/cdi_stage1/vegetacion/pasto_%02d.glb" % number) as PackedScene)
-	if session_track_id == "raurasr_stage2":
+	if map_id == "raurasr_stage2":
 		grass.density_scale = 0.5
 		for variant in ["hierba-seca-florida", "matorral-bajo-oliva", "pasto-alto-dorado", "planta-hojas-verdes"]:
 			var asset := load("res://assets/rally/raurasr_stage2/vegetacion/%s.glb" % variant) as PackedScene
 			if asset != null:
 				grass.custom_variants.append(asset)
 	add_child(grass)
-	grass.build(course.points, hash(session_track_id), track_collision.collision_layer)
-	if session_track_id.begins_with("cdi_stage"):
+	grass.build(map_course.points, hash(map_id), track_collision.collision_layer)
+	if map_id.begins_with("cdi_stage"):
 		var bushes := preload("res://scripts/rally/rally_stage_grass.gd").new()
 		bushes.name = "StageBushes"
 		bushes.sector_stream = sector_stream
@@ -467,7 +463,7 @@ func _build_stage_grass() -> void:
 		])
 		bushes.custom_variant_weights.assign([20.0, 20.0, 18.0, 14.0, 14.0, 14.0])
 		add_child(bushes)
-		bushes.build(course.points, hash(session_track_id + "_bushes"), track_collision.collision_layer)
+		bushes.build(map_course.points, hash(map_id + "_bushes"), track_collision.collision_layer)
 
 
 func _build_puddles() -> void:
@@ -478,7 +474,8 @@ func _build_puddles() -> void:
 	var puddles := preload("res://scripts/rally/rally_puddles.gd").new()
 	puddles.name = "RallyPuddles"
 	puddles.sky_node = weather_sky_node
-	puddles.configure(course.points, hash(session_track_id), event_weather, terrain_wetness)
+	var threshold_scale := float(resolved_stage.stage_config.get("puddle_threshold_scale", 1.0))
+	puddles.configure(map_course.points, hash(map_id), event_weather, terrain_wetness, threshold_scale)
 	add_child(puddles)
 	vehicle.simulation.puddle_system = puddles
 	if event_weather != null and event_weather.five_sector_snapshot_active:
@@ -512,7 +509,7 @@ func _build_rivers() -> void:
 		river_channels = null
 	var rivers := RallyRiverChannels.new()
 	rivers.name = "RallyRiverChannels"
-	if not rivers.configure(session_track_id, track_visual, event_weather, _practice_weather_choice(), weather_controller_node):
+	if not rivers.configure(map_id, track_visual, event_weather, _practice_weather_choice(), weather_controller_node):
 		push_warning("Rally rivers: " + rivers.error)
 		rivers.queue_free()
 		return
@@ -609,6 +606,28 @@ func describe_tca_weather(weather) -> String:
 	return "CLEAR"
 
 
+func _configure_course() -> bool:
+	map_id = str(resolved_stage.map_id)
+	map_course = RallyStageProgress.new()
+	if not map_course.configure(resolved_stage.paths.route) or not map_course.configure_timing_gates(competition.stage.timing_gates):
+		push_error("Ruta o puertas de cronometraje inválidas: " + session_track_id)
+		return false
+	map_course.sector_indices = competition.stage.sector_checkpoint_indices
+	apply_start_pose_from_manifest()
+	var forward := Basis(Vector3.UP, start_heading) * Vector3.FORWARD
+	start_line = start_position + forward * START_STRIPE_OFFSET_M
+	course = map_course
+	if bool(resolved_stage.reverse_route):
+		var finish: Dictionary = map_course.timing_gates[-1]
+		var reverse_forward: Vector3 = -finish.forward
+		course = RallyStageProgress.new()
+		course.configure_reverse(map_course, start_line, -forward)
+		start_line = finish.origin
+		start_position = start_line - reverse_forward * START_STRIPE_OFFSET_M
+		start_heading = atan2(-reverse_forward.x, -reverse_forward.z)
+	return true
+
+
 func apply_start_pose_from_manifest() -> void:
 	if not resolved_stage.is_empty():
 		var start_pose: Variant = (resolved_stage.get("manifest", {}) as Dictionary).get("start_pose", {})
@@ -657,7 +676,8 @@ func _build_stage_markers() -> void:
 	add_child(stage_markers)
 	var forward := Basis(Vector3.UP, start_heading) * Vector3.FORWARD
 	var finish: Dictionary = course.timing_gates.back() if not course.timing_gates.is_empty() else {}
-	stage_markers.build(start_position + forward * START_STRIPE_OFFSET_M, forward, finish, track_collision.collision_layer)
+	var marker_start := start_line if map_id.begins_with("cdi_stage") else start_position + forward * START_STRIPE_OFFSET_M
+	stage_markers.build(marker_start, forward, finish, track_collision.collision_layer)
 
 
 func place_vehicle_on_stage() -> void:
@@ -1138,7 +1158,7 @@ func setup_pacenotes() -> void:
 		pacenote_hud = preload("res://scenes/rally/cmr2_pacenote_hud.tscn").instantiate()
 		head_up_display.add_child(pacenote_hud)
 		pacenotes.set_hud(pacenote_hud)
-	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
+	pacenotes.configure(resolved_stage.paths.pacenotes, course.points if bool(resolved_stage.reverse_route) else [])
 
 
 func setup_start_audio() -> void:
@@ -1238,8 +1258,6 @@ func load_event_stage(next_id: String) -> void:
 	resolved_stage = resolved
 	if next_id.begins_with("cdi_stage"):
 		stage_place = str(resolved.stage_config.get("name", "")).split(" ", true, 5)[-1]
-	var route_path: String = (resolved["paths"] as Dictionary)["route"]
-	course.configure(route_path)
 	var stage_config_path: String = (resolved["paths"] as Dictionary)["stage_config"]
 	if event_manager != null:
 		competition = event_manager.sim
@@ -1247,14 +1265,14 @@ func load_event_stage(next_id: String) -> void:
 		_hide_loading_overlay()
 		push_error(competition.error)
 		return
-	course.sector_indices = competition.stage.sector_checkpoint_indices
-	course.configure_timing_gates(competition.stage.timing_gates)
+	if not _configure_course():
+		_hide_loading_overlay()
+		return
 	# Reinicio entre especiales con objetivos térmicos del compuesto elegido.
 	if not practice_mode and event_manager != null and vehicle.has_method("set_tire_compound"):
 		vehicle.set_tire_compound(event_manager.confirmed_compound_id)
 		vehicle.apply_tire_inventory()
-	apply_start_pose_from_manifest()
-	pacenotes.configure("res://data/rally/pacenotes/%s.json" % session_track_id)
+	pacenotes.configure(resolved_stage.paths.pacenotes, course.points if bool(resolved_stage.reverse_route) else [])
 	if not await _swap_stage_geometry(resolved):
 		_hide_loading_overlay()
 		return
@@ -1331,7 +1349,7 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 				return false
 			stream.road_wetness = terrain_wetness
 		stream.tune_materials(track_visual)
-		if proc_active and event_weather.procedural_active and event_weather.stage_id == str(resolved.get("track_id", session_track_id)):
+		if proc_active and event_weather.procedural_active and event_weather.stage_id == str(resolved.map_id):
 			stream.sync_procedural_surface(event_weather.surface_field_packet())
 		track_visual.add_child(stream)
 		var index_path := visual_path.get_base_dir().path_join(str(streaming.index))
@@ -1344,7 +1362,7 @@ func _swap_stage_geometry(resolved: Dictionary) -> bool:
 	# Stage metadata is a fallback for road meshes with no material labels.
 	# Individual collision road materials can still override it.
 	var stage_data: Dictionary = resolved.get("stage_config", {})
-	track_collision.procedural_ss04_asphalt_mode = _is_procedural_climate_active(resolved) and str(resolved.get("track_id", session_track_id)) == "cdi_stage4"
+	track_collision.procedural_ss04_asphalt_mode = _is_procedural_climate_active(resolved) and str(resolved.map_id) == "cdi_stage4"
 	track_collision.terrain_surface_group = "Road" if str(stage_data.get("surface", "")).to_lower() == "asphalt" else "Gravel"
 	track_collision.collision_scene_path = collision_path
 	return await track_collision.build_collision(track_visual)
@@ -1490,7 +1508,7 @@ func _setup_event_weather() -> void:
 		var proc_mode := _resolve_procedural_climate_mode(resolved_stage)
 		var configured_ok := false
 		if proc_mode == "procedural_v1":
-			configured_ok = event_weather.configure_procedural(session_track_id, route_path, seed_val, date_str, hour_val, surface_type, regime)
+			configured_ok = event_weather.configure_procedural(map_id, route_path, seed_val, date_str, hour_val, surface_type, regime)
 		else:
 			var base_abs := float(schedule.get("base_abs_seconds", -1.0))
 			var eff_abs := float(schedule.get("effective_abs_seconds", -1.0))
@@ -1501,7 +1519,7 @@ func _setup_event_weather() -> void:
 				eff_abs = base_abs
 			var season_arg := str(schedule.get("base_date", date_str))
 			configured_ok = event_weather.configure_five_sector_snapshot(
-				session_track_id, route_path, seed_val, season_arg, base_abs, eff_abs, surface_type, regime
+				map_id, route_path, seed_val, season_arg, base_abs, eff_abs, surface_type, regime
 			)
 		if not configured_ok:
 			push_warning("Clima procedural del evento: " + event_weather.error)
@@ -1739,7 +1757,7 @@ func _resolve_stage_route_path_for_garage() -> String:
 		var rp := str((paths as Dictionary).get("route", "")).strip_edges()
 		if not rp.is_empty():
 			return rp
-	return stage_loader.route_path(session_track_id)
+	return stage_loader.route_path(map_id)
 
 
 func _resolve_stage_length_m() -> float:
@@ -1824,6 +1842,7 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 	var rust_samples := 0
 
 	var raw_sectors: Array = event_weather.sector_summary() if event_weather != null else []
+	var reverse_route := bool(resolved_stage.get("reverse_route", false))
 	if not raw_sectors.is_empty():
 		for si in raw_sectors.size():
 			var row: Dictionary = (raw_sectors[si] as Dictionary).duplicate(true)
@@ -1850,7 +1869,13 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 			row["water_coverage"] = s_water / float(sub_n)
 			row["snow_coverage"] = s_snow / float(sub_n)
 			row["ice_coverage"] = s_ice / float(sub_n)
-			sectors_out.append(row)
+			if reverse_route:
+				row["sector_index"] = raw_sectors.size() - 1 - si
+				row["start_m"] = maxf(0.0, total_m - s_end)
+				row["end_m"] = maxf(0.0, total_m - s_start)
+				sectors_out.push_front(row)
+			else:
+				sectors_out.append(row)
 			loose_sum += s_loose
 			mud_sum += s_mud
 			water_sum += s_water
@@ -1860,7 +1885,8 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 		for si in 5:
 			var s_start := float(si) * total_m / 5.0
 			var s_end := float(si + 1) * total_m / 5.0
-			var mid_st: Dictionary = event_weather.local_surface_state_at_distance((s_start + s_end) * 0.5, 0.0)
+			var midpoint := (s_start + s_end) * 0.5
+			var mid_st: Dictionary = event_weather.local_surface_state_at_distance(total_m - midpoint if reverse_route else midpoint, 0.0)
 			var clim: Dictionary = mid_st.get("climate", {})
 			var s_loose := 0.0
 			var s_mud := 0.0
@@ -1870,7 +1896,7 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 			var sub_n := 5
 			for k in sub_n:
 				var d := lerpf(s_start, s_end, (float(k) + 0.5) / float(sub_n))
-				var st: Dictionary = event_weather.local_surface_state_at_distance(d, 0.0)
+				var st: Dictionary = event_weather.local_surface_state_at_distance(total_m - d if reverse_route else d, 0.0)
 				if not st.is_empty():
 					s_loose += float(st.get("loose_gravel_coverage", 0.0))
 					s_mud += float(st.get("mud_factor", 0.0))

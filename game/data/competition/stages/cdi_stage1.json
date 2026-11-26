@@ -4,6 +4,7 @@
   "route_path": "res://data/rally/cdi_stage1_route.json",
   "timing_gates_path": "res://data/competition/stages/cdi_stage1_timing_gates.json",
   "surface": "gravel_mud",
+  "puddle_threshold_scale": 0.5,
   "fallback_path": "res://data/competition/stages/cdi_stage1_reference.json",
   "difficulty": 0,
   "reference_scale": 1.0,
@@ -27,6 +28,7 @@
   "procedural_climate": {
     "enabled": true,
     "mode": "five_sector_snapshot",
+    "loose_gravel_scale": 0.5,
     "water_retention_profile": {"enabled": true},
     "climate_profile_path": "res://data/weather/cdi_ss04_climate.json",
     "route_profile_path": "res://assets/rally/cdi_stage1/climate_route_profile.json"

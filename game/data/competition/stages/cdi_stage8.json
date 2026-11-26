@@ -1,0 +1,40 @@
+{
+  "id": "cdi_stage8",
+  "name": "Caminos del Inca · SS08 Rajuntay Alto (reversa)",
+  "route_path": "res://data/rally/cdi_stage1_route.json",
+  "timing_gates_path": "res://data/competition/stages/cdi_stage1_timing_gates.json",
+  "surface": "gravel_mud",
+  "puddle_threshold_scale": 0.5,
+  "fallback_path": "res://data/competition/stages/cdi_stage1_reference.json",
+  "difficulty": 0,
+  "reference_scale": 1.0,
+  "roughness": 0.1,
+  "jumps": 0,
+  "visibility": 1,
+  "wetness": 0,
+  "blind_route": false,
+  "sector_checkpoint_indices": [
+    157,
+    316,
+    474,
+    632
+  ],
+  "sector_lengths_km": [
+    1.2514489310936074,
+    1.2562933628047026,
+    1.2496186669495037,
+    1.2540529190338856
+  ],
+  "procedural_climate": {
+    "enabled": true,
+    "mode": "five_sector_snapshot",
+    "loose_gravel_scale": 0.5,
+    "water_retention_profile": {
+      "enabled": true
+    },
+    "climate_profile_path": "res://data/weather/cdi_ss04_climate.json",
+    "route_profile_path": "res://assets/rally/cdi_stage1/climate_route_profile.json"
+  },
+  "map_id": "cdi_stage1",
+  "reverse_route": true
+}

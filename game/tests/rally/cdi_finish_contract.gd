@@ -260,7 +260,7 @@ func _verify_service_and_final_stages(
 	session.apply_competition_controls()
 	panel.next_button.pressed.emit()
 	if not _require(await _wait_for_stage(session, "cdi_stage4")
-			and event.is_last_stage() and not session.awaiting_setup and session.stage_place == "Abra Ticlio",
+			and not event.is_last_stage() and not session.awaiting_setup and session.stage_place == "Abra Ticlio",
 			"Could not continue directly to SS04"):
 		return false
 	await physics_frame
@@ -293,11 +293,12 @@ func _verify_service_and_final_stages(
 	if not _require(_drive_finish(session.course, session.competition), "SS04 finish did not register"):
 		return false
 	session.apply_competition_controls()
-	if not _require(event.status == "finished" and event.official.get("player", {}).get("stages", {}).size() == 4,
-			"Expected an official result for each CDI stage"):
+	if not _require(event.status == "running" and event.official.get("player", {}).get("stages", {}).size() == 4,
+			"Expected four official results before the return leg"):
 		return false
 	print("CDI_SERVICE_AND_SURFACES_OK snow_m=", transition, " race_m=", length)
 	return true
+
 
 func _verify_asphalt_pack(session: RallyRussiaStageSession, track: RallyTrackCollisionBuilder, has_snow: bool, procedural_asphalt: bool = false) -> bool:
 	var stream := session.get_node("TrackVisual/VisualSectorStream") as RallyVisualSectorStream
