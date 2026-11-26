@@ -29,7 +29,14 @@
       "cockpit_enabled": false,
       "visual_damage_enabled": false
     },
-    "texture_finish": "stylized_shadow_dither_psx_v1"
+    "texture_finish": "stylized_shadow_dither_psx_v1",
+    "active_exterior": {
+      "model": "Vulcar Zinger fitted to Saab 96 V4",
+      "source_file": "D:\\RallyManiacAssets\\cars\\vulcar-car-packs_1719319931_142266\\Zinger\\zinger.dff",
+      "blend": "D:\\RallyManiacAssets\\saab_96_psx\\revision_zinger\\saab_96_zinger_faros_espejos.blend",
+      "generator": "D:\\RallyManiacAssets\\saab_96_psx\\revision_zinger\\install_zinger_saab96.py",
+      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, photographic headlamp textures and silver mirrors"
+    }
   },
   "coordinate_system": {
     "forward": "-Z",
@@ -39,8 +46,8 @@
   },
   "chassis": {
     "path": "chassis.glb",
-    "sha256": "d63381b2b2dee4cfa3f302dac4aaebbf75846f15cf04c88ab6c64fa090dc00e3",
-    "size_bytes": 2662816,
+    "sha256": "6cf6bd5ea55b78488a37fd86dcb70d3693b976dc29f96ac44b1a1f2b657ca17a",
+    "size_bytes": 182588,
     "exported_nodes": [
       "Saab96_Exterior"
     ]

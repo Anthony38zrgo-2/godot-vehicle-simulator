@@ -332,6 +332,9 @@
     },
     "rt-saab-96-v4": {
       "default_livery": "marfil",
+      "baked_ao_only": true,
+      "paint_rgb555": false,
+      "dither_cell_scale": 2,
       "materials": ["Saab96_BodyPaint_PSX"],
       "data_map": "res://assets/rally/liveries/rt-saab-96-v4_livery_data.png",
       "effective_res": [512, 512]

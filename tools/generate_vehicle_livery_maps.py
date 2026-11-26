@@ -215,7 +215,7 @@ def fulvia_road_spec(work: Path) -> dict:
 SPECS: list[dict] = [
     # --- Group A: Dedicated *_BodyPaint_PSX material (10 cars) ---
     fulvia_road_spec(ASSETS_ROOT / "cdi_fbx_psx" / "fulvia" / "revision_maresia"),
-    road_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort" / "revision_blender"),
+    road_exterior_spec("escort", ASSETS_ROOT / "cdi_fbx_psx" / "escort" / "revision_rs1600"),
     {
         "car_key": "rt-alfa-giulia-gta",
         "size": (1024, 1024),
@@ -246,15 +246,9 @@ SPECS: list[dict] = [
         "exclude_mask": ASSETS_ROOT / "porsche356_clean_uv" / "body_baked_details_mask.png",
         "flat_body": True,
     },
-    {
-        "car_key": "rt-saab-96-v4",
-        "size": (512, 512),
-        "effective_scale": 1.0,
-        "lightmap": ASSETS_ROOT / "saab_96_psx" / "saab96_body_lightmap.png",
-        "albedo_raw": ASSETS_ROOT / "saab_96_psx" / "saab96_body_albedo_raw.png",
-        "mask_mode": "full",
-        "flat_body": True,
-    },
+    road_exterior_spec(
+        "rt-saab-96-v4", ASSETS_ROOT / "saab_96_psx" / "revision_zinger", "saab"
+    ),
     {
         "car_key": "rt-volvo-amazon",
         "size": (512, 512),

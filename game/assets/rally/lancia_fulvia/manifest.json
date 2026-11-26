@@ -31,9 +31,9 @@
     "active_exterior": {
       "model": "Lampadati Maresia by Syke, fitted to Fulvia 818.540",
       "source_file": "D:\\RallyManiacAssets\\cars\\1966-1975-lampadati-maresia_1767009614_550278\\Lampadati Maresia\\maresia.dff",
-      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_maresia\\fulvia_818540_maresia_pasos_traseros.blend",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_maresia\\fulvia_818540_maresia_retrovisores.blend",
       "generator": "D:\\RallyManiacAssets\\cdi_fbx_psx\\fulvia\\revision_maresia\\install_maresia_fulvia.py",
-      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, generated optics"
+      "finish": "Dedicated RGB888 paint and height bands, four glazing regions, generated optics, silver door mirrors"
     }
   },
   "coordinate_system": {
@@ -44,8 +44,8 @@
   },
   "chassis": {
     "path": "lancia_fulvia_chassis.glb",
-    "sha256": "1dc66a755ff1dd8c7569f3a2f02ed51a04ba23392dc83b165982bc1686622b70",
-    "size_bytes": 203828,
+    "sha256": "d17e8621ffa61c23b6557b70af2de8b7a4813a61f2245de21a1e7b2bcc42f67e",
+    "size_bytes": 203808,
     "exported_nodes": [
       "Fulvia_Exterior"
     ]

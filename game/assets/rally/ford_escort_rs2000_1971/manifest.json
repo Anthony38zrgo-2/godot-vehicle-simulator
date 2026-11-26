@@ -23,6 +23,13 @@
       "finish": "rgb888_4x4_texel_dither_ao",
       "atlas": "Escort RS1800 road atlas with six glazing masks, RGB888",
       "fit": "Active chassis bounds, axle centers and tracks. Existing wheel meshes and setup."
+    },
+    "active_exterior": {
+      "model": "Ford Escort RS1600 1970",
+      "source_file": "D:\\RallyManiacAssets\\cars\\ford-escort-rs1600-1970\\source\\FordEscort_Jadi.obj",
+      "blend": "D:\\RallyManiacAssets\\cdi_fbx_psx\\escort\\revision_rs1600\\escort_rs1600_bandas.blend",
+      "generator": "D:\\RallyManiacAssets\\cdi_fbx_psx\\escort\\revision_rs1600\\install_rs1600.py",
+      "finish": "RGB888 with 4x4 texel dither, height bands, dedicated glazing mask"
     }
   },
   "coordinate_system": {
@@ -42,10 +49,10 @@
   },
   "chassis": {
     "path": "ford_escort_rs2000_1971_chassis.glb",
-    "sha256": "36311db80d26e88591bd5360c80267ed2441c7a434ce9ce143caea491402625b",
-    "size_bytes": 208096,
+    "sha256": "2aafa9d28b85fefc642b6628e8ce6157234aa61d095907469701ca28086ea6cf",
+    "size_bytes": 533916,
     "exported_nodes": [
-      "Ford_Escort_RS1800_Carroceria"
+      "Ford_Escort_RS1600_Carroceria"
     ]
   },
   "wheels": {
