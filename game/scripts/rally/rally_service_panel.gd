@@ -42,6 +42,9 @@ var tire_actions: Array[Dictionary] = []
 var summary: Label
 var time_bar: ProgressBar
 var commit: Button
+const WASH_MINUTES := 5
+var wash_box: CheckBox
+var save_error := ""
 var limit_minutes := 30.0
 var penalty_per_minute := 10
 var window_key := ""
@@ -203,7 +206,11 @@ func open(car, event_manager, window: Dictionary) -> void:
 		var collision := float(vehicle.simulation.brake_collision_loss[i])
 		_add_row(mech_list, "brake_%d" % i, "Freno " + code, 1.0 - (1.0 - wear) * (1.0 - collision), 15.0)
 		_add_row(mech_list, "alignment_%d" % i, "Alineación / suspensión " + code, float(vehicle.simulation.alignment_collision_damage[i]), 12.0)
-	if rows.is_empty() and tire_actions.is_empty():
+	if vehicle.simulation.dirt.is_dirty():
+		wash_box = _make_repair_checkbox()
+		wash_box.text = "LAVADO  ·  %d min" % WASH_MINUTES
+		mech_list.add_child(wash_box)
+	if rows.is_empty() and tire_actions.is_empty() and wash_box == null:
 		var healthy := Label.new()
 		healthy.text = "No hay componentes que necesiten reparación."
 		healthy.add_theme_font_override("font", FONT_REGULAR)
@@ -349,21 +356,39 @@ func _minutes() -> int:
 	for tact in tire_actions:
 		if (tact.box as CheckBox).button_pressed:
 			total += int(tact.minutes)
-	return total
+	return total + (WASH_MINUTES if wash_box != null and wash_box.button_pressed else 0)
 
 func _refresh() -> void:
 	if summary == null:
 		return
 	var total := _minutes()
+	if wash_box != null:
+		var other_minutes := total - (WASH_MINUTES if wash_box.button_pressed else 0)
+		wash_box.disabled = other_minutes + WASH_MINUTES > limit_minutes
+		if wash_box.disabled and wash_box.button_pressed:
+			wash_box.set_pressed_no_signal(false)
+			total -= WASH_MINUTES
 	var excess := maxi(0, ceili(float(total) - limit_minutes))
 	var remaining := maxi(0, ceili(limit_minutes - float(total)))
 	if time_bar != null:
 		time_bar.max_value = maxf(limit_minutes, 1.0)
 		time_bar.value = mini(total, int(limit_minutes))
 	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Restan: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, remaining, excess, excess * penalty_per_minute]
-	summary.add_theme_color_override("font_color", STATUS_DANGER if excess > 0 else STATUS_SUCCESS)
+	if not save_error.is_empty():
+		summary.text += "\n" + save_error
+	summary.add_theme_color_override("font_color", STATUS_DANGER if excess > 0 or not save_error.is_empty() else STATUS_SUCCESS)
 
 func _commit() -> void:
+	if commit.disabled:
+		return
+	_refresh()
+	var washing := wash_box != null and wash_box.button_pressed and _minutes() <= limit_minutes
+	var previous_damage: Dictionary = vehicle.damage_snapshot() if washing else {}
+	var previous_tires: Dictionary = vehicle.tire_inventory.snapshot() if washing else {}
+	var previous_event_damage: Dictionary = manager.vehicle_damage_state
+	var previous_event_tires: Dictionary = manager.tire_inventory_state
+	var previous_penalties: Dictionary = manager.service_penalties_ms.duplicate() if washing else {}
+	var previous_windows: Dictionary = manager.windows_attended.duplicate() if washing else {}
 	commit.disabled = true
 	var keys: Array[String] = []
 	for row in rows:
@@ -382,6 +407,8 @@ func _commit() -> void:
 			elif str(tact.kind) == "rim":
 				inv.repair_rim(tire)
 	vehicle.apply_tire_inventory()
+	if washing:
+		vehicle.service_clean_dirt()
 	var excess := maxi(0, ceili(float(_minutes()) - limit_minutes))
 	var stage: String = manager.current_stage_id()
 	manager.service_penalties_ms[stage] = int(manager.service_penalties_ms.get(stage, 0)) + excess * penalty_per_minute * 1000
@@ -389,6 +416,18 @@ func _commit() -> void:
 	vehicle.sync_tire_inventory()
 	manager.vehicle_damage_state = vehicle.damage_snapshot()
 	manager.tire_inventory_state = vehicle.tire_inventory.snapshot()
-	manager.save()
+	var saved: bool = manager.save()
+	if washing and not saved:
+		manager.vehicle_damage_state = previous_event_damage
+		manager.tire_inventory_state = previous_event_tires
+		manager.service_penalties_ms = previous_penalties
+		manager.windows_attended = previous_windows
+		vehicle.tire_inventory.restore(previous_tires)
+		vehicle.apply_tire_inventory()
+		vehicle.restore_damage(previous_damage)
+		save_error = manager.error
+		commit.disabled = false
+		_refresh()
+		return
 	confirmed.emit()
 	queue_free()

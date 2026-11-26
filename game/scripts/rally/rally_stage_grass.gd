@@ -906,7 +906,10 @@ func _load_variant_entries() -> Array[Dictionary]:
 ## Cutout treatment mirrored from RallyStageVisualMaterialAdjuster. Going
 ## through that node is not an option because it only walks the baked stage
 ## visual, and this material is built before the instances exist.
-func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+
+
+func _make_material(visual: MeshInstance3D) -> Material:
 	var source: Material = null
 	if visual.mesh.get_surface_count() > 0:
 		source = visual.mesh.surface_get_material(0)
@@ -942,7 +945,7 @@ func _make_material(visual: MeshInstance3D) -> StandardMaterial3D:
 		outlined.set_shader_parameter("alpha_cutoff", ALPHA_SCISSOR_THRESHOLD)
 		outlined.set_shader_parameter("face_camera", face_camera)
 		material.next_pass = outlined
-	return material
+	return ObjectMaterial.from_standard(material)
 
 
 func _pick_variant(rng: RandomNumberGenerator, entries: Array[Dictionary]) -> int:

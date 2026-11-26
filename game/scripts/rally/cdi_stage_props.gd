@@ -36,6 +36,9 @@ var _placements: Array[Dictionary] = []
 var sector_stream: RallyVisualSectorStream
 var finish_spectator_approach_m := 30.0
 
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+
+
 func occupied_points() -> Array[Vector3]:
 	return _occupied
 
@@ -372,7 +375,7 @@ func _load_models() -> bool:
 						material.cull_mode = BaseMaterial3D.CULL_DISABLED
 						material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 					var variant := {"label": str(entry.file).get_basename(), "mesh": mesh_node.mesh,
-						"material": material}
+						"material": ObjectMaterial.from_standard(material)}
 					if kind == STONE:
 						var hull := mesh_node.mesh.create_convex_shape(true, true)
 						variant["hull"] = hull.points

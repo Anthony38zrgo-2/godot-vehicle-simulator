@@ -7,6 +7,7 @@ extends Node3D
 @export var gt2_vehicle_shading := false
 @export var banded_paint_materials: PackedStringArray
 @export var banded_paint_mask: Texture2D
+@export_range(0.0, 1.0) var banded_paint_downward_normal := 0.0
 @export var banded_paint_height_range := Vector2(0.26, 0.90)
 @export var banded_paint_end_drop := Vector2(0.18, 0.10)
 @export var glass_reflection_material := ""
@@ -14,9 +15,9 @@ extends Node3D
 @export var glass_reflection_mask: Texture2D
 @export var louver_material := ""
 @export_group("PSX Vehicle Distortion")
-@export var psx_snap_resolution := Vector2(480.0, 360.0)
-const DEFAULT_PSX_SNAP_STRENGTH := 0.27
-const DEFAULT_PSX_AFFINE_STRENGTH := 0.23
+@export var psx_snap_resolution := Vector2(320.0, 240.0)
+const DEFAULT_PSX_SNAP_STRENGTH := 0.48
+const DEFAULT_PSX_AFFINE_STRENGTH := 0.45
 
 @export_range(0.0, 1.0) var psx_snap_strength := DEFAULT_PSX_SNAP_STRENGTH
 @export_range(0.0, 1.0) var psx_affine_strength := DEFAULT_PSX_AFFINE_STRENGTH
@@ -89,7 +90,7 @@ static func _apply_psx_params(
 static func make_gt2_vehicle_material(
 	source: StandardMaterial3D,
 	cutout: bool = false,
-	snap_resolution: Vector2 = Vector2(480.0, 360.0),
+	snap_resolution: Vector2 = Vector2(320.0, 240.0),
 	snap_strength: float = DEFAULT_PSX_SNAP_STRENGTH,
 	affine_strength: float = DEFAULT_PSX_AFFINE_STRENGTH,
 ) -> ShaderMaterial:
@@ -155,7 +156,7 @@ static func _paint_ramp() -> ImageTexture:
 static func make_toon_material(
 	source: StandardMaterial3D,
 	cutout: bool = false,
-	snap_resolution: Vector2 = Vector2(480.0, 360.0),
+	snap_resolution: Vector2 = Vector2(320.0, 240.0),
 	snap_strength: float = DEFAULT_PSX_SNAP_STRENGTH,
 	affine_strength: float = DEFAULT_PSX_AFFINE_STRENGTH,
 ) -> ShaderMaterial:
@@ -241,6 +242,7 @@ func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Diction
 						and banded_paint_materials.has(source.resource_name):
 					surface_material.set_shader_parameter("use_banded_body_paint", true)
 					surface_material.set_shader_parameter("body_paint_mask", banded_paint_mask)
+					surface_material.set_shader_parameter("body_paint_downward_normal", banded_paint_downward_normal)
 					surface_material.set_shader_parameter("body_paint_height_range", banded_paint_height_range)
 					surface_material.set_shader_parameter("body_paint_end_drop", banded_paint_end_drop)
 					surface_material.set_shader_parameter("paint_env_map", _gt2_env_map())

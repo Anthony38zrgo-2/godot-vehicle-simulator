@@ -35,8 +35,21 @@ uniform float rain = 0.0;
 uniform vec2 wind_vec = vec2(1.2, 0.4);
 uniform float edge_softness = 0.18;
 uniform float turbidity_rate = 0.065;
-uniform vec4 shallow_color : source_color = vec4(0.030, 0.065, 0.105, 0.22);
-uniform vec4 deep_color : source_color = vec4(0.008, 0.022, 0.048, 0.88);
+uniform vec4 shallow_color : source_color = vec4(0.32, 0.33, 0.34, 0.12);
+uniform vec4 deep_color : source_color = vec4(0.10, 0.15, 0.19, 0.35);
+
+const float BAYER_4X4[16] = float[16](
+	0.0, 8.0, 2.0, 10.0,
+	12.0, 4.0, 14.0, 6.0,
+	3.0, 11.0, 1.0, 9.0,
+	15.0, 7.0, 13.0, 5.0
+);
+
+float dither_depth_tone(float depth_tone, vec2 screen_position) {
+	ivec2 pixel = ivec2(screen_position);
+	float threshold = (BAYER_4X4[(pixel.y & 3) * 4 + (pixel.x & 3)] + 0.5) / 16.0;
+	return floor(depth_tone * 12.0 + threshold) / 12.0;
+}
 
 #include "res://scripts/rally/rally_water_detail.gdshaderinc"
 
@@ -243,10 +256,9 @@ void fragment() {
 		float depth_norm = clamp(real_depth_mm / 48.0, 0.0, 1.0);
 		float shore_depth = smoothstep(0.0, 7.0, real_depth_mm);
 
-		// 1. Beer-Lambert Law: Exponential light extinction through muddy sediment suspension.
-		// Keep optical turbidity_alpha lighter than tint turbidity so pavement/gravel remains visible from above.
-		float turbidity = 1.0 - exp(-real_depth_mm * turbidity_rate);
-		float turbidity_alpha = 1.0 - exp(-real_depth_mm * turbidity_rate * 0.38);
+		// Use the basin depth for the tint, then dither only the color ramp.
+		float depth_tone = 1.0 - exp(-real_depth_mm * turbidity_rate * 1.4);
+		float dithered_tone = dither_depth_tone(depth_tone, FRAGCOORD.xy);
 
 		// 2. Subtle cavity rim shading inside deep potholes
 		float rim_band = smoothstep(shore_thresh, shore_thresh + 0.10, vis_mask) * (1.0 - smoothstep(shore_thresh + 0.10, shore_thresh + 0.32, vis_mask));
@@ -313,7 +325,7 @@ void fragment() {
 		vec3 soil_albedo = vec3(0.018, 0.018, 0.019) * cavity_occlusion;
 
 		// Water body color: shore absorption into turbid basin + crisp rippled sky reflection in deeper core
-		vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
+		vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, dithered_tone) * cavity_occlusion;
 		base_puddle = mix(soil_albedo, base_puddle, shore_depth);
 		vec3 highlight = base_puddle * 1.45;
 		if (enable_water_reflections) {
@@ -330,16 +342,14 @@ void fragment() {
 		}
 
 		// Differentiated PBR surface response: satin damp rim vs glossy liquid water mirror
-		ROUGHNESS = mix(0.42, enable_water_reflections ? 0.02 + 0.08 * (1.0 - shore_depth) : 0.62, water_body);
+		ROUGHNESS = mix(0.42, enable_water_reflections ? 0.02 + 0.08 * (1.0 - shore_depth) : mix(0.40, 0.28, shore_depth), water_body);
 		METALLIC = 0.0;
-		SPECULAR = enable_water_reflections ? mix(0.20, 0.98, water_body * (0.45 + 0.55 * shore_mirror)) : 0.0;
+		SPECULAR = enable_water_reflections ? mix(0.20, 0.98, water_body * (0.45 + 0.55 * shore_mirror)) : 0.24 * water_body * (0.30 + 0.70 * soft_fresnel);
 
-		// Translucent water opacity: clear enough from steep angles to show pavement/gravel underneath,
-		// rising smoothly to a reflective mirror at grazing Fresnel angles.
-		float soil_alpha = wet_soil * (1.0 - water_body * 0.85) * 0.18 * smoothstep(0.0, 0.12, fill);
-		float vertical_water_alpha = mix(0.14, 0.48, turbidity_alpha);
-		float base_water_alpha = enable_water_reflections ? clamp(mix(vertical_water_alpha, 0.82, schlick_fresnel * 0.88), 0.12, 0.82) : vertical_water_alpha;
-		float water_alpha = base_water_alpha * water_body * pow(clamp(water_mask * 1.45, 0.0, 1.0), 0.78);
-		ALPHA = max(soil_alpha, water_alpha);
+		// Blend continuously with the road. The Bayer pattern only affects the tint.
+		float soil_alpha = wet_soil * 0.12 * smoothstep(0.0, 0.12, fill);
+		float opacity_depth = smoothstep(0.0, 26.0, real_depth_mm);
+		float water_alpha = mix(shallow_color.a, deep_color.a, opacity_depth);
+		ALPHA = mix(soil_alpha, water_alpha, water_body);
 	}
 }

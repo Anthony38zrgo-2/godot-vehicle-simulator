@@ -41,6 +41,8 @@ var _ticlio_snow_textures: Texture2DArray
 var _ticlio_snow_coverage: Texture2D
 var _ticlio_snow_pixels: Image
 var _guardrail_materials := {}
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+var _object_materials := {}
 var sky_node: Node = null
 var _grass_gis: Texture2D
 var _grass_gis_pixels: Image
@@ -154,7 +156,7 @@ func load_cdi_asphalt(snow_station: float, keep_ticlio_roadside_snow: bool = fal
 		rail.cull_mode = BaseMaterial3D.CULL_DISABLED
 		rail.disable_fog = true
 		rail.roughness = 0.64
-		_guardrail_materials[layer] = rail
+		_guardrail_materials[layer] = ObjectMaterial.from_standard(rail)
 	return true
 
 
@@ -386,7 +388,14 @@ func register_content(path: String, factory: Callable) -> void:
 		_content[path] = []
 	_content[path].append(factory)
 	if _active.has(path):
-		factory.call(_active[path].get_node("SectorObjects"))
+		_build_sector_objects(_active[path].get_node("SectorObjects"), factory)
+
+
+func _build_sector_objects(objects: Node3D, factory: Callable) -> void:
+	var previous_count := objects.get_child_count()
+	factory.call(objects)
+	for i in range(previous_count, objects.get_child_count()):
+		ObjectMaterial.apply_tree(objects.get_child(i), _object_materials)
 
 
 func _ready() -> void:
@@ -583,7 +592,7 @@ func _attach_sector(path: String, packed: PackedScene) -> void:
 	objects.name = "SectorObjects"
 	instance.add_child(objects)
 	for factory: Callable in _content.get(path, []):
-		factory.call(objects)
+		_build_sector_objects(objects, factory)
 
 
 func tune_materials(root: Node) -> void:

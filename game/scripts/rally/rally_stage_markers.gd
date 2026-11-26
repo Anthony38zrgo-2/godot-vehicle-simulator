@@ -10,8 +10,10 @@ const CELL_SIZE := 2.0 * HALF_WIDTH / COLUMNS
 
 var _finish: Dictionary
 var _road_mask: int
-var _red: StandardMaterial3D
-var _green: StandardMaterial3D
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+var _red: ShaderMaterial
+var _green: ShaderMaterial
+var _housing_materials := {}
 
 
 func build(start: Vector3, forward: Vector3, finish: Dictionary, road_mask: int) -> void:
@@ -34,8 +36,8 @@ func update_finish(vehicle_position: Vector3) -> void:
 
 
 func set_phase(phase: String) -> void:
-	_red.emission_enabled = phase == "ready"
-	_green.emission_enabled = phase == "go"
+	_red.set_shader_parameter("emission_strength", 1.5 if phase == "ready" else 0.0)
+	_green.set_shader_parameter("emission_strength", 1.5 if phase == "go" else 0.0)
 
 
 func _add_marker(center: Vector3, direction: Vector3, is_start: bool) -> void:
@@ -99,6 +101,14 @@ func _add_person(marker: Node3D, lateral: float, texture: Texture2D, feet_offset
 	sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	sprite.shaded = true
+	var surface := StandardMaterial3D.new()
+	surface.albedo_texture = texture
+	surface.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	surface.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	surface.alpha_scissor_threshold = 0.5
+	surface.cull_mode = BaseMaterial3D.CULL_DISABLED
+	surface.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.material_override = ObjectMaterial.from_standard(surface)
 	marker.add_child(sprite)
 	var ground := _ground_point(marker.to_global(Vector3(lateral, 0.0, 0.0)))
 	sprite.global_position = ground + Vector3.UP * (texture.get_height() * sprite.pixel_size * 0.5)
@@ -117,7 +127,7 @@ func _add_signal(marker: Node3D, lateral: float) -> void:
 	_green = _add_lamp(signal_post, 1.32, Color("#35ff61"), housing)
 
 
-func _add_lamp(parent: Node3D, height: float, color: Color, housing: StandardMaterial3D) -> StandardMaterial3D:
+func _add_lamp(parent: Node3D, height: float, color: Color, housing: StandardMaterial3D) -> ShaderMaterial:
 	var lens := StandardMaterial3D.new()
 	lens.albedo_color = color.darkened(0.78)
 	lens.emission = color
@@ -129,12 +139,13 @@ func _add_lamp(parent: Node3D, height: float, color: Color, housing: StandardMat
 	cylinder.radial_segments = 12
 	var lamp := MeshInstance3D.new()
 	lamp.mesh = cylinder
-	lamp.material_override = lens
+	var surface := ObjectMaterial.from_standard(lens) as ShaderMaterial
+	lamp.material_override = surface
 	parent.add_child(lamp)
 	lamp.rotation.x = PI * 0.5
 	lamp.position = Vector3(0.0, height, 0.12)
 	_add_box(parent, Vector3(0.26, 0.04, 0.14), Vector3(0.0, height + 0.115, 0.15), housing)
-	return lens
+	return surface
 
 
 func _add_box(parent: Node3D, size: Vector3, offset: Vector3, material: StandardMaterial3D) -> void:
@@ -142,6 +153,6 @@ func _add_box(parent: Node3D, size: Vector3, offset: Vector3, material: Standard
 	box.size = size
 	var instance := MeshInstance3D.new()
 	instance.mesh = box
-	instance.material_override = material
+	instance.material_override = ObjectMaterial.cached(material, _housing_materials)
 	parent.add_child(instance)
 	instance.position = offset

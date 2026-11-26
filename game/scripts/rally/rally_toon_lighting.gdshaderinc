@@ -35,6 +35,7 @@ uniform float psx_snap_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float psx_affine_strength : hint_range(0.0, 1.0) = 0.0;
 
 uniform bool use_banded_body_paint = false;
+uniform float body_paint_downward_normal = 0.0;
 uniform vec2 body_paint_height_range = vec2(0.26, 0.90);
 uniform vec2 body_paint_end_drop = vec2(0.18, 0.10);
 uniform sampler2D body_paint_mask : filter_nearest, repeat_disable, hint_default_white;
@@ -50,6 +51,7 @@ varying float reflection_dither;
 varying float body_paint_coverage;
 varying float body_height;
 varying float body_surface_up;
+varying float body_surface_side;
 varying float painted_edge;
 varying vec2 v_affine_uv;
 varying float v_affine_w;
@@ -73,7 +75,10 @@ float paint_noise(vec3 point) {
 	return mix(mix(corners.x, corners.y, weight.x), mix(corners.z, corners.w, weight.x), weight.y);
 }
 
+#include "res://scripts/rally/rally_dirt.gdshaderinc"
+
 void vertex() {
+	dirt_position = dirt_local_position(VERTEX);
 	// Stratos waistline slopes down toward the nose. Local coordinates keep
 	// the bands fixed to the shell through turns, jumps and camera changes.
 	float nose_drop = body_paint_end_drop.x * smoothstep(0.45, 1.82, -VERTEX.z);
@@ -82,6 +87,7 @@ void vertex() {
 	float shoulder = body_paint_height_range.y - nose_drop - tail_drop;
 	body_height = clamp((VERTEX.y - sill) / max(shoulder - sill, 0.01), 0.0, 1.0);
 	body_surface_up = NORMAL.y;
+	body_surface_side = abs(NORMAL.x);
 	louver_cross_section = VERTEX.xz;
 	louver_up_view = normalize(MODELVIEW_NORMAL_MATRIX * vec3(0.0, 1.0, 0.0));
 	if (edge_wobble > 0.001) {
@@ -93,7 +99,7 @@ void vertex() {
 
 	vec4 clip = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	// Smoothly attenuate very close to the camera (<2.6m) so cockpit view stays comfortable.
-	float psx_dist_fade = smoothstep(0.9, 2.6, max(clip.w, 0.0));
+	float psx_dist_fade = smoothstep(0.25, 1.25, clip.w);
 	if (psx_snap_strength > 0.001) {
 		float eff_snap = psx_snap_strength * psx_dist_fade;
 		vec2 ndc = clip.xy / max(abs(clip.w), 0.0001);
@@ -127,12 +133,25 @@ void fragment() {
 		paint *= COLOR;
 	}
 	body_paint_coverage = use_banded_body_paint ? step(0.5, texture(body_paint_mask, tex_uv).r) : 0.0;
+	if (body_paint_downward_normal > 0.0 && body_paint_coverage > 0.0) {
+		// Bias the painted side panels toward local down in two height bands.
+		float side = smoothstep(0.45, 0.75, body_surface_side);
+		float lower = 1.0 - smoothstep(0.24, 0.28, body_height);
+		float middle = 1.0 - smoothstep(0.53, 0.58, body_height);
+		float bias = (0.58 * lower + 0.42 * middle) * side * body_paint_downward_normal;
+		NORMAL = normalize(NORMAL - normalize(louver_up_view) * bias);
+	}
 	reflection_dither = 0.0;
 	if (use_glass_reflection || use_banded_body_paint) {
 		vec2 cell = mod(floor(FRAGCOORD.xy * psx_snap_resolution / max(VIEWPORT_SIZE, vec2(1.0))), 2.0);
 		reflection_dither = (mod(cell.x + cell.y, 2.0) * 2.0 + cell.y - 1.5) * 0.12;
 	}
-	ALBEDO = paint.rgb;
+	vec4 dirt = dirt_sample();
+	if (use_glass_reflection) {
+		vec2 glass_mask = texture(glass_reflection_mask, tex_uv).rg * (1.0 - body_paint_coverage);
+		dirt.a *= 1.0 - step(0.1, max(glass_mask.x, glass_mask.y));
+	}
+	ALBEDO = mix(paint.rgb, dirt.rgb, dirt.a);
 	if (paint_env_strength > 0.001) {
 		float coverage = use_banded_body_paint ? body_paint_coverage
 			: step(paint_env_mask_threshold, texture(paint_env_mask, tex_uv).r);
@@ -172,6 +191,7 @@ void fragment() {
 		// A low diffuse fill keeps the graphite edges legible under cast shadow.
 		EMISSION = vec3(0.015, 0.017, 0.019) * slats * (0.35 + 1.55 * lip);
 	}
+	EMISSION *= 1.0 - dirt.a;
 #ifdef TOON_ALPHA_CUTOUT
 	ALPHA = paint.a;
 	ALPHA_SCISSOR_THRESHOLD = alpha_cutoff;

@@ -128,6 +128,7 @@ func _ready() -> void:
 		"profile_id": result.get("profile_id", "ford_escort_rs2000_1971"),
 		"domain_hashes": result.get("domain_hashes", {}),
 	}
+	simulation.dirt_radiator_enabled = str(rally_profile.profile_id) not in ["porsche_911_24s", "rt-porsche-356b-2000gs"]
 	apply_vehicle_properties()
 	# Lighter unsprung assemblies can require a faster world step than the Ford.
 	# Banco de estabilidad (Â§5): comparar primero a la frecuencia de producciÃ³n
@@ -143,6 +144,7 @@ func _ready() -> void:
 		_apply_dreamcast_vehicle_visuals()
 	if not selected_livery_id.is_empty():
 		VehicleLiveryScript.apply_to_vehicle(self, "", selected_livery_id)
+	_bind_dirt_meshes()
 	simulation.create_wheel_contact_casts(self)
 	add_to_group("rally_vehicle")
 	contact_monitor = true
@@ -357,7 +359,85 @@ func build_collision_shapes(collision_document: Dictionary) -> void:
 		add_child(box_collision)
 
 
+var _dirt_mesh_groups: Array[Array] = []
+var _dirt_visual_states: Array[Vector2] = []
+var _dirt_cockpit := false
+
+
+func _bind_dirt_meshes() -> void:
+	var chassis := get_node_or_null("Chassis") as Node3D
+	if chassis == null:
+		return
+	var body_meshes := _dirt_meshes(chassis)
+	var bounds := AABB()
+	var has_bounds := false
+	for mesh: MeshInstance3D in body_meshes:
+		var mesh_bounds := (global_transform.affine_inverse() * mesh.global_transform) * mesh.get_aabb()
+		bounds = bounds.merge(mesh_bounds) if has_bounds else mesh_bounds
+		has_bounds = true
+	_dirt_mesh_groups.append(body_meshes)
+	var centers := simulation.wheel_positions_local
+	var wheel_z := Vector4.ZERO
+	for i in 4:
+		wheel_z[i] = (centers[i].z - bounds.position.z) / maxf(bounds.size.z, 0.001)
+	var axles := Vector4((wheel_z.x + wheel_z.z) * 0.5, signf(wheel_z.x - wheel_z.z), signf(centers[0].x - centers[1].x), 0.0)
+	for mesh: MeshInstance3D in body_meshes:
+		_set_dirt_coordinates(mesh, global_transform.affine_inverse() * mesh.global_transform, bounds)
+		mesh.set_instance_shader_parameter("dirt_axles", axles)
+		mesh.set_instance_shader_parameter("dirt_wheel_z", wheel_z)
+	for pivot in simulation.wheel_visual_pivots:
+		var meshes := _dirt_meshes(pivot) if is_instance_valid(pivot) else []
+		_dirt_mesh_groups.append(meshes)
+		for mesh: MeshInstance3D in meshes:
+			_set_dirt_coordinates(mesh, Transform3D.IDENTITY, mesh.get_aabb())
+
+
+func _dirt_meshes(root: Node3D) -> Array:
+	var meshes := root.find_children("*", "MeshInstance3D", true, false)
+	if root is MeshInstance3D:
+		meshes.push_front(root)
+	return meshes
+
+
+func _set_dirt_coordinates(mesh: MeshInstance3D, local: Transform3D, bounds: AABB) -> void:
+	for axis in 3:
+		var row := Vector4(local.basis.x[axis], local.basis.y[axis], local.basis.z[axis], local.origin[axis] - bounds.position[axis])
+		mesh.set_instance_shader_parameter(["dirt_x", "dirt_y", "dirt_z"][axis], row / maxf(bounds.size[axis], 0.001))
+
+
+func _sync_dirt_visuals() -> void:
+	if _dirt_mesh_groups.size() != 5:
+		return
+	var states: Array[Vector2] = []
+	for zone in simulation.dirt.ZONES:
+		states.append(simulation.dirt.visual_state(zone))
+	if _dirt_cockpit:
+		for zone in [0, 5, 6]:
+			states[zone] = Vector2.ZERO
+	if states == _dirt_visual_states:
+		return
+	_dirt_visual_states = states
+	var stages := Vector4(states[1].x, states[2].x, states[3].x, states[4].x)
+	var mud := Vector4(states[1].y, states[2].y, states[3].y, states[4].y)
+	for mesh: MeshInstance3D in _dirt_mesh_groups[0]:
+		mesh.set_instance_shader_parameter("dirt_stage", Vector4(states[5].x, states[0].x, states[6].x, 0.0))
+		mesh.set_instance_shader_parameter("dirt_mud", Vector4(states[5].y, states[0].y, states[6].y, 0.0))
+		mesh.set_instance_shader_parameter("dirt_wheel_stage", Vector4.ZERO if _dirt_cockpit else stages)
+		mesh.set_instance_shader_parameter("dirt_wheel_mud", mud)
+	for i in 4:
+		for mesh: MeshInstance3D in _dirt_mesh_groups[i + 1]:
+			mesh.set_instance_shader_parameter("dirt_stage", Vector4(stages[i], 0.0, 0.0, 1.0))
+			mesh.set_instance_shader_parameter("dirt_mud", Vector4(mud[i], 0.0, 0.0, 0.0))
+
+
+func service_clean_dirt() -> void:
+	simulation.dirt.service_clean()
+	simulation.sync_dirt_factors()
+	_sync_dirt_visuals()
+
+
 func _physics_process(delta: float) -> void:
+	_sync_dirt_visuals()
 	if _reset_pending:
 		freeze = false
 		_reset_pending = false
@@ -689,6 +769,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 
 func set_glass_cockpit_view(enabled: bool) -> void:
+	_dirt_cockpit = enabled
+	_dirt_visual_states.clear()
+	_sync_dirt_visuals()
 	if _visual_damage != null:
 		_visual_damage.set_cockpit_view(enabled)
 
@@ -1545,6 +1628,7 @@ func _create_blob_shadow() -> void:
 
 func damage_snapshot() -> Dictionary:
 	return {
+		"dirt": simulation.dirt.snapshot(),
 		"brake_wear_fraction": simulation.thermal_model.brake_wear_fraction.duplicate(),
 		"radiator": simulation.thermal_model.radiator_damage,
 		"engine": simulation.thermal_model.engine_damage,
@@ -1556,6 +1640,9 @@ func damage_snapshot() -> Dictionary:
 
 
 func restore_damage(snapshot: Dictionary) -> void:
+	simulation.dirt.restore(snapshot.get("dirt"))
+	simulation.sync_dirt_factors()
+	_sync_dirt_visuals()
 	if snapshot.is_empty():
 		return
 	var thermal = simulation.thermal_model

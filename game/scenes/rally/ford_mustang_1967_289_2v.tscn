@@ -36,6 +36,7 @@ script = ExtResource("9_toon")
 pixel_albedo = true
 banded_paint_materials = PackedStringArray("Mustang67_Stylized_PSX")
 banded_paint_mask = ExtResource("paint_mask")
+banded_paint_downward_normal = 0.88
 banded_paint_height_range = Vector2(0.36, 0.98)
 banded_paint_end_drop = Vector2(0.045, 0.025)
 glass_reflection_materials = PackedStringArray("Mustang67_Stylized_PSX")

@@ -208,6 +208,9 @@ func _spawn_house(parent: Node3D, asset: String, point: Vector3, facing: Vector3
 	body.add_child(col)
 
 
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+
+
 func _enforce_psx_matte_materials(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
@@ -220,6 +223,6 @@ func _enforce_psx_matte_materials(node: Node) -> void:
 					sm.roughness = 0.94
 					sm.metallic = 0.0
 					sm.metallic_specular = 0.0
-					mi.set_surface_override_material(s, sm)
+					mi.set_surface_override_material(s, ObjectMaterial.from_standard(sm))
 	for child in node.get_children():
 		_enforce_psx_matte_materials(child)

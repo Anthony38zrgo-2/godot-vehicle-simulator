@@ -76,6 +76,10 @@ const BANNER_MATERIAL_PREFIXES := [
 	"fin_sponsors",
 ]
 
+const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.gd")
+const OBJECT_TOKENS := ["tree", "forest", "bush", "audience", "spectator", "fence", "hut", "house", "building", "barn", "cabin", "village", "power_line", "powerline", "pole", "guardarrail", "guardrail", "checkpoint", "gate_finish", "sponsors", "sign_", "string_red", "rope", "meta_", "tunnel", "bridge"]
+const GROUND_MESH_PREFIXES := ["terrain", "road", "ladera", "rajuntay dem", "rajuntay regional dem", "backdrop", "mountain", "ground"]
+
 const STATIC_WATER_SHADER := preload("res://scripts/rally/rally_static_water.gdshader")
 const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
 const WATER_BODY_TOKENS := ["water", "lake", "lago", "agua", "pond", "lagoon", "laguna", "sea"]
@@ -89,6 +93,8 @@ var adjusted_surface_count: int = 0
 var adjusted_materials: Dictionary = {}
 var static_water_materials: Dictionary = {}
 var prepared_textures: Dictionary = {}
+var object_materials: Dictionary = {}
+var _hidden_finish_surface: StandardMaterial3D
 
 
 func _ready() -> void:
@@ -105,12 +111,24 @@ func adjust_node(node: Node) -> void:
 	# río y sus parámetros (cota, lecho, lluvia) quedan protegidos.
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh:
 		var mesh_instance := node as MeshInstance3D
+		var mesh_name := str(mesh_instance.name).to_lower()
+		if mesh_name in ["meta_l", "meta_r"] or mesh_name.begins_with("meta_l_soporte_") or mesh_name.begins_with("meta_r_soporte_"):
+			mesh_instance.hide()
+			return
 		# En Dreamcast los objetos del escenario rara vez proyectaban shadow maps dinamicos
 		if enforce_dreamcast_pipeline:
 			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 		for surface_index in mesh_instance.mesh.get_surface_count():
 			var mat := mesh_instance.get_active_material(surface_index)
+			if mat != null and mat.resource_name.to_lower().get_slice(".", 0) in ["gate_finish", "fin_gate_finish"]:
+				if _hidden_finish_surface == null:
+					_hidden_finish_surface = StandardMaterial3D.new()
+					_hidden_finish_surface.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					_hidden_finish_surface.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+					_hidden_finish_surface.albedo_color = Color(0.0, 0.0, 0.0, 0.0)
+				mesh_instance.set_surface_override_material(surface_index, _hidden_finish_surface)
+				continue
 			if mat is BaseMaterial3D and not bool(mat.get_meta("rally_dynamic_water", false)):
 				var base_mat := mat as BaseMaterial3D
 				if is_static_water_candidate(base_mat.resource_name.to_lower(), mesh_instance.name.to_lower()):
@@ -119,8 +137,26 @@ func adjust_node(node: Node) -> void:
 					adjusted_surface_count += 1
 				else:
 					adjust_material(base_mat)
+					if _is_stage_object(str(mesh_instance.name).to_lower(), base_mat.resource_name.to_lower()):
+						var object_mat := ObjectMaterial.cached(base_mat, object_materials)
+						if object_mat != base_mat:
+							mesh_instance.set_surface_override_material(surface_index, object_mat)
 	for child in node.get_children():
 		adjust_node(child)
+
+
+static func _is_stage_object(mesh_name: String, material_name: String) -> bool:
+	for prefix in GROUND_MESH_PREFIXES:
+		if mesh_name.begins_with(prefix):
+			return false
+	if material_name.begins_with("waterfall") or material_name in ["river1_1", "river2_1", "terrain_field_1_", "fin_field1_edge"]:
+		return false
+	if CUTOUT_MATERIAL_NAMES.has(material_name):
+		return true
+	for token in OBJECT_TOKENS:
+		if mesh_name.contains(token) or material_name.contains(token):
+			return true
+	return false
 
 
 static func is_static_water_candidate(material_name: String, mesh_name: String = "") -> bool:

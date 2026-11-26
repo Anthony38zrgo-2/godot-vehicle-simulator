@@ -19,6 +19,9 @@ var tire_model := TireModel.new()
 var powertrain_model := VehiclePowertrainModel.new()
 var brake_model := VehicleBrakeModel.new()
 var aero_model := VehicleAerodynamicModel.new()
+var dirt := preload("res://scripts/physics/dirt_model.gd").new()
+var dirt_radiator_enabled := true
+var dirt_accumulating := false
 var thermal_model := VehicleThermalModel.new()
 var alignment_collision_damage: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var brake_collision_loss: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -413,7 +416,7 @@ func local_conditions_for_wheel(index: int, surface_name: String) -> Dictionary:
 func _local_conditions_base(surface_name: String, position: Vector3, loaded: bool) -> Dictionary:
 	var local := {"air_c": thermal_model.ambient_temperature_c, "ground_c": 30.0,
 		"water_mm": 0.0, "background_water_mm": 0.0, "snow_mm": 0.0, "ice_mm": 0.0, "snow_coverage": -1.0, "ice_coverage": -1.0,
-		"loose_gravel_coverage": 0.0, "mud_factor": 0.0,
+		"loose_gravel_coverage": 0.0,
 		"surface_name": surface_name, "puddle_depth_mm": 0.0, "puddle_drag": 0.0, "irradiance_w_m2": 0.0}
 	if weather_controller != null and weather_controller.get("calendar_active"):
 		var weather: Dictionary = weather_controller.call("local_conditions_for_contact", surface_name, position) if loaded else weather_controller.current_blend
@@ -1763,12 +1766,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var puddle_depth_here: float = float(last_local_conditions[i].get("puddle_depth_mm", 0.0))
 			var snow_patch_depth_here: float = float(last_local_conditions[i].get("snow_patch_depth_mm", 0.0))
 			var mud_factor_here: float = thermal_mud_factor[i] if str(contact["surface"]) in ["Gravel", "Dirt"] else 0.0
+			var mud_drag_n := 0.0
 			var eff_sup_x: float = 1.0
 			var eff_sup_y: float = 1.0
 			var drag_n: float = 0.0
 			var steering_pull_mag: float = 0.0
 			var hydro_wheel_torque_mag: float = 0.0
-			if puddle_depth_here > 0.001 or snow_patch_depth_here > 0.001 or mud_factor_here > 0.02:
+			if puddle_depth_here > 0.001 or snow_patch_depth_here > 0.001 or mud_factor_here > 0.0:
 				var point_surf_speed: float = point_velocity.slide(normal).length()
 				if point_surf_speed > 0.001:
 					if puddle_depth_here > 0.001:
@@ -1803,15 +1807,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 						drag_n += sres[3]
 						hydro_wheel_torque_mag += sres[6]
 						steering_pull_mag += sres[7]
-					if mud_factor_here > 0.02:
-						# Viscous mud plowing resistance: acts from low/mid speeds like heavy clay rutting
-						var mud_spd_u := clampf(point_surf_speed / 18.0, 0.0, 1.4)
-						var mud_drag := mud_factor_here * normal_load * (0.045 * clampf(point_surf_speed / 3.0, 0.0, 1.0) + 0.11 * mud_spd_u * mud_spd_u)
-						drag_n += mud_drag
-						hydro_wheel_torque_mag += mud_drag * 0.45 * wheel_radii[i]
-						steering_pull_mag += mud_drag * 0.045
+					if mud_factor_here > 0.0:
+						mud_drag_n = mud_plowing_force_n(mud_factor_here, normal_load, point_surf_speed)
+						drag_n += mud_drag_n
+						hydro_wheel_torque_mag += mud_drag_n * 0.45 * wheel_radii[i]
+						steering_pull_mag += mud_drag_n * 0.025
 			last_local_conditions[i]["puddle_support"] = minf(eff_sup_x, eff_sup_y)
 			last_local_conditions[i]["puddle_drag_n"] = drag_n
+			last_local_conditions[i]["mud_drag_n"] = mud_drag_n
 			fx *= eff_sup_x
 			fy *= eff_sup_y
 			mz *= eff_sup_y
@@ -1843,7 +1846,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			)
 			tire_powers[i] = float(tire_result.get("friction_power_w", 0.0)) * eff_sup_x
 			var eff_radius: float = float(tire_result.get("effective_radius_m", wheel_radii[i]))
-			var hydro_wheel_torque: float = (hydro_wheel_torque_mag if (puddle_depth_here > 0.001 or snow_patch_depth_here > 0.001 or mud_factor_here > 0.02) else 0.0) * signf(longitudinal_speed)
+			var hydro_wheel_torque: float = hydro_wheel_torque_mag * signf(longitudinal_speed)
 			var raw_tire_torque := (fx + float(tire_result.get("rolling_force_n", 0.0))) * eff_radius + hydro_wheel_torque
 			# Amortiguamiento implícito de spin compatible con el estado brush (patch_pos.x):
 			# dT/domega en un subpaso h es h * k_x * R_eff^2 * (1 - util)^2, sin falsear la inercia
@@ -1917,6 +1920,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		last_kinematic_jacking_forces_n[i] = acc_kin_jacking_imp[i] / dt
 		last_geometric_load_transfer_n[i] = acc_geo_transfer_imp[i] / dt
 		last_roll_center_heights_m[i] = acc_rc_heights[i] / dt
+	if dirt_accumulating:
+		var horizontal_speed := Vector2(state.linear_velocity.x, state.linear_velocity.z).length()
+		dirt.step(dt, horizontal_speed, wheel_surfaces, last_local_conditions, wheel_loads, tire_model.static_wheel_load_n, wheel_slips)
+		sync_dirt_factors()
 	if _tire_thermal_elapsed + 1.0e-6 >= TIRE_THERMAL_PERIOD:
 		for i in 4:
 			var average_power := _wheel_thermal_work[i] / _tire_thermal_elapsed
@@ -1999,6 +2006,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				"puddle_drag_n": float(last_local_conditions[index].get("puddle_drag_n", 0.0)),
 				"loose_gravel_coverage": float(last_local_conditions[index].get("loose_gravel_coverage", 0.0)),
 				"mud_factor": float(last_local_conditions[index].get("mud_factor", 0.0)),
+				"mud_drag_n": float(last_local_conditions[index].get("mud_drag_n", 0.0)),
 				"patch_pos": tire_model.states[index].patch_pos,
 				"patch_energy_j": tire_model.states[index].patch_energy_j,
 				"energy_residue_w": float(tire_model.states[index].get("energy_residue_w", 0.0)),
@@ -2080,6 +2088,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"engine": thermal_model.get_engine_thermal_state_snapshot(),
 		"damage": {
 			"radiator": thermal_model.radiator_damage,
+			"dirt_cooler": thermal_model.dirt_cooler,
+			"dirt_brakes": thermal_model.dirt_brakes.duplicate(),
 			"engine": thermal_model.engine_damage,
 			"transmission": powertrain_model.transmission_damage,
 			"overheat_exposure_s": thermal_model.overheat_exposure_s,
@@ -2115,6 +2125,20 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"rear_lsd_saturation": powertrain_model.last_rear_lsd_saturation,
 		},
 	}
+
+
+static func mud_plowing_force_n(mud: float, load_n: float, speed_m_s: float) -> float:
+	# Clay displaced at low speed plus speed-dependent resistance. Cap the viscous
+	# term so brief high-speed crossings do not produce a braking impulse.
+	var low_speed := smoothstep(0.0, 3.0, speed_m_s)
+	var speed_ratio := clampf(speed_m_s / 18.0, 0.0, 1.25)
+	return clampf(mud, 0.0, 1.0) * maxf(load_n, 0.0) * (0.115 * low_speed + 0.19 * speed_ratio * speed_ratio)
+
+
+func sync_dirt_factors() -> void:
+	thermal_model.dirt_cooler = dirt.level(0, 0.60) if dirt_radiator_enabled else 0.0
+	for i in 4:
+		thermal_model.dirt_brakes[i] = dirt.level(i + 1, 0.50)
 
 
 func set_final_drive_preset(preset: String) -> bool:

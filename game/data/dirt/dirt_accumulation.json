@@ -1,0 +1,13 @@
+{
+  "base_rate": 0.005,
+  "full_speed": 25,
+  "slip_gain": 0.5,
+  "max_load": 2,
+  "road_dry": 0.015,
+  "road_wet": 0.03,
+  "gravel_compact": 0.3,
+  "gravel_loose": 0.6,
+  "dirt": 0.45,
+  "sand": 0.45,
+  "grass": 0.08
+}

@@ -938,6 +938,7 @@ func _physics_process(delta: float) -> void:
 	if vehicle.global_position.y < collision_floor - FALL_DISTANCE_BELOW_STAGE_METRES and not competition.complete:
 		competition.retire_player("Abandono — salida de pista")
 		apply_competition_controls()
+	vehicle.simulation.dirt_accumulating = course.clock_started and not competition.complete and not competition.player_retired
 	if vehicle.sleeping:
 		vehicle.sleeping = false
 	head_up_display.set_session_state(get_session_state())
@@ -1156,6 +1157,7 @@ func setup_start_audio() -> void:
 	add_child(repair_sound)
 
 func reset_start_sequence() -> void:
+	vehicle.simulation.dirt_accumulating = false
 	course.external_start = true
 	course.clock_started = false
 	course.generation = vehicle.simulation.session_generation

@@ -47,7 +47,10 @@ const float bayer[16] = float[16](
 	15.0, 7.0, 13.0,  5.0
 );
 
+#include "res://scripts/rally/rally_dirt.gdshaderinc"
+
 void vertex() {
+	dirt_position = dirt_local_position(VERTEX);
 	// 1. Subpixel snap opcional
 	vec4 clip = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	if (snap_strength > 0.001) {
@@ -95,9 +98,12 @@ void fragment() {
 	float refl = reflectivity * mix(0.02, 1.0, v_fresnel);
 
 	// Conservar el color original íntegro y limitar el reflejo aditivo a los bordes
-	ALBEDO = c.rgb;
+	vec4 dirt = dirt_sample();
+	ALBEDO = mix(c.rgb, dirt.rgb, dirt.a);
 
 	vec3 total_emission = env * refl + (sun_color * v_spec * reflectivity) + (emission_color * emission_energy);
+
+	total_emission *= 1.0 - dirt.a;
 
 	// Cuantización RGB565 con matriz Bayer 4x4 sobre el color y la emisión
 	if (rgb565) {
@@ -110,5 +116,5 @@ void fragment() {
 
 	EMISSION = total_emission;
 	ROUGHNESS = roughness_value;
-	SPECULAR = specular_value;
+	SPECULAR = specular_value * (1.0 - dirt.a);
 }

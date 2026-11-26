@@ -62,10 +62,10 @@ func run() -> void:
 		var batch := child as MultiMeshInstance3D
 		if batch == null or batch.multimesh == null:
 			continue
-		var material := batch.material_override as StandardMaterial3D
-		if material == null or material.transparency != BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:
+		var material := batch.material_override as ShaderMaterial
+		if material == null or not str(material.shader.resource_path).begins_with("res://scripts/rally/rally_object_psx"):
 			cutout_ok = false
-		elif not is_equal_approx(material.alpha_scissor_threshold, 0.38) or material.cull_mode != BaseMaterial3D.CULL_DISABLED:
+		elif not is_equal_approx(float(material.get_shader_parameter("alpha_cutoff")), 0.38) or int(material.get_shader_parameter("cull_side")) != BaseMaterial3D.CULL_DISABLED:
 			cutout_ok = false
 		var count := batch.multimesh.instance_count
 		total += count

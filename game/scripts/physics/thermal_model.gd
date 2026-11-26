@@ -20,6 +20,9 @@ var engine_block_temperature_c: float = 0.0
 var water_temperature_c: float = 0.0
 var oil_temperature_c: float = 0.0
 var available_engine_torque_fraction: float = 1.0
+var dirt_cooler: float = 0.0
+var dirt_brakes: Array[float] = [0.0, 0.0, 0.0, 0.0]
+
 var water_cooling_conductance_w_k: float = 0.0
 var oil_cooling_conductance_w_k: float = 0.0
 var cooling_drag_force_n: float = 0.0
@@ -357,7 +360,7 @@ func advance_engine(delta: float, rpm: float, torque_nm: float, speed_m_s: float
 	var thermal_damage_cfg: Dictionary = damage_config.get("thermal", {})
 	var min_cooling_factor := float(thermal_damage_cfg.get("minimum_cooling_factor", 0.45))
 	var radiator_cooling_factor := lerpf(1.0, min_cooling_factor, radiator_damage)
-	water_cooling_conductance_w_k = (float(water_duct.get("base_cooling_conductance_watts_per_kelvin", 0.0)) + float(water_flow.conductance)) * radiator_cooling_factor
+	water_cooling_conductance_w_k = (float(water_duct.get("base_cooling_conductance_watts_per_kelvin", 0.0)) + float(water_flow.conductance) * (1.0 - 0.30 * dirt_cooler)) * radiator_cooling_factor
 	oil_cooling_conductance_w_k = float(engine_config.get("oil_sump_cooling_conductance_watts_per_kelvin", 0.0))
 	cooling_drag_force_n = float(water_flow.drag)
 	var engine_omega := maxf(rpm, 0.0) * TAU / 60.0
@@ -680,6 +683,7 @@ func _brake_heat_losses(index: int, temperature_c: float, speed_m_s: float, air_
 	if float(duct.get("opening", 0.0)) > 0.0:
 		var flow := _cooling_duct(duct, 101325.0 / maxf(287.05 * air_k, 1.0), speed_m_s)
 		conductance += float(flow.conductance) * clampf(float(duct.get("rotor_cooling_fraction", 1.0)), 0.0, 1.0)
+	conductance *= 1.0 - 0.5625 * dirt_brakes[index]
 	var view_factor := clampf(float(rotor.get("rotor_radiation_ambient_view_factor", 0.4)), 0.0, 1.0)
 	var radiation := brake_disc_emissivity[index] * 5.670374419e-8 * area * view_factor * (pow(disc_k, 4.0) - pow(air_k, 4.0))
 	# Soak solar del disco: relevante parado o a baja velocidad; con flujo

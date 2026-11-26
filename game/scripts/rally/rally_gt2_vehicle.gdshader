@@ -64,9 +64,12 @@ vec3 psx_quantize_rgb555(vec3 linear_rgb, vec2 frag_xy) {
 	return pow(clamp(vec3(rep) / 255.0, vec3(0.0), vec3(1.0)), vec3(2.2));
 }
 
+#include "res://scripts/rally/rally_dirt.gdshaderinc"
+
 void vertex() {
+	dirt_position = dirt_local_position(VERTEX);
 	vec4 clip = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
-	float psx_dist_fade = smoothstep(0.9, 2.6, max(clip.w, 0.0));
+	float psx_dist_fade = smoothstep(0.25, 1.25, clip.w);
 	if (psx_snap_strength > 0.001) {
 		float eff_snap = psx_snap_strength * psx_dist_fade;
 		vec2 ndc = clip.xy / max(abs(clip.w), 0.0001);
@@ -101,6 +104,8 @@ void vertex() {
 	v_sky_facing = smoothstep(-0.35, 0.30, n_world.y);
 }
 
+varying float dirt_specular;
+
 void fragment() {
 	vec2 persp_uv = UV * uv_scale + uv_offset;
 	vec2 tex_uv = persp_uv;
@@ -132,8 +137,10 @@ void fragment() {
 		refl_add = psx_quantize_rgb555(refl_add, FRAGCOORD.xy);
 	}
 
-	ALBEDO = paint.rgb;
-	EMISSION = refl_add;
+	vec4 dirt = dirt_sample();
+	ALBEDO = mix(paint.rgb, psx_quantize_rgb555(dirt.rgb, FRAGCOORD.xy), dirt.a);
+	EMISSION = refl_add * (1.0 - dirt.a);
+	dirt_specular = 1.0 - dirt.a;
 }
 
 void light() {
@@ -148,7 +155,7 @@ void light() {
 	// Crisp GT2 solar clearcoat highlight
 	if (spec_strength > 0.001 && ndl > 0.0) {
 		vec3 half_vec = normalize(LIGHT + VIEW);
-		float spec = pow(max(dot(NORMAL, half_vec), 0.0), spec_shininess) * spec_strength;
+		float spec = pow(max(dot(NORMAL, half_vec), 0.0), spec_shininess) * spec_strength * dirt_specular;
 		SPECULAR_LIGHT += spec * reach * LIGHT_COLOR;
 	}
 }
