@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "vehicle_identifier": "rt-lancia-stratos",
+  "banded_paint": {
+    "use_banded_body_paint": true,
+    "body_paint_downward_normal": 0.62,
+    "body_paint_height_range": [0.26, 0.90],
+    "body_paint_end_drop": [0.18, 0.10],
+    "body_paint_nose_z_range": [0.45, 1.82],
+    "body_paint_tail_z_range": [0.72, 1.68]
+  },
+  "reflections": {
+    "enable_vehicle_reflections": true,
+    "paint_spec_strength": 0.56,
+    "paint_spec_threshold": 0.88,
+    "paint_spec_color": [1.0, 0.97, 0.90],
+    "paint_env_strength": 0.40,
+    "paint_env_mask_threshold": 0.30,
+    "use_glass_reflection": true
+  },
+  "louver": {
+    "shader_id": "vehicle.louver",
+    "louver_slat_edges_z": [0.793, 0.912, 1.020, 1.131],
+    "louver_start_z": 0.675,
+    "louver_half_width": 0.516,
+    "louver_fill_color": [0.015, 0.017, 0.019]
+  },
+  "vfx_exclusion": {
+    "body_exclusion_center": [0.0, 0.865, 0.0],
+    "body_exclusion_half_extents": [0.74, 0.585, 1.85],
+    "body_exclusion_cull_bounds": [0.95, 0.80, 2.10]
+  }
+}
