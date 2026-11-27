@@ -421,8 +421,8 @@ fn contact_response_impl(
         .max(0.18 * smoothstep(4.0, 14.0, abs_speed));
     let risk = speed_risk * depth_norm;
 
-    let support_long = 1.0 - risk * lerpf(0.80, 0.55, wet_factor);
-    let support_lat = 1.0 - risk * lerpf(0.94, 0.75, wet_factor);
+    let support_long = 1.0 - risk * lerpf(0.64, 0.44, wet_factor);
+    let support_lat = 1.0 - risk * lerpf(0.752, 0.60, wet_factor);
     let support = support_long.min(support_lat);
 
     let continuous_drag = (150.0 * abs_speed + 2750.0 * abs_speed * abs_speed)

@@ -1049,7 +1049,8 @@ func apply_fixed_snapshot_fills() -> bool:
 		"compute_puddle_fills", _cand_distances, _cand_twis, _cand_min_waters, _cand_retentions
 	)
 	var count := patches.size()
-	var localized_snow := str(provider.get("stage_id")) == "cdi_stage1"
+	# Localized snow patches (winter_kind = 1) are disabled; puddles stay liquid-only (winter_kind = 0).
+	var localized_snow := false
 	has_winter_patches = false
 	if _rust_fills.size() != count:
 		_rust_fills.resize(count)
@@ -1528,8 +1529,8 @@ static func contact_response(
 	var risk := speed_risk * depth_norm
 
 	# Differentiated aquaplaning support: lateral cornering grip drops faster than longitudinal braking
-	var support_long := 1.0 - risk * lerpf(0.80, 0.55, wet_factor)
-	var support_lat := 1.0 - risk * lerpf(0.94, 0.75, wet_factor)
+	var support_long := 1.0 - risk * lerpf(0.64, 0.44, wet_factor)
+	var support_lat := 1.0 - risk * lerpf(0.752, 0.60, wet_factor)
 	var support := minf(support_long, support_lat)
 
 	# Continuous hydrodynamic displacement drag + viscous shearing (+25% force scale)

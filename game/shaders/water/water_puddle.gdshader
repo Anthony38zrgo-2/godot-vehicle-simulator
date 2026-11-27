@@ -31,7 +31,7 @@ uniform vec3 tint_a = vec3(1.0);
 uniform vec3 tint_b = vec3(1.0);
 uniform vec3 tint_c = vec3(1.0);
 uniform vec3 horizon_color : source_color = vec3(0.25);
-uniform vec4 sky_tint : source_color = vec4(0.46, 0.52, 0.58, 1.0);
+uniform vec4 sky_tint : source_color = vec4(0.56, 0.82, 0.96, 1.0);
 uniform vec3 sun_dir = vec3(0.0, 0.7, 0.7);
 uniform vec3 sun_color = vec3(1.0, 0.95, 0.85);
 
@@ -47,8 +47,8 @@ uniform float rain = 0.0;
 uniform vec2 wind_vec = vec2(1.2, 0.4);
 uniform float edge_softness = 0.18;
 uniform float turbidity_rate = 0.065;
-uniform vec4 shallow_color : source_color = vec4(0.030, 0.065, 0.105, 0.22);
-uniform vec4 deep_color : source_color = vec4(0.008, 0.022, 0.048, 0.88);
+uniform vec4 shallow_color : source_color = vec4(0.46, 0.78, 0.94, 0.38);
+uniform vec4 deep_color : source_color = vec4(0.14, 0.36, 0.56, 0.90);
 
 void vertex() {
 	patch_uv = VERTEX.xz / max(patch_size, vec2(0.1));
@@ -177,17 +177,19 @@ void fragment() {
 
 		vec3 soil_albedo = vec3(0.018, 0.018, 0.019) * cavity_occlusion;
 		vec3 base_puddle = mix(shallow_color.rgb, deep_color.rgb, turbidity) * cavity_occlusion;
-		base_puddle = mix(soil_albedo, base_puddle, shore_depth);
-		vec3 highlight = base_puddle * 1.45;
+		float edge_color_mix = smoothstep(0.0, 2.5, real_depth_mm);
+		base_puddle = mix(soil_albedo, base_puddle, edge_color_mix);
+		vec3 sky_refl = mix(sky, mix(shallow_color.rgb, deep_color.rgb, turbidity * 0.5), 0.35);
+		vec3 highlight = base_puddle * 1.25;
 		if (enable_water_reflections) {
-			highlight = mix(highlight + sky * 0.28, sky * 0.74, 0.52);
+			highlight = mix(highlight + sky_refl * 0.24, sky_refl * 0.78, 0.45);
 		}
-		vec3 water_color = mix(base_puddle * 0.82, highlight, pattern * detail_k * shore_depth);
-		vec3 water_albedo = enable_water_reflections ? mix(water_color, sky * 0.96, schlick_fresnel) : water_color;
+		vec3 water_color = mix(base_puddle * 0.92, highlight, pattern * detail_k * shore_depth);
+		vec3 water_albedo = enable_water_reflections ? mix(water_color, sky_refl * 0.95, schlick_fresnel * 0.68) : water_color;
 
 		ALBEDO = mix(soil_albedo, water_albedo, water_body);
 		if (enable_water_reflections) {
-			EMISSION = (sky * (0.14 * pattern * detail_k * shore_depth + 0.66 * schlick_fresnel) + sky * (meniscus_glint * 0.24)) * water_body;
+			EMISSION = (sky_refl * (0.12 * pattern * detail_k * shore_depth + 0.48 * schlick_fresnel) + sky_refl * (meniscus_glint * 0.24)) * water_body;
 		}
 
 		ROUGHNESS = mix(0.42, enable_water_reflections ? 0.02 + 0.08 * (1.0 - shore_depth) : 0.62, water_body);
@@ -195,8 +197,8 @@ void fragment() {
 		SPECULAR = enable_water_reflections ? mix(0.20, 0.98, water_body * (0.45 + 0.55 * shore_mirror)) : 0.0;
 
 		float soil_alpha = wet_soil * (1.0 - water_body * 0.85) * 0.18 * smoothstep(0.0, 0.12, fill);
-		float vertical_water_alpha = mix(0.14, 0.48, turbidity_alpha);
-		float base_water_alpha = enable_water_reflections ? clamp(mix(vertical_water_alpha, 0.82, schlick_fresnel * 0.88), 0.12, 0.82) : vertical_water_alpha;
+		float vertical_water_alpha = mix(0.32, 0.72, turbidity_alpha);
+		float base_water_alpha = enable_water_reflections ? clamp(mix(vertical_water_alpha, 0.86, schlick_fresnel * 0.85), 0.24, 0.86) : vertical_water_alpha;
 		float water_alpha = base_water_alpha * water_body * pow(clamp(water_mask * 1.45, 0.0, 1.0), 0.78);
 		ALPHA = max(soil_alpha, water_alpha);
 	}
