@@ -1,0 +1,107 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/main_menu/car_select_view.gd" id="1"]
+
+[node name="CarSelectView" type="VBoxContainer"]
+visible = false
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+script = ExtResource("1")
+
+[node name="CarHeader" type="HBoxContainer" parent="."]
+visible = false
+
+[node name="CarTitle" type="Label" parent="CarHeader"]
+text = "Select Car"
+
+[node name="CarSubtitle" type="Label" parent="CarHeader"]
+text = "   · Selección de vehículo y especificaciones de homologación"
+
+[node name="MainSplit" type="HBoxContainer" parent="."]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 28
+
+[node name="ListColumn" type="VBoxContainer" parent="MainSplit"]
+custom_minimum_size = Vector2(280, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CarScroll" type="ScrollContainer" parent="MainSplit/ListColumn"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="CarsMargin" type="MarginContainer" parent="MainSplit/ListColumn/CarScroll"]
+size_flags_horizontal = 3
+
+[node name="CarsVBox" type="VBoxContainer" parent="MainSplit/ListColumn/CarScroll/CarsMargin"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="RightColumn" type="VBoxContainer" parent="MainSplit"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TitleBar" type="HBoxContainer" parent="MainSplit/RightColumn"]
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="BalanceSpacer" type="Control" parent="MainSplit/RightColumn/TitleBar"]
+custom_minimum_size = Vector2(54, 0)
+mouse_filter = 2
+
+[node name="TitleVBox" type="VBoxContainer" parent="MainSplit/RightColumn/TitleBar"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="PreviewTitle" type="Label" parent="MainSplit/RightColumn/TitleBar/TitleVBox"]
+size_flags_horizontal = 3
+text = "---"
+horizontal_alignment = 1
+
+[node name="PreviewCategory" type="Label" parent="MainSplit/RightColumn/TitleBar/TitleVBox"]
+visible = false
+text = "HISTORIC RALLY SPECIFICATION"
+
+[node name="LayoutBadgeBox" type="PanelContainer" parent="MainSplit/RightColumn/TitleBar"]
+custom_minimum_size = Vector2(54, 30)
+
+[node name="LayoutBadge" type="Label" parent="MainSplit/RightColumn/TitleBar/LayoutBadgeBox"]
+text = "FR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShowroomSpacer" type="Control" parent="MainSplit/RightColumn"]
+size_flags_vertical = 3
+
+[node name="LiveryPanel" type="PanelContainer" parent="MainSplit/RightColumn"]
+size_flags_horizontal = 3
+
+[node name="LiveryVBox" type="VBoxContainer" parent="MainSplit/RightColumn/LiveryPanel"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 7
+
+[node name="LiveryHeader" type="HBoxContainer" parent="MainSplit/RightColumn/LiveryPanel/LiveryVBox"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="SpecsPanel" type="PanelContainer" parent="MainSplit/RightColumn"]
+size_flags_horizontal = 3
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(140, 42)
+text = "◀ Volver"
+
+[node name="Spacer" type="Control" parent="BottomBar"]
+size_flags_horizontal = 3
+
+[node name="ConfirmButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(264, 44)
+text = "Seleccionar y Conducir ▶"

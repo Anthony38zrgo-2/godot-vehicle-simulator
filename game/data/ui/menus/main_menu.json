@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "title": "Rally Maniac",
+  "subtitle": "HISTORIC RALLY SIMULATION",
+  "creator_name": "DoomerDoge38",
+  "game_version": "1.0",
+  "actions": [
+    {"id": "championship", "label": "Campeonato", "mode": "championship", "tone": "gold"},
+    {"id": "rally", "label": "Rally", "mode": "rally", "tone": "chrome"},
+    {"id": "single_stage", "label": "Tramo Único", "mode": "single_stage", "tone": "chrome"},
+    {"id": "cdi", "label": "Caminos del Inca", "mode": "cdi", "tone": "accent"},
+    {"id": "exit", "label": "Salir", "mode": "exit", "tone": "danger"}
+  ]
+}

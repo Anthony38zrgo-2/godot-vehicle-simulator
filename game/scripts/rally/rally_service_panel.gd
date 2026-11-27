@@ -1,40 +1,19 @@
 extends CanvasLayer
 signal confirmed
 
-const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
-const FONT_REGULAR: Font = RallyUITheme.FONT_REGULAR
-const FONT_DATA: Font = RallyUITheme.FONT_DATA
-const FONT_DATA_BOLD: Font = RallyUITheme.FONT_DATA_BOLD
+const _Tokens := preload("res://scripts/ui/core/ui_token_registry.gd")
+const _Theme := preload("res://scripts/ui/core/ui_theme_builder.gd")
+const _Calc := preload("res://scripts/ui/services/service_repair_calculator.gd")
+const _Catalog := preload("res://scripts/ui/services/menu_catalog_service.gd")
+const _MeterScript := preload("res://ui/atoms/ui_progress_meter.gd")
+
 const BG_IMAGE_PATHS: Array[String] = [
 	"res://assets/rally/garage/service_repairs_bg.jpg",
 	"res://assets/rally/garage/service_repairs_bg_2.jpg"
 ]
 
-const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
-const WB_BG_CONTENT := RallyUITheme.WB_BG_CONTENT
-const WB_BG_CARD := RallyUITheme.WB_BG_CARD
-const WB_BG_WELL := RallyUITheme.WB_BG_WELL
-const WB_BORDER_SUBTLE := RallyUITheme.BORDER_CARD
-const WB_BORDER_FOCUS := RallyUITheme.BORDER_FOCUS
-const WB_TEXT_TITLE := RallyUITheme.TEXT_PRIMARY
-const WB_TEXT_LABEL := RallyUITheme.TEXT_MUTED
-const WB_TEXT_DATA := RallyUITheme.TEXT_WHITE
-const ACCENT_RALLY := RallyUITheme.ACCENT_RALLY
-const STATUS_DANGER := RallyUITheme.STATUS_DANGER
-const STATUS_SUCCESS := RallyUITheme.STATUS_SUCCESS
-const C_BLUE := RallyUITheme.STATUS_INFO
-
-const PARTS := {
-	"engine": ["Motor", 45.0],
-	"radiator": ["Radiador", 20.0],
-	"transmission": ["Transmisión", 35.0],
-	"body": ["Carrocería", 15.0],
-	"hood": ["Capó", 8.0],
-	"trunk": ["Maletero", 8.0],
-	"windshield": ["Parabrisas", 10.0],
-	"headlight_left": ["Faro izquierdo", 5.0],
-	"headlight_right": ["Faro derecho", 5.0]
-}
+var PARTS: Dictionary = {}
+var WASH_MINUTES: int = 5
 var vehicle
 var manager
 var rows: Array[Dictionary] = []
@@ -42,7 +21,6 @@ var tire_actions: Array[Dictionary] = []
 var summary: Label
 var time_bar: ProgressBar
 var commit: Button
-const WASH_MINUTES := 5
 var wash_box: CheckBox
 var save_error := ""
 var limit_minutes := 30.0
@@ -50,6 +28,12 @@ var penalty_per_minute := 10
 var window_key := ""
 var cost_inflate := 2
 var cost_rim := 5
+
+
+func _init() -> void:
+	PARTS = _Calc.get_parts_dict()
+	WASH_MINUTES = int(_Catalog.get_service_parts().get("wash_minutes", 5))
+
 
 func _load_bg_texture() -> Texture2D:
 	if BG_IMAGE_PATHS.is_empty():
@@ -67,12 +51,11 @@ func _load_bg_texture() -> Texture2D:
 			return ImageTexture.create_from_image(img)
 	return null
 
+
 func _service_costs(window: Dictionary) -> Dictionary:
-	# Prioridad: ventana JSON > tire_rules del evento > valores del plan (2/5/1).
-	var costs: Dictionary = (window.get("service_costs", {}) as Dictionary).duplicate()
-	if costs.is_empty() and manager != null and (manager as RallyEventManager).event_doc.has("tire_rules"):
-		costs = (((manager as RallyEventManager).event_doc.get("tire_rules", {}) as Dictionary).get("service_costs", {}) as Dictionary).duplicate()
-	return {"inflate": int(costs.get("inflate", 2)), "rim": int(costs.get("rim", 5)), "wheel_change": int(costs.get("wheel_change", 1))}
+	var event_doc: Dictionary = (manager as RallyEventManager).event_doc if manager != null else {}
+	return _Calc.resolve_service_costs(window, event_doc)
+
 
 func open(car, event_manager, window: Dictionary) -> void:
 	var music := get_node_or_null("/root/RallyMusic")
@@ -93,6 +76,15 @@ func open(car, event_manager, window: Dictionary) -> void:
 	layer = 110
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	var c_content := _Tokens.get_color("bg_content")
+	var c_border := _Tokens.get_color("border_card")
+	var c_text := _Tokens.get_color("text_primary")
+	var c_muted := _Tokens.get_color("text_muted")
+	var c_accent := _Tokens.get_color("accent_rally")
+	var c_info := _Tokens.get_color("status_info")
+	var c_success := _Tokens.get_color("status_success")
+	var r := _Tokens.get_radius("default")
+
 	var bg_rect := TextureRect.new()
 	bg_rect.name = "BackgroundImage"
 	bg_rect.texture = _load_bg_texture()
@@ -108,14 +100,13 @@ func open(car, event_manager, window: Dictionary) -> void:
 	add_child(shade)
 
 	var modal_card := PanelContainer.new()
-	modal_card.theme = RallyUITheme.build_menu_theme()
+	modal_card.theme = _Theme.get_menu_theme()
 	modal_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	modal_card.offset_left = 60
 	modal_card.offset_right = -60
 	modal_card.offset_top = 32
 	modal_card.offset_bottom = -32
-	var card_sb := RallyUITheme.make_flat_panel(Color(WB_BG_CONTENT, 0.94), WB_BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 24, 20)
-	modal_card.add_theme_stylebox_override("panel", card_sb)
+	modal_card.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(Color(c_content, 0.94), c_border, 1, r, 24, 20))
 	shade.add_child(modal_card)
 
 	var panel := VBoxContainer.new()
@@ -127,32 +118,34 @@ func open(car, event_manager, window: Dictionary) -> void:
 	panel.add_child(header)
 	var title := Label.new()
 	title.text = "ÁREA DE SERVICIO · REPARACIONES"
-	title.add_theme_font_override("font", FONT_TITLE)
+	title.add_theme_font_override("font", _Tokens.get_font("title"))
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", WB_TEXT_TITLE)
+	title.add_theme_color_override("font_color", c_text)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	var weather_label := Label.new()
 	weather_label.text = _weather_text()
-	weather_label.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+	weather_label.add_theme_font_override("font", _Tokens.get_font("medium"))
 	weather_label.add_theme_font_size_override("font_size", 11)
-	weather_label.add_theme_color_override("font_color", C_BLUE)
+	weather_label.add_theme_color_override("font_color", c_info)
 	header.add_child(weather_label)
 
 	var hint := Label.new()
 	hint.text = "Marca las piezas a reparar. Pinchazo %d min · Rin %d min · Destalonado irreparable.\nExceso: %d s de penalización por minuto iniciado." % [cost_inflate, cost_rim, penalty_per_minute]
-	hint.add_theme_font_override("font", FONT_REGULAR)
+	hint.add_theme_font_override("font", _Tokens.get_font("regular"))
 	hint.add_theme_font_size_override("font_size", 10)
-	hint.add_theme_color_override("font_color", WB_TEXT_LABEL)
+	hint.add_theme_color_override("font_color", c_muted)
 	panel.add_child(hint)
 
-	# Barra gráfica de presupuesto (plan §5).
-	time_bar = ProgressBar.new()
+	var time_meter := _MeterScript.new()
+	time_meter.title_label.hide()
+	time_meter.value_label.hide()
+	time_bar = time_meter.progress_bar
 	time_bar.max_value = maxf(limit_minutes, 1.0)
 	time_bar.value = 0
 	time_bar.show_percentage = false
 	time_bar.custom_minimum_size = Vector2(0, 12)
-	panel.add_child(time_bar)
+	panel.add_child(time_meter)
 
 	var hsplit := HBoxContainer.new()
 	hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -164,9 +157,9 @@ func open(car, event_manager, window: Dictionary) -> void:
 	tire_box.add_theme_constant_override("separation", 6)
 	var tire_title := Label.new()
 	tire_title.text = "RUEDAS Y NEUMÁTICOS"
-	tire_title.add_theme_font_override("font", RallyUITheme.FONT_SUBTITLE)
+	tire_title.add_theme_font_override("font", _Tokens.get_font("subtitle"))
 	tire_title.add_theme_font_size_override("font_size", 16)
-	tire_title.add_theme_color_override("font_color", ACCENT_RALLY)
+	tire_title.add_theme_color_override("font_color", c_accent)
 	tire_box.add_child(tire_title)
 	var tire_scroll := ScrollContainer.new()
 	tire_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -183,9 +176,9 @@ func open(car, event_manager, window: Dictionary) -> void:
 	mech_box.add_theme_constant_override("separation", 6)
 	var mech_title := Label.new()
 	mech_title.text = "MECÁNICA Y CARROCERÍA"
-	mech_title.add_theme_font_override("font", RallyUITheme.FONT_SUBTITLE)
+	mech_title.add_theme_font_override("font", _Tokens.get_font("subtitle"))
 	mech_title.add_theme_font_size_override("font_size", 16)
-	mech_title.add_theme_color_override("font_color", ACCENT_RALLY)
+	mech_title.add_theme_color_override("font_color", c_accent)
 	mech_box.add_child(mech_title)
 	var mech_scroll := ScrollContainer.new()
 	mech_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -213,19 +206,19 @@ func open(car, event_manager, window: Dictionary) -> void:
 	if rows.is_empty() and tire_actions.is_empty() and wash_box == null:
 		var healthy := Label.new()
 		healthy.text = "No hay componentes que necesiten reparación."
-		healthy.add_theme_font_override("font", FONT_REGULAR)
+		healthy.add_theme_font_override("font", _Tokens.get_font("regular"))
 		healthy.add_theme_font_size_override("font_size", 11)
-		healthy.add_theme_color_override("font_color", STATUS_SUCCESS)
+		healthy.add_theme_color_override("font_color", c_success)
 		mech_list.add_child(healthy)
 
 	summary = Label.new()
-	summary.add_theme_font_override("font", RallyUITheme.FONT_DATA_BOLD_TIGHT)
+	summary.add_theme_font_override("font", _Tokens.get_font("data_bold_tight"))
 	summary.add_theme_font_size_override("font_size", 12)
 	panel.add_child(summary)
 
 	commit = Button.new()
 	commit.text = "CONFIRMAR REPARACIONES Y CONTINUAR"
-	RallyUITheme.style_gold_button(commit, 16, 20, 10)
+	_Theme.apply_tone_button(commit, "gold", 16, 20, 10)
 	commit.pressed.connect(_commit)
 	panel.add_child(commit)
 
@@ -236,6 +229,7 @@ func open(car, event_manager, window: Dictionary) -> void:
 		(rows[0].box as CheckBox).grab_focus()
 	else:
 		commit.grab_focus()
+
 
 func _weather_text() -> String:
 	if manager == null or (manager as RallyEventManager).weather_schedule.is_empty():
@@ -254,6 +248,7 @@ func _weather_text() -> String:
 		nxt = "%s %s %0.0f°C" % [str(nw2.get("icon", "")), str(nw2.get("name", "")), float(nw2.get("temp_c", 15.0))]
 	return "ACTUAL: %s  |  SIGUIENTE: %s" % [cur, nxt]
 
+
 func _build_tire_repairs(list: VBoxContainer) -> void:
 	if vehicle == null or vehicle.tire_inventory == null:
 		return
@@ -261,15 +256,12 @@ func _build_tire_repairs(list: VBoxContainer) -> void:
 	var inv: RallyTireInventory = vehicle.tire_inventory
 	var wheel_names := ["DELANTERA IZQ (FL)", "DELANTERA DER (FR)", "TRASERA IZQ (RL)", "TRASERA DER (RR)"]
 	for i in mini(inv.mounted.size(), 4):
-		var tire: Dictionary = inv.mounted[i]
-		_add_tire_row(list, wheel_names[i], tire)
+		_add_tire_row(list, wheel_names[i], inv.mounted[i])
 	for i in inv.spares.size():
-		var tire: Dictionary = inv.spares[i]
-		_add_tire_row(list, "MALETERA #%d" % (i + 1), tire)
-	# Permitir reparar también las ruedas del parque (pinchazo o rin) antes de montarlas en garaje.
+		_add_tire_row(list, "MALETERA #%d" % (i + 1), inv.spares[i])
 	for i in inv.service_stock.size():
-		var tire: Dictionary = inv.service_stock[i]
-		_add_tire_row(list, "PARQUE #%d" % (i + 1), tire)
+		_add_tire_row(list, "PARQUE #%d" % (i + 1), inv.service_stock[i])
+
 
 func _tire_status(inv: RallyTireInventory, tire: Dictionary) -> String:
 	if inv.is_carcass_destroyed(tire):
@@ -282,6 +274,7 @@ func _tire_status(inv: RallyTireInventory, tire: Dictionary) -> String:
 		return "RIN DAÑADO"
 	return "OK"
 
+
 func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) -> void:
 	var inv: RallyTireInventory = vehicle.tire_inventory
 	var tire_id := int(tire.get("id", 0))
@@ -293,41 +286,41 @@ func _add_tire_row(list: VBoxContainer, slot_label: String, tire: Dictionary) ->
 	var is_punc := inv.is_punctured(tire)
 	var is_rim := inv.is_rim_damaged(tire)
 	var row_box := PanelContainer.new()
-	var rsb := RallyUITheme.make_flat_panel(RallyUITheme.BG_WELL, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 10, 8)
-	row_box.add_theme_stylebox_override("panel", rsb)
+	row_box.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(_Tokens.get_color("bg_well"), _Tokens.get_color("border_subtle"), 1, _Tokens.get_radius("default"), 10, 8))
 	list.add_child(row_box)
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	row_box.add_child(hbox)
 	var info := Label.new()
 	info.text = "🛞 %s (#%d · %s)\nDesgaste: %0.0f%% | %s" % [slot_label, tire_id, cid.to_upper(), wear, status]
-	info.add_theme_font_override("font", FONT_REGULAR)
+	info.add_theme_font_override("font", _Tokens.get_font("regular"))
 	info.add_theme_font_size_override("font_size", 10)
-	info.add_theme_color_override("font_color", STATUS_DANGER if status != "OK" else WB_TEXT_TITLE)
+	info.add_theme_color_override("font_color", _Tokens.get_color("status_danger") if status != "OK" else _Tokens.get_color("text_primary"))
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(info)
 	if is_dest:
 		var dest_lbl := Label.new()
 		dest_lbl.text = "NO REPARABLE"
-		dest_lbl.add_theme_color_override("font_color", STATUS_DANGER)
-		dest_lbl.add_theme_font_override("font", RallyUITheme.FONT_DATA_BOLD_TIGHT)
+		dest_lbl.add_theme_color_override("font_color", _Tokens.get_color("status_danger"))
+		dest_lbl.add_theme_font_override("font", _Tokens.get_font("data_bold_tight"))
 		dest_lbl.add_theme_font_size_override("font_size", 9)
 		hbox.add_child(dest_lbl)
 		return
 	if is_punc:
 		var cb := _make_repair_checkbox()
 		cb.text = "Inflar (%d min)" % cost_inflate
-		cb.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+		cb.add_theme_font_override("font", _Tokens.get_font("medium"))
 		cb.add_theme_font_size_override("font_size", 10)
 		hbox.add_child(cb)
 		tire_actions.append({"kind": "inflate", "tire_id": tire_id, "minutes": cost_inflate, "box": cb})
 	if is_rim:
 		var cb2 := _make_repair_checkbox()
 		cb2.text = "Rin (%d min)" % cost_rim
-		cb2.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+		cb2.add_theme_font_override("font", _Tokens.get_font("medium"))
 		cb2.add_theme_font_size_override("font_size", 10)
 		hbox.add_child(cb2)
 		tire_actions.append({"kind": "rim", "tire_id": tire_id, "minutes": cost_rim, "box": cb2})
+
 
 func _add_row(list: VBoxContainer, key: String, title: String, damage: float, full_minutes: float) -> void:
 	if damage <= 0.0001:
@@ -335,18 +328,24 @@ func _add_row(list: VBoxContainer, key: String, title: String, damage: float, fu
 	var minutes := maxi(1, ceili(clampf(damage, 0.0, 1.0) * full_minutes))
 	var box := _make_repair_checkbox()
 	box.text = "%s  ·  daño %.1f%%  ·  %d min" % [title, damage * 100.0, minutes]
-	box.add_theme_font_override("font", RallyUITheme.FONT_MEDIUM)
+	box.add_theme_font_override("font", _Tokens.get_font("medium"))
 	box.add_theme_font_size_override("font_size", 11)
-	box.add_theme_color_override("font_color", WB_TEXT_TITLE)
+	box.add_theme_color_override("font_color", _Tokens.get_color("text_primary"))
 	list.add_child(box)
 	rows.append({"key": key, "minutes": minutes, "box": box})
+
 
 func _make_repair_checkbox() -> CheckBox:
 	var box := CheckBox.new()
 	box.set_meta("custom_button_sound", true)
 	box.toggled.connect(func(_on: bool): _refresh())
-	box.pressed.connect(func(): get_node("/root/UIButtonAudio").play_repair_selection())
+	box.pressed.connect(func():
+		var audio := get_node_or_null("/root/UIButtonAudio")
+		if audio != null and audio.has_method("play_repair_selection"):
+			audio.play_repair_selection()
+	)
 	return box
+
 
 func _minutes() -> int:
 	var total := 0
@@ -357,6 +356,7 @@ func _minutes() -> int:
 		if (tact.box as CheckBox).button_pressed:
 			total += int(tact.minutes)
 	return total + (WASH_MINUTES if wash_box != null and wash_box.button_pressed else 0)
+
 
 func _refresh() -> void:
 	if summary == null:
@@ -370,13 +370,17 @@ func _refresh() -> void:
 			total -= WASH_MINUTES
 	var excess := maxi(0, ceili(float(total) - limit_minutes))
 	var remaining := maxi(0, ceili(limit_minutes - float(total)))
+	var penalty_s := _Calc.compute_overtime_penalty_seconds(float(total), limit_minutes, penalty_per_minute)
 	if time_bar != null:
 		time_bar.max_value = maxf(limit_minutes, 1.0)
 		time_bar.value = mini(total, int(limit_minutes))
-	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Restan: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, remaining, excess, excess * penalty_per_minute]
+		if time_bar.has_method("set_fill_color"):
+			time_bar.set_fill_color(_Tokens.get_color("status_danger") if excess > 0 else _Tokens.get_color("accent_rally"))
+	summary.text = "Disponible: %.0f min  ·  Seleccionado: %d min  ·  Restan: %d min  ·  Exceso: %d min  ·  PENALIZACIÓN: +%d s" % [limit_minutes, total, remaining, excess, penalty_s]
 	if not save_error.is_empty():
 		summary.text += "\n" + save_error
-	summary.add_theme_color_override("font_color", STATUS_DANGER if excess > 0 or not save_error.is_empty() else STATUS_SUCCESS)
+	summary.add_theme_color_override("font_color", _Tokens.get_color("status_danger") if excess > 0 or not save_error.is_empty() else _Tokens.get_color("status_success"))
+
 
 func _commit() -> void:
 	if commit.disabled:
@@ -395,7 +399,6 @@ func _commit() -> void:
 		if (row.box as CheckBox).button_pressed:
 			keys.append(str(row.key))
 	vehicle.repair_service_components(keys)
-	# Reparaciones de goma conservando desgaste; destalonado nunca entra aquí.
 	var inv: RallyTireInventory = vehicle.tire_inventory
 	for tact in tire_actions:
 		if (tact.box as CheckBox).button_pressed:
@@ -409,9 +412,9 @@ func _commit() -> void:
 	vehicle.apply_tire_inventory()
 	if washing:
 		vehicle.service_clean_dirt()
-	var excess := maxi(0, ceili(float(_minutes()) - limit_minutes))
+	var penalty_s := _Calc.compute_overtime_penalty_seconds(float(_minutes()), limit_minutes, penalty_per_minute)
 	var stage: String = manager.current_stage_id()
-	manager.service_penalties_ms[stage] = int(manager.service_penalties_ms.get(stage, 0)) + excess * penalty_per_minute * 1000
+	manager.service_penalties_ms[stage] = int(manager.service_penalties_ms.get(stage, 0)) + penalty_s * 1000
 	manager.windows_attended["repairs:" + window_key] = true
 	vehicle.sync_tire_inventory()
 	manager.vehicle_damage_state = vehicle.damage_snapshot()

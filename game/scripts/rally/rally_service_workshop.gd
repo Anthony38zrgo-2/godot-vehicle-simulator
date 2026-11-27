@@ -1,6 +1,8 @@
 extends VBoxContainer
 ## Fixed inspection board. Slots are semantic destinations shared by drag and pad input.
 const Tire3DViewScript := preload("res://scripts/rally/rally_tire_3d_view.gd")
+const _Tokens := preload("res://scripts/ui/core/ui_token_registry.gd")
+const _Theme := preload("res://scripts/ui/core/ui_theme_builder.gd")
 const WHEELS := Tire3DViewScript.WHEELS
 const NAMES := ["DEL. IZQUIERDA", "DEL. DERECHA", "TRAS. IZQUIERDA", "TRAS. DERECHA", "RADIADOR", "MALETERA 1", "MALETERA 2"]
 var host: CanvasLayer
@@ -178,7 +180,7 @@ func _tool_view(paint: Color) -> SubViewportContainer:
 			var source := mesh_node.get_active_material(surface) as StandardMaterial3D
 			if source == null: continue
 			var material := ShaderMaterial.new()
-			material.shader = preload("res://assets/rally/service/toolbox/toolbox_tint.gdshader")
+			material.shader = preload("res://shaders/props/service_tint.gdshader")
 			material.set_shader_parameter("source_color_texture", source.albedo_texture)
 			material.set_shader_parameter("paint", paint)
 			mesh_node.set_surface_override_material(surface, material)
@@ -231,21 +233,17 @@ func _slot(index: int, title: String, point: Vector2) -> Button:
 	b.text = title
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.add_theme_font_override("font", RallyUITheme.FONT_BUTTON)
+	b.add_theme_font_override("font", _Tokens.get_font("button"))
 	b.add_theme_font_size_override("font_size", 13)
-	b.add_theme_color_override("font_color", RallyUITheme.TEXT_PRIMARY)
-	b.add_theme_color_override("font_hover_color", RallyUITheme.TEXT_WHITE)
-	b.add_theme_color_override("font_focus_color", RallyUITheme.TEXT_WHITE)
-	var style := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_CARD, 0.92), RallyUITheme.BORDER_CARD, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
-	var style_hover := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_HOVER, 0.96), RallyUITheme.BORDER_HOVER, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
-	var style_focus := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_ELEVATED, 0.98), RallyUITheme.BORDER_FOCUS, 2, RallyUITheme.CORNER_RADIUS, 8, 8)
-	var style_pressed := RallyUITheme.make_flat_panel(Color("#2a2010", 0.96), RallyUITheme.ACCENT_RALLY, 2, RallyUITheme.CORNER_RADIUS, 8, 8)
-	var style_disabled := RallyUITheme.make_flat_panel(Color(RallyUITheme.BG_SURFACE, 0.45), RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS, 8, 8)
-	b.add_theme_stylebox_override("normal", style)
-	b.add_theme_stylebox_override("hover", style_hover)
-	b.add_theme_stylebox_override("focus", style_focus)
-	b.add_theme_stylebox_override("pressed", style_pressed)
-	b.add_theme_stylebox_override("disabled", style_disabled)
+	b.add_theme_color_override("font_color", _Tokens.get_color("text_primary"))
+	b.add_theme_color_override("font_hover_color", _Tokens.get_color("text_white"))
+	b.add_theme_color_override("font_focus_color", _Tokens.get_color("text_white"))
+	var r := _Tokens.get_radius("default")
+	b.add_theme_stylebox_override("normal", _Tokens.get_flat_stylebox(Color(_Tokens.get_color("bg_card"), 0.92), _Tokens.get_color("border_card"), 1, r, 8, 8))
+	b.add_theme_stylebox_override("hover", _Tokens.get_flat_stylebox(Color(_Tokens.get_color("bg_hover"), 0.96), _Tokens.get_color("border_hover"), 1, r, 8, 8))
+	b.add_theme_stylebox_override("focus", _Tokens.get_flat_stylebox(Color(_Tokens.get_color("bg_elevated"), 0.98), _Tokens.get_color("border_focus"), 2, r, 8, 8))
+	b.add_theme_stylebox_override("pressed", _Tokens.get_flat_stylebox(Color("#2a2010", 0.96), _Tokens.get_color("accent_rally"), 2, r, 8, 8))
+	b.add_theme_stylebox_override("disabled", _Tokens.get_flat_stylebox(Color(_Tokens.get_color("bg_surface"), 0.45), _Tokens.get_color("border_subtle"), 1, r, 8, 8))
 	_place(b,point.x,point.y,Vector2(146,160))
 	if category == "wheels" and index != 9:
 		b.text = ""

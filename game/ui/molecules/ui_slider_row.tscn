@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_slider_row.gd" id="1_slider"]
+
+[node name="UISliderRow" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_slider")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ParamLabel" type="Label" parent="Row"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MinusButton" type="Button" parent="Row"]
+custom_minimum_size = Vector2(30, 26)
+layout_mode = 2
+text = "-"
+
+[node name="Slider" type="HSlider" parent="Row"]
+custom_minimum_size = Vector2(140, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="PlusButton" type="Button" parent="Row"]
+custom_minimum_size = Vector2(30, 26)
+layout_mode = 2
+text = "+"
+
+[node name="ValueLabel" type="Label" parent="Row"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+horizontal_alignment = 2

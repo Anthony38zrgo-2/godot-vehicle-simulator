@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_tab_bar.gd" id="1_tabs"]
+
+[node name="UITabBar" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_tabs")
+
+[node name="TabsRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6

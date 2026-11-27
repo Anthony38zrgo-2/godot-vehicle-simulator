@@ -3,47 +3,13 @@ extends CanvasLayer
 ## Registrado como Autoload (RallyLoadingOverlay) para cubrir tanto transiciones
 ## de escena (menú -> tramo) como cargas de geometría entre tramos.
 
-const BLUR_SHADER_CODE := """
-shader_type canvas_item;
-
-uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear_mipmap;
-uniform float blur_lod : hint_range(0.0, 5.0) = 3.2;
-uniform vec4 tint_color : source_color = vec4(0.03, 0.05, 0.08, 0.58);
-
-void fragment() {
-	vec4 bg = textureLod(screen_tex, SCREEN_UV, blur_lod);
-	COLOR = mix(bg, vec4(tint_color.rgb, 1.0), tint_color.a);
-}
-"""
-
-
-class _SpinnerControl extends Control:
-	var angle: float = 0.0
-	var active: bool = false
-
-	func _init() -> void:
-		custom_minimum_size = Vector2(56.0, 56.0)
-		size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _process(delta: float) -> void:
-		if not active:
-			return
-		angle = fmod(angle + delta * 5.2, TAU)
-		queue_redraw()
-
-	func _draw() -> void:
-		var center := size * 0.5
-		var radius := minf(size.x, size.y) * 0.5 - 5.0
-		if radius <= 2.0:
-			return
-		draw_arc(center, radius, 0.0, TAU, 40, Color(1.0, 1.0, 1.0, 0.16), 4.0, true)
-		draw_arc(center, radius, angle, angle + TAU * 0.28, 28, RallyUITheme.ACCENT_RALLY, 4.5, true)
-
+const ShaderMaterialFactory := preload("res://scripts/shaders/shader_material_factory.gd")
+const UISpinnerScript := preload("res://ui/atoms/ui_spinner.gd")
+const UIThemeBuilder := preload("res://scripts/ui/core/ui_theme_builder.gd")
 
 var _root: Control
 var _blur_rect: ColorRect
-var _spinner: _SpinnerControl
+var _spinner: Control
 var _label: Label
 var _is_showing: bool = false
 
@@ -64,10 +30,7 @@ func _ready() -> void:
 	_blur_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_blur_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_blur_rect.color = Color.WHITE
-	var shader := Shader.new()
-	shader.code = BLUR_SHADER_CODE
-	var mat := ShaderMaterial.new()
-	mat.shader = shader
+	var mat := ShaderMaterialFactory.create_from_preset("ui.loading_blur.default", {}, false)
 	_blur_rect.material = mat
 	_root.add_child(_blur_rect)
 
@@ -82,16 +45,20 @@ func _ready() -> void:
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(vbox)
 
-	_spinner = _SpinnerControl.new()
+	_spinner = UISpinnerScript.new()
+	_spinner.radius = 23.0
+	_spinner.stroke_width = 4.2
+	_spinner.spin_speed = 5.2
+	_spinner.custom_minimum_size = Vector2(56.0, 56.0)
+	_spinner.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_spinner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(_spinner)
 
 	_label = Label.new()
 	_label.text = "Loading..."
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_label.add_theme_font_override("font", RallyUITheme.FONT_SUBTITLE)
-	_label.add_theme_font_size_override("font_size", 18)
-	_label.add_theme_color_override("font_color", RallyUITheme.TEXT_PRIMARY)
+	UIThemeBuilder.apply_label(_label, "primary", 18, false, true)
 	vbox.add_child(_label)
 
 
@@ -101,15 +68,12 @@ func show_loading(text: String = "Loading...") -> void:
 	_is_showing = true
 	visible = true
 	if _spinner != null:
-		_spinner.active = true
 		_spinner.queue_redraw()
 
 
 func hide_loading() -> void:
 	_is_showing = false
 	visible = false
-	if _spinner != null:
-		_spinner.active = false
 
 
 func is_loading_visible() -> bool:

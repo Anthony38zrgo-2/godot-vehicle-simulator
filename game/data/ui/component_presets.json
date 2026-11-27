@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "description": "Data-Driven UI component presets supporting 'extends' inheritance.",
+  "presets": {
+    "button.base": {
+      "tone": "chrome",
+      "font": "button",
+      "font_size": 14,
+      "pad_h": 14,
+      "pad_v": 8,
+      "corner_r": 2
+    },
+    "button.primary_cta": {
+      "extends": "button.base",
+      "tone": "gold",
+      "font_size": 16,
+      "pad_h": 22,
+      "pad_v": 10
+    },
+    "button.secondary_chrome": {
+      "extends": "button.base",
+      "tone": "chrome",
+      "font_size": 13,
+      "pad_h": 14,
+      "pad_v": 8
+    },
+    "button.danger": {
+      "extends": "button.base",
+      "tone": "danger",
+      "font_size": 13,
+      "pad_h": 14,
+      "pad_v": 8
+    },
+    "button.caution": {
+      "extends": "button.base",
+      "tone": "caution",
+      "font_size": 13,
+      "pad_h": 14,
+      "pad_v": 8
+    },
+    "button.muted": {
+      "extends": "button.base",
+      "tone": "muted",
+      "font_size": 13,
+      "pad_h": 14,
+      "pad_v": 8
+    },
+    "button.arrow_nav": {
+      "extends": "button.base",
+      "tone": "chrome",
+      "font_size": 18,
+      "pad_h": 10,
+      "pad_v": 6
+    },
+    "panel.window": {
+      "bg": "bg_surface",
+      "border": "border_card",
+      "border_w": 1,
+      "corner_r": 2,
+      "pad_h": 0,
+      "pad_v": 0
+    },
+    "panel.shell": {
+      "extends": "panel.window",
+      "bg": "bg_shell",
+      "border": "border_subtle"
+    },
+    "panel.card": {
+      "bg": "bg_card",
+      "border": "border_subtle",
+      "border_w": 1,
+      "corner_r": 2,
+      "pad_h": 12,
+      "pad_v": 10
+    },
+    "panel.well": {
+      "bg": "bg_well",
+      "border": "border_subtle",
+      "border_w": 1,
+      "corner_r": 2,
+      "pad_h": 10,
+      "pad_v": 8
+    },
+    "card.stat_telemetry": {
+      "extends": "panel.card",
+      "pad_h": 12,
+      "pad_v": 8,
+      "title_size": 11,
+      "value_size": 18,
+      "sub_size": 11
+    },
+    "card.weather": {
+      "extends": "panel.card",
+      "pad_h": 14,
+      "pad_v": 12,
+      "accent": "accent_rally"
+    },
+    "card.stage": {
+      "extends": "panel.card",
+      "pad_h": 14,
+      "pad_v": 10,
+      "accent": "accent_rally"
+    },
+    "badge.header": {
+      "bg": "bg_well",
+      "border": "border_card",
+      "top_tone": "muted",
+      "bottom_tone": "accent",
+      "top_size": 10,
+      "bottom_size": 13
+    },
+    "badge.drivetrain": {
+      "bg": "accent_rally_soft",
+      "border": "accent_rally",
+      "top_tone": "accent",
+      "bottom_tone": "white",
+      "top_size": 11,
+      "bottom_size": 13
+    },
+    "shell.modal_centered": {
+      "backdrop_color": "bg_overlay",
+      "window_preset": "panel.window",
+      "header_bg": "bg_shell",
+      "footer_bg": "bg_shell",
+      "padding": 16
+    }
+  }
+}

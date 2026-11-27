@@ -1,40 +1,24 @@
 extends Control
 class_name RallyTireStrategyScreen
-## Pantalla inicial en 2 pasos para configurar el pool de 10 neumáticos del evento:
-## Paso 1/2: Clima previsto + selector de compuestos + montaje inicial (4 ruedas).
-## Paso 2/2: Maletero (0-2 repuestos, +18 kg c/u) e inventario de reserva (resto del pool).
-## La sesión pausa el SceneTree (get_tree().paused = true) junto con vehicle.freeze + event_clock
-## mientras esta pantalla está abierta, y lo restaura a false justo antes de abrir el garaje
-## para que _restore_tree_paused sea false y no congele el HUD al comenzar el rally.
+## Pantalla inicial en 2 pasos para configurar el pool de 10 neumáticos del evento.
+## Migrada de _draw() inmediato a árbol real de nodos Control (TireStrategyStep1View + TireStrategyStep2View)
+## manteniendo sincronización exacta con StrategyBoard3D.
 
 signal strategy_confirmed(initial_inventory_data: Dictionary)
 
 const StrategyBoard3DScript := preload("res://scripts/rally/rally_strategy_screen_3d_board.gd")
-const Tire3DViewScript := preload("res://scripts/rally/rally_tire_3d_view.gd")
+const _Tokens := preload("res://scripts/ui/core/ui_token_registry.gd")
+const _Theme := preload("res://scripts/ui/core/ui_theme_builder.gd")
+const _Step1ViewScene := preload("res://ui/screens/strategy/tire_strategy_step1_view.tscn")
+const _Step2ViewScene := preload("res://ui/screens/strategy/tire_strategy_step2_view.tscn")
+
 const LOGICAL_SIZE := Vector2(1280.0, 800.0)
-const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
-const FONT_SUBTITLE: Font = RallyUITheme.FONT_SUBTITLE
-const FONT_BUTTON: Font = RallyUITheme.FONT_BUTTON
-const FONT_REGULAR: Font = RallyUITheme.FONT_REGULAR
-const FONT_DATA: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
-
-const C_BG := RallyUITheme.BG_BASE
-const C_GLASS := RallyUITheme.BG_SURFACE
-const C_FIELD := RallyUITheme.BG_WELL
-const C_GOLD := RallyUITheme.ACCENT_RALLY
-const C_GOLD_HI := RallyUITheme.TEXT_GOLD_SOFT
-const C_ROSE := RallyUITheme.STATUS_DANGER
-const C_BLUE := RallyUITheme.STATUS_INFO
-const C_TEXT := RallyUITheme.TEXT_PRIMARY
-const C_DIM := RallyUITheme.TEXT_MUTED
-const C_BORDER := RallyUITheme.BORDER_CARD
-
 const POOL_SIZE := 10
 const MOUNTED_COUNT := 4
 
 var manager: RallyEventManager
 var vehicle: Node3D = null
-var vehicle_name: String = "FORD ESCORT RS2000"
+var vehicle_name: String = ""
 var allowed_compounds: Array = []
 var compound_labels: Dictionary = {}
 
@@ -52,22 +36,38 @@ var _canvas_offset := Vector2.ZERO
 var _focus_id := "mounted:0"
 var _board_3d: StrategyBoard3DScript = null
 
+# Real Control node tree
+var _logical_root: Control
+var _pill1_btn: Button
+var _pill2_btn: Button
+var _step1_view: Control
+var _step2_view: Control
+var _footer_hint_lbl: Label
+var _btn_back: Button
+var _btn_reset: Button
+var _btn_primary: Button
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	focus_mode = Control.FOCUS_ALL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	theme = _Theme.get_menu_theme()
+
+	_build_ui_tree()
+
 	_board_3d = StrategyBoard3DScript.new()
 	_board_3d.name = "StrategyBoard3D"
 	_board_3d.screen = self
 	add_child(_board_3d)
+
 	_init_data()
 	_resize_canvas()
-	_sync_board()
+	call_deferred("_resize_canvas")
+	_sync_all()
 	set_process_input(true)
 	grab_focus()
-	queue_redraw()
 
 
 func _exit_tree() -> void:
@@ -80,19 +80,119 @@ func _notification(what: int) -> void:
 		_resize_canvas()
 
 
+func _build_ui_tree() -> void:
+	var r := _Tokens.get_radius("default")
+	var c_surf := _Tokens.get_color("bg_surface")
+	var c_border := _Tokens.get_color("border_card")
+
+	var backdrop := ColorRect.new()
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = _Tokens.get_color("bg_overlay")
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(backdrop)
+
+	_logical_root = Control.new()
+	_logical_root.name = "LogicalRoot"
+	_logical_root.size = LOGICAL_SIZE
+	_logical_root.custom_minimum_size = LOGICAL_SIZE
+	_logical_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_logical_root)
+
+	# Outer window shell (30, 24, 1220, 752)
+	var win_panel := Panel.new()
+	win_panel.position = Vector2(30, 24)
+	win_panel.size = Vector2(LOGICAL_SIZE.x - 60.0, LOGICAL_SIZE.y - 48.0)
+	win_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	win_panel.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(c_surf, c_border, 1, r))
+	_logical_root.add_child(win_panel)
+
+	# Header
+	var title_lbl := Label.new()
+	title_lbl.position = Vector2(56, 38)
+	title_lbl.text = "ESTRATEGIA DE NEUMÁTICOS"
+	title_lbl.add_theme_font_override("font", _Tokens.get_font("title"))
+	title_lbl.add_theme_font_size_override("font_size", 28)
+	title_lbl.add_theme_color_override("font_color", _Tokens.get_color("text_primary"))
+	_logical_root.add_child(title_lbl)
+
+	_pill1_btn = Button.new()
+	_pill1_btn.position = Vector2(LOGICAL_SIZE.x - 30.0 - 364.0, 42.0)
+	_pill1_btn.size = Vector2(164.0, 34.0)
+	_pill1_btn.text = "1 · COCHE (4)"
+	_pill1_btn.focus_mode = Control.FOCUS_NONE
+	_pill1_btn.pressed.connect(func() -> void: set_step(0))
+	_logical_root.add_child(_pill1_btn)
+
+	_pill2_btn = Button.new()
+	_pill2_btn.position = Vector2(LOGICAL_SIZE.x - 30.0 - 190.0, 42.0)
+	_pill2_btn.size = Vector2(164.0, 34.0)
+	_pill2_btn.text = "2 · RESERVA (6)"
+	_pill2_btn.focus_mode = Control.FOCUS_NONE
+	_pill2_btn.pressed.connect(func() -> void: set_step(1))
+	_logical_root.add_child(_pill2_btn)
+
+	var header_line := ColorRect.new()
+	header_line.position = Vector2(56, 90)
+	header_line.size = Vector2(LOGICAL_SIZE.x - 112.0, 1)
+	header_line.color = _Tokens.get_color("border_subtle")
+	header_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_logical_root.add_child(header_line)
+
+	# Step views
+	_step1_view = _Step1ViewScene.instantiate()
+	_step1_view.preset_selected.connect(func(cid: String) -> void: apply_compound_to_mounted_all(cid))
+	_logical_root.add_child(_step1_view)
+
+	_step2_view = _Step2ViewScene.instantiate()
+	_step2_view.spare_count_selected.connect(_set_spare_count)
+	_logical_root.add_child(_step2_view)
+
+	# Footer controls
+	_footer_hint_lbl = Label.new()
+	_footer_hint_lbl.position = Vector2(62, 704)
+	_footer_hint_lbl.size = Vector2(530, 28)
+	_Theme.apply_label(_footer_hint_lbl, "muted", 10, false, false)
+	_logical_root.add_child(_footer_hint_lbl)
+
+	_btn_back = Button.new()
+	_btn_back.position = Vector2(604.0, 690.0)
+	_btn_back.size = Vector2(168.0, 48.0)
+	_btn_back.text = "← PASO 1"
+	_btn_back.focus_mode = Control.FOCUS_NONE
+	_btn_back.pressed.connect(func() -> void: set_step(0))
+	_logical_root.add_child(_btn_back)
+
+	_btn_reset = Button.new()
+	_btn_reset.position = Vector2(786.0, 690.0)
+	_btn_reset.size = Vector2(170.0, 48.0)
+	_btn_reset.text = "RESTAURAR"
+	_btn_reset.focus_mode = Control.FOCUS_NONE
+	_btn_reset.pressed.connect(func() -> void:
+		_init_data()
+		_sync_all()
+	)
+	_logical_root.add_child(_btn_reset)
+
+	_btn_primary = Button.new()
+	_btn_primary.position = Vector2(970.0, 690.0)
+	_btn_primary.size = Vector2(254.0, 48.0)
+	_btn_primary.text = "SIGUIENTE"
+	_btn_primary.focus_mode = Control.FOCUS_NONE
+	_btn_primary.pressed.connect(_advance_or_confirm)
+	_logical_root.add_child(_btn_primary)
+
+
 func _resize_canvas() -> void:
 	if size.x <= 0.0 or size.y <= 0.0:
 		return
 	_canvas_scale = minf(size.x / LOGICAL_SIZE.x, size.y / LOGICAL_SIZE.y)
 	_canvas_offset = (size - LOGICAL_SIZE * _canvas_scale) * 0.5
+	if _logical_root != null and is_instance_valid(_logical_root):
+		_logical_root.position = _canvas_offset
+		_logical_root.scale = Vector2.ONE * _canvas_scale
 	if _board_3d != null and is_instance_valid(_board_3d):
 		_board_3d.position = _canvas_offset
 		_board_3d.scale = Vector2.ONE * _canvas_scale
-	queue_redraw()
-
-
-func _to_logical(point: Vector2) -> Vector2:
-	return (point - _canvas_offset) / maxf(_canvas_scale, 0.001)
 
 
 func _stock_count() -> int:
@@ -130,7 +230,7 @@ func _init_data() -> void:
 	for i in _stock_count():
 		service_extra_compounds.append(alt_cid)
 	_focus_id = "mounted:0" if step == 0 else "count:%d" % carried_spares_count
-	_sync_board()
+	_sync_all()
 
 
 func set_step(next_step: int) -> void:
@@ -141,8 +241,7 @@ func set_step(next_step: int) -> void:
 	else:
 		if not (_focus_id.begins_with("count:") or _focus_id.begins_with("spare:") or _focus_id.begins_with("stock:") or _focus_id in ["back", "reset", "confirm"]):
 			_focus_id = "count:%d" % carried_spares_count
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 
 
 func _sync_board() -> void:
@@ -150,229 +249,76 @@ func _sync_board() -> void:
 		_board_3d.sync_from_screen()
 
 
-func _preset_btn_rect(idx: int) -> Rect2:
-	var count := maxi(1, mini(allowed_compounds.size(), 4))
-	var gap := 12.0
-	var total_w := 516.0
-	var w := floorf((total_w - gap * float(count - 1)) / float(count))
-	return Rect2(74.0 + float(idx) * (w + gap), 598.0, w, 50.0)
+func _sync_all() -> void:
+	_sync_board()
+	_refresh_control_views()
 
 
-func _count_btn_rect(c: int) -> Rect2:
-	var gap := 10.0
-	var total_w := 524.0
-	var w := floorf((total_w - gap * 2.0) / 3.0)
-	return Rect2(70.0 + float(c) * (w + gap), 268.0, w, 34.0)
+func _refresh_control_views() -> void:
+	if _step1_view == null or _step2_view == null:
+		return
+	var r := _Tokens.get_radius("default")
+	var c_gold := _Tokens.get_color("accent_rally")
+	var c_card := _Tokens.get_color("bg_card")
+	var c_hover := _Tokens.get_color("bg_hover")
+	var c_border := _Tokens.get_color("border_card")
+	var c_focus := _Tokens.get_color("border_focus")
+	var c_bg := _Tokens.get_color("bg_base")
+	var c_text := _Tokens.get_color("text_primary")
+	var c_muted := _Tokens.get_color("text_muted")
 
+	# Step pills
+	for pair in [[_pill1_btn, step == 0], [_pill2_btn, step == 1]]:
+		var btn: Button = pair[0]
+		var active: bool = pair[1]
+		var sb := _Tokens.get_flat_stylebox(c_gold if active else c_card, Color("#f6c96e") if active else c_border, 1, r, 10, 4)
+		for st in ["normal", "hover", "pressed", "focus"]:
+			btn.add_theme_stylebox_override(st, sb)
+		btn.add_theme_font_override("font", _Tokens.get_font("button"))
+		btn.add_theme_font_size_override("font_size", 14)
+		btn.add_theme_color_override("font_color", c_bg if active else c_muted)
 
-func _back_btn_rect() -> Rect2:
-	return Rect2(604.0, 690.0, 168.0, 48.0)
+	_step1_view.visible = (step == 0)
+	_step2_view.visible = (step == 1)
 
-
-func _reset_btn_rect() -> Rect2:
-	return Rect2(786.0, 690.0, 170.0, 48.0)
-
-
-func _primary_btn_rect() -> Rect2:
-	return Rect2(970.0, 690.0, 254.0, 48.0)
-
-
-func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), RallyUITheme.BG_OVERLAY)
-	draw_set_transform(_canvas_offset, 0.0, Vector2(_canvas_scale, _canvas_scale))
-	var win_rect := Rect2(30, 24, LOGICAL_SIZE.x - 60, LOGICAL_SIZE.y - 48)
-	_draw_glass(win_rect)
-	_draw_header(win_rect)
 	if step == 0:
-		_draw_step1_layout()
+		var prob_pct := 80
+		if manager != null and manager.has_method("_forecast_accuracy"):
+			prob_pct = int(round(float(manager.call("_forecast_accuracy")) * 100.0))
+		_step1_view.update_view({
+			"forecast_stage1": forecast_stage1,
+			"forecast_stage2": forecast_stage2,
+			"prob_pct": prob_pct,
+			"allowed_compounds": allowed_compounds,
+			"compound_labels": compound_labels,
+			"mounted_compounds": mounted_compounds,
+			"focus_id": _focus_id,
+		})
 	else:
-		_draw_step2_layout()
-	_draw_footer(Rect2(56, 684, 1168, 60))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_step2_view.update_view(carried_spares_count, _focus_id)
+
+	_footer_hint_lbl.text = "FLECHAS / D-PAD MOVER · ENTER / A CAMBIAR · R RESTAURAR · Y / F5 SIGUIENTE" if step == 0 else "ARRASTRA MALETERO ↔ RESERVA · ESC / B VOLVER · Y / F5 CONFIRMAR"
+	_btn_back.visible = (step == 1)
+	_btn_primary.text = "SIGUIENTE" if step == 0 else "CONFIRMAR"
+
+	_style_footer_btn(_btn_back, _focus_id == "back", false, c_card, c_hover, c_border, c_focus, c_gold, c_bg, c_text, r)
+	_style_footer_btn(_btn_reset, _focus_id == "reset", false, c_card, c_hover, c_border, c_focus, c_gold, c_bg, c_text, r)
+	_style_footer_btn(_btn_primary, _focus_id == ("next" if step == 0 else "confirm"), true, c_card, c_hover, c_border, c_focus, c_gold, c_bg, c_text, r)
 
 
-func _draw_glass(rect: Rect2) -> void:
-	draw_style_box(RallyUITheme.make_flat_panel(C_GLASS, C_BORDER, 1, RallyUITheme.CORNER_RADIUS), rect)
-
-
-func _draw_header(win_rect: Rect2) -> void:
-	draw_string(FONT_TITLE, Vector2(56, 66), "ESTRATEGIA DE NEUMÁTICOS", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, C_TEXT)
-
-	var pill1 := Rect2(win_rect.end.x - 364.0, 42.0, 164.0, 34.0)
-	var pill2 := Rect2(win_rect.end.x - 190.0, 42.0, 164.0, 34.0)
-	draw_style_box(RallyUITheme.make_flat_panel(C_GOLD if step == 0 else RallyUITheme.BG_CARD, Color("#f6c96e") if step == 0 else C_BORDER, 1, RallyUITheme.CORNER_RADIUS), pill1)
-	draw_string(FONT_BUTTON, Vector2(pill1.position.x + 12, pill1.position.y + 23), "1 · COCHE (4)", HORIZONTAL_ALIGNMENT_CENTER, pill1.size.x - 24, 14, C_BG if step == 0 else C_DIM)
-
-	draw_style_box(RallyUITheme.make_flat_panel(C_GOLD if step == 1 else RallyUITheme.BG_CARD, Color("#f6c96e") if step == 1 else C_BORDER, 1, RallyUITheme.CORNER_RADIUS), pill2)
-	draw_string(FONT_BUTTON, Vector2(pill2.position.x + 12, pill2.position.y + 23), "2 · RESERVA (6)", HORIZONTAL_ALIGNMENT_CENTER, pill2.size.x - 24, 14, C_BG if step == 1 else C_DIM)
-
-	draw_line(Vector2(56, 90), Vector2(win_rect.end.x - 26, 90), RallyUITheme.BORDER_SUBTLE, 1.0)
-
-
-func _draw_step1_layout() -> void:
-	_draw_weather_panel(Rect2(56, 104, 552, 250))
-	_draw_step1_selector_panel(Rect2(56, 370, 552, 300))
-	_draw_mounted_panel(Rect2(624, 104, 600, 566))
-
-
-func _draw_step2_layout() -> void:
-	_draw_step2_palette_panel(Rect2(56, 104, 552, 114))
-	_draw_notice_panel(Rect2(624, 104, 600, 114))
-	_draw_trunk_panel(Rect2(56, 228, 552, 442))
-	_draw_stock_panel(Rect2(624, 228, 600, 442))
-
-
-func _draw_weather_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "INFORMACIÓN CLIMÁTICA DEL EVENTO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
-	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), Color(C_BORDER, 0.45), 1.0)
-
-	var s1_icon := str(forecast_stage1.get("icon", ""))
-	var s1_name := str(forecast_stage1.get("name", "Despejado"))
-	var s1_temp := float(forecast_stage1.get("temp_c", 18.0))
-	var row1 := Rect2(rect.position.x + 18, rect.position.y + 58, rect.size.x - 36, 74)
-	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), row1)
-	draw_string(FONT_REGULAR, Vector2(row1.position.x + 16, row1.position.y + 42), "STAGE 1 (ACTUAL):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
-	draw_string(FONT_DATA, Vector2(row1.position.x + 200, row1.position.y + 43), "%s %s · %0.0f °C" % [s1_icon, s1_name.to_upper(), s1_temp], HORIZONTAL_ALIGNMENT_LEFT, row1.size.x - 216, 13, C_GOLD_HI)
-
-	var s2_icon := str(forecast_stage2.get("icon", ""))
-	var s2_name := str(forecast_stage2.get("name", "Pronóstico"))
-	var s2_temp := float(forecast_stage2.get("temp_c", 15.0))
-	var row2 := Rect2(rect.position.x + 18, rect.position.y + 144, rect.size.x - 36, 90)
-	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), row2)
-	draw_string(FONT_REGULAR, Vector2(row2.position.x + 16, row2.position.y + 50), "STAGE 2 (PRONÓSTICO):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
-	draw_string(FONT_DATA, Vector2(row2.position.x + 200, row2.position.y + 34), "%s %s · %0.0f °C" % [s2_icon, s2_name.to_upper(), s2_temp], HORIZONTAL_ALIGNMENT_LEFT, row2.size.x - 216, 12, C_BLUE)
-
-	var prob_pct := 80
-	if manager != null and manager.has_method("_forecast_accuracy"):
-		prob_pct = int(round(float(manager.call("_forecast_accuracy")) * 100.0))
-	var prob_rect := Rect2(row2.position.x + 200, row2.position.y + 48, 184, 28)
-	draw_style_box(RallyUITheme.make_flat_panel(RallyUITheme.ACCENT_RALLY_SOFT, Color(C_GOLD, 0.70), 1, RallyUITheme.CORNER_RADIUS), prob_rect)
-	draw_string(FONT_DATA, Vector2(prob_rect.position.x + 8, prob_rect.position.y + 19), "Probabilidad : %% %d" % prob_pct, HORIZONTAL_ALIGNMENT_CENTER, prob_rect.size.x - 16, 10, C_GOLD_HI)
-
-
-func _draw_step1_selector_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	var has_wet := false
-	for cid in allowed_compounds:
-		if str(cid).ends_with("_wet"):
-			has_wet = true
-			break
-	var selector_title := "SELECTOR DE NEUMÁTICOS (SECO / LLUVIA)" if has_wet else "SELECTOR DE NEUMÁTICOS"
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), selector_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
-	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), Color(C_BORDER, 0.45), 1.0)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 18, rect.position.y + 216), "APLICACIÓN RÁPIDA AL COCHE COMPLETO (4×):", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
-	var count := mini(allowed_compounds.size(), 4)
-	for i in count:
-		var cid := str(allowed_compounds[i])
-		var lbl := str(compound_labels.get(cid, cid)).to_upper()
-		var btn := _preset_btn_rect(i)
-		var all_match := _all_mounted_equal(cid)
-		var focused := _focus_id == ("preset:%d" % i)
-		var ring := Tire3DViewScript.compound_ring_color(cid)
-		draw_style_box(RallyUITheme.make_flat_panel(
-			Color(ring, 0.20) if all_match else RallyUITheme.BG_CARD,
-			RallyUITheme.BORDER_FOCUS if focused else (ring if all_match else C_BORDER),
-			2 if (focused or all_match) else 1,
-			RallyUITheme.CORNER_RADIUS
-		), btn)
-		draw_string(FONT_BUTTON, Vector2(btn.position.x + 8, btn.position.y + 30), "4× %s" % lbl, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 14, ring if all_match else C_TEXT)
-
-
-func _draw_mounted_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 30), "RUEDAS MONTADAS DE SALIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
-	draw_line(Vector2(rect.position.x + 18, rect.position.y + 44), Vector2(rect.end.x - 18, rect.position.y + 44), RallyUITheme.BORDER_SUBTLE, 1.0)
-	var bay := Rect2(832, 166, 188, 484)
-	draw_style_box(RallyUITheme.make_flat_panel(C_FIELD, RallyUITheme.BORDER_SUBTLE, 1, RallyUITheme.CORNER_RADIUS), bay)
-	var axle_col := Color(C_GOLD, 0.24)
-	draw_line(Vector2(824, 281), Vector2(1026, 281), axle_col, 2.0)
-	draw_line(Vector2(824, 535), Vector2(1026, 535), axle_col, 2.0)
-	draw_line(Vector2(926, 281), Vector2(926, 535), axle_col, 2.0)
-
-
-func _draw_step2_palette_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "COMPUESTOS PERMITIDOS (ARRASTRA A MALETERO O RESERVA)", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_DIM)
-
-
-func _draw_notice_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 16, rect.position.y + 24), "REGLAMENTO Y PESO EN MALETERO", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_GOLD)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 50), "• Cada rueda en el maletero añade +18 KG sobre el eje trasero.", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 74), "• Mueve repuestos al Inventario de Reserva si buscas aligerar el coche.", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_TEXT)
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 16, rect.position.y + 98), "• Pinchazos/rines se reparan en servicio.", HORIZONTAL_ALIGNMENT_LEFT, rect.size.x - 32, 10, C_TEXT)
-
-
-func _draw_trunk_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	var mass_kg := carried_spares_count * 18.0
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 14, rect.position.y + 24), "MALETERO DEL COCHE (0, 1 O 2 REPUESTOS)", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, C_DIM)
-	draw_string(FONT_DATA, Vector2(rect.position.x + rect.size.x - 216, rect.position.y + 24), "PESO EXTRA: +%0.0f KG" % mass_kg, HORIZONTAL_ALIGNMENT_RIGHT, 200, 11, C_GOLD if carried_spares_count > 0 else C_BLUE)
-	for c in [0, 1, 2]:
-		var sel: bool = carried_spares_count == c
-		var is_focused := _focus_id == ("count:%d" % c)
-		var btn := _count_btn_rect(c)
-		draw_style_box(RallyUITheme.make_flat_panel(
-			C_GOLD if sel else RallyUITheme.BG_CARD,
-			RallyUITheme.BORDER_FOCUS if is_focused else (Color("#f6c96e") if sel else C_BORDER),
-			2 if is_focused else 1,
-			RallyUITheme.CORNER_RADIUS
-		), btn)
-		var tag := "%d REP." % c
-		draw_string(FONT_BUTTON, Vector2(btn.position.x + 8, btn.position.y + 22), tag, HORIZONTAL_ALIGNMENT_CENTER, btn.size.x - 16, 13, C_BG if sel else C_TEXT)
-
-
-func _draw_stock_panel(rect: Rect2) -> void:
-	_draw_glass(rect)
-	draw_string(FONT_SUBTITLE, Vector2(rect.position.x + 18, rect.position.y + 28), "INVENTARIO DE RESERVA", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_DIM)
-	draw_line(Vector2(rect.position.x + 18, rect.position.y + 42), Vector2(rect.end.x - 18, rect.position.y + 42), RallyUITheme.BORDER_SUBTLE, 1.0)
-
-
-func _draw_footer(rect: Rect2) -> void:
-	var controls_hint := "FLECHAS / D-PAD MOVER · ENTER / A CAMBIAR · R RESTAURAR · Y / F5 SIGUIENTE" if step == 0 else "ARRASTRA MALETERO ↔ RESERVA · ESC / B VOLVER · Y / F5 CONFIRMAR"
-	draw_string(FONT_REGULAR, Vector2(rect.position.x + 6, rect.position.y + 34), controls_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, C_DIM)
-
-	if step == 1:
-		var back_rect := _back_btn_rect()
-		var back_focused := _focus_id == "back"
-		draw_style_box(RallyUITheme.make_flat_panel(
-			RallyUITheme.BG_HOVER if back_focused else RallyUITheme.BG_CARD,
-			RallyUITheme.BORDER_FOCUS if back_focused else C_BORDER,
-			2 if back_focused else 1,
-			RallyUITheme.CORNER_RADIUS
-		), back_rect)
-		draw_string(FONT_BUTTON, Vector2(back_rect.position.x + 8, back_rect.position.y + 29), "← PASO 1", HORIZONTAL_ALIGNMENT_CENTER, back_rect.size.x - 16, 15, C_TEXT)
-
-	var reset_rect := _reset_btn_rect()
-	var reset_focused := _focus_id == "reset"
-	draw_style_box(RallyUITheme.make_flat_panel(
-		RallyUITheme.BG_HOVER if reset_focused else RallyUITheme.BG_CARD,
-		RallyUITheme.BORDER_FOCUS if reset_focused else C_BORDER,
-		2 if reset_focused else 1,
-		RallyUITheme.CORNER_RADIUS
-	), reset_rect)
-	draw_string(FONT_BUTTON, Vector2(reset_rect.position.x + 8, reset_rect.position.y + 29), "RESTAURAR", HORIZONTAL_ALIGNMENT_CENTER, reset_rect.size.x - 16, 15, C_TEXT)
-
-	var primary_rect := _primary_btn_rect()
-	var primary_focused := _focus_id == ("next" if step == 0 else "confirm")
-	var primary_text := "SIGUIENTE" if step == 0 else "CONFIRMAR"
-	draw_style_box(RallyUITheme.make_flat_panel(
-		C_GOLD,
-		RallyUITheme.BORDER_FOCUS if primary_focused else Color("#f6c96e"),
-		2 if primary_focused else 1,
-		RallyUITheme.CORNER_RADIUS
-	), primary_rect)
-	draw_string(FONT_BUTTON, Vector2(primary_rect.position.x + 10, primary_rect.position.y + 29), primary_text, HORIZONTAL_ALIGNMENT_CENTER, primary_rect.size.x - 20, 15, C_BG)
-
-
-func _all_mounted_equal(cid: String) -> bool:
-	if mounted_compounds.size() != 4:
-		return false
-	for m in mounted_compounds:
-		if str(m) != cid:
-			return false
-	return true
+func _style_footer_btn(btn: Button, focused: bool, primary: bool, c_card: Color, c_hover: Color, c_border: Color, c_focus: Color, c_gold: Color, c_bg: Color, c_text: Color, r: int) -> void:
+	var bg := c_gold if primary else (c_hover if focused else c_card)
+	var border := c_focus if focused else (Color("#f6c96e") if primary else c_border)
+	var sb := _Tokens.get_flat_stylebox(bg, border, 2 if focused else 1, r, 10, 6)
+	var hov := _Tokens.get_flat_stylebox(Color("#f2bb54") if primary else c_hover, c_focus, 2, r, 10, 6)
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", hov)
+	btn.add_theme_stylebox_override("pressed", hov)
+	btn.add_theme_stylebox_override("focus", hov)
+	btn.add_theme_font_override("font", _Tokens.get_font("button"))
+	btn.add_theme_font_size_override("font_size", 15)
+	btn.add_theme_color_override("font_color", c_bg if primary else c_text)
+	btn.add_theme_color_override("font_hover_color", c_bg if primary else Color.WHITE)
 
 
 func _nav_rows() -> Array:
@@ -419,8 +365,7 @@ func _move_focus(dx: int, dy: int) -> void:
 	elif dx != 0:
 		var cur_row: Array = rows[r_idx]
 		_focus_id = str(cur_row[posmod(c_idx + dx, cur_row.size())])
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 
 
 func _activate_focused() -> void:
@@ -448,8 +393,7 @@ func _activate_focused() -> void:
 		_init_data()
 	elif _focus_id == "confirm":
 		_on_confirm()
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 
 
 func _advance_or_confirm() -> void:
@@ -489,7 +433,6 @@ func _input(event: InputEvent) -> void:
 					get_viewport().set_input_as_handled()
 			KEY_R:
 				_init_data()
-				queue_redraw()
 				get_viewport().set_input_as_handled()
 			KEY_F5:
 				_advance_or_confirm()
@@ -518,44 +461,10 @@ func _input(event: InputEvent) -> void:
 					get_viewport().set_input_as_handled()
 			JOY_BUTTON_X:
 				_init_data()
-				queue_redraw()
 				get_viewport().set_input_as_handled()
 			JOY_BUTTON_Y:
 				_advance_or_confirm()
 				get_viewport().set_input_as_handled()
-
-
-func _gui_input(event: InputEvent) -> void:
-	if not event is InputEventMouseButton:
-		return
-	var mb := event as InputEventMouseButton
-	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
-		return
-	var pos := _to_logical(mb.position)
-	if step == 0:
-		for i in mini(allowed_compounds.size(), 4):
-			if _preset_btn_rect(i).has_point(pos):
-				get_viewport().set_input_as_handled()
-				apply_compound_to_mounted_all(str(allowed_compounds[i]))
-				return
-	else:
-		for c in [0, 1, 2]:
-			if _count_btn_rect(c).has_point(pos):
-				get_viewport().set_input_as_handled()
-				_set_spare_count(c)
-				return
-		if _back_btn_rect().has_point(pos):
-			get_viewport().set_input_as_handled()
-			set_step(0)
-			return
-	if _reset_btn_rect().has_point(pos):
-		get_viewport().set_input_as_handled()
-		_init_data()
-		queue_redraw()
-		return
-	if _primary_btn_rect().has_point(pos):
-		get_viewport().set_input_as_handled()
-		_advance_or_confirm()
 
 
 func _pool_array_for(slot_kind: String) -> Array:
@@ -573,15 +482,13 @@ func _set_spare_count(next_count: int) -> void:
 	carried_spares_count = clampi(next_count, 0, 2)
 	_focus_id = "count:%d" % carried_spares_count
 	_reconcile_pool()
-	queue_redraw()
 
 
 func _cycle_slot(slot_kind: String, slot_index: int) -> void:
 	var arr := _pool_array_for(slot_kind)
 	if not arr.is_empty():
 		_cycle_compound(arr, slot_index)
-		_sync_board()
-		queue_redraw()
+		_sync_all()
 
 
 func apply_compound_to_slot(slot_kind: String, slot_index: int, cid: String) -> bool:
@@ -593,8 +500,7 @@ func apply_compound_to_slot(slot_kind: String, slot_index: int, cid: String) -> 
 	if slot_kind == "spare" and slot_index >= carried_spares_count:
 		return false
 	arr[slot_index] = cid
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 	return true
 
 
@@ -603,10 +509,9 @@ func apply_compound_to_mounted_all(cid: String) -> bool:
 		return false
 	for i in mounted_compounds.size():
 		mounted_compounds[i] = cid
-	_sync_board()
+	_sync_all()
 	if _board_3d != null and is_instance_valid(_board_3d):
 		_board_3d.play_mounted_settle_all()
-	queue_redraw()
 	return true
 
 
@@ -616,8 +521,7 @@ func apply_compound_to_stock_all(cid: String) -> bool:
 	for i in _stock_count():
 		if i < service_extra_compounds.size():
 			service_extra_compounds[i] = cid
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 	return true
 
 
@@ -630,7 +534,6 @@ func unload_spare_to_stock(spare_index: int) -> bool:
 	service_extra_compounds.append(moved_cid)
 	_focus_id = "count:%d" % carried_spares_count
 	_reconcile_pool()
-	queue_redraw()
 	return true
 
 
@@ -643,7 +546,6 @@ func load_stock_to_spare(stock_index: int) -> bool:
 	spare_compounds.append(moved_cid)
 	_focus_id = "spare:%d" % maxi(0, spare_compounds.size() - 1)
 	_reconcile_pool()
-	queue_redraw()
 	return true
 
 
@@ -659,8 +561,7 @@ func swap_pool_slots(src_kind: String, src_index: int, dst_kind: String, dst_ind
 	var tmp: String = str(src_arr[src_index])
 	src_arr[src_index] = str(dst_arr[dst_index])
 	dst_arr[dst_index] = tmp
-	_sync_board()
-	queue_redraw()
+	_sync_all()
 	return true
 
 
@@ -674,10 +575,8 @@ func _cycle_compound(arr: Array, idx: int) -> void:
 
 func _reconcile_pool() -> void:
 	var def_cid: String = str(allowed_compounds[0]) if not allowed_compounds.is_empty() else "gravel_normal"
-	# Recortar o extender maletera moviendo explicitamente desde/hacia el parque.
 	while spare_compounds.size() > carried_spares_count:
-		var extra: String = str(spare_compounds.pop_back())
-		service_extra_compounds.append(extra)
+		service_extra_compounds.append(str(spare_compounds.pop_back()))
 	while spare_compounds.size() < carried_spares_count:
 		if not service_extra_compounds.is_empty():
 			spare_compounds.append(str(service_extra_compounds.pop_back()))
@@ -688,7 +587,7 @@ func _reconcile_pool() -> void:
 		service_extra_compounds.pop_back()
 	while service_extra_compounds.size() < want_stock:
 		service_extra_compounds.append(def_cid)
-	_sync_board()
+	_sync_all()
 
 
 func _on_confirm() -> void:
@@ -700,7 +599,6 @@ func _on_confirm() -> void:
 	var service_out: Array = []
 	for i in _stock_count():
 		service_out.append(str(service_extra_compounds[i]) if i < service_extra_compounds.size() else str(allowed_compounds[0]))
-	# Invariante dura antes de emitir: 4 + spares + stock == 10.
 	if mounted_out.size() + spares_out.size() + service_out.size() != POOL_SIZE:
 		return
 	strategy_confirmed.emit({

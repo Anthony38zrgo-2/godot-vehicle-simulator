@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_panel_header.gd" id="1_header"]
+[ext_resource type="Script" path="res://ui/atoms/ui_badge.gd" id="2_badge"]
+
+[node name="UIPanelHeader" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBox" type="VBoxContainer" parent="HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="HeaderRow/TitleBox"]
+layout_mode = 2
+text = "TITLE"
+
+[node name="SubtitleLabel" type="Label" parent="HeaderRow/TitleBox"]
+layout_mode = 2
+
+[node name="ExtraSlot" type="HBoxContainer" parent="HeaderRow"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderBadge" type="PanelContainer" parent="HeaderRow"]
+layout_mode = 2
+script = ExtResource("2_badge")

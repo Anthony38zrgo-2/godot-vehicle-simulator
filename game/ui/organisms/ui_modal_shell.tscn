@@ -1,0 +1,63 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://ui/organisms/ui_modal_shell.gd" id="1_shell"]
+[ext_resource type="PackedScene" path="res://ui/molecules/ui_panel_header.tscn" id="2_header"]
+[ext_resource type="Script" path="res://ui/atoms/ui_notice_banner.gd" id="3_notice"]
+[ext_resource type="PackedScene" path="res://ui/molecules/ui_panel_footer.tscn" id="4_footer"]
+
+[node name="UIModalShell" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shell")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WindowMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WindowPanel" type="PanelContainer" parent="WindowMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RootVBox" type="VBoxContainer" parent="WindowMargin/WindowPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Header" parent="WindowMargin/WindowPanel/RootVBox" instance=ExtResource("2_header")]
+layout_mode = 2
+
+[node name="TopBarSlot" type="VBoxContainer" parent="WindowMargin/WindowPanel/RootVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NoticeBanner" type="PanelContainer" parent="WindowMargin/WindowPanel/RootVBox"]
+visible = false
+layout_mode = 2
+script = ExtResource("3_notice")
+
+[node name="BodyBox" type="VBoxContainer" parent="WindowMargin/WindowPanel/RootVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Footer" parent="WindowMargin/WindowPanel/RootVBox" instance=ExtResource("4_footer")]
+layout_mode = 2

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "wash_minutes": 5,
+  "default_limit_minutes": 30.0,
+  "default_penalty_per_minute": 10,
+  "default_service_costs": {
+    "inflate": 2,
+    "rim": 5,
+    "wheel_change": 1
+  },
+  "bg_image_paths": [
+    "res://assets/rally/garage/service_repairs_bg.jpg",
+    "res://assets/rally/garage/service_repairs_bg_2.jpg"
+  ],
+  "parts": [
+    {"id": "engine", "label": "Motor", "max_minutes": 45.0},
+    {"id": "radiator", "label": "Radiador", "max_minutes": 20.0},
+    {"id": "transmission", "label": "Transmisión", "max_minutes": 35.0},
+    {"id": "body", "label": "Carrocería", "max_minutes": 15.0},
+    {"id": "hood", "label": "Capó", "max_minutes": 8.0},
+    {"id": "trunk", "label": "Maletero", "max_minutes": 8.0},
+    {"id": "windshield", "label": "Parabrisas", "max_minutes": 10.0},
+    {"id": "headlight_left", "label": "Faro izquierdo", "max_minutes": 5.0},
+    {"id": "headlight_right", "label": "Faro derecho", "max_minutes": 5.0}
+  ]
+}

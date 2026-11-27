@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_stat_card.gd" id="1_stat"]
+
+[node name="UIStatCard" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_stat")
+
+[node name="CardVBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="TitleLabel" type="Label" parent="CardVBox"]
+layout_mode = 2
+
+[node name="ValueLabel" type="Label" parent="CardVBox"]
+layout_mode = 2
+
+[node name="SubtitleLabel" type="Label" parent="CardVBox"]
+layout_mode = 2

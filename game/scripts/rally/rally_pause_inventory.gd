@@ -3,86 +3,13 @@ extends CanvasLayer
 signal results_workshop_closed
 var opened_from_results := false
 
-# =============================================================================
-# CONSTANTES VISUALES — SISTEMA DE DISEÑO MOTORSPORT MINIMALISTA (FLAT PRECISION)
-# =============================================================================
-
-# 2.2. Estandarización Tipográfica (Bungee + Big Shoulders + Science Gothic)
-const FONT: Font = RallyUITheme.FONT_REGULAR
-const FONT_MEDIUM: Font = RallyUITheme.FONT_MEDIUM
-const BOLD: Font = RallyUITheme.FONT_SUBTITLE
-const DIN: Font = RallyUITheme.FONT_MEDIUM_TIGHT
-const DIN_BOLD: Font = RallyUITheme.FONT_DATA_BOLD_TIGHT
-const FONT_TITLE: Font = RallyUITheme.FONT_TITLE
-const RallyHeldPartPreviewScript := preload("res://scripts/rally/rally_held_part_preview.gd")
 const HudPanelsScript := preload("res://scripts/rally/formula_hud_panels.gd")
+const _Tokens := preload("res://scripts/ui/core/ui_token_registry.gd")
+const _Theme := preload("res://scripts/ui/core/ui_theme_builder.gd")
+const _TelemetrySidebarScene := preload("res://ui/screens/pause/pause_telemetry_sidebar.tscn")
+const _WorkshopScript := preload("res://scripts/rally/rally_service_workshop.gd")
 
-# 2.3. Paleta Unificada Dark Carbon + Brass Gold (fuente única: RallyUITheme)
-const WB_BG_SHELL := RallyUITheme.WB_BG_SHELL
-const WB_BG_HEADER := RallyUITheme.WB_BG_HEADER
-const WB_BG_FOOTER := RallyUITheme.WB_BG_FOOTER
-const WB_BG_TAB_INACTIVE := RallyUITheme.WB_BG_TAB_INACTIVE
-const WB_BG_TAB_ACTIVE := RallyUITheme.WB_BG_TAB_ACTIVE
-const WB_BG_CONTENT := RallyUITheme.WB_BG_CONTENT
-const WB_BG_CARD := RallyUITheme.WB_BG_CARD
-const WB_BG_CARD_HOVER := RallyUITheme.WB_BG_CARD_HOVER
-const WB_BG_WELL := RallyUITheme.WB_BG_WELL
-const WB_BORDER_SUBTLE := RallyUITheme.WB_BORDER_SUBTLE
-const WB_BORDER_HOVER := RallyUITheme.WB_BORDER_HOVER
-const WB_BORDER_FOCUS := RallyUITheme.WB_BORDER_FOCUS
-const WB_BORDER_ACCENT := RallyUITheme.WB_BORDER_ACCENT
-const WB_SLIDER_TRACK := RallyUITheme.WB_SLIDER_TRACK
-const WB_SLIDER_FILL := RallyUITheme.WB_SLIDER_FILL
-const WB_SLIDER_THUMB := RallyUITheme.WB_SLIDER_THUMB
-const WB_SLIDER_STEPPER := RallyUITheme.WB_SLIDER_STEPPER
-const WB_TEXT_TITLE := RallyUITheme.WB_TEXT_TITLE
-const WB_TEXT_LABEL := RallyUITheme.WB_TEXT_LABEL
-const WB_TEXT_DATA := RallyUITheme.WB_TEXT_DATA
-const WB_TEXT_ACCENT := RallyUITheme.WB_TEXT_ACCENT
-
-const BG_BASE := RallyUITheme.BG_BASE
-const BG_SURFACE := WB_BG_CONTENT
-const BG_HOVER := WB_BG_CARD_HOVER
-const BG_CARD := WB_BG_CARD
-const BORDER_SUBTLE := WB_BORDER_SUBTLE
-const BORDER_FOCUS := WB_BORDER_FOCUS
-const TEXT_PRIMARY := WB_TEXT_TITLE
-const TEXT_MUTED := WB_TEXT_LABEL
-const ACCENT_RALLY := WB_BORDER_ACCENT
-const ACCENT_ALERT := RallyUITheme.ACCENT_ALERT
-const STATUS_DANGER := RallyUITheme.STATUS_DANGER
-const STATUS_SUCCESS := RallyUITheme.STATUS_SUCCESS
-
-# Aliases de compatibilidad interna
-const C_BACK := WB_BG_SHELL
-const C_GLASS := WB_BG_HEADER
-const C_GLASS_DEEP := WB_BG_WELL
-const C_RIM := WB_BORDER_SUBTLE
-const C_CHROME_TEXT := WB_TEXT_TITLE
-const C_CHROME_DIM := WB_TEXT_LABEL
-const C_BLUE := WB_SLIDER_FILL
-const C_BLUE_DEEP := Color("#2a2010")
-
-const C_FACE := WB_BG_CONTENT
-const C_FACE_HI := WB_BG_CARD_HOVER
-const C_FACE_LO := WB_BG_CARD
-const C_FIELD := WB_BG_WELL
-const C_HI := WB_BORDER_HOVER
-const C_LIGHT := WB_BORDER_SUBTLE
-const C_SHADOW := Color(0.0, 0.0, 0.0, 0.25)
-const C_DARK := Color("#060a0f")
-const C_TEXT := WB_TEXT_TITLE
-const C_DIM := WB_TEXT_LABEL
-const C_GOLD := ACCENT_RALLY
-const C_GOLD_HI := RallyUITheme.TEXT_GOLD_SOFT
-const C_ROSE := STATUS_DANGER
-const C_SEL := RallyUITheme.BG_ELEVATED
-const C_GREEN := STATUS_SUCCESS
-
-# =============================================================================
-# VARIABLES PÚBLICAS Y DE CONTRATO
-# =============================================================================
-
+# Variables públicas y de contrato
 var session: Node
 var screen: Control
 var backdrop: ColorRect
@@ -107,10 +34,9 @@ var content_panel: PanelContainer
 var footer_nav_hint: Label
 var current_view: String = "menu"
 
+var wheel_action_sound: AudioStreamPlayer
+var _pending_rescue_on_resume: bool = false
 
-# =============================================================================
-# CICLO DE VIDA Y PROCESO
-# =============================================================================
 
 func _process(_delta: float) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
@@ -125,9 +51,6 @@ func _process(_delta: float) -> void:
 	pause_button.visible = false
 
 
-var wheel_action_sound: AudioStreamPlayer
-
-
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 100
@@ -140,21 +63,19 @@ func _ready() -> void:
 	screen = Control.new()
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen.theme = _Theme.get_menu_theme()
 	add_child(screen)
 
-	# Velo oscuro atmosférico para ocluir interferencias de la HUD durante la pausa
-	screen.theme = RallyUITheme.build_menu_theme()
 	backdrop = ColorRect.new()
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	backdrop.color = RallyUITheme.BG_OVERLAY
+	backdrop.color = _Tokens.get_color("bg_overlay")
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	backdrop.visible = false
 	screen.add_child(backdrop)
 
-	# Botón de pausa desactivado visualmente en HUD para no solapar los parciales (pausa activa por ESC/Start)
 	pause_button = Button.new()
 	pause_button.text = "PAUSA · ESC"
-	_style_chrome_button(pause_button)
+	_Theme.apply_tone_button(pause_button, "chrome", 15, 16, 8)
 	pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	pause_button.size = Vector2(140, 36)
 	pause_button.visible = false
@@ -163,12 +84,11 @@ func _ready() -> void:
 	pause_button.pressed.connect(toggle)
 	screen.add_child(pause_button)
 
-	# Ventana modal central unificada (Dark Carbon · 2 px chamfer)
 	modal = PanelContainer.new()
 	screen.add_child(modal)
 	modal.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	modal.custom_minimum_size = Vector2(1350, 775)
-	modal.add_theme_stylebox_override("panel", RallyUITheme.make_window_panel(WB_BG_SHELL, RallyUITheme.BORDER_CARD))
+	modal.add_theme_stylebox_override("panel", _Theme.make_flat_panel("bg_shell", "border_card", 1))
 	modal.hide()
 	var pause_sound := AudioStreamPlayer.new()
 	pause_sound.volume_db = -5.0
@@ -181,11 +101,15 @@ func _ready() -> void:
 	_build_modal_skeleton()
 
 
-# =============================================================================
-# ESTRUCTURA BASE DEL MODAL (AERO GLASS + MOTORSPORT)
-# =============================================================================
-
 func _build_modal_skeleton() -> void:
+	var c_header := _Tokens.get_color("bg_header")
+	var c_well := _Tokens.get_color("bg_well")
+	var c_border := _Tokens.get_color("border_card")
+	var c_text := _Tokens.get_color("text_primary")
+	var c_muted := _Tokens.get_color("text_muted")
+	var c_accent := _Tokens.get_color("accent_rally")
+	var r := _Tokens.get_radius("default")
+
 	var root_margin := MarginContainer.new()
 	root_margin.add_theme_constant_override("margin_left", 20)
 	root_margin.add_theme_constant_override("margin_right", 20)
@@ -197,21 +121,14 @@ func _build_modal_skeleton() -> void:
 	root_vbox.add_theme_constant_override("separation", 10)
 	root_margin.add_child(root_vbox)
 
-	# 1. Cabecera plana Motorsport
+	# 1. Cabecera
 	var header_panel := PanelContainer.new()
-	header_panel.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS, RallyUITheme.BORDER_CARD))
+	header_panel.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(c_header, c_border, 1, r, 14, 8))
 	root_vbox.add_child(header_panel)
-
-	var header_margin := MarginContainer.new()
-	header_margin.add_theme_constant_override("margin_left", 14)
-	header_margin.add_theme_constant_override("margin_right", 14)
-	header_margin.add_theme_constant_override("margin_top", 8)
-	header_margin.add_theme_constant_override("margin_bottom", 8)
-	header_panel.add_child(header_margin)
 
 	var header_hbox := HBoxContainer.new()
 	header_hbox.add_theme_constant_override("separation", 14)
-	header_margin.add_child(header_hbox)
+	header_panel.add_child(header_hbox)
 
 	var title_vbox := VBoxContainer.new()
 	title_vbox.add_theme_constant_override("separation", 2)
@@ -219,15 +136,15 @@ func _build_modal_skeleton() -> void:
 
 	header_title = Label.new()
 	header_title.text = "PAUSA · COMPETICIÓN · RALLY"
-	header_title.add_theme_font_override("font", FONT_TITLE)
+	header_title.add_theme_font_override("font", _Tokens.get_font("title"))
 	header_title.add_theme_font_size_override("font_size", 22)
-	header_title.add_theme_color_override("font_color", C_CHROME_TEXT)
+	header_title.add_theme_color_override("font_color", c_text)
 	title_vbox.add_child(header_title)
 
 	header_subtitle = Label.new()
-	header_subtitle.add_theme_font_override("font", FONT_MEDIUM)
+	header_subtitle.add_theme_font_override("font", _Tokens.get_font("medium"))
 	header_subtitle.add_theme_font_size_override("font_size", 10)
-	header_subtitle.add_theme_color_override("font_color", C_CHROME_DIM)
+	header_subtitle.add_theme_color_override("font_color", c_muted)
 	title_vbox.add_child(header_subtitle)
 
 	var spacer := Control.new()
@@ -243,74 +160,49 @@ func _build_modal_skeleton() -> void:
 	var temp_sep := ColorRect.new()
 	temp_sep.custom_minimum_size = Vector2(1, 16)
 	temp_sep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	temp_sep.color = RallyUITheme.BORDER_SUBTLE
+	temp_sep.color = _Tokens.get_color("border_subtle")
 	temp_hbox.add_child(temp_sep)
 	track_temp_label = _add_header_temp_item(temp_hbox, "PISTA")
 
 	var badge_box := PanelContainer.new()
-	badge_box.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS_DEEP, RallyUITheme.BORDER_CARD))
+	badge_box.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(c_well, c_border, 1, r, 12, 4))
 	header_hbox.add_child(badge_box)
-
-	var badge_margin := MarginContainer.new()
-	badge_margin.add_theme_constant_override("margin_left", 12)
-	badge_margin.add_theme_constant_override("margin_right", 12)
-	badge_margin.add_theme_constant_override("margin_top", 4)
-	badge_margin.add_theme_constant_override("margin_bottom", 4)
-	badge_box.add_child(badge_margin)
 
 	var badge_vbox := VBoxContainer.new()
 	badge_vbox.add_theme_constant_override("separation", 1)
-	badge_margin.add_child(badge_vbox)
+	badge_box.add_child(badge_vbox)
 
 	badge_top = Label.new()
 	badge_top.text = "ESTADO DE PRUEBA"
 	badge_top.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_top.add_theme_font_override("font", BOLD)
+	badge_top.add_theme_font_override("font", _Tokens.get_font("subtitle"))
 	badge_top.add_theme_font_size_override("font_size", 11)
-	badge_top.add_theme_color_override("font_color", C_CHROME_DIM)
+	badge_top.add_theme_color_override("font_color", c_muted)
 	badge_vbox.add_child(badge_top)
 
 	badge_bottom = Label.new()
 	badge_bottom.text = "EN PAUSA"
 	badge_bottom.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	badge_bottom.add_theme_font_override("font", DIN_BOLD)
+	badge_bottom.add_theme_font_override("font", _Tokens.get_font("data_bold_tight"))
 	badge_bottom.add_theme_font_size_override("font_size", 12)
-	badge_bottom.add_theme_color_override("font_color", C_GOLD)
+	badge_bottom.add_theme_color_override("font_color", c_accent)
 	badge_vbox.add_child(badge_bottom)
 
-	# 2. Cuerpo dividido: Panel izquierdo de telemetría + Panel derecho de acciones
+	# 2. Cuerpo dividido: PauseTelemetrySidebar + Panel derecho de acciones
 	var body_hbox := HBoxContainer.new()
 	body_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body_hbox.add_theme_constant_override("separation", 12)
 	root_vbox.add_child(body_hbox)
 
-	# Panel Izquierdo: Telemetría y diagnóstico en vivo
-	telemetry_panel = PanelContainer.new()
-	telemetry_panel.custom_minimum_size = Vector2(280, 0)
-	telemetry_panel.add_theme_stylebox_override("panel", _make_classic_panel_style())
-	body_hbox.add_child(telemetry_panel)
+	var sidebar := _TelemetrySidebarScene.instantiate()
+	body_hbox.add_child(sidebar)
+	telemetry_panel = sidebar as PanelContainer
+	telemetry_vbox = sidebar.telemetry_vbox
 
-	var tel_margin := MarginContainer.new()
-	tel_margin.add_theme_constant_override("margin_left", 12)
-	tel_margin.add_theme_constant_override("margin_right", 12)
-	tel_margin.add_theme_constant_override("margin_top", 10)
-	tel_margin.add_theme_constant_override("margin_bottom", 10)
-	telemetry_panel.add_child(tel_margin)
-
-	var tel_scroll := ScrollContainer.new()
-	tel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	tel_margin.add_child(tel_scroll)
-
-	telemetry_vbox = VBoxContainer.new()
-	telemetry_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	telemetry_vbox.add_theme_constant_override("separation", 8)
-	tel_scroll.add_child(telemetry_vbox)
-
-	# Panel Derecho: Contenedor interactivo principal (content vive aquí para compatibilidad)
 	content_panel = PanelContainer.new()
 	content_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_panel.add_theme_stylebox_override("panel", _make_classic_panel_style())
+	content_panel.add_theme_stylebox_override("panel", _Theme.make_panel_from_preset("panel.window"))
 	body_hbox.add_child(content_panel)
 
 	var content_margin := MarginContainer.new()
@@ -325,38 +217,26 @@ func _build_modal_skeleton() -> void:
 	content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content_margin.add_child(content_scroll)
 
-	# content es el VBoxContainer de contrato público donde residen los botones
 	content = VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 6)
 	content_scroll.add_child(content)
 
-	# 3. Pie de página plano Motorsport
+	# 3. Pie de página
 	var footer_panel := PanelContainer.new()
-	footer_panel.add_theme_stylebox_override("panel", _make_glass_style(RallyUITheme.CORNER_RADIUS, C_GLASS, RallyUITheme.BORDER_CARD))
+	footer_panel.add_theme_stylebox_override("panel", _Tokens.get_flat_stylebox(c_header, c_border, 1, r, 14, 6))
 	root_vbox.add_child(footer_panel)
 
-	var footer_margin := MarginContainer.new()
-	footer_margin.add_theme_constant_override("margin_left", 14)
-	footer_margin.add_theme_constant_override("margin_right", 14)
-	footer_margin.add_theme_constant_override("margin_top", 6)
-	footer_margin.add_theme_constant_override("margin_bottom", 6)
-	footer_panel.add_child(footer_margin)
-
 	var footer_hbox := HBoxContainer.new()
-	footer_margin.add_child(footer_hbox)
+	footer_panel.add_child(footer_hbox)
 
 	footer_nav_hint = Label.new()
 	footer_nav_hint.text = "[ W/S / FLECHAS ] NAVEGAR  ·  [ ENTER ] SELECCIONAR  ·  [ ESC ] REANUDAR"
-	footer_nav_hint.add_theme_font_override("font", FONT_MEDIUM)
+	footer_nav_hint.add_theme_font_override("font", _Tokens.get_font("medium"))
 	footer_nav_hint.add_theme_font_size_override("font_size", 10)
-	footer_nav_hint.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.8))
+	footer_nav_hint.add_theme_color_override("font_color", Color(c_muted, 0.8))
 	footer_hbox.add_child(footer_nav_hint)
 
-
-# =============================================================================
-# ENTRADAS DE TECLADO Y MANDO
-# =============================================================================
 
 func _input(event: InputEvent) -> void:
 	if (event.is_action_pressed("ui_cancel") or event.is_action_pressed(InputBindings.UI_BACK_TO_MENU)) and not event.is_echo():
@@ -392,9 +272,6 @@ func open_from_results() -> void:
 	modal.show()
 	backdrop.show()
 	show_inventory()
-
-
-var _pending_rescue_on_resume: bool = false
 
 
 func mark_service_change() -> void:
@@ -457,13 +334,13 @@ func label(text: String) -> void:
 	node.text = text
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if text.begins_with("PAUSA") or text.begins_with("NEUMÁTICOS") or text.begins_with("REPARACIONES") or text.begins_with("OPCIONES") or text.begins_with("DIAGNÓSTICO"):
-		node.add_theme_font_override("font", BOLD)
+		node.add_theme_font_override("font", _Tokens.get_font("subtitle"))
 		node.add_theme_font_size_override("font_size", 15)
-		node.add_theme_color_override("font_color", C_GOLD)
+		node.add_theme_color_override("font_color", _Tokens.get_color("accent_rally"))
 	else:
-		node.add_theme_font_override("font", FONT)
+		node.add_theme_font_override("font", _Tokens.get_font("regular"))
 		node.add_theme_font_size_override("font_size", 11)
-		node.add_theme_color_override("font_color", C_TEXT)
+		node.add_theme_color_override("font_color", _Tokens.get_color("text_primary"))
 	content.add_child(node)
 
 
@@ -476,13 +353,13 @@ func button(text: String, callback: Callable, parent: Node = null, custom_sound:
 	node.custom_minimum_size = Vector2(0, 36)
 
 	if text == "Reanudar" or text.begins_with("Cambiar rueda") or text.begins_with("Reparación de radiador"):
-		_style_gold_button(node)
+		_Theme.apply_tone_button(node, "gold", 16, 20, 8)
 	elif text.begins_with("Abandonar etapa") or text.begins_with("Descartar"):
-		_style_danger_button(node)
+		_Theme.apply_tone_button(node, "danger", 15, 16, 8)
 	elif text.begins_with("Pedir rescate"):
-		_style_caution_button(node)
+		_Theme.apply_tone_button(node, "caution", 15, 16, 8)
 	else:
-		_style_chrome_button(node)
+		_Theme.apply_tone_button(node, "chrome", 15, 16, 8)
 
 	(parent if parent != null else content).add_child(node)
 
@@ -491,15 +368,11 @@ func _add_hint_label(text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = "   ℹ " + text
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.add_theme_font_override("font", FONT)
+	lbl.add_theme_font_override("font", _Tokens.get_font("regular"))
 	lbl.add_theme_font_size_override("font_size", 9)
-	lbl.add_theme_color_override("font_color", Color(C_CHROME_DIM, 0.75))
+	lbl.add_theme_color_override("font_color", Color(_Tokens.get_color("text_muted"), 0.75))
 	content.add_child(lbl)
 
-
-# =============================================================================
-# REPARACIONES RÁPIDAS (LÓGICA Y ESTADO)
-# =============================================================================
 
 func get_radiator_damage() -> float:
 	if session != null:
@@ -513,10 +386,6 @@ func has_quick_repairs() -> bool:
 	return get_radiator_damage() >= 0.05
 
 
-# =============================================================================
-# VISTA 1: MENÚ PRINCIPAL DE PAUSA
-# =============================================================================
-
 func show_menu() -> void:
 	current_view = "menu"
 	if telemetry_panel != null:
@@ -526,30 +395,15 @@ func show_menu() -> void:
 	_update_telemetry_panel()
 
 	label("OPCIONES DISPONIBLES")
-	
-	# Acción primaria: Reanudar carrera
 	button("Reanudar", toggle)
-
-	# Submenú 1: Neumáticos e inventario
 	button("Reparaciones · Taller 3D e inventario", show_inventory)
-
-	# Submenú 2: Reparaciones rápidas
-	var has_dmg := has_quick_repairs()
-	if has_dmg:
+	if has_quick_repairs():
 		_add_hint_label("Radiador dañado: disponible en el taller 3D.")
-
-	# Acción de rescate (penalización moderada)
 	button("Pedir rescate", request_rescue)
 	_add_hint_label("Reubica el vehículo sobre el trazado oficial (+30 s penalización fija).")
-
-	# Acción destructiva: Abandonar etapa
 	button("Abandonar etapa", abandon_stage)
 	_add_hint_label("Retirada oficial de la especial (DNF). Aplica reenganche (+300 s) para continuar el rally.")
 
-
-# =============================================================================
-# VISTA 2: MENÚ DE REPARACIONES RÁPIDAS
-# =============================================================================
 
 func show_quick_repairs() -> void:
 	show_inventory()
@@ -580,10 +434,6 @@ func abandon_stage() -> void:
 	session.retire_competition_player()
 
 
-# =============================================================================
-# VISTA 3: MENÚ DE NEUMÁTICOS E INVENTARIO
-# =============================================================================
-
 func description(tire: Dictionary) -> String:
 	var state: Dictionary = tire.state
 	var compound := _compound_label(str(tire.compound_id), true)
@@ -601,7 +451,7 @@ func show_inventory() -> void:
 	clear()
 	_update_header("REPARACIONES · TALLER 3D", "RUEDAS · RADIADOR · MALETERA")
 	session.vehicle.sync_tire_inventory()
-	var workshop := preload("res://scripts/rally/rally_service_workshop.gd").new()
+	var workshop := _WorkshopScript.new()
 	workshop.host = self
 	content.add_child(workshop)
 	keep_removed = CheckButton.new()
@@ -678,14 +528,14 @@ func _add_minimal_damage_strip() -> void:
 
 		var name_lbl := Label.new()
 		name_lbl.text = str(item["label"])
-		name_lbl.add_theme_font_override("font", FONT_MEDIUM)
+		name_lbl.add_theme_font_override("font", _Tokens.get_font("medium"))
 		name_lbl.add_theme_font_size_override("font_size", 11)
-		name_lbl.add_theme_color_override("font_color", C_CHROME_DIM)
+		name_lbl.add_theme_color_override("font_color", _Tokens.get_color("text_muted"))
 		cell.add_child(name_lbl)
 
 		var pct_lbl := Label.new()
 		pct_lbl.text = "%d%%" % roundi(ratio * 100.0)
-		pct_lbl.add_theme_font_override("font", DIN_BOLD)
+		pct_lbl.add_theme_font_override("font", _Tokens.get_font("data_bold_tight"))
 		pct_lbl.add_theme_font_size_override("font_size", 13)
 		pct_lbl.add_theme_color_override("font_color", col)
 		cell.add_child(pct_lbl)
@@ -725,10 +575,7 @@ func _collect_hud_damage_metrics() -> Array[Dictionary]:
 				or float(wheel.get("leak_per_second", 0.0)) > 0.0
 				or float(wheel.get("pressure_loss_fraction", 0.0)) > 0.85
 			)
-			if is_puncture:
-				worst_wheel = 1.0
-			else:
-				worst_wheel = maxf(worst_wheel, maxf(float(wheel.get("wear_fraction", 0.0)), float(wheel.get("rim_deformation", 0.0))))
+			worst_wheel = 1.0 if is_puncture else maxf(worst_wheel, maxf(float(wheel.get("wear_fraction", 0.0)), float(wheel.get("rim_deformation", 0.0))))
 	elif v != null and v.get("tire_inventory") != null and v.tire_inventory.get("mounted") != null:
 		var align_arr: Array = sim.alignment_collision_damage if sim != null and sim.get("alignment_collision_damage") != null else []
 		var brake_arr: Array = sim.brake_collision_loss if sim != null and sim.get("brake_collision_loss") != null else []
@@ -745,7 +592,6 @@ func _collect_hud_damage_metrics() -> Array[Dictionary]:
 				worst_wheel = maxf(worst_wheel, maxf(float(st.get("wear_fraction", 0.0)), float(st.get("rim_deformation", 0.0))))
 
 	var brake_dmg := (brake_sum / float(brake_count)) if brake_count > 0 else 0.0
-
 	return [
 		{"key": "engine", "label": "MOTOR", "ratio": eng_dmg},
 		{"key": "radiator", "label": "RADIADOR", "ratio": rad_dmg},
@@ -806,8 +652,8 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 	var src_idx: int = int(data.get("index", 0))
 	var src_tire: Dictionary = data.get("tire", {})
 	var src_id: int = int(src_tire.get("id", 0))
+	var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 
-	# Caso 1: Arrastrar repuesto a rueda montada (sustitución directa)
 	if src_type == "spare" and target_type == "mounted":
 		var dropped_compound := spare_compound_for_id(src_id)
 		if not dropped_compound.is_empty() and not is_compound_allowed_for_session(dropped_compound):
@@ -817,13 +663,11 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 		var keep: bool = keep_removed.button_pressed if keep_removed != null else true
 		if vehicle.exchange_tire(target_index, src_id, keep):
 			selected_wheel = target_index
-			var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 			notice = "Rueda %s sustituida con éxito por el repuesto #%d." % [wheel_names[target_index], src_id]
 			_finish_wheel_action()
 		show_inventory()
 		return
 
-	# Caso 2: Rotar ruedas montadas (arrastrar esquina A sobre esquina B)
 	if src_type == "mounted" and target_type == "mounted":
 		if src_idx != target_index and src_idx >= 0 and src_idx < inventory.mounted.size() and target_index >= 0 and target_index < inventory.mounted.size():
 			vehicle.sync_tire_inventory()
@@ -835,13 +679,11 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 				vehicle.simulation.tire_model.reset_patch(src_idx)
 				vehicle.simulation.tire_model.reset_patch(target_index)
 			selected_wheel = target_index
-			var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 			notice = "Neumáticos rotados: %s ⇄ %s." % [wheel_names[src_idx], wheel_names[target_index]]
 			_finish_wheel_action()
 		show_inventory()
 		return
 
-	# Caso 3: Arrastrar rueda montada hacia el maletero (guardar en maletero y montar repuesto)
 	if src_type == "mounted" and target_type == "spare":
 		if not inventory.spares.is_empty():
 			var spare_to_use: int = int(inventory.spares[clampi(target_index, 0, inventory.spares.size() - 1)].id)
@@ -852,7 +694,6 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 				return
 			if vehicle.exchange_tire(src_idx, spare_to_use, true):
 				selected_wheel = src_idx
-				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 				notice = "Rueda %s guardada en el maletero y sustituida por repuesto #%d." % [wheel_names[src_idx], spare_to_use]
 				_finish_wheel_action()
 		else:
@@ -860,7 +701,6 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 		show_inventory()
 		return
 
-	# Caso 4: Descartar repuesto en el cajón de desecho
 	if src_type == "spare" and target_type == "bin":
 		if vehicle.discard_spare(src_id):
 			notice = "Repuesto #%d descartado en ruta (-18 kg). Se ha actualizado la masa." % src_id
@@ -868,7 +708,6 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 		show_inventory()
 		return
 
-	# Caso 5: Descartar rueda montada directamente en el cajón de desecho
 	if src_type == "mounted" and target_type == "bin":
 		if not inventory.spares.is_empty():
 			var spare_to_use: int = int(inventory.spares[0].id)
@@ -879,7 +718,6 @@ func _on_drop_action(data: Dictionary, target_type: String, target_index: int) -
 				return
 			if vehicle.exchange_tire(src_idx, spare_to_use, false):
 				selected_wheel = src_idx
-				var wheel_names: Array[String] = ["delantera izquierda", "delantera derecha", "trasera izquierda", "trasera derecha"]
 				notice = "Rueda %s dañada descartada en ruta (-18 kg). Repuesto #%d montado." % [wheel_names[src_idx], spare_to_use]
 				_finish_wheel_action()
 		else:
@@ -959,7 +797,6 @@ func load_spare(compound: String) -> void:
 		show_inventory()
 		return
 	var vehicle = session.vehicle
-	# Pool de 10: sin reposición, solo mover entre maletera/parque en servicio.
 	if vehicle.tire_inventory != null and vehicle.tire_inventory.has_method("is_pool_mode") and vehicle.tire_inventory.is_pool_mode():
 		notice = "Pool de 10: sin reposición en tramo. Gestiona tus %d ruedas restantes." % vehicle.tire_inventory.total_count()
 		show_inventory()
@@ -979,10 +816,6 @@ func persist() -> void:
 	if session.event_manager != null:
 		session.event_manager.save()
 
-
-# =============================================================================
-# PANEL DE TELEMETRÍA Y DIAGNÓSTICO EN VIVO
-# =============================================================================
 
 func _update_header(title_text: String, subtitle_text: String) -> void:
 	if header_title != null:
@@ -1007,16 +840,16 @@ func _add_header_temp_item(parent: HBoxContainer, title: String) -> Label:
 
 	var key_lbl := Label.new()
 	key_lbl.text = title
-	key_lbl.add_theme_font_override("font", FONT_MEDIUM)
+	key_lbl.add_theme_font_override("font", _Tokens.get_font("medium"))
 	key_lbl.add_theme_font_size_override("font_size", 11)
-	key_lbl.add_theme_color_override("font_color", C_CHROME_DIM)
+	key_lbl.add_theme_color_override("font_color", _Tokens.get_color("text_muted"))
 	item.add_child(key_lbl)
 
 	var val_lbl := Label.new()
 	val_lbl.text = "—"
-	val_lbl.add_theme_font_override("font", DIN_BOLD)
+	val_lbl.add_theme_font_override("font", _Tokens.get_font("data_bold_tight"))
 	val_lbl.add_theme_font_size_override("font_size", 13)
-	val_lbl.add_theme_color_override("font_color", C_CHROME_TEXT)
+	val_lbl.add_theme_color_override("font_color", _Tokens.get_color("text_primary"))
 	item.add_child(val_lbl)
 	return val_lbl
 
@@ -1056,694 +889,6 @@ func _update_header_temperatures() -> void:
 		track_temp_label.text = track_text
 
 
-func _pause_damage_color(ratio: float) -> Color:
-	if ratio < 0.25:
-		return C_GREEN
-	if ratio < 0.50:
-		return C_GOLD
-	if ratio < 0.75:
-		return Color("#f08c35")
-	return C_ROSE
-
-
-func _create_damage_bar_row(label_text: String, ratio: float, status_hint: String = "") -> VBoxContainer:
-	var clamped := clampf(ratio, 0.0, 1.0)
-	var col := _pause_damage_color(clamped)
-	var row := VBoxContainer.new()
-	row.add_theme_constant_override("separation", 3)
-
-	var top := HBoxContainer.new()
-	row.add_child(top)
-
-	var lbl := Label.new()
-	lbl.text = label_text
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.add_theme_font_override("font", FONT_MEDIUM)
-	lbl.add_theme_font_size_override("font_size", 10)
-	lbl.add_theme_color_override("font_color", C_TEXT)
-	top.add_child(lbl)
-
-	var pct := Label.new()
-	var pct_int := roundi(clamped * 100.0)
-	pct.text = ("%d%% · %s" % [pct_int, status_hint]) if not status_hint.is_empty() else ("%d%%" % pct_int)
-	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pct.add_theme_font_override("font", DIN_BOLD)
-	pct.add_theme_font_size_override("font_size", 10)
-	pct.add_theme_color_override("font_color", C_TEXT if clamped < 0.05 else col)
-	top.add_child(pct)
-
-	var bar := ProgressBar.new()
-	bar.min_value = 0.0
-	bar.max_value = 100.0
-	bar.value = clampf(clamped * 100.0, 0.0, 100.0)
-	bar.show_percentage = false
-	bar.custom_minimum_size = Vector2(0, 8)
-	var track_style := StyleBoxFlat.new()
-	track_style.bg_color = WB_BG_WELL
-	track_style.set_corner_radius_all(3)
-	var fill_style := StyleBoxFlat.new()
-	fill_style.bg_color = col
-	fill_style.set_corner_radius_all(3)
-	bar.add_theme_stylebox_override("background", track_style)
-	bar.add_theme_stylebox_override("fill", fill_style)
-	row.add_child(bar)
-
-	return row
-
-
 func _update_telemetry_panel() -> void:
-	if telemetry_vbox == null:
-		return
-	for child in telemetry_vbox.get_children():
-		child.queue_free()
-
-	if session == null:
-		return
-
-	var v: Variant = session.get("vehicle")
-	var sim: Variant = v.get("simulation") if v != null else null
-	var tm: Variant = sim.get("thermal_model") if sim != null else null
-	var pm: Variant = sim.get("powertrain_model") if sim != null else null
-	var pub: Dictionary = v.get("published_state") if v != null and v.get("published_state") is Dictionary else {}
-	var pub_dmg: Dictionary = pub.get("damage", {})
-	var pub_eng: Dictionary = pub.get("engine", {})
-
-	# 1. Tarjeta principal de Daños Mecánicos (reemplaza el panel HUD anterior)
-	var rad_dmg := float(tm.radiator_damage) if tm != null and tm.get("radiator_damage") != null else float(pub_dmg.get("radiator", pub_eng.get("radiator_damage", 0.0)))
-	var eng_dmg := float(tm.engine_damage) if tm != null and tm.get("engine_damage") != null else float(pub_dmg.get("engine", pub_eng.get("engine_damage", 0.0)))
-	var trans_dmg := float(pm.transmission_damage) if pm != null and pm.get("transmission_damage") != null else float(pub_dmg.get("transmission", 0.0))
-
-	var dmg_card := PanelContainer.new()
-	dmg_card.add_theme_stylebox_override("panel", _make_card_style())
-	var d_vbox := VBoxContainer.new()
-	d_vbox.add_theme_constant_override("separation", 7)
-	dmg_card.add_child(d_vbox)
-
-	var d_title := Label.new()
-	d_title.text = "DAÑOS"
-	d_title.add_theme_font_override("font", BOLD)
-	d_title.add_theme_font_size_override("font_size", 14)
-	d_title.add_theme_color_override("font_color", C_CHROME_DIM)
-	d_vbox.add_child(d_title)
-
-	var rad_hint := "FUGA" if rad_dmg >= 0.05 and rad_dmg < 0.70 else ("CRÍTICO" if rad_dmg >= 0.70 else "")
-	var eng_hint := "CRÍTICO" if eng_dmg >= 0.70 else ""
-	var trans_hint := "CRÍTICO" if trans_dmg >= 0.70 else ""
-	d_vbox.add_child(_create_damage_bar_row("RADIADOR", rad_dmg, rad_hint))
-	d_vbox.add_child(_create_damage_bar_row("MOTOR", eng_dmg, eng_hint))
-	d_vbox.add_child(_create_damage_bar_row("TRANS.", trans_dmg, trans_hint))
-	telemetry_vbox.add_child(dmg_card)
-
-	# 2. Tarjeta de Daños de Ruedas, Neumáticos, Frenos y Alineación (4 esquinas)
-	if v != null and v.get("tire_inventory") != null and v.tire_inventory.get("mounted") != null:
-		var inv = v.tire_inventory
-		var mounted: Array = inv.mounted
-		var brake_losses: Array = sim.brake_collision_loss if sim != null and sim.get("brake_collision_loss") != null else pub_dmg.get("brake_collision_loss", [])
-		var align_dmgs: Array = sim.alignment_collision_damage if sim != null and sim.get("alignment_collision_damage") != null else pub_dmg.get("alignment_collision_damage", [])
-
-		var tire_card := PanelContainer.new()
-		tire_card.add_theme_stylebox_override("panel", _make_card_style())
-		var t_vbox := VBoxContainer.new()
-		t_vbox.add_theme_constant_override("separation", 5)
-		tire_card.add_child(t_vbox)
-
-		var t_title := Label.new()
-		t_title.text = "NEUMÁTICOS Y TREN DE RODAJE"
-		t_title.add_theme_font_override("font", BOLD)
-		t_title.add_theme_font_size_override("font_size", 13)
-		t_title.add_theme_color_override("font_color", C_CHROME_DIM)
-		t_vbox.add_child(t_title)
-
-		var corners := ["FL", "FR", "RL", "RR"]
-		var grid := GridContainer.new()
-		grid.columns = 2
-		grid.add_theme_constant_override("h_separation", 8)
-		grid.add_theme_constant_override("v_separation", 4)
-		t_vbox.add_child(grid)
-
-		for i in mini(4, mounted.size()):
-			var tire: Dictionary = mounted[i]
-			var st: Dictionary = tire.get("state", {})
-			var wear := clampf(float(st.get("wear_fraction", 0.0)) * 100.0, 0.0, 100.0)
-			var life := maxf(0.0, 100.0 - wear)
-			var is_dest: bool = (inv.has_method("is_carcass_destroyed") and bool(inv.is_carcass_destroyed(tire))) or float(st.get("carcass_failure", 0.0)) >= 0.99
-			var has_leak: bool = (inv.has_method("is_punctured") and bool(inv.is_punctured(tire))) or float(st.get("leak_per_second", 0.0)) > 0.0
-			var has_rim: bool = (inv.has_method("is_rim_damaged") and bool(inv.is_rim_damaged(tire))) or float(st.get("rim_deformation", 0.0)) > 0.005
-			var brake_loss := clampf(float(brake_losses[i]), 0.0, 1.0) if i < brake_losses.size() else 0.0
-			var align_dmg := clampf(float(align_dmgs[i]), 0.0, 1.0) if i < align_dmgs.size() else 0.0
-
-			var c_stat := "VIDA %.0f%%" % life
-			var col := C_GREEN if wear < 30.0 else (C_GOLD if wear < 65.0 else C_ROSE)
-			if is_dest:
-				c_stat = "DESTALONADO · %.0f%%" % life
-				col = C_ROSE
-			elif has_leak:
-				c_stat = "FUGA · %.0f%%" % life
-				col = C_ROSE
-			elif has_rim:
-				c_stat = "ARO · %.0f%%" % life
-				col = C_ROSE if wear >= 50.0 else C_GOLD
-
-			var extras := PackedStringArray()
-			if align_dmg > 0.005:
-				extras.append("ALIN %d%%" % roundi(align_dmg * 100.0))
-			if brake_loss > 0.005:
-				extras.append("FREN -%d%%" % roundi(brake_loss * 100.0))
-			var extra_suffix := (" · " + " ".join(extras)) if not extras.is_empty() else ""
-
-			var lbl := Label.new()
-			lbl.text = "%s: %s [%s]%s" % [corners[i], _compound_label(str(tire.get("compound_id", "")), true), c_stat, extra_suffix]
-			lbl.add_theme_font_override("font", DIN_BOLD)
-			lbl.add_theme_font_size_override("font_size", 9)
-			lbl.add_theme_color_override("font_color", col)
-			grid.add_child(lbl)
-
-		var spares_info := Label.new()
-		if inv.has_method("is_pool_mode") and inv.is_pool_mode():
-			spares_info.text = "Repuestos: %d de %d · Quedan %d / 10 en el rally" % [inv.spares.size(), inv.capacity, inv.total_count()]
-		else:
-			spares_info.text = "Repuestos disponibles: %d de %d" % [inv.spares.size(), inv.capacity]
-		spares_info.add_theme_font_override("font", FONT)
-		spares_info.add_theme_font_size_override("font_size", 10)
-		spares_info.add_theme_color_override("font_color", C_CHROME_DIM)
-		t_vbox.add_child(spares_info)
-
-		telemetry_vbox.add_child(tire_card)
-
-
-func _create_telemetry_card(title_text: String, prim_text: String, sub_text: String, prim_col: Color = C_TEXT, sub_col: Color = C_DIM) -> PanelContainer:
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _make_card_style())
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 2)
-	card.add_child(box)
-
-	var l_t := Label.new()
-	l_t.text = title_text.to_upper()
-	l_t.add_theme_font_override("font", BOLD)
-	l_t.add_theme_font_size_override("font_size", 12)
-	l_t.add_theme_color_override("font_color", C_CHROME_DIM)
-	box.add_child(l_t)
-
-	var l_p := Label.new()
-	l_p.text = prim_text
-	l_p.add_theme_font_override("font", DIN_BOLD)
-	l_p.add_theme_font_size_override("font_size", 13)
-	l_p.add_theme_color_override("font_color", prim_col)
-	box.add_child(l_p)
-
-	if not sub_text.is_empty():
-		var l_s := Label.new()
-		l_s.text = sub_text
-		l_s.add_theme_font_override("font", FONT)
-		l_s.add_theme_font_size_override("font_size", 9)
-		l_s.add_theme_color_override("font_color", sub_col)
-		box.add_child(l_s)
-
-	return card
-
-
-# =============================================================================
-# ESTILOS Y HELPERS VISUALES
-# =============================================================================
-
-func _make_glass_style(radius: int, fill: Color, rim: Color) -> StyleBoxFlat:
-	return RallyUITheme.make_flat_panel(fill, rim, 1, mini(radius, RallyUITheme.CORNER_RADIUS))
-
-
-func _make_classic_panel_style() -> StyleBoxFlat:
-	return RallyUITheme.make_window_panel()
-
-
-func _make_card_style() -> StyleBoxFlat:
-	return RallyUITheme.make_card_panel(BG_CARD, BORDER_SUBTLE, 10, 6)
-
-
-func _style_gold_button(btn: Button) -> void:
-	RallyUITheme.style_gold_button(btn, 16, 20, 8)
-
-
-func _style_chrome_button(btn: Button) -> void:
-	RallyUITheme.style_chrome_button(btn, 15, 16, 8)
-
-
-func _style_caution_button(btn: Button) -> void:
-	RallyUITheme.style_caution_button(btn, 15, 16, 8)
-
-
-func _style_danger_button(btn: Button) -> void:
-	RallyUITheme.style_danger_button(btn, 15, 16, 8)
-
-
-func _style_selected_wheel_button(btn: Button) -> void:
-	RallyUITheme.style_tone_button(btn, "accent", 15, 16, 8)
-
-
-func _style_option_button(opt: OptionButton) -> void:
-	RallyUITheme.style_option_button(opt, 14, 14, 6)
-
-
-# =============================================================================
-# COMPONENTES VISUALES Y DE ARRASTRAR Y SOLTAR (SPATIAL TIRE INVENTORY)
-# =============================================================================
-
-class WheelGraphic extends Control:
-	var tire_compound: String = "gravel_normal"
-	var wear_fraction: float = 0.0
-	var thermal_damage: float = 0.0
-	var leak_rate: float = 0.0
-	var pressure_loss: float = 0.0
-	var rim_deformation: float = 0.0
-	var is_selected: bool = false
-	var is_hover_target: bool = false
-
-	func _init() -> void:
-		custom_minimum_size = Vector2(50, 50)
-		mouse_filter = Control.MOUSE_FILTER_PASS
-
-	func _draw() -> void:
-		var center := size * 0.5
-		var r_outer: float = minf(size.x, size.y) * 0.46
-		var r_rim: float = r_outer * 0.58
-		var r_hub: float = r_outer * 0.22
-
-		# 1. Halo exterior de selección o hover
-		if is_hover_target:
-			draw_arc(center, r_outer + 3.0, 0.0, TAU, 32, Color("#f6d68a"), 3.0, true)
-		elif is_selected:
-			draw_arc(center, r_outer + 2.0, 0.0, TAU, 32, Color("#e3b23c"), 2.0, true)
-
-		# 2. Neumático (Goma exterior)
-		draw_circle(center, r_outer, Color("#131b22"))
-
-		# Color de la banda según desgaste y fuga
-		var is_punctured: bool = (leak_rate > 0.0 or pressure_loss > 0.85)
-		var tread_col: Color
-		if is_punctured:
-			tread_col = Color("#ef4444")
-		elif wear_fraction >= 0.70:
-			tread_col = Color("#f43f5e")
-		elif wear_fraction >= 0.35:
-			tread_col = Color("#eab308")
-		else:
-			var details := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_compound)
-			tread_col = Color(str(details.get("visual_tread_color", "#22c55e")))
-
-		draw_arc(center, r_outer - 2.0, 0.0, TAU, 32, tread_col, 4.0, true)
-
-		# Dibujo de la banda / sipes
-		var sipes_count: int = int(RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_compound).get("visual_sipes_count", 8))
-		for k in sipes_count:
-			var ang := (TAU / float(sipes_count)) * float(k)
-			var p1 := center + Vector2(cos(ang), sin(ang)) * (r_outer - 4.5)
-			var p2 := center + Vector2(cos(ang), sin(ang)) * (r_outer - 0.5)
-			draw_line(p1, p2, Color(0.06, 0.09, 0.12, 0.8), 1.5)
-
-		# 3. Rin / Llanta de aleación
-		var rim_col: Color
-		if rim_deformation >= 0.20:
-			rim_col = Color("#dc2626")
-		elif rim_deformation > 0.005:
-			rim_col = Color("#f97316")
-		else:
-			rim_col = Color("#cbd5e1")
-
-		if rim_deformation > 0.005:
-			var pts := PackedVector2Array()
-			var rim_pts := 24
-			for k in rim_pts:
-				var ang := (TAU / float(rim_pts)) * float(k)
-				var radius_var: float = r_rim
-				if k % 6 == 0 and rim_deformation >= 0.20:
-					radius_var -= r_rim * 0.35
-				elif k % 4 == 0:
-					radius_var -= r_rim * (rim_deformation * 0.4)
-				pts.append(center + Vector2(cos(ang), sin(ang)) * radius_var)
-			draw_colored_polygon(pts, Color(0.10, 0.15, 0.20))
-			draw_polyline(pts, rim_col, 2.0, true)
-		else:
-			draw_circle(center, r_rim, Color(0.10, 0.15, 0.20))
-			draw_arc(center, r_rim, 0.0, TAU, 28, rim_col, 2.0, true)
-
-		# 5 radios deportivos
-		for k in 5:
-			var ang := (TAU / 5.0) * float(k)
-			var p1 := center + Vector2(cos(ang), sin(ang)) * r_hub
-			var p2 := center + Vector2(cos(ang), sin(ang)) * (r_rim - 1.5)
-			draw_line(p1, p2, rim_col, 2.0, true)
-
-		# 4. Cubo central y 4 tuercas doradas
-		draw_circle(center, r_hub, Color(0.06, 0.09, 0.12))
-		draw_arc(center, r_hub, 0.0, TAU, 16, rim_col, 1.0)
-		for k in 4:
-			var ang := (TAU / 4.0) * float(k) + 0.4
-			var nut_pos := center + Vector2(cos(ang), sin(ang)) * (r_hub * 0.6)
-			draw_circle(nut_pos, 1.2, Color("#f6d68a"))
-
-
-class ChassisDiagram extends PanelContainer:
-	var panel_ref: Variant
-
-	func _init(p_panel: Variant) -> void:
-		panel_ref = p_panel
-		custom_minimum_size = Vector2(185, 212)
-		add_theme_stylebox_override("panel", panel_ref._make_classic_panel_style())
-		_setup_ui()
-
-	func _setup_ui() -> void:
-		var margin := MarginContainer.new()
-		margin.add_theme_constant_override("margin_left", 6)
-		margin.add_theme_constant_override("margin_right", 6)
-		margin.add_theme_constant_override("margin_top", 6)
-		margin.add_theme_constant_override("margin_bottom", 6)
-		add_child(margin)
-
-		var vbox := VBoxContainer.new()
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_theme_constant_override("separation", 4)
-		margin.add_child(vbox)
-
-		var front_lbl := Label.new()
-		front_lbl.text = "▲ DIRECCIÓN (FRENTE) ▲"
-		front_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		front_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		front_lbl.add_theme_font_size_override("font_size", 11)
-		front_lbl.add_theme_color_override("font_color", panel_ref.C_RIM)
-		vbox.add_child(front_lbl)
-
-		var car_box := PanelContainer.new()
-		car_box.add_theme_stylebox_override("panel", RallyUITheme.make_well_panel(RallyUITheme.BORDER_CARD, 0, 0))
-		car_box.custom_minimum_size = Vector2(165, 134)
-		vbox.add_child(car_box)
-
-		var car_margin := MarginContainer.new()
-		car_margin.add_theme_constant_override("margin_left", 6)
-		car_margin.add_theme_constant_override("margin_right", 6)
-		car_margin.add_theme_constant_override("margin_top", 6)
-		car_margin.add_theme_constant_override("margin_bottom", 6)
-		car_box.add_child(car_margin)
-
-		var car_vbox := VBoxContainer.new()
-		car_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		car_vbox.add_theme_constant_override("separation", 2)
-		car_margin.add_child(car_vbox)
-
-		var v_name := Label.new()
-		v_name.text = "FORD ESCORT RS2000"
-		v_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		v_name.add_theme_font_override("font", panel_ref.BOLD)
-		v_name.add_theme_font_size_override("font_size", 13)
-		v_name.add_theme_color_override("font_color", panel_ref.C_GOLD_HI)
-		car_vbox.add_child(v_name)
-
-		var v_spec := Label.new()
-		v_spec.text = "PROPULSIÓN TRASERA (RWD)\nGRUPO 4 HISTÓRICO"
-		v_spec.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		v_spec.add_theme_font_override("font", panel_ref.FONT)
-		v_spec.add_theme_font_size_override("font_size", 8)
-		v_spec.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
-		car_vbox.add_child(v_spec)
-
-		var v_mass := Label.new()
-		var mass_kg: float = 1095.0
-		if panel_ref.session != null and panel_ref.session.get("vehicle") != null:
-			mass_kg = panel_ref.session.vehicle.mass
-		v_mass.text = "Masa: %.0f kg" % mass_kg
-		v_mass.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		v_mass.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		v_mass.add_theme_font_size_override("font_size", 9)
-		v_mass.add_theme_color_override("font_color", panel_ref.C_GREEN)
-		car_vbox.add_child(v_mass)
-
-		var rear_lbl := Label.new()
-		rear_lbl.text = "▼ TRACCIÓN (TRASERA) ▼"
-		rear_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		rear_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		rear_lbl.add_theme_font_size_override("font_size", 11)
-		rear_lbl.add_theme_color_override("font_color", panel_ref.C_RIM)
-		vbox.add_child(rear_lbl)
-
-
-class WheelSlotControl extends PanelContainer:
-	var panel_ref: Variant
-	var slot_type: String
-	var slot_index: int = 0
-	var tire_data: Dictionary = {}
-	var is_empty: bool = false
-	var wheel_graphic: WheelGraphic
-	var title_label: Label
-	var compound_label: Label
-	var cond_label: Label
-	var rim_label: Label
-
-	func _init(p_panel: Variant, p_type: String, p_index: int, p_tire: Dictionary, p_empty: bool = false) -> void:
-		panel_ref = p_panel
-		slot_type = p_type
-		slot_index = p_index
-		tire_data = p_tire
-		is_empty = p_empty
-		mouse_filter = Control.MOUSE_FILTER_STOP
-		custom_minimum_size = Vector2(0, 88)
-		_setup_ui()
-
-	func _setup_ui() -> void:
-		var is_sel: bool = (slot_type == "mounted" and panel_ref.selected_wheel == slot_index)
-		_update_style(is_sel, false)
-
-		var margin := MarginContainer.new()
-		margin.add_theme_constant_override("margin_left", 10)
-		margin.add_theme_constant_override("margin_right", 10)
-		margin.add_theme_constant_override("margin_top", 6)
-		margin.add_theme_constant_override("margin_bottom", 6)
-		add_child(margin)
-
-		if is_empty:
-			var empty_vbox := VBoxContainer.new()
-			empty_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-			margin.add_child(empty_vbox)
-			var lbl := Label.new()
-			lbl.text = "MALETERO #%d\n[ ESPACIO LIBRE ]" % (slot_index + 1)
-			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			lbl.add_theme_font_override("font", panel_ref.BOLD)
-			lbl.add_theme_font_size_override("font_size", 12)
-			lbl.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
-			empty_vbox.add_child(lbl)
-			return
-
-		var hbox := HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 10)
-		margin.add_child(hbox)
-
-		wheel_graphic = WheelGraphic.new()
-		if not tire_data.is_empty():
-			var state: Dictionary = tire_data.get("state", {})
-			wheel_graphic.tire_compound = str(tire_data.get("compound_id", "gravel_normal"))
-			wheel_graphic.wear_fraction = float(state.get("wear_fraction", 0.0))
-			wheel_graphic.thermal_damage = float(state.get("thermal_damage_fraction", 0.0))
-			wheel_graphic.leak_rate = float(state.get("leak_per_second", 0.0))
-			wheel_graphic.pressure_loss = float(state.get("pressure_loss_fraction", 0.0))
-			wheel_graphic.rim_deformation = float(state.get("rim_deformation", 0.0))
-			wheel_graphic.is_selected = is_sel
-		hbox.add_child(wheel_graphic)
-
-		var info_vbox := VBoxContainer.new()
-		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info_vbox.add_theme_constant_override("separation", 2)
-		hbox.add_child(info_vbox)
-
-		var title_text: String
-		if slot_type == "mounted":
-			var names: Array[String] = ["FL · DELANT. IZQ", "FR · DELANT. DER", "RL · TRAS. IZQ", "RR · TRAS. DER"]
-			title_text = names[slot_index]
-		else:
-			title_text = "MALETERO #%d (#%d)" % [slot_index + 1, int(tire_data.get("id", 0))]
-
-		var head_box := HBoxContainer.new()
-		info_vbox.add_child(head_box)
-
-		title_label = Label.new()
-		title_label.text = title_text
-		title_label.add_theme_font_override("font", panel_ref.FONT_TITLE)
-		title_label.add_theme_font_size_override("font_size", 13)
-		title_label.add_theme_color_override("font_color", panel_ref.C_GOLD if is_sel else panel_ref.C_CHROME_TEXT)
-		head_box.add_child(title_label)
-
-		var head_sp := Control.new()
-		head_sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		head_box.add_child(head_sp)
-
-		var state: Dictionary = tire_data.get("state", {})
-		var tire_cid := str(tire_data.get("compound_id", ""))
-		var compound_info := RallyTireCompound.get_compound(RallyTireCompound.load_catalog(), tire_cid)
-		var comp_name := str(panel_ref._compound_label(tire_cid, false)).to_upper() if (panel_ref != null and panel_ref.has_method("_compound_label")) else str(compound_info.get("label", tire_cid)).to_upper()
-		compound_label = Label.new()
-		compound_label.text = comp_name
-		compound_label.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		compound_label.add_theme_font_size_override("font_size", 9)
-		compound_label.add_theme_color_override("font_color", Color(str(compound_info.get("visual_tread_color", "#d9d9d9"))))
-		head_box.add_child(compound_label)
-
-		var wear_pct := float(state.get("wear_fraction", 0.0)) * 100.0
-		var is_punctured: bool = float(state.get("leak_per_second", 0.0)) > 0.0 or float(state.get("pressure_loss_fraction", 0.0)) > 0.85
-		cond_label = Label.new()
-		if is_punctured:
-			cond_label.text = "¡PINCHADO! · Fuga de presión activa"
-			cond_label.add_theme_color_override("font_color", panel_ref.C_ROSE)
-		else:
-			cond_label.text = "Goma: %.0f%% desg · %.0f°C" % [wear_pct, float(state.get("tread_c", 0.0))]
-			cond_label.add_theme_color_override("font_color", panel_ref.C_GREEN if wear_pct < 35 else (panel_ref.C_GOLD if wear_pct < 70 else panel_ref.C_ROSE))
-		cond_label.add_theme_font_override("font", panel_ref.DIN)
-		cond_label.add_theme_font_size_override("font_size", 9)
-		info_vbox.add_child(cond_label)
-
-		var rim_def: float = float(state.get("rim_deformation", 0.0))
-		rim_label = Label.new()
-		if rim_def >= 0.20:
-			rim_label.text = "Rin: ¡DEFORMADO! (%.0f%%)" % (rim_def * 100.0)
-			rim_label.add_theme_color_override("font_color", panel_ref.C_ROSE)
-		elif rim_def > 0.005:
-			rim_label.text = "Rin: Golpe (%.0f%%)" % (rim_def * 100.0)
-			rim_label.add_theme_color_override("font_color", Color("#f97316"))
-		else:
-			rim_label.text = "Rin: Óptimo (0% daño)"
-			rim_label.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
-		rim_label.add_theme_font_override("font", panel_ref.DIN)
-		rim_label.add_theme_font_size_override("font_size", 8)
-		info_vbox.add_child(rim_label)
-
-	func _update_style(selected: bool, hover_drop: bool) -> void:
-		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(RallyUITheme.CORNER_RADIUS)
-		sb.shadow_size = 0
-		if hover_drop:
-			sb.bg_color = Color(panel_ref.C_SEL, 0.95)
-			sb.border_color = panel_ref.C_GOLD_HI
-			sb.set_border_width_all(2)
-		elif selected:
-			sb.bg_color = panel_ref.C_SEL
-			sb.border_color = panel_ref.C_GOLD
-			sb.set_border_width_all(2)
-		elif is_empty:
-			sb.bg_color = Color(panel_ref.C_FIELD, 0.4)
-			sb.border_color = Color(panel_ref.C_SHADOW, 0.8)
-			sb.set_border_width_all(1)
-		else:
-			sb.bg_color = panel_ref.C_FIELD
-			sb.border_color = Color(panel_ref.C_RIM, 0.35)
-			sb.set_border_width_all(1)
-		add_theme_stylebox_override("panel", sb)
-
-	func _gui_input(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			panel_ref._on_slot_clicked(slot_type, slot_index, tire_data)
-
-	func _get_drag_data(_at_position: Vector2) -> Variant:
-		if is_empty or tire_data.is_empty():
-			return null
-		var holder := RallyHeldPartPreviewScript.new()
-		holder.custom_minimum_size = Vector2(140, 40)
-		holder.size = Vector2(140, 40)
-		var preview := PanelContainer.new()
-		var p_sb := RallyUITheme.make_flat_panel(Color(panel_ref.C_GLASS, 0.96), panel_ref.C_GOLD, 2, RallyUITheme.CORNER_RADIUS)
-		preview.add_theme_stylebox_override("panel", p_sb)
-		var p_lbl := Label.new()
-		var prefix := "🛞 " + ("DELANT. " if slot_index < 2 else "TRAS. ") if slot_type == "mounted" else "🛞 REPUESTO "
-		p_lbl.text = prefix + "#%d" % int(tire_data.get("id", 0))
-		p_lbl.add_theme_font_override("font", panel_ref.BOLD)
-		p_lbl.add_theme_font_size_override("font_size", 13)
-		p_lbl.add_theme_color_override("font_color", panel_ref.C_GOLD_HI)
-		preview.add_child(p_lbl)
-		preview.custom_minimum_size = Vector2(140, 40)
-		preview.size = Vector2(140, 40)
-		holder.model_view = preview
-		# model_view debe entrar al árbol con el holder para que _ready lo centre.
-		holder.add_child(preview)
-		set_drag_preview(holder)
-		return {"source_type": slot_type, "index": slot_index, "tire": tire_data}
-
-	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-		if not data is Dictionary:
-			return false
-		var src_type: String = str(data.get("source_type", ""))
-		var src_idx: int = int(data.get("index", -1))
-		if slot_type == "mounted":
-			return (src_type == "spare") or (src_type == "mounted" and src_idx != slot_index)
-		elif slot_type == "spare":
-			return (src_type == "mounted")
-		return false
-
-	func _drop_data(_at_position: Vector2, data: Variant) -> void:
-		if data is Dictionary:
-			panel_ref._on_drop_action(data, slot_type, slot_index)
-
-
-class DiscardBinSlot extends PanelContainer:
-	var panel_ref: Variant
-
-	func _init(p_panel: Variant) -> void:
-		panel_ref = p_panel
-		custom_minimum_size = Vector2(230, 95)
-		mouse_filter = Control.MOUSE_FILTER_STOP
-		_update_style(false)
-		_setup_ui()
-
-	func _setup_ui() -> void:
-		var margin := MarginContainer.new()
-		margin.add_theme_constant_override("margin_left", 8)
-		margin.add_theme_constant_override("margin_right", 8)
-		margin.add_theme_constant_override("margin_top", 6)
-		margin.add_theme_constant_override("margin_bottom", 6)
-		add_child(margin)
-
-		var vbox := VBoxContainer.new()
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_theme_constant_override("separation", 2)
-		margin.add_child(vbox)
-
-		var title := Label.new()
-		title.text = "🗑️ DESECHAR EN RUTA"
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title.add_theme_font_override("font", panel_ref.FONT_TITLE)
-		title.add_theme_font_size_override("font_size", 13)
-		title.add_theme_color_override("font_color", panel_ref.C_ROSE)
-		vbox.add_child(title)
-
-		var sub := Label.new()
-		sub.text = "Suelta aquí para aligerar (-18 kg)"
-		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		sub.add_theme_font_override("font", panel_ref.DIN_BOLD)
-		sub.add_theme_font_size_override("font_size", 8)
-		sub.add_theme_color_override("font_color", panel_ref.C_GOLD)
-		vbox.add_child(sub)
-
-		var hint := Label.new()
-		hint.text = "Arrastra rueda averiada o repuesto inservible"
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hint.add_theme_font_override("font", panel_ref.FONT)
-		hint.add_theme_font_size_override("font_size", 8)
-		hint.add_theme_color_override("font_color", panel_ref.C_CHROME_DIM)
-		vbox.add_child(hint)
-
-	func _update_style(hover: bool) -> void:
-		var sb := RallyUITheme.make_flat_panel(
-			Color("#3c1a1f") if hover else Color("#2b1316"),
-			panel_ref.C_ROSE if hover else Color(panel_ref.C_ROSE, 0.60),
-			2 if hover else 1,
-			RallyUITheme.CORNER_RADIUS
-		)
-		add_theme_stylebox_override("panel", sb)
-
-	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-		if not data is Dictionary:
-			return false
-		var src_type: String = str(data.get("source_type", ""))
-		if src_type == "spare":
-			return true
-		if src_type == "mounted":
-			if panel_ref.session != null and panel_ref.session.get("vehicle") != null:
-				return not panel_ref.session.vehicle.tire_inventory.spares.is_empty()
-		return false
-
-	func _drop_data(_at_position: Vector2, data: Variant) -> void:
-		if data is Dictionary:
-			panel_ref._on_drop_action(data, "bin", 0)
+	if telemetry_panel != null and telemetry_panel.has_method("populate"):
+		telemetry_panel.populate(session, _compound_label)

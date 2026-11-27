@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_podium_card.gd" id="1_podium"]
+
+[node name="UIPodiumCard" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_podium")
+
+[node name="PodiumVBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RankLabel" type="Label" parent="PodiumVBox"]
+layout_mode = 2
+
+[node name="DriverLabel" type="Label" parent="PodiumVBox"]
+layout_mode = 2
+
+[node name="TeamLabel" type="Label" parent="PodiumVBox"]
+layout_mode = 2
+
+[node name="TimeLabel" type="Label" parent="PodiumVBox"]
+layout_mode = 2
+
+[node name="PointsLabel" type="Label" parent="PodiumVBox"]
+layout_mode = 2

@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/molecules/ui_panel_footer.gd" id="1_footer"]
+
+[node name="UIPanelFooter" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_footer")
+
+[node name="FooterRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HintLabel" type="Label" parent="FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActionsBox" type="HBoxContainer" parent="FooterRow"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 10

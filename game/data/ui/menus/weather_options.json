@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "badge_top": "CONDICIÓN",
+  "badge_bottom": "CLIMA INICIAL",
+  "options": [
+    {
+      "id": "sunny",
+      "title": "Soleado",
+      "tag": "DESPEJADO",
+      "icon": "☀",
+      "svg": "res://assets/rally/weather/monocromos/soleado.svg",
+      "summary": "Cielo abierto con máxima irradiancia solar y calentamiento rápido del neumático. Trazado completamente seco y agarre óptimo.",
+      "surface": "Grava seca / Polvo",
+      "temp": "19°C ~ 24°C",
+      "grip": "100% Grip",
+      "accent": "#f59e0b"
+    },
+    {
+      "id": "cloudy",
+      "title": "Nublado",
+      "tag": "LUZ DIFUSA",
+      "icon": "☁",
+      "svg": "res://assets/rally/weather/monocromos/nublado.svg",
+      "summary": "Cubierta nubosa uniforme con luz difusa y temperatura templada. Superficie firme y consistente sin presencia de lluvia.",
+      "surface": "Grava compacta",
+      "temp": "14°C ~ 18°C",
+      "grip": "98% Grip",
+      "accent": "#94a3b8"
+    },
+    {
+      "id": "medium_precipitation",
+      "title": "Lluvia",
+      "tag": "MOJADO",
+      "icon": "🌧",
+      "svg": "res://assets/rally/weather/monocromos/lluvia.svg",
+      "summary": "Precipitación constante que moja activamente el tramo. Formación progresiva de charcos, reducción de tracción y menor visibilidad.",
+      "surface": "Grava mojada / Barro",
+      "temp": "10°C ~ 14°C",
+      "grip": "85% Grip",
+      "accent": "#38bdf8"
+    },
+    {
+      "id": "random",
+      "title": "Aleatorio",
+      "tag": "DINÁMICO",
+      "icon": "🎲",
+      "svg": "res://assets/rally/weather/monocromos/aleatorio.svg",
+      "summary": "Condición meteorológica determinada por el boletín meteorológico oficial del evento y el azar regional. Puede comenzar en cualquier estado.",
+      "surface": "Condición variable",
+      "temp": "Variable",
+      "grip": "Variable",
+      "accent": "#e5a93c"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/main_menu/main_menu_view.gd" id="1_view"]
+
+[node name="MainMenuView" type="VBoxContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+script = ExtResource("1_view")
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Rally Maniac"
+horizontal_alignment = 1
+
+[node name="AccentLine" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SpacerTop" type="Control" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BarWrapper" type="Control" parent="."]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="BarBackdrop" type="TextureRect" parent="BarWrapper"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+
+[node name="BarMargin" type="MarginContainer" parent="BarWrapper"]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 8
+
+[node name="ButtonsBox" type="HBoxContainer" parent="BarWrapper/BarMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SpacerBottom" type="Control" parent="."]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2

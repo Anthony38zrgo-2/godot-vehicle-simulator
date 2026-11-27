@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "estimated_fuel_burn_l_per_km": 0.42,
+  "tabs": [
+    {"id": "stage", "label": "TRAMO Y RÁPIDO"},
+    {"id": "chassis", "label": "CHASIS"},
+    {"id": "powertrain", "label": "TRANSMISIÓN"},
+    {"id": "strategy", "label": "RUEDAS Y CARGA"}
+  ],
+  "chassis_paths": [
+    "garage.suspension",
+    "garage.front_arb",
+    "garage.rear_arb",
+    "brakes.front_brake_bias",
+    "suspension.front.camber",
+    "suspension.rear.camber",
+    "suspension.front.toe",
+    "suspension.rear.toe"
+  ],
+  "powertrain_paths": [
+    "powertrain.final_drive",
+    "powertrain.max_rpm",
+    "garage.cooling",
+    "garage.lsd",
+    "powertrain.differential.clutches",
+    "powertrain.differential.power_ramp_angle_deg",
+    "powertrain.differential.coast_ramp_angle_deg"
+  ],
+  "strategy_paths": [
+    "fuel.initial_kg",
+    "garage.front_pressure",
+    "garage.rear_pressure"
+  ],
+  "inverted_discrete_paths": [
+    "garage.suspension",
+    "garage.front_arb",
+    "garage.rear_arb"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "actions": [
+    {"id": "resume", "label": "Reanudar etapa", "tone": "gold"},
+    {"id": "inventory", "label": "Taller de ruedas", "tone": "chrome"},
+    {"id": "repairs", "label": "Reparaciones rápidas", "tone": "chrome"},
+    {"id": "rescue", "label": "Pedir rescate", "tone": "caution"},
+    {"id": "abandon", "label": "Abandonar etapa", "tone": "danger"},
+    {"id": "menu", "label": "Volver al menú principal", "tone": "muted"}
+  ]
+}

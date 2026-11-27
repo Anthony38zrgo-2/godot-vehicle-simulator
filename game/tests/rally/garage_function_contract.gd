@@ -42,27 +42,15 @@ func run() -> void:
 	panel.close_garage(false)
 	check(absf(float(vehicle.get_setup_snapshot()["brakes.front_brake_bias"]) - 0.6) < 0.001, "discard preserves vehicle")
 
-	# Verificar página RÁPIDO ampliada sin selector de compuestos, botón RESTAURAR y caché de trazado.
+	# Verificar página TRAMO con nodos Control reales (sin selector de compuestos), botón RESTAURAR y caché de trazado.
 	panel.open_garage_for_event({"confirmation_required": false, "stage_weather_label": "Nublado"})
 	panel._set_page(0)
 	panel._run_button("reset")
 	check(panel.active_setup_name == "BASE", "reset button restores BASE setup instead of FABRICA")
-	panel.queue_redraw()
 	await process_frame
-	if not panel._hit_regions.is_empty():
-		var has_compound: bool = panel._hit_regions.any(func(r): return str(r.get("kind", "")) == "all_compound")
-		check(not has_compound, "Quick page has no all_compound hit region")
-		var max_quick_y := 0.0
-		var has_reset_btn := false
-		for hr in panel._hit_regions:
-			var kind := str(hr.get("kind", ""))
-			if kind in ["quick", "quick_slide"]:
-				var rect_val: Rect2 = hr.get("rect", Rect2())
-				max_quick_y = maxf(max_quick_y, rect_val.end.y)
-			elif kind == "button" and str(hr.get("action", "")) == "reset":
-				has_reset_btn = true
-		check(max_quick_y > 520.0, "Quick rows expand below old compound box")
-		check(has_reset_btn, "Footer exposes reset button hit region")
+	check(panel._stage_tab != null and panel._stage_tab.visible, "Stage tab Control view is visible on page 0")
+	check(panel._strategy_tab != null and not panel._strategy_tab.visible, "Strategy/compound tab is hidden on page 0")
+	check(panel.reset_button != null and panel.reset_button.visible, "Footer exposes real Control reset button")
 	check(panel._get_stage_weather_text() == "NUBLADO", "Stage weather text uses provided label")
 	panel.close_garage(false)
 	scene.queue_free()

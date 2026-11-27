@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/main_menu/stage_select_view.gd" id="1"]
+
+[node name="StageSelectView" type="VBoxContainer"]
+visible = false
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+script = ExtResource("1")
+
+[node name="StageHeader" type="HBoxContainer" parent="."]
+visible = false
+
+[node name="TitleLabel" type="Label" parent="StageHeader"]
+text = "Select Stage"
+
+[node name="SubtitleLabel" type="Label" parent="StageHeader"]
+text = "   · Elige el tramo de entrada"
+
+[node name="CountryRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 6
+
+[node name="CarouselRow" type="HBoxContainer" parent="."]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="PrevButton" type="Button" parent="CarouselRow"]
+custom_minimum_size = Vector2(40, 0)
+size_flags_vertical = 3
+text = "◀"
+
+[node name="StageScroll" type="ScrollContainer" parent="CarouselRow"]
+clip_contents = true
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 3
+vertical_scroll_mode = 0
+
+[node name="StageStrip" type="HBoxContainer" parent="CarouselRow/StageScroll"]
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="NextButton" type="Button" parent="CarouselRow"]
+custom_minimum_size = Vector2(40, 0)
+size_flags_vertical = 3
+text = "▶"
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(150, 40)
+text = "◀ Volver"
+
+[node name="Spacer" type="Control" parent="BottomBar"]
+size_flags_horizontal = 3
+
+[node name="PageLabel" type="Label" parent="BottomBar"]
+text = "ETAPAS 1-4 DE 10"
