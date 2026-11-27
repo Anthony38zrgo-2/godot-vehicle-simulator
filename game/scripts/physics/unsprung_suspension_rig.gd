@@ -102,7 +102,7 @@ var _rust_param_version: int = -1
 var _rust_params66: PackedFloat64Array = PackedFloat64Array()
 var _rust_flags9: PackedByteArray = PackedByteArray()
 var _rust_vec14: PackedVector3Array = PackedVector3Array()
-var _rust_scalars18: PackedFloat64Array = PackedFloat64Array()
+var _rust_scalars30: PackedFloat64Array = PackedFloat64Array()
 var _rust_radial56: PackedFloat64Array = PackedFloat64Array()
 var _rust_q4: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
 var _rust_np4: PackedVector3Array = PackedVector3Array()
@@ -132,9 +132,7 @@ var t_n: Array[Vector3] = [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
 var t_delta0: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var t_road_vel: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var t_radial_state: Array[Dictionary] = [{}, {}, {}, {}]
-var t_radial_packed: Array[PackedFloat64Array] = [
-	PackedFloat64Array(), PackedFloat64Array(), PackedFloat64Array(), PackedFloat64Array()
-]
+var t_radial_packed: Array = _packed_radial_rows(4)
 var t_rim_max: Array[float] = [0.05, 0.05, 0.05, 0.05]
 var t_elapsed := 0.0
 var t_h := 0.008
@@ -224,8 +222,8 @@ func _ensure_rust_rig() -> RefCounted:
 			_rust_flags9.resize(9)
 		if _rust_vec14.size() != 14:
 			_rust_vec14.resize(14)
-		if _rust_scalars18.size() != 18:
-			_rust_scalars18.resize(18)
+		if _rust_scalars30.size() != 30:
+			_rust_scalars30.resize(30)
 		if _rust_radial56.size() != 56:
 			_rust_radial56.resize(56)
 		if _rust_np4.size() != 4:
@@ -259,31 +257,29 @@ func _sync_rust_suspension_params(suspension: VehicleSuspensionModel) -> void:
 		suspension.sync_flat_parameters()
 	if _rust_param_version == suspension._param_version:
 		return
-	var p := _rust_params66
-	var f := _rust_flags9
 	for i in 4:
-		p[i] = suspension._spring_rate[i]
-		p[4 + i] = suspension._static_load[i]
-		p[8 + i] = suspension._rest_offset[i]
-		p[12 + i] = suspension._bump_m[i]
-		p[16 + i] = suspension._droop_m[i]
-		p[20 + i] = suspension._bump_damping[i]
-		p[24 + i] = suspension._rebound_damping[i]
-		p[28 + i] = suspension._fast_factor[i]
-		p[32 + i] = suspension._knee_speed[i]
-		p[36 + i] = suspension._bump_stop_travel[i]
-		p[40 + i] = suspension._bump_stop_stiffness[i]
-		p[44 + i] = suspension._bump_stop_damping[i]
-		p[48 + i] = suspension._axis_pitch[i]
-		p[52 + i] = suspension._axis_roll[i]
-		p[56 + i] = suspension._axis_pitch_gain[i]
-		p[60 + i] = suspension._axis_roll_gain[i]
-		f[i] = suspension._spring_can_unseat[i]
-		f[4 + i] = suspension._has_inclined_axis[i]
-	p[64] = suspension.front_arb_stiffness_n_per_m
-	p[65] = suspension.rear_arb_stiffness_n_per_m
-	f[8] = 1 if suspension._any_inclined_axis else 0
-	_rust_rig.call("sync_suspension_params", p, f)
+		_rust_params66[i] = suspension._spring_rate[i]
+		_rust_params66[4 + i] = suspension._static_load[i]
+		_rust_params66[8 + i] = suspension._rest_offset[i]
+		_rust_params66[12 + i] = suspension._bump_m[i]
+		_rust_params66[16 + i] = suspension._droop_m[i]
+		_rust_params66[20 + i] = suspension._bump_damping[i]
+		_rust_params66[24 + i] = suspension._rebound_damping[i]
+		_rust_params66[28 + i] = suspension._fast_factor[i]
+		_rust_params66[32 + i] = suspension._knee_speed[i]
+		_rust_params66[36 + i] = suspension._bump_stop_travel[i]
+		_rust_params66[40 + i] = suspension._bump_stop_stiffness[i]
+		_rust_params66[44 + i] = suspension._bump_stop_damping[i]
+		_rust_params66[48 + i] = suspension._axis_pitch[i]
+		_rust_params66[52 + i] = suspension._axis_roll[i]
+		_rust_params66[56 + i] = suspension._axis_pitch_gain[i]
+		_rust_params66[60 + i] = suspension._axis_roll_gain[i]
+		_rust_flags9[i] = suspension._spring_can_unseat[i]
+		_rust_flags9[4 + i] = suspension._has_inclined_axis[i]
+	_rust_params66[64] = suspension.front_arb_stiffness_n_per_m
+	_rust_params66[65] = suspension.rear_arb_stiffness_n_per_m
+	_rust_flags9[8] = 1 if suspension._any_inclined_axis else 0
+	_rust_rig.call("sync_suspension_params", _rust_params66, _rust_flags9)
 	_rust_param_version = suspension._param_version
 
 
@@ -518,6 +514,16 @@ static func _solver_rows(count: int) -> Array:
 	return rows
 
 
+static func _packed_radial_rows(count: int) -> Array:
+	var rows: Array = []
+	for i in count:
+		var row: Array[float] = []
+		row.resize(TireRadialModel.PACK_SIZE)
+		row.fill(0.0)
+		rows.append(row)
+	return rows
+
+
 ## Factoriza el sistema 10x10 por complemento de Schur exacto sobre los 4 bujes
 ## diagonales: colapsa a un sistema 6x6 resuelto con Basis.inverse() en C++.
 func _factor_schur() -> void:
@@ -739,9 +745,8 @@ func begin_tick(
 		var press := float(ts.get("pressure_kpa_gauge", 180.0))
 		var carc := float(ts.get("carcass_c", 25.0))
 		var opt := float(thermal.optimal_carcass_temperature(i))
-		var rp: PackedFloat64Array = t_radial_packed[i]
+		var rp: Array[float] = t_radial_packed[i]
 		TireRadialModel.prepare_packed_into(rp, tires, axle, press, carc, opt)
-		t_radial_packed[i] = rp
 		var rim_r := rad * 0.58
 		if rp[TireRadialModel.P_RIM_RADIUS] > 0.01:
 			rim_r = rp[TireRadialModel.P_RIM_RADIUS]
@@ -766,36 +771,36 @@ func begin_tick(
 		substep_defl_m[i].clear()
 	if _ensure_rust_rig() != null:
 		_sync_rust_suspension_params(suspension)
-		var v14 := _rust_vec14
-		v14[0] = tick_com_local
-		v14[1] = tick_inertia_diag
-		v14[2] = tick_grav
-		v14[3] = C
-		v14[4] = V
-		v14[5] = om
-		var sc := _rust_scalars18
-		sc[0] = tick_m_s
-		sc[1] = float(radial_viscous_scale)
-		var r56 := _rust_radial56
+		_rust_vec14[0] = tick_com_local
+		_rust_vec14[1] = tick_inertia_diag
+		_rust_vec14[2] = tick_grav
+		_rust_vec14[3] = C
+		_rust_vec14[4] = V
+		_rust_vec14[5] = om
+		_rust_scalars30[0] = tick_m_s
+		_rust_scalars30[1] = float(radial_viscous_scale)
 		var flags_mask := 0
 		if reuse_mass_factor_per_tick:
 			flags_mask |= (1 << 4)
 		if chassis_torsion_enabled:
 			flags_mask |= (1 << 5)
 		for i in 4:
-			v14[6 + i] = t_n[i]
-			v14[10 + i] = t_road_vel[i]
-			sc[2 + i] = t_delta0[i]
-			sc[6 + i] = t_rim_max[i]
-			sc[10 + i] = _qmin[i]
-			sc[14 + i] = _qmax[i]
+			_rust_vec14[6 + i] = t_n[i]
+			_rust_vec14[10 + i] = t_road_vel[i]
+			_rust_scalars30[2 + i] = t_delta0[i]
+			_rust_scalars30[6 + i] = t_rim_max[i]
+			_rust_scalars30[10 + i] = _qmin[i]
+			_rust_scalars30[14 + i] = _qmax[i]
+			_rust_scalars30[18 + i] = q[i]
+			_rust_scalars30[22 + i] = u[i]
+			_rust_scalars30[26 + i] = m_unsprung[i]
 			if t_hit[i]:
 				flags_mask |= (1 << i)
-				var rp_i: PackedFloat64Array = t_radial_packed[i]
+				var rp_i: Array[float] = t_radial_packed[i]
 				var base_idx := i * TireRadialModel.PACK_SIZE
 				for k in TireRadialModel.PACK_SIZE:
-					r56[base_idx + k] = rp_i[k]
-		_rust_rig.call("begin_tick", v14, R, sc, r56, flags_mask)
+					_rust_radial56[base_idx + k] = rp_i[k]
+		_rust_rig.call("begin_tick", _rust_vec14, R, _rust_scalars30, _rust_radial56, flags_mask)
 
 
 func step_substep_normal(h: float, suspension: VehicleSuspensionModel, F_body: Vector3, T_body: Vector3) -> void:
@@ -982,7 +987,7 @@ func solve_normal(h: float) -> void:
 		_normal_road_speed[i] = t_n[i].dot(t_road_vel[i])
 		var v_free := _dot10(G, w_free) - _normal_road_speed[i]
 		var mi := maxf(m_unsprung[i], 1.0)
-		var rp: PackedFloat64Array = t_radial_packed[i]
+		var rp: Array[float] = t_radial_packed[i]
 		var J := 0.0
 		var dfin := maxf(delta - hh * v_free, 0.0)
 		if dfin > 0.0:
@@ -1174,10 +1179,11 @@ func end_substep(h: float) -> void:
 
 # Fijar límites efectivos antes de resolver topes (llamado por begin_substep).
 func _set_q_limits(suspension: VehicleSuspensionModel) -> void:
+	if not suspension._flat_ready:
+		suspension.sync_flat_parameters()
 	for i in 4:
-		var p: Dictionary = suspension.axle_parameters[i]
-		_qmin[i] = -float(p.get("droop_m", 0.18)) - JOINT_LIMIT_MARGIN_M
-		_qmax[i] = float(p.get("bump_m", 0.22)) + JOINT_LIMIT_MARGIN_M
+		_qmin[i] = -suspension._droop_m[i] - JOINT_LIMIT_MARGIN_M
+		_qmax[i] = suspension._bump_m[i] + JOINT_LIMIT_MARGIN_M
 
 
 func end_tick(state: PhysicsDirectBodyState3D, dt: float, suspension: VehicleSuspensionModel) -> Array[float]:

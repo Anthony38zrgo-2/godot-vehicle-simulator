@@ -282,13 +282,13 @@ static func _evaluate_prepared(
 
 
 static func prepare_packed_into(
-	out: PackedFloat64Array,
+	out: Array[float],
 	tires: Dictionary,
 	axle: String,
 	pressure_kpa: float,
 	temperature_c: float,
 	resolved_optimum_c: float = INF,
-) -> void:
+) -> Array[float]:
 	if out.size() < PACK_SIZE:
 		out.resize(PACK_SIZE)
 	var axle_raw: Variant = tires.get(axle, {})
@@ -336,11 +336,12 @@ static func prepare_packed_into(
 	out[P_PRESSURE_K] = pressure_k
 	out[P_RIM_RADIUS] = rim_radius
 	out[P_SIDEWALL] = sidewall
+	return out
 
 
-## Evaluación escalar pura sobre PackedFloat64Array (1 solo exp(), cero Dicts).
+## Evaluación escalar pura sobre Array[float] empaquetado (1 solo exp(), cero Dicts).
 static func packed_force_n(
-	p: PackedFloat64Array, unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
+	p: Array[float], unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
 ) -> float:
 	if deflection <= 0.0:
 		return 0.0
@@ -371,7 +372,7 @@ static func packed_force_n(
 
 ## Devuelve Vector2(force_n, dissipation_w) sin alojar Dictionary.
 static func packed_force_and_dissipation(
-	p: PackedFloat64Array, unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
+	p: Array[float], unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
 ) -> Vector2:
 	if deflection <= 0.0:
 		return Vector2.ZERO
@@ -405,7 +406,7 @@ static func packed_force_and_dissipation(
 ## Rellena un Dictionary existente in-place (compatibilidad con radial_states sin allocs).
 static func populate_radial_dict_from_packed(
 	target: Dictionary,
-	p: PackedFloat64Array,
+	p: Array[float],
 	unsprung_mass: float,
 	deflection: float,
 	speed: float,

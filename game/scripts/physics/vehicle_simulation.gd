@@ -99,7 +99,6 @@ var _substep_j_tang_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _substep_lat_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _substep_lon_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _substep_cg_h: Array[float] = [0.5, 0.5, 0.5, 0.5]
-var _substep_j_tang: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var _tire_thermal_elapsed := 0.0
 # Friction, brake and radial damping work, in joules per wheel.
 var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]

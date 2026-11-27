@@ -1399,20 +1399,20 @@ impl RustSuspensionRig {
     }
 
     /// Vec14 layout: [com_local, inertia_diag, grav, c_in, v_in, om_in, t_n[0..4], t_road_vel[0..4]]
-    /// Scalars18 layout: [mass_s, radial_viscous_scale, t_delta0[0..4], t_rim_max[0..4], q_min[0..4], q_max[0..4]]
+    /// Scalars30 layout: [mass_s, radial_viscous_scale, t_delta0[0..4], t_rim_max[0..4], q_min[0..4], q_max[0..4], q[0..4], u[0..4], m_unsprung[0..4]]
     /// flags_mask: bits 0..3 = t_hit[0..4], bit 4 = reuse_mass_factor, bit 5 = chassis_torsion_enabled
     #[func]
     fn begin_tick(
         &mut self,
         vec14: PackedVector3Array,
         r_in: Basis,
-        scalars18: PackedFloat64Array,
+        scalars30: PackedFloat64Array,
         radial_packed_56: PackedFloat64Array,
         flags_mask: i32,
     ) {
         let vs = vec14.as_slice();
-        let sc = scalars18.as_slice();
-        if vs.len() < 14 || sc.len() < 18 {
+        let sc = scalars30.as_slice();
+        if vs.len() < 14 || sc.len() < 30 {
             return;
         }
         self.tick_com_local = Vec3::from_v3(vs[0]);
@@ -1431,6 +1431,11 @@ impl RustSuspensionRig {
         for i in 0..4 {
             self.qmin[i] = sc[10 + i];
             self.qmax[i] = sc[14 + i];
+            self.q[i] = sc[18 + i];
+            self.u[i] = sc[22 + i];
+            let m = sc[26 + i].max(1.0);
+            self.m_unsprung[i] = m;
+            self.inv_m_unsprung[i] = 1.0 / m;
         }
 
         let e_act = r.mul_vec(Vec3::UP).normalized_or(Vec3::UP);
@@ -1440,16 +1445,6 @@ impl RustSuspensionRig {
             } else {
                 e_act
             };
-        }
-        if self.has_pred {
-            let dv = v.sub(self.v_pred);
-            let dom = om.sub(self.omega_pred);
-            for i in 0..4 {
-                let a = self.neutral_positions[i].sub(self.tick_com_local);
-                let e_i = self.tick_e_wheel[i];
-                let r_act = r.mul_vec(a).add(e_i.scale(self.q[i]));
-                self.u[i] -= e_i.dot(dv.add(dom.cross(r_act)));
-            }
         }
         self.c_pred = c;
         self.r_pred = r;
