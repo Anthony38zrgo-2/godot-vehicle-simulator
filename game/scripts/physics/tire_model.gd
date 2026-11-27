@@ -481,8 +481,8 @@ func evaluate(
 		var base_lat_assist := float(target_surface.get("lateral_grip_assist", 0.03))
 		# Lateral loose gravel berms lose modest grip, while converted mud loses substantial
 		# grip and adds strong rolling resistance so excursions into mud berms bog down the car.
-		var fric_scale := 1.0 - 0.11 * dry_loose - 0.48 * eff_mud
-		var stiff_scale := 1.0 - 0.16 * dry_loose - 0.54 * eff_mud
+		var fric_scale := 1.0 - 0.11 * dry_loose - 0.38 * eff_mud
+		var stiff_scale := 1.0 - 0.16 * dry_loose - 0.44 * eff_mud
 		var roll_scale := 1.0 + 0.08 * dry_loose + 1.75 * eff_mud
 		var lat_assist_scale := 1.0 - 0.12 * dry_loose - 0.62 * eff_mud
 		target_surface["friction"] = base_fric * fric_scale

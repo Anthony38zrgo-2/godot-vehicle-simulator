@@ -872,10 +872,10 @@
           }
         },
         "combined_migration_v2_enabled": true,
-        "lateral_peak_slip_angle_rad": 0.13,
-        "longitudinal_peak_slip_ratio": 0.07,
-        "lateral_slide_mu_ratio": 0.99,
-        "longitudinal_slide_mu_ratio": 0.75,
+        "lateral_peak_slip_angle_rad": 0.12,
+        "longitudinal_peak_slip_ratio": 0.12,
+        "lateral_slide_mu_ratio": 1.0,
+        "longitudinal_slide_mu_ratio": 0.97,
         "falloff_sharpness": 1.05,
         "peak_load_sensitivity": 0.04,
         "budget_blend_width": 0.15
@@ -911,10 +911,10 @@
             "rolling_resistance": 1.0
           }
         },
-        "lateral_peak_slip_angle_rad": 0.13,
-        "longitudinal_peak_slip_ratio": 0.13,
-        "lateral_slide_mu_ratio": 0.99,
-        "longitudinal_slide_mu_ratio": 0.99,
+        "lateral_peak_slip_angle_rad": 0.12,
+        "longitudinal_peak_slip_ratio": 0.12,
+        "lateral_slide_mu_ratio": 1.0,
+        "longitudinal_slide_mu_ratio": 0.97,
         "falloff_sharpness": 0.95,
         "peak_load_sensitivity": 0.04,
         "budget_blend_width": 0.25
