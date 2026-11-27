@@ -3,6 +3,21 @@ extends RefCounted
 
 const MIN_DAMPING_RATIO := 0.18
 const MIN_DAMPING_RAMP_M := 0.012
+const PACK_SIZE := 14
+const P_STIFFNESS := 0
+const P_SEATING_BAND := 1
+const P_INV_SEATING := 2
+const P_RIM_START := 3
+const P_RIM_BAND := 4
+const P_INV_RIM_BAND := 5
+const P_RIM_STOP_K := 6
+const P_DAMP_RATIO := 7
+const P_DAMP_RAMP := 8
+const P_INV_DAMP_RAMP := 9
+const P_CARCASS_K := 10
+const P_PRESSURE_K := 11
+const P_RIM_RADIUS := 12
+const P_SIDEWALL := 13
 
 # Caché de geometría/modelo por eje para evitar recomputar merges en el bucle
 # de subpasos (hasta 500 Hz x 4 ruedas). Clave: axle + hash ligero del dict.
@@ -264,6 +279,177 @@ static func _evaluate_prepared(
 		"rim_stop_force_n": stop_force,
 		"dissipation_w": dissipation,
 	}
+
+
+static func prepare_packed_into(
+	out: PackedFloat64Array,
+	tires: Dictionary,
+	axle: String,
+	pressure_kpa: float,
+	temperature_c: float,
+	resolved_optimum_c: float = INF,
+) -> void:
+	if out.size() < PACK_SIZE:
+		out.resize(PACK_SIZE)
+	var axle_raw: Variant = tires.get(axle, {})
+	var axle_dict: Dictionary = axle_raw if axle_raw is Dictionary else {}
+	var radius := float(axle_dict.get("radius", 0.28))
+	var rim_radius := float(axle_dict.get("rim_diameter_inches", 13.0)) * 0.0254 * 0.5
+	var sidewall := maxf(radius - rim_radius, 0.03)
+	var width_m := float(axle_dict.get("width", 0.2))
+	var model := _model_for(tires, axle, axle_dict)
+	var reference_height := float(model.get("reference_sidewall_m", 0.1149))
+	var geometry_scale := width_m / maxf(float(model.get("reference_width_m", 0.2)), 0.05) * reference_height / maxf(
+		sidewall,
+		0.02,
+	)
+	var optimal := 60.0
+	if is_finite(resolved_optimum_c):
+		optimal = resolved_optimum_c
+	else:
+		var thermal_global: Dictionary = tires.get("thermal", {})
+		var thermal_axle_raw: Variant = axle_dict.get("thermal", {})
+		var thermal_axle: Dictionary = thermal_axle_raw if thermal_axle_raw is Dictionary else {}
+		optimal = float(thermal_axle.get("optimal_carcass_temperature_c", thermal_global.get("optimal_carcass_temperature_c", 60.0)))
+	var thermal_scale := clampf(1.0 - 0.0015 * (temperature_c - optimal), 0.88, 1.12)
+	var carcass_k := float(model.get("carcass_stiffness_n_m", 30000.0)) * geometry_scale * thermal_scale
+	var pressure_k := float(model.get("pressure_stiffness_n_m_per_kpa", 666.6666667)) * maxf(pressure_kpa, 0.0) * geometry_scale
+	var stiffness := carcass_k + pressure_k
+	var seating_band := clampf(sidewall * 0.12, 0.006, 0.018)
+	var fraction := clampf(float(model.get("rim_stop_start_sidewall_fraction", 0.75)), 0.4, 0.95)
+	var start := sidewall * fraction
+	var band := maxf(sidewall - start, 0.005)
+	var stop_k := float(model.get("rim_stop_stiffness_n_m", 300000.0))
+	var base_damp := maxf(float(model.get("damping_ratio", 0.12)), MIN_DAMPING_RATIO)
+	var ramp_m := maxf(float(model.get("damping_contact_ramp_m", 0.015)), MIN_DAMPING_RAMP_M)
+	out[P_STIFFNESS] = stiffness
+	out[P_SEATING_BAND] = seating_band
+	out[P_INV_SEATING] = 1.0 / maxf(seating_band, 1.0e-6)
+	out[P_RIM_START] = start
+	out[P_RIM_BAND] = band
+	out[P_INV_RIM_BAND] = 1.0 / band
+	out[P_RIM_STOP_K] = stop_k
+	out[P_DAMP_RATIO] = base_damp
+	out[P_DAMP_RAMP] = ramp_m
+	out[P_INV_DAMP_RAMP] = 1.0 / ramp_m
+	out[P_CARCASS_K] = carcass_k
+	out[P_PRESSURE_K] = pressure_k
+	out[P_RIM_RADIUS] = rim_radius
+	out[P_SIDEWALL] = sidewall
+
+
+## Evaluación escalar pura sobre PackedFloat64Array (1 solo exp(), cero Dicts).
+static func packed_force_n(
+	p: PackedFloat64Array, unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
+) -> float:
+	if deflection <= 0.0:
+		return 0.0
+	var stiffness := p[P_STIFFNESS]
+	var seating_band := p[P_SEATING_BAND]
+	var exp_seat := exp(-deflection * p[P_INV_SEATING])
+	var one_minus_exp := 1.0 - exp_seat
+	var seating_tangent_scale := 1.0 - 0.35 * exp_seat
+	var effective_delta := deflection - 0.35 * seating_band * one_minus_exp
+	var over := maxf(deflection - p[P_RIM_START], 0.0)
+	var stop_k := p[P_RIM_STOP_K]
+	var stop_tangent := 0.0
+	var stop_force := 0.0
+	if over > 0.0:
+		var band := p[P_RIM_BAND]
+		stop_tangent = stop_k * minf(over * p[P_INV_RIM_BAND], 1.0)
+		stop_force = 0.5 * stop_k * over * over * p[P_INV_RIM_BAND] if over < band else stop_k * (over - 0.5 * band)
+	var tangent := stiffness * seating_tangent_scale + stop_tangent
+	var tangent_for_damping := minf(tangent, stiffness * 2.5 + 5000.0)
+	var damping := 2.0 * sqrt(maxf(tangent_for_damping, 1.0) * maxf(unsprung_mass, 1.0)) * p[P_DAMP_RATIO]
+	var cf := clampf(deflection * p[P_INV_DAMP_RAMP], 0.0, 1.0)
+	damping *= cf * cf * (3.0 - 2.0 * cf)
+	var elastic := stiffness * effective_delta + stop_force
+	var effective_speed := speed if speed >= 0.0 else speed * 0.45
+	var viscous := damping * clampf(effective_speed, -8.0, 8.0) * viscous_scale
+	return maxf(elastic + viscous, 0.0)
+
+
+## Devuelve Vector2(force_n, dissipation_w) sin alojar Dictionary.
+static func packed_force_and_dissipation(
+	p: PackedFloat64Array, unsprung_mass: float, deflection: float, speed: float, viscous_scale: float
+) -> Vector2:
+	if deflection <= 0.0:
+		return Vector2.ZERO
+	var stiffness := p[P_STIFFNESS]
+	var seating_band := p[P_SEATING_BAND]
+	var exp_seat := exp(-deflection * p[P_INV_SEATING])
+	var one_minus_exp := 1.0 - exp_seat
+	var seating_tangent_scale := 1.0 - 0.35 * exp_seat
+	var effective_delta := deflection - 0.35 * seating_band * one_minus_exp
+	var over := maxf(deflection - p[P_RIM_START], 0.0)
+	var stop_k := p[P_RIM_STOP_K]
+	var stop_tangent := 0.0
+	var stop_force := 0.0
+	if over > 0.0:
+		var band := p[P_RIM_BAND]
+		stop_tangent = stop_k * minf(over * p[P_INV_RIM_BAND], 1.0)
+		stop_force = 0.5 * stop_k * over * over * p[P_INV_RIM_BAND] if over < band else stop_k * (over - 0.5 * band)
+	var tangent := stiffness * seating_tangent_scale + stop_tangent
+	var tangent_for_damping := minf(tangent, stiffness * 2.5 + 5000.0)
+	var damping := 2.0 * sqrt(maxf(tangent_for_damping, 1.0) * maxf(unsprung_mass, 1.0)) * p[P_DAMP_RATIO]
+	var cf := clampf(deflection * p[P_INV_DAMP_RAMP], 0.0, 1.0)
+	damping *= cf * cf * (3.0 - 2.0 * cf)
+	var elastic := stiffness * effective_delta + stop_force
+	var effective_speed := speed if speed >= 0.0 else speed * 0.45
+	var viscous := damping * clampf(effective_speed, -8.0, 8.0) * viscous_scale
+	var force := maxf(elastic + viscous, 0.0)
+	var diss := maxf((force - elastic) * speed, 0.0) if force > 0.0 else 0.0
+	return Vector2(force, diss)
+
+
+## Rellena un Dictionary existente in-place (compatibilidad con radial_states sin allocs).
+static func populate_radial_dict_from_packed(
+	target: Dictionary,
+	p: PackedFloat64Array,
+	unsprung_mass: float,
+	deflection: float,
+	speed: float,
+	viscous_scale: float,
+) -> void:
+	var delta := maxf(deflection, 0.0)
+	var stiffness := p[P_STIFFNESS]
+	var seating_band := p[P_SEATING_BAND]
+	var exp_seat := exp(-delta * p[P_INV_SEATING])
+	var one_minus_exp := 1.0 - exp_seat
+	var seating_tangent_scale := 1.0 - 0.35 * exp_seat
+	var effective_delta := delta - 0.35 * seating_band * one_minus_exp
+	var over := maxf(delta - p[P_RIM_START], 0.0)
+	var stop_k := p[P_RIM_STOP_K]
+	var stop_tangent := 0.0
+	var stop_force := 0.0
+	if over > 0.0:
+		var band := p[P_RIM_BAND]
+		stop_tangent = stop_k * minf(over * p[P_INV_RIM_BAND], 1.0)
+		stop_force = 0.5 * stop_k * over * over * p[P_INV_RIM_BAND] if over < band else stop_k * (over - 0.5 * band)
+	var tangent := stiffness * seating_tangent_scale + stop_tangent
+	var tangent_for_damping := minf(tangent, stiffness * 2.5 + 5000.0)
+	var damping := 2.0 * sqrt(maxf(tangent_for_damping, 1.0) * maxf(unsprung_mass, 1.0)) * p[P_DAMP_RATIO]
+	var cf := clampf(delta * p[P_INV_DAMP_RAMP], 0.0, 1.0)
+	damping *= cf * cf * (3.0 - 2.0 * cf)
+	var elastic := stiffness * effective_delta + stop_force if delta > 0.0 else 0.0
+	var effective_speed := speed if speed >= 0.0 else speed * 0.45
+	var viscous := damping * clampf(effective_speed, -8.0, 8.0) * viscous_scale
+	var force := maxf(elastic + viscous, 0.0) if delta > 0.0 else 0.0
+	var diss := maxf((force - elastic) * speed, 0.0) if (delta > 0.0 and force > 0.0) else 0.0
+	var secant := elastic / maxf(delta, 1.0e-6) if delta > 1.0e-9 else stiffness
+	target["force_n"] = force
+	target["stiffness_n_m"] = stiffness
+	target["secant_n_m"] = secant
+	target["static_stiffness_n_m"] = stiffness
+	target["tangent_n_m"] = tangent
+	target["damping_ns_m"] = damping
+	target["damping_tangent_n_m"] = tangent_for_damping
+	target["carcass_stiffness_n_m"] = p[P_CARCASS_K]
+	target["pressure_stiffness_n_m"] = p[P_PRESSURE_K]
+	target["rim_radius_m"] = p[P_RIM_RADIUS]
+	target["sidewall_m"] = p[P_SIDEWALL]
+	target["rim_stop_force_n"] = stop_force
+	target["dissipation_w"] = diss
 
 
 static func _merged(global_dict: Dictionary, axle_dict: Dictionary) -> Dictionary:

@@ -79,9 +79,34 @@ var _w_rad: Array[float] = _solver_rows(1)[0]
 var _relative_mass: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _normal_deflection: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _normal_road_speed: Array[float] = [0.0, 0.0, 0.0, 0.0]
-var _inertia_before: Array = []
-var _jolt_inertia_before: Array = []
+var _inertia_before: Basis = Basis.IDENTITY
+var _jolt_inertia_before: Basis = Basis.IDENTITY
+var _schur_Svv_inv: Basis = Basis.IDENTITY
+var _schur_Svw: Basis = Basis.IDENTITY
+var _schur_K: Basis = Basis.IDENTITY
+var _schur_Srot_inv: Basis = Basis.IDENTITY
+var _tick_rx: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var _inv_m_unsprung: PackedFloat64Array = PackedFloat64Array([1.0 / 15.0, 1.0 / 15.0, 1.0 / 15.0, 1.0 / 15.0])
+var reuse_mass_factor_per_tick: bool = true
+var _mass_factored_this_tick: bool = false
+var _normals_prepared_this_tick: bool = false
+var _prev_Jrad: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _prev_hh: float = 0.0083333333
+var _last_v_fin: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _last_d_fin: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
 var capture_substeps := false
+# Backend nativo en Rust (rally_native::RustSuspensionRig) con fallback automático a GDScript.
+var use_rust_backend: bool = true
+var _rust_rig: RefCounted = null
+var _rust_param_version: int = -1
+var _rust_params66: PackedFloat64Array = PackedFloat64Array()
+var _rust_flags9: PackedByteArray = PackedByteArray()
+var _rust_vec14: PackedVector3Array = PackedVector3Array()
+var _rust_scalars18: PackedFloat64Array = PackedFloat64Array()
+var _rust_radial56: PackedFloat64Array = PackedFloat64Array()
+var _rust_q4: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _rust_np4: PackedVector3Array = PackedVector3Array()
+var _rust_mu4: PackedFloat64Array = PackedFloat64Array([15.0, 15.0, 15.0, 15.0])
 var tick_r: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var tick_e := Vector3.UP
 var tick_e_wheel: Array[Vector3] = [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
@@ -107,6 +132,9 @@ var t_n: Array[Vector3] = [Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP]
 var t_delta0: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var t_road_vel: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var t_radial_state: Array[Dictionary] = [{}, {}, {}, {}]
+var t_radial_packed: Array[PackedFloat64Array] = [
+	PackedFloat64Array(), PackedFloat64Array(), PackedFloat64Array(), PackedFloat64Array()
+]
 var t_rim_max: Array[float] = [0.05, 0.05, 0.05, 0.05]
 var t_elapsed := 0.0
 var t_h := 0.008
@@ -162,18 +190,133 @@ func create(
 	for i in 4:
 		if i < masses.size():
 			m_unsprung[i] = maxf(float(masses[i]), 1.0)
+		_inv_m_unsprung[i] = 1.0 / m_unsprung[i]
 	if wheel_radii.size() == 4:
 		wheel_radii_m.assign(wheel_radii)
 	if neutral_positions.size() == 4:
 		_track_front_m = maxf(absf(neutral_positions[1].x - neutral_positions[0].x), 0.5)
 		_track_rear_m = maxf(absf(neutral_positions[3].x - neutral_positions[2].x), 0.5)
+	_ensure_rust_rig()
+	_sync_rust_rig_geometry()
 	reset_at(body.global_transform, suspension)
 	print(
 		"RALLY_UNSPRUNG_READY ",
 		JSON.stringify(
-			{"hub_masses_kg": masses, "sprung_mass_kg": body.mass, "mode": "1dof_scalar"}
+			{
+				"hub_masses_kg": masses,
+				"sprung_mass_kg": body.mass,
+				"mode": "1dof_rust" if _rust_rig != null else "1dof_scalar",
+			}
 		),
 	)
+
+
+func _ensure_rust_rig() -> RefCounted:
+	if not use_rust_backend:
+		_rust_rig = null
+		return null
+	if _rust_rig == null and ClassDB.class_exists(&"RustSuspensionRig"):
+		_rust_rig = ClassDB.instantiate(&"RustSuspensionRig") as RefCounted
+		_rust_param_version = -1
+		if _rust_params66.size() != 66:
+			_rust_params66.resize(66)
+		if _rust_flags9.size() != 9:
+			_rust_flags9.resize(9)
+		if _rust_vec14.size() != 14:
+			_rust_vec14.resize(14)
+		if _rust_scalars18.size() != 18:
+			_rust_scalars18.resize(18)
+		if _rust_radial56.size() != 56:
+			_rust_radial56.resize(56)
+		if _rust_np4.size() != 4:
+			_rust_np4.resize(4)
+		_sync_rust_rig_geometry()
+		_rust_rig.call("set_local_inertia_tensor", has_full_inertia_tensor, tick_inertia_local)
+		_rust_rig.call(
+			"configure_chassis_torsion",
+			chassis_torsion_stiffness_nm_per_rad,
+			chassis_torsion_damping_ratio,
+			chassis_torsion_inertia_kg_m2,
+		)
+	return _rust_rig
+
+
+func _sync_rust_rig_geometry() -> void:
+	if _rust_rig == null:
+		return
+	if _rust_np4.size() != 4:
+		_rust_np4.resize(4)
+	for i in 4:
+		_rust_np4[i] = neutral_positions[i] if i < neutral_positions.size() else Vector3.ZERO
+		_rust_mu4[i] = m_unsprung[i]
+	_rust_rig.call("configure_rig", _rust_np4, _rust_mu4, _track_front_m, _track_rear_m)
+
+
+func _sync_rust_suspension_params(suspension: VehicleSuspensionModel) -> void:
+	if _rust_rig == null or suspension == null:
+		return
+	if not suspension._flat_ready:
+		suspension.sync_flat_parameters()
+	if _rust_param_version == suspension._param_version:
+		return
+	var p := _rust_params66
+	var f := _rust_flags9
+	for i in 4:
+		p[i] = suspension._spring_rate[i]
+		p[4 + i] = suspension._static_load[i]
+		p[8 + i] = suspension._rest_offset[i]
+		p[12 + i] = suspension._bump_m[i]
+		p[16 + i] = suspension._droop_m[i]
+		p[20 + i] = suspension._bump_damping[i]
+		p[24 + i] = suspension._rebound_damping[i]
+		p[28 + i] = suspension._fast_factor[i]
+		p[32 + i] = suspension._knee_speed[i]
+		p[36 + i] = suspension._bump_stop_travel[i]
+		p[40 + i] = suspension._bump_stop_stiffness[i]
+		p[44 + i] = suspension._bump_stop_damping[i]
+		p[48 + i] = suspension._axis_pitch[i]
+		p[52 + i] = suspension._axis_roll[i]
+		p[56 + i] = suspension._axis_pitch_gain[i]
+		p[60 + i] = suspension._axis_roll_gain[i]
+		f[i] = suspension._spring_can_unseat[i]
+		f[4 + i] = suspension._has_inclined_axis[i]
+	p[64] = suspension.front_arb_stiffness_n_per_m
+	p[65] = suspension.rear_arb_stiffness_n_per_m
+	f[8] = 1 if suspension._any_inclined_axis else 0
+	_rust_rig.call("sync_suspension_params", p, f)
+	_rust_param_version = suspension._param_version
+
+
+func _unpack_rust_normal(out: PackedFloat64Array, suspension: VehicleSuspensionModel) -> void:
+	for i in 4:
+		s_Fz[i] = out[i]
+		s_defl[i] = out[4 + i]
+		s_diss[i] = out[8 + i]
+		s_Jrad[i] = out[12 + i]
+		if suspension != null:
+			suspension.compression[i] = out[16 + i]
+			suspension.filtered_arb_travel[i] = out[16 + i]
+		tick_r[i] = Vector3(out[20 + i * 3], out[21 + i * 3], out[22 + i * 3])
+		tick_e_wheel[i] = Vector3(out[32 + i * 3], out[33 + i * 3], out[34 + i * 3])
+
+
+func _unpack_rust_end(out: PackedFloat64Array) -> void:
+	C_pred = Vector3(out[0], out[1], out[2])
+	R_pred = Basis(
+		Vector3(out[3], out[4], out[5]),
+		Vector3(out[6], out[7], out[8]),
+		Vector3(out[9], out[10], out[11]),
+	)
+	V_pred = Vector3(out[12], out[13], out[14])
+	omega_pred = Vector3(out[15], out[16], out[17])
+	for i in 4:
+		q[i] = out[18 + i]
+		u[i] = out[22 + i]
+		apoyo_previo[i] = s_Fz[i] > 0.0
+		if capture_substeps:
+			substep_loads_n[i].append(s_Fz[i])
+			substep_defl_m[i].append(s_defl[i])
+	t_elapsed = out[26]
 
 
 ## Fija el tensor de inercia local 3x3 completo (incluyendo productos Ixy, Ixz, Iyz)
@@ -181,6 +324,8 @@ func create(
 func set_local_inertia_tensor(tensor: Basis) -> void:
 	if tensor.x.x <= 1.0 or tensor.y.y <= 1.0 or tensor.z.z <= 1.0:
 		has_full_inertia_tensor = false
+		if _rust_rig != null:
+			_rust_rig.call("set_local_inertia_tensor", false, Basis.IDENTITY)
 		return
 	# Simetrizar explícitamente para garantizar M_factor simétrica definida positiva.
 	var ixy := 0.5 * (tensor.x.y + tensor.y.x)
@@ -192,6 +337,8 @@ func set_local_inertia_tensor(tensor: Basis) -> void:
 		Vector3(ixz, iyz, tensor.z.z),
 	)
 	has_full_inertia_tensor = true
+	if _rust_rig != null:
+		_rust_rig.call("set_local_inertia_tensor", true, tick_inertia_local)
 
 
 ## Configura el 1DOF de torsión estructural del chasis (rigidez, amortiguamiento e inercia).
@@ -200,6 +347,13 @@ func configure_chassis_torsion(chassis_doc: Dictionary, roll_inertia_izz: float)
 	chassis_torsion_damping_ratio = clampf(float(chassis_doc.get("torsional_damping_ratio", 0.25)), 0.05, 1.5)
 	var default_twist_i := maxf(roll_inertia_izz * 0.25, 20.0)
 	chassis_torsion_inertia_kg_m2 = maxf(float(chassis_doc.get("torsional_inertia_kg_m2", default_twist_i)), 5.0)
+	if _rust_rig != null:
+		_rust_rig.call(
+			"configure_chassis_torsion",
+			chassis_torsion_stiffness_nm_per_rad,
+			chassis_torsion_damping_ratio,
+			chassis_torsion_inertia_kg_m2,
+		)
 
 
 func reset() -> void:
@@ -211,6 +365,12 @@ func reset() -> void:
 		chassis_twist_rad = 0.0
 		chassis_twist_vel_rad_s = 0.0
 		has_pred = false
+		if _rust_rig != null:
+			_rust_q4[0] = 0.0
+			_rust_q4[1] = 0.0
+			_rust_q4[2] = 0.0
+			_rust_q4[3] = 0.0
+			_rust_rig.call("reset_state", _rust_q4)
 
 
 func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> void:
@@ -245,18 +405,22 @@ func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> v
 
 		radial_deflection_m[i] = 0.0
 		radial_dissipation_w[i] = 0.0
-		radial_states[i] = {}
+		radial_states[i].clear()
 		apoyo_previo[i] = false
 		spring_forces_n[i] = 0.0
 
 		acc_Fz[i] = 0.0
 		acc_defl[i] = 0.0
 		acc_diss[i] = 0.0
-		last_tick_trace[i] = {}
+		last_tick_trace[i].clear()
 		last_damper_requested_n[i] = 0.0
 		last_damper_applied_n[i] = 0.0
 		last_damper_impulse_ns[i] = 0.0
 		s_Jrad[i] = 0.0
+		_prev_Jrad[i] = 0.0
+		_last_v_fin[i] = 0.0
+		_last_d_fin[i] = 0.0
+		_inv_m_unsprung[i] = 1.0 / maxf(float(m_unsprung[i]), 1.0)
 
 		s_Fz[i] = 0.0
 		s_defl[i] = 0.0
@@ -281,10 +445,14 @@ func reset_at(pose: Transform3D, suspension: VehicleSuspensionModel = null) -> v
 	for i in 4:
 		substep_loads_n[i].clear()
 		substep_defl_m[i].clear()
+	if _rust_rig != null:
+		for i in 4:
+			_rust_q4[i] = q[i]
+		_rust_rig.call("reset_state", _rust_q4)
 
 
 
-# ---- Álgebra 10x10 ----
+# ---- Álgebra 10x10 por complemento de Schur (Basis 3x3 nativo C++) ----
 
 func _w_from_parts(V: Vector3, om: Vector3, uu: Array[float]) -> Array[float]:
 	return [V.x, V.y, V.z, om.x, om.y, om.z, float(uu[0]), float(uu[1]), float(uu[2]), float(uu[3])]
@@ -298,49 +466,46 @@ func _w_to_omega(ww: Array[float]) -> Vector3:
 	return Vector3(float(ww[3]), float(ww[4]), float(ww[5]))
 
 
-func _inertia_world_diag(R: Basis, d: Vector3) -> Array:
-	var cx := R.x
-	var cy := R.y
-	var cz := R.z
-	# I[i][j] = sum_k Rcol_k[i]*d[k]*Rcol_k[j].
-	var out: Array = []
-	var colset := [cx, cy, cz]
-	for i in 3:
-		var row2: Array[float] = [0.0, 0.0, 0.0]
-		for j in 3:
-			var s := 0.0
-			for k in 3:
-				var dk := d.x if k == 0 else (d.y if k == 1 else d.z)
-				s += (colset[k] as Vector3)[i] * dk * (colset[k] as Vector3)[j]
-			row2[j] = s
-		out.append(row2)
-	return out
+static func _basis_add(a: Basis, b: Basis) -> Basis:
+	return Basis(a.x + b.x, a.y + b.y, a.z + b.z)
 
 
-func _inertia_world(R: Basis, d: Vector3) -> Array:
+static func _basis_sub(a: Basis, b: Basis) -> Basis:
+	return Basis(a.x - b.x, a.y - b.y, a.z - b.z)
+
+
+static func _skew(r: Vector3) -> Basis:
+	return Basis(
+		Vector3(0.0, r.z, -r.y),
+		Vector3(-r.z, 0.0, r.x),
+		Vector3(r.y, -r.x, 0.0),
+	)
+
+
+static func _perp_projector(e: Vector3) -> Basis:
+	return Basis(
+		Vector3(1.0 - e.x * e.x, -e.y * e.x, -e.z * e.x),
+		Vector3(-e.x * e.y, 1.0 - e.y * e.y, -e.z * e.y),
+		Vector3(-e.x * e.z, -e.y * e.z, 1.0 - e.z * e.z),
+	)
+
+
+func _inertia_world_diag_basis(R: Basis, d: Vector3) -> Basis:
+	return R * Basis.from_scale(d) * R.transposed()
+
+
+func _inertia_world_basis(R: Basis, d: Vector3) -> Basis:
 	if not has_full_inertia_tensor:
-		return _inertia_world_diag(R, d)
-	# Tensor 3x3 completo en espacio de mundo: I_world = R * I_local * R^T.
+		return _inertia_world_diag_basis(R, d)
 	var iw: Basis = R * tick_inertia_local * R.transposed()
 	var i01 := 0.5 * (iw.y.x + iw.x.y)
 	var i02 := 0.5 * (iw.z.x + iw.x.z)
 	var i12 := 0.5 * (iw.z.y + iw.y.z)
-	return [
-		[iw.x.x, i01, i02],
-		[i01, iw.y.y, i12],
-		[i02, i12, iw.z.z],
-	]
-
-
-func _mat3_vec(M: Array, v: Vector3) -> Vector3:
-	var vv := [v.x, v.y, v.z]
-	var o := [0.0, 0.0, 0.0]
-	for i in 3:
-		var s := 0.0
-		for j in 3:
-			s += float((M[i] as Array)[j]) * float(vv[j])
-		o[i] = s
-	return Vector3(o[0], o[1], o[2])
+	return Basis(
+		Vector3(iw.x.x, i01, i02),
+		Vector3(i01, iw.y.y, i12),
+		Vector3(i02, i12, iw.z.z),
+	)
 
 
 static func _solver_rows(count: int) -> Array:
@@ -353,57 +518,107 @@ static func _solver_rows(count: int) -> Array:
 	return rows
 
 
-func _factor_mass() -> void:
-	for i in 10:
-		var row: Array[float] = M_factor[i]
-		for j in (i + 1):
-			var other: Array[float] = M_factor[j]
-			var pivot := row[j]
-			for k in j:
-				pivot -= row[k] * other[k]
-			row[j] = sqrt(maxf(pivot, 1.0e-9)) if i == j else pivot / maxf(other[j], 1.0e-12)
+## Factoriza el sistema 10x10 por complemento de Schur exacto sobre los 4 bujes
+## diagonales: colapsa a un sistema 6x6 resuelto con Basis.inverse() en C++.
+func _factor_schur() -> void:
+	var s_vv := Basis.from_scale(Vector3(tick_m_s, tick_m_s, tick_m_s))
+	var s_vw := Basis(Vector3.ZERO, Vector3.ZERO, Vector3.ZERO)
+	var s_ww := _inertia_before
+	for i in 4:
+		var m_i := float(m_unsprung[i])
+		var e_i := tick_e_wheel[i]
+		var r_i := tick_r[i]
+		_tick_rx[i] = r_i.cross(e_i)
+		var p_i := _perp_projector(e_i)
+		var r_skew := _skew(r_i)
+		var m_p := p_i * m_i
+		var m_pr := m_p * r_skew
+		s_vv = _basis_add(s_vv, m_p)
+		s_vw = _basis_sub(s_vw, m_pr)
+		s_ww = _basis_add(s_ww, r_skew.transposed() * m_pr)
+	_schur_Svv_inv = s_vv.inverse()
+	_schur_Svw = s_vw
+	_schur_K = s_vw.transposed() * _schur_Svv_inv
+	var s_rot := _basis_sub(s_ww, _schur_K * s_vw)
+	_schur_Srot_inv = s_rot.inverse()
 
 
-func _solve_chol(rhs: Array[float], result: Array[float]) -> void:
-	for i in 10:
-		var row: Array[float] = M_factor[i]
-		var value := rhs[i]
-		for k in i:
-			value -= row[k] * result[k]
-		result[i] = value / maxf(row[i], 1.0e-12)
-	for i in range(9, -1, -1):
-		var value := result[i]
-		for k in range(i + 1, 10):
-			value -= float(M_factor[k][i]) * result[k]
-		result[i] = value / maxf(float(M_factor[i][i]), 1.0e-12)
+func _solve_schur_parts(
+	fV: Vector3, fW: Vector3, fu0: float, fu1: float, fu2: float, fu3: float, result: Array[float]
+) -> void:
+	var tV := fV - tick_e_wheel[0] * fu0 - tick_e_wheel[1] * fu1 - tick_e_wheel[2] * fu2 - tick_e_wheel[3] * fu3
+	var tW := fW - _tick_rx[0] * fu0 - _tick_rx[1] * fu1 - _tick_rx[2] * fu2 - _tick_rx[3] * fu3
+	var om_out := _schur_Srot_inv * (tW - _schur_K * tV)
+	var v_out := _schur_Svv_inv * (tV - _schur_Svw * om_out)
+	result[0] = v_out.x
+	result[1] = v_out.y
+	result[2] = v_out.z
+	result[3] = om_out.x
+	result[4] = om_out.y
+	result[5] = om_out.z
+	result[6] = fu0 * _inv_m_unsprung[0] - tick_e_wheel[0].dot(v_out + om_out.cross(tick_r[0]))
+	result[7] = fu1 * _inv_m_unsprung[1] - tick_e_wheel[1].dot(v_out + om_out.cross(tick_r[1]))
+	result[8] = fu2 * _inv_m_unsprung[2] - tick_e_wheel[2].dot(v_out + om_out.cross(tick_r[2]))
+	result[9] = fu3 * _inv_m_unsprung[3] - tick_e_wheel[3].dot(v_out + om_out.cross(tick_r[3]))
+
+
+func _solve_schur_axis(wheel: int, result: Array[float]) -> void:
+	var tV := -tick_e_wheel[wheel]
+	var tW := -_tick_rx[wheel]
+	var om_out := _schur_Srot_inv * (tW - _schur_K * tV)
+	var v_out := _schur_Svv_inv * (tV - _schur_Svw * om_out)
+	result[0] = v_out.x
+	result[1] = v_out.y
+	result[2] = v_out.z
+	result[3] = om_out.x
+	result[4] = om_out.y
+	result[5] = om_out.z
+	for i in 4:
+		var fu := _inv_m_unsprung[i] if i == wheel else 0.0
+		result[6 + i] = fu - tick_e_wheel[i].dot(v_out + om_out.cross(tick_r[i]))
+
+
+func _solve_schur_normal(wheel: int, nrm: Vector3, result: Array[float]) -> float:
+	var e_i := tick_e_wheel[wheel]
+	var r_i := tick_r[wheel]
+	var en := e_i.dot(nrm)
+	var n_perp := nrm - e_i * en
+	if n_perp.length_squared() < 1.0e-12:
+		result[0] = 0.0
+		result[1] = 0.0
+		result[2] = 0.0
+		result[3] = 0.0
+		result[4] = 0.0
+		result[5] = 0.0
+		result[6] = 0.0
+		result[7] = 0.0
+		result[8] = 0.0
+		result[9] = 0.0
+		var u_i := en * _inv_m_unsprung[wheel]
+		result[6 + wheel] = u_i
+		return maxf(en * u_i, 1.0e-9)
+	var tW := r_i.cross(n_perp)
+	var om_out := _schur_Srot_inv * (tW - _schur_K * n_perp)
+	var v_out := _schur_Svv_inv * (n_perp - _schur_Svw * om_out)
+	result[0] = v_out.x
+	result[1] = v_out.y
+	result[2] = v_out.z
+	result[3] = om_out.x
+	result[4] = om_out.y
+	result[5] = om_out.z
+	for i in 4:
+		var fu := en * _inv_m_unsprung[i] if i == wheel else 0.0
+		result[6 + i] = fu - tick_e_wheel[i].dot(v_out + om_out.cross(tick_r[i]))
+	var rn := r_i.cross(nrm)
+	return maxf(nrm.dot(v_out) + rn.dot(om_out) + en * result[6 + wheel], 1.0e-9)
 
 
 func _dot10(a: Array[float], b: Array[float]) -> float:
-	var s := 0.0
-	for i in 10:
-		s += float(a[i]) * float(b[i])
-	return s
-
-
-func _fill_hub_jacobian(r: Vector3, e: Vector3, wheel: int) -> void:
-	var x: Array[float] = _hub_jacobian[0]
-	var y: Array[float] = _hub_jacobian[1]
-	var z: Array[float] = _hub_jacobian[2]
-	x.fill(0.0)
-	y.fill(0.0)
-	z.fill(0.0)
-	x[0] = 1.0
-	y[1] = 1.0
-	z[2] = 1.0
-	x[4] = r.z
-	x[5] = -r.y
-	y[3] = -r.z
-	y[5] = r.x
-	z[3] = r.y
-	z[4] = -r.x
-	x[6 + wheel] = e.x
-	y[6 + wheel] = e.y
-	z[6 + wheel] = e.z
+	return (
+		a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+		+ a[3] * b[3] + a[4] * b[4] + a[5] * b[5]
+		+ a[6] * b[6] + a[7] * b[7] + a[8] * b[8] + a[9] * b[9]
+	)
 
 
 func _fill_normal_row(r: Vector3, e: Vector3, normal: Vector3, wheel: int) -> void:
@@ -415,6 +630,10 @@ func _fill_normal_row(r: Vector3, e: Vector3, normal: Vector3, wheel: int) -> vo
 	row[3] = torque.x
 	row[4] = torque.y
 	row[5] = torque.z
+	row[6] = 0.0
+	row[7] = 0.0
+	row[8] = 0.0
+	row[9] = 0.0
 	row[6 + wheel] = e.dot(normal)
 
 
@@ -443,8 +662,11 @@ func begin_tick(
 	if e_act.length_squared() > 1.0e-9:
 		e_act = e_act.normalized()
 	for i in 4:
-		var ew := R * suspension.suspension_axis_local(i, q[i])
-		tick_e_wheel[i] = ew.normalized() if ew.length_squared() > 1.0e-9 else e_act
+		if suspension._any_inclined_axis:
+			var ew := R * suspension.suspension_axis_local(i, q[i])
+			tick_e_wheel[i] = ew.normalized() if ew.length_squared() > 1.0e-9 else e_act
+		else:
+			tick_e_wheel[i] = e_act
 	if has_pred:
 		var dV := V - V_pred
 		var dom := om - omega_pred
@@ -458,7 +680,18 @@ func begin_tick(
 	V_pred = V
 	omega_pred = om
 	tick_e = e_act
-	w = _w_from_parts(V, om, u)
+	w[0] = V.x
+	w[1] = V.y
+	w[2] = V.z
+	w[3] = om.x
+	w[4] = om.y
+	w[5] = om.z
+	w[6] = u[0]
+	w[7] = u[1]
+	w[8] = u[2]
+	w[9] = u[3]
+	_mass_factored_this_tick = false
+	_normals_prepared_this_tick = false
 	_trace_axis = e_act
 	_trace_chassis_velocity = V
 	_spring_impulse_ns.fill(0.0)
@@ -484,8 +717,9 @@ func begin_tick(
 			t_n[i] = e_i
 			t_delta0[i] = 0.0
 			t_road_vel[i] = Vector3.ZERO
-			t_radial_state[i] = {}
+			t_radial_state[i].clear()
 			t_rim_max[i] = 0.05
+			_prev_Jrad[i] = 0.0
 			continue
 		var nrm: Vector3 = (c.get("normal", Vector3.UP) as Vector3).normalized()
 		if nrm.length_squared() < 0.5:
@@ -505,11 +739,12 @@ func begin_tick(
 		var press := float(ts.get("pressure_kpa_gauge", 180.0))
 		var carc := float(ts.get("carcass_c", 25.0))
 		var opt := float(thermal.optimal_carcass_temperature(i))
-		t_radial_state[i] = TireRadialModel.prepare_state(tires, axle, press, carc, opt)
+		var rp: PackedFloat64Array = t_radial_packed[i]
+		TireRadialModel.prepare_packed_into(rp, tires, axle, press, carc, opt)
+		t_radial_packed[i] = rp
 		var rim_r := rad * 0.58
-		var g: Dictionary = t_radial_state[i]["geometry"]
-		if float(g.get("rim_radius_m", 0.0)) > 0.01:
-			rim_r = float(g.get("rim_radius_m", rim_r))
+		if rp[TireRadialModel.P_RIM_RADIUS] > 0.01:
+			rim_r = rp[TireRadialModel.P_RIM_RADIUS]
 		var sidewall := maxf(rad - rim_r, 0.03)
 		var min_rub := clampf(sidewall * 0.12, 0.010, 0.022)
 		t_rim_max[i] = maxf(sidewall - min_rub, 0.02)
@@ -529,117 +764,171 @@ func begin_tick(
 	for i in 4:
 		substep_loads_n[i].clear()
 		substep_defl_m[i].clear()
+	if _ensure_rust_rig() != null:
+		_sync_rust_suspension_params(suspension)
+		var v14 := _rust_vec14
+		v14[0] = tick_com_local
+		v14[1] = tick_inertia_diag
+		v14[2] = tick_grav
+		v14[3] = C
+		v14[4] = V
+		v14[5] = om
+		var sc := _rust_scalars18
+		sc[0] = tick_m_s
+		sc[1] = float(radial_viscous_scale)
+		var r56 := _rust_radial56
+		var flags_mask := 0
+		if reuse_mass_factor_per_tick:
+			flags_mask |= (1 << 4)
+		if chassis_torsion_enabled:
+			flags_mask |= (1 << 5)
+		for i in 4:
+			v14[6 + i] = t_n[i]
+			v14[10 + i] = t_road_vel[i]
+			sc[2 + i] = t_delta0[i]
+			sc[6 + i] = t_rim_max[i]
+			sc[10 + i] = _qmin[i]
+			sc[14 + i] = _qmax[i]
+			if t_hit[i]:
+				flags_mask |= (1 << i)
+				var rp_i: PackedFloat64Array = t_radial_packed[i]
+				var base_idx := i * TireRadialModel.PACK_SIZE
+				for k in TireRadialModel.PACK_SIZE:
+					r56[base_idx + k] = rp_i[k]
+		_rust_rig.call("begin_tick", v14, R, sc, r56, flags_mask)
+
+
+func step_substep_normal(h: float, suspension: VehicleSuspensionModel, F_body: Vector3, T_body: Vector3) -> void:
+	if _rust_rig != null:
+		t_h = maxf(h, 0.00001)
+		var out: PackedFloat64Array = _rust_rig.call("step_substep_normal", h, F_body, T_body)
+		_unpack_rust_normal(out, suspension)
+		return
+	begin_substep(h, suspension, F_body, T_body)
+	solve_normal(h)
+
+
+func step_substep_tangential_and_end(
+	h: float, F_patch_J: Vector3, T_patch_J: Vector3, j0: float, j1: float, j2: float, j3: float
+) -> void:
+	if _rust_rig != null:
+		var out: PackedFloat64Array = _rust_rig.call(
+			"step_substep_tangential_and_end", h, F_patch_J, T_patch_J, j0, j1, j2, j3
+		)
+		_unpack_rust_end(out)
+		return
+	var J_tang: Array[float] = [
+		F_patch_J.x, F_patch_J.y, F_patch_J.z,
+		T_patch_J.x, T_patch_J.y, T_patch_J.z,
+		j0, j1, j2, j3,
+	]
+	apply_tangential(J_tang)
+	solve_hard_stops(h)
+	end_substep(h)
 
 
 func begin_substep(h: float, suspension: VehicleSuspensionModel, F_body: Vector3, T_body: Vector3) -> void:
+	if _rust_rig != null:
+		t_h = maxf(h, 0.00001)
+		var out: PackedFloat64Array = _rust_rig.call("begin_substep", h, F_body, T_body)
+		for i in 4:
+			if suspension != null:
+				suspension.compression[i] = out[i]
+				suspension.filtered_arb_travel[i] = out[i]
+			tick_r[i] = Vector3(out[4 + i * 3], out[5 + i * 3], out[6 + i * 3])
+			tick_e_wheel[i] = Vector3(out[16 + i * 3], out[17 + i * 3], out[18 + i * 3])
+		return
 	t_h = maxf(h, 0.00001)
+	if not suspension._flat_ready:
+		suspension.sync_flat_parameters()
 	var e := (R_pred * Vector3.UP)
 	if e.length_squared() > 1.0e-9:
 		e = e.normalized()
 	tick_e = e
-	_inertia_before = _inertia_world(R_pred, tick_inertia_diag)
-	_jolt_inertia_before = _inertia_world_diag(R_pred, tick_inertia_diag) if has_full_inertia_tensor else _inertia_before
-	for row in M_factor:
-		row.fill(0.0)
-	for i in 3:
-		M_factor[i][i] = tick_m_s
-		for j in (i + 1):
-			M_factor[3 + i][3 + j] = _inertia_before[i][j]
-	var om := _w_to_omega(w)
-	for i in 4:
-		var ew := R_pred * suspension.suspension_axis_local(i, q[i])
-		var e_i := ew.normalized() if ew.length_squared() > 1.0e-9 else e
-		tick_e_wheel[i] = e_i
-		var r := R_pred * (neutral_positions[i] - tick_com_local) + e_i * q[i]
-		tick_r[i] = r
-		_fill_hub_jacobian(r, e_i, i)
-		var mass := m_unsprung[i]
-		var bx: Array[float] = _hub_jacobian[0]
-		var by: Array[float] = _hub_jacobian[1]
-		var bz: Array[float] = _hub_jacobian[2]
-		# Cada rueda afecta seis coordenadas de chasis y su propia coordenada axial.
-		for p in 7:
-			var row_index := p if p < 6 else 6 + i
-			var row: Array[float] = M_factor[row_index]
-			for j in (p + 1):
-				var col := j if j < 6 else 6 + i
-				var product := bx[row_index] * bx[col] + by[row_index] * by[col] + bz[row_index] * bz[col]
-				row[col] += mass * product
-	_factor_mass()
+	var om := Vector3(w[3], w[4], w[5])
+	var need_factor := (not reuse_mass_factor_per_tick) or (not _mass_factored_this_tick)
+	if need_factor:
+		_inertia_before = _inertia_world_basis(R_pred, tick_inertia_diag)
+		_jolt_inertia_before = _inertia_world_diag_basis(R_pred, tick_inertia_diag) if has_full_inertia_tensor else _inertia_before
+		for i in 4:
+			var e_i := e
+			if suspension._any_inclined_axis:
+				var ew := R_pred * suspension.suspension_axis_local(i, q[i])
+				e_i = ew.normalized() if ew.length_squared() > 1.0e-9 else e
+			tick_e_wheel[i] = e_i
+			tick_r[i] = R_pred * (neutral_positions[i] - tick_com_local) + e_i * q[i]
+		_factor_schur()
+		for i in 4:
+			var response: Array[float] = _axis_response[i]
+			_solve_schur_axis(i, response)
+			_relative_mass[i] = 1.0 / maxf(response[6 + i], 1.0e-9)
+		_mass_factored_this_tick = true
+	else:
+		_inertia_before = _inertia_world_basis(R_pred, tick_inertia_diag)
+		_jolt_inertia_before = _inertia_world_diag_basis(R_pred, tick_inertia_diag) if has_full_inertia_tensor else _inertia_before
+		for i in 4:
+			tick_r[i] = R_pred * (neutral_positions[i] - tick_com_local) + tick_e_wheel[i] * q[i]
 	# Suspensión: q_nom (incluyendo torsión estructural del chasis en serie) y m_rel.
-	var dq_twist: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var du_twist: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	if chassis_torsion_enabled:
-		var hf_f := 0.25 * _track_front_m
-		var hf_r := 0.25 * _track_rear_m
-		dq_twist[0] = hf_f * chassis_twist_rad
-		dq_twist[1] = -hf_f * chassis_twist_rad
-		dq_twist[2] = -hf_r * chassis_twist_rad
-		dq_twist[3] = hf_r * chassis_twist_rad
-		du_twist[0] = hf_f * chassis_twist_vel_rad_s
-		du_twist[1] = -hf_f * chassis_twist_vel_rad_s
-		du_twist[2] = -hf_r * chassis_twist_vel_rad_s
-		du_twist[3] = hf_r * chassis_twist_vel_rad_s
-	var q_nom: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	var hf_f := 0.25 * _track_front_m if chassis_torsion_enabled else 0.0
+	var hf_r := 0.25 * _track_rear_m if chassis_torsion_enabled else 0.0
+	var dq0 := hf_f * chassis_twist_rad
+	var dq2 := -hf_r * chassis_twist_rad
+	var du0 := hf_f * chassis_twist_vel_rad_s
+	var du2 := -hf_r * chassis_twist_vel_rad_s
 	for i in 4:
-		var p: Dictionary = suspension.axle_parameters[i]
-		q_nom[i] = clampf(q[i] - dq_twist[i], -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
-	for i in 4:
-		suspension.compression[i] = q_nom[i]
-		suspension.compression_velocity[i] = u[i] - du_twist[i]
-		suspension.filtered_arb_travel[i] = q_nom[i]
+		var dq_i := dq0 if i == 0 else (-dq0 if i == 1 else (dq2 if i == 2 else -dq2))
+		var du_i := du0 if i == 0 else (-du0 if i == 1 else (du2 if i == 2 else -du2))
+		var qn := clampf(q[i] - dq_i, -suspension._droop_m[i], suspension._bump_m[i])
+		suspension.compression[i] = qn
+		suspension.compression_velocity[i] = u[i] - du_i
+		suspension.filtered_arb_travel[i] = qn
 		suspension.contact_active[i] = apoyo_previo[i]
-	_rhs.fill(0.0)
-	for i in 4:
-		var axis := 6 + i
-		_rhs[axis] = 1.0
-		var response: Array[float] = _axis_response[i]
-		_solve_chol(_rhs, response)
-		_rhs[axis] = 0.0
-		_relative_mass[i] = 1.0 / maxf(response[axis], 1.0e-9)
 	var Fs: Array[float] = suspension.suspension_forces_1dof(t_h, _relative_mass)
 	# Resistencia al droop semi-implícita usando la masa relativa 1DOF (_relative_mass[i]).
 	for i in 4:
-		var p2: Dictionary = suspension.axle_parameters[i]
-		var droop := float(p2.get("droop_m", 0.18))
-		if q_nom[i] < -droop + 0.025:
-			var pen := (-droop + 0.025) - q_nom[i]
-			var m_eff_d := maxf(float(_relative_mass[i]), 1.0)
-			var k_droop := float(p2.get("spring_rate", 20000.0)) * 6.0
-			var c_droop := float(p2.get("rebound_damping", 2000.0)) * 2.5
+		var droop := suspension._droop_m[i]
+		var qn := suspension.compression[i]
+		if qn < -droop + 0.025:
+			var pen := (-droop + 0.025) - qn
+			var m_eff_d := maxf(_relative_mass[i], 1.0)
+			var k_droop := suspension._spring_rate[i] * 6.0
+			var c_droop := suspension._rebound_damping[i] * 2.5
 			var k_droop_eff := k_droop / (1.0 + (k_droop * t_h * t_h) / m_eff_d)
 			var c_droop_eff := c_droop / (1.0 + (c_droop * t_h) / m_eff_d)
-			var droop_delta := -(k_droop_eff * pen - c_droop_eff * minf(u[i], 0.0))
-			Fs[i] = float(Fs[i]) + droop_delta
+			Fs[i] = Fs[i] - (k_droop_eff * pen - c_droop_eff * minf(u[i], 0.0))
 	# Avanzar 1DOF de torsión estructural del chasis (subchasis delantero vs trasero).
 	if chassis_torsion_enabled:
-		var m_roll_f := (float(Fs[0]) - float(Fs[1])) * (0.5 * _track_front_m)
-		var m_roll_r := (float(Fs[2]) - float(Fs[3])) * (0.5 * _track_rear_m)
+		var m_roll_f := (Fs[0] - Fs[1]) * (0.5 * _track_front_m)
+		var m_roll_r := (Fs[2] - Fs[3]) * (0.5 * _track_rear_m)
 		var t_twist_ext := 0.5 * (m_roll_f - m_roll_r)
 		var k_tw := maxf(chassis_torsion_stiffness_nm_per_rad, 10000.0)
 		var i_tw := maxf(chassis_torsion_inertia_kg_m2, 5.0)
 		var c_tw := 2.0 * sqrt(k_tw * i_tw) * clampf(chassis_torsion_damping_ratio, 0.05, 1.5)
-		var k_f_roll := (float(suspension.axle_parameters[0].get("spring_rate", 20000.0)) + 2.0 * suspension.front_arb_stiffness_n_per_m) * (0.125 * _track_front_m * _track_front_m)
-		var k_r_roll := (float(suspension.axle_parameters[2].get("spring_rate", 20000.0)) + 2.0 * suspension.rear_arb_stiffness_n_per_m) * (0.125 * _track_rear_m * _track_rear_m)
+		var k_f_roll := (suspension._spring_rate[0] + 2.0 * suspension.front_arb_stiffness_n_per_m) * (0.125 * _track_front_m * _track_front_m)
+		var k_r_roll := (suspension._spring_rate[2] + 2.0 * suspension.rear_arb_stiffness_n_per_m) * (0.125 * _track_rear_m * _track_rear_m)
 		var k_series := k_tw + k_f_roll + k_r_roll
 		var denom_tw := i_tw + t_h * c_tw + t_h * t_h * k_series
 		var acc_tw := (t_twist_ext - k_tw * chassis_twist_rad - c_tw * chassis_twist_vel_rad_s) / maxf(denom_tw, 1.0e-6)
 		chassis_twist_vel_rad_s += acc_tw * t_h
 		chassis_twist_rad = clampf(chassis_twist_rad + chassis_twist_vel_rad_s * t_h, -0.08, 0.08)
 
-	spring_forces_n = Fs
+	var e_dot_trace := e.dot(_trace_axis)
 	for i in 4:
+		spring_forces_n[i] = Fs[i]
 		last_damper_requested_n[i] = suspension.last_damper_explicit_n[i]
 		last_damper_applied_n[i] = suspension.last_damper_forces_n[i]
 		last_damper_impulse_ns[i] += last_damper_applied_n[i] * t_h
 		var spring_impulse := Fs[i] * t_h
 		_spring_impulse_ns[i] += spring_impulse
-		_suspension_axial_impulse_ns[i] -= spring_impulse * e.dot(_trace_axis)
+		_suspension_axial_impulse_ns[i] -= spring_impulse * e_dot_trace
 	# Q generalizado.
 	var Qv := tick_m_s * tick_grav + F_body
-	var IwOm := _mat3_vec(_inertia_before, om)
-	var gyro := om.cross(IwOm)
-	var Qt := -gyro + T_body
+	var IwOm := _inertia_before * om
+	var Qt := -om.cross(IwOm) + T_body
+	var fu0 := 0.0
+	var fu1 := 0.0
+	var fu2 := 0.0
+	var fu3 := 0.0
 	for i in 4:
 		var r := tick_r[i]
 		var e_i := tick_e_wheel[i]
@@ -647,71 +936,108 @@ func begin_substep(h: float, suspension: VehicleSuspensionModel, F_body: Vector3
 		var force := m_unsprung[i] * (tick_grav - bias)
 		Qv += force
 		Qt += r.cross(force)
-		_rhs[6 + i] = e_i.dot(force) - Fs[i]
-	for i in 3:
-		_rhs[i] = Qv[i]
-		_rhs[3 + i] = Qt[i]
-	_solve_chol(_rhs, _response)
+		var fu_i := e_i.dot(force) - Fs[i]
+		if i == 0:
+			fu0 = fu_i
+		elif i == 1:
+			fu1 = fu_i
+		elif i == 2:
+			fu2 = fu_i
+		else:
+			fu3 = fu_i
+	_solve_schur_parts(Qv, Qt, fu0, fu1, fu2, fu3, _response)
 	for k in 10:
 		w_free[k] = w[k] + t_h * _response[k]
 
 
 func solve_normal(h: float) -> void:
+	if _rust_rig != null:
+		var out: PackedFloat64Array = _rust_rig.call("solve_normal", h)
+		_unpack_rust_normal(out, null)
+		return
 	var hh := maxf(h, 0.00001)
+	var hh_scale := hh / maxf(_prev_hh, 0.00001)
 	for k in 10:
 		_w_rad[k] = w_free[k]
+	var need_normals := (not reuse_mass_factor_per_tick) or (not _normals_prepared_this_tick)
+	var v_scale := float(radial_viscous_scale)
 	for i in 4:
 		s_Jrad[i] = 0.0
 		s_Fz[i] = 0.0
 		s_defl[i] = 0.0
 		s_diss[i] = 0.0
 		if not t_hit[i]:
-			radial_states[i] = {}
+			radial_states[i].clear()
+			_prev_Jrad[i] = 0.0
 			continue
-		_fill_normal_row(tick_r[i], tick_e_wheel[i], t_n[i], i)
-		var G: Array[float] = _normal_rows[i]
 		var response: Array[float] = _normal_response[i]
-		_solve_chol(G, response)
-		var Kn := maxf(_dot10(G, response), 1.0e-9)
-		s_Kn[i] = Kn
+		var G: Array[float] = _normal_rows[i]
+		if need_normals:
+			_fill_normal_row(tick_r[i], tick_e_wheel[i], t_n[i], i)
+			s_Kn[i] = _solve_schur_normal(i, t_n[i], response)
+		var Kn := s_Kn[i]
 		var H := C_pred + tick_r[i]
-		var delta := float(t_delta0[i]) - float(t_n[i].dot((H - t_H0[i]) - t_road_vel[i] * t_elapsed))
+		var delta := t_delta0[i] - t_n[i].dot((H - t_H0[i]) - t_road_vel[i] * t_elapsed)
 		_normal_deflection[i] = delta
 		_normal_road_speed[i] = t_n[i].dot(t_road_vel[i])
 		var v_free := _dot10(G, w_free) - _normal_road_speed[i]
-		var mi := maxf(float(m_unsprung[i]), 1.0)
-		var rs: Dictionary = t_radial_state[i]
-		var v_scale := float(radial_viscous_scale)
+		var mi := maxf(m_unsprung[i], 1.0)
+		var rp: PackedFloat64Array = t_radial_packed[i]
 		var J := 0.0
 		var dfin := maxf(delta - hh * v_free, 0.0)
 		if dfin > 0.0:
 			var Jmax := maxf((delta / hh - v_free) / Kn, 0.0)
 			var lo := 0.0
 			var hi := Jmax
-			for it in 48:
-				var mid := 0.5 * (lo + hi)
-				var v_mid := v_free + Kn * mid
-				var d_mid := maxf(delta - hh * v_mid, 0.0)
-				var c_mid := clampf(-v_mid, -12.0, 12.0)
-				var f_mid := TireRadialModel.prepared_force_n(rs, mi, d_mid, c_mid, v_scale)
-				var res := mid - hh * f_mid
-				if res >= 0.0:
-					hi = mid
-				else:
-					lo = mid
-				if hi - lo <= RADIAL_BISECTION_REL_TOL * maxf(absf(lo), 1.0):
-					break
-			J = 0.5 * (lo + hi)
+			var f_lo := TireRadialModel.packed_force_n(rp, mi, dfin, clampf(-v_free, -12.0, 12.0), v_scale)
+			var r_lo := -hh * f_lo
+			var r_hi := Jmax
+			if r_lo < 0.0 and Jmax > 0.0:
+				var j_try := clampf(_prev_Jrad[i] * hh_scale, lo + 0.05 * (hi - lo), hi - 0.05 * (hi - lo)) if _prev_Jrad[i] > 0.0 else (0.5 * Jmax)
+				for it in 24:
+					var v_try := v_free + Kn * j_try
+					var d_try := maxf(delta - hh * v_try, 0.0)
+					var c_try := clampf(-v_try, -12.0, 12.0)
+					var f_try := TireRadialModel.packed_force_n(rp, mi, d_try, c_try, v_scale)
+					var res := j_try - hh * f_try
+					if absf(res) <= RADIAL_BISECTION_REL_TOL * maxf(absf(j_try), 1.0):
+						J = j_try
+						lo = j_try
+						hi = j_try
+						break
+					if res >= 0.0:
+						hi = j_try
+						r_hi = res
+					else:
+						lo = j_try
+						r_lo = res
+					if hi - lo <= RADIAL_BISECTION_REL_TOL * maxf(absf(lo), 1.0):
+						J = 0.5 * (lo + hi)
+						break
+					var denom_sec := r_hi - r_lo
+					var j_next := 0.5 * (lo + hi)
+					if denom_sec > 1.0e-12:
+						var j_sec := (lo * r_hi - hi * r_lo) / denom_sec
+						var margin := 0.08 * (hi - lo)
+						if j_sec > lo + margin and j_sec < hi - margin:
+							j_next = j_sec
+					j_try = j_next
+				if hi > lo:
+					J = 0.5 * (lo + hi)
 		s_Jrad[i] = maxf(J, 0.0)
-		var v_fin := v_free + Kn * float(s_Jrad[i])
+		_prev_Jrad[i] = s_Jrad[i]
+		var v_fin := v_free + Kn * s_Jrad[i]
 		var d_fin := maxf(delta - hh * v_fin, 0.0)
 		var c_fin := clampf(-v_fin, -12.0, 12.0)
-		var evf := TireRadialModel.evaluate_prepared(rs, mi, d_fin, c_fin, v_scale)
+		_last_v_fin[i] = c_fin
+		_last_d_fin[i] = d_fin
+		var fd := TireRadialModel.packed_force_and_dissipation(rp, mi, d_fin, c_fin, v_scale)
 		s_defl[i] = d_fin
-		s_diss[i] = float(evf.get("dissipation_w", 0.0))
-		radial_states[i] = evf
+		s_diss[i] = fd.y
 		for k in 10:
 			_w_rad[k] += response[k] * s_Jrad[i]
+	_normals_prepared_this_tick = true
+	_prev_hh = hh
 
 	# Todas las correcciones de llanta leen la misma velocidad posterior al radial.
 	for k in 10:
@@ -730,7 +1056,7 @@ func solve_normal(h: float) -> void:
 		_contact_axial_impulse_ns[i] += normal_impulse * t_n[i].dot(_trace_axis)
 		_contact_vertical_impulse_ns[i] += normal_impulse * t_n[i].y
 		if normal_impulse <= 0.0:
-			radial_states[i] = {}
+			radial_states[i].clear()
 		var response: Array[float] = _normal_response[i]
 		for k in 10:
 			w_normal[k] += response[k] * impulse
@@ -743,12 +1069,31 @@ func contact_patch_position(wheel: int, initial_point: Vector3) -> Vector3:
 
 
 func apply_tangential(J_tang: Array[float]) -> void:
-	_solve_chol(J_tang, _response)
+	if _rust_rig != null:
+		_rust_rig.call(
+			"apply_tangential",
+			Vector3(J_tang[0], J_tang[1], J_tang[2]),
+			Vector3(J_tang[3], J_tang[4], J_tang[5]),
+			J_tang[6],
+			J_tang[7],
+			J_tang[8],
+			J_tang[9],
+		)
+		return
+	_solve_schur_parts(
+		Vector3(J_tang[0], J_tang[1], J_tang[2]),
+		Vector3(J_tang[3], J_tang[4], J_tang[5]),
+		J_tang[6], J_tang[7], J_tang[8], J_tang[9],
+		_response,
+	)
 	for k in 10:
 		w_cand[k] = w_normal[k] + _response[k]
 
 
 func solve_hard_stops(h: float) -> void:
+	if _rust_rig != null:
+		_rust_rig.call("solve_hard_stops", h)
+		return
 	var hh := maxf(h, 0.00001)
 	var lo: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var hi: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -783,6 +1128,10 @@ var _qmax: Array[float] = [0.32, 0.32, 0.32, 0.32]
 
 
 func end_substep(h: float) -> void:
+	if _rust_rig != null:
+		var out: PackedFloat64Array = _rust_rig.call("end_substep", h)
+		_unpack_rust_end(out)
+		return
 	var hh := maxf(h, 0.00001)
 	var V_old := _w_to_V(w)
 	var om_old := _w_to_omega(w)
@@ -804,9 +1153,9 @@ func end_substep(h: float) -> void:
 	# Cuando el rig usa tensor 3x3 completo, proyectamos Δω con la inercia diagonal
 	# de Jolt para que Jolt alcance exactamente om_new (conservando el acoplamiento cruzado).
 	acc_J += tick_m_s * (V_new - V_old) - hh * tick_m_s * tick_grav
-	var Iw_jolt_new := _inertia_world_diag(R_pred, tick_inertia_diag) if has_full_inertia_tensor else _inertia_world(R_pred, tick_inertia_diag)
+	var Iw_jolt_new := _inertia_world_diag_basis(R_pred, tick_inertia_diag) if has_full_inertia_tensor else _inertia_world_basis(R_pred, tick_inertia_diag)
 	var Iw_jolt_old := _jolt_inertia_before if has_full_inertia_tensor else Iw_old
-	acc_L += _mat3_vec(Iw_jolt_new, om_new) - _mat3_vec(Iw_jolt_old, om_old)
+	acc_L += Iw_jolt_new * om_new - Iw_jolt_old * om_old
 	var previous_w := w
 	w = w_cand
 	w_cand = previous_w
@@ -833,6 +1182,38 @@ func _set_q_limits(suspension: VehicleSuspensionModel) -> void:
 
 func end_tick(state: PhysicsDirectBodyState3D, dt: float, suspension: VehicleSuspensionModel) -> Array[float]:
 	var dtt := maxf(dt, 0.00001)
+	if _rust_rig != null:
+		var snap: PackedFloat64Array = _rust_rig.call("end_tick_snapshot")
+		acc_J = Vector3(snap[0], snap[1], snap[2])
+		acc_L = Vector3(snap[3], snap[4], snap[5])
+		for i in 4:
+			acc_Fz[i] = snap[6 + i]
+			acc_defl[i] = snap[10 + i]
+			acc_diss[i] = snap[14 + i]
+			q[i] = snap[18 + i]
+			u[i] = snap[22 + i]
+			_last_d_fin[i] = snap[26 + i]
+			_last_v_fin[i] = snap[30 + i]
+			spring_forces_n[i] = snap[34 + i]
+			last_damper_requested_n[i] = snap[38 + i]
+			last_damper_applied_n[i] = snap[42 + i]
+			last_damper_impulse_ns[i] = snap[46 + i]
+			_spring_impulse_ns[i] = snap[50 + i]
+			_suspension_axial_impulse_ns[i] = snap[54 + i]
+			_contact_axial_impulse_ns[i] = snap[58 + i]
+			_contact_vertical_impulse_ns[i] = snap[62 + i]
+			_radial_impulse_ns[i] = snap[66 + i]
+			if suspension != null:
+				suspension.last_elastic_forces_n[i] = snap[70 + i]
+				suspension.last_bump_forces_n[i] = snap[74 + i]
+				suspension.last_damper_explicit_n[i] = snap[38 + i]
+				suspension.last_damper_forces_n[i] = snap[42 + i]
+		chassis_twist_rad = snap[78]
+		chassis_twist_vel_rad_s = snap[79]
+		_trace_axis = Vector3(snap[80], snap[81], snap[82])
+		_trace_chassis_velocity = Vector3(snap[83], snap[84], snap[85])
+		for i in 4:
+			_trace_start_hub_velocity[i] = Vector3(snap[86 + i * 3], snap[87 + i * 3], snap[88 + i * 3])
 	state.apply_central_force(acc_J / dtt)
 	state.apply_torque(acc_L / dtt)
 	has_pred = true
@@ -861,15 +1242,28 @@ func muestra_de_rueda(i: int, t: Transform3D, V: Vector3, om: Vector3) -> Dictio
 
 func _publish_tick(suspension: VehicleSuspensionModel, dtt: float) -> void:
 	var end_axis := R_pred.y.normalized()
+	if not suspension._flat_ready:
+		suspension.sync_flat_parameters()
+	var v_scale := float(radial_viscous_scale)
 	for i in 4:
-		var mean_F := float(acc_Fz[i]) / dtt
-		var mean_d := float(acc_defl[i]) / dtt
-		var mean_s := float(acc_diss[i]) / dtt
+		var mean_F := acc_Fz[i] / dtt
+		var mean_d := acc_defl[i] / dtt
+		var mean_s := acc_diss[i] / dtt
 		radial_deflection_m[i] = mean_d
 		radial_dissipation_w[i] = mean_s
+		if t_hit[i] and mean_F > 0.0 and t_radial_packed[i].size() >= TireRadialModel.PACK_SIZE:
+			TireRadialModel.populate_radial_dict_from_packed(
+				radial_states[i],
+				t_radial_packed[i],
+				maxf(m_unsprung[i], 1.0),
+				_last_d_fin[i],
+				_last_v_fin[i],
+				v_scale,
+			)
+		else:
+			radial_states[i].clear()
 
-		var p: Dictionary = suspension.axle_parameters[i] if i < suspension.axle_parameters.size() else {}
-		var qn := clampf(q[i], -float(p.get("droop_m", 0.18)), float(p.get("bump_m", 0.22)))
+		var qn := clampf(q[i], -suspension._droop_m[i], suspension._bump_m[i])
 		suspension.compression[i] = qn
 		suspension.compression_velocity[i] = u[i]
 		suspension.filtered_arb_travel[i] = qn
@@ -881,25 +1275,38 @@ func _publish_tick(suspension: VehicleSuspensionModel, dtt: float) -> void:
 		var end_velocity := V_pred + omega_pred.cross(end_arm) + end_axis * u[i]
 		var start_velocity := _trace_start_hub_velocity[i]
 		var gravity_impulse := m_unsprung[i] * tick_grav.dot(_trace_axis) * dtt
-		last_tick_trace[i] = {
-			"chassis_vel": [_trace_chassis_velocity.x, _trace_chassis_velocity.y, _trace_chassis_velocity.z],
-			"hub_vel": [start_velocity.x, start_velocity.y, start_velocity.z],
-			"hub_mass_kg": m_unsprung[i],
-			"pre_hub_vel_axial": start_velocity.dot(_trace_axis),
-			"post_hub_vel_axial": end_velocity.dot(_trace_axis),
-			"J_susp_ns": _suspension_axial_impulse_ns[i],
-			"J_radial_ns": _contact_axial_impulse_ns[i],
-			"contact_vertical_impulse_ns": _contact_vertical_impulse_ns[i],
-			"J_gravity_ns": gravity_impulse,
-			"J_sum_known_ns": _suspension_axial_impulse_ns[i] + _contact_axial_impulse_ns[i] + gravity_impulse,
-			"tick_id": tick_sequence,
-			"dt_s": dtt,
-			"relative_velocity_m_s": u[i],
-			"damper_requested_n": last_damper_requested_n[i],
-			"damper_applied_n": last_damper_applied_n[i],
-			"damper_impulse_ns": last_damper_impulse_ns[i],
-			"internal_force_n": spring_forces_n[i],
-			"internal_impulse_ns": _spring_impulse_ns[i],
-			"radial_F_mean_n": mean_F,
-			"radial_J_imp_ns": _radial_impulse_ns[i],
-		}
+		var tr: Dictionary = last_tick_trace[i]
+		var cv: Array = tr.get("chassis_vel", [])
+		if cv.size() != 3:
+			cv = [_trace_chassis_velocity.x, _trace_chassis_velocity.y, _trace_chassis_velocity.z]
+			tr["chassis_vel"] = cv
+		else:
+			cv[0] = _trace_chassis_velocity.x
+			cv[1] = _trace_chassis_velocity.y
+			cv[2] = _trace_chassis_velocity.z
+		var hv: Array = tr.get("hub_vel", [])
+		if hv.size() != 3:
+			hv = [start_velocity.x, start_velocity.y, start_velocity.z]
+			tr["hub_vel"] = hv
+		else:
+			hv[0] = start_velocity.x
+			hv[1] = start_velocity.y
+			hv[2] = start_velocity.z
+		tr["hub_mass_kg"] = m_unsprung[i]
+		tr["pre_hub_vel_axial"] = start_velocity.dot(_trace_axis)
+		tr["post_hub_vel_axial"] = end_velocity.dot(_trace_axis)
+		tr["J_susp_ns"] = _suspension_axial_impulse_ns[i]
+		tr["J_radial_ns"] = _contact_axial_impulse_ns[i]
+		tr["contact_vertical_impulse_ns"] = _contact_vertical_impulse_ns[i]
+		tr["J_gravity_ns"] = gravity_impulse
+		tr["J_sum_known_ns"] = _suspension_axial_impulse_ns[i] + _contact_axial_impulse_ns[i] + gravity_impulse
+		tr["tick_id"] = tick_sequence
+		tr["dt_s"] = dtt
+		tr["relative_velocity_m_s"] = u[i]
+		tr["damper_requested_n"] = last_damper_requested_n[i]
+		tr["damper_applied_n"] = last_damper_applied_n[i]
+		tr["damper_impulse_ns"] = last_damper_impulse_ns[i]
+		tr["internal_force_n"] = spring_forces_n[i]
+		tr["internal_impulse_ns"] = _spring_impulse_ns[i]
+		tr["radial_F_mean_n"] = mean_F
+		tr["radial_J_imp_ns"] = _radial_impulse_ns[i]

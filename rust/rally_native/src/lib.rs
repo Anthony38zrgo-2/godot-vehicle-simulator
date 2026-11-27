@@ -4,6 +4,7 @@ mod river_channels;
 mod rng;
 mod spatial_gis;
 mod stage_grass;
+mod suspension_rig;
 mod telemetry_async;
 mod wheel_particles;
 

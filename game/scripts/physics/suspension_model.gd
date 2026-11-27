@@ -85,6 +85,111 @@ var compliance_camber_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var compliance_toe_target_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var compliance_camber_target_rad: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
+# Espejo plano de axle_parameters para eliminar búsquedas por string en caliente.
+var _flat_ready: bool = false
+var _param_version: int = 0
+var _any_inclined_axis: bool = false
+var _spring_rate := PackedFloat64Array([20000.0, 20000.0, 20000.0, 20000.0])
+var _static_load := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _rest_offset := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _bump_m := PackedFloat64Array([0.22, 0.22, 0.22, 0.22])
+var _droop_m := PackedFloat64Array([0.18, 0.18, 0.18, 0.18])
+var _bump_damping := PackedFloat64Array([2000.0, 2000.0, 2000.0, 2000.0])
+var _rebound_damping := PackedFloat64Array([2000.0, 2000.0, 2000.0, 2000.0])
+var _fast_factor := PackedFloat64Array([1.0, 1.0, 1.0, 1.0])
+var _knee_speed := PackedFloat64Array([INF, INF, INF, INF])
+var _bump_stop_travel := PackedFloat64Array([0.015, 0.015, 0.015, 0.015])
+var _bump_stop_stiffness := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _bump_stop_damping := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _camber := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _camber_gain := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _toe := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _toe_gain := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _rc_height := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _rc_gain := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _anti_dive_tan := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _anti_squat_tan := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _anti_lift_tan := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_steer_lat := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_toe_lon := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_camber_lat := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_camber_lon := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_tau := PackedFloat64Array([0.022, 0.022, 0.022, 0.022])
+var _axis_pitch := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _axis_roll := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _axis_pitch_gain := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _axis_roll_gain := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _spring_can_unseat := PackedByteArray([1, 1, 1, 1])
+var _solid_axle := PackedByteArray([0, 0, 0, 0])
+var _has_inclined_axis := PackedByteArray([0, 0, 0, 0])
+var _has_axis_roll := PackedByteArray([0, 0, 0, 0])
+var _has_axis_pitch := PackedByteArray([0, 0, 0, 0])
+
+# Buffers preasignados para cero allocs por subpaso.
+var _forces_1dof_buf: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _target_toe_buf := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _target_camber_buf := PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+var _comp_alpha_buf := PackedFloat64Array([1.0, 1.0, 1.0, 1.0])
+var _last_comp_dt: float = -1.0
+var ic_hub_forces_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var ic_geo_transfer_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var ic_rc_heights_m: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var ic_lat_jack_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var ic_lon_jack_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _ic_half_tracks_buf := PackedFloat64Array([0.65, 0.65, 0.65, 0.65])
+
+
+func sync_flat_parameters() -> void:
+	if axle_parameters.size() < 4:
+		_flat_ready = false
+		return
+	_any_inclined_axis = false
+	for i in 4:
+		var p: Dictionary = axle_parameters[i]
+		_spring_rate[i] = float(p.get("spring_rate", 20000.0))
+		_static_load[i] = float(p.get("static_load", 0.0))
+		_rest_offset[i] = float(p.get("rest_compression_offset", 0.0))
+		_bump_m[i] = float(p.get("bump_m", 0.22))
+		_droop_m[i] = float(p.get("droop_m", 0.18))
+		_bump_damping[i] = float(p.get("bump_damping", 2000.0))
+		_rebound_damping[i] = float(p.get("rebound_damping", 2000.0))
+		_fast_factor[i] = float(p.get("fast_factor", 1.0))
+		_knee_speed[i] = maxf(float(p.get("knee_speed", INF)), 1.0e-4)
+		_bump_stop_travel[i] = maxf(float(p.get("bump_stop_travel", 0.0)), 0.015)
+		_bump_stop_stiffness[i] = float(p.get("bump_stop_stiffness", 0.0))
+		_bump_stop_damping[i] = float(p.get("bump_stop_damping", 0.0))
+		_camber[i] = float(p.get("camber", 0.0))
+		_camber_gain[i] = float(p.get("camber_gain", 0.0))
+		_toe[i] = float(p.get("toe", 0.0))
+		_toe_gain[i] = float(p.get("toe_gain", 0.0))
+		_rc_height[i] = float(p.get("roll_center_height_m", 0.0))
+		_rc_gain[i] = float(p.get("roll_center_height_gain", 0.0))
+		_anti_dive_tan[i] = clampf(float(p.get("anti_dive_tan", 0.0)), -0.35, 0.35)
+		_anti_squat_tan[i] = clampf(float(p.get("anti_squat_tan", 0.0)), -0.35, 0.35)
+		_anti_lift_tan[i] = clampf(float(p.get("anti_lift_tan", 0.0)), -0.35, 0.35)
+		_comp_steer_lat[i] = float(p.get("compliance_steer_lat_rad_per_n", 0.0))
+		_comp_toe_lon[i] = float(p.get("compliance_toe_lon_rad_per_n", 0.0))
+		_comp_camber_lat[i] = float(p.get("compliance_camber_lat_rad_per_n", 0.0))
+		_comp_camber_lon[i] = float(p.get("compliance_camber_lon_rad_per_n", 0.0))
+		_comp_tau[i] = maxf(float(p.get("compliance_tau_s", 0.022)), 0.001)
+		_axis_pitch[i] = float(p.get("axis_pitch_rad", 0.0))
+		_axis_roll[i] = float(p.get("axis_roll_rad", 0.0))
+		_axis_pitch_gain[i] = float(p.get("axis_pitch_gain_rad_per_m", 0.0))
+		_axis_roll_gain[i] = float(p.get("axis_roll_gain_rad_per_m", 0.0))
+		_spring_can_unseat[i] = 1 if bool(p.get("spring_can_unseat", true)) else 0
+		_solid_axle[i] = 1 if bool(p.get("solid_axle", false)) else 0
+		var has_p := absf(_axis_pitch[i]) > 1.0e-6
+		var has_r := absf(_axis_roll[i]) > 1.0e-6
+		var incl := has_p or has_r or absf(_axis_pitch_gain[i]) > 1.0e-6 or absf(_axis_roll_gain[i]) > 1.0e-6
+		_has_axis_pitch[i] = 1 if has_p else 0
+		_has_axis_roll[i] = 1 if has_r else 0
+		_has_inclined_axis[i] = 1 if incl else 0
+		if incl:
+			_any_inclined_axis = true
+	_last_comp_dt = -1.0
+	_flat_ready = true
+	_param_version += 1
+
 
 ## Calibración de muelle y reparto (§3 + §6):
 ## - `ride_frequency_hz` tiene prioridad cuando se declara en
@@ -595,6 +700,7 @@ func configure(
 			}
 		),
 	)
+	sync_flat_parameters()
 	clear_compliance_state()
 	return { "ok": true }
 
@@ -822,19 +928,20 @@ func suspension_forces() -> Array[float]:
 func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 	if dt <= 0.0 or m_rel_kg.size() != 4:
 		return suspension_forces()
-	var forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	if not _flat_ready:
+		sync_flat_parameters()
+	var forces := _forces_1dof_buf
+	var dt_safe := maxf(dt, 0.00001)
 	for i in 4:
-		var p: Dictionary = axle_parameters[i]
 		var travel := compression[i]
 		var speed := compression_velocity[i]
-		var damper_rate := float(p.bump_damping if speed >= 0.0 else p.rebound_damping)
+		var damper_rate := _bump_damping[i] if speed >= 0.0 else _rebound_damping[i]
 		var abs_speed := absf(speed)
-		var knee := maxf(float(p.knee_speed), 1.0e-4)
-		var fast_f := float(p.fast_factor)
+		var knee := _knee_speed[i]
 		var damper_explicit := 0.0
 		if is_finite(knee) and abs_speed > 0.0:
 			var slow_part := knee * tanh(abs_speed / knee)
-			var fast_part := maxf(abs_speed - slow_part, 0.0) * fast_f
+			var fast_part := maxf(abs_speed - slow_part, 0.0) * _fast_factor[i]
 			damper_explicit = signf(speed) * damper_rate * (slow_part + fast_part)
 		else:
 			damper_explicit = damper_rate * speed
@@ -842,16 +949,18 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 		if abs_speed > 1.0e-4:
 			c_lin = absf(damper_explicit) / abs_speed
 		var m_eff := maxf(float(m_rel_kg[i]), 1.0)
-		var damper_force := damper_explicit / (1.0 + (c_lin * maxf(dt, 0.00001)) / m_eff) if abs_speed > 1.0e-9 else 0.0
-		var travel_delta := travel - float(p.get("rest_compression_offset", 0.0))
-		var max_range := maxf(float(p.bump_m), 0.05)
+		var damper_force := damper_explicit / (1.0 + (c_lin * dt_safe) / m_eff) if abs_speed > 1.0e-9 else 0.0
+		var travel_delta := travel - _rest_offset[i]
+		var bump_m_i := _bump_m[i]
+		var max_range := maxf(bump_m_i, 0.05)
 		var norm_travel := clampf(travel_delta / max_range, -1.0, 1.5)
-		var progressive_rate := float(p.spring_rate) * (
+		var progressive_rate := _spring_rate[i] * (
 			1.0 + SPRING_PROGRESSIVITY_RATE * norm_travel * absf(norm_travel)
 		)
-		var elastic_force := float(p.static_load) + progressive_rate * travel_delta
-		if bool(p.spring_can_unseat):
-			var helper_zone := float(p.static_load) * HELPER_ZONE_FRACTION
+		var static_load_i := _static_load[i]
+		var elastic_force := static_load_i + progressive_rate * travel_delta
+		if _spring_can_unseat[i] != 0:
+			var helper_zone := static_load_i * HELPER_ZONE_FRACTION
 			if elastic_force < helper_zone:
 				elastic_force = helper_zone * exp(
 					(elastic_force - helper_zone) / maxf(helper_zone, 1.0)
@@ -860,22 +969,23 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 		last_elastic_forces_n[i] = elastic_force
 		last_damper_forces_n[i] = damper_force
 		last_damper_explicit_n[i] = damper_explicit
-		var bump_range := maxf(float(p.bump_stop_travel), 0.015)
-		var bump_threshold := float(p.bump_m) - bump_range
+		var bump_range := _bump_stop_travel[i]
+		var bump_threshold := bump_m_i - bump_range
 		var bump_force := 0.0
 		if travel > bump_threshold:
 			var overtravel := travel - bump_threshold
 			var norm_over := clampf(overtravel / bump_range, 0.0, 2.0)
-			var bump_elastic := float(p.bump_stop_stiffness) * overtravel * norm_over * (
+			var b_stiff := _bump_stop_stiffness[i]
+			var bump_elastic := b_stiff * overtravel * norm_over * (
 				0.5 + 0.5 * norm_over
 			)
-			var bump_damp := float(p.bump_stop_damping) * maxf(speed, 0.0) * clampf(
+			var bump_damp := _bump_stop_damping[i] * maxf(speed, 0.0) * clampf(
 				norm_over,
 				0.0,
 				1.0,
 			)
 			var bump_explicit := bump_elastic + bump_damp
-			var k_lin := float(p.bump_stop_stiffness) * norm_over * (0.5 + 0.5 * norm_over)
+			var k_lin := b_stiff * norm_over * (0.5 + 0.5 * norm_over)
 			k_lin = maxf(k_lin, absf(bump_explicit) / maxf(overtravel, 1.0e-4))
 			bump_force = bump_explicit / (1.0 + (k_lin * dt * dt) / m_eff)
 			force += bump_force
@@ -885,31 +995,31 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 	var rear_roll := filtered_arb_travel[2] - filtered_arb_travel[3]
 	# ARB semi-implícita con acoplamiento 2x2 izquierda-derecha:
 	# masa reducida del modo rollo m_roll = 1 / (1/m_L + 1/m_R).
-	var dt_safe := maxf(dt, 0.00001)
 	var m_roll_front := 1.0 / (1.0 / maxf(float(m_rel_kg[0]), 1.0) + 1.0 / maxf(float(m_rel_kg[1]), 1.0))
 	var m_roll_rear := 1.0 / (1.0 / maxf(float(m_rel_kg[2]), 1.0) + 1.0 / maxf(float(m_rel_kg[3]), 1.0))
-	var k_arb_front_eff := front_arb_stiffness_n_per_m / (1.0 + (front_arb_stiffness_n_per_m * dt_safe * dt_safe) / m_roll_front)
-	var k_arb_rear_eff := rear_arb_stiffness_n_per_m / (1.0 + (rear_arb_stiffness_n_per_m * dt_safe * dt_safe) / m_roll_rear)
+	var dt2 := dt_safe * dt_safe
+	var k_arb_front_eff := front_arb_stiffness_n_per_m / (1.0 + (front_arb_stiffness_n_per_m * dt2) / m_roll_front)
+	var k_arb_rear_eff := rear_arb_stiffness_n_per_m / (1.0 + (rear_arb_stiffness_n_per_m * dt2) / m_roll_rear)
 	var front_arb := k_arb_front_eff * front_roll
 	var rear_arb := k_arb_rear_eff * rear_roll
 	var f_weight_0 := clampf(
-		forces[0] / maxf(float(axle_parameters[0].static_load) * 0.25, 1.0),
+		forces[0] / maxf(_static_load[0] * 0.25, 1.0),
 		0.0,
 		1.0,
 	) if not contact_active[0] else 1.0
 	var f_weight_1 := clampf(
-		forces[1] / maxf(float(axle_parameters[1].static_load) * 0.25, 1.0),
+		forces[1] / maxf(_static_load[1] * 0.25, 1.0),
 		0.0,
 		1.0,
 	) if not contact_active[1] else 1.0
 	front_arb *= minf(f_weight_0, f_weight_1)
 	var r_weight_2 := clampf(
-		forces[2] / maxf(float(axle_parameters[2].static_load) * 0.25, 1.0),
+		forces[2] / maxf(_static_load[2] * 0.25, 1.0),
 		0.0,
 		1.0,
 	) if not contact_active[2] else 1.0
 	var r_weight_3 := clampf(
-		forces[3] / maxf(float(axle_parameters[3].static_load) * 0.25, 1.0),
+		forces[3] / maxf(_static_load[3] * 0.25, 1.0),
 		0.0,
 		1.0,
 	) if not contact_active[3] else 1.0
@@ -928,22 +1038,24 @@ func suspension_forces_1dof(dt: float, m_rel_kg: Array = []) -> Array[float]:
 ## axle-frame y re-aplica el mismo espejo interno; pasarle dynamic_camber,
 ## no dynamic_wheel_camber (doble espejo).
 func dynamic_camber(index: int) -> float:
-	var p: Dictionary = axle_parameters[index]
-	var travel_delta := compression[index] - float(p.get("rest_compression_offset", 0.0))
+	if not _flat_ready:
+		sync_flat_parameters()
+	var travel_delta := compression[index] - _rest_offset[index]
 	var compliance_delta := compliance_camber_rad[index] if index < compliance_camber_rad.size() else 0.0
-	return float(p.camber) + float(p.camber_gain) * travel_delta + compliance_delta
+	return _camber[index] + _camber_gain[index] * travel_delta + compliance_delta
 
 
 func dynamic_wheel_camber(index: int) -> float:
-	var side_sign := 1.0 if index in [0, 2] else -1.0
+	var side_sign := 1.0 if (index == 0 or index == 2) else -1.0
 	return side_sign * dynamic_camber(index)
 
 
 func dynamic_toe(index: int) -> float:
-	var p: Dictionary = axle_parameters[index]
-	var side_sign := 1.0 if index in [0, 2] else -1.0
-	var travel_delta := compression[index] - float(p.get("rest_compression_offset", 0.0))
-	var axle_toe := float(p.toe) + float(p.toe_gain) * travel_delta
+	if not _flat_ready:
+		sync_flat_parameters()
+	var side_sign := 1.0 if (index == 0 or index == 2) else -1.0
+	var travel_delta := compression[index] - _rest_offset[index]
+	var axle_toe := _toe[index] + _toe_gain[index] * travel_delta
 	var compliance_delta := compliance_toe_rad[index] if index < compliance_toe_rad.size() else 0.0
 	return clampf(-side_sign * axle_toe + compliance_delta, -0.06, 0.06)
 
@@ -971,64 +1083,44 @@ func step_elastokinematics(
 ) -> void:
 	if axle_parameters.size() < 4:
 		return
-	var target_toe: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var target_camber: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	if not _flat_ready:
+		sync_flat_parameters()
+	var lat_sz := chassis_lat_forces_n.size()
+	var lon_sz := chassis_lon_forces_n.size()
+	if absf(dt - _last_comp_dt) > 1.0e-7:
+		_last_comp_dt = dt
+		for i in 4:
+			_comp_alpha_buf[i] = 1.0 if dt <= 0.0 else (1.0 - exp(-dt / _comp_tau[i]))
 	for axle in 2:
 		var left := axle * 2
 		var right := left + 1
-		var p_l: Dictionary = axle_parameters[left]
-		var p_r: Dictionary = axle_parameters[right]
-		var fy_l := float(chassis_lat_forces_n[left]) if left < chassis_lat_forces_n.size() else 0.0
-		var fy_r := float(chassis_lat_forces_n[right]) if right < chassis_lat_forces_n.size() else 0.0
-		var fx_l := float(chassis_lon_forces_n[left]) if left < chassis_lon_forces_n.size() else 0.0
-		var fx_r := float(chassis_lon_forces_n[right]) if right < chassis_lon_forces_n.size() else 0.0
-		var is_front := axle == 0
-		var lat_steer_sign := 1.0 if is_front else -1.0
-		var is_solid := bool(p_l.get("solid_axle", false)) or bool(p_r.get("solid_axle", false))
-		if is_solid:
-			var k_lat_s := 0.5 * (
-				float(p_l.get("compliance_steer_lat_rad_per_n", 0.0))
-				+ float(p_r.get("compliance_steer_lat_rad_per_n", 0.0))
-			)
-			var k_lon_s := 0.5 * (
-				float(p_l.get("compliance_toe_lon_rad_per_n", 0.0))
-				+ float(p_r.get("compliance_toe_lon_rad_per_n", 0.0))
-			)
+		var fy_l := float(chassis_lat_forces_n[left]) if left < lat_sz else 0.0
+		var fy_r := float(chassis_lat_forces_n[right]) if right < lat_sz else 0.0
+		var fx_l := float(chassis_lon_forces_n[left]) if left < lon_sz else 0.0
+		var fx_r := float(chassis_lon_forces_n[right]) if right < lon_sz else 0.0
+		var lat_steer_sign := 1.0 if axle == 0 else -1.0
+		if _solid_axle[left] != 0 or _solid_axle[right] != 0:
+			var k_lat_s := 0.5 * (_comp_steer_lat[left] + _comp_steer_lat[right])
+			var k_lon_s := 0.5 * (_comp_toe_lon[left] + _comp_toe_lon[right])
 			var fy_avg := 0.5 * (fy_l + fy_r)
 			var fx_diff := 0.5 * (fx_l - fx_r)
 			var beam_steer := lat_steer_sign * k_lat_s * fy_avg - k_lon_s * fx_diff
-			target_toe[left] = beam_steer
-			target_toe[right] = beam_steer
+			_target_toe_buf[left] = beam_steer
+			_target_toe_buf[right] = beam_steer
 		else:
-			for idx in [left, right]:
-				var p: Dictionary = axle_parameters[idx]
-				var fy_i := fy_l if idx == left else fy_r
-				var fx_i := fx_l if idx == left else fx_r
-				var side_sign := 1.0 if idx == left else -1.0
-				var k_lat_s := float(p.get("compliance_steer_lat_rad_per_n", 0.0))
-				var k_lon_t := float(p.get("compliance_toe_lon_rad_per_n", 0.0))
-				# Lateral: +k_lat*Fy delante (abre fuera de curva), -k_lat*Fy detrás (acompaña).
-				# Longitudinal: axle_toe = k_lon*Fx -> en marco de rueda es -side_sign * axle_toe.
-				target_toe[idx] = lat_steer_sign * k_lat_s * fy_i - side_sign * (k_lon_t * fx_i)
-
-		for idx in [left, right]:
-			var p: Dictionary = axle_parameters[idx]
-			var fy_i := fy_l if idx == left else fy_r
-			var fx_i := fx_l if idx == left else fx_r
-			var side_sign := 1.0 if idx == left else -1.0
-			var k_cam_lat := float(p.get("compliance_camber_lat_rad_per_n", 0.0))
-			var k_cam_lon := float(p.get("compliance_camber_lon_rad_per_n", 0.0))
-			# Convenio AXLE-FRAME: rueda exterior cargada (ej. FR con side_sign=-1 y Fy<0)
-			# gana camber positivo (+side_sign * k_cam_lat * Fy > 0).
-			target_camber[idx] = side_sign * k_cam_lat * fy_i + k_cam_lon * fx_i
+			_target_toe_buf[left] = lat_steer_sign * _comp_steer_lat[left] * fy_l - (_comp_toe_lon[left] * fx_l)
+			_target_toe_buf[right] = lat_steer_sign * _comp_steer_lat[right] * fy_r + (_comp_toe_lon[right] * fx_r)
+		# Convenio AXLE-FRAME: rueda exterior cargada (ej. FR con side_sign=-1 y Fy<0)
+		# gana camber positivo (+side_sign * k_cam_lat * Fy > 0).
+		_target_camber_buf[left] = _comp_camber_lat[left] * fy_l + _comp_camber_lon[left] * fx_l
+		_target_camber_buf[right] = -_comp_camber_lat[right] * fy_r + _comp_camber_lon[right] * fx_r
 
 	for i in 4:
-		var t_toe := clampf(target_toe[i], -MAX_COMPLIANCE_TOE_RAD, MAX_COMPLIANCE_TOE_RAD)
-		var t_cam := clampf(target_camber[i], -MAX_COMPLIANCE_CAMBER_RAD, MAX_COMPLIANCE_CAMBER_RAD)
+		var t_toe := clampf(_target_toe_buf[i], -MAX_COMPLIANCE_TOE_RAD, MAX_COMPLIANCE_TOE_RAD)
+		var t_cam := clampf(_target_camber_buf[i], -MAX_COMPLIANCE_CAMBER_RAD, MAX_COMPLIANCE_CAMBER_RAD)
 		compliance_toe_target_rad[i] = t_toe
 		compliance_camber_target_rad[i] = t_cam
-		var tau := maxf(float(axle_parameters[i].get("compliance_tau_s", 0.022)), 0.001)
-		var alpha := 1.0 if dt <= 0.0 else (1.0 - exp(-dt / tau))
+		var alpha := _comp_alpha_buf[i]
 		compliance_toe_rad[i] = lerpf(compliance_toe_rad[i], t_toe, alpha)
 		compliance_camber_rad[i] = lerpf(compliance_camber_rad[i], t_cam, alpha)
 
@@ -1044,11 +1136,14 @@ func maximum_wheel_travel(index: int) -> float:
 func suspension_axis_local(index: int, travel_m: float) -> Vector3:
 	if index < 0 or index >= axle_parameters.size():
 		return Vector3.UP
-	var p: Dictionary = axle_parameters[index]
-	var travel_delta := travel_m - float(p.get("rest_compression_offset", 0.0))
-	var pitch := float(p.get("axis_pitch_rad", 0.0)) + float(p.get("axis_pitch_gain_rad_per_m", 0.0)) * travel_delta
-	var side_sign := 1.0 if index in [0, 2] else -1.0
-	var roll := side_sign * (float(p.get("axis_roll_rad", 0.0)) + float(p.get("axis_roll_gain_rad_per_m", 0.0)) * travel_delta)
+	if not _flat_ready:
+		sync_flat_parameters()
+	if _has_inclined_axis[index] == 0:
+		return Vector3.UP
+	var travel_delta := travel_m - _rest_offset[index]
+	var pitch := _axis_pitch[index] + _axis_pitch_gain[index] * travel_delta
+	var side_sign := 1.0 if (index == 0 or index == 2) else -1.0
+	var roll := side_sign * (_axis_roll[index] + _axis_roll_gain[index] * travel_delta)
 	if absf(pitch) < 1.0e-7 and absf(roll) < 1.0e-7:
 		return Vector3.UP
 	var axis := Vector3(sin(roll), cos(pitch) * cos(roll), sin(pitch))
@@ -1065,32 +1160,88 @@ func dynamic_roll_center_height_m(
 ) -> float:
 	if index < 0 or index >= axle_parameters.size():
 		return 0.0
-	var p: Dictionary = axle_parameters[index]
-	var travel_delta := travel_m - float(p.get("rest_compression_offset", 0.0))
-	var rc_raw := float(p.get("roll_center_height_m", 0.0)) + float(p.get("roll_center_height_gain", 0.0)) * travel_delta
+	if not _flat_ready:
+		sync_flat_parameters()
+	var travel_delta := travel_m - _rest_offset[index]
+	var rc_raw := _rc_height[index] + _rc_gain[index] * travel_delta
 	var max_rc := clampf(maxf(cg_height_m, 0.20) * 0.70, 0.14, 0.45)
 	return clampf(rc_raw, -0.15, max_rc)
 
 
-## Cinemática de centros instantáneos (trabajo virtual exacto sobre q_0..q_3):
-## Descompone las fuerzas horizontales de contacto (en marco de chasis:
-## `chassis_lat_forces_n` a lo largo de +X derecha, `chassis_lon_forces_n` a lo
-## largo de -Z avance) en la componente geométrica instantánea transmitida por
-## los brazos de suspensión (Roll Center, Anti-Dive, Anti-Squat, Anti-Lift y
-## Jacking Forces) y deja el remanente (h_CG - h_RC) sobre muelles y ARB.
-##
-## Convención de signo:
-## - `hub_forces_n[i]` es la fuerza generalizada Q_{q_i} sobre la coordenada
-##   axial q_i (+compresión, buje hacia arriba). Un valor negativo empuja el
-##   buje hacia el suelo, generando transferencia geométrica instantánea +Fz y
-##   reduciendo el momento elástico de alabeo/cabeceo sobre el chasis.
-## - `geometric_load_transfer_n[i] = -hub_forces_n[i]` (+carga geométrica
-##   añadida al neumático).
-## - En ejes rígidos (`solid_axle = true`), la fuerza lateral del eje genera un
-##   par puro entre izquierda y derecha (sin jacking neto de expansión de vía).
-## - En suspensiones independientes (`solid_axle = false`), cada rueda reacciona
-##   hacia su centro de alabeo generando además jacking neto vertical al cargar
-##   más la rueda exterior que la interior.
+## Evaluación sin asignaciones de cinemática de centros instantáneos.
+## Escribe en ic_hub_forces_n, ic_geo_transfer_n, ic_rc_heights_m,
+## ic_lat_jack_n e ic_lon_jack_n.
+func evaluate_instant_center_jacking(
+	chassis_lat_forces_n: Array[float],
+	chassis_lon_forces_n: Array[float],
+	wheel_travels_m: Array[float],
+	wheel_positions_local: Array[Vector3],
+	cg_heights_m: Array[float],
+) -> void:
+	for i in 4:
+		ic_hub_forces_n[i] = 0.0
+		ic_geo_transfer_n[i] = 0.0
+		ic_rc_heights_m[i] = 0.0
+		ic_lat_jack_n[i] = 0.0
+		ic_lon_jack_n[i] = 0.0
+	if axle_parameters.size() < 4:
+		return
+	if not _flat_ready:
+		sync_flat_parameters()
+	var tr_sz := wheel_travels_m.size()
+	var cg_sz := cg_heights_m.size()
+	var pos_sz := wheel_positions_local.size()
+	var lat_sz := chassis_lat_forces_n.size()
+	var lon_sz := chassis_lon_forces_n.size()
+	for i in 4:
+		var travel := float(wheel_travels_m[i]) if i < tr_sz else compression[i]
+		var cg_h := float(cg_heights_m[i]) if i < cg_sz else 0.50
+		var rc_raw := _rc_height[i] + _rc_gain[i] * (travel - _rest_offset[i])
+		var max_rc := clampf(maxf(cg_h, 0.20) * 0.70, 0.14, 0.45)
+		ic_rc_heights_m[i] = clampf(rc_raw, -0.15, max_rc)
+		_ic_half_tracks_buf[i] = maxf(absf(wheel_positions_local[i].x), 0.25) if i < pos_sz else 0.65
+
+	# 1. Vista frontal/trasera: Roll Center y fuerzas de jacking lateral.
+	for axle in 2:
+		var left := axle * 2
+		var right := left + 1
+		if _has_axis_roll[left] != 0 or _has_axis_roll[right] != 0:
+			continue
+		var fy_l := float(chassis_lat_forces_n[left]) if left < lat_sz else 0.0
+		var fy_r := float(chassis_lat_forces_n[right]) if right < lat_sz else 0.0
+		if _solid_axle[left] != 0 or _solid_axle[right] != 0:
+			var rc_axle := 0.5 * (ic_rc_heights_m[left] + ic_rc_heights_m[right])
+			var b_axle := 0.5 * (_ic_half_tracks_buf[left] + _ic_half_tracks_buf[right])
+			var tan_rc_axle := clampf(rc_axle / maxf(b_axle, 0.25), -0.55, 0.55)
+			var fy_avg := 0.5 * (fy_l + fy_r)
+			ic_lat_jack_n[left] = -fy_avg * tan_rc_axle
+			ic_lat_jack_n[right] = fy_avg * tan_rc_axle
+		else:
+			var tan_rc_l := clampf(ic_rc_heights_m[left] / _ic_half_tracks_buf[left], -0.55, 0.55)
+			var tan_rc_r := clampf(ic_rc_heights_m[right] / _ic_half_tracks_buf[right], -0.55, 0.55)
+			ic_lat_jack_n[left] = -fy_l * tan_rc_l
+			ic_lat_jack_n[right] = fy_r * tan_rc_r
+
+	# 2. Vista lateral: Pitch Center (Anti-Dive delante, Anti-Squat detrás, Anti-Lift).
+	for i in 4:
+		if _has_axis_pitch[i] != 0:
+			continue
+		var fx_c := float(chassis_lon_forces_n[i]) if i < lon_sz else 0.0
+		if absf(fx_c) <= 1.0e-9:
+			continue
+		if i < 2:
+			var tan_front := _anti_dive_tan[i] if fx_c < 0.0 else _anti_lift_tan[i]
+			ic_lon_jack_n[i] = fx_c * tan_front
+		else:
+			var tan_rear := _anti_squat_tan[i] if fx_c > 0.0 else _anti_lift_tan[i]
+			ic_lon_jack_n[i] = -fx_c * tan_rear
+
+	for i in 4:
+		var q_kin := ic_lat_jack_n[i] + ic_lon_jack_n[i]
+		ic_hub_forces_n[i] = q_kin
+		ic_geo_transfer_n[i] = -q_kin
+
+
 func instant_center_jacking_forces(
 	chassis_lat_forces_n: Array[float],
 	chassis_lon_forces_n: Array[float],
@@ -1098,80 +1249,17 @@ func instant_center_jacking_forces(
 	wheel_positions_local: Array[Vector3],
 	cg_heights_m: Array[float],
 ) -> Dictionary:
-	var hub_forces: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var geo_transfer: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var rc_heights: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var lat_jack: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	var lon_jack: Array[float] = [0.0, 0.0, 0.0, 0.0]
-	if axle_parameters.size() < 4:
-		return {
-			"hub_forces_n": hub_forces,
-			"geometric_load_transfer_n": geo_transfer,
-			"roll_center_heights_m": rc_heights,
-			"lateral_jacking_n": lat_jack,
-			"longitudinal_jacking_n": lon_jack,
-		}
-	var half_tracks: Array[float] = [0.65, 0.65, 0.65, 0.65]
-	for i in 4:
-		var travel := float(wheel_travels_m[i]) if i < wheel_travels_m.size() else compression[i]
-		var cg_h := float(cg_heights_m[i]) if i < cg_heights_m.size() else 0.50
-		rc_heights[i] = dynamic_roll_center_height_m(i, travel, cg_h)
-		if i < wheel_positions_local.size():
-			half_tracks[i] = maxf(absf((wheel_positions_local[i] as Vector3).x), 0.25)
-
-	# 1. Vista frontal/trasera: Roll Center y fuerzas de jacking lateral.
-	for axle in 2:
-		var left := axle * 2
-		var right := left + 1
-		var p_l: Dictionary = axle_parameters[left]
-		var p_r: Dictionary = axle_parameters[right]
-		var skip_lat := (
-			absf(float(p_l.get("axis_roll_rad", 0.0))) > 1.0e-6
-			or absf(float(p_r.get("axis_roll_rad", 0.0))) > 1.0e-6
-		)
-		if skip_lat:
-			continue
-		var fy_l := float(chassis_lat_forces_n[left]) if left < chassis_lat_forces_n.size() else 0.0
-		var fy_r := float(chassis_lat_forces_n[right]) if right < chassis_lat_forces_n.size() else 0.0
-		if bool(p_l.get("solid_axle", false)) or bool(p_r.get("solid_axle", false)):
-			var rc_axle := 0.5 * (rc_heights[left] + rc_heights[right])
-			var b_axle := 0.5 * (half_tracks[left] + half_tracks[right])
-			var tan_rc_axle := clampf(rc_axle / maxf(b_axle, 0.25), -0.55, 0.55)
-			var fy_avg := 0.5 * (fy_l + fy_r)
-			lat_jack[left] = -fy_avg * tan_rc_axle
-			lat_jack[right] = fy_avg * tan_rc_axle
-		else:
-			var tan_rc_l := clampf(rc_heights[left] / half_tracks[left], -0.55, 0.55)
-			var tan_rc_r := clampf(rc_heights[right] / half_tracks[right], -0.55, 0.55)
-			lat_jack[left] = -fy_l * tan_rc_l
-			lat_jack[right] = fy_r * tan_rc_r
-
-	# 2. Vista lateral: Pitch Center (Anti-Dive delante, Anti-Squat detrás, Anti-Lift).
-	for i in 4:
-		var p: Dictionary = axle_parameters[i]
-		if absf(float(p.get("axis_pitch_rad", 0.0))) > 1.0e-6:
-			continue
-		var fx_c := float(chassis_lon_forces_n[i]) if i < chassis_lon_forces_n.size() else 0.0
-		if absf(fx_c) <= 1.0e-9:
-			continue
-		if i < 2:
-			# Eje delantero: frenada (fx < 0) -> anti-dive; tracción (fx > 0) -> anti-lift.
-			var tan_front := float(p.get("anti_dive_tan", 0.0)) if fx_c < 0.0 else float(p.get("anti_lift_tan", 0.0))
-			lon_jack[i] = fx_c * clampf(tan_front, -0.35, 0.35)
-		else:
-			# Eje trasero: tracción (fx > 0) -> anti-squat; frenada (fx < 0) -> anti-lift.
-			var tan_rear := float(p.get("anti_squat_tan", 0.0)) if fx_c > 0.0 else float(p.get("anti_lift_tan", 0.0))
-			lon_jack[i] = -fx_c * clampf(tan_rear, -0.35, 0.35)
-
-	for i in 4:
-		var q_kin := lat_jack[i] + lon_jack[i]
-		hub_forces[i] = q_kin
-		geo_transfer[i] = -q_kin
-
+	evaluate_instant_center_jacking(
+		chassis_lat_forces_n,
+		chassis_lon_forces_n,
+		wheel_travels_m,
+		wheel_positions_local,
+		cg_heights_m,
+	)
 	return {
-		"hub_forces_n": hub_forces,
-		"geometric_load_transfer_n": geo_transfer,
-		"roll_center_heights_m": rc_heights,
-		"lateral_jacking_n": lat_jack,
-		"longitudinal_jacking_n": lon_jack,
+		"hub_forces_n": ic_hub_forces_n.duplicate(),
+		"geometric_load_transfer_n": ic_geo_transfer_n.duplicate(),
+		"roll_center_heights_m": ic_rc_heights_m.duplicate(),
+		"lateral_jacking_n": ic_lat_jack_n.duplicate(),
+		"longitudinal_jacking_n": ic_lon_jack_n.duplicate(),
 	}

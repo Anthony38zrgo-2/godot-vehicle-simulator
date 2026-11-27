@@ -74,10 +74,32 @@ var maximum_substep_seconds: float = 0.002
 var configured_substeps_per_tick: int = 0
 var configured_substep_hz: int = 120
 var configured_powertrain_hz: int = 240
+var configured_tangential_tire_hz: int = 120
 var _powertrain_step_samples: int = 0
 var _powertrain_tire_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _powertrain_brake_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _powertrain_spin_damp_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
+# Caché de subpaso para desacoplar evaluación tangencial de neumáticos / charcos / jacking
+# cuando la suspensión corre a mayor frecuencia que configured_tangential_tire_hz.
+var _substep_cached_valid: Array[bool] = [false, false, false, false]
+var _substep_cached_fz_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_tire_force: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var _substep_cached_sat_torque: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var _substep_cached_mz_nm: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_raw_tire_torque: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_spin_damp: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_tire_power: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_lat_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_lon_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cached_load_scale: Array[float] = [1.0, 1.0, 1.0, 1.0]
+# Buffers preasignados para el bucle de subpasos (cero asignaciones por subpaso).
+var _substep_tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_spin_damping: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_j_tang_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_lat_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_lon_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _substep_cg_h: Array[float] = [0.5, 0.5, 0.5, 0.5]
+var _substep_j_tang: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var _tire_thermal_elapsed := 0.0
 # Friction, brake and radial damping work, in joules per wheel.
 var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
@@ -226,6 +248,13 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 	configured_powertrain_hz = maxi(
 		1,
 		int(coupled.get("powertrain_frequency_hz", 240)),
+	)
+	configured_tangential_tire_hz = maxi(
+		1,
+		int(coupled_suspension.get(
+			"tangential_tire_frequency_hz",
+			coupled.get("tangential_tire_frequency_hz", 120),
+		)),
 	)
 
 	# 2. Respaldo legado solo si el JSON viejo no define enteros
@@ -607,6 +636,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 			suspension_model.front_arb_stiffness_n_per_m = stiffness
 		else:
 			suspension_model.rear_arb_stiffness_n_per_m = stiffness
+	suspension_model.sync_flat_parameters()
 	var brakes: Dictionary = domains.get("brakes", { }).get("brakes", { })
 	var thermal_brakes: Dictionary = brakes.get("thermal", {})
 	for key in ["front_duct", "rear_duct"]:
@@ -1652,7 +1682,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var pt_substeps := maxi(1, roundi(float(configured_powertrain_hz) / effective_substep_hz))
 	var pt_stride := maxi(1, roundi(effective_substep_hz / maxf(float(configured_powertrain_hz), 1.0))) if float(configured_powertrain_hz) < effective_substep_hz else 1
 	var h_pt := (h / float(pt_substeps)) if pt_substeps > 1 else (h * float(pt_stride))
+	var tire_stride := maxi(1, roundi(effective_substep_hz / maxf(float(configured_tangential_tire_hz), 1.0)))
+	var dt_tire := h * float(tire_stride)
 	for _substep_index in count:
+		var run_tangential_step := (_substep_index % tire_stride) == 0
 		var pred_V: Vector3 = unsprung_rig.V_pred
 		var pred_R: Basis = unsprung_rig.R_pred
 		var pred_C: Vector3 = unsprung_rig.C_pred
@@ -1683,16 +1716,21 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				var com_off: Vector3 = pred_R * body.center_of_mass
 				F_body += Fw
 				T_body += (world_off - com_off).cross(Fw)
-		unsprung_rig.begin_substep(h, suspension_model, F_body, T_body)
-		unsprung_rig.solve_normal(h)
+		unsprung_rig.step_substep_normal(h, suspension_model, F_body, T_body)
 		if steering_rack_enabled:
 			_step_steering_rack_1dof(h, float(inputs.get("steering", 0.0)), _last_front_road_torque_nm)
-		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var spin_damping: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var J_tang_hub: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var substep_lat_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var substep_lon_n: Array[float] = [0.0, 0.0, 0.0, 0.0]
-		var substep_cg_h: Array[float] = [0.5, 0.5, 0.5, 0.5]
+		var tire_reactions := _substep_tire_reactions
+		var spin_damping := _substep_spin_damping
+		var J_tang_hub := _substep_j_tang_hub
+		var substep_lat_n := _substep_lat_n
+		var substep_lon_n := _substep_lon_n
+		var substep_cg_h := _substep_cg_h
+		tire_reactions.fill(0.0)
+		spin_damping.fill(0.0)
+		J_tang_hub.fill(0.0)
+		substep_lat_n.fill(0.0)
+		substep_lon_n.fill(0.0)
+		substep_cg_h.fill(0.5)
 		var front_road_torque_nm := 0.0
 		var F_patch := Vector3.ZERO
 		var T_patch := Vector3.ZERO
@@ -1708,29 +1746,33 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				normal_load = minf(normal_load, _ref * RECOVERY_FZ_CAP_MULT)
 			effective_load_impulses[i] += normal_load * h
 			if not bool(contact.get("hit", false)) or normal_load <= 0.0:
+				_substep_cached_valid[i] = false
+				_substep_cached_fz_n[i] = 0.0
+				_substep_cached_load_scale[i] = 0.0
 				if carcass_windup_enabled:
 					tire_reactions[i] = _step_carcass_windup_1dof(i, h, 0.0)
 				else:
 					tire_belt_spins[i] = wheel_spins[i]
-				var free_thermal_state := tire_thermal_states[i]
-				var free_result := tire_model.evaluate(
-					i,
-					0.0,
-					"Gravel",
-					0.0,
-					0.0,
-					wheel_spins[i],
-					wheel_radii[i],
-					0.0,
-					thermal_model.tire_grip_factor(i),
-					float(free_thermal_state.get("pressure_kpa_gauge", 180.0)),
-					h,
-					float(free_thermal_state.get("carcass_c", 25.0)),
-				)
-				wheel_slips[i] = Vector2(
-					float(free_result.get("slip_ratio", 0.0)),
-					float(free_result.get("slip_angle_rad", 0.0)),
-				)
+				if run_tangential_step:
+					var free_thermal_state := tire_thermal_states[i]
+					var free_result := tire_model.evaluate(
+						i,
+						0.0,
+						"Gravel",
+						0.0,
+						0.0,
+						wheel_spins[i],
+						wheel_radii[i],
+						0.0,
+						thermal_model.tire_grip_factor(i),
+						float(free_thermal_state.get("pressure_kpa_gauge", 180.0)),
+						dt_tire,
+						float(free_thermal_state.get("carcass_c", 25.0)),
+					)
+					wheel_slips[i] = Vector2(
+						float(free_result.get("slip_ratio", 0.0)),
+						float(free_result.get("slip_angle_rad", 0.0)),
+					)
 				tire_powers[i] = 0.0
 				thermal_speeds[i] = pred_V.length()
 				thermal_slip_speeds[i] = 0.0
@@ -1740,6 +1782,35 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				continue
 			var normal: Vector3 = contact["normal"]
 			var point := unsprung_rig.contact_patch_position(i, contact["position"])
+			var r_patch := point - pred_C
+			var thermal_state := tire_thermal_states[i]
+			var eval_wheel_full := run_tangential_step or (not _substep_cached_valid[i]) or _substep_cached_fz_n[i] <= 1.0
+			if not eval_wheel_full:
+				var load_scale := clampf(normal_load / _substep_cached_fz_n[i], 0.0, 2.0)
+				_substep_cached_load_scale[i] = load_scale
+				var tire_force := _substep_cached_tire_force[i] * load_scale
+				var sat_torque := _substep_cached_sat_torque[i] * load_scale
+				if i < 2:
+					front_road_torque_nm += _substep_cached_mz_nm[i] * load_scale
+				var spin := wheel_spins[i]
+				var phase := wheel_rotation_angles[i] + spin * h * 0.5
+				var vibration := float(thermal_state.rim_deformation) * minf(spin * spin * 0.025, normal_load * 0.12) * sin(phase)
+				var vib := normal * vibration
+				F_patch += tire_force + vib
+				T_patch += r_patch.cross(tire_force + vib) + sat_torque
+				J_tang_hub[i] = (tire_force + vib).dot(unsprung_rig.tick_e_wheel[i]) * h
+				substep_lat_n[i] = _substep_cached_lat_n[i] * load_scale
+				substep_lon_n[i] = _substep_cached_lon_n[i] * load_scale
+				substep_cg_h[i] = clampf(-r_patch.dot(pred_up), 0.15, 1.5)
+				tire_powers[i] = _substep_cached_tire_power[i] * load_scale
+				spin_damping[i] = _substep_cached_spin_damp[i] * load_scale
+				var raw_tire_torque := _substep_cached_raw_tire_torque[i] * load_scale
+				if carcass_windup_enabled:
+					tire_reactions[i] = _step_carcass_windup_1dof(i, h, raw_tire_torque)
+				else:
+					tire_reactions[i] = raw_tire_torque
+					tire_belt_spins[i] = wheel_spins[i]
+				continue
 			var road_velocity := Vector3.ZERO
 			var collider: Object = contact.get("collider")
 			if collider is RigidBody3D:
@@ -1747,7 +1818,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				road_velocity = road_body.linear_velocity + road_body.angular_velocity.cross(
 					point - road_body.to_global(road_body.center_of_mass)
 				)
-			var r_patch := point - pred_C
 			var point_velocity := unsprung_rig.V_pred + unsprung_rig.omega_pred.cross(r_patch) - road_velocity
 			var steer_angle := _wheel_steer_angle(i, float(inputs.get("steering", 0.0)))
 			var toe := _effective_toe(i)
@@ -1760,14 +1830,14 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var right := forward.cross(normal).normalized()
 			var longitudinal_speed := point_velocity.dot(forward)
 			var lateral_speed := point_velocity.dot(right)
-			var thermal_state := tire_thermal_states[i]
 			var local_water := background_water[i]
 			var local_snow := thermal_snow[i]
 			var local_ground := thermal_ground[i]
+			var dt_eval := dt_tire if run_tangential_step else h
 			tire_model.rotate_patch_frame(i, forward, right)
 			var tire_result := _solve_contact_wheel(
 				i,
-				h,
+				dt_eval,
 				normal_load,
 				str(contact["surface"]),
 				longitudinal_speed,
@@ -1882,6 +1952,17 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			var k_patch_x := (normal_load / relax_m) * (1.0 - util) * (1.0 - util)
 			var c_spin_i := h * k_patch_x * eff_radius * eff_radius
 			spin_damping[i] = c_spin_i
+			_substep_cached_valid[i] = true
+			_substep_cached_fz_n[i] = normal_load
+			_substep_cached_tire_force[i] = tire_force
+			_substep_cached_sat_torque[i] = sat_torque
+			_substep_cached_mz_nm[i] = mz
+			_substep_cached_raw_tire_torque[i] = raw_tire_torque
+			_substep_cached_spin_damp[i] = c_spin_i
+			_substep_cached_tire_power[i] = tire_powers[i]
+			_substep_cached_lat_n[i] = substep_lat_n[i]
+			_substep_cached_lon_n[i] = substep_lon_n[i]
+			_substep_cached_load_scale[i] = 1.0
 			if carcass_windup_enabled:
 				tire_reactions[i] = _step_carcass_windup_1dof(i, h, raw_tire_torque)
 			else:
@@ -1895,34 +1976,38 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			thermal_fy[i] = fy
 		_last_front_road_torque_nm = front_road_torque_nm
 		if instant_center_kinematics_enabled:
-			var ic := suspension_model.instant_center_jacking_forces(
-				substep_lat_n,
-				substep_lon_n,
-				unsprung_rig.q,
-				wheel_positions_local,
-				substep_cg_h,
-			)
-			var ic_hub: Array = ic["hub_forces_n"]
-			var ic_geo: Array = ic["geometric_load_transfer_n"]
-			var ic_rc: Array = ic["roll_center_heights_m"]
+			if run_tangential_step:
+				suspension_model.evaluate_instant_center_jacking(
+					substep_lat_n,
+					substep_lon_n,
+					unsprung_rig.q,
+					wheel_positions_local,
+					substep_cg_h,
+				)
+			var ic_hub := suspension_model.ic_hub_forces_n
+			var ic_geo := suspension_model.ic_geo_transfer_n
+			var ic_rc := suspension_model.ic_rc_heights_m
 			for i in 4:
-				var q_kin := float(ic_hub[i])
+				var ic_scale := 1.0 if run_tangential_step else _substep_cached_load_scale[i]
+				var q_kin := ic_hub[i] * ic_scale
 				J_tang_hub[i] += q_kin * h
 				acc_kin_jacking_imp[i] += q_kin * h
-				acc_geo_transfer_imp[i] += float(ic_geo[i]) * h
-				acc_rc_heights[i] += float(ic_rc[i]) * h
+				acc_geo_transfer_imp[i] += ic_geo[i] * ic_scale * h
+				acc_rc_heights[i] += ic_rc[i] * h
 		if elastokinematics_enabled:
-			suspension_model.step_elastokinematics(h, substep_lat_n, substep_lon_n)
+			if run_tangential_step:
+				suspension_model.step_elastokinematics(dt_tire, substep_lat_n, substep_lon_n)
 		else:
 			suspension_model.clear_compliance_state()
-		var J_tang: Array[float] = [
-			F_patch.x * h, F_patch.y * h, F_patch.z * h,
-			T_patch.x * h, T_patch.y * h, T_patch.z * h,
-			J_tang_hub[0], J_tang_hub[1], J_tang_hub[2], J_tang_hub[3],
-		]
-		unsprung_rig.apply_tangential(J_tang)
-		unsprung_rig.solve_hard_stops(h)
-		unsprung_rig.end_substep(h)
+		unsprung_rig.step_substep_tangential_and_end(
+			h,
+			F_patch * h,
+			T_patch * h,
+			J_tang_hub[0],
+			J_tang_hub[1],
+			J_tang_hub[2],
+			J_tang_hub[3],
+		)
 		var brake_work: Array = [0.0, 0.0, 0.0, 0.0]
 		if pt_substeps > 1 or pt_stride <= 1:
 			var inv_pt_sub := 1.0 / float(pt_substeps)
@@ -2566,6 +2651,17 @@ func reset_dynamics() -> void:
 	_powertrain_tire_acc.fill(0.0)
 	_powertrain_brake_acc.fill(0.0)
 	_powertrain_spin_damp_acc.fill(0.0)
+	_substep_cached_valid.fill(false)
+	_substep_cached_fz_n.fill(0.0)
+	_substep_cached_tire_force.fill(Vector3.ZERO)
+	_substep_cached_sat_torque.fill(Vector3.ZERO)
+	_substep_cached_mz_nm.fill(0.0)
+	_substep_cached_raw_tire_torque.fill(0.0)
+	_substep_cached_spin_damp.fill(0.0)
+	_substep_cached_tire_power.fill(0.0)
+	_substep_cached_lat_n.fill(0.0)
+	_substep_cached_lon_n.fill(0.0)
+	_substep_cached_load_scale.fill(1.0)
 	if is_instance_valid(unsprung_rig.chassis):
 		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
 	else:
