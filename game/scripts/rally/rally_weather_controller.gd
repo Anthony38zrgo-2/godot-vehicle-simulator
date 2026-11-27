@@ -239,12 +239,10 @@ func surface_field_packet(known_revision: int = -1) -> Dictionary:
 	var packet := surface.surface_field_packet(known_revision)
 	if packet.has("rgba8"):
 		packet["loose_gravel_scale"] = surface.loose_gravel_scale
-	# Keep the native reserves available for preparing the localized patches.
+	# Keep continuous carriageway ice disabled while preserving central-crown + roadside snow on all highland stages (Rajuntay & Ticlio).
 	if uses_localized_road_ice() and packet.has("rgba8"):
 		var pixels: PackedByteArray = packet["rgba8"]
 		for i in range(0, pixels.size(), 4):
-			if stage_id == "cdi_stage1":
-				pixels[i + 1] = 0
 			pixels[i + 2] = 0
 		packet["rgba8"] = pixels
 	return packet
@@ -396,37 +394,64 @@ func tick_visual(delta_s: float) -> void:
 			visual_state = current_blend.duplicate(true)
 		return
 
-	# Inercia visual desacoplada por componente atmosférico:
-	# Cielo y nubes: adaptación lenta (~6.0s)
-	# Niebla: adaptación media (~4.0s)
-	# Precipitación y viento: adaptación rápida (~2.5s)
+	# Inercia visual desacoplada por componente atmosférico (anti-muro de clima):
+	# Cielo y nubes: adaptación lenta (~7.0s)
+	# Niebla: adaptación media (~5.0s)
+	# Precipitación (lluvia + nieve por separado) y viento: fade-in/fade-out suave (~3.5s)
 	var tgt_climate: Dictionary = current_blend.get("climate", {})
 	var cur_climate: Dictionary = visual_state.get("climate", tgt_climate.duplicate(true))
 	var new_climate := cur_climate.duplicate(true)
 
-	var tau_sky := 6.0
-	var alpha_sky := 1.0 - exp(-delta_s / tau_sky)
+	var tau_sky := 7.0
+	var alpha_sky := clampf(1.0 - exp(-delta_s / tau_sky), 0.0, 1.0)
 	for k in ["cumulus_coverage", "cirrus_coverage", "irradiance_w_m2", "air_temperature_c"]:
 		if tgt_climate.has(k):
-			new_climate[k] = lerpf(float(cur_climate.get(k, tgt_climate[k])), float(tgt_climate[k]), clampf(alpha_sky, 0.0, 1.0))
+			new_climate[k] = lerpf(float(cur_climate.get(k, tgt_climate[k])), float(tgt_climate[k]), alpha_sky)
 
-	var tau_fog := 4.0
-	var alpha_fog := 1.0 - exp(-delta_s / tau_fog)
+	var tau_fog := 5.0
+	var alpha_fog := clampf(1.0 - exp(-delta_s / tau_fog), 0.0, 1.0)
 	if tgt_climate.has("fog_density"):
-		new_climate["fog_density"] = lerpf(float(cur_climate.get("fog_density", tgt_climate["fog_density"])), float(tgt_climate["fog_density"]), clampf(alpha_fog, 0.0, 1.0))
+		new_climate["fog_density"] = lerpf(float(cur_climate.get("fog_density", tgt_climate["fog_density"])), float(tgt_climate["fog_density"]), alpha_fog)
 
-	var tau_precip := 2.5
-	var alpha_precip := 1.0 - exp(-delta_s / tau_precip)
-	for k in ["precipitation_mm_h", "wind_m_s"]:
-		if tgt_climate.has(k):
-			new_climate[k] = lerpf(float(cur_climate.get(k, tgt_climate[k])), float(tgt_climate[k]), clampf(alpha_precip, 0.0, 1.0))
+	var tau_precip := 3.5
+	var alpha_precip := clampf(1.0 - exp(-delta_s / tau_precip), 0.0, 1.0)
+	var tgt_rain := float(current_blend.get("rain_mm_h", tgt_climate.get("rain_mm_h", -1.0)))
+	var tgt_snow := float(current_blend.get("snow_mm_h", tgt_climate.get("snow_mm_h", -1.0)))
+	if tgt_rain >= 0.0 and tgt_snow >= 0.0:
+		var cur_rain := float(visual_state.get("rain_mm_h", cur_climate.get("rain_mm_h", tgt_rain)))
+		var cur_snow := float(visual_state.get("snow_mm_h", cur_climate.get("snow_mm_h", tgt_snow)))
+		var sm_rain := lerpf(cur_rain, tgt_rain, alpha_precip)
+		var sm_snow := lerpf(cur_snow, tgt_snow, alpha_precip)
+		if sm_rain < 0.002:
+			sm_rain = 0.0
+		if sm_snow < 0.002:
+			sm_snow = 0.0
+		var sm_total := sm_rain + sm_snow
+		new_climate["rain_mm_h"] = sm_rain
+		new_climate["snow_mm_h"] = sm_snow
+		new_climate["precipitation_mm_h"] = sm_total
+		visual_state["rain_mm_h"] = sm_rain
+		visual_state["snow_mm_h"] = sm_snow
+		if sm_total <= 0.005:
+			visual_state["precipitation_kind"] = "none"
+		else:
+			var s_frac := sm_snow / sm_total
+			visual_state["precipitation_kind"] = "snow" if s_frac >= 0.85 else ("rain" if s_frac <= 0.15 else "mixed")
+	else:
+		if tgt_climate.has("precipitation_mm_h"):
+			new_climate["precipitation_mm_h"] = lerpf(float(cur_climate.get("precipitation_mm_h", tgt_climate["precipitation_mm_h"])), float(tgt_climate["precipitation_mm_h"]), alpha_precip)
+		if current_blend.has("precipitation_kind"):
+			visual_state["precipitation_kind"] = current_blend.get("precipitation_kind", visual_state.get("precipitation_kind", "none"))
+
+	if tgt_climate.has("wind_m_s"):
+		new_climate["wind_m_s"] = lerpf(float(cur_climate.get("wind_m_s", tgt_climate["wind_m_s"])), float(tgt_climate["wind_m_s"]), alpha_precip)
 
 	if tgt_climate.has("wind_direction_deg"):
 		var diff := fposmod(float(tgt_climate["wind_direction_deg"]) - float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + 180.0, 360.0) - 180.0
-		new_climate["wind_direction_deg"] = fposmod(float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + diff * clampf(alpha_precip, 0.0, 1.0), 360.0)
+		new_climate["wind_direction_deg"] = fposmod(float(cur_climate.get("wind_direction_deg", tgt_climate["wind_direction_deg"])) + diff * alpha_precip, 360.0)
 
 	visual_state["climate"] = new_climate
-	for k in ["air_c", "ground_c", "water_mm", "saturation", "snow_mm", "ice_mm", "rain_mm_h", "snow_mm_h", "precipitation_kind"]:
+	for k in ["air_c", "ground_c", "water_mm", "saturation", "snow_mm", "ice_mm"]:
 		if current_blend.has(k) or visual_state.has(k):
 			visual_state[k] = current_blend.get(k, visual_state.get(k, 0.0))
 
@@ -486,10 +511,6 @@ func local_conditions_for_contact(surface_name: String, vehicle_pos: Vector3) ->
 					var signed_lat := Vector2(vehicle_pos.x - proj.x, vehicle_pos.z - proj.z).dot(right)
 					lateral_t = clampf(signed_lat / maxf(procedural_road_half_width_m, 0.5), -1.0, 1.0)
 	var st := surface.blended_state_at_distance(distance, lateral_t)
-	if five_sector_snapshot_active and stage_id == "cdi_stage1":
-		st["snow_mm"] = 0.0
-		st["snow_mm_effective"] = 0.0
-		st["snow_coverage"] = 0.0
 	if uses_localized_road_ice():
 		st["ice_mm"] = 0.0
 		st["ice_coverage"] = 0.0
@@ -688,70 +709,69 @@ func apply_to_adapters(sky: Node, tca_controller: Node, wetness: Node, _hour: fl
 			tca_controller.set("time_speed_multiplier", 0.0)
 		_tick_precipitation_prewarm(tca_controller)
 		var precip := float(climate.get("precipitation_mm_h", 0.0))
+		var rain_rate := float(visual_state.get("rain_mm_h", climate.get("rain_mm_h", -1.0)))
+		var snow_rate := float(visual_state.get("snow_mm_h", climate.get("snow_mm_h", -1.0)))
+		if rain_rate < 0.0 or snow_rate < 0.0:
+			rain_rate = precip if raw_kind == "rain" else (precip * 0.5 if raw_kind == "mixed" else 0.0)
+			snow_rate = precip if raw_kind == "snow" else (precip * 0.5 if raw_kind == "mixed" else 0.0)
 		var raining := precip >= 0.4
 		# Exponer intensidad a los adaptadores que la lean (sonido/particulas).
 		tca_controller.set_meta("calendar_precip_mm_h", precip)
 		tca_controller.set_meta("calendar_raining", raining)
 		tca_controller.set_meta("calendar_precip_kind", raw_kind)
-		var kind := raw_kind
-		if kind == "mixed":
-			kind = "snow"
 		var adapter: Dictionary = catalog.get("precipitation_adapter", {})
-		var particles := tca_controller.get("particle_system") as GPUParticles3D
-		if precip > 0.01 and kind != "none" and str(tca_controller.get_meta("calendar_particle_kind", "")) != kind:
-			var previous_kind := str(tca_controller.get_meta("calendar_particle_kind", ""))
-			var emitters: Dictionary = tca_controller.get_meta("calendar_emitters", {})
-			if is_instance_valid(particles):
-				particles.emitting = false
-				if emitters.get(previous_kind) == particles:
-					particles.hide()
-				else:
-					particles.queue_free()
-			particles = _get_or_create_precipitation_emitter(tca_controller, kind)
-			if particles != null:
-				particles.show()
-				particles.restart()
-			tca_controller.set("particle_system", particles)
-			tca_controller.set_meta("calendar_particle_kind", kind)
-		if particles != null:
-			var active_precip := precip > 0.005 and kind != "none"
-			particles.emitting = active_precip
-			if particles.visible != active_precip and active_precip:
-				particles.show()
-			var full_int := maxf(float(adapter.get("full_intensity_mm_h", 12.0)), 0.01)
-			var base_ratio := clampf(precip / full_int, 0.0, 1.0)
-			# Rampa suave continua sin salto brusco a 0.18:
-			var entry_ramp := smoothstep(0.005, 0.40, precip)
-			particles.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if active_precip else 0.0
+		var full_int := maxf(float(adapter.get("full_intensity_mm_h", 12.0)), 0.01)
+		var wind_speed := float(climate.get("wind_m_s", 0.0))
+		var wind_deg := float(climate.get("wind_direction_deg", 0.0))
+		var wind_rad := deg_to_rad(wind_deg)
+		var wind_drift := clampf(wind_speed / 14.0, 0.0, 0.75)
+		var fall_dir := Vector3(cos(wind_rad) * wind_drift, -1.0, sin(wind_rad) * wind_drift).normalized()
+		var relative_fall := (fall_dir * 21.0 - vehicle_velocity).normalized()
+		var light_scale := 1.0
+		if sky != null and sky.get("environment") is Environment:
+			var env := sky.get("environment") as Environment
+			light_scale = clampf(env.ambient_light_energy * 0.95 + 0.18, 0.18, 1.0)
+		var emitters: Dictionary = tca_controller.get_meta("calendar_emitters", {})
+		var dominant_kind := "snow" if snow_rate > rain_rate else "rain"
+		var dominant_emitter: GPUParticles3D = null
+		for kind: String in ["rain", "snow"]:
+			var kind_rate := rain_rate if kind == "rain" else snow_rate
+			var active_kind := kind_rate > 0.01
+			var emitter := emitters.get(kind) as GPUParticles3D if is_instance_valid(emitters.get(kind)) else null
+			if active_kind and emitter == null:
+				emitter = _get_or_create_precipitation_emitter(tca_controller, kind)
+				if emitter != null:
+					emitter.show()
+					emitter.restart()
+			if emitter == null:
+				continue
+			if active_kind and not emitter.visible:
+				emitter.show()
+			emitter.emitting = active_kind
+			var base_ratio := clampf(kind_rate / full_int, 0.0, 1.0)
+			var entry_ramp := smoothstep(0.01, 0.55, kind_rate)
+			emitter.amount_ratio = clampf(base_ratio * entry_ramp, 0.0, 1.0) if active_kind else 0.0
 			var emitter_offset := Vector3.UP * 10.0
 			if kind == "snow":
-				# Slow flakes must spawn ahead and at driving height, or the
-				# car passes below the emitter before they descend into view.
 				var horizontal_velocity := Vector3(vehicle_velocity.x, 0.0, vehicle_velocity.z)
 				emitter_offset = Vector3.UP * 7.0 + (horizontal_velocity * 1.0).limit_length(38.0)
-			particles.global_position = last_vehicle_pos + emitter_offset
-			# Orientacion de lluvia/nieve segun el viento local
-			var relative_fall := Vector3.DOWN
-			var pm := particles.process_material as ParticleProcessMaterial
+			emitter.global_position = last_vehicle_pos + emitter_offset
+			var pm := emitter.process_material as ParticleProcessMaterial
 			if pm != null:
-				var wind_speed := float(climate.get("wind_m_s", 0.0))
-				var wind_deg := float(climate.get("wind_direction_deg", 0.0))
-				var wind_rad := deg_to_rad(wind_deg)
-				var wind_drift := clampf(wind_speed / 14.0, 0.0, 0.75)
-				pm.direction = Vector3(cos(wind_rad) * wind_drift, -1.0, sin(wind_rad) * wind_drift).normalized()
-				relative_fall = (pm.direction * 21.0 - vehicle_velocity).normalized()
-
-			for pass_index in particles.draw_passes:
-				var pass_mesh := particles.get_draw_pass_mesh(pass_index)
+				pm.direction = fall_dir
+			for pass_index in emitter.draw_passes:
+				var pass_mesh := emitter.get_draw_pass_mesh(pass_index)
 				if pass_mesh == null:
 					continue
 				var pass_material := pass_mesh.surface_get_material(0) as ShaderMaterial
 				if pass_material != null:
 					pass_material.set_shader_parameter("rain_direction", relative_fall if kind == "rain" else Vector3.ZERO)
-					if sky != null and sky.get("environment") is Environment:
-						var env := sky.get("environment") as Environment
-						var light_scale := clampf(env.ambient_light_energy * 0.95 + 0.18, 0.18, 1.0)
-						pass_material.set_shader_parameter("ambient_brightness", light_scale)
+					pass_material.set_shader_parameter("ambient_brightness", light_scale)
+			if kind == dominant_kind:
+				dominant_emitter = emitter
+		if dominant_emitter != null:
+			tca_controller.set("particle_system", dominant_emitter)
+			tca_controller.set_meta("calendar_particle_kind", dominant_kind)
 	if wetness != null and is_instance_valid(wetness):
 		var w := clampf(float(current_blend.get("water_mm", 0.0)) / 4.0, 0.0, 1.0)
 		if wetness.has_method("set_rain_intensity"):

@@ -156,7 +156,11 @@ func _test_phase_b_c_five_sectors_turns_and_puddles() -> void:
 	check(ctl_8th_repeat.configure_five_sector_snapshot("cdi_stage4", "res://data/rally/cdi_stage4_route.json", 2026, "transition", base_abs, base_abs + 420.0, "asphalt", "controlled_timing_episode"), "8th repeat configured")
 
 	var sectors_1st := ctl_1st.sector_summary()
-	check(sectors_1st.size() == 5, "Exactly 5 atmospheric/surface sectors generated")
+	check(sectors_1st.size() == 4, "Exactly 4 atmospheric/surface sectors generated")
+	# Exact split boundaries from cdi_stage4.json sector_lengths_km:
+	check(absf(float(sectors_1st[0].get("end_m", 0.0)) - 1547.7324) < 1.0, "SS04 sector 1 matches exact timing split (got %.2f)" % float(sectors_1st[0].get("end_m", 0.0)))
+	check(absf(float(sectors_1st[1].get("end_m", 0.0)) - 3098.6394) < 1.0, "SS04 sector 2 matches exact timing split (got %.2f)" % float(sectors_1st[1].get("end_m", 0.0)))
+	check(absf(float(sectors_1st[2].get("end_m", 0.0)) - 4643.0018) < 1.0, "SS04 sector 3 matches exact timing split (got %.2f)" % float(sectors_1st[2].get("end_m", 0.0)))
 	var s1 := ctl_1st.local_surface_state_at_distance(3000.0, 0.0)
 	var s8 := ctl_8th.local_surface_state_at_distance(3000.0, 0.0)
 	var s8_rep := ctl_8th_repeat.local_surface_state_at_distance(3000.0, 0.0)
@@ -215,11 +219,30 @@ func _test_phase_b_c_five_sectors_turns_and_puddles() -> void:
 
 func _test_phase_d_calibration_gravel_and_cost() -> void:
 	var base_abs := float(EventManagerScript.datetime_to_abs_seconds("2026-11-18", "08:00"))
-	# 1. Gravel stage (SS01 Rajuntay Alto) uses same 5-sector generator with gravel profile.
+	# 1. All 8 CDI stages (SS01..SS08) have procedural_climate enabled and configure cleanly with 4 exact split sectors.
+	for sid_idx in range(1, 9):
+		var sid := "cdi_stage%d" % sid_idx
+		var pcfg := SchedulerScript.resolve_procedural_climate_config(sid)
+		check(bool(pcfg.get("enabled", false)), "%s has procedural_climate enabled" % sid)
+		var bounds_v: Variant = pcfg.get("sector_boundaries_m", PackedFloat32Array())
+		check(bounds_v is PackedFloat32Array and (bounds_v as PackedFloat32Array).size() == 5, "%s exposes 5 exact split boundaries" % sid)
+		var st_ctl := ControllerScript.new()
+		var st_cfg_raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/competition/stages/%s.json" % sid)) as Dictionary
+		var r_path := str(st_cfg_raw.get("route_path", "res://data/rally/%s_route.json" % sid))
+		var surf_raw := str(st_cfg_raw.get("surface", "asphalt"))
+		var surf_type := "gravel" if "gravel" in surf_raw else "asphalt"
+		check(st_ctl.configure_five_sector_snapshot(sid, r_path, 4242 + sid_idx, "transition", base_abs, base_abs, surf_type, "wet_front"), "%s configures 4-sector snapshot" % sid)
+		var secs := st_ctl.sector_summary()
+		check(secs.size() == 4, "%s produces 4 climate sectors" % sid)
+		if secs.size() == 4 and bounds_v is PackedFloat32Array and (bounds_v as PackedFloat32Array).size() == 5:
+			var b := bounds_v as PackedFloat32Array
+			check(absf(float(secs[0].get("end_m", 0.0)) - b[1]) < 2.0, "%s sector 1 aligns with timing split" % sid)
+			check(absf(float(secs[2].get("end_m", 0.0)) - b[3]) < 2.0, "%s sector 3 aligns with timing split" % sid)
+
 	var ctl_gravel := ControllerScript.new()
-	check(ctl_gravel.configure_five_sector_snapshot("cdi_stage1", "res://data/rally/cdi_stage1_route.json", 4242, "transition", base_abs, base_abs, "gravel", "wet_front"), "SS01 gravel five-sector configures")
+	check(ctl_gravel.configure_five_sector_snapshot("cdi_stage1", "res://data/rally/cdi_stage1_route.json", 4242, "transition", base_abs, base_abs, "gravel", "wet_front"), "SS01 gravel 4-sector configures")
 	var tel_g := ctl_gravel.procedural_telemetry(1000.0)
-	check(bool(tel_g.get("ok", false)) and str(tel_g.get("surface_type", "")) == "gravel" and int(tel_g.get("sector_count", 0)) == 5, "SS01 uses gravel profile with 5 sectors")
+	check(bool(tel_g.get("ok", false)) and str(tel_g.get("surface_type", "")) == "gravel" and int(tel_g.get("sector_count", 0)) == 4, "SS01 uses gravel profile with 4 sectors")
 
 	# 2. Controlled thin snow grip ~80% of dry asphalt reference in TireModel.
 	var profile := VehicleProfileLoader.load_profile("res://data/vehicles/ford-escort-rs2000/vehicle.json")
@@ -246,9 +269,70 @@ func _test_phase_d_calibration_gravel_and_cost() -> void:
 	check(prep_v2_us < prep_v1_us, "5-sector snapshot prep is strictly faster than 26x125 6h pre-roll")
 
 
+func _test_menu_track_weather_parity() -> void:
+	# Reproduces the reported bug seed (257465731, initial_weather = "random") and verifies
+	# 100% parity between RallyEventManager.weather_schedule (menus/forecasts/AI) and
+	# the live RustFiveSectorWeather 4-sector track engine across all 8 CDI stages.
+	for test_case in [
+		{"seed": 257465731, "initial_weather": "random"},
+		{"seed": 4242, "initial_weather": "drizzle"},
+	]:
+		var seed_val: int = int(test_case["seed"])
+		var init_w: String = str(test_case["initial_weather"])
+		var mgr := EventManagerScript.new()
+		var ok_ev := mgr.begin_event({
+			"event_id": "cdi_rally",
+			"seed": seed_val,
+			"initial_weather": init_w,
+			"preview": true,
+		})
+		check(ok_ev, "CDI parity begin_event(seed=%d, weather=%s) ok: %s" % [seed_val, init_w, mgr.error])
+		if not ok_ev:
+			continue
+		check(mgr.weather_schedule.size() == 8, "CDI schedule has 8 stages (seed=%d)" % seed_val)
+		for si in mgr.stage_order.size():
+			var sid := str(mgr.stage_order[si])
+			var entry := mgr.weather_entry_for(sid)
+			check(bool(entry.get("procedural_four_sector", false)), "%s marked procedural_four_sector (seed=%d)" % [sid, seed_val])
+			var zones: Array = entry.get("zones", [])
+			check(zones.size() == 4, "%s schedule has 4 procedural sectors (seed=%d)" % [sid, seed_val])
+			var stage_cfg: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/competition/stages/%s.json" % sid)) as Dictionary
+			var map_id := str(stage_cfg.get("map_id", sid))
+			var r_path := str(stage_cfg.get("route_path", "res://data/rally/%s_route.json" % sid))
+			var raw_surface := str(stage_cfg.get("surface", "asphalt")).to_lower()
+			var surface_type := "gravel" if "gravel" in raw_surface else ("dirt" if ("dirt" in raw_surface or "mud" in raw_surface) else "asphalt")
+			var sched := mgr.schedule_for(sid)
+			var base_date := str(sched.get("base_date", sched.get("date", "2026-11-18")))
+			var base_abs := float(sched.get("base_abs_seconds", 0.0))
+			var regime := SchedulerScript.procedural_regime_from_choice(init_w) if si == 0 else ""
+			var ctl := ControllerScript.new()
+			check(ctl.configure_five_sector_snapshot(map_id, r_path, seed_val, base_date, base_abs, base_abs, surface_type, regime), "%s track controller configures (seed=%d)" % [sid, seed_val])
+			var live_secs := ctl.sector_summary()
+			check(live_secs.size() == 4, "%s track has 4 live sectors (seed=%d)" % [sid, seed_val])
+			if zones.size() == 4 and live_secs.size() == 4:
+				for zi in 4:
+					var z := zones[zi] as Dictionary
+					var ls := live_secs[zi] as Dictionary
+					check(str(z.get("weather_state", "")) == str(ls.get("weather_state", "")), "%s S%d weather_state menu==track (%s vs %s, seed=%d)" % [sid, zi + 1, str(z.get("weather_state", "")), str(ls.get("weather_state", "")), seed_val])
+					var z_p := float((z.get("climate", {}) as Dictionary).get("precipitation_mm_h", -1.0))
+					var l_p := float(ls.get("precip_total_mm_h", -2.0))
+					check(absf(z_p - l_p) < 0.01, "%s S%d precip menu==track (%.2f vs %.2f, seed=%d)" % [sid, zi + 1, z_p, l_p, seed_val])
+			var menu_dom := SchedulerScript.get_stage_dominant_weather(entry)
+			var garage_label := SchedulerScript.summarize_procedural_sectors_label(live_secs)
+			check(str(menu_dom.get("name", "")) == garage_label, "%s menu label == garage label (%s vs %s, seed=%d)" % [sid, str(menu_dom.get("name", "")), garage_label, seed_val])
+			if seed_val == 257465731 and sid == "cdi_stage1":
+				var all_dry := true
+				for ls in live_secs:
+					if float((ls as Dictionary).get("precip_total_mm_h", 0.0)) > 0.05 or float((ls as Dictionary).get("basin_water_mm", 0.0)) > 0.15:
+						all_dry = false
+				if all_dry:
+					check(not ("Llovizna" in garage_label or "Lluvia" in garage_label or "Nieve" in garage_label), "Bug seed 257465731 dry SS01 never shows rain/drizzle in menu (got '%s')" % garage_label)
+
+
 func run() -> void:
 	_test_phase_a_start_order_and_clock()
 	await _test_phase_b_c_five_sectors_turns_and_puddles()
 	_test_phase_d_calibration_gravel_and_cost()
+	_test_menu_track_weather_parity()
 	print("CDI_FIVE_SECTOR_PLAN_CONTRACT ", "PASS" if failures.is_empty() else str(failures))
 	quit(0 if failures.is_empty() else 1)

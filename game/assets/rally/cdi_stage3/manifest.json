@@ -110,5 +110,6 @@
     "cell_m": 192,
     "sector_count": 64,
     "detail_triangles": 970617
-  }
+  },
+  "climate_route_profile": "climate_route_profile.json"
 }

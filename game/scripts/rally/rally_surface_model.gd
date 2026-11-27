@@ -192,7 +192,7 @@ func _procedural_state_at(dist_m: float, lateral_t: float = 0.0) -> Dictionary:
 	var irr := float(s.get("irradiance_w_m2", 0.0))
 	var wind_spd := float(s.get("wind_m_s", 0.0))
 	var wind_deg := float(s.get("wind_direction_deg", 0.0))
-	var fog_est := clampf(cloud * 0.002 + (0.002 if precip_total > 0.5 else 0.0), 0.0001, 0.01)
+	var fog_est := clampf(cloud * 0.0018 + smoothstep(0.15, 5.5, precip_total) * 0.0028, 0.0001, 0.01)
 	return {
 		"zone_index": 0,
 		"progress_m": float(s.get("progress_m", dist_m)),

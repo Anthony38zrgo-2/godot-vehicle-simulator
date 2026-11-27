@@ -1665,7 +1665,7 @@ func _ensure_stage_route_cache() -> void:
 func _ensure_stage_briefing() -> void:
 	var sid := _Presenter.normalize_stage_id(circuit_id)
 	var key := "%s|%s|%0.1f" % [sid, stage_weather_label, _effective_stage_length_m()]
-	if key == _briefing_cache_key and _stage_sectors.size() == 5 and not _stage_terrain.is_empty():
+	if key == _briefing_cache_key and _stage_sectors.size() == 4 and not _stage_terrain.is_empty():
 		return
 	_briefing_cache_key = key
 	var total_m := maxf(_effective_stage_length_m(), 500.0)
@@ -1683,7 +1683,7 @@ func _ensure_stage_briefing() -> void:
 		var ew_sectors: Array = ew.call("sector_summary") as Array
 		if not ew_sectors.is_empty():
 			_stage_sectors = ew_sectors.duplicate(true)
-	if _stage_sectors.size() != 5:
+	if _stage_sectors.size() != 4:
 		_stage_sectors.clear()
 		var w_low := _get_stage_weather_text().to_lower()
 		var is_sweden := sid.begins_with("sweden_") or sid == "russia_stage7" or sid == "russia_stage8"
@@ -1691,19 +1691,33 @@ func _ensure_stage_briefing() -> void:
 		var is_cloud := "nubl" in w_low or "cubiert" in w_low or "niebla" in w_low
 		var base_temp := -3.0 if is_sweden else (13.0 if is_rain else 18.0)
 		var wetness_cfg := float(stage_cfg.get("wetness", 0.25))
-		for si in 5:
+		var sec_lens_v: Variant = stage_cfg.get("sector_lengths_km", [])
+		var sec_bounds: Array[float] = [0.0, total_m * 0.25, total_m * 0.50, total_m * 0.75, total_m]
+		if sec_lens_v is Array and (sec_lens_v as Array).size() == 4:
+			var acc := 0.0
+			var ok_lens := true
+			for k in 4:
+				var km := float((sec_lens_v as Array)[k])
+				if km <= 0.01:
+					ok_lens = false
+					break
+				acc += km * 1000.0
+				sec_bounds[k + 1] = acc
+			if ok_lens and acc > 10.0:
+				sec_bounds[4] = maxf(acc, total_m)
+		for si in 4:
 			_stage_sectors.append({
 				"sector_index": si,
-				"start_m": float(si) * total_m / 5.0,
-				"end_m": float(si + 1) * total_m / 5.0,
+				"start_m": sec_bounds[si],
+				"end_m": sec_bounds[si + 1],
 				"air_c": base_temp - float(si) * 0.3,
 				"ground_c": base_temp + (1.5 if not is_rain and not is_sweden else 0.0),
 				"cloud_cover": 0.85 if is_rain else (0.7 if is_cloud else 0.22),
-				"rain_mm_h": (1.6 if si in [1, 2, 3] else 0.5) if is_rain else 0.0,
+				"rain_mm_h": (1.6 if si in [1, 2] else 0.6) if is_rain else 0.0,
 				"snow_mm_h": 0.4 if is_sweden else 0.0,
 				"water_mm": (0.8 + wetness_cfg) if is_rain else 0.0,
 				"snow_mm": 2.5 if is_sweden else 0.0,
-				"ice_mm": 0.5 if (is_sweden and (si == 1 or si == 3)) else 0.0,
+				"ice_mm": 0.5 if (is_sweden and (si == 1 or si == 2)) else 0.0,
 			})
 	if _stage_terrain.is_empty():
 		var roughness := float(stage_cfg.get("roughness", 0.35))

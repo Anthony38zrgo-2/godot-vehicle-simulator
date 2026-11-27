@@ -218,8 +218,9 @@ static func sector_weather_badge(sector: Dictionary, gold_color: Color) -> Dicti
 		return {"label": "NIEVE", "color": Color("#e0f2fe"), "detail": "%.1f mm nieve" % snow}
 	if rain_rate >= 0.35:
 		return {"label": "LLUVIA", "color": Color("#38bdf8"), "detail": "%.1f mm/h · %.1f mm" % [rain_rate, water]}
-	if water >= 0.20 or water_cov >= 0.15:
-		return {"label": "HÚMEDO", "color": Color("#60a5fa"), "detail": "%.1f mm agua" % water}
+	var basin_water := float(sector.get("basin_water_mm", 0.0))
+	if water >= 0.15 or basin_water >= 0.25 or water_cov >= 0.15:
+		return {"label": "HÚMEDO", "color": Color("#60a5fa"), "detail": "%.1f mm agua" % maxf(water, basin_water)}
 	if cloud >= 0.50:
 		return {"label": "NUBLADO", "color": Color("#94a3b8"), "detail": "Piso seco"}
 	return {"label": "SECO", "color": gold_color, "detail": "Piso seco"}

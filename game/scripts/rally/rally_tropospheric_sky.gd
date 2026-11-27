@@ -131,16 +131,20 @@ func update_visuals(delta: float) -> void:
 	var cirrus := clampf(float(climate.get("cirrus_coverage", 0.0)), 0.0, 1.0)
 	var precip := float(climate.get("precipitation_mm_h", 0.0))
 	var fog_weight := clampf(float(climate.get("fog_density", 0.0004)) / maxf(float(visual.get("fog_density_reference", 0.0052)), 0.00001), 0.0, 1.0)
-	var precipitation_cover := smoothstep(0.01, 0.40, precip) * lerpf(0.80, 0.97, smoothstep(0.4, 8.0, precip))
+	var precipitation_cover := smoothstep(0.08, 1.80, precip) * lerpf(0.76, 0.97, smoothstep(0.6, 8.0, precip))
 	cover = maxf(cover, maxf(precipitation_cover, fog_weight * 0.84))
 	var overcast := smoothstep(0.28, 0.95, cover)
 	var sun_clarity := clampf(1.0 - smoothstep(0.06, 0.90, cover) * 0.88 - cirrus * 0.14, 0.0, 1.0)
 	var phase := str(climate.get("precipitation_kind", "rain"))
-	var snow_light := phase == "snow" or phase == "mixed"
-	var weather_tint := Vector3.ONE.lerp(
-		Vector3(0.89, 0.93, 0.98) if snow_light else Vector3(0.66, 0.72, 0.80),
-		smoothstep(0.05, 6.0, precip)
-	)
+	var snow_ratio := 0.0
+	if climate.has("snow_mm_h") and precip > 0.001:
+		snow_ratio = clampf(float(climate.get("snow_mm_h", 0.0)) / precip, 0.0, 1.0)
+	elif phase == "snow":
+		snow_ratio = 1.0
+	elif phase == "mixed":
+		snow_ratio = 0.5
+	var target_precip_tint := Vector3(0.66, 0.72, 0.80).lerp(Vector3(0.89, 0.93, 0.98), snow_ratio)
+	var weather_tint := Vector3.ONE.lerp(target_precip_tint, smoothstep(0.08, 6.0, precip))
 	var twilight_id: String = "day_2" if morning else variants["dusk"]
 	var twilight_yaw := 0.0 if morning else PI
 	var twilight_tint := Vector3.ONE.lerp(Vector3(0.48, 0.58, 0.71), overcast) * weather_tint

@@ -6,7 +6,7 @@ extends RefCounted
 ## propósito independiente de la IA. No se re-sortea al reabrir ni al aceptar
 ## dos veces: el cronograma resuelto se persiste.
 
-const GENERATOR_VERSION := 2
+const GENERATOR_VERSION := 3
 const CLIMATE_PURPOSE := "rally_weather_v1"
 const RIVAL_PURPOSE := "rally_weather_rival_v1"
 const PRESET_CATALOG_PATH := "res://data/weather/rally_weather_presets.json"
@@ -14,6 +14,265 @@ const STAGE_CONFIG_ROOT := "res://data/competition/stages"
 const STAGE_ASSETS_ROOT := "res://assets/rally"
 
 var error: String = ""
+
+
+## Mapea la preferencia climática del menú al régimen del generador procedural de 4 sectores.
+static func procedural_regime_from_choice(choice: String) -> String:
+	match choice.strip_edges().to_lower():
+		"sunny", "clear", "soleado", "despejado":
+			return "clear"
+		"cloudy", "nublado", "overcast", "cubierto":
+			return "cloudy"
+		"mist", "fog", "mist_fog", "neblina", "bruma":
+			return "mist"
+		"drizzle", "llovizna", "light_precipitation", "medium_precipitation", "heavy_precipitation", "light_rain", "medium_rain", "heavy_rain", "lluvia", "rain", "tormenta":
+			return "wet_front"
+		_:
+			return ""
+
+
+static func _procedural_state_to_preset_id(
+	weather_state: String,
+	precip_mm_h: float,
+	precip_kind: String,
+	cloud_cover: float,
+	ordered_states: Array,
+	fog_density: float = 0.0,
+) -> String:
+	var candidate := "clear"
+	match weather_state.strip_edges().to_lower():
+		"sunny_dry":
+			candidate = "sunny"
+		"cloudy_dry":
+			candidate = "cloudy"
+		"overcast_dry":
+			candidate = "mist_fog" if fog_density >= 0.0028 else "overcast"
+		"overcast_damp":
+			candidate = "mist_fog" if fog_density >= 0.0030 else "overcast"
+		"light_drizzle", "drizzle":
+			candidate = "drizzle"
+		"moderate_heavy_rain", "highland_snow_hail":
+			candidate = "heavy_precipitation" if precip_mm_h >= 5.5 else "medium_precipitation"
+		_:
+			if precip_kind in ["snow", "mixed"] or precip_mm_h >= 5.5:
+				candidate = "heavy_precipitation"
+			elif precip_mm_h >= 2.5:
+				candidate = "medium_precipitation"
+			elif precip_mm_h >= 0.25:
+				candidate = "drizzle"
+			elif fog_density >= 0.0028:
+				candidate = "mist_fog"
+			elif cloud_cover >= 0.78:
+				candidate = "overcast"
+			elif cloud_cover >= 0.50:
+				candidate = "cloudy"
+			else:
+				candidate = "sunny"
+	if ordered_states.is_empty() or ordered_states.has(candidate):
+		return candidate
+	if candidate == "mist_fog" and ordered_states.has("overcast"):
+		return "overcast"
+	if candidate == "drizzle" and ordered_states.has("light_precipitation"):
+		return "light_precipitation"
+	if candidate == "overcast" and ordered_states.has("cloudy"):
+		return "cloudy"
+	if candidate == "sunny" and ordered_states.has("clear"):
+		return "clear"
+	return str(ordered_states[0])
+
+
+static func _procedural_zone_severity_and_visual(zone: Dictionary) -> Dictionary:
+	var climate: Dictionary = zone.get("climate", {}) as Dictionary
+	var has_climate := not climate.is_empty()
+	var w_state := str(zone.get("weather_state", "")).strip_edges().to_lower()
+	var precip_mm := float(climate.get("precipitation_mm_h", zone.get("precip_total_mm_h", float(zone.get("rain_mm_h", 0.0)) + float(zone.get("snow_mm_h", 0.0))))) if has_climate else float(zone.get("precip_total_mm_h", float(zone.get("rain_mm_h", 0.0)) + float(zone.get("snow_mm_h", 0.0))))
+	var snow_mm_h := float(climate.get("snow_mm_h", zone.get("snow_mm_h", 0.0))) if has_climate else float(zone.get("snow_mm_h", 0.0))
+	var air_c := float(climate.get("air_temperature_c", zone.get("air_c", 12.0))) if has_climate else float(zone.get("air_c", 12.0))
+	var cloud := float(climate.get("cumulus_coverage", zone.get("cloud_cover", 0.0))) if has_climate else float(zone.get("cloud_cover", 0.0))
+	var fog_d := float(climate.get("fog_density", zone.get("fog_density", 0.0))) if has_climate else float(zone.get("fog_density", 0.0))
+	var kind := str(zone.get("precipitation_kind", zone.get("precip_kind", "none"))).strip_edges().to_lower()
+	var road_water := float(zone.get("road_water_mm", zone.get("water_mm", 0.0)))
+	var basin_water := float(zone.get("basin_water_mm", 0.0))
+	var eff_water := maxf(road_water, basin_water)
+	var snow_mm := float(zone.get("initial_snow_mm", zone.get("snow_mm", 0.0)))
+
+	var score := 100.0 + cloud
+	var icon := "☀️"
+	var desc := "Seco / Soleado"
+	if w_state == "highland_snow_hail" or kind in ["snow", "mixed"] or snow_mm >= 0.15 or snow_mm_h >= 0.15:
+		score = 600.0 + precip_mm + snow_mm
+		icon = "❄️"
+		desc = "Nieve / Granizo"
+	elif precip_mm >= 5.5:
+		score = 520.0 + precip_mm
+		icon = "⛈️"
+		desc = "Lluvia intensa"
+	elif precip_mm >= 2.5 or w_state == "moderate_heavy_rain":
+		score = 500.0 + precip_mm
+		icon = "🌧️"
+		desc = "Lluvia"
+	elif precip_mm >= 1.25 or w_state == "drizzle":
+		score = 420.0 + precip_mm
+		icon = "🌦️"
+		desc = "Llovizna"
+	elif precip_mm >= 0.25 or w_state == "light_drizzle":
+		score = 390.0 + precip_mm
+		icon = "🌦️"
+		desc = "Llovizna ligera"
+	elif w_state == "overcast_damp" or basin_water >= 0.25 or road_water >= 0.12:
+		score = 320.0 + eff_water + fog_d * 100.0
+		if fog_d >= 0.0030:
+			icon = "🌫️"
+			desc = "Neblina / Húmedo"
+		else:
+			icon = "☁️"
+			desc = "Nublado / Húmedo"
+	elif fog_d >= 0.0028:
+		score = 260.0 + fog_d * 100.0
+		icon = "🌫️"
+		desc = "Neblina"
+	elif w_state == "overcast_dry" or cloud >= 0.78:
+		score = 220.0 + cloud
+		icon = "☁️"
+		desc = "Muy nublado"
+	elif w_state == "cloudy_dry" or cloud >= 0.50:
+		score = 200.0 + cloud
+		icon = "☁️"
+		desc = "Nublado"
+	return {
+		"score": score,
+		"icon": icon,
+		"name": desc,
+		"temp_c": air_c,
+		"precip_mm": precip_mm,
+		"fog_density": fog_d,
+		"weather_state": w_state,
+		"cloud_cover": cloud,
+		"precip_kind": kind,
+	}
+
+
+## Resume los 4 sectores activos del motor procedural en la misma etiqueta usada por los menús.
+static func summarize_procedural_sectors_label(sectors: Array) -> String:
+	if sectors.is_empty():
+		return ""
+	var best := {}
+	var best_score := -1.0
+	for s in sectors:
+		if not s is Dictionary:
+			continue
+		var ev := _procedural_zone_severity_and_visual(s as Dictionary)
+		var sc := float(ev.get("score", -1.0))
+		if sc > best_score:
+			best_score = sc
+			best = ev
+	return str(best.get("name", ""))
+
+
+## Construye una entrada de cronograma de 4 sectores directamente desde el motor Rust procedural.
+## Garantiza paridad exacta entre menús, pronósticos, IA de neumáticos y la física en pista.
+static func build_procedural_schedule_entry(
+	stage_id: String,
+	sched_entry: Dictionary,
+	rally_seed: int,
+	initial_weather: String,
+	is_first_stage: bool,
+	ordered_states: Array,
+	regional_id: String = "",
+) -> Dictionary:
+	var cfg_path := "%s/%s.json" % [STAGE_CONFIG_ROOT, stage_id]
+	if not FileAccess.file_exists(cfg_path):
+		return {}
+	var stage_cfg_v: Variant = JSON.parse_string(FileAccess.get_file_as_string(cfg_path))
+	if not stage_cfg_v is Dictionary:
+		return {}
+	var stage_cfg := stage_cfg_v as Dictionary
+	var proc_v: Variant = stage_cfg.get("procedural_climate", {})
+	if not proc_v is Dictionary or not bool((proc_v as Dictionary).get("enabled", false)):
+		return {}
+	var map_id := str(stage_cfg.get("map_id", stage_id))
+	var raw_surface := str(stage_cfg.get("surface", "asphalt")).to_lower()
+	var surface_type := "gravel" if "gravel" in raw_surface else ("dirt" if ("dirt" in raw_surface or "mud" in raw_surface) else "asphalt")
+	var base_date := str(sched_entry.get("base_date", sched_entry.get("date", "2026-11-18")))
+	var base_abs := float(sched_entry.get("base_abs_seconds", -1.0))
+	if base_abs < 0.0:
+		base_abs = float(sched_entry.get("absolute_minutes", 0.0)) * 60.0
+	var regime := procedural_regime_from_choice(initial_weather) if is_first_stage else ""
+	var built := build_five_sector_snapshot_for_stage(map_id, rally_seed, base_date, base_abs, base_abs, surface_type, regime)
+	if not bool(built.get("ok", false)):
+		return {}
+	var engine: RefCounted = built.get("engine", null) as RefCounted
+	if engine == null or not engine.has_method("sector_summary"):
+		return {}
+	var sectors_v: Variant = engine.call("sector_summary")
+	if not sectors_v is Array or (sectors_v as Array).size() != 4:
+		return {}
+	var sectors := sectors_v as Array
+	var zones_out: Array = []
+	for si in sectors.size():
+		if not sectors[si] is Dictionary:
+			return {}
+		var sec := sectors[si] as Dictionary
+		var start_m := float(sec.get("start_m", 0.0))
+		var end_m := float(sec.get("end_m", start_m + 1.0))
+		var w_state := str(sec.get("weather_state", ""))
+		var rain_mm_h := float(sec.get("rain_mm_h", 0.0))
+		var snow_mm_h := float(sec.get("snow_mm_h", 0.0))
+		var precip_mm_h := float(sec.get("precip_total_mm_h", rain_mm_h + snow_mm_h))
+		var precip_kind := str(sec.get("precip_kind", "none")).strip_edges().to_lower()
+		var snow_mm := float(sec.get("snow_mm", 0.0))
+		if precip_kind == "none" and (snow_mm >= 0.15 or snow_mm_h >= 0.15):
+			precip_kind = "snow"
+		var air_c := float(sec.get("air_c", 12.0))
+		var ground_c := float(sec.get("ground_c", air_c))
+		var cloud_cover := float(sec.get("cloud_cover", 0.0))
+		var fog_density := float(sec.get("fog_density", 0.0004))
+		var road_water := float(sec.get("water_mm", 0.0))
+		var basin_water := float(sec.get("basin_water_mm", 0.0))
+		var eff_water := maxf(road_water, basin_water)
+		var preset_id := _procedural_state_to_preset_id(w_state, precip_mm_h, precip_kind, cloud_cover, ordered_states, fog_density)
+		var state_idx := ordered_states.find(preset_id)
+		if state_idx < 0:
+			state_idx = 0
+		zones_out.append({
+			"zone_index": si,
+			"start_node": si,
+			"end_node_exclusive": si + 1,
+			"start_distance_m": start_m,
+			"end_distance_m": end_m,
+			"length_m": maxf(end_m - start_m, 1.0),
+			"blend_length_m": 400.0,
+			"weather_state": w_state,
+			"weather_state_id": preset_id,
+			"weather_state_index": state_idx,
+			"climate": {
+				"air_temperature_c": air_c,
+				"cumulus_coverage": cloud_cover,
+				"fog_density": fog_density,
+				"precipitation_mm_h": precip_mm_h,
+				"rain_mm_h": rain_mm_h,
+				"snow_mm_h": snow_mm_h,
+			},
+			"precipitation_kind": precip_kind,
+			"initial_air_c": air_c,
+			"initial_ground_c": ground_c,
+			"initial_water_mm": eff_water,
+			"road_water_mm": road_water,
+			"basin_water_mm": basin_water,
+			"initial_saturation": clampf(eff_water * 0.25, 0.0, 1.0),
+			"initial_snow_mm": snow_mm,
+			"reference_time": str(sched_entry.get("date", "")) + " " + str(sched_entry.get("start", "")),
+		})
+	return {
+		"stage_id": stage_id,
+		"map_id": map_id,
+		"procedural_four_sector": true,
+		"date": str(sched_entry.get("date", "")),
+		"start": str(sched_entry.get("start", "")),
+		"absolute_minutes": float(sched_entry.get("absolute_minutes", 0.0)),
+		"regional_profile": regional_id,
+		"zones": zones_out,
+	}
 
 
 ## Resuelve la configuracion de clima procedural declarada en el tramo y su manifiesto.
@@ -38,6 +297,20 @@ static func resolve_procedural_climate_config(stage_id: String) -> Dictionary:
 				if not rel.is_empty():
 					route_profile_path = "%s/%s/%s" % [STAGE_ASSETS_ROOT, stage_id, rel]
 	out["route_profile_path"] = route_profile_path
+	var sec_lens_v: Variant = (stage_cfg as Dictionary).get("sector_lengths_km", [])
+	if sec_lens_v is Array and (sec_lens_v as Array).size() == 4:
+		var bounds := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])
+		var acc_m := 0.0
+		var valid_lens := true
+		for si in 4:
+			var km := float((sec_lens_v as Array)[si])
+			if km <= 0.01:
+				valid_lens = false
+				break
+			acc_m += km * 1000.0
+			bounds[si + 1] = acc_m
+		if valid_lens:
+			out["sector_boundaries_m"] = bounds
 	return out
 
 
@@ -123,16 +396,33 @@ static func build_five_sector_snapshot_for_stage(
 	var climate_json := FileAccess.get_file_as_string(climate_path)
 	var route_json := FileAccess.get_file_as_string(route_path)
 	var eff_abs := effective_abs_seconds if effective_abs_seconds >= 0.0 else base_abs_seconds
-	var res_var: Variant = engine.call(
-		"configure_and_precompute_from_json",
-		climate_json,
-		route_json,
-		rally_seed,
-		season_or_date,
-		base_abs_seconds,
-		eff_abs,
-		surface_type,
-		regime_override,
+	var bounds_v: Variant = cfg.get("sector_boundaries_m", PackedFloat32Array())
+	var has_custom_bounds := bounds_v is PackedFloat32Array and (bounds_v as PackedFloat32Array).size() == 5 and engine.has_method("configure_and_precompute_from_json_with_boundaries")
+	var res_var: Variant = (
+		engine.call(
+			"configure_and_precompute_from_json_with_boundaries",
+			climate_json,
+			route_json,
+			rally_seed,
+			season_or_date,
+			base_abs_seconds,
+			eff_abs,
+			surface_type,
+			regime_override,
+			bounds_v,
+		)
+		if has_custom_bounds
+		else engine.call(
+			"configure_and_precompute_from_json",
+			climate_json,
+			route_json,
+			rally_seed,
+			season_or_date,
+			base_abs_seconds,
+			eff_abs,
+			surface_type,
+			regime_override,
+		)
 	)
 	if not res_var is Dictionary:
 		return {"ok": false, "error": "Respuesta invalida de RustFiveSectorWeather"}
@@ -542,11 +832,15 @@ func generate_event_schedule(event_doc: Dictionary, stage_order: Array, itinerar
 	var prev_avg_ground := 17.0
 	for si in stage_order.size():
 		var stage_id := str(stage_order[si])
+		var sched_entry: Dictionary = (itinerary[si] as Dictionary).duplicate(true) if si < itinerary.size() else {"stage_id": stage_id}
+		var proc_entry := build_procedural_schedule_entry(stage_id, sched_entry, rally_seed, requested_weather, si == 0, ordered, regional_id)
+		if not proc_entry.is_empty():
+			schedule.append(proc_entry)
+			continue
 		var route_path: String = str(route_paths.get(stage_id, "res://data/rally/%s_route.json" % stage_id))
 		var zone_info := compute_zones_for_route(route_path, rules)
 		if not bool(zone_info.get("ok", false)):
 			return {"ok": false, "error": str(zone_info.get("error", "ruta incompatible"))}
-		var sched_entry: Dictionary = (itinerary[si] as Dictionary).duplicate(true) if si < itinerary.size() else {"stage_id": stage_id}
 		var zones_out: Array = []
 		var gap_h := 2.0
 		if si > 0 and si < itinerary.size():
@@ -721,11 +1015,27 @@ static func validate_schedule(schedule: Array, stage_order: Array, rules: Dictio
 	var within_allowed: Array = rules.get("within_stage_allowed_steps", [-1, 1]).map(func(value): return int(value))
 	var between_allowed: Array = rules.get("between_stages_allowed_steps", [-2, -1, 1, 2]).map(func(value): return int(value))
 	var prev_last_idx := -1
+	var prev_was_legacy := false
 	for si in schedule.size():
 		var entry: Dictionary = schedule[si]
 		if str(entry.get("stage_id", "")) != str(stage_order[si]):
 			return {"ok": false, "error": "Orden del cronograma distinto del itinerario en %d" % si}
 		var zones: Array = entry.get("zones", [])
+		if bool(entry.get("procedural_four_sector", false)):
+			if zones.size() != 4:
+				return {"ok": false, "error": "Se requieren exactamente cuatro sectores procedurales en " + str(entry.get("stage_id", ""))}
+			var prev_dist := -1.0
+			for zi in 4:
+				var z: Dictionary = zones[zi]
+				if int(z.get("zone_index", -1)) != zi:
+					return {"ok": false, "error": "Sector procedural desordenado en " + str(entry.get("stage_id", ""))}
+				var sd := float(z.get("start_distance_m", 0.0))
+				var ed := float(z.get("end_distance_m", 0.0))
+				if ed <= sd or (zi > 0 and sd + 0.5 < prev_dist):
+					return {"ok": false, "error": "Rango de distancia inválido en %s sector %d" % [str(entry.get("stage_id", "")), zi]}
+				prev_dist = ed
+			prev_was_legacy = false
+			continue
 		if zones.size() != 3:
 			return {"ok": false, "error": "Se requieren exactamente tres zonas en " + str(entry.get("stage_id", ""))}
 		var prev_end := 0
@@ -740,11 +1050,12 @@ static func validate_schedule(schedule: Array, stage_order: Array, rules: Dictio
 				var step: int = int(z.get("weather_state_index", 0)) - int((zones[zi - 1] as Dictionary).get("weather_state_index", 0))
 				if not (step in within_allowed):
 					return {"ok": false, "error": "Paso interno inválido en %s zona %d: %d" % [str(entry.get("stage_id", "")), zi, step]}
-			if zi == 0 and si > 0:
+			if zi == 0 and si > 0 and prev_was_legacy:
 				var bstep: int = int(z.get("weather_state_index", 0)) - prev_last_idx
 				if not (bstep in between_allowed):
 					return {"ok": false, "error": "Paso externo inválido hacia %s: %d" % [str(entry.get("stage_id", "")), bstep]}
 		prev_last_idx = int((zones[2] as Dictionary).get("weather_state_index", 0))
+		prev_was_legacy = true
 	return {"ok": true}
 
 
@@ -755,11 +1066,35 @@ static func forecast_seed(climate_seed: int) -> int:
 	return abs(int(("%d/%s" % [climate_seed, FORECAST_PURPOSE]).hash()))
 
 
-## Clima dominante de una especial (zona con más precipitación; desempate: zona central).
+## Clima dominante de una especial (zona con mayor severidad/precipitación; desempate: zona central).
 static func get_stage_dominant_weather(stage_entry: Dictionary) -> Dictionary:
 	var zones: Array = stage_entry.get("zones", [])
 	if zones.is_empty():
 		return {"name": "Despejado", "icon": "☀️", "temp_c": 18.0, "rain": false, "precip_mm": 0.0, "preset_id": "clear", "state_index": 1}
+	if bool(stage_entry.get("procedural_four_sector", false)):
+		var best_zone: Dictionary = zones[mini(1, zones.size() - 1)]
+		var best_eval := {}
+		var best_score := -1.0
+		for z in zones:
+			if not z is Dictionary:
+				continue
+			var zd := z as Dictionary
+			var ev := _procedural_zone_severity_and_visual(zd)
+			var sc := float(ev.get("score", -1.0))
+			if sc > best_score:
+				best_score = sc
+				best_zone = zd
+				best_eval = ev
+		var preset_p := str(best_zone.get("weather_state_id", best_zone.get("preset_id", "clear")))
+		return {
+			"name": str(best_eval.get("name", "Seco / Soleado")),
+			"icon": str(best_eval.get("icon", "☀️")),
+			"temp_c": float(best_eval.get("temp_c", 12.0)),
+			"precip_mm": float(best_eval.get("precip_mm", 0.0)),
+			"preset_id": preset_p,
+			"state_index": int(best_zone.get("weather_state_index", 0)),
+			"weather_state": str(best_eval.get("weather_state", "")),
+		}
 	var selected: Dictionary = zones[mini(1, zones.size() - 1)]
 	var max_mm := -1.0
 	for z in zones:

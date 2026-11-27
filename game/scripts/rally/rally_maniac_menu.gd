@@ -1001,6 +1001,9 @@ func _launch_session() -> void:
 		session.practice_mode = true
 		session.competition.save_path = ""
 		session.set("single_stage_weather", selected_weather)
+		var stage_rng := RandomNumberGenerator.new()
+		stage_rng.randomize()
+		session.event_seed = stage_rng.randi_range(1, 2147483647)
 
 	# Liberar mapas fuente de livery del menú antes de cargar el tramo
 	VehicleLiveryScript.clear_data_map_cache()

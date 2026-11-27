@@ -139,13 +139,14 @@
     "surface_cell_spacing_m": 50.0
   },
   "five_sector_model": {
-    "sector_count": 5,
-    "boundaries_fraction": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    "sector_count": 4,
+    "boundaries_fraction": [0.0, 0.25, 0.5, 0.75, 1.0],
     "pre_start_hours": 4.0,
     "race_horizon_hours": 2.0,
     "episode_lag_total_s": 360.0,
-    "max_substep_s": 300.0,
+    "max_substep_s": 180.0,
     "slope_drainage_gain": 3.5,
+    "basin_drainage_mm_h": 1.25,
     "puddle_twi_base": 0.85,
     "puddle_twi_gain": 1.15,
     "puddle_fill_divisor_mm": 2.2

@@ -1498,13 +1498,7 @@ func _setup_event_weather() -> void:
 				choice = _practice_weather_choice()
 			elif event_manager.cursor == 0:
 				choice = event_manager.initial_weather
-			match choice.strip_edges().to_lower():
-				"sunny", "clear", "soleado", "despejado":
-					regime = "clear"
-				"cloudy", "nublado", "overcast", "cubierto":
-					regime = "cloudy"
-				"drizzle", "llovizna", "light_precipitation", "medium_precipitation", "heavy_precipitation", "light_rain", "medium_rain", "heavy_rain", "lluvia", "rain", "tormenta":
-					regime = "wet_front"
+			regime = RallyWeatherScheduler.procedural_regime_from_choice(choice)
 		var proc_mode := _resolve_procedural_climate_mode(resolved_stage)
 		var configured_ok := false
 		if proc_mode == "procedural_v1":
@@ -1570,7 +1564,7 @@ func _setup_event_weather() -> void:
 func _player_setup_forecast() -> Dictionary:
 	var sectors := event_weather.sector_summary()
 	if sectors.is_empty():
-		return event_manager.forecast_for_half(event_manager.cursor, 5)
+		return event_manager.forecast_for_half(event_manager.cursor, 4)
 	var wet := 0
 	var winter := 0
 	for row: Dictionary in sectors:
@@ -1778,6 +1772,10 @@ func _resolve_stage_length_m() -> float:
 
 
 func _resolve_stage_weather_label() -> String:
+	if event_weather != null and event_weather.procedural_active:
+		var live_label := RallyWeatherScheduler.summarize_procedural_sectors_label(event_weather.sector_summary())
+		if not live_label.is_empty():
+			return live_label
 	if event_manager != null and not practice_mode:
 		var entry: Dictionary = event_manager.weather_entry_for(session_track_id)
 		if not entry.is_empty():
@@ -1844,10 +1842,11 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 	var raw_sectors: Array = event_weather.sector_summary() if event_weather != null else []
 	var reverse_route := bool(resolved_stage.get("reverse_route", false))
 	if not raw_sectors.is_empty():
+		var sec_n := maxi(raw_sectors.size(), 1)
 		for si in raw_sectors.size():
 			var row: Dictionary = (raw_sectors[si] as Dictionary).duplicate(true)
-			var s_start := float(row.get("start_m", float(si) * total_m / 5.0))
-			var s_end := float(row.get("end_m", float(si + 1) * total_m / 5.0))
+			var s_start := float(row.get("start_m", float(si) * total_m / float(sec_n)))
+			var s_end := float(row.get("end_m", float(si + 1) * total_m / float(sec_n)))
 			var s_loose := 0.0
 			var s_mud := 0.0
 			var s_water := 0.0
@@ -1887,9 +1886,9 @@ func _build_garage_terrain_summary(sectors_out: Array) -> Dictionary:
 			snow_sum += s_snow
 			ice_sum += s_ice
 	elif event_weather != null and event_weather.calendar_active:
-		for si in 5:
-			var s_start := float(si) * total_m / 5.0
-			var s_end := float(si + 1) * total_m / 5.0
+		for si in 4:
+			var s_start := float(si) * total_m / 4.0
+			var s_end := float(si + 1) * total_m / 4.0
 			var midpoint := (s_start + s_end) * 0.5
 			var mid_st: Dictionary = event_weather.local_surface_state_at_distance(total_m - midpoint if reverse_route else midpoint, 0.0)
 			var clim: Dictionary = mid_st.get("climate", {})

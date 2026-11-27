@@ -316,7 +316,7 @@ pub struct RouteProfile {
     pub center_x_m: f32,
     pub center_z_m: f32,
     pub extent_radius_m: f32,
-    pub five_sector_boundaries_m: Option<[f32; 6]>,
+    pub five_sector_boundaries_m: Option<[f32; 5]>,
     pub snow_transition_altitude_m: Option<f32>,
 }
 
@@ -398,20 +398,24 @@ impl RouteProfile {
         let center_z_m = 0.5 * (min_z + max_z);
         let extent_radius_m = (0.5 * (max_x - min_x)).hypot(0.5 * (max_z - min_z)).max(500.0);
 
-        let mut five_sector_boundaries_m: Option<[f32; 6]> = None;
-        if let Some(fs_obj) = root.get("five_sectors").or_else(|| root.get("climate_sectors")) {
-            let mut out_b = [0.0_f32; 6];
+        let mut five_sector_boundaries_m: Option<[f32; 5]> = None;
+        if let Some(fs_obj) = root
+            .get("climate_sectors")
+            .or_else(|| root.get("four_sectors"))
+            .or_else(|| root.get("five_sectors"))
+        {
+            let mut out_b = [0.0_f32; 5];
             if let Some(arr) = fs_obj.get("boundaries_m").and_then(|v| v.as_arr()) {
-                if arr.len() == 6 && total_distance_m > 1.0 {
+                if arr.len() == 5 && total_distance_m > 1.0 {
                     let mut prev = 0.0_f32;
-                    for i in 0..6 {
-                        let raw_m = arr[i].as_f32().unwrap_or(total_distance_m * (i as f32) * 0.2);
+                    for i in 0..5 {
+                        let raw_m = arr[i].as_f32().unwrap_or(total_distance_m * (i as f32) * 0.25);
                         let clamped = if i == 0 {
                             0.0
-                        } else if i == 5 {
+                        } else if i == 4 {
                             total_distance_m
                         } else {
-                            raw_m.max(prev + 10.0).min(total_distance_m - (5 - i) as f32 * 10.0)
+                            raw_m.max(prev + 10.0).min(total_distance_m - (4 - i) as f32 * 10.0)
                         };
                         out_b[i] = clamped;
                         prev = clamped;
@@ -419,16 +423,16 @@ impl RouteProfile {
                     five_sector_boundaries_m = Some(out_b);
                 }
             } else if let Some(arr) = fs_obj.get("boundaries_fraction").and_then(|v| v.as_arr()) {
-                if arr.len() == 6 && total_distance_m > 1.0 {
+                if arr.len() == 5 && total_distance_m > 1.0 {
                     let mut prev = 0.0_f32;
-                    for i in 0..6 {
-                        let raw_m = arr[i].as_f32().unwrap_or((i as f32) * 0.2).clamp(0.0, 1.0) * total_distance_m;
+                    for i in 0..5 {
+                        let raw_m = arr[i].as_f32().unwrap_or((i as f32) * 0.25).clamp(0.0, 1.0) * total_distance_m;
                         let clamped = if i == 0 {
                             0.0
-                        } else if i == 5 {
+                        } else if i == 4 {
                             total_distance_m
                         } else {
-                            raw_m.max(prev + 10.0).min(total_distance_m - (5 - i) as f32 * 10.0)
+                            raw_m.max(prev + 10.0).min(total_distance_m - (4 - i) as f32 * 10.0)
                         };
                         out_b[i] = clamped;
                         prev = clamped;
@@ -550,6 +554,7 @@ pub struct SeasonParams {
 }
 
 impl SeasonParams {
+    #[allow(dead_code)]
     pub fn sample_precip_mm_h(&self, rng: &mut Pcg32) -> f32 {
         let total_w: f32 = self.precip_bands.iter().map(|b| b.weight.max(0.0)).sum();
         if total_w <= 0.0 || self.precip_bands.is_empty() {
@@ -686,12 +691,13 @@ impl SurfaceMaterialParams {
 
 #[derive(Clone, Debug)]
 pub struct FiveSectorModelConfig {
-    pub boundaries_fraction: [f32; 6],
+    pub boundaries_fraction: [f32; 5],
     pub pre_start_hours: f32,
     pub race_horizon_hours: f32,
     pub episode_lag_total_s: f32,
     pub max_substep_s: f32,
     pub slope_drainage_gain: f32,
+    pub basin_drainage_mm_h: f32,
     pub puddle_twi_base: f32,
     pub puddle_twi_gain: f32,
     pub puddle_fill_divisor_mm: f32,
@@ -700,12 +706,13 @@ pub struct FiveSectorModelConfig {
 impl Default for FiveSectorModelConfig {
     fn default() -> Self {
         Self {
-            boundaries_fraction: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-            pre_start_hours: 4.0,
-            race_horizon_hours: 2.0,
+            boundaries_fraction: [0.0, 0.25, 0.50, 0.75, 1.0],
+            pre_start_hours: 2.0,
+            race_horizon_hours: 1.5,
             episode_lag_total_s: 360.0,
-            max_substep_s: 300.0,
+            max_substep_s: 180.0,
             slope_drainage_gain: 3.5,
+            basin_drainage_mm_h: 1.25,
             puddle_twi_base: 0.85,
             puddle_twi_gain: 1.15,
             puddle_fill_divisor_mm: 2.2,
@@ -979,22 +986,24 @@ impl ClimateProfile {
         }
 
         let fsm_def = FiveSectorModelConfig::default();
-        let fsm_obj = root.get("five_sector_model");
+        let fsm_obj = root
+            .get("four_sector_model")
+            .or_else(|| root.get("five_sector_model"));
         let mut boundaries_fraction = fsm_def.boundaries_fraction;
         if let Some(arr) = fsm_obj
             .and_then(|o| o.get("boundaries_fraction"))
             .and_then(|v| v.as_arr())
         {
-            if arr.len() == 6 {
+            if arr.len() == 5 {
                 let mut prev = 0.0_f32;
-                for i in 0..6 {
+                for i in 0..5 {
                     let v = arr[i].as_f32().unwrap_or(boundaries_fraction[i]).clamp(0.0, 1.0);
                     let clamped = if i == 0 {
                         0.0
-                    } else if i == 5 {
+                    } else if i == 4 {
                         1.0
                     } else {
-                        v.max(prev + 0.02).min(0.98 - (4 - i) as f32 * 0.02)
+                        v.max(prev + 0.02).min(0.98 - (3 - i) as f32 * 0.02)
                     };
                     boundaries_fraction[i] = clamped;
                     prev = clamped;
@@ -1011,6 +1020,7 @@ impl ClimateProfile {
             episode_lag_total_s: get_fsm("episode_lag_total_s", fsm_def.episode_lag_total_s).clamp(0.0, 3600.0),
             max_substep_s: get_fsm("max_substep_s", fsm_def.max_substep_s).clamp(30.0, 900.0),
             slope_drainage_gain: get_fsm("slope_drainage_gain", fsm_def.slope_drainage_gain).clamp(0.0, 12.0),
+            basin_drainage_mm_h: get_fsm("basin_drainage_mm_h", fsm_def.basin_drainage_mm_h).clamp(0.4, 8.0),
             puddle_twi_base: get_fsm("puddle_twi_base", fsm_def.puddle_twi_base).clamp(0.1, 1.5),
             puddle_twi_gain: get_fsm("puddle_twi_gain", fsm_def.puddle_twi_gain).clamp(0.0, 1.5),
             puddle_fill_divisor_mm: get_fsm("puddle_fill_divisor_mm", fsm_def.puddle_fill_divisor_mm).clamp(0.4, 10.0),
@@ -1124,6 +1134,7 @@ pub struct AtmosphereSample {
     pub rain_mm_h: f32,
     pub snow_mm_h: f32,
     pub precip_kind: PrecipKind,
+    pub fog_density: f32,
     pub wind_m_s: f32,
     pub wind_dir_deg: f32,
 }
@@ -1732,6 +1743,10 @@ impl AtmosphereTable {
         let cloud_attenuation = 1.0 - 0.88 * syn.cloud_cover.powf(1.35);
         let irradiance_w_m2 = (980.0 * clear_solar * cloud_attenuation).max(0.0);
 
+        let fog_density = (syn.cloud_cover * 0.0018
+            + smoothstep(0.15, 5.5, precip_total_mm_h) * 0.0028)
+            .clamp(0.0001, 0.0055);
+
         AtmosphereSample {
             progress_m: rs.progress_m,
             shader_station_m: rs.shader_station_m,
@@ -1747,6 +1762,7 @@ impl AtmosphereTable {
             rain_mm_h,
             snow_mm_h,
             precip_kind,
+            fog_density,
             wind_m_s: syn.wind_m_s,
             wind_dir_deg: syn.wind_dir_deg,
         }
@@ -1806,6 +1822,7 @@ pub struct SurfaceSample {
     pub snow_mm_h: f32,
     pub precip_total_mm_h: f32,
     pub precip_kind: PrecipKind,
+    pub fog_density: f32,
     pub wind_m_s: f32,
     pub wind_dir_deg: f32,
 }
@@ -2417,6 +2434,7 @@ impl SurfaceGrid {
             snow_mm_h: a.snow_mm_h,
             precip_total_mm_h: a.precip_total_mm_h,
             precip_kind: a.precip_kind,
+            fog_density: a.fog_density,
             wind_m_s: a.wind_m_s,
             wind_dir_deg: a.wind_dir_deg,
         }
@@ -2601,6 +2619,7 @@ impl RustProceduralWeather {
         let _ = out.insert("snow_mm_h", s.snow_mm_h);
         let _ = out.insert("precip_total_mm_h", s.precip_total_mm_h);
         let _ = out.insert("precip_kind", s.precip_kind.as_str());
+        let _ = out.insert("fog_density", s.fog_density);
         let _ = out.insert("wind_m_s", s.wind_m_s);
         let _ = out.insert("wind_direction_deg", s.wind_dir_deg);
         out
@@ -2859,6 +2878,7 @@ impl RustProceduralWeather {
         let _ = out.insert("rain_mm_h", s.rain_mm_h);
         let _ = out.insert("snow_mm_h", s.snow_mm_h);
         let _ = out.insert("precip_kind", s.precip_kind.as_str());
+        let _ = out.insert("fog_density", s.fog_density);
         let _ = out.insert("wind_m_s", s.wind_m_s);
         let _ = out.insert("wind_direction_deg", s.wind_dir_deg);
         out
@@ -2890,8 +2910,60 @@ impl RustProceduralWeather {
     }
 }
 
-pub const FIVE_SECTOR_ALGO_VERSION: u32 = 2;
-pub const FIVE_SECTOR_COUNT: usize = 5;
+pub const FIVE_SECTOR_ALGO_VERSION: u32 = 3;
+pub const CLIMATE_SECTOR_COUNT: usize = 4;
+#[allow(dead_code)]
+pub const FIVE_SECTOR_COUNT: usize = CLIMATE_SECTOR_COUNT;
+
+#[inline]
+fn smootherstep(edge0: f32, edge1: f32, x: f32) -> f32 {
+    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
+    t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SectorWeatherState {
+    SunnyDry = 0,
+    CloudyDry = 1,
+    OvercastDry = 2,
+    OvercastDamp = 3,
+    LightDrizzle = 4,
+    Drizzle = 5,
+    ModerateHeavyRain = 6,
+    HighlandSnowHail = 7,
+    Controlled = 8,
+}
+
+impl SectorWeatherState {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::SunnyDry => "sunny_dry",
+            Self::CloudyDry => "cloudy_dry",
+            Self::OvercastDry => "overcast_dry",
+            Self::OvercastDamp => "overcast_damp",
+            Self::LightDrizzle => "light_drizzle",
+            Self::Drizzle => "drizzle",
+            Self::ModerateHeavyRain => "moderate_heavy_rain",
+            Self::HighlandSnowHail => "highland_snow_hail",
+            Self::Controlled => "controlled",
+        }
+    }
+
+    #[inline]
+    pub fn severity(&self) -> i32 {
+        match self {
+            Self::SunnyDry => 0,
+            Self::CloudyDry => 1,
+            Self::OvercastDry => 2,
+            Self::OvercastDamp => 3,
+            Self::LightDrizzle => 4,
+            Self::Drizzle => 5,
+            Self::ModerateHeavyRain => 6,
+            Self::HighlandSnowHail => 7,
+            Self::Controlled => 0,
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FiveSectorRegime {
@@ -2899,6 +2971,7 @@ pub enum FiveSectorRegime {
     Dry,
     Clear,
     Cloudy,
+    Mist,
     WetFront,
     ControlledMixedAscent,
     ControlledRefreeze,
@@ -2911,6 +2984,7 @@ impl FiveSectorRegime {
             "dry" | "force_dry" => Self::Dry,
             "sunny" | "clear" => Self::Clear,
             "cloudy" | "overcast" => Self::Cloudy,
+            "mist" | "fog" | "mist_fog" | "neblina" => Self::Mist,
             "wet_front" | "force_wet_front" | "wet" | "wet_episodes" | "rain" => Self::WetFront,
             "controlled_mixed_ascent" | "mixed_ascent" => Self::ControlledMixedAscent,
             "controlled_refreeze" | "refreeze" => Self::ControlledRefreeze,
@@ -2928,6 +3002,7 @@ pub struct SectorTimeMark {
     pub temp_anomaly_c: f32,
     pub lapse_rate_c_per_km: f32,
     pub precip_base_mm_h: f32,
+    pub fog_density: f32,
     pub wind_m_s: f32,
     pub wind_dir_deg: f32,
 }
@@ -2954,6 +3029,7 @@ pub struct FiveSectorGeometry {
     pub center_m: f32,
     pub center_shader_station_m: f32,
     pub center_altitude_m: f32,
+    pub max_altitude_m: f32,
     pub mean_abs_grade: f32,
     pub shade_factor: f32,
     pub drainage_scale: f32,
@@ -2964,6 +3040,7 @@ pub struct FiveSectorGeometry {
 pub struct SectorSurfaceState {
     pub ground_c: f32,
     pub water_mm: f32,
+    pub basin_water_mm: f32,
     pub snow_mm: f32,
     pub ice_mm: f32,
     pub saturation: f32,
@@ -2974,6 +3051,7 @@ pub struct SectorSurfaceState {
 #[derive(Clone, Debug)]
 pub struct FiveSectorData {
     pub geom: FiveSectorGeometry,
+    pub weather_state: SectorWeatherState,
     pub marks: Vec<SectorTimeMark>,
 }
 
@@ -3229,6 +3307,7 @@ fn interpolate_mark(a: &SectorTimeMark, b: &SectorTimeMark, t: f32) -> SectorTim
         temp_anomaly_c: lerpf(a.temp_anomaly_c, b.temp_anomaly_c, t),
         lapse_rate_c_per_km: lerpf(a.lapse_rate_c_per_km, b.lapse_rate_c_per_km, t),
         precip_base_mm_h: lerpf(a.precip_base_mm_h, b.precip_base_mm_h, t),
+        fog_density: lerpf(a.fog_density, b.fog_density, t),
         wind_m_s: lerpf(a.wind_m_s, b.wind_m_s, t),
         wind_dir_deg: lerp_angle_deg(a.wind_dir_deg, b.wind_dir_deg, t),
     }
@@ -3243,6 +3322,7 @@ fn eval_sector_marks(marks: &[SectorTimeMark], abs_t: f64) -> SectorTimeMark {
             temp_anomaly_c: 0.0,
             lapse_rate_c_per_km: 6.4,
             precip_base_mm_h: 0.0,
+            fog_density: 0.0005,
             wind_m_s: 3.0,
             wind_dir_deg: 60.0,
         };
@@ -3292,7 +3372,34 @@ fn build_marks_from_episodes(
     base_wind_spd: f32,
     base_wind_dir: f32,
 ) -> Vec<SectorTimeMark> {
-    let mut times: Vec<f64> = Vec::with_capacity(6 + episodes.len() * 4);
+    build_marks_from_episodes_with_deck(
+        window_start_s,
+        window_end_s,
+        season,
+        episodes,
+        season.background_cloud_cover,
+        season.background_humidity,
+        0.0,
+        -1.0,
+        base_wind_spd,
+        base_wind_dir,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_marks_from_episodes_with_deck(
+    window_start_s: f64,
+    window_end_s: f64,
+    season: &SeasonParams,
+    episodes: &[SectorEpisode],
+    deck_cloud_cover: f32,
+    deck_humidity: f32,
+    deck_temp_anomaly_c: f32,
+    deck_fog_density: f32,
+    base_wind_spd: f32,
+    base_wind_dir: f32,
+) -> Vec<SectorTimeMark> {
+    let mut times: Vec<f64> = Vec::with_capacity(8 + episodes.len() * 5);
     let span = (window_end_s - window_start_s).max(60.0);
     let anchors = 5usize;
     for i in 0..=anchors {
@@ -3327,10 +3434,10 @@ fn build_marks_from_episodes(
     for abs_t in deduped {
         let hour = (abs_t / 3600.0).rem_euclid(24.0) as f32;
         let diurnal_phase = ((hour - (season.diurnal_peak_hour - 6.0)) * PI / 12.0).sin();
-        let mut cloud = season.background_cloud_cover;
-        let mut hum = (season.background_humidity - diurnal_phase * season.diurnal_humidity_amplitude)
+        let mut cloud = deck_cloud_cover;
+        let mut hum = (deck_humidity - diurnal_phase * season.diurnal_humidity_amplitude * 0.5)
             .clamp(0.10, 0.99);
-        let mut temp_anom = 0.0_f32;
+        let mut temp_anom = deck_temp_anomaly_c;
         let mut precip = 0.0_f32;
         let mut lapse_w = 0.0_f32;
         let mut wind_spd = base_wind_spd;
@@ -3339,8 +3446,8 @@ fn build_marks_from_episodes(
         for ep in episodes {
             let env = episode_envelope(ep, abs_t);
             if env > 1e-4 {
-                cloud = cloud.max(season.background_cloud_cover + ep.cloud_boost * env);
-                hum = hum.max(season.background_humidity + ep.humidity_boost * env);
+                cloud = cloud.max(deck_cloud_cover + ep.cloud_boost * env);
+                hum = hum.max(deck_humidity + ep.humidity_boost * env);
                 temp_anom += ep.temp_anomaly_c * env;
                 precip += ep.peak_precip_mm_h * env;
                 lapse_w = lapse_w.max(env);
@@ -3348,18 +3455,567 @@ fn build_marks_from_episodes(
                 wind_dir = lerp_angle_deg(wind_dir, ep.wind_dir_deg, env * 0.8);
             }
         }
+        let clamped_cloud = cloud.clamp(0.0, 1.0);
+        let clamped_precip = precip.max(0.0);
+        let fog_density = if deck_fog_density >= 0.0 {
+            (deck_fog_density + smoothstep(0.15, 5.5, clamped_precip) * 0.0012).clamp(0.0001, 0.0055)
+        } else {
+            (clamped_cloud * 0.0018 + smoothstep(0.15, 5.5, clamped_precip) * 0.0028)
+                .clamp(0.0001, 0.0055)
+        };
         marks.push(SectorTimeMark {
             abs_time_s: abs_t,
-            cloud_cover: cloud.clamp(0.0, 1.0),
+            cloud_cover: clamped_cloud,
             humidity: hum.clamp(0.08, 0.99),
             temp_anomaly_c: temp_anom,
             lapse_rate_c_per_km: lerpf(season.lapse_rate_c_per_km, season.lapse_rate_front_c_per_km, lapse_w),
-            precip_base_mm_h: precip.max(0.0),
+            precip_base_mm_h: clamped_precip,
+            fog_density,
             wind_m_s: wind_spd.clamp(0.2, 25.0),
             wind_dir_deg: wind_dir.rem_euclid(360.0),
         });
     }
     marks
+}
+
+/// Solves for the temperature offset needed at `(altitude_m, abs_time_s)` so that
+/// `wet_bulb_celsius(air_c, humidity) == target_wet_bulb_c`.
+fn solve_temp_anomaly_for_wet_bulb(
+    season: &SeasonParams,
+    ref_altitude_m: f32,
+    altitude_m: f32,
+    abs_time_s: f64,
+    lapse_rate_c_per_km: f32,
+    humidity: f32,
+    target_wet_bulb_c: f32,
+) -> f32 {
+    let hour = (abs_time_s / 3600.0).rem_euclid(24.0) as f32;
+    let diurnal_phase = ((hour - (season.diurnal_peak_hour - 6.0)) * PI / 12.0).sin();
+    let base_air_c = season.base_temp_c
+        + diurnal_phase * (season.diurnal_amplitude_c * 0.5)
+        - lapse_rate_c_per_km * ((altitude_m - ref_altitude_m) / 1000.0);
+    let mut air_c = target_wet_bulb_c + (1.0 - humidity.clamp(0.05, 0.99)) * 6.0;
+    for _ in 0..5 {
+        let wb = wet_bulb_celsius(air_c, humidity);
+        air_c += (target_wet_bulb_c - wb) * 1.05;
+    }
+    (air_c - base_air_c).clamp(-16.0, 16.0)
+}
+
+fn pick_weighted_pattern(
+    rng: &mut Pcg32,
+    patterns: &[([SectorWeatherState; CLIMATE_SECTOR_COUNT], f32)],
+) -> [SectorWeatherState; CLIMATE_SECTOR_COUNT] {
+    let total: f32 = patterns.iter().map(|(_, w)| w.max(0.0)).sum();
+    if total <= 0.0 || patterns.is_empty() {
+        return [SectorWeatherState::SunnyDry; CLIMATE_SECTOR_COUNT];
+    }
+    let mut pick = rng.randf() * total;
+    for (pat, w) in patterns {
+        pick -= w.max(0.0);
+        if pick <= 0.0 {
+            return *pat;
+        }
+    }
+    patterns.last().unwrap().0
+}
+
+/// Plans 4 coherent microclimate states obeying:
+/// - max adjacency step <= 1 across `[S0, S1, S2, S3]`
+/// - altitude-oriented storm/cloud gradients (`high_at_end`)
+/// - snow/hail ONLY on high-altitude eligible summit sectors under cold moderate-heavy storms
+/// - `Cloudy` regime biased mostly dry (~62%) with optional small puddles (~22%) or light drizzle (~16%)
+fn plan_four_sector_states(
+    regime: &FiveSectorRegime,
+    season_id: &str,
+    geoms: &[FiveSectorGeometry],
+    snow_transition_alt: Option<f32>,
+    rng: &mut Pcg32,
+) -> [SectorWeatherState; CLIMATE_SECTOR_COUNT] {
+    use SectorWeatherState::*;
+
+    match regime {
+        FiveSectorRegime::Dry => return [SunnyDry; CLIMATE_SECTOR_COUNT],
+        FiveSectorRegime::ControlledTimingEpisode
+        | FiveSectorRegime::ControlledMixedAscent
+        | FiveSectorRegime::ControlledRefreeze => {
+            return [Controlled; CLIMATE_SECTOR_COUNT];
+        }
+        _ => {}
+    }
+
+    let alt_start = 0.5 * (geoms[0].center_altitude_m + geoms[1].center_altitude_m);
+    let alt_end = 0.5 * (geoms[2].center_altitude_m + geoms[3].center_altitude_m);
+    let high_at_end = alt_end >= alt_start;
+    let alt_span = (alt_end - alt_start).abs();
+    // On nearly flat routes, allow either orientation; on mountain grades, anchor clouds/rain to higher terrain.
+    let orient_to_end = if alt_span >= 35.0 {
+        high_at_end
+    } else {
+        rng.randf() < 0.5
+    };
+
+    let mut states = match regime {
+        FiveSectorRegime::Clear => {
+            let pats = [
+                ([SunnyDry, SunnyDry, SunnyDry, SunnyDry], 0.72),
+                ([SunnyDry, SunnyDry, SunnyDry, CloudyDry], 0.28),
+            ];
+            pick_weighted_pattern(rng, &pats)
+        }
+        FiveSectorRegime::Cloudy => {
+            // Mostly all-dry cloudy/overcast (~62%), with optional small puddles (~20%) or light drizzle (~18%).
+            let pats = [
+                ([CloudyDry, CloudyDry, CloudyDry, CloudyDry], 0.24),
+                ([CloudyDry, CloudyDry, OvercastDry, OvercastDry], 0.22),
+                ([OvercastDry, OvercastDry, OvercastDry, OvercastDry], 0.16),
+                ([CloudyDry, OvercastDry, OvercastDamp, OvercastDry], 0.12),
+                ([OvercastDry, OvercastDry, OvercastDamp, OvercastDamp], 0.08),
+                ([OvercastDry, OvercastDamp, LightDrizzle, OvercastDamp], 0.11),
+                ([OvercastDry, OvercastDamp, LightDrizzle, Drizzle], 0.07),
+            ];
+            pick_weighted_pattern(rng, &pats)
+        }
+        FiveSectorRegime::Mist => {
+            // Dry/damp mountain mist without active rain.
+            let pats = [
+                ([OvercastDry, OvercastDry, OvercastDry, OvercastDry], 0.48),
+                ([CloudyDry, OvercastDry, OvercastDry, OvercastDry], 0.30),
+                ([OvercastDry, OvercastDry, OvercastDamp, OvercastDry], 0.22),
+            ];
+            pick_weighted_pattern(rng, &pats)
+        }
+        FiveSectorRegime::WetFront => {
+            let pats = [
+                ([OvercastDamp, LightDrizzle, Drizzle, ModerateHeavyRain], 0.25),
+                ([LightDrizzle, Drizzle, ModerateHeavyRain, ModerateHeavyRain], 0.30),
+                ([Drizzle, ModerateHeavyRain, ModerateHeavyRain, Drizzle], 0.25),
+                ([ModerateHeavyRain, ModerateHeavyRain, ModerateHeavyRain, Drizzle], 0.20),
+            ];
+            pick_weighted_pattern(rng, &pats)
+        }
+        FiveSectorRegime::Auto => match season_id {
+            "dry" => {
+                let pats = [
+                    ([SunnyDry, SunnyDry, SunnyDry, SunnyDry], 0.26),
+                    ([SunnyDry, SunnyDry, SunnyDry, CloudyDry], 0.11),
+                    ([CloudyDry, CloudyDry, CloudyDry, CloudyDry], 0.11),
+                    ([SunnyDry, CloudyDry, CloudyDry, OvercastDry], 0.09),
+                    ([CloudyDry, CloudyDry, OvercastDry, OvercastDry], 0.10),
+                    ([OvercastDry, OvercastDry, OvercastDry, OvercastDry], 0.07),
+                    ([CloudyDry, OvercastDry, OvercastDamp, OvercastDry], 0.07),
+                    ([OvercastDry, OvercastDamp, LightDrizzle, OvercastDamp], 0.07),
+                    ([OvercastDamp, LightDrizzle, Drizzle, ModerateHeavyRain], 0.06),
+                    ([Drizzle, ModerateHeavyRain, ModerateHeavyRain, Drizzle], 0.06),
+                ];
+                pick_weighted_pattern(rng, &pats)
+            }
+            "wet" => {
+                let pats = [
+                    ([SunnyDry, SunnyDry, CloudyDry, CloudyDry], 0.04),
+                    ([CloudyDry, CloudyDry, OvercastDry, OvercastDry], 0.07),
+                    ([OvercastDry, OvercastDry, OvercastDry, OvercastDry], 0.07),
+                    ([OvercastDry, OvercastDamp, LightDrizzle, LightDrizzle], 0.09),
+                    ([OvercastDry, OvercastDamp, LightDrizzle, Drizzle], 0.10),
+                    ([OvercastDamp, LightDrizzle, Drizzle, ModerateHeavyRain], 0.16),
+                    ([LightDrizzle, Drizzle, ModerateHeavyRain, ModerateHeavyRain], 0.19),
+                    ([Drizzle, ModerateHeavyRain, ModerateHeavyRain, ModerateHeavyRain], 0.16),
+                    ([ModerateHeavyRain, ModerateHeavyRain, ModerateHeavyRain, ModerateHeavyRain], 0.12),
+                ];
+                pick_weighted_pattern(rng, &pats)
+            }
+            _ => {
+                // "transition": ~28% sunny, ~32% cloudy/overcast dry, ~10% damp, ~15% drizzle, ~15% moderate/heavy rain
+                let pats = [
+                    ([SunnyDry, SunnyDry, SunnyDry, SunnyDry], 0.19),
+                    ([SunnyDry, SunnyDry, SunnyDry, CloudyDry], 0.09),
+                    ([CloudyDry, CloudyDry, CloudyDry, CloudyDry], 0.12),
+                    ([SunnyDry, CloudyDry, OvercastDry, OvercastDry], 0.11),
+                    ([OvercastDry, OvercastDry, OvercastDry, OvercastDry], 0.09),
+                    ([CloudyDry, OvercastDry, OvercastDamp, OvercastDry], 0.10),
+                    ([OvercastDry, OvercastDamp, LightDrizzle, OvercastDamp], 0.09),
+                    ([OvercastDry, OvercastDamp, LightDrizzle, Drizzle], 0.06),
+                    ([OvercastDamp, LightDrizzle, Drizzle, ModerateHeavyRain], 0.05),
+                    ([LightDrizzle, Drizzle, ModerateHeavyRain, ModerateHeavyRain], 0.04),
+                    ([Drizzle, ModerateHeavyRain, ModerateHeavyRain, ModerateHeavyRain], 0.03),
+                    ([ModerateHeavyRain, ModerateHeavyRain, Drizzle, LightDrizzle], 0.03),
+                ];
+                pick_weighted_pattern(rng, &pats)
+            }
+        },
+        _ => [SunnyDry; CLIMATE_SECTOR_COUNT],
+    };
+
+    if !orient_to_end {
+        states.reverse();
+    }
+
+    // Upgrade eligible high-altitude summit sectors from ModerateHeavyRain -> HighlandSnowHail
+    // ONLY under cold moderate-to-heavy storms (never from SunnyDry, CloudyDry, OvercastDamp, or Drizzle).
+    if let Some(trans_alt) = snow_transition_alt {
+        let mut eligible = [false; CLIMATE_SECTOR_COUNT];
+        let mut has_candidate = false;
+        for si in 0..CLIMATE_SECTOR_COUNT {
+            let alt_ok = geoms[si].max_altitude_m >= trans_alt - 15.0
+                || geoms[si].center_altitude_m >= trans_alt - 45.0;
+            if alt_ok && states[si] == ModerateHeavyRain {
+                eligible[si] = true;
+                has_candidate = true;
+            }
+        }
+        if has_candidate {
+            let cold_prob = match (regime, season_id) {
+                (FiveSectorRegime::WetFront, "dry") => 0.25,
+                (FiveSectorRegime::WetFront, _) => 0.45,
+                (_, "dry") => 0.30,
+                (_, "wet") => 0.50,
+                _ => 0.40,
+            };
+            if rng.randf() < cold_prob {
+                // Only upgrade sectors whose neighbors are at least ModerateHeavyRain (ensuring adjacency <= 1).
+                let orig = states;
+                for si in 0..CLIMATE_SECTOR_COUNT {
+                    if !eligible[si] {
+                        continue;
+                    }
+                    let left_ok = si == 0 || orig[si - 1].severity() >= ModerateHeavyRain.severity();
+                    let right_ok = si + 1 == CLIMATE_SECTOR_COUNT || orig[si + 1].severity() >= ModerateHeavyRain.severity();
+                    if left_ok && right_ok {
+                        states[si] = HighlandSnowHail;
+                    }
+                }
+            }
+        }
+    }
+
+    // Final safety invariant check: enforce max adjacency step <= 1 across all neighbors.
+    for _ in 0..3 {
+        for si in 0..(CLIMATE_SECTOR_COUNT - 1) {
+            let a = states[si].severity();
+            let b = states[si + 1].severity();
+            if (a - b).abs() > 1 {
+                // Pull the lower sector up by 1 only if safe, otherwise pull the higher sector down by 1.
+                if a > b {
+                    states[si] = match a - 1 {
+                        0 => SunnyDry,
+                        1 => CloudyDry,
+                        2 => OvercastDry,
+                        3 => OvercastDamp,
+                        4 => LightDrizzle,
+                        5 => Drizzle,
+                        _ => ModerateHeavyRain,
+                    };
+                } else {
+                    states[si + 1] = match b - 1 {
+                        0 => SunnyDry,
+                        1 => CloudyDry,
+                        2 => OvercastDry,
+                        3 => OvercastDamp,
+                        4 => LightDrizzle,
+                        5 => Drizzle,
+                        _ => ModerateHeavyRain,
+                    };
+                }
+            }
+        }
+    }
+
+    states
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_marks_for_sector_state(
+    state: SectorWeatherState,
+    geom: &FiveSectorGeometry,
+    season: &SeasonParams,
+    ref_altitude_m: f32,
+    window_start_s: f64,
+    window_end_s: f64,
+    base_abs_seconds: f64,
+    base_wind_spd: f32,
+    base_wind_dir: f32,
+    stage_mist_strength: f32,
+    rng: &mut Pcg32,
+) -> Vec<SectorTimeMark> {
+    let oro_boost = if season.orographic_enabled {
+        1.0 + season.orographic_precip_gain * geom.windward_factor * 0.6
+    } else {
+        1.0
+    };
+    let mist = stage_mist_strength.clamp(0.0, 1.0);
+
+    match state {
+        SectorWeatherState::SunnyDry => {
+            let cloud = rng.randf_range(0.08, 0.26);
+            let hum = rng.randf_range(0.32, 0.50);
+            let temp_anom = rng.randf_range(0.4, 2.2);
+            let fog = rng.randf_range(0.00015, 0.00035);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[],
+                cloud,
+                hum,
+                temp_anom,
+                fog,
+                (base_wind_spd * 0.85).clamp(1.0, 9.0),
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::CloudyDry => {
+            let cloud = rng.randf_range(0.50, 0.72);
+            let hum = rng.randf_range(0.54, 0.70) + mist * 0.08;
+            let temp_anom = rng.randf_range(-0.6, 0.8);
+            let fog = lerpf(rng.randf_range(0.0006, 0.0012), rng.randf_range(0.0015, 0.0024), mist);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[],
+                cloud,
+                hum.clamp(0.40, 0.88),
+                temp_anom,
+                fog,
+                base_wind_spd.clamp(1.5, 11.0),
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::OvercastDry => {
+            // Heavy brooding overcast sky with ZERO rain & dry road, plus optional Andean dry mist.
+            let cloud = rng.randf_range(0.80, 0.94);
+            let hum = rng.randf_range(0.68, 0.80) + mist * 0.12;
+            let temp_anom = rng.randf_range(-1.2, 0.2);
+            let fog = lerpf(rng.randf_range(0.0012, 0.0020), rng.randf_range(0.0030, 0.0044), mist);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[],
+                cloud,
+                hum.clamp(0.55, 0.94),
+                temp_anom,
+                fog,
+                base_wind_spd.clamp(1.5, 11.5),
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::OvercastDamp => {
+            // Overcast post-shower deck: shower ended 5..11 min before base_abs_seconds.
+            // Leaves damp surface & small residual puddles while keeping sky overcast (never sunny) and snow == 0.
+            let cloud = rng.randf_range(0.72, 0.88);
+            let hum = (rng.randf_range(0.76, 0.86) + mist * 0.08).clamp(0.70, 0.95);
+            let target_wb = rng.randf_range(2.2, 4.4);
+            let deck_temp_anom = solve_temp_anomaly_for_wet_bulb(
+                season,
+                ref_altitude_m,
+                geom.center_altitude_m,
+                base_abs_seconds,
+                season.lapse_rate_front_c_per_km,
+                hum,
+                target_wb,
+            );
+            let end_offset_s = rng.randf_range(300.0, 660.0) as f64;
+            let dur_s = rng.randf_range(2100.0, 3000.0) as f64;
+            let t_end_s = base_abs_seconds - end_offset_s;
+            let t_start_s = (t_end_s - dur_s).max(window_start_s + 120.0);
+            let t_peak_s = 0.5 * (t_start_s + t_end_s);
+            let ep = SectorEpisode {
+                t_start_s,
+                t_peak_s,
+                t_end_s,
+                peak_precip_mm_h: rng.randf_range(4.2, 5.8) * oro_boost,
+                cloud_boost: rng.randf_range(0.06, 0.12),
+                humidity_boost: rng.randf_range(0.05, 0.09),
+                temp_anomaly_c: 0.0,
+                wind_m_s: (base_wind_spd * 1.05).clamp(2.0, 12.0),
+                wind_dir_deg: base_wind_dir,
+            };
+            let fog = lerpf(rng.randf_range(0.0018, 0.0027), rng.randf_range(0.0032, 0.0046), mist);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[ep],
+                cloud,
+                hum,
+                deck_temp_anom,
+                fog,
+                base_wind_spd,
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::LightDrizzle => {
+            // Very light misty drizzle (garúa: 0.45..1.15 mm/h) with light pre-wetting.
+            let cloud = rng.randf_range(0.76, 0.90);
+            let hum = rng.randf_range(0.80, 0.90);
+            let target_wb = rng.randf_range(2.2, 4.4);
+            let deck_temp_anom = solve_temp_anomaly_for_wet_bulb(
+                season,
+                ref_altitude_m,
+                geom.center_altitude_m,
+                base_abs_seconds,
+                season.lapse_rate_front_c_per_km,
+                hum,
+                target_wb,
+            );
+            let pre_s = rng.randf_range(1500.0, 2400.0) as f64;
+            let post_s = rng.randf_range(2100.0, 3600.0) as f64;
+            let peak_shift_s = rng.randf_range(-180.0, 480.0) as f64;
+            let ep = SectorEpisode {
+                t_start_s: (base_abs_seconds - pre_s).max(window_start_s + 120.0),
+                t_peak_s: base_abs_seconds + peak_shift_s,
+                t_end_s: (base_abs_seconds + post_s).min(window_end_s - 60.0),
+                peak_precip_mm_h: (rng.randf_range(0.55, 1.05) * oro_boost).clamp(0.45, 1.15),
+                cloud_boost: rng.randf_range(0.03, 0.06),
+                humidity_boost: rng.randf_range(0.03, 0.06),
+                temp_anomaly_c: 0.0,
+                wind_m_s: (base_wind_spd * 1.05).clamp(2.0, 12.0),
+                wind_dir_deg: base_wind_dir,
+            };
+            let fog = lerpf(rng.randf_range(0.0020, 0.0028), rng.randf_range(0.0028, 0.0038), mist);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[ep],
+                cloud,
+                hum,
+                deck_temp_anom,
+                fog,
+                base_wind_spd,
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::Drizzle => {
+            // Active light rain with 35..53 min pre-wetting so puddles form reliably even on asphalt.
+            let cloud = rng.randf_range(0.78, 0.90);
+            let hum = rng.randf_range(0.82, 0.91);
+            let target_wb = rng.randf_range(2.2, 4.2);
+            let deck_temp_anom = solve_temp_anomaly_for_wet_bulb(
+                season,
+                ref_altitude_m,
+                geom.center_altitude_m,
+                base_abs_seconds,
+                season.lapse_rate_front_c_per_km,
+                hum,
+                target_wb,
+            );
+            let pre_s = rng.randf_range(2200.0, 3200.0) as f64;
+            let post_s = rng.randf_range(2400.0, 4200.0) as f64;
+            let peak_shift_s = rng.randf_range(-240.0, 600.0) as f64;
+            let ep = SectorEpisode {
+                t_start_s: (base_abs_seconds - pre_s).max(window_start_s + 120.0),
+                t_peak_s: base_abs_seconds + peak_shift_s,
+                t_end_s: (base_abs_seconds + post_s).min(window_end_s - 60.0),
+                peak_precip_mm_h: (rng.randf_range(1.8, 2.8) * oro_boost).clamp(1.6, 3.2),
+                cloud_boost: rng.randf_range(0.04, 0.08),
+                humidity_boost: rng.randf_range(0.04, 0.08),
+                temp_anomaly_c: 0.0,
+                wind_m_s: (base_wind_spd * 1.10).clamp(2.5, 13.0),
+                wind_dir_deg: base_wind_dir,
+            };
+            let fog = lerpf(rng.randf_range(0.0022, 0.0030), rng.randf_range(0.0030, 0.0038), mist);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[ep],
+                cloud,
+                hum,
+                deck_temp_anom,
+                fog,
+                base_wind_spd,
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::ModerateHeavyRain => {
+            // Sustained moderate-to-heavy liquid rain front.
+            let cloud = rng.randf_range(0.86, 0.96);
+            let hum = rng.randf_range(0.88, 0.95);
+            let target_wb = rng.randf_range(2.2, 4.0);
+            let deck_temp_anom = solve_temp_anomaly_for_wet_bulb(
+                season,
+                ref_altitude_m,
+                geom.center_altitude_m,
+                base_abs_seconds,
+                season.lapse_rate_front_c_per_km,
+                hum,
+                target_wb,
+            );
+            let pre_s = rng.randf_range(2700.0, 4500.0) as f64;
+            let post_s = rng.randf_range(2700.0, 4500.0) as f64;
+            let peak_shift_s = rng.randf_range(-360.0, 900.0) as f64;
+            let ep = SectorEpisode {
+                t_start_s: (base_abs_seconds - pre_s).max(window_start_s + 120.0),
+                t_peak_s: base_abs_seconds + peak_shift_s,
+                t_end_s: (base_abs_seconds + post_s).min(window_end_s - 60.0),
+                peak_precip_mm_h: (rng.randf_range(4.8, 9.2) * oro_boost).clamp(4.4, 10.5),
+                cloud_boost: rng.randf_range(0.04, 0.08),
+                humidity_boost: rng.randf_range(0.02, 0.05),
+                temp_anomaly_c: 0.0,
+                wind_m_s: (base_wind_spd * 1.25).clamp(3.5, 16.0),
+                wind_dir_deg: base_wind_dir,
+            };
+            let fog = rng.randf_range(0.0028, 0.0038);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[ep],
+                cloud,
+                hum,
+                deck_temp_anom,
+                fog,
+                base_wind_spd,
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::HighlandSnowHail => {
+            // Cold high-altitude moderate-to-heavy snow/hail storm: always closed sky (>=0.88),
+            // never drizzle, sticks cleanly on outer berms & central crown ridge.
+            let cloud = rng.randf_range(0.89, 0.98);
+            let hum = rng.randf_range(0.88, 0.96);
+            let target_wb = rng.randf_range(-2.4, -1.0);
+            let deck_temp_anom = solve_temp_anomaly_for_wet_bulb(
+                season,
+                ref_altitude_m,
+                geom.center_altitude_m,
+                base_abs_seconds,
+                season.lapse_rate_front_c_per_km,
+                hum,
+                target_wb,
+            );
+            let pre_s = rng.randf_range(3300.0, 4800.0) as f64;
+            let post_s = rng.randf_range(2700.0, 4500.0) as f64;
+            let peak_shift_s = rng.randf_range(-300.0, 720.0) as f64;
+            let ep = SectorEpisode {
+                t_start_s: (base_abs_seconds - pre_s).max(window_start_s + 120.0),
+                t_peak_s: base_abs_seconds + peak_shift_s,
+                t_end_s: (base_abs_seconds + post_s).min(window_end_s - 60.0),
+                peak_precip_mm_h: (rng.randf_range(4.6, 7.6) * oro_boost).clamp(4.2, 8.6),
+                cloud_boost: rng.randf_range(0.03, 0.06),
+                humidity_boost: rng.randf_range(0.02, 0.04),
+                temp_anomaly_c: 0.0,
+                wind_m_s: (base_wind_spd * 1.30).clamp(4.5, 18.0),
+                wind_dir_deg: base_wind_dir,
+            };
+            let fog = rng.randf_range(0.0030, 0.0040);
+            build_marks_from_episodes_with_deck(
+                window_start_s,
+                window_end_s,
+                season,
+                &[ep],
+                cloud,
+                hum,
+                deck_temp_anom,
+                fog,
+                base_wind_spd,
+                base_wind_dir,
+            )
+        }
+        SectorWeatherState::Controlled => Vec::new(),
+    }
 }
 
 impl FiveSectorJourney {
@@ -3371,11 +4027,23 @@ impl FiveSectorJourney {
         base_abs_seconds: f64,
         regime: FiveSectorRegime,
     ) -> Self {
+        Self::build_with_boundaries(route, climate, event_seed, season_or_date, base_abs_seconds, regime, None)
+    }
+
+    pub fn build_with_boundaries(
+        route: RouteProfile,
+        climate: ClimateProfile,
+        event_seed: u64,
+        season_or_date: &str,
+        base_abs_seconds: f64,
+        regime: FiveSectorRegime,
+        custom_boundaries_m: Option<[f32; 5]>,
+    ) -> Self {
         let (season_key, season_ref) = climate.resolve_season(season_or_date);
         let season_id = season_key.to_string();
         let mut season = season_ref.clone();
         match regime {
-            FiveSectorRegime::Clear => season.background_cloud_cover = 0.10,
+            FiveSectorRegime::Clear => season.background_cloud_cover = 0.14,
             FiveSectorRegime::Cloudy => season.background_cloud_cover = 0.66,
             _ => {}
         }
@@ -3383,47 +4051,73 @@ impl FiveSectorJourney {
         // Day seed incorporates base_abs_seconds (NOT effective_abs_seconds or competitor slot).
         let base_day_tag = base_abs_seconds.round() as i64 as u64;
         let journey_seed = event_seed ^ base_day_tag.wrapping_mul(0x9E37_79B9_7F4A_7C15);
-        let climate_seed = derive_stream_seed(journey_seed, &route.track_id, FIVE_SECTOR_ALGO_VERSION, "five_sector_day_v1");
+        let climate_seed = derive_stream_seed(journey_seed, &route.track_id, FIVE_SECTOR_ALGO_VERSION, "four_sector_day_v3");
         let snow_mask_seed = derive_stream_seed(event_seed, &route.track_id, FIVE_SECTOR_ALGO_VERSION, "five_sector_snow_mask_v1") as u32;
         let ice_mask_seed = derive_stream_seed(event_seed, &route.track_id, FIVE_SECTOR_ALGO_VERSION, "five_sector_ice_mask_v1") as u32;
         let puddle_seed = derive_stream_seed(event_seed, &route.track_id, FIVE_SECTOR_ALGO_VERSION, "five_sector_puddles_v1");
 
-        let mut day_rng = Pcg32::seeded(derive_stream_seed(
-            journey_seed,
-            &route.track_id,
-            FIVE_SECTOR_ALGO_VERSION,
-            "five_sector_regime_v1",
-        ));
-        let is_dry_day = match regime {
-            FiveSectorRegime::Dry | FiveSectorRegime::Clear | FiveSectorRegime::Cloudy => true,
-            FiveSectorRegime::WetFront
-            | FiveSectorRegime::ControlledMixedAscent
-            | FiveSectorRegime::ControlledRefreeze
-            | FiveSectorRegime::ControlledTimingEpisode => false,
-            FiveSectorRegime::Auto => day_rng.randf() < season.dry_day_probability,
-        };
-
         let total = route.total_distance_m.max(1.0);
-        let boundaries_m: [f32; 6] = if let Some(b) = route.five_sector_boundaries_m {
+        let boundaries_m: [f32; 5] = if let Some(b) = custom_boundaries_m {
+            let mut out = [0.0_f32; 5];
+            let mut prev = 0.0_f32;
+            for i in 0..5 {
+                let clamped = if i == 0 {
+                    0.0
+                } else if i == 4 {
+                    total
+                } else {
+                    b[i].max(prev + 10.0).min(total - (4 - i) as f32 * 10.0)
+                };
+                out[i] = clamped;
+                prev = clamped;
+            }
+            out
+        } else if let Some(b) = route.five_sector_boundaries_m {
             b
         } else {
             let f = climate.five_sector_model.boundaries_fraction;
-            [
-                f[0] * total,
-                f[1] * total,
-                f[2] * total,
-                f[3] * total,
-                f[4] * total,
-                total,
-            ]
+            [f[0] * total, f[1] * total, f[2] * total, f[3] * total, total]
         };
 
-        let pre_start_s = (climate.five_sector_model.pre_start_hours as f64) * 3600.0;
-        let horizon_s = (climate.five_sector_model.race_horizon_hours as f64) * 3600.0;
+        let pre_start_s = (climate.five_sector_model.pre_start_hours.max(2.0) as f64) * 3600.0;
+        let horizon_s = (climate.five_sector_model.race_horizon_hours.max(1.5) as f64) * 3600.0;
         let window_start_abs_s = base_abs_seconds - pre_start_s;
         let window_end_abs_s = base_abs_seconds + horizon_s;
 
-        // Global episode templates before sector phase lag & orographic scaling.
+        // Compute 4 sector geometries first so the microclimate planner knows exact altitudes & grades.
+        let mut geoms: Vec<FiveSectorGeometry> = Vec::with_capacity(CLIMATE_SECTOR_COUNT);
+        for si in 0..CLIMATE_SECTOR_COUNT {
+            let start_m = boundaries_m[si];
+            let end_m = boundaries_m[si + 1];
+            let center_m = 0.5 * (start_m + end_m);
+            let rs = route.sample_at_progress(center_m);
+            let mut grade_sum = 0.0_f32;
+            let mut max_alt = rs.altitude_m;
+            for k in 0..9 {
+                let pm = lerpf(start_m, end_m, (k as f32) / 8.0);
+                let sp = route.sample_at_progress(pm);
+                grade_sum += sp.grade.abs();
+                max_alt = max_alt.max(sp.altitude_m);
+            }
+            let mean_abs_grade = grade_sum / 9.0;
+            let windward_factor = rs.grade.max(0.0).min(0.25) / 0.25;
+            let shade_factor = (1.0 - mean_abs_grade * 0.45).clamp(0.75, 1.0);
+            let drainage_scale = 1.0 + mean_abs_grade * climate.five_sector_model.slope_drainage_gain;
+            geoms.push(FiveSectorGeometry {
+                sector_index: si,
+                start_m,
+                end_m,
+                center_m,
+                center_shader_station_m: rs.shader_station_m,
+                center_altitude_m: rs.altitude_m,
+                max_altitude_m: max_alt,
+                mean_abs_grade,
+                shade_factor,
+                drainage_scale,
+                windward_factor,
+            });
+        }
+
         let mut atmo_rng = Pcg32::seeded(climate_seed);
         let base_wind_dir = if season.orographic_enabled {
             (season.prevailing_wind_dir_deg
@@ -3433,147 +4127,114 @@ impl FiveSectorJourney {
             60.0
         };
         let base_wind_spd = atmo_rng.randf_range(season.wind_speed_m_s_range[0], season.wind_speed_m_s_range[1]);
-        let lag_dir: f64 = if atmo_rng.randf() < 0.5 { 1.0 } else { -1.0 };
-        let lag_total_s = climate.five_sector_model.episode_lag_total_s as f64;
 
-        let mut global_episodes: Vec<SectorEpisode> = Vec::new();
-        match regime {
-            FiveSectorRegime::Dry | FiveSectorRegime::Clear | FiveSectorRegime::Cloudy => {}
-            FiveSectorRegime::ControlledTimingEpisode => {
-                // Controlled benchmark matching plan §3 example:
-                // starts at T_base - 5 min, sustains peak past T_base + 12 min, ends T_base + 17 min.
-                global_episodes.push(SectorEpisode {
-                    t_start_s: base_abs_seconds - 300.0,
-                    t_peak_s: base_abs_seconds + 600.0,
-                    t_end_s: base_abs_seconds + 1020.0,
-                    peak_precip_mm_h: 9.5,
-                    cloud_boost: 0.45,
-                    humidity_boost: 0.28,
-                    temp_anomaly_c: 2.8, // warm above freezing across route -> liquid rain/puddles
-                    wind_m_s: 4.5,
-                    wind_dir_deg: base_wind_dir,
-                });
-            }
-            FiveSectorRegime::ControlledMixedAscent | FiveSectorRegime::ControlledRefreeze => {}
-            FiveSectorRegime::WetFront => {
-                // Guaranteed pre-start wetting shower + active episode spanning base_abs_seconds.
-                global_episodes.push(SectorEpisode {
-                    t_start_s: base_abs_seconds - 4200.0,
-                    t_peak_s: base_abs_seconds - 1800.0,
-                    t_end_s: base_abs_seconds + 600.0,
-                    peak_precip_mm_h: season.sample_precip_mm_h(&mut atmo_rng).max(4.5),
-                    cloud_boost: atmo_rng.randf_range(season.front_cloud_boost_range[0], season.front_cloud_boost_range[1]),
-                    humidity_boost: atmo_rng.randf_range(season.front_humidity_boost_range[0], season.front_humidity_boost_range[1]),
-                    temp_anomaly_c: atmo_rng.randf_range(season.front_temp_anomaly_c_range[0], season.front_temp_anomaly_c_range[1]),
-                    wind_m_s: atmo_rng.randf_range(season.wind_speed_m_s_range[0], season.wind_speed_m_s_range[1]),
-                    wind_dir_deg: base_wind_dir,
-                });
-                global_episodes.push(SectorEpisode {
-                    t_start_s: base_abs_seconds - 900.0,
-                    t_peak_s: base_abs_seconds + 900.0,
-                    t_end_s: base_abs_seconds + 3000.0,
-                    peak_precip_mm_h: season.sample_precip_mm_h(&mut atmo_rng).max(4.8),
-                    cloud_boost: 0.48,
-                    humidity_boost: 0.25,
-                    temp_anomaly_c: atmo_rng.randf_range(season.front_temp_anomaly_c_range[0], season.front_temp_anomaly_c_range[1]),
-                    wind_m_s: atmo_rng.randf_range(season.wind_speed_m_s_range[0], season.wind_speed_m_s_range[1]),
-                    wind_dir_deg: base_wind_dir,
-                });
-            }
-            FiveSectorRegime::Auto => {
-                if !is_dry_day {
-                    let expected = season.front_frequency_per_day.max(0.5);
-                    let base_count = expected.floor() as i32;
-                    let frac = expected - (base_count as f32);
-                    let count = (base_count + if atmo_rng.randf() < frac { 1 } else { 0 }).clamp(1, 3);
-                    let usable_start = window_start_abs_s + 900.0;
-                    let usable_end = window_end_abs_s - 600.0;
-                    let usable_span = (usable_end - usable_start).max(1800.0);
-                    for ei in 0..count {
-                        let usable_f32 = usable_span as f32;
-                        let dur = atmo_rng.randf_range(
-                            season.front_duration_s_range[0].min(usable_f32 * 0.7),
-                            season.front_duration_s_range[1].min(usable_f32 * 0.9),
-                        ) as f64;
-                        let peak_t = usable_start
-                            + ((ei as f64 + 0.5) / (count as f64)) * usable_span
-                            + (atmo_rng.randf_range(-0.15, 0.15) as f64) * (usable_span / (count as f64));
-                        let half = 0.5 * dur;
-                        global_episodes.push(SectorEpisode {
-                            t_start_s: peak_t - half,
-                            t_peak_s: peak_t,
-                            t_end_s: peak_t + half,
-                            peak_precip_mm_h: season.sample_precip_mm_h(&mut atmo_rng),
-                            cloud_boost: atmo_rng.randf_range(season.front_cloud_boost_range[0], season.front_cloud_boost_range[1]),
-                            humidity_boost: atmo_rng.randf_range(season.front_humidity_boost_range[0], season.front_humidity_boost_range[1]),
-                            temp_anomaly_c: atmo_rng.randf_range(season.front_temp_anomaly_c_range[0], season.front_temp_anomaly_c_range[1]),
-                            wind_m_s: atmo_rng.randf_range(season.wind_speed_m_s_range[0], season.wind_speed_m_s_range[1]),
-                            wind_dir_deg: (base_wind_dir + atmo_rng.randf_range(-20.0, 20.0)).rem_euclid(360.0),
-                        });
-                    }
+        let planned_states = plan_four_sector_states(
+            &regime,
+            &season_id,
+            &geoms,
+            route.snow_transition_altitude_m,
+            &mut atmo_rng,
+        );
+        let is_dry_day = match regime {
+            FiveSectorRegime::ControlledTimingEpisode
+            | FiveSectorRegime::ControlledMixedAscent
+            | FiveSectorRegime::ControlledRefreeze => false,
+            _ => planned_states.iter().all(|s| {
+                matches!(
+                    s,
+                    SectorWeatherState::SunnyDry
+                        | SectorWeatherState::CloudyDry
+                        | SectorWeatherState::OvercastDry
+                )
+            }),
+        };
+
+        let base_hour = (base_abs_seconds / 3600.0).rem_euclid(24.0) as f32;
+        let mean_alt = geoms.iter().map(|g| g.center_altitude_m).sum::<f32>()
+            / (CLIMATE_SECTOR_COUNT as f32);
+        let mist_prob = match regime {
+            FiveSectorRegime::Mist => 1.0,
+            FiveSectorRegime::Dry | FiveSectorRegime::Clear => 0.0,
+            _ => {
+                let mut p = 0.32_f32;
+                if mean_alt >= 3800.0 {
+                    p += 0.16;
                 }
+                if !(9.5..=16.5).contains(&base_hour) {
+                    p += 0.12;
+                }
+                if season_id == "wet" {
+                    p += 0.08;
+                }
+                p.clamp(0.0, 0.72)
             }
-        }
-
-        let mut sectors = Vec::with_capacity(FIVE_SECTOR_COUNT);
-        for si in 0..FIVE_SECTOR_COUNT {
-            let start_m = boundaries_m[si];
-            let end_m = boundaries_m[si + 1];
-            let center_m = 0.5 * (start_m + end_m);
-            let rs = route.sample_at_progress(center_m);
-            let mut grade_sum = 0.0_f32;
-            for k in 0..5 {
-                let pm = lerpf(start_m, end_m, (k as f32 + 0.5) / 5.0);
-                grade_sum += route.sample_at_progress(pm).grade.abs();
+        };
+        let stage_mist_strength = if atmo_rng.randf() < mist_prob {
+            if matches!(regime, FiveSectorRegime::Mist) {
+                atmo_rng.randf_range(0.78, 1.0)
+            } else {
+                atmo_rng.randf_range(0.55, 1.0)
             }
-            let mean_abs_grade = grade_sum / 5.0;
-            let windward_factor = rs.grade.max(0.0).min(0.25) / 0.25;
-            let shade_factor = (1.0 - mean_abs_grade * 0.45).clamp(0.75, 1.0);
-            let drainage_scale = 1.0 + mean_abs_grade * climate.five_sector_model.slope_drainage_gain;
-            let geom = FiveSectorGeometry {
-                sector_index: si,
-                start_m,
-                end_m,
-                center_m,
-                center_shader_station_m: rs.shader_station_m,
-                center_altitude_m: rs.altitude_m,
-                mean_abs_grade,
-                shade_factor,
-                drainage_scale,
-                windward_factor,
-            };
+        } else {
+            0.0
+        };
 
-            let sector_episodes: Vec<SectorEpisode> = match regime {
+        let mut sectors = Vec::with_capacity(CLIMATE_SECTOR_COUNT);
+        for si in 0..CLIMATE_SECTOR_COUNT {
+            let geom = geoms[si].clone();
+            let weather_state = planned_states[si];
+            let marks = match regime {
+                FiveSectorRegime::ControlledTimingEpisode => {
+                    let ep = vec![SectorEpisode {
+                        t_start_s: base_abs_seconds - 300.0,
+                        t_peak_s: base_abs_seconds + 600.0,
+                        t_end_s: base_abs_seconds + 1020.0,
+                        peak_precip_mm_h: 9.5,
+                        cloud_boost: 0.45,
+                        humidity_boost: 0.28,
+                        temp_anomaly_c: 2.8,
+                        wind_m_s: 4.5,
+                        wind_dir_deg: base_wind_dir,
+                    }];
+                    build_marks_from_episodes(
+                        window_start_abs_s,
+                        window_end_abs_s,
+                        &season,
+                        &ep,
+                        base_wind_spd,
+                        base_wind_dir,
+                    )
+                }
                 FiveSectorRegime::ControlledMixedAscent => {
-                    let frac = (si as f32) / 4.0;
-                    if si == 0 {
+                    let frac = (si as f32) / 3.0;
+                    let sector_episodes = if si == 0 {
                         // Start: cold early snowfall that stops before T_base while clouds remain and road begins melting.
                         vec![
                             SectorEpisode {
-                                t_start_s: base_abs_seconds - 5400.0,
-                                t_peak_s: base_abs_seconds - 3300.0,
-                                t_end_s: base_abs_seconds - 1100.0,
-                                peak_precip_mm_h: 9.0,
-                                cloud_boost: 0.48,
+                                t_start_s: base_abs_seconds - 9600.0,
+                                t_peak_s: base_abs_seconds - 4800.0,
+                                t_end_s: base_abs_seconds - 1200.0,
+                                peak_precip_mm_h: 3.0,
+                                cloud_boost: 0.54,
                                 humidity_boost: 0.28,
-                                temp_anomaly_c: -6.2,
+                                temp_anomaly_c: -7.5,
                                 wind_m_s: 4.5,
                                 wind_dir_deg: base_wind_dir,
                             },
                             SectorEpisode {
-                                t_start_s: base_abs_seconds - 900.0,
-                                t_peak_s: base_abs_seconds + 300.0,
+                                t_start_s: base_abs_seconds - 1600.0,
+                                t_peak_s: base_abs_seconds + 200.0,
                                 t_end_s: base_abs_seconds + 1800.0,
                                 peak_precip_mm_h: 0.0,
                                 cloud_boost: 0.42,
                                 humidity_boost: 0.14,
-                                temp_anomaly_c: 0.6,
+                                temp_anomaly_c: 0.4,
                                 wind_m_s: 4.0,
                                 wind_dir_deg: base_wind_dir,
                             },
                         ]
                     } else if si <= 2 {
-                        // Mid ascent: warm liquid rainfall cleanly washing bare pavement.
+                        // Mid ascent (S1 & S2): warm liquid rainfall cleanly washing bare pavement.
                         vec![SectorEpisode {
                             t_start_s: base_abs_seconds - 1500.0,
                             t_peak_s: base_abs_seconds + 200.0,
@@ -3581,87 +4242,86 @@ impl FiveSectorJourney {
                             peak_precip_mm_h: 7.5,
                             cloud_boost: 0.48,
                             humidity_boost: 0.28,
-                            temp_anomaly_c: 1.8 - frac * 1.2,
+                            temp_anomaly_c: 2.2 - frac * 0.8,
                             wind_m_s: 5.5,
                             wind_dir_deg: base_wind_dir,
                         }]
                     } else {
-                        // Abra summit: cold active snowfall accumulating on carriageway lateral edges & central crown.
+                        // Abra summit (S3): cold active snowfall accumulating on carriageway lateral edges & central crown.
                         vec![SectorEpisode {
-                            t_start_s: base_abs_seconds - 4200.0,
+                            t_start_s: base_abs_seconds - 8400.0,
                             t_peak_s: base_abs_seconds - 600.0,
                             t_end_s: base_abs_seconds + 2400.0,
                             peak_precip_mm_h: 10.5,
-                            cloud_boost: 0.52,
+                            cloud_boost: 0.54,
                             humidity_boost: 0.30,
-                            temp_anomaly_c: -8.2,
+                            temp_anomaly_c: -8.5,
                             wind_m_s: 7.0,
                             wind_dir_deg: base_wind_dir,
                         }]
-                    }
+                    };
+                    build_marks_from_episodes(
+                        window_start_abs_s,
+                        window_end_abs_s,
+                        &season,
+                        &sector_episodes,
+                        base_wind_spd,
+                        base_wind_dir,
+                    )
                 }
                 FiveSectorRegime::ControlledRefreeze => {
-                    // Warm rain before T_base - 40 min, then overcast cold front freeze across T_base .. T_base + 30 min.
-                    vec![
+                    let sector_episodes = vec![
                         SectorEpisode {
-                            t_start_s: base_abs_seconds - 5400.0,
-                            t_peak_s: base_abs_seconds - 3600.0,
-                            t_end_s: base_abs_seconds - 2000.0,
-                            peak_precip_mm_h: 10.5,
-                            cloud_boost: 0.48,
-                            humidity_boost: 0.25,
-                            temp_anomaly_c: 5.0,
+                            t_start_s: base_abs_seconds - 8400.0,
+                            t_peak_s: base_abs_seconds - 3200.0,
+                            t_end_s: base_abs_seconds - 1800.0,
+                            peak_precip_mm_h: 11.0,
+                            cloud_boost: 0.54,
+                            humidity_boost: 0.28,
+                            temp_anomaly_c: 0.2,
                             wind_m_s: 3.5,
                             wind_dir_deg: base_wind_dir,
                         },
                         SectorEpisode {
-                            t_start_s: base_abs_seconds - 1800.0,
-                            t_peak_s: base_abs_seconds + 600.0,
+                            t_start_s: base_abs_seconds - 2200.0,
+                            t_peak_s: base_abs_seconds - 600.0,
                             t_end_s: base_abs_seconds + 3600.0,
                             peak_precip_mm_h: 0.0,
-                            cloud_boost: 0.55,
-                            humidity_boost: 0.22,
-                            temp_anomaly_c: -11.5,
-                            wind_m_s: 8.5,
+                            cloud_boost: 0.56,
+                            humidity_boost: 0.28,
+                            temp_anomaly_c: -14.5,
+                            wind_m_s: 11.0,
                             wind_dir_deg: base_wind_dir,
                         },
-                    ]
+                    ];
+                    build_marks_from_episodes(
+                        window_start_abs_s,
+                        window_end_abs_s,
+                        &season,
+                        &sector_episodes,
+                        base_wind_spd,
+                        base_wind_dir,
+                    )
                 }
-                FiveSectorRegime::ControlledTimingEpisode => global_episodes.clone(),
-                _ => {
-                    let offset_norm = (si as f64) / 4.0 - 0.5;
-                    let lag_s = offset_norm * lag_dir * lag_total_s;
-                    let oro_boost = if season.orographic_enabled {
-                        1.0 + season.orographic_precip_gain * windward_factor
-                    } else {
-                        1.0
-                    };
-                    global_episodes
-                        .iter()
-                        .map(|ep| SectorEpisode {
-                            t_start_s: ep.t_start_s + lag_s,
-                            t_peak_s: ep.t_peak_s + lag_s,
-                            t_end_s: ep.t_end_s + lag_s,
-                            peak_precip_mm_h: ep.peak_precip_mm_h * oro_boost,
-                            cloud_boost: ep.cloud_boost,
-                            humidity_boost: ep.humidity_boost,
-                            temp_anomaly_c: ep.temp_anomaly_c,
-                            wind_m_s: ep.wind_m_s,
-                            wind_dir_deg: ep.wind_dir_deg,
-                        })
-                        .collect()
-                }
+                _ => build_marks_for_sector_state(
+                    weather_state,
+                    &geom,
+                    &season,
+                    climate.reference_altitude_m,
+                    window_start_abs_s,
+                    window_end_abs_s,
+                    base_abs_seconds,
+                    base_wind_spd,
+                    base_wind_dir,
+                    stage_mist_strength,
+                    &mut atmo_rng,
+                ),
             };
-
-            let marks = build_marks_from_episodes(
-                window_start_abs_s,
-                window_end_abs_s,
-                &season,
-                &sector_episodes,
-                base_wind_spd,
-                base_wind_dir,
-            );
-            sectors.push(FiveSectorData { geom, marks });
+            sectors.push(FiveSectorData {
+                geom,
+                weather_state,
+                marks,
+            });
         }
 
         Self {
@@ -3752,7 +4412,10 @@ impl FiveSectorJourney {
             if p >= ca && p <= cb {
                 let span = (cb - ca).max(1e-3);
                 let t = ((p - ca) / span).clamp(0.0, 1.0);
-                return (k, k + 1, t);
+                // C2 quintic smootherstep: pure readable core around each sector center
+                // with a wide (~600-800 m) smooth fade-in / fade-out corridor across boundaries.
+                let w = smootherstep(0.0, 1.0, t);
+                return (k, k + 1, w);
             }
         }
         (n - 1, n - 1, 0.0)
@@ -3771,21 +4434,8 @@ impl FiveSectorJourney {
         let ref_temp = self.season.base_temp_c
             + diurnal_phase * (self.season.diurnal_amplitude_c * 0.5)
             + mark.temp_anomaly_c;
-        let mut air_c = ref_temp
+        let air_c = ref_temp
             - mark.lapse_rate_c_per_km * ((altitude_m - self.climate.reference_altitude_m) / 1000.0);
-        if !matches!(
-            self.regime,
-            FiveSectorRegime::ControlledMixedAscent | FiveSectorRegime::ControlledRefreeze
-        ) {
-            if let Some(transition_m) = self.route.snow_transition_altitude_m {
-                let front_weight = 0.9 * smoothstep(0.1, 0.8, mark.precip_base_mm_h);
-                // Anchor the wet-bulb transition during the front, retaining a share
-                // of the weather anomaly and tapering the adjustment as it dries.
-                let target_wet_bulb_c = 0.9 - (altitude_m - transition_m) * 0.025;
-                let wet_bulb_c = wet_bulb_celsius(air_c, mark.humidity);
-                air_c += front_weight * (target_wet_bulb_c - wet_bulb_c);
-            }
-        }
         let solar = solar_factor_for_hour(hour);
         let irr = if solar <= 0.0 {
             0.0
@@ -3831,6 +4481,7 @@ impl FiveSectorJourney {
             rain_mm_h,
             snow_mm_h,
             precip_kind,
+            fog_density: mark.fog_density,
             wind_m_s: mark.wind_m_s,
             wind_dir_deg: mark.wind_dir_deg,
         }
@@ -3882,8 +4533,9 @@ impl FiveSectorJourney {
         let max_substep = self.climate.five_sector_model.max_substep_s.max(30.0) as f64;
         let cut_t = effective_abs_seconds.clamp(self.window_start_abs_s, self.window_end_abs_s);
 
-        let mut sector_atmo = Vec::with_capacity(FIVE_SECTOR_COUNT);
-        let mut sector_surface = Vec::with_capacity(FIVE_SECTOR_COUNT);
+        let mut sector_atmo = Vec::with_capacity(self.sectors.len());
+        let mut sector_surface = Vec::with_capacity(self.sectors.len());
+        let basin_drainage_mm_h = self.climate.five_sector_model.basin_drainage_mm_h.max(0.2);
 
         for si in 0..self.sectors.len() {
             let s = &self.sectors[si];
@@ -3896,12 +4548,17 @@ impl FiveSectorJourney {
                 altitude_m: s.geom.center_altitude_m,
                 shade_factor: s.geom.shade_factor,
                 drainage_scale: s.geom.drainage_scale,
-                ground_c: atmo0.air_c + 1.5,
+                ground_c: if s.weather_state == SectorWeatherState::HighlandSnowHail {
+                    atmo0.air_c.min(0.0)
+                } else {
+                    atmo0.air_c + 1.5
+                },
                 water_mm: 0.0,
                 snow_mm: 0.0,
                 ice_mm: 0.0,
                 saturation: 0.0,
             };
+            let mut basin_water_mm = 0.0_f32;
             let mut audit = MassBalanceAudit::default();
             let mut last_precip_t: Option<f64> = None;
 
@@ -3950,14 +4607,16 @@ impl FiveSectorJourney {
                     let evap_heat_loss = evap_mm_h * 680.0;
                     let precip_heat = forcing.rain_mm_h * 1.16 * (cell.ground_c - forcing.air_c).max(0.0)
                         + forcing.snow_mm_h * (2.5 + 0.8 * (cell.ground_c - 0.5).max(0.0));
-                    let t_eq = (forcing.air_c + (solar_gain - evap_heat_loss - precip_heat) / conv_coeff).clamp(-25.0, 60.0);
+                    // Evaporative cooling cannot thermodynamically depress pavement below wet-bulb temperature.
+                    let min_phys_t_eq = forcing.wet_bulb_c.min(forcing.air_c) - 0.5;
+                    let t_eq = (forcing.air_c + (solar_gain - evap_heat_loss - precip_heat) / conv_coeff)
+                        .max(min_phys_t_eq)
+                        .clamp(-25.0, 60.0);
                     let cap_j_m2_k = (material.thermal_capacity_kj_m2_k * 1000.0).max(1000.0);
                     let tau_s = cap_j_m2_k / conv_coeff;
                     let decay = (-dt_f32 / tau_s).exp();
                     cell.ground_c = (t_eq + (cell.ground_c - t_eq) * decay).clamp(-25.0, 60.0);
 
-                    // Zero-thermal-delta pass through step_surface_cell by matching thermal equilibrium
-                    // (or apply moisture step directly with exact mass conservation).
                     let dt_h = dt_f32 / 3600.0;
                     let rain_in = (forcing.rain_mm_h * dt_h).max(0.0);
                     let snow_total_in = (forcing.snow_mm_h * dt_h).max(0.0);
@@ -3966,6 +4625,7 @@ impl FiveSectorJourney {
                     let snow_contact_melt = snow_total_in - snow_retained;
                     cell.snow_mm += snow_retained;
                     cell.water_mm += rain_in + snow_contact_melt;
+                    let mut basin_in = rain_in + snow_contact_melt;
 
                     if cell.ground_c > cfg.snow_melt_start_c && cell.snow_mm > 0.0 {
                         let band = smoothstep(
@@ -3979,7 +4639,9 @@ impl FiveSectorJourney {
                         let melt = pot.min(cell.snow_mm).max(0.0);
                         cell.snow_mm -= melt;
                         cell.water_mm += melt;
+                        basin_in += melt;
                     }
+                    let mut freeze_pot_mm = 0.0_f32;
                     if cell.ground_c > cfg.ice_melt_start_c && cell.ice_mm > 0.0 {
                         let band = smoothstep(
                             cfg.ice_melt_start_c,
@@ -3991,20 +4653,21 @@ impl FiveSectorJourney {
                         let melt = pot.min(cell.ice_mm).max(0.0);
                         cell.ice_mm -= melt;
                         cell.water_mm += melt;
-                    } else if cell.ground_c < cfg.freeze_below_c && cell.water_mm > 0.0 {
+                        basin_in += melt;
+                    } else if cell.ground_c < cfg.freeze_below_c && (cell.water_mm > 0.0 || basin_water_mm > 0.0) {
                         let band = smoothstep(
                             cfg.freeze_below_c,
                             cfg.freeze_below_c - cfg.freeze_band_c,
                             cell.ground_c,
                         );
                         let temp_drive = (cfg.freeze_below_c - cell.ground_c).max(0.0);
-                        let pot = cfg.freeze_rate_mm_h_per_c * temp_drive * (0.35 + 0.65 * band) * dt_h;
-                        let frozen = pot.min(cell.water_mm).max(0.0);
+                        freeze_pot_mm = cfg.freeze_rate_mm_h_per_c * temp_drive * (0.35 + 0.65 * band) * dt_h;
+                        let frozen = freeze_pot_mm.min(cell.water_mm).max(0.0);
                         cell.water_mm -= frozen;
                         cell.ice_mm += frozen;
                     }
 
-                    // Exact exponential drainage above capillary film over dt_h.
+                    // Exact exponential drainage above capillary film over dt_h (open carriageway film).
                     let drainable = (cell.water_mm - material.retention_film_mm).max(0.0);
                     let drain_out = if drainable > 0.0 {
                         let k_drain = (material.drainage_mm_h * cell.drainage_scale / 2.5).max(0.0);
@@ -4026,6 +4689,32 @@ impl FiveSectorJourney {
                     );
                     let evap_out = (evap_rate * dt_h).min(cell.water_mm).max(0.0);
                     cell.water_mm -= evap_out;
+
+                    // Independent puddle-basin reservoir: no capillary floor (drains cleanly to 0 when dry)
+                    // and slower basin drainage than open asphalt so light rain fills depressions realistically.
+                    basin_water_mm += basin_in;
+                    if freeze_pot_mm > 0.0 && basin_water_mm > 0.0 {
+                        let b_frozen = (freeze_pot_mm * 1.15).min(basin_water_mm).max(0.0);
+                        basin_water_mm -= b_frozen;
+                    }
+                    if basin_water_mm > 0.0 {
+                        let k_basin = basin_drainage_mm_h * (0.65 + 0.35 * cell.drainage_scale);
+                        let b_drain = (basin_water_mm * (1.0 - (-k_basin * dt_h).exp()))
+                            .min(basin_water_mm)
+                            .max(0.0);
+                        basin_water_mm -= b_drain;
+                        let b_evap_rate = compute_evap_mm_h(
+                            forcing.irradiance_w_m2,
+                            forcing.wind_m_s,
+                            forcing.humidity,
+                            cell.ground_c,
+                            basin_water_mm,
+                            &material,
+                        );
+                        let b_evap = (b_evap_rate * 0.28 * dt_h).min(basin_water_mm).max(0.0);
+                        basin_water_mm -= b_evap;
+                    }
+                    basin_water_mm = basin_water_mm.clamp(0.0, cfg.max_water_mm);
 
                     if material.porosity_saturation_scale > 0.0 {
                         let sat_delta = (rain_in + snow_contact_melt) * material.porosity_saturation_scale
@@ -4063,6 +4752,7 @@ impl FiveSectorJourney {
             sector_surface.push(SectorSurfaceState {
                 ground_c: cell.ground_c,
                 water_mm: cell.water_mm,
+                basin_water_mm,
                 snow_mm: cell.snow_mm,
                 ice_mm: cell.ice_mm,
                 saturation: cell.saturation,
@@ -4086,9 +4776,6 @@ impl FiveSectorJourney {
 
 impl FiveSectorSnapshot {
     pub fn sample_atmosphere_for_pass(&self, journey: &FiveSectorJourney, progress_m: f32) -> AtmosphereSample {
-        if journey.route.snow_transition_altitude_m.is_some() {
-            return journey.sample_route_at_time(progress_m, self.effective_abs_seconds);
-        }
         let rs = journey.route.sample_at_progress(progress_m);
         let (k0, k1, w) = journey.sector_blend_weights(progress_m);
         let a0 = &self.sector_atmo[k0];
@@ -4096,7 +4783,17 @@ impl FiveSectorSnapshot {
 
         let cloud = if k0 == k1 { a0.cloud_cover } else { lerpf(a0.cloud_cover, a1.cloud_cover, w) };
         let hum = if k0 == k1 { a0.humidity } else { lerpf(a0.humidity, a1.humidity, w) };
-        let precip_total = if k0 == k1 { a0.precip_total_mm_h } else { lerpf(a0.precip_total_mm_h, a1.precip_total_mm_h, w) };
+        // Blend rain and snow rates directly using the C2 smootherstep sector weight so
+        // Drizzle <-> HeavyRain and HeavyRain <-> HighlandSnowHail cross-fade smoothly
+        // without any abrupt weather wall or spontaneous snow in liquid-rain sectors.
+        let rain_mm_h = if k0 == k1 { a0.rain_mm_h } else { lerpf(a0.rain_mm_h, a1.rain_mm_h, w) };
+        let snow_mm_h = if k0 == k1 { a0.snow_mm_h } else { lerpf(a0.snow_mm_h, a1.snow_mm_h, w) };
+        let precip_total = (rain_mm_h + snow_mm_h).max(0.0);
+        let fog_density = if k0 == k1 {
+            a0.fog_density
+        } else {
+            lerpf(a0.fog_density, a1.fog_density, w)
+        };
         let wind_spd = if k0 == k1 { a0.wind_m_s } else { lerpf(a0.wind_m_s, a1.wind_m_s, w) };
         let wind_dir = if k0 == k1 { a0.wind_dir_deg } else { lerp_angle_deg(a0.wind_dir_deg, a1.wind_dir_deg, w) };
         let hour = a0.hour_of_day;
@@ -4119,25 +4816,17 @@ impl FiveSectorSnapshot {
             1060.0 * solar * cloud_att * alt_gain
         };
         let wet_bulb_c = wet_bulb_celsius(air_c, hum);
-        let (rain_mm_h, snow_mm_h, precip_kind) = if precip_total <= 0.01 {
-            (0.0, 0.0, PrecipKind::None)
+        let precip_kind = if precip_total <= 0.01 {
+            PrecipKind::None
         } else {
-            let snow_frac = 1.0
-                - smoothstep(
-                    journey.climate.wet_bulb_snow_below_c,
-                    journey.climate.wet_bulb_rain_above_c,
-                    wet_bulb_c,
-                );
-            let snow = precip_total * snow_frac;
-            let rain = precip_total - snow;
-            let kind = if snow_frac >= 0.85 {
+            let snow_frac = (snow_mm_h / precip_total).clamp(0.0, 1.0);
+            if snow_frac >= 0.85 {
                 PrecipKind::Snow
             } else if snow_frac <= 0.15 {
                 PrecipKind::Rain
             } else {
                 PrecipKind::Mixed
-            };
-            (rain, snow, kind)
+            }
         };
 
         AtmosphereSample {
@@ -4155,6 +4844,7 @@ impl FiveSectorSnapshot {
             rain_mm_h,
             snow_mm_h,
             precip_kind,
+            fog_density,
             wind_m_s: wind_spd,
             wind_dir_deg: wind_dir,
         }
@@ -4286,9 +4976,27 @@ impl FiveSectorSnapshot {
             snow_mm_h: a.snow_mm_h,
             precip_total_mm_h: a.precip_total_mm_h,
             precip_kind: a.precip_kind,
+            fog_density: a.fog_density,
             wind_m_s: a.wind_m_s,
             wind_dir_deg: a.wind_dir_deg,
         }
+    }
+
+    pub fn interpolate_basin_water_mm(&self, journey: &FiveSectorJourney, progress_m: f32) -> (f32, f32) {
+        let (k0, k1, w) = journey.sector_blend_weights(progress_m);
+        let s0 = &self.sector_surface[k0];
+        let s1 = &self.sector_surface[k1];
+        let basin = if k0 == k1 {
+            s0.basin_water_mm
+        } else {
+            lerpf(s0.basin_water_mm, s1.basin_water_mm, w)
+        };
+        let ice = if k0 == k1 {
+            s0.ice_mm
+        } else {
+            lerpf(s0.ice_mm, s1.ice_mm, w)
+        };
+        (basin.max(0.0), ice.max(0.0))
     }
 
     pub fn compute_puddle_fills(
@@ -4303,19 +5011,18 @@ impl FiveSectorSnapshot {
         let fsm = &journey.climate.five_sector_model;
         let mut out = Vec::with_capacity(count);
         for i in 0..count {
-            let (_gc, water_mm, _snow_mm, ice_mm, _sat, _st) =
-                self.interpolate_surface_columns_unmodulated(journey, distances[i]);
+            let (basin_water_mm, ice_mm) = self.interpolate_basin_water_mm(journey, distances[i]);
             let min_w = min_waters[i].max(0.01);
             let twi = twis[i].clamp(0.0, 1.5);
             let ret = retentions[i].max(0.1);
-            // Basin topography is applied once, independently of the surrounding road film.
-            let eff_water = water_mm * (fsm.puddle_twi_base + fsm.puddle_twi_gain * twi);
-            if eff_water <= min_w || water_mm <= 0.01 {
+            // Basin topography is applied once on free depression water (decoupled from road capillary film).
+            let eff_water = basin_water_mm * (fsm.puddle_twi_base + fsm.puddle_twi_gain * twi);
+            if eff_water <= min_w || basin_water_mm <= 0.01 {
                 out.push(0.0);
                 continue;
             }
             let liquid_frac = if ice_mm > 0.001 {
-                water_mm / (water_mm + ice_mm)
+                basin_water_mm / (basin_water_mm + ice_mm)
             } else {
                 1.0
             };
@@ -4365,6 +5072,65 @@ impl RustFiveSectorWeather {
         surface_type: GString,
         regime_override: GString,
     ) -> VarDictionary {
+        self.configure_and_precompute_internal(
+            climate_json,
+            route_json,
+            event_seed,
+            season_or_date,
+            base_abs_seconds,
+            effective_abs_seconds,
+            surface_type,
+            regime_override,
+            None,
+        )
+    }
+
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    pub fn configure_and_precompute_from_json_with_boundaries(
+        &mut self,
+        climate_json: GString,
+        route_json: GString,
+        event_seed: i64,
+        season_or_date: GString,
+        base_abs_seconds: f64,
+        effective_abs_seconds: f64,
+        surface_type: GString,
+        regime_override: GString,
+        sector_boundaries_m: PackedFloat32Array,
+    ) -> VarDictionary {
+        let sl = sector_boundaries_m.as_slice();
+        let custom = if sl.len() == 5 {
+            Some([sl[0], sl[1], sl[2], sl[3], sl[4]])
+        } else {
+            None
+        };
+        self.configure_and_precompute_internal(
+            climate_json,
+            route_json,
+            event_seed,
+            season_or_date,
+            base_abs_seconds,
+            effective_abs_seconds,
+            surface_type,
+            regime_override,
+            custom,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn configure_and_precompute_internal(
+        &mut self,
+        climate_json: GString,
+        route_json: GString,
+        event_seed: i64,
+        season_or_date: GString,
+        base_abs_seconds: f64,
+        effective_abs_seconds: f64,
+        surface_type: GString,
+        regime_override: GString,
+        custom_boundaries_m: Option<[f32; 5]>,
+    ) -> VarDictionary {
         let mut out = VarDictionary::new();
         self.last_error.clear();
         let climate = match ClimateProfile::from_json_str(&climate_json.to_string()) {
@@ -4387,13 +5153,14 @@ impl RustFiveSectorWeather {
         };
         let seed_u64 = event_seed as u64;
         let regime = FiveSectorRegime::from_str(&regime_override.to_string());
-        let journey = FiveSectorJourney::build(
+        let journey = FiveSectorJourney::build_with_boundaries(
             route,
             climate,
             seed_u64,
             &season_or_date.to_string(),
             base_abs_seconds,
             regime,
+            custom_boundaries_m,
         );
         let surface_str = surface_type.to_string();
         let snap = journey.build_snapshot_at(effective_abs_seconds, &surface_str);
@@ -4524,6 +5291,7 @@ impl RustFiveSectorWeather {
         let _ = out.insert("rain_mm_h", s.rain_mm_h);
         let _ = out.insert("snow_mm_h", s.snow_mm_h);
         let _ = out.insert("precip_kind", s.precip_kind.as_str());
+        let _ = out.insert("fog_density", s.fog_density);
         let _ = out.insert("wind_m_s", s.wind_m_s);
         let _ = out.insert("wind_direction_deg", s.wind_dir_deg);
         out
@@ -4567,6 +5335,7 @@ impl RustFiveSectorWeather {
         let _ = out.insert("snow_mm_h", s.snow_mm_h);
         let _ = out.insert("precip_total_mm_h", s.precip_total_mm_h);
         let _ = out.insert("precip_kind", s.precip_kind.as_str());
+        let _ = out.insert("fog_density", s.fog_density);
         let _ = out.insert("wind_m_s", s.wind_m_s);
         let _ = out.insert("wind_direction_deg", s.wind_dir_deg);
         out
@@ -4873,6 +5642,7 @@ impl RustFiveSectorWeather {
             let ss = &snap.sector_surface[si];
             let mut d = VarDictionary::new();
             let _ = d.insert("sector_index", si as i32);
+            let _ = d.insert("weather_state", sd.weather_state.as_str());
             let _ = d.insert("start_m", sd.geom.start_m);
             let _ = d.insert("end_m", sd.geom.end_m);
             let _ = d.insert("center_m", sd.geom.center_m);
@@ -4881,10 +5651,14 @@ impl RustFiveSectorWeather {
             let _ = d.insert("air_c", sa.air_c);
             let _ = d.insert("wet_bulb_c", sa.wet_bulb_c);
             let _ = d.insert("cloud_cover", sa.cloud_cover);
+            let _ = d.insert("fog_density", sa.fog_density);
+            let _ = d.insert("precip_total_mm_h", sa.precip_total_mm_h);
+            let _ = d.insert("precip_kind", sa.precip_kind.as_str());
             let _ = d.insert("rain_mm_h", sa.rain_mm_h);
             let _ = d.insert("snow_mm_h", sa.snow_mm_h);
             let _ = d.insert("ground_c", ss.ground_c);
             let _ = d.insert("water_mm", ss.water_mm);
+            let _ = d.insert("basin_water_mm", ss.basin_water_mm);
             let _ = d.insert("snow_mm", ss.snow_mm);
             let _ = d.insert("ice_mm", ss.ice_mm);
             let _ = d.insert("time_since_last_precip_s", ss.time_since_last_precip_s);
@@ -4900,14 +5674,15 @@ impl RustFiveSectorWeather {
             return out;
         };
         let mut packed = PackedFloat32Array::new();
-        packed.resize(snap.sector_surface.len() * 5);
+        packed.resize(snap.sector_surface.len() * 6);
         let sl = packed.as_mut_slice();
         for (i, ss) in snap.sector_surface.iter().enumerate() {
-            sl[i * 5] = ss.ground_c;
-            sl[i * 5 + 1] = ss.water_mm;
-            sl[i * 5 + 2] = ss.snow_mm;
-            sl[i * 5 + 3] = ss.ice_mm;
-            sl[i * 5 + 4] = ss.saturation;
+            sl[i * 6] = ss.ground_c;
+            sl[i * 6 + 1] = ss.water_mm;
+            sl[i * 6 + 2] = ss.snow_mm;
+            sl[i * 6 + 3] = ss.ice_mm;
+            sl[i * 6 + 4] = ss.saturation;
+            sl[i * 6 + 5] = ss.basin_water_mm;
         }
         let _ = out.insert("mode", "five_sector_snapshot");
         let _ = out.insert("effective_abs_seconds", snap.effective_abs_seconds);
@@ -4927,15 +5702,27 @@ impl RustFiveSectorWeather {
             return false;
         };
         let slice = packed.as_slice();
-        if slice.len() != snap.sector_surface.len() * 5 {
+        let n = snap.sector_surface.len();
+        if slice.len() == n * 6 {
+            for (i, ss) in snap.sector_surface.iter_mut().enumerate() {
+                ss.ground_c = slice[i * 6];
+                ss.water_mm = slice[i * 6 + 1].max(0.0);
+                ss.snow_mm = slice[i * 6 + 2].max(0.0);
+                ss.ice_mm = slice[i * 6 + 3].max(0.0);
+                ss.saturation = slice[i * 6 + 4].clamp(0.0, 1.0);
+                ss.basin_water_mm = slice[i * 6 + 5].max(0.0);
+            }
+        } else if slice.len() == n * 5 {
+            for (i, ss) in snap.sector_surface.iter_mut().enumerate() {
+                ss.ground_c = slice[i * 5];
+                ss.water_mm = slice[i * 5 + 1].max(0.0);
+                ss.snow_mm = slice[i * 5 + 2].max(0.0);
+                ss.ice_mm = slice[i * 5 + 3].max(0.0);
+                ss.saturation = slice[i * 5 + 4].clamp(0.0, 1.0);
+                ss.basin_water_mm = ss.water_mm;
+            }
+        } else {
             return false;
-        }
-        for (i, ss) in snap.sector_surface.iter_mut().enumerate() {
-            ss.ground_c = slice[i * 5];
-            ss.water_mm = slice[i * 5 + 1].max(0.0);
-            ss.snow_mm = slice[i * 5 + 2].max(0.0);
-            ss.ice_mm = slice[i * 5 + 3].max(0.0);
-            ss.saturation = slice[i * 5 + 4].clamp(0.0, 1.0);
         }
         if let Some(eff) = data.get("effective_abs_seconds").and_then(|v| v.try_to::<f64>().ok()) {
             snap.effective_abs_seconds = eff;
@@ -5172,6 +5959,7 @@ mod tests {
             } else {
                 PrecipKind::None
             },
+            fog_density: 0.0008,
             wind_m_s: 4.0,
             wind_dir_deg: 60.0,
         }
@@ -5529,14 +6317,14 @@ mod tests {
             base_s,
             FiveSectorRegime::Dry,
         );
-        assert_eq!(journey.sectors.len(), 5);
+        assert_eq!(journey.sectors.len(), 4);
         assert!(journey.is_dry_day);
         for s in &journey.sectors {
             assert!(s.marks.len() >= 5 && s.marks.len() <= 20);
         }
-        // Each sector on SS04 (6.19 km) is ~1.24 km.
+        // Each sector on SS04 (6.19 km) is ~1.55 km (4 equal sectors by default).
         let len0 = journey.sectors[0].geom.end_m - journey.sectors[0].geom.start_m;
-        assert!((len0 - 1239.0).abs() < 15.0);
+        assert!((len0 - 1548.7).abs() < 15.0);
 
         let snap = journey.build_snapshot_at(base_s, "asphalt");
         for progress_m in [0.0_f32, 1500.0, 3100.0, 4800.0, journey.route.total_distance_m] {
@@ -5625,7 +6413,13 @@ mod tests {
         let abra_crown_max = (0..12)
             .map(|k| snap.sample_surface_at(&journey, total * 0.86 + (k as f32) * 20.0, 0.0).snow_coverage)
             .fold(0.0_f32, f32::max);
-        assert!(s_low.snow_mm > 0.2 && s_low.ground_c > 0.15 && s_low.snow_coverage == 0.0);
+        assert!(
+            s_low.snow_mm > 0.2 && s_low.ground_c > 0.15 && s_low.snow_coverage == 0.0,
+            "s_low mismatch: snow_mm={} ground_c={} snow_cov={}",
+            s_low.snow_mm,
+            s_low.ground_c,
+            s_low.snow_coverage
+        );
         assert!(s_mid.rain_mm_h > 0.5 && s_mid.snow_mm <= 0.01);
         assert_eq!(s_abra_track.snow_coverage, 0.0);
         assert!(s_abra.snow_mm_h > 0.5 && abra_edge_max > 0.15 && abra_crown_max > 0.05);
@@ -5636,7 +6430,11 @@ mod tests {
         let s_post = j_ice.build_snapshot_at(base_s + 1200.0, "asphalt");
         let p_pre = s_pre.sample_surface_at(&j_ice, total * 0.85, 0.0);
         let p_post = s_post.sample_surface_at(&j_ice, total * 0.85, 0.0);
-        assert!(p_pre.water_mm > 0.3 && p_post.ice_mm > 0.1 && p_post.ice_coverage == 0.0 && p_post.water_mm < p_pre.water_mm);
+        assert!(
+            p_pre.water_mm > 0.3 && p_post.ice_mm > 0.1 && p_post.ice_coverage == 0.0 && p_post.water_mm < p_pre.water_mm,
+            "refreeze mismatch: pre=(w={},gc={}) post=(w={},ice={},gc={})",
+            p_pre.water_mm, p_pre.ground_c, p_post.water_mm, p_post.ice_mm, p_post.ground_c
+        );
         let fills_post = s_post.compute_puddle_fills(&j_ice, &[total * 0.85], &[1.3], &[0.65], &[1.2]);
         assert!(fills_post[0] < 0.25);
     }
@@ -5784,8 +6582,8 @@ mod tests {
         assert!(s_crest.water_mm < s_descent.water_mm && s_descent.water_mm < s_gentle.water_mm);
         assert!(s_gentle.water_mm < s_valley.water_mm && s_valley.water_mm < s_depr.water_mm);
 
-        // Continuity across sector boundaries (20% = ~1002.3m, 40% = ~2004.6m, 60% = ~3006.8m, 80% = ~4009.1m).
-        for frac in [0.2_f32, 0.4, 0.6, 0.8] {
+        // Continuity across 4-sector boundaries (25%, 50%, 75%).
+        for frac in [0.25_f32, 0.50, 0.75] {
             let b = route.total_distance_m * frac;
             let w_before = snap_wet.sample_surface_at(&j_wet, b - 2.0, 0.0).water_mm;
             let w_at = snap_wet.sample_surface_at(&j_wet, b, 0.0).water_mm;
@@ -5796,6 +6594,7 @@ mod tests {
         // The road film must not change the original procedural basin fill.
         for ss in &mut snap_wet.sector_surface {
             ss.water_mm = 0.70;
+            ss.basin_water_mm = 0.70;
         }
         let fill_with_prof = snap_wet.compute_puddle_fills(&j_wet, &[2539.6, 2360.2], &[1.5, 1.5], &[0.75, 0.75], &[1.2, 1.2]);
         let mut j_no_prof = j_wet.clone();
@@ -6049,5 +6848,340 @@ mod tests {
             "expected SS01 and SS02 lateral berm profiles to differ, got {:.1}%",
             diff_share * 100.0
         );
+    }
+
+    fn load_ss02_route() -> RouteProfile {
+        let ss02_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../game/assets/rally/cdi_stage2/climate_route_profile.json");
+        let ss02_txt = std::fs::read_to_string(&ss02_path).expect("read ss02 climate_route_profile.json");
+        RouteProfile::from_json_str(&ss02_txt).expect("parse ss02 route")
+    }
+
+    #[test]
+    fn four_sector_microclimate_plausibility_invariants_across_seeds() {
+        let (climate, ss04_route) = load_ss04_profiles();
+        let (_, ss01_route) = load_ss01_profiles();
+        let ss02_route = load_ss02_route();
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+
+        let mut seen_sunny = 0usize;
+        let mut seen_cloudy_dry = 0usize;
+        let mut seen_overcast_dry = 0usize;
+        let mut seen_dry_mist = 0usize;
+        let mut seen_damp = 0usize;
+        let mut seen_light_drizzle = 0usize;
+        let mut seen_drizzle = 0usize;
+        let mut seen_heavy = 0usize;
+        let mut seen_snow_ss04 = 0usize;
+        let mut seen_snow_ss01 = 0usize;
+
+        for seed in 1u64..=80 {
+            for season in ["dry", "transition", "wet"] {
+                for (stage_tag, route, surface) in [
+                    ("ss04", &ss04_route, "asphalt"),
+                    ("ss01", &ss01_route, "gravel"),
+                    ("ss02", &ss02_route, "gravel"),
+                ] {
+                    let j = FiveSectorJourney::build(
+                        route.clone(),
+                        climate.clone(),
+                        seed * 131 + 7,
+                        season,
+                        base_s,
+                        FiveSectorRegime::Auto,
+                    );
+                    assert_eq!(j.sectors.len(), 4);
+                    // Adjacency rule: max step <= 1 between consecutive sectors.
+                    for si in 0..3 {
+                        let da = j.sectors[si].weather_state.severity();
+                        let db = j.sectors[si + 1].weather_state.severity();
+                        assert!(
+                            (da - db).abs() <= 1,
+                            "seed={} season={} stage={}: jump S{}({:?}) -> S{}({:?})",
+                            seed,
+                            season,
+                            stage_tag,
+                            si,
+                            j.sectors[si].weather_state,
+                            si + 1,
+                            j.sectors[si + 1].weather_state
+                        );
+                    }
+                    let snap = j.build_snapshot_at(base_s, surface);
+                    for si in 0..4 {
+                        let st = j.sectors[si].weather_state;
+                        let atmo = &snap.sector_atmo[si];
+                        let surf = &snap.sector_surface[si];
+                        let c_m = j.sectors[si].geom.center_m;
+                        let fills = snap.compute_puddle_fills(&j, &[c_m], &[1.05], &[0.30], &[1.25]);
+                        let fill = fills[0];
+
+                        // Hard invariant 1: NEVER snow or puddles when sunny / lightly cloudy.
+                        if atmo.cloud_cover < 0.50 {
+                            assert_eq!(
+                                surf.snow_mm, 0.0,
+                                "sunny sector has snow: seed={} {} {} S{} cloud={} snow={}",
+                                seed, season, stage_tag, si, atmo.cloud_cover, surf.snow_mm
+                            );
+                            assert_eq!(
+                                fill, 0.0,
+                                "sunny sector has puddles: seed={} {} {} S{} cloud={} fill={}",
+                                seed, season, stage_tag, si, atmo.cloud_cover, fill
+                            );
+                        }
+
+                        match st {
+                            SectorWeatherState::SunnyDry => {
+                                seen_sunny += 1;
+                                assert!(atmo.cloud_cover <= 0.30);
+                                assert_eq!(atmo.precip_total_mm_h, 0.0);
+                                assert_eq!(surf.water_mm, 0.0);
+                                assert_eq!(surf.basin_water_mm, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert_eq!(fill, 0.0);
+                            }
+                            SectorWeatherState::CloudyDry => {
+                                seen_cloudy_dry += 1;
+                                assert!(atmo.cloud_cover >= 0.48);
+                                assert_eq!(atmo.precip_total_mm_h, 0.0);
+                                assert_eq!(surf.basin_water_mm, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert_eq!(fill, 0.0);
+                            }
+                            SectorWeatherState::OvercastDry => {
+                                seen_overcast_dry += 1;
+                                assert!(atmo.cloud_cover >= 0.78, "OvercastDry must be heavily overcast: {}", atmo.cloud_cover);
+                                assert_eq!(atmo.precip_total_mm_h, 0.0);
+                                assert_eq!(surf.basin_water_mm, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert_eq!(fill, 0.0);
+                                assert!(atmo.fog_density <= 0.0055, "Fog must stay moderate, never excessive: {}", atmo.fog_density);
+                                if atmo.fog_density >= 0.0028 {
+                                    seen_dry_mist += 1;
+                                }
+                            }
+                            SectorWeatherState::OvercastDamp => {
+                                seen_damp += 1;
+                                assert!(atmo.cloud_cover >= 0.68, "OvercastDamp must remain overcast: {}", atmo.cloud_cover);
+                                assert_eq!(atmo.precip_total_mm_h, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert!(
+                                    fill > 0.05,
+                                    "OvercastDamp must retain visible small puddles (seed={} season={} stage={} S{} fill={} basin={} water={} rain_in={} drain={} evap={} snow_in={} gc={} air={})",
+                                    seed, season, stage_tag, si, fill, surf.basin_water_mm, surf.water_mm, surf.audit.rain_in_mm, surf.audit.drain_out_mm, surf.audit.evap_out_mm, surf.audit.snow_in_mm, surf.ground_c, atmo.air_c
+                                );
+                            }
+                            SectorWeatherState::LightDrizzle => {
+                                seen_light_drizzle += 1;
+                                assert!(atmo.cloud_cover >= 0.74);
+                                assert!(
+                                    atmo.rain_mm_h >= 0.25 && atmo.rain_mm_h <= 1.35,
+                                    "LightDrizzle must be gentle garúa: {}",
+                                    atmo.rain_mm_h
+                                );
+                                assert_eq!(atmo.snow_mm_h, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                            }
+                            SectorWeatherState::Drizzle => {
+                                seen_drizzle += 1;
+                                assert!(atmo.cloud_cover >= 0.74);
+                                assert!(atmo.rain_mm_h >= 0.9, "Drizzle must have visible rain: {}", atmo.rain_mm_h);
+                                assert_eq!(atmo.snow_mm_h, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert!(fill > 0.10, "Drizzle must generate puddles even on asphalt (stage={} fill={})", stage_tag, fill);
+                            }
+                            SectorWeatherState::ModerateHeavyRain => {
+                                seen_heavy += 1;
+                                assert!(atmo.cloud_cover >= 0.84);
+                                assert!(atmo.rain_mm_h >= 3.2, "ModerateHeavyRain must have strong rain: {}", atmo.rain_mm_h);
+                                assert_eq!(atmo.snow_mm_h, 0.0);
+                                assert_eq!(surf.snow_mm, 0.0);
+                                assert!(fill > 0.45, "ModerateHeavyRain must generate deep puddles (stage={} fill={})", stage_tag, fill);
+                            }
+                            SectorWeatherState::HighlandSnowHail => {
+                                assert_ne!(stage_tag, "ss02", "SS02 (low altitude) must never generate snow/hail");
+                                assert!(atmo.cloud_cover >= 0.88, "Snow/hail requires closed sky: {}", atmo.cloud_cover);
+                                assert!(atmo.snow_mm_h >= 3.0, "Snow/hail requires moderate-to-heavy precip: {}", atmo.snow_mm_h);
+                                assert!(surf.snow_mm >= 1.0, "Snow/hail must accumulate snow on crown+edges: {}", surf.snow_mm);
+                                if stage_tag == "ss04" {
+                                    seen_snow_ss04 += 1;
+                                } else if stage_tag == "ss01" {
+                                    seen_snow_ss01 += 1;
+                                }
+                            }
+                            SectorWeatherState::Controlled => unreachable!(),
+                        }
+                    }
+                }
+            }
+        }
+
+        assert!(
+            seen_sunny > 0
+                && seen_cloudy_dry > 0
+                && seen_overcast_dry > 0
+                && seen_dry_mist > 0
+                && seen_damp > 0
+                && seen_light_drizzle > 0
+                && seen_drizzle > 0
+                && seen_heavy > 0,
+            "All intermediate states and dry mist must occur naturally: sunny={} cloudy={} overcast_dry={} dry_mist={} damp={} light_drizzle={} drizzle={} heavy={}",
+            seen_sunny,
+            seen_cloudy_dry,
+            seen_overcast_dry,
+            seen_dry_mist,
+            seen_damp,
+            seen_light_drizzle,
+            seen_drizzle,
+            seen_heavy
+        );
+        assert!(seen_snow_ss04 > 0 && seen_snow_ss01 > 0, "Both Ticlio (SS04) and Rajuntay (SS01) must produce cold summit snow/hail");
+    }
+
+    #[test]
+    fn cloudy_regime_tends_dry_with_optional_small_puddles_or_drizzle_only() {
+        let (climate, route) = load_ss04_profiles();
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+        let mut all_dry = 0usize;
+        let mut with_damp = 0usize;
+        let mut with_drizzle = 0usize;
+        for seed in 1u64..=120 {
+            let j = FiveSectorJourney::build(
+                route.clone(),
+                climate.clone(),
+                seed * 97 + 11,
+                "transition",
+                base_s,
+                FiveSectorRegime::Cloudy,
+            );
+            let mut has_damp = false;
+            let mut has_drizzle = false;
+            for s in &j.sectors {
+                assert!(
+                    matches!(
+                        s.weather_state,
+                        SectorWeatherState::CloudyDry
+                            | SectorWeatherState::OvercastDry
+                            | SectorWeatherState::OvercastDamp
+                            | SectorWeatherState::LightDrizzle
+                            | SectorWeatherState::Drizzle
+                    ),
+                    "Cloudy must never spawn SunnyDry, ModerateHeavyRain, or HighlandSnowHail (got {:?})",
+                    s.weather_state
+                );
+                if s.weather_state == SectorWeatherState::OvercastDamp {
+                    has_damp = true;
+                }
+                if matches!(s.weather_state, SectorWeatherState::LightDrizzle | SectorWeatherState::Drizzle) {
+                    has_drizzle = true;
+                }
+            }
+            if has_drizzle {
+                with_drizzle += 1;
+            } else if has_damp {
+                with_damp += 1;
+            } else {
+                all_dry += 1;
+            }
+        }
+        assert!(all_dry > with_damp + with_drizzle, "Cloudy must trend mostly dry: dry={} damp={} drizzle={}", all_dry, with_damp, with_drizzle);
+        assert!(with_damp > 0 && with_drizzle > 0, "Cloudy must occasionally spawn damp puddles ({}) and drizzle ({})", with_damp, with_drizzle);
+    }
+
+    #[test]
+    fn custom_split_boundaries_and_smooth_fade_between_microclimates() {
+        let (climate, route) = load_ss04_profiles();
+        let base_s = 9.0 * 3600.0 + 40.0 * 60.0;
+        // Exact SS04 split boundaries from cdi_stage4.json sector_lengths_km:
+        let splits = [0.0_f32, 1547.7324, 3098.6394, 4643.0018, route.total_distance_m];
+        let j = FiveSectorJourney::build_with_boundaries(
+            route.clone(),
+            climate,
+            19, // WetFront with multi-sector gradient
+            "transition",
+            base_s,
+            FiveSectorRegime::WetFront,
+            Some(splits),
+        );
+        assert_eq!(j.sectors.len(), 4);
+        assert!((j.sectors[0].geom.end_m - 1547.7324).abs() < 0.05);
+        assert!((j.sectors[1].geom.end_m - 3098.6394).abs() < 0.05);
+        assert!((j.sectors[2].geom.end_m - 4643.0018).abs() < 0.05);
+        assert!((j.sectors[3].geom.end_m - route.total_distance_m).abs() < 0.05);
+
+        // Verify no weather wall: sampling every 25 m along the stage has bounded per-step jumps
+        // in cloud_cover, rain_mm_h, snow_mm_h, and basin_water_mm.
+        let snap = j.build_snapshot_at(base_s, "asphalt");
+        let step_m = 25.0_f32;
+        let n_steps = (route.total_distance_m / step_m).floor() as usize;
+        let mut prev_a = snap.sample_atmosphere_for_pass(&j, 0.0);
+        let mut prev_b = snap.interpolate_basin_water_mm(&j, 0.0).0;
+        for k in 1..=n_steps {
+            let p = (k as f32 * step_m).min(route.total_distance_m);
+            let cur_a = snap.sample_atmosphere_for_pass(&j, p);
+            let cur_b = snap.interpolate_basin_water_mm(&j, p).0;
+            assert!(
+                (cur_a.cloud_cover - prev_a.cloud_cover).abs() < 0.03,
+                "cloud jump at {}m: {} -> {}",
+                p,
+                prev_a.cloud_cover,
+                cur_a.cloud_cover
+            );
+            assert!(
+                (cur_a.rain_mm_h - prev_a.rain_mm_h).abs() < 0.35,
+                "rain jump at {}m: {} -> {}",
+                p,
+                prev_a.rain_mm_h,
+                cur_a.rain_mm_h
+            );
+            assert!(
+                (cur_a.snow_mm_h - prev_a.snow_mm_h).abs() < 0.35,
+                "snow jump at {}m: {} -> {}",
+                p,
+                prev_a.snow_mm_h,
+                cur_a.snow_mm_h
+            );
+            assert!(
+                (cur_b - prev_b).abs() < 0.18,
+                "basin water jump at {}m: {} -> {}",
+                p,
+                prev_b,
+                cur_b
+            );
+            assert!(
+                (cur_a.fog_density - prev_a.fog_density).abs() < 0.00025,
+                "fog jump at {}m: {} -> {}",
+                p,
+                prev_a.fog_density,
+                cur_a.fog_density
+            );
+            prev_a = cur_a;
+            prev_b = cur_b;
+        }
+    }
+
+    #[test]
+    fn mist_regime_produces_dry_fog_without_rain() {
+        let (climate, route) = load_ss04_profiles();
+        let base_s = 7.0 * 3600.0 + 30.0 * 60.0;
+        let j = FiveSectorJourney::build(
+            route,
+            climate,
+            2026,
+            "transition",
+            base_s,
+            FiveSectorRegime::Mist,
+        );
+        let snap = j.build_snapshot_at(base_s, "asphalt");
+        let mut misty_dry_sectors = 0usize;
+        for si in 0..4 {
+            let atmo = &snap.sector_atmo[si];
+            assert_eq!(atmo.precip_total_mm_h, 0.0, "Mist regime must have zero active rain/snow");
+            assert!(atmo.fog_density <= 0.0055, "Mist fog must never be exaggerated: {}", atmo.fog_density);
+            if atmo.fog_density >= 0.0028 {
+                misty_dry_sectors += 1;
+            }
+        }
+        assert!(misty_dry_sectors >= 3, "Mist regime must produce genuine dry fog across stage (got {} sectors)", misty_dry_sectors);
     }
 }
