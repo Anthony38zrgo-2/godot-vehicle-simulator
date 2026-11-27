@@ -15,7 +15,7 @@
   },
   "profile_json_sha256": {
     "chassis.json": "a863b46e345bdfa1d41003d0e44210dea8d22e5dc6002a456ab7d5079a72cee7",
-    "powertrain.json": "26b8382d61e6d0b6474080b4082355441559825d8bf5bf664af5f91cd2e8b8b8",
+    "powertrain.json": "26b1ae82ca9904056d3401d0a8ebd5dfa032aefdf4a4233738dce2daf8c7c20d",
     "tires.json": "78318442260235a798c6eb4705862e64dc55365b65510b74c9efcc08dc33c96c",
     "vehicle.json": "d8e4622728be79deb79b5412f09ee0b58bb0a47c6d559634df5f5d5a6a8a7bd9"
   }

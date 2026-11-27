@@ -73,6 +73,11 @@ var mass_state: Dictionary = { }
 var maximum_substep_seconds: float = 0.002
 var configured_substeps_per_tick: int = 0
 var configured_substep_hz: int = 120
+var configured_powertrain_hz: int = 240
+var _powertrain_step_samples: int = 0
+var _powertrain_tire_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _powertrain_brake_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _powertrain_spin_damp_acc: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _tire_thermal_elapsed := 0.0
 # Friction, brake and radial damping work, in joules per wheel.
 var _wheel_thermal_work: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
@@ -218,6 +223,10 @@ func configure(asset_document: Dictionary, manifest_path: String = PROFILE_PATH)
 		"substep_frequency_hz",
 		coupled.get("physical_frequency_hertz", 0)
 	))
+	configured_powertrain_hz = maxi(
+		1,
+		int(coupled.get("powertrain_frequency_hz", 240)),
+	)
 
 	# 2. Respaldo legado solo si el JSON viejo no define enteros
 	if configured_substeps_per_tick <= 0 and configured_substep_hz <= 0:
@@ -1639,6 +1648,10 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 	var acc_geo_transfer_imp := Vector4.ZERO
 	var acc_rc_heights := Vector4.ZERO
 	_tire_thermal_elapsed += dt
+	var effective_substep_hz := 1.0 / maxf(h, 0.0001)
+	var pt_substeps := maxi(1, roundi(float(configured_powertrain_hz) / effective_substep_hz))
+	var pt_stride := maxi(1, roundi(effective_substep_hz / maxf(float(configured_powertrain_hz), 1.0))) if float(configured_powertrain_hz) < effective_substep_hz else 1
+	var h_pt := (h / float(pt_substeps)) if pt_substeps > 1 else (h * float(pt_stride))
 	for _substep_index in count:
 		var pred_V: Vector3 = unsprung_rig.V_pred
 		var pred_R: Basis = unsprung_rig.R_pred
@@ -1672,7 +1685,6 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 				T_body += (world_off - com_off).cross(Fw)
 		unsprung_rig.begin_substep(h, suspension_model, F_body, T_body)
 		unsprung_rig.solve_normal(h)
-		_prepare_powertrain(h, inputs)
 		if steering_rack_enabled:
 			_step_steering_rack_1dof(h, float(inputs.get("steering", 0.0)), _last_front_road_torque_nm)
 		var tire_reactions: Array[float] = [0.0, 0.0, 0.0, 0.0]
@@ -1911,19 +1923,80 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		unsprung_rig.apply_tangential(J_tang)
 		unsprung_rig.solve_hard_stops(h)
 		unsprung_rig.end_substep(h)
-		var rotation := powertrain_model.solve_rotation(
-			h,
-			wheel_spins,
-			mass_model.wheel_spin_inertia,
-			tire_reactions,
-			brake_torques,
-			spin_damping,
-		)
-		var engine_overrev_dmg := float(rotation.get("engine_overrev_damage", 0.0))
-		if engine_overrev_dmg > 0.0:
-			thermal_model.apply_damage(0.0, engine_overrev_dmg)
-		_engine_thermal_peak_rpm = maxf(_engine_thermal_peak_rpm, powertrain_model.engine_rpm)
-		var brake_work: Array = rotation.brake_work_j
+		var brake_work: Array = [0.0, 0.0, 0.0, 0.0]
+		if pt_substeps > 1 or pt_stride <= 1:
+			var inv_pt_sub := 1.0 / float(pt_substeps)
+			var pt_spin_damping: Array[float] = [
+				spin_damping[0] * inv_pt_sub,
+				spin_damping[1] * inv_pt_sub,
+				spin_damping[2] * inv_pt_sub,
+				spin_damping[3] * inv_pt_sub,
+			]
+			var chassis_omega_local := unsprung_rig.R_pred.transposed() * unsprung_rig.omega_pred
+			for _pt_i in pt_substeps:
+				_prepare_powertrain(h_pt, inputs)
+				var rotation := powertrain_model.solve_rotation(
+					h_pt,
+					wheel_spins,
+					mass_model.wheel_spin_inertia,
+					tire_reactions,
+					brake_torques,
+					pt_spin_damping,
+					chassis_omega_local,
+				)
+				var engine_overrev_dmg := float(rotation.get("engine_overrev_damage", 0.0))
+				if engine_overrev_dmg > 0.0:
+					thermal_model.apply_damage(0.0, engine_overrev_dmg)
+				_engine_thermal_peak_rpm = maxf(_engine_thermal_peak_rpm, powertrain_model.engine_rpm)
+				var step_bw: Array = rotation.brake_work_j
+				for i in 4:
+					brake_work[i] = float(brake_work[i]) + float(step_bw[i])
+		else:
+			for i in 4:
+				_powertrain_tire_acc[i] += tire_reactions[i]
+				_powertrain_brake_acc[i] += brake_torques[i]
+				_powertrain_spin_damp_acc[i] += spin_damping[i]
+			_powertrain_step_samples += 1
+			if _powertrain_step_samples >= pt_stride:
+				var inv_pt_samples := 1.0 / float(_powertrain_step_samples)
+				var pt_tire_reactions: Array[float] = [
+					_powertrain_tire_acc[0] * inv_pt_samples,
+					_powertrain_tire_acc[1] * inv_pt_samples,
+					_powertrain_tire_acc[2] * inv_pt_samples,
+					_powertrain_tire_acc[3] * inv_pt_samples,
+				]
+				var pt_brake_torques: Array[float] = [
+					_powertrain_brake_acc[0] * inv_pt_samples,
+					_powertrain_brake_acc[1] * inv_pt_samples,
+					_powertrain_brake_acc[2] * inv_pt_samples,
+					_powertrain_brake_acc[3] * inv_pt_samples,
+				]
+				var pt_spin_damping: Array[float] = [
+					_powertrain_spin_damp_acc[0],
+					_powertrain_spin_damp_acc[1],
+					_powertrain_spin_damp_acc[2],
+					_powertrain_spin_damp_acc[3],
+				]
+				_powertrain_tire_acc.fill(0.0)
+				_powertrain_brake_acc.fill(0.0)
+				_powertrain_spin_damp_acc.fill(0.0)
+				_powertrain_step_samples = 0
+				_prepare_powertrain(h_pt, inputs)
+				var chassis_omega_local := unsprung_rig.R_pred.transposed() * unsprung_rig.omega_pred
+				var rotation := powertrain_model.solve_rotation(
+					h_pt,
+					wheel_spins,
+					mass_model.wheel_spin_inertia,
+					pt_tire_reactions,
+					pt_brake_torques,
+					pt_spin_damping,
+					chassis_omega_local,
+				)
+				var engine_overrev_dmg := float(rotation.get("engine_overrev_damage", 0.0))
+				if engine_overrev_dmg > 0.0:
+					thermal_model.apply_damage(0.0, engine_overrev_dmg)
+				_engine_thermal_peak_rpm = maxf(_engine_thermal_peak_rpm, powertrain_model.engine_rpm)
+				brake_work = rotation.brake_work_j
 		for i in 4:
 			wheel_rotation_angles[i] = fposmod(wheel_rotation_angles[i] + wheel_spins[i] * h, TAU)
 			var radial_power := unsprung_rig.s_diss[i] if float(unsprung_rig.s_Fz[i]) > 0.0 else 0.0
@@ -2056,6 +2129,7 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"missgear_intensity": powertrain_model.missgear_intensity,
 		"missgear_event": powertrain_model.consume_missgear_event(),
 		"torque_nm": powertrain_model.engine_torque_nm,
+		"manifold_fill": powertrain_model.manifold_fill,
 		"autoblip_active": powertrain_model.autoblip_active,
 		"autoblip_target_rpm": powertrain_model.autoblip_target_rpm,
 		"autoblip_throttle": powertrain_model.autoblip_throttle,
@@ -2067,8 +2141,13 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 		"shift_phase": powertrain_model.shift_phase,
 		"pending_gear": powertrain_model.pending_gear,
 		"clutch_engagement": powertrain_model.clutch_engagement,
+		"clutch_bite": powertrain_model.clutch_bite,
+		"clutch_slip_rad_s": powertrain_model.clutch_slip_rad_s,
 		"clutch_torque_nm": powertrain_model.clutch_torque_nm,
 		"clutch_slip_power_w": powertrain_model.clutch_slip_power_w,
+		"clutch_damper_twist_deg": powertrain_model.clutch_damper_twist_deg,
+		"clutch_damper_torque_nm": powertrain_model.clutch_damper_torque_nm,
+		"clutch_damper_at_stop": powertrain_model.clutch_damper_at_stop,
 		"input_shaft_rad_s": powertrain_model.input_shaft_omega_rad_s,
 		"driveline": {
 			"enabled": powertrain_model.driveline_compliance_enabled,
@@ -2083,6 +2162,8 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"backlash_impact_rad_s": powertrain_model.driveline_backlash_impact_rad_s,
 			"chassis_reaction_enabled": powertrain_model.chassis_reaction_enabled,
 			"chassis_reaction_torque_local_nm": powertrain_model.chassis_reaction_torque_local_nm,
+			"engine_roll_deg": powertrain_model.engine_roll_deg,
+			"engine_pitch_deg": powertrain_model.engine_pitch_deg,
 		},
 		"load": clampf(
 			absf(powertrain_model.engine_torque_nm) / maxf(powertrain_model.peak_torque_nm, 1.0),
@@ -2127,16 +2208,25 @@ func step(body: RigidBody3D, state: PhysicsDirectBodyState3D, inputs: Dictionary
 			"lsd_capacity_nm": powertrain_model.last_lsd_capacity_nm,
 			"lsd_torque_nm": powertrain_model.last_lsd_torque_nm,
 			"lsd_saturation": powertrain_model.last_lsd_saturation,
+			"lsd_filtered_torque_nm": powertrain_model.last_lsd_filtered_torque_nm,
+			"lsd_blend": powertrain_model.last_lsd_blend,
+			"lsd_lock_twist_rad": powertrain_model.last_lsd_lock_twist_rad,
 			"front_type": powertrain_model.front_differential_type,
 			"front_diff_speed_rad_s": powertrain_model.last_front_diff_speed_rad_s,
 			"front_lsd_capacity_nm": powertrain_model.last_front_lsd_capacity_nm,
 			"front_lsd_torque_nm": powertrain_model.last_front_lsd_torque_nm,
 			"front_lsd_saturation": powertrain_model.last_front_lsd_saturation,
+			"front_lsd_filtered_torque_nm": powertrain_model.last_front_lsd_filtered_torque_nm,
+			"front_lsd_blend": powertrain_model.last_front_lsd_blend,
+			"front_lsd_lock_twist_rad": powertrain_model.last_front_lsd_lock_twist_rad,
 			"rear_type": powertrain_model.rear_differential_type,
 			"rear_diff_speed_rad_s": powertrain_model.last_rear_diff_speed_rad_s,
 			"rear_lsd_capacity_nm": powertrain_model.last_rear_lsd_capacity_nm,
 			"rear_lsd_torque_nm": powertrain_model.last_rear_lsd_torque_nm,
 			"rear_lsd_saturation": powertrain_model.last_rear_lsd_saturation,
+			"rear_lsd_filtered_torque_nm": powertrain_model.last_rear_lsd_filtered_torque_nm,
+			"rear_lsd_blend": powertrain_model.last_rear_lsd_blend,
+			"rear_lsd_lock_twist_rad": powertrain_model.last_rear_lsd_lock_twist_rad,
 		},
 	}
 
@@ -2472,6 +2562,10 @@ func reset_dynamics() -> void:
 	_wheel_thermal_work.fill(Vector3.ZERO)
 	_engine_thermal_elapsed = 0.0
 	_engine_thermal_inputs = Vector4.ZERO
+	_powertrain_step_samples = 0
+	_powertrain_tire_acc.fill(0.0)
+	_powertrain_brake_acc.fill(0.0)
+	_powertrain_spin_damp_acc.fill(0.0)
 	if is_instance_valid(unsprung_rig.chassis):
 		unsprung_rig.reset_at(unsprung_rig.chassis.global_transform, suspension_model)
 	else:

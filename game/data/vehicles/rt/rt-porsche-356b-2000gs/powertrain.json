@@ -18,7 +18,7 @@
       "wheel_spin_weight": 0.6
     },
     "automatic_transmission": false,
-    "clutch_release_seconds": 0.15,
+    "clutch_release_seconds": 0.04,
     "clutch_reengage_seconds": 0.15,
     "synchronizer_capacity_nm": 32.0,
     "synchronizer_tolerance_rad_s": 0.12,
@@ -33,7 +33,15 @@
       "slip_transition_threshold_rad_s": 4.0,
       "lock_pct_power": 35.0,
       "lock_pct_coast": 25.0,
-      "coast_friction_coefficient": 0.08
+      "coast_friction_coefficient": 0.08,
+      "lock_stiffness_nm_per_rad": 4200.0,
+      "lock_damping_ratio": 0.65,
+      "pressure_tau_s": 0.028,
+      "release_tau_s": 0.045,
+      "blend_band_fraction": 0.08,
+      "blend_band_nm": 35.0,
+      "static_friction_factor": 0.9,
+      "slip_reference_rad_s": 2.0
     },
     "downshift_blip_torque_fraction": 0.8,
     "downshift_blip_response_seconds": 0.04,
@@ -44,11 +52,15 @@
     "downshift_rev_matching_enabled": false,
     "driveline_compliance": {
       "enabled": true,
-      "output_inertia_kg_m2": 0.2,
-      "stiffness_nm_per_rad": 8500.0,
-      "damping_nms_per_rad": 130.0,
+      "output_inertia_kg_m2": 0.18,
+      "stiffness_nm_per_rad": 14000.0,
+      "damping_nms_per_rad": 180.0,
       "backlash_rad": 0.03,
-      "backlash_damping_ratio": 0.04
+      "backlash_damping_ratio": 0.04,
+      "contact_soft_zone_rad": 0.006,
+      "contact_restitution": 0.28,
+      "end_stop_margin": 1.5,
+      "end_stop_stiffness_factor": 8.0
     },
     "chassis_reaction": {
       "enabled": true,
@@ -56,7 +68,15 @@
       "crank_spin_sign": 1.0,
       "reaction_scale": 1.0,
       "mount_tau_s": 0.02,
-      "driveshaft_roll_fraction": 0.0
+      "driveshaft_roll_fraction": 0.0,
+      "mount_model": "second_order",
+      "roll_inertia_kg_m2": 2.6,
+      "pitch_inertia_kg_m2": 4.2,
+      "mount_frequency_hz": 9.5,
+      "mount_damping_ratio": 0.2,
+      "snubber_angle_deg": 6.0,
+      "snubber_stiffness_factor": 6.0,
+      "transaxle_pitch_fraction": 1.0
     },
     "final_drive": 4.428,
     "front_torque_split": 0.0,
@@ -180,6 +200,34 @@
     ],
     "variable_drag_ratio": 0.038,
     "final_drive_gravel": 4.428,
-    "final_drive_tarmac": 4.428
+    "final_drive_tarmac": 4.428,
+    "clutch": {
+      "bite_start": 0.23,
+      "bite_full": 0.75,
+      "bite_exponent": 1.35,
+      "takeup_seconds": 0.045,
+      "friction_zone_seconds": 0.26,
+      "slip_time_gain": 0.5,
+      "mu_static_ratio": 1.12,
+      "static_slip_rad_s": 3.0,
+      "damper": {
+        "enabled": true,
+        "disc_inertia_kg_m2": 0.005,
+        "idle_stiffness_nm_per_rad": 160.0,
+        "idle_travel_deg": 2.5,
+        "main_stiffness_nm_per_rad": 860.0,
+        "travel_deg": 10.0,
+        "stop_stiffness_factor": 15.0,
+        "hysteresis_nm": 5.5,
+        "viscous_nms_per_rad": 1.7
+      }
+    },
+    "throttle_response": {
+      "tau_up_s": 0.05,
+      "tau_down_s": 0.07,
+      "rpm_reference": 3200.0,
+      "rpm_scale_min": 0.6,
+      "rpm_scale_max": 1.8
+    }
   }
 }

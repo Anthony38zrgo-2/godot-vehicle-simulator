@@ -70,7 +70,7 @@
     },
     "integration_owner": "rust_world_candidate",
     "maximum_initial_overlap_metres": 0.1,
-    "physical_frequency_hertz": 500,
+    "physical_frequency_hertz": 120,
     "road_query_extension_metres": 0.15,
     "schema_version": 1,
     "steering_rack_travel_metres": 0.04,
@@ -81,7 +81,8 @@
         "y": -9.80665,
         "z": 0
       },
-      "maximum_substep_seconds": 0.0028,
+      "substeps_per_tick": 1,
+      "substep_frequency_hz": 120,
       "tire_vertical_damping_newton_seconds_per_metre": [
         1100,
         1100,

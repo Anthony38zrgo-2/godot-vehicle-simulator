@@ -45,11 +45,15 @@
     "downshift_rev_matching_enabled": false,
     "driveline_compliance": {
       "enabled": true,
-      "output_inertia_kg_m2": 0.2,
-      "stiffness_nm_per_rad": 8500.0,
-      "damping_nms_per_rad": 130.0,
-      "backlash_rad": 0.04,
-      "backlash_damping_ratio": 0.04
+      "output_inertia_kg_m2": 0.3,
+      "stiffness_nm_per_rad": 18000.0,
+      "damping_nms_per_rad": 260.0,
+      "backlash_rad": 0.045,
+      "backlash_damping_ratio": 0.04,
+      "contact_soft_zone_rad": 0.01,
+      "contact_restitution": 0.35,
+      "end_stop_margin": 1.5,
+      "end_stop_stiffness_factor": 8.0
     },
     "chassis_reaction": {
       "enabled": true,
@@ -57,7 +61,15 @@
       "crank_spin_sign": 1.0,
       "reaction_scale": 1.0,
       "mount_tau_s": 0.022,
-      "driveshaft_roll_fraction": 0.3
+      "driveshaft_roll_fraction": 0.3,
+      "mount_model": "second_order",
+      "roll_inertia_kg_m2": 8.0,
+      "pitch_inertia_kg_m2": 11.5,
+      "mount_frequency_hz": 8.5,
+      "mount_damping_ratio": 0.25,
+      "snubber_angle_deg": 6.5,
+      "snubber_stiffness_factor": 6.0,
+      "transaxle_pitch_fraction": 0.0
     },
     "final_drive": 2.79,
     "front_torque_split": 0.0,
@@ -167,6 +179,34 @@
     "variable_drag_ratio": 0.038,
     "final_drive_gravel": 2.79,
     "final_drive_tarmac": 2.79,
-    "final_drive_preset": "gravel"
+    "final_drive_preset": "gravel",
+    "clutch": {
+      "bite_start": 0.25,
+      "bite_full": 0.77,
+      "bite_exponent": 1.4,
+      "takeup_seconds": 0.055,
+      "friction_zone_seconds": 0.38,
+      "slip_time_gain": 0.6,
+      "mu_static_ratio": 1.13,
+      "static_slip_rad_s": 3.2,
+      "damper": {
+        "enabled": true,
+        "disc_inertia_kg_m2": 0.01,
+        "idle_stiffness_nm_per_rad": 320.0,
+        "idle_travel_deg": 3.0,
+        "main_stiffness_nm_per_rad": 2500.0,
+        "travel_deg": 10.5,
+        "stop_stiffness_factor": 15.0,
+        "hysteresis_nm": 14.0,
+        "viscous_nms_per_rad": 3.0
+      }
+    },
+    "throttle_response": {
+      "tau_up_s": 0.1,
+      "tau_down_s": 0.14,
+      "rpm_reference": 2800.0,
+      "rpm_scale_min": 0.65,
+      "rpm_scale_max": 1.8
+    }
   }
 }

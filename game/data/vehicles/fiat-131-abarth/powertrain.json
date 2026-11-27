@@ -35,7 +35,15 @@
       "slip_transition_threshold_rad_s": 4.0,
       "lock_pct_power": 65.0,
       "lock_pct_coast": 30.0,
-      "coast_friction_coefficient": 0.09
+      "coast_friction_coefficient": 0.09,
+      "lock_stiffness_nm_per_rad": 3700.0,
+      "lock_damping_ratio": 0.7,
+      "pressure_tau_s": 0.03,
+      "release_tau_s": 0.05,
+      "blend_band_fraction": 0.08,
+      "blend_band_nm": 45.0,
+      "static_friction_factor": 0.9,
+      "slip_reference_rad_s": 2.0
     },
     "downshift_blip_torque_fraction": 0.82,
     "downshift_blip_response_seconds": 0.035,
@@ -47,10 +55,14 @@
     "driveline_compliance": {
       "enabled": true,
       "output_inertia_kg_m2": 0.22,
-      "stiffness_nm_per_rad": 9000.0,
-      "damping_nms_per_rad": 140.0,
+      "stiffness_nm_per_rad": 11500.0,
+      "damping_nms_per_rad": 185.0,
       "backlash_rad": 0.03,
-      "backlash_damping_ratio": 0.04
+      "backlash_damping_ratio": 0.04,
+      "contact_soft_zone_rad": 0.007,
+      "contact_restitution": 0.3,
+      "end_stop_margin": 1.5,
+      "end_stop_stiffness_factor": 8.0
     },
     "chassis_reaction": {
       "enabled": true,
@@ -58,7 +70,15 @@
       "crank_spin_sign": 1.0,
       "reaction_scale": 1.0,
       "mount_tau_s": 0.016,
-      "driveshaft_roll_fraction": 0.15
+      "driveshaft_roll_fraction": 0.15,
+      "mount_model": "second_order",
+      "roll_inertia_kg_m2": 3.5,
+      "pitch_inertia_kg_m2": 5.0,
+      "mount_frequency_hz": 10.0,
+      "mount_damping_ratio": 0.22,
+      "snubber_angle_deg": 6.0,
+      "snubber_stiffness_factor": 6.0,
+      "transaxle_pitch_fraction": 0.0
     },
     "final_drive": 5.125,
     "final_drive_gravel": 5.125,
@@ -184,6 +204,34 @@
         0.82
       ]
     ],
-    "variable_drag_ratio": 0.036
+    "variable_drag_ratio": 0.036,
+    "clutch": {
+      "bite_start": 0.24,
+      "bite_full": 0.76,
+      "bite_exponent": 1.4,
+      "takeup_seconds": 0.05,
+      "friction_zone_seconds": 0.28,
+      "slip_time_gain": 0.55,
+      "mu_static_ratio": 1.12,
+      "static_slip_rad_s": 3.0,
+      "damper": {
+        "enabled": true,
+        "disc_inertia_kg_m2": 0.006,
+        "idle_stiffness_nm_per_rad": 240.0,
+        "idle_travel_deg": 2.5,
+        "main_stiffness_nm_per_rad": 1500.0,
+        "travel_deg": 10.0,
+        "stop_stiffness_factor": 15.0,
+        "hysteresis_nm": 9.0,
+        "viscous_nms_per_rad": 2.2
+      }
+    },
+    "throttle_response": {
+      "tau_up_s": 0.05,
+      "tau_down_s": 0.07,
+      "rpm_reference": 3000.0,
+      "rpm_scale_min": 0.6,
+      "rpm_scale_max": 1.8
+    }
   }
 }
