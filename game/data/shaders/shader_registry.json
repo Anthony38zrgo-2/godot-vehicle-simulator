@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "description": "Central registry mapping logical shader_id keys to modular Godot shader entrypoints under res://shaders/.",
+  "shaders": {
+    "vehicle.toon": "res://shaders/vehicle/vehicle_toon.gdshader",
+    "vehicle.toon_cutout": "res://shaders/vehicle/vehicle_toon_cutout.gdshader",
+    "vehicle.louver": "res://shaders/vehicle/vehicle_louver.gdshader",
+    "vehicle.gt2": "res://shaders/vehicle/vehicle_gt2.gdshader",
+    "vehicle.dreamcast": "res://shaders/vehicle/vehicle_dreamcast.gdshader",
+    "vehicle.exterior_glass": "res://shaders/vehicle/vehicle_exterior_glass.gdshader",
+    "vehicle.windshield_rain": "res://shaders/vehicle/vehicle_windshield_rain.gdshader",
+    "vehicle.livery_bake_2d": "res://shaders/vehicle/livery_bake_2d.gdshader",
+
+    "terrain.road_asphalt": "res://shaders/terrain/road_asphalt.gdshader",
+    "terrain.near_blend": "res://shaders/terrain/terrain_near_blend.gdshader",
+    "terrain.mid_backdrop": "res://shaders/terrain/terrain_mid_backdrop.gdshader",
+    "terrain.far_regional": "res://shaders/terrain/terrain_far_regional.gdshader",
+    "terrain.tire_tracks": "res://shaders/terrain/tire_tracks.gdshader",
+
+    "water.puddle": "res://shaders/water/water_puddle.gdshader",
+    "water.river_ps2": "res://shaders/water/water_river_ps2.gdshader",
+    "water.static_lake": "res://shaders/water/water_static_lake.gdshader",
+
+    "weather.tropospheric_sky": "res://shaders/weather/tropospheric_sky.gdshader",
+    "weather.precipitation_sprite": "res://shaders/weather/precipitation_sprite.gdshader",
+
+    "props.psx_opaque": "res://shaders/props/psx_object_opaque.gdshader",
+    "props.psx_opaque_nofog": "res://shaders/props/psx_object_opaque_nofog.gdshader",
+    "props.psx_alpha": "res://shaders/props/psx_object_alpha.gdshader",
+    "props.psx_alpha_nofog": "res://shaders/props/psx_object_alpha_nofog.gdshader",
+    "props.foliage_outline": "res://shaders/props/foliage_card_outline.gdshader",
+    "props.road_sign_rear": "res://shaders/props/road_sign_rear.gdshader",
+    "props.service_tint": "res://shaders/props/service_tint.gdshader",
+
+    "vfx.particle_alpha": "res://shaders/vfx/particle_alpha.gdshader",
+    "vfx.particle_additive": "res://shaders/vfx/particle_additive.gdshader",
+
+    "ui.loading_blur": "res://shaders/ui/loading_screen_blur.gdshader",
+    "ui.showroom_vignette": "res://shaders/ui/showroom_vignette.gdshader"
+  }
+}

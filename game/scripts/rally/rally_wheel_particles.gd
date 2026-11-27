@@ -14,8 +14,8 @@ const CAPACITY := 400
 # The original race loop advances particles on the player car's 25 Hz step.
 const STEP := 1.0 / 25.0
 const GRAVEL_DUST_PATH := "res://assets/vfx/cmr4/dust_01.png"
-const SPARK_SHADER := preload("res://scripts/rally/rally_vehicle_vfx_add.gdshader")
-const SHADER := preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
+const SPARK_SHADER := preload("res://shaders/vfx/particle_additive.gdshader")
+const SHADER := preload("res://shaders/vfx/particle_alpha.gdshader")
 
 enum Kind {
 	DUST,

@@ -227,7 +227,7 @@ func verify() -> void:
 	var mud_material := trigger_impact(vfx, mud_contact, 0.8)
 	var mud_texture := mud_material.get_shader_parameter("particle_texture") as Texture2D
 	assert(mud_texture == vfx.MUD_CLOD)
-	assert(mud_material.shader.resource_path.ends_with("rally_vehicle_vfx.gdshader"))
+	assert(mud_material.shader.resource_path.ends_with("particle_alpha.gdshader"))
 	var leaf_contact := {
 		"position": Vector3.ZERO, "normal": Vector3.UP,
 		"impulse_ns": vehicle.mass * 0.5, "speed_ms": 2.0, "tangent_ms": 1.0,
@@ -236,13 +236,13 @@ func verify() -> void:
 	var leaf_material := trigger_impact(vfx, leaf_contact, 0.0)
 	var leaf_texture := leaf_material.get_shader_parameter("particle_texture") as Texture2D
 	assert(leaf_texture in vfx.LEAVES)
-	assert(leaf_material.shader.resource_path.ends_with("rally_vehicle_vfx.gdshader"))
+	assert(leaf_material.shader.resource_path.ends_with("particle_alpha.gdshader"))
 	# A wet hard contact never picks a spark.
 	var wet_hard_material := trigger_impact(vfx, spark_contact, 0.9)
 	var wet_hard_texture := wet_hard_material.get_shader_parameter("particle_texture") as Texture2D
 	assert(wet_hard_texture != null)
 	assert(not wet_hard_texture.resource_path.contains("sprk_"))
-	assert(wet_hard_material.shader.resource_path.ends_with("rally_vehicle_vfx.gdshader"))
+	assert(wet_hard_material.shader.resource_path.ends_with("particle_alpha.gdshader"))
 	vfx.impact_busy.fill(0.0)
 	vfx.impact_cooldown = 0.0
 	vfx.emitted_impacts = 0

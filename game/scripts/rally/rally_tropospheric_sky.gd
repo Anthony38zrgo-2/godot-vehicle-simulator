@@ -1,6 +1,7 @@
 extends Node3D
 ## Cubemap background and stage lighting driven by the event clock and local weather.
-const SHADER := preload("res://scripts/rally/rally_tropospheric_sky.gdshader")
+const SHADER := preload("res://shaders/weather/tropospheric_sky.gdshader")
+const ShaderEnvironmentBus := preload("res://scripts/shaders/shader_environment_bus.gd")
 const SKY_DIR := "res://assets/weather/tropospheric/"
 const CLEAR := preload("res://assets/weather/tropospheric/day_1.png")
 const PRESETS_PATH := "res://data/weather/rally_weather_presets.json"
@@ -196,6 +197,23 @@ func update_visuals(delta: float) -> void:
 		var sat_clear := float(visual.get("saturation_clear", 1.08))
 		var sat_storm := float(visual.get("saturation_storm", 0.92))
 		environment.adjustment_saturation = lerpf(sat_storm, sat_clear, daylight * (1.0 - overcast))
+	ShaderEnvironmentBus.update_lighting(
+		direction,
+		sun.light_color * sun.light_energy,
+		environment.ambient_light_color * environment.ambient_light_energy,
+		horizon
+	)
+	ShaderEnvironmentBus.update_sky(
+		horizon,
+		float(_uniforms.get("weather_mix", 0.0)),
+		float(_uniforms.get("daylight_mix", 1.0)),
+		float(_uniforms.get("twilight_yaw", 0.0)),
+		float(_uniforms.get("yaw_b", 0.0)),
+		_uniforms.get("tint_a", Vector3.ONE),
+		_uniforms.get("tint_b", Vector3.ONE),
+		_uniforms.get("tint_c", Vector3.ONE),
+		true
+	)
 
 func _bind_sky(a: String, b: String, c: String, weather_mix: float, daylight_mix: float,
 		twilight_yaw: float, second_yaw: float, tint_a: Vector3, tint_b: Vector3, tint_c: Vector3) -> void:

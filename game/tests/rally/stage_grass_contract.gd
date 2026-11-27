@@ -63,7 +63,7 @@ func run() -> void:
 		if batch == null or batch.multimesh == null:
 			continue
 		var material := batch.material_override as ShaderMaterial
-		if material == null or not str(material.shader.resource_path).begins_with("res://scripts/rally/rally_object_psx"):
+		if material == null or not str(material.shader.resource_path).begins_with("res://shaders/props/psx_object_"):
 			cutout_ok = false
 		elif not is_equal_approx(float(material.get_shader_parameter("alpha_cutoff")), 0.38) or int(material.get_shader_parameter("cull_side")) != BaseMaterial3D.CULL_DISABLED:
 			cutout_ok = false

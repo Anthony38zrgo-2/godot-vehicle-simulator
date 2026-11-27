@@ -7,10 +7,11 @@ const RELEASE_RADIUS_M := 690.0
 const START_RADIUS_M := 150.0
 const LOOK_AHEAD_S := 3.0
 const MAX_REQUESTS := 2
-const CDI_TERRAIN := preload("res://scripts/rally/cdi_terrain_blend.gdshader")
-const CDI_BACKDROP := preload("res://scripts/rally/cdi_terrain_backdrop.gdshader")
-const CDI_REGIONAL := preload("res://scripts/rally/cdi_terrain_regional.gdshader")
-const CDI_ASPHALT := preload("res://scripts/rally/cdi_asfalto_estepa.gdshader")
+const CDI_TERRAIN := preload("res://shaders/terrain/terrain_near_blend.gdshader")
+const CDI_BACKDROP := preload("res://shaders/terrain/terrain_mid_backdrop.gdshader")
+const CDI_REGIONAL := preload("res://shaders/terrain/terrain_far_regional.gdshader")
+const CDI_ASPHALT := preload("res://shaders/terrain/road_asphalt.gdshader")
+const ShaderEnvironmentBus := preload("res://scripts/shaders/shader_environment_bus.gd")
 const CDI_ASPHALT_TEXTURES := "res://assets/rally/CDI/asfalto_estepa/"
 const ASPHALT_LAYERS := [
 	"j_tm1", "j_tm6", "j_tml1", "j_tml2", "j_tml3", "j_tml4", "j_tml5", "j_tml6",

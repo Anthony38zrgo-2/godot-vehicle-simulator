@@ -6,7 +6,7 @@ extends RefCounted
 
 const CATALOG_PATH := "res://data/vehicles/liveries.json"
 const DEFAULT_LIVERY_ID := "rojo_brillante"
-const BAKE_SHADER := preload("res://scripts/rally/rally_livery_bake.gdshader")
+const BAKE_SHADER := preload("res://shaders/vehicle/livery_bake_2d.gdshader")
 const MAX_BAKED_CACHE := 4
 
 static var _catalog_cache: Dictionary = {}
@@ -202,7 +202,7 @@ static func _assign_baked_texture(mats: Array, tex: Texture2D) -> void:
 		if bool(sm.get_shader_parameter("use_pixel_albedo")):
 			sm.set_shader_parameter("pixel_albedo", tex)
 		else:
-			sm.set_shader_parameter("base_texture", tex)
+			sm.set_shader_parameter("albedo_tex", tex)
 
 
 static func bake_and_apply(tree: SceneTree, mats: Array, params: Dictionary) -> void:

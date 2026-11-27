@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "description": "Hydrology, PS2 6-step river ramps, and alpine static lake shader presets.",
+  "presets": {
+    "water.puddle.muddy_road": {
+      "shader_id": "water.puddle",
+      "params": {
+        "max_depth_mm": 48.0,
+        "edge_softness": 0.18,
+        "turbidity_rate": 0.065,
+        "shallow_color": [0.030, 0.065, 0.105, 0.22],
+        "deep_color": [0.008, 0.022, 0.048, 0.88],
+        "detail_scale": 0.30,
+        "detail_strength": 0.72,
+        "detail_speed": 0.035
+      }
+    },
+    "water.river_ps2.andean_stream": {
+      "shader_id": "water.river_ps2",
+      "params": {
+        "edge_feather_m": 0.06,
+        "depth_bias": 0.008,
+        "shallow_color": [0.09, 0.19, 0.22],
+        "deep_color": [0.03, 0.08, 0.12],
+        "palette_step0": [0.14, 0.36, 0.42],
+        "palette_step1": [0.10, 0.28, 0.38],
+        "palette_step2": [0.07, 0.21, 0.32],
+        "palette_step3": [0.05, 0.15, 0.25],
+        "palette_step4": [0.03, 0.10, 0.19],
+        "palette_step5": [0.02, 0.06, 0.13],
+        "ps2_color_levels": 32.0,
+        "ps2_depth_steps": 8.0,
+        "ps2_dither_strength": 1.0,
+        "detail_scale": 0.30,
+        "detail_strength": 0.72,
+        "detail_speed": 0.035
+      }
+    },
+    "water.static_lake.alpine": {
+      "shader_id": "water.static_lake",
+      "params": {
+        "base_color": [0.07, 0.15, 0.20],
+        "base_alpha": 0.65,
+        "detail_scale": 0.30,
+        "detail_strength": 0.72,
+        "detail_speed": 0.035
+      }
+    }
+  }
+}

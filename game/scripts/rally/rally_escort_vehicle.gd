@@ -21,7 +21,8 @@ const COLLISION_PATH := "res://assets/rally/ford_escort_rs2000_1971/ford_escort_
 @export var dc_blob_shadow_size: Vector2 = Vector2(2.25, 4.85)
 @export var dc_blob_shadow_opacity: float = 0.92
 
-const DC_SHADER := preload("res://shaders/dreamcast_vehicle.gdshader")
+const DC_SHADER := preload("res://shaders/vehicle/vehicle_dreamcast.gdshader")
+const _ShaderMaterialFactory := preload("res://scripts/shaders/shader_material_factory.gd")
 const VehicleLiveryScript := preload("res://scripts/rally/rally_vehicle_livery.gd")
 
 var _blob_shadow_decal: Decal = null
@@ -1604,26 +1605,18 @@ func _apply_dreamcast_vehicle_visuals() -> void:
 
 static func make_dc_shader_material(src: BaseMaterial3D, dc_shader: Shader, reflectivity: float, snap_strength: float) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
-	mat.shader = dc_shader
+	mat.shader = dc_shader if dc_shader != null else DC_SHADER
 	mat.resource_name = src.resource_name if src != null else ""
-	mat.set_shader_parameter("reflectivity", reflectivity)
-	mat.set_shader_parameter("snap_strength", snap_strength)
+	_ShaderMaterialFactory.apply_params(mat, {
+		"psx_snap_strength": snap_strength,
+		"specular_value": 0.0 if (src == null or src.specular_mode == BaseMaterial3D.SPECULAR_DISABLED) else clampf(reflectivity, 0.0, 1.0),
+	}, "vehicle.dreamcast")
 	if src != null:
-		mat.set_shader_parameter("albedo_color", src.albedo_color)
-		mat.set_shader_parameter("use_texture", src.albedo_texture != null)
-		if src.albedo_texture != null:
-			mat.set_shader_parameter("albedo_tex", src.albedo_texture)
+		_ShaderMaterialFactory.apply_vehicle_base_contract(mat, src)
 		mat.set_shader_parameter("roughness_value", src.roughness)
-		mat.set_shader_parameter("specular_value", 0.0 if src.specular_mode == BaseMaterial3D.SPECULAR_DISABLED else 0.50)
 		var lower_name := src.resource_name.to_lower()
 		if src.roughness > 0.85 or "interior" in lower_name or "tire" in lower_name:
-			mat.set_shader_parameter("reflectivity", 0.0)
-			mat.set_shader_parameter("vertex_specular_strength", 0.0)
-		if src.emission_enabled:
-			mat.set_shader_parameter("emission_color", src.emission)
-			mat.set_shader_parameter("emission_energy", src.emission_energy_multiplier)
-		if src.next_pass != null:
-			mat.next_pass = src.next_pass
+			mat.set_shader_parameter("specular_value", 0.0)
 	return mat
 
 

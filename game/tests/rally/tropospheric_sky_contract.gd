@@ -19,7 +19,7 @@ func run() -> void:
 	assert(sky.name == "RallyTroposphericSky")
 	assert(scene.get_node_or_null("Sky3D") == null)
 	assert(scene.get_node_or_null("RallyHybridSky") == null)
-	assert(sky.material.shader.resource_path.ends_with("rally_tropospheric_sky.gdshader"))
+	assert(sky.material.shader.resource_path.ends_with("tropospheric_sky.gdshader"))
 	assert(not sky.environment.volumetric_fog_enabled)
 	assert(sky.environment.reflected_light_source == Environment.REFLECTION_SOURCE_DISABLED)
 	assert(sky.material.get_shader_parameter("sky_a") is CompressedCubemap)

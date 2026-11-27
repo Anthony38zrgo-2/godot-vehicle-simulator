@@ -41,7 +41,7 @@ const SNOW_MIN_MM := 0.25
 # nube SMOKE, mas lenta, a su propio ritmo para simular polvo en suspension.
 const SNOW_HAZE_TICKS := 9
 const WHEEL_PARTICLES := preload("res://scripts/rally/rally_wheel_particles.gd")
-const PARTICLE_SHADER = preload("res://scripts/rally/rally_vehicle_vfx.gdshader")
+const PARTICLE_SHADER = preload("res://shaders/vfx/particle_alpha.gdshader")
 const TIRE_TRACKS = preload("res://scripts/rally/rally_tire_tracks.gd")
 const SURFACES := {
 	"gravel": { "dust": 0.60, "interval": 4, "dust_kind": WHEEL_PARTICLES.Kind.DUST, "burst": 2 },

@@ -2,8 +2,8 @@ extends Node3D
 
 signal windshield_broken(local_normal: Vector3)
 
-const EXTERIOR_GLASS := preload("res://scripts/rally/rally_escort_exterior_glass.gdshader")
-const WINDSHIELD_RAIN := preload("res://scripts/rally/rally_windshield_rain.gdshader")
+const EXTERIOR_GLASS := preload("res://shaders/vehicle/vehicle_exterior_glass.gdshader")
+const WINDSHIELD_RAIN := preload("res://shaders/vehicle/vehicle_windshield_rain.gdshader")
 @export var damage_meshes: PackedScene = preload("res://assets/rally/ford_escort_rs2000_1971/damage/escort_damage.glb")
 @export var broken_light: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/lights_damaged.png")
 @export var broken_glass: Texture2D = preload("res://assets/rally/ford_escort_rs2000_1971/damage/windows_damaged.png")

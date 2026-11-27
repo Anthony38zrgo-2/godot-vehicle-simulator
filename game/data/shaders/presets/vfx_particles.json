@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "description": "Data-Driven presets for vehicle VFX particles, tire tracks, and precipitation sprites.",
+  "presets": {
+    "vfx.particle_alpha.psx": {
+      "shader_id": "vfx.particle_alpha",
+      "params": {
+        "psx_enabled": true,
+        "psx_color_bits": 5,
+        "psx_color_dither_strength": 0.85,
+        "psx_alpha_levels": 4,
+        "psx_alpha_dither_strength": 0.90,
+        "psx_dither_scale": 2.0,
+        "body_exclusion_strength": 1.0,
+        "body_exclusion_center": [0.0, 0.865, 0.0],
+        "body_exclusion_half_extents": [0.74, 0.585, 1.85],
+        "body_exclusion_cull_bounds": [0.95, 0.80, 2.10]
+      }
+    },
+    "vfx.particle_additive.sparks": {
+      "shader_id": "vfx.particle_additive",
+      "params": {
+        "psx_enabled": true,
+        "psx_color_bits": 5,
+        "psx_color_dither_strength": 0.85,
+        "psx_alpha_levels": 4,
+        "psx_alpha_dither_strength": 0.90,
+        "psx_dither_scale": 2.0,
+        "spark_emission": 0.0,
+        "wheel_spark": false,
+        "body_exclusion_strength": 1.0
+      }
+    },
+    "terrain.tire_tracks.psx": {
+      "shader_id": "terrain.tire_tracks",
+      "params": {
+        "track_opacity_scale": 0.55,
+        "psx_enabled": true,
+        "psx_shade_levels": 4,
+        "psx_dither_strength": 1.05,
+        "psx_dither_scale": 2.0
+      }
+    },
+    "weather.precipitation.rain": {
+      "shader_id": "weather.precipitation_sprite",
+      "params": {
+        "opacity": 0.55,
+        "near_start_m": 0.9,
+        "near_end_m": 3.6,
+        "far_start_m": 22.0,
+        "far_end_m": 38.0,
+        "snow_sway": false
+      }
+    },
+    "weather.precipitation.snow": {
+      "shader_id": "weather.precipitation_sprite",
+      "params": {
+        "opacity": 0.72,
+        "near_start_m": 0.9,
+        "near_end_m": 3.6,
+        "far_start_m": 20.0,
+        "far_end_m": 34.0,
+        "snow_sway": true
+      }
+    }
+  }
+}

@@ -323,7 +323,7 @@ func test_vfx_and_hud() -> void:
 	hud.free()
 
 	# VFX Shader verification
-	var shader = load("res://scripts/rally/rally_vehicle_vfx.gdshader")
+	var shader = load("res://shaders/vfx/particle_alpha.gdshader")
 	check(shader != null, "VFX shader must load cleanly")
 	print("PASS: test_vfx_and_hud")
 

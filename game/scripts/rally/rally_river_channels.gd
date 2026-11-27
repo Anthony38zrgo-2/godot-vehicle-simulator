@@ -16,7 +16,7 @@ extends Node3D
 
 const DATA_PATH := "res://data/rally/kenya_rivers.json"
 const SNAPSHOT_VERSION := 1
-const RIVER_SHADER := preload("res://scripts/rally/rally_river.gdshader")
+const RIVER_SHADER := preload("res://shaders/water/water_river_ps2.gdshader")
 const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
 const BUCKET_CELL_M := 8.0
 const MAX_BAKE_SAMPLES := 4096

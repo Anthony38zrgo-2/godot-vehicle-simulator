@@ -76,7 +76,7 @@ func run() -> void:
 		var rain_material := precipitation_material(rain, 1)
 		check(rain_material != null, "rain material present")
 		if rain_material != null:
-			check(rain_material.shader.resource_path.ends_with("rally_weather_sprite.gdshader"), "rain shader")
+			check(rain_material.shader.resource_path.ends_with("precipitation_sprite.gdshader"), "rain shader")
 			var rain_texture := rain_material.get_shader_parameter("particle_texture") as Texture2D
 			check(rain_texture == ctl.RAIN_SPRITE, "rain uses the active sprite")
 		check(rain.amount_ratio > 0.0 and rain.amount == 400, "rain intensity and CMR2 capacity")
@@ -91,7 +91,7 @@ func run() -> void:
 		var snow_material := precipitation_material(snow, 1)
 		check(snow_material != null, "snow material present")
 		if snow_material != null:
-			check(snow_material.shader.resource_path.ends_with("rally_weather_sprite.gdshader"), "snow shader")
+			check(snow_material.shader.resource_path.ends_with("precipitation_sprite.gdshader"), "snow shader")
 			var snow_texture := snow_material.get_shader_parameter("particle_texture") as Texture2D
 			check(snow_texture == ctl.SNOW_SPRITE, "snow uses the active sprite")
 		var snow_quad := snow.draw_pass_1 as QuadMesh

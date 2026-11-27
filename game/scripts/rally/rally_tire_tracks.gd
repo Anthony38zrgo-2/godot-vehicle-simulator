@@ -9,7 +9,7 @@ const TREAD_REPEAT := 0.28
 const SURFACE_OFFSET := 0.006
 const FLUSH_INTERVAL := 0.025
 const TRIANGLES := [0, 1, 3, 3, 1, 4, 1, 2, 4, 4, 2, 5]
-const TRACK_SHADER = preload("res://scripts/rally/rally_tire_tracks.gdshader")
+const TRACK_SHADER = preload("res://shaders/terrain/tire_tracks.gdshader")
 
 var elapsed := 0.0
 var _flush_accum := 0.0

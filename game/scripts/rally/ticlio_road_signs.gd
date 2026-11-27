@@ -118,7 +118,7 @@ const SIGN_MASS := 12.0
 const RELEASE_MAX_SPEED := 7.0
 const SignBody := preload("res://scripts/rally/cdi_breakable_sign_body.gd")
 
-const REAR_MATERIAL := preload("res://scripts/rally/cdi_sign_rear.gdshader")
+const REAR_MATERIAL := preload("res://shaders/props/road_sign_rear.gdshader")
 var _boards := {}
 var _rear_boards := {}
 var _placed_signs: Array[Dictionary] = []

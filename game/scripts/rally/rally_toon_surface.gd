@@ -23,10 +23,13 @@ const DEFAULT_PSX_AFFINE_STRENGTH := 0.45
 @export_range(0.0, 1.0) var psx_affine_strength := DEFAULT_PSX_AFFINE_STRENGTH
 @export var include_vehicle_wheels := false
 
-const TOON := preload("res://scripts/rally/rally_toon_surface.gdshader")
-const TOON_CUTOUT := preload("res://scripts/rally/rally_toon_cutout.gdshader")
-const GT2_VEHICLE := preload("res://scripts/rally/rally_gt2_vehicle.gdshader")
+const TOON := preload("res://shaders/vehicle/vehicle_toon.gdshader")
+const TOON_CUTOUT := preload("res://shaders/vehicle/vehicle_toon_cutout.gdshader")
+const LOUVER := preload("res://shaders/vehicle/vehicle_louver.gdshader")
+const GT2_VEHICLE := preload("res://shaders/vehicle/vehicle_gt2.gdshader")
 const VehicleLiveryScript := preload("res://scripts/rally/rally_vehicle_livery.gd")
+const ShaderPresetResolver := preload("res://scripts/shaders/shader_preset_resolver.gd")
+const ShaderMaterialFactory := preload("res://scripts/shaders/shader_material_factory.gd")
 static var _vehicle_paint_ramp: ImageTexture = null
 static var _gt2_env_texture: ImageTexture = null
 var _converted_by_source_name: Dictionary = {}
@@ -96,44 +99,10 @@ static func make_gt2_vehicle_material(
 ) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = GT2_VEHICLE
-	material.set_shader_parameter("base_color", source.albedo_color)
-	if source.albedo_texture != null:
-		material.set_shader_parameter("base_texture", source.albedo_texture)
-	material.set_shader_parameter("use_vertex_color", source.vertex_color_use_as_albedo)
-	if source.normal_enabled and source.normal_texture != null:
-		material.set_shader_parameter("use_normal", true)
-		material.set_shader_parameter("normal_texture", source.normal_texture)
-		material.set_shader_parameter("normal_strength", source.normal_scale)
-	material.set_shader_parameter("uv_scale", Vector2(source.uv1_scale.x, source.uv1_scale.y))
-	material.set_shader_parameter("uv_offset", Vector2(source.uv1_offset.x, source.uv1_offset.y))
+	ShaderMaterialFactory.apply_vehicle_base_contract(material, source)
 	material.set_shader_parameter("use_alpha_cutout", cutout)
 	if cutout:
 		material.set_shader_parameter("alpha_cutoff", source.alpha_scissor_threshold)
-	material.set_shader_parameter("env_map", _gt2_env_map())
-
-	var mat_name := source.resource_name.to_lower()
-	var env_str := 0.42
-	var spec_str := 0.42
-	var fresnel_base := 0.45
-	if mat_name.contains("glass") or mat_name.contains("window") or mat_name.contains("windshield") or mat_name.contains("cristal") or mat_name.contains("vidrio"):
-		env_str = 0.72
-		spec_str = 0.60
-		fresnel_base = 0.58
-	elif source.metallic > 0.45 or mat_name.contains("chrome") or mat_name.contains("metal") or mat_name.contains("rim"):
-		env_str = 0.60
-		spec_str = 0.55
-		fresnel_base = 0.52
-	elif mat_name.contains("matte") or mat_name.contains("plastic") or mat_name.contains("tire") or mat_name.contains("rubber") or mat_name.contains("goma") or mat_name.contains("interior") or source.roughness > 0.80:
-		env_str = 0.08
-		spec_str = 0.08
-		fresnel_base = 0.22
-	elif mat_name.contains("details"):
-		env_str = 0.48
-		spec_str = 0.45
-		fresnel_base = 0.48
-	material.set_shader_parameter("env_strength", env_str)
-	material.set_shader_parameter("spec_strength", spec_str)
-	material.set_shader_parameter("env_fresnel_base", fresnel_base)
 	_apply_psx_params(material, snap_resolution, snap_strength, affine_strength)
 	return material
 
@@ -162,16 +131,7 @@ static func make_toon_material(
 ) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = TOON_CUTOUT if cutout else TOON
-	material.set_shader_parameter("base_color", source.albedo_color)
-	if source.albedo_texture != null:
-		material.set_shader_parameter("base_texture", source.albedo_texture)
-	material.set_shader_parameter("use_vertex_color", source.vertex_color_use_as_albedo)
-	if source.normal_enabled and source.normal_texture != null:
-		material.set_shader_parameter("use_normal", true)
-		material.set_shader_parameter("normal_texture", source.normal_texture)
-		material.set_shader_parameter("normal_strength", source.normal_scale)
-	material.set_shader_parameter("uv_scale", Vector2(source.uv1_scale.x, source.uv1_scale.y))
-	material.set_shader_parameter("uv_offset", Vector2(source.uv1_offset.x, source.uv1_offset.y))
+	ShaderMaterialFactory.apply_vehicle_base_contract(material, source)
 	material.set_shader_parameter("rim_strength", 0.12)
 	material.set_shader_parameter("edge_wobble", 0.28)
 	material.set_shader_parameter("wobble_scale", 1.8)
@@ -254,7 +214,13 @@ func _convert_mesh_group(meshes: Array[Node], is_wheel: bool, converted: Diction
 					surface_material.set_shader_parameter("glass_reflection_mask", glass_reflection_mask)
 				if not is_wheel and not gt2_vehicle_shading and not louver_material.is_empty() \
 						and source.resource_name == louver_material:
-					surface_material.set_shader_parameter("use_louver_shading", true)
+					surface_material.shader = LOUVER
+					var vehicle_id := ""
+					if owner != null and not owner.scene_file_path.is_empty():
+						vehicle_id = owner.scene_file_path.get_file().get_basename()
+					var vis_cfg := ShaderPresetResolver.load_vehicle_visuals(vehicle_id) if not vehicle_id.is_empty() else {}
+					if vis_cfg.has("louver") and vis_cfg["louver"] is Dictionary:
+						ShaderMaterialFactory.apply_params(surface_material, vis_cfg["louver"], "vehicle.louver")
 				surface_material.resource_name = source.resource_name
 				surface_material.set_meta("source_material_name", source.resource_name)
 				surface_material.set_meta("original_albedo_texture", source.albedo_texture)
@@ -322,7 +288,7 @@ func apply_livery_parameters(params: Dictionary) -> int:
 						if bool(sm.get_shader_parameter("use_pixel_albedo")):
 							sm.set_shader_parameter("pixel_albedo", orig)
 						else:
-							sm.set_shader_parameter("base_texture", orig)
+							sm.set_shader_parameter("albedo_tex", orig)
 				continue
 			target_mats.append(sm)
 	if enabled and not target_mats.is_empty():

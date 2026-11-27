@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "description": "UI shader presets for loading overlay and showroom vignette.",
+  "presets": {
+    "ui.loading_blur.default": {
+      "shader_id": "ui.loading_blur",
+      "params": {
+        "blur_lod": 3.2,
+        "tint_color": [0.03, 0.05, 0.08, 0.58]
+      }
+    },
+    "ui.showroom_vignette.default": {
+      "shader_id": "ui.showroom_vignette",
+      "params": {
+        "tint_color": [0.04, 0.06, 0.08],
+        "radial_strength": 0.70,
+        "left_shade_strength": 0.52,
+        "vertical_shade_strength": 0.38,
+        "base_alpha": 0.12,
+        "max_alpha": 0.94
+      }
+    }
+  }
+}

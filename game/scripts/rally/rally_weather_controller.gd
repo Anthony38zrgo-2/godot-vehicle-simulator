@@ -9,7 +9,7 @@ extends RefCounted
 
 const SchedulerScript := preload("res://scripts/rally/rally_weather_scheduler.gd")
 const SurfaceScript := preload("res://scripts/rally/rally_surface_model.gd")
-const PRECIPITATION_SPRITE_SHADER := preload("res://scripts/rally/rally_weather_sprite.gdshader")
+const PRECIPITATION_SPRITE_SHADER := preload("res://shaders/weather/precipitation_sprite.gdshader")
 const RAIN_SPRITE := preload("res://assets/vfx/cmr2/rain.png")
 const SNOW_SPRITE := preload("res://assets/vfx/cmr4/snwflk_1.png")
 

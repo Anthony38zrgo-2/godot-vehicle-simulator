@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "default_profile": "gt2_clean",
+  "profiles": {
+    "psx_authentic": {
+      "label": "PSX Authentic (1998)",
+      "overrides": {
+        "psx_snap_resolution": [320.0, 240.0],
+        "psx_snap_strength": 0.72,
+        "psx_affine_strength": 0.65,
+        "psx_quantize_enabled": true,
+        "psx_color_bits": 5,
+        "psx_dither_strength": 0.65,
+        "psx_enabled": true
+      }
+    },
+    "gt2_clean": {
+      "label": "GT2 Retro Crisp",
+      "overrides": {
+        "psx_snap_resolution": [320.0, 240.0],
+        "psx_snap_strength": 0.14,
+        "psx_affine_strength": 0.0,
+        "psx_dither_strength": 0.30,
+        "psx_enabled": true
+      }
+    },
+    "dreamcast_1999": {
+      "label": "Dreamcast PowerVR2",
+      "overrides": {
+        "psx_snap_resolution": [640.0, 480.0],
+        "psx_snap_strength": 0.05,
+        "psx_affine_strength": 0.0,
+        "rgb565": true,
+        "dither_amount": 0.30
+      }
+    },
+    "low_spec": {
+      "label": "Performance",
+      "overrides": {
+        "psx_snap_strength": 0.0,
+        "psx_affine_strength": 0.0,
+        "enable_water_reflections": false,
+        "detail_strength": 0.35
+      }
+    }
+  }
+}

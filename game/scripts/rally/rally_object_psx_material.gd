@@ -1,9 +1,11 @@
 extends RefCounted
 
-const SURFACE := preload("res://scripts/rally/rally_object_psx.gdshader")
-const SURFACE_NO_FOG := preload("res://scripts/rally/rally_object_psx_no_fog.gdshader")
-const SURFACE_ALPHA := preload("res://scripts/rally/rally_object_psx_alpha.gdshader")
-const SURFACE_ALPHA_NO_FOG := preload("res://scripts/rally/rally_object_psx_alpha_no_fog.gdshader")
+const _ShaderRegistry := preload("res://scripts/shaders/shader_registry.gd")
+
+const SURFACE := preload("res://shaders/props/psx_object_opaque.gdshader")
+const SURFACE_NO_FOG := preload("res://shaders/props/psx_object_opaque_nofog.gdshader")
+const SURFACE_ALPHA := preload("res://shaders/props/psx_object_alpha.gdshader")
+const SURFACE_ALPHA_NO_FOG := preload("res://shaders/props/psx_object_alpha_nofog.gdshader")
 
 
 static func from_standard(source: Material) -> Material:

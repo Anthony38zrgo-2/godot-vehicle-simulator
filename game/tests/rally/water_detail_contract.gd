@@ -4,9 +4,9 @@ const Puddles := preload("res://scripts/rally/rally_puddles.gd")
 const Channels := preload("res://scripts/rally/rally_river_channels.gd")
 const Adjuster := preload("res://scripts/rally/rally_stage_visual_material_adjuster.gd")
 
-const PUDDLE_SHADER := preload("res://scripts/rally/rally_puddle.gdshader")
-const RIVER_SHADER := preload("res://scripts/rally/rally_river.gdshader")
-const STATIC_WATER_SHADER := preload("res://scripts/rally/rally_static_water.gdshader")
+const PUDDLE_SHADER := preload("res://shaders/water/water_puddle.gdshader")
+const RIVER_SHADER := preload("res://shaders/water/water_river_ps2.gdshader")
+const STATIC_WATER_SHADER := preload("res://shaders/water/water_static_lake.gdshader")
 
 var failures: Array[String] = []
 
@@ -33,9 +33,9 @@ func _initialize() -> void:
 func verify() -> void:
 	# 1. Verify all 3 shaders load and expose shared water detail uniforms.
 	for entry in [
-		["rally_puddle.gdshader", PUDDLE_SHADER],
-		["rally_river.gdshader", RIVER_SHADER],
-		["rally_static_water.gdshader", STATIC_WATER_SHADER],
+		["water_puddle.gdshader", PUDDLE_SHADER],
+		["water_river_ps2.gdshader", RIVER_SHADER],
+		["water_static_lake.gdshader", STATIC_WATER_SHADER],
 	]:
 		var sname: String = entry[0]
 		var sh: Shader = entry[1]
@@ -92,7 +92,7 @@ func verify() -> void:
 	if river_mat != null:
 		check(river_mat.get_shader_parameter("water_detail_tex") != null, "River material must bind water_detail_tex")
 		check(bool(river_mat.get_meta("rally_dynamic_water", false)), "River material must mark rally_dynamic_water")
-		check(_shader_has_uniform(RIVER_SHADER, "rise_m"), "rally_river.gdshader must expose uniform rise_m")
+		check(_shader_has_uniform(RIVER_SHADER, "rise_m"), "water_river_ps2.gdshader must expose uniform rise_m")
 		rch["orig_y"] = [river_mesh_inst.position.y]
 		rch["rise_m"] = 0.25
 		rivers._update_render()

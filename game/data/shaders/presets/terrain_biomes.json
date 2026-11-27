@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "description": "Stage biome presets for terrain grass tones, Ticlio alpine snow bands, and regional haze.",
+  "presets": {
+    "terrain.biome.andean_puna": {
+      "shader_id": "terrain.near_blend",
+      "params": {
+        "grass_dense_tone": "#9E8763",
+        "grass_sparse_tone": "#BFA77F",
+        "grass_olive_tone": "#7A7556",
+        "grass_mineral_tone": "#8F6655",
+        "depth_haze_color": [0.68, 0.76, 0.86],
+        "depth_haze_start": 140.0,
+        "depth_haze_end": 620.0,
+        "depth_haze_max": 0.0
+      }
+    },
+    "terrain.biome.ticlio_winter": {
+      "extends": "terrain.biome.andean_puna",
+      "shader_id": "terrain.near_blend",
+      "params": {
+        "ticlio_snow_enabled": true,
+        "snow_altitude_range_m": [76.0, 292.0],
+        "snow_gate_range_m": [64.0, 105.0],
+        "snow_shadow_tint": [0.52, 0.55, 0.58],
+        "snow_bright_tint": [0.68, 0.70, 0.72]
+      }
+    },
+    "terrain.far_regional.psx": {
+      "shader_id": "terrain.far_regional",
+      "params": {
+        "sun_gain": 0.88,
+        "ambient_gain": 0.56,
+        "haze_start": 450.0,
+        "haze_end": 14000.0,
+        "haze_max": 0.36,
+        "color_saturation": 1.16,
+        "psx_quantize_enabled": true,
+        "psx_color_bits": 5,
+        "psx_dither_strength": 0.35,
+        "psx_dither_scale": 1.0,
+        "psx_snap_resolution": [320.0, 240.0],
+        "psx_snap_strength": 0.56,
+        "psx_affine_strength": 0.48,
+        "psx_gouraud_mix": 0.35
+      }
+    },
+    "terrain.road_asphalt.default": {
+      "shader_id": "terrain.road_asphalt",
+      "params": {
+        "depth_haze_color": [0.68, 0.76, 0.86],
+        "depth_haze_start": 140.0,
+        "depth_haze_end": 620.0,
+        "depth_haze_max": 0.0
+      }
+    }
+  }
+}

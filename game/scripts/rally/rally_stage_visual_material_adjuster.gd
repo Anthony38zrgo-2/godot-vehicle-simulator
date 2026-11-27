@@ -80,7 +80,7 @@ const ObjectMaterial := preload("res://scripts/rally/rally_object_psx_material.g
 const OBJECT_TOKENS := ["tree", "forest", "bush", "audience", "spectator", "fence", "hut", "house", "building", "barn", "cabin", "village", "power_line", "powerline", "pole", "guardarrail", "guardrail", "checkpoint", "gate_finish", "sponsors", "sign_", "string_red", "rope", "meta_", "tunnel", "bridge"]
 const GROUND_MESH_PREFIXES := ["terrain", "road", "ladera", "rajuntay dem", "rajuntay regional dem", "backdrop", "mountain", "ground"]
 
-const STATIC_WATER_SHADER := preload("res://scripts/rally/rally_static_water.gdshader")
+const STATIC_WATER_SHADER := preload("res://shaders/water/water_static_lake.gdshader")
 const WATER_DETAIL_TEX := preload("res://assets/rally/water/water_detail.jpg")
 const WATER_BODY_TOKENS := ["water", "lake", "lago", "agua", "pond", "lagoon", "laguna", "sea"]
 const WATER_EXCLUDE_TOKENS := ["waterfall", "bank", "terrain", "road", "dry", "rock", "wall", "sign", "snow", "ice", "wet"]

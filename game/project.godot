@@ -59,3 +59,54 @@ lights_and_shadows/positional_shadow/soft_shadow_filter_quality=0
 [filesystem]
 
 import/blender/enabled=false
+
+[shader_globals]
+
+rally_sun_dir={
+"type": "vec3",
+"value": Vector3(0, 0.7, 0.7)
+}
+rally_sun_color={
+"type": "vec3",
+"value": Vector3(1, 0.95, 0.85)
+}
+rally_ambient_color={
+"type": "vec3",
+"value": Vector3(0.48, 0.54, 0.63)
+}
+rally_haze_color={
+"type": "vec3",
+"value": Vector3(0.68, 0.76, 0.86)
+}
+rally_wind_vec={
+"type": "vec2",
+"value": Vector2(1.2, 0.4)
+}
+rally_rain_intensity={
+"type": "float",
+"value": 0.0
+}
+rally_sky_horizon={
+"type": "vec3",
+"value": Vector3(0.45, 0.5, 0.56)
+}
+rally_sky_mix={
+"type": "vec4",
+"value": Vector4(0, 1, 0, 0)
+}
+rally_sky_tint_a={
+"type": "vec3",
+"value": Vector3(1, 1, 1)
+}
+rally_sky_tint_b={
+"type": "vec3",
+"value": Vector3(1, 1, 1)
+}
+rally_sky_tint_c={
+"type": "vec3",
+"value": Vector3(1, 1, 1)
+}
+rally_sky_enabled={
+"type": "float",
+"value": 0.0
+}

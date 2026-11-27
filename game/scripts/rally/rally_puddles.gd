@@ -14,7 +14,7 @@ extends Node3D
 ## - Water that has frozen into `ice_mm` does NOT contribute to liquid `fill`, ensuring
 ##   hydrodynamic puddle drag is never applied to frozen puddle ice.
 
-const WATER_SHADER = preload("res://scripts/rally/rally_puddle.gdshader")
+const WATER_SHADER = preload("res://shaders/water/water_puddle.gdshader")
 const WATER_DETAIL_TEX = preload("res://assets/rally/water/water_detail.jpg")
 
 const MASK_RUT = preload("res://assets/vfx/puddles/puddle_rut.png")

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "description": "Data-Driven vehicle surface presets and rule-based material classifiers.",
+  "presets": {
+    "vehicle.toon.default": {
+      "shader_id": "vehicle.toon",
+      "params": {
+        "rim_strength": 0.10,
+        "edge_wobble": 0.04,
+        "wobble_scale": 3.0,
+        "wobble_anisotropy": [1.0, 1.0, 1.0],
+        "wobble_in_world": false,
+        "shade_tint": [0.67, 0.69, 0.82],
+        "toon_blend": 1.0,
+        "crisp_shadows": false,
+        "psx_snap_strength": 0.0,
+        "psx_affine_strength": 0.0
+      }
+    },
+    "vehicle.toon.lancia_stratos_body": {
+      "extends": "vehicle.toon.default",
+      "shader_id": "vehicle.toon",
+      "params": {
+        "use_banded_body_paint": true,
+        "use_glass_reflection": true,
+        "enable_vehicle_reflections": true,
+        "paint_spec_strength": 0.56,
+        "paint_spec_threshold": 0.88,
+        "paint_env_strength": 0.40,
+        "paint_env_mask_threshold": 0.30
+      }
+    },
+    "vehicle.gt2.default": {
+      "shader_id": "vehicle.gt2",
+      "params": {
+        "shade_tint": [0.66, 0.70, 0.80],
+        "psx_dither_strength": 0.30,
+        "psx_snap_resolution": [320.0, 240.0],
+        "psx_snap_strength": 0.14,
+        "psx_affine_strength": 0.0
+      }
+    },
+    "vehicle.dreamcast.default": {
+      "shader_id": "vehicle.dreamcast",
+      "params": {
+        "roughness_value": 0.40,
+        "specular_value": 0.0,
+        "rgb565": true,
+        "dither_amount": 0.30,
+        "psx_snap_resolution": [640.0, 480.0],
+        "psx_snap_strength": 0.0,
+        "psx_affine_strength": 0.0
+      }
+    },
+    "vehicle.exterior_glass.default": {
+      "shader_id": "vehicle.exterior_glass",
+      "params": {
+        "cracked": false,
+        "rain_intensity": 0.0,
+        "car_speed_mps": 0.0,
+        "rain_scroll": 0.0
+      }
+    },
+    "vehicle.windshield_rain.default": {
+      "shader_id": "vehicle.windshield_rain",
+      "params": {
+        "rain_intensity": 0.0,
+        "car_speed_mps": 0.0,
+        "rain_scroll": 0.0,
+        "is_cockpit_view": true,
+        "bead_scale": 38.0,
+        "slider_scale": 11.0,
+        "wind_slant": 0.18,
+        "slide_dir": -1.0,
+        "fall_speed": 0.10
+      }
+    }
+  }
+}

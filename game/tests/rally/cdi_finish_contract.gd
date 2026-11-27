@@ -305,7 +305,7 @@ func _verify_asphalt_pack(session: RallyRussiaStageSession, track: RallyTrackCol
 	var road := stream.find_child("Road", true, false) as MeshInstance3D
 	var surface := road.get_active_material(0) as ShaderMaterial if road != null else null
 	var snow_station_ok := (bool(surface.get_shader_parameter("procedural_surface_enabled")) and float(surface.get_shader_parameter("snow_station_m")) < 0.0) if (surface != null and procedural_asphalt) else (surface != null and (float(surface.get_shader_parameter("snow_station_m")) > 0.0) == has_snow)
-	if not _require(surface != null and surface.shader.resource_path.ends_with("cdi_asfalto_estepa.gdshader") and snow_station_ok,
+	if not _require(surface != null and surface.shader.resource_path.ends_with("road_asphalt.gdshader") and snow_station_ok,
 			"Missing asphalt pack or incorrect snow transition"):
 		return false
 	var textures := surface.get_shader_parameter("surface_textures") as Texture2DArray
