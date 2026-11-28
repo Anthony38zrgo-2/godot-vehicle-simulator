@@ -114,6 +114,11 @@ if __name__ == "__main__":
             asphalt=STAGE_NUMBER >= 3, snow_second_half=STAGE_NUMBER == 4,
             name=f"Caminos del Inca · {STAGE_ID} {STAGE_NAMES[STAGE_NUMBER - 1]}",
         )
+        from perfil_grava import GravelProfile
+
+        surface_profile = "grava" if STAGE_NUMBER <= 2 else "asfalto"
+        stage_cfg["gravel_profile"] = GravelProfile(
+            BASE / f"perfil_{surface_profile}_{STAGE_ID.lower()}.json", RAURA / "desgaste_inicio_stage2.json")
         if STAGE_NUMBER in (1, 2, 4):
             stage_cfg["geography"] = {
                 "crs": "EPSG:32718",

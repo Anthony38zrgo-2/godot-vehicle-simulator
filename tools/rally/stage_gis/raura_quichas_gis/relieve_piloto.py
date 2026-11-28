@@ -24,11 +24,12 @@ def end_fade(station, total, length=14.0):
 
 
 class RoadRelief:
-    def __init__(self, rows, stations, pk, config_path=None, limit_pk=None):
+    def __init__(self, rows, stations, pk, config_path=None, limit_pk=None, *, config=None):
         self.total = stations[-1]
         self.pits = []
         config_path = config_path or Path(__file__).with_name("desgaste_piloto.json")
-        config = json.loads(config_path.read_text(encoding="utf-8-sig"))
+        if config is None:
+            config = json.loads(config_path.read_text(encoding="utf-8-sig"))
         self.hard_impact = config.get("hard_impact", False)
         finish = min(pk[-1], limit_pk) if limit_pk is not None else pk[-1]
         self.corrugations = config.get("corrugations", [])

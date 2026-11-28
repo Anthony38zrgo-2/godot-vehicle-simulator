@@ -1,0 +1,17 @@
+{
+  "seed": 20261130,
+  "maximum_pits_per_100m": 4,
+  "grade": [
+    {"range_m": [695, 745], "height_m": 0.13},
+    {"range_m": [3245, 3300], "height_m": -0.15, "skew": 0.18}
+  ],
+  "crown": [{"range_m": [2120, 2290], "bias_m": 0.08}],
+  "settlement": [
+    {"range_m": [2568, 2592], "height_m": -0.03, "lateral_fraction": -0.25, "half_width_fraction": 0.23}
+  ],
+  "pit_patches": [
+    {"range_m": [280, 460], "count": 3, "lateral_fraction": 0.30, "depth_m": [0.01, 0.025]},
+    {"range_m": [2470, 2680], "count": 5, "lateral_fraction": -0.33, "depth_m": [0.012, 0.025]},
+    {"range_m": [4550, 4750], "count": 3, "lateral_fraction": 0.27, "depth_m": [0.01, 0.018]}
+  ]
+}

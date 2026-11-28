@@ -20,8 +20,8 @@
       50.0,
       6303.218
     ],
-    "relief_seed": 20261117,
-    "pothole_count": 0,
+    "relief_seed": 20261130,
+    "pothole_count": 11,
     "maximum_road_depression_m": 0.12,
     "surface_texture_pack": "asfalto_estepa",
     "slope_texture": {
@@ -33,6 +33,7 @@
       "segments": 4782,
       "open_steep_slope_m": 1722.66
     },
+    "gravel_profile": "perfil_asfalto_ss03.json",
     "guardrails": {
       "runs": [
         {
@@ -57,12 +58,12 @@
         },
         {
           "side": "right",
-          "start_m": 5398.5,
+          "start_m": 5398.51,
           "length_m": 202.24
         },
         {
           "side": "right",
-          "start_m": 5624.74,
+          "start_m": 5624.75,
           "length_m": 84.03
         },
         {
@@ -78,7 +79,7 @@
       ],
       "length_m": 3243.68
     },
-    "blend_sha256": "58c5136c447c8d544c5e33c04ec0c9968cbb905b97043e60752b7e04e32600f5"
+    "blend_sha256": "ba078490414d6da7e84ab30f6420421167bcb51c6fa92ebf8d67f20cb08ac2e7"
   },
   "visual": {
     "path": "cdi_stage3_visual.glb",
@@ -87,8 +88,8 @@
   },
   "collision": {
     "path": "cdi_stage3_collision.glb",
-    "sha256": "778772b4faff5a008e73b38a2dcb881e15cc760a786ec1f67fbc62900df3fae5",
-    "size_bytes": 17669676
+    "sha256": "3acce90a16e17b7dc8203662d0ba5a49c3cdcf3642d7ebe46ff4c1666a6183f4",
+    "size_bytes": 17893176
   },
   "start_pose": {
     "ground_godot": [
@@ -105,11 +106,11 @@
     "up": "+Y",
     "unit_scale": 1.0
   },
+  "climate_route_profile": "climate_route_profile.json",
   "streaming": {
     "index": "sectores/index.json",
     "cell_m": 192,
     "sector_count": 64,
-    "detail_triangles": 970617
-  },
-  "climate_route_profile": "climate_route_profile.json"
+    "detail_triangles": 982835
+  }
 }

@@ -20,8 +20,8 @@
       50.0,
       5116.816
     ],
-    "relief_seed": 20261117,
-    "pothole_count": 479,
+    "relief_seed": 20261129,
+    "pothole_count": 125,
     "maximum_road_depression_m": 0.12,
     "surface_texture_pack": "Raura gravel / Rajuntay PS1",
     "slope_texture": {
@@ -33,7 +33,8 @@
       "segments": 3600,
       "open_steep_slope_m": 321.81
     },
-    "blend_sha256": "ba9318bed8cebe3ef3db9eff2d0d3704e8eca25205d08656b80a934e3e5b85f1"
+    "gravel_profile": "perfil_grava_ss02.json",
+    "blend_sha256": "ef0e591af40f68028cbdab4d6949d5205197af3486d81ee66306945b8a75cc5d"
   },
   "visual": {
     "path": "cdi_stage2_visual.glb",
@@ -42,8 +43,8 @@
   },
   "collision": {
     "path": "cdi_stage2_collision.glb",
-    "sha256": "72b715c68e928ddd6a539bcaa22be08f324923830d4cd16e56a1b1abcf16e9e5",
-    "size_bytes": 25815592
+    "sha256": "ea8866974e756eaa25c54cf5d48afb1fbe7489e86e4ddd7566803f24aaaa6bad",
+    "size_bytes": 17213092
   },
   "start_pose": {
     "ground_godot": [
@@ -60,11 +61,11 @@
     "up": "+Y",
     "unit_scale": 1.0
   },
+  "climate_route_profile": "climate_route_profile.json",
   "streaming": {
     "index": "sectores/index.json",
     "cell_m": 192,
     "sector_count": 34,
-    "detail_triangles": 1413232
-  },
-  "climate_route_profile": "climate_route_profile.json"
+    "detail_triangles": 942962
+  }
 }

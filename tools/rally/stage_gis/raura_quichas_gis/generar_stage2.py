@@ -332,6 +332,9 @@ def main(stage=None):
     for p, z in zip(axis, rounded):
         p.z = z
     limit_grade(axis, max_grade)
+    gravel_profile = stage.get("gravel_profile") if stage else None
+    if gravel_profile:
+        gravel_profile.apply_grade(axis, gate_indices, max_grade)
     origin = axis[0].copy()
     axis = [p - origin for p in axis]
     timed_axis = axis[:]
@@ -536,7 +539,9 @@ def main(stage=None):
             pk.append(pk[-1] + (b-a).xy.length)
         if pilot:
             pk = proposal["pk_m"]
-        if stage:
+        if gravel_profile:
+            road_relief = gravel_profile.build_relief(rows, stations, pk, gate_indices)
+        elif stage:
             road_relief = detail.RoadRelief(rows, stations, pk, stage["wear"])
         elif pilot:
             road_relief = detail.RoadRelief(rows, stations, pk, BASE / "desgaste_inicio.json" if start_pilot else None)
@@ -947,6 +952,8 @@ def main(stage=None):
             surface_texture_pack="Raura gravel / Rajuntay PS1",
             slope_texture={"file":"pedregal.png","minimum_cross_slope_degrees":15},
             side_room_m=30, barrier=barrier_metrics)
+        if gravel_profile:
+            manifest["source"]["gravel_profile"] = gravel_profile.path.name
         if stage.get("asphalt"):
             manifest["source"]["surface_texture_pack"] = "asfalto_estepa"
             manifest["source"]["guardrails"] = guardrail_metrics
@@ -1096,8 +1103,7 @@ def main(stage=None):
         "sector_checkpoint_indices":control_indices,"sector_lengths_km":[length/1000 for length in sectors]}
     if stage_config_path.exists():
         existing_stage = json.loads(stage_config_path.read_text(encoding="utf8"))
-        if "procedural_climate" in existing_stage:
-            stage_config["procedural_climate"] = existing_stage["procedural_climate"]
+        stage_config = {**existing_stage, **stage_config}
     write_json(stage_config_path, stage_config)
     write_json(GAME / f"data/rally/pacenotes/{track}.json", {"stage_id":track,"route_point_count":len(points),
         "total_distance_m":lengths[-1],"calls":[]})

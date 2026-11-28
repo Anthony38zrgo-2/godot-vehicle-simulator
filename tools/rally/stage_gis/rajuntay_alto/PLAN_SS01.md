@@ -12,8 +12,15 @@ Para regenerar, instala Pillow y Shapely en Python, prepara los datos y ejecuta 
 $generador = 'tools/rally/stage_gis/rajuntay_alto/generar_ss01.py'
 python $generador --prepare 'D:\RallyManiacAssets\stages\SS01_Rajuntay_Alto\SS01_Rajuntay_Alto'
 blender -b --factory-startup --python-exit-code 1 --python $generador
+python tools/rally/stage_gis/rajuntay_alto/generar_sectores.py
 ./scripts/run_cdi.ps1 -Import
 ```
+
+## Perfil de grava de Rajuntay
+
+[perfil_grava_ss01.json](perfil_grava_ss01.json) y [perfil_grava_ss02.json](perfil_grava_ss02.json) fijan los intervalos por metros recorridos en 3D desde la salida de cada especial. `perfil_grava.py` los convierte a las estaciones del generador y aplica las variaciones de rasante antes de construir el corredor. Comprueba la pendiente añadida y el límite de diseño en los intervalos intervenidos. Las compresiones tienen una entrada más corta que la salida. El bombeo desplaza la corona suavemente durante el enlace, y el asentamiento lateral vuelve a cero antes del borde de la calzada.
+
+Rajuntay conserva una muestra del desgaste original entre los metros 60 y 300. Chinchán concentra el desgaste más intenso entre los metros 1.510 y 1.640. Cada perfil usa una semilla propia y limita el inventario a 15 baches por cada ventana móvil de 100 m. Los inventarios se guardan en `output/baches_resueltos.json` y `output/ss02/baches_resueltos.json`. SS07 recorre Chinchán en sentido inverso y SS08 hace lo mismo con Rajuntay.
 
 ## Horizonte y vegetación
 
@@ -90,6 +97,8 @@ Godot ejecuta el contrato de cronometraje y transición con `godot --headless --
 La secuencia del evento es SS01, SS02, área de servicio, SS03 y SS04. El servicio reserva 30 minutos de reparación y abre después el garaje para confirmar reglajes y cambiar neumáticos del inventario. Las horas de salida de SS03 y SS04 son 09:15 y 09:40.
 
 Chinchán Asfalto tiene 6,24 km cronometrados sobre asfalto. Abra Ticlio tiene 6,19 km cronometrados. En Ticlio, la calzada cambia de asfalto a nieve compactada en el km 3,10 del recorrido cronometrado. El generador corta allí los cuerpos de colisión. El material visual de asfalto se mezcla con nieve a lo largo de unos 90 m, con acumulación desde los bordes y huellas visibles. La nieve de la calzada se mantiene después de la meta.
+
+[perfil_asfalto_ss03.json](perfil_asfalto_ss03.json) y [perfil_asfalto_ss04.json](perfil_asfalto_ss04.json) especifican la rasante, el bombeo y las bolsas de baches por distancia 3D desde la salida. Los baches están espaciados dentro de esas bolsas y ocupan una sola rodada. Ticlio concentra las bolsas en el asfalto. Sobre nieve compactada tiene una ondulación ancha y una rodada suave. SS06 y SS05 usan, respectivamente, las mismas mallas de Chinchán y Ticlio en reversa.
 
 Los materiales de calzada y acero usan las texturas de game/assets/rally/CDI/asfalto_estepa. En SS03 y SS04, el generador detecta arcenes con caída sostenida hacia afuera a 8 y 20 m de la calzada. Los tramos de al menos 14 m reciben guardarraíles con módulos y terminales texturizados. Su visual se carga por sectores y su colisión continua queda residente.
 

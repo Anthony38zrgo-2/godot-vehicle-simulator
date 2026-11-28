@@ -20,16 +20,18 @@
     632
   ],
   "sector_lengths_km": [
-    1.2514489310936074,
+    1.2514498152490905,
     1.2562933628047026,
-    1.2496186669495037,
-    1.2540529190338856
+    1.249621083219205,
+    1.2540529190338847
   ],
   "procedural_climate": {
     "enabled": true,
     "mode": "five_sector_snapshot",
     "loose_gravel_scale": 1.0,
-    "water_retention_profile": {"enabled": true},
+    "water_retention_profile": {
+      "enabled": true
+    },
     "climate_profile_path": "res://data/weather/cdi_ss04_climate.json",
     "route_profile_path": "res://assets/rally/cdi_stage1/climate_route_profile.json"
   }
