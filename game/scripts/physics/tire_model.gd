@@ -64,6 +64,92 @@ var active_compound: Dictionary = {}
 var wheel_compounds: Array[Dictionary] = []
 var compound_catalog: Dictionary = {}
 var missing_surface_warnings: Dictionary = {}
+# Backend nativo en Rust (rally_native::RustTireSolver) con fallback automático a GDScript.
+var use_rust_backend: bool = true
+var _rust_solver: RefCounted = null
+var _rust_cfg_dirty: bool = true
+var _rust_cfg43: PackedFloat64Array = PackedFloat64Array()
+var _rust_inp24: PackedFloat64Array = PackedFloat64Array()
+var _rust_out_dicts: Array[Dictionary] = [{}, {}, {}, {}]
+
+
+func _ensure_rust_solver() -> RefCounted:
+	if not use_rust_backend:
+		_rust_solver = null
+		return null
+	if _rust_solver == null and ClassDB.class_exists(&"RustTireSolver"):
+		_rust_solver = ClassDB.instantiate(&"RustTireSolver") as RefCounted
+		_rust_cfg_dirty = true
+		if _rust_cfg43.size() != 43:
+			_rust_cfg43.resize(43)
+		if _rust_inp24.size() != 24:
+			_rust_inp24.resize(24)
+	return _rust_solver
+
+
+func _sync_rust_configs() -> void:
+	if _rust_solver == null or not _rust_cfg_dirty:
+		return
+	if axle_profiles.size() != 4 or static_wheel_load_n.size() != 4:
+		return
+	for i in 4:
+		var prof: Dictionary = axle_profiles[i]
+		var comp: Dictionary = wheel_compounds[i] if i < wheel_compounds.size() else active_compound
+		_rust_cfg43[0] = float(axle_surface_tau_s[i]) if i < axle_surface_tau_s.size() else surface_transition_tau_s
+		_rust_cfg43[1] = base_contact_patch_m[i]
+		_rust_cfg43[2] = base_relaxation_length_m[i]
+		_rust_cfg43[3] = static_deflection_ratio[i]
+		_rust_cfg43[4] = static_wheel_load_n[i]
+		_rust_cfg43[5] = maximum_tire_deflection_m[i]
+		_rust_cfg43[6] = reference_hot_pressure_kpa[i]
+		_rust_cfg43[7] = effective_load_sensitivity(i)
+		_rust_cfg43[8] = float(axle_rolling_coefficient[i])
+		_rust_cfg43[9] = float(axle_pneumatic_trail[i])
+		_rust_cfg43[10] = float(axle_camber_gain[i])
+		_rust_cfg43[11] = float(axle_contact_load_gain[i])
+		_rust_cfg43[12] = float(axle_contact_deflection_gain[i])
+		_rust_cfg43[13] = float(axle_pressure_relaxation[i])
+		_rust_cfg43[14] = float(axle_pressure_rolling[i])
+		_rust_cfg43[15] = float(axle_optimal_carcass_c[i])
+		_rust_cfg43[16] = float(prof.get("contact_ramp_tau_s", 0.0))
+		_rust_cfg43[17] = float(prof.get("min_relaxation_tau_s", 0.0))
+		_rust_cfg43[18] = float(prof.get("relaxation_recovery_scale", 1.0))
+		_rust_cfg43[19] = float(prof.get("peak_load_sensitivity", 0.0))
+		_rust_cfg43[20] = float(prof.get("lateral_peak_slip_angle_rad", 0.18))
+		_rust_cfg43[21] = float(prof.get("longitudinal_peak_slip_ratio", 0.2))
+		_rust_cfg43[22] = float(prof.get("lateral_slide_mu_ratio", prof.get("longitudinal_slide_mu_ratio", 0.94)))
+		_rust_cfg43[23] = float(prof.get("longitudinal_slide_mu_ratio", 0.95))
+		_rust_cfg43[24] = float(prof.get("combined_lateral_peak_migration", 0.0))
+		_rust_cfg43[25] = float(prof.get("combined_longitudinal_peak_migration", 0.0))
+		_rust_cfg43[26] = float(prof.get("legacy_longitudinal_relief", 0.0))
+		_rust_cfg43[27] = float(prof.get("legacy_relief_blend_m", 0.01))
+		_rust_cfg43[28] = float(prof.get("falloff_sharpness", 1.2))
+		_rust_cfg43[29] = float(prof.get("slip_loss_tau_s", 0.0))
+		_rust_cfg43[30] = float(prof.get("slip_recovery_tau_s", 0.0))
+		_rust_cfg43[31] = float(comp.get("water_grip_loss_per_mm", 0.12))
+		_rust_cfg43[32] = float(comp.get("water_grip_floor", 0.6))
+		_rust_cfg43[33] = float(comp.get("snow_grip_loss_per_mm", 0.09))
+		_rust_cfg43[34] = float(comp.get("snow_grip_floor", 0.6))
+		_rust_cfg43[35] = float(comp.get("water_evacuation_reference_speed_m_s", 16.0))
+		_rust_cfg43[36] = float(comp.get("road_grip_scale", 1.0))
+		_rust_cfg43[37] = float(comp.get("loose_grip_scale", 1.0))
+		_rust_cfg43[38] = float(comp.get("uncovered_grip_scale", 1.0))
+		var snow_packed_sc := float(comp.get("snow_packed_grip_scale", 0.45))
+		_rust_cfg43[39] = snow_packed_sc
+		_rust_cfg43[40] = float(comp.get("snow_loose_grip_scale", snow_packed_sc))
+		_rust_cfg43[41] = float(comp.get("ice_grip_scale", 0.18))
+		var for_gravel := bool(comp.get("for_gravel", true))
+		var is_asphalt := bool(comp.get("is_asphalt_tire", false))
+		_rust_cfg43[42] = 1.0 if (for_gravel and not is_asphalt) else (0.82 if (for_gravel and is_asphalt) else 0.64)
+		var flags := 0
+		if bool(prof.get("combined_migration_v2_enabled", false)):
+			flags |= (1 << 0)
+		if not comp.is_empty():
+			flags |= (1 << 1)
+		if str(comp.get("id", "")) == "snow_studded":
+			flags |= (1 << 2)
+		_rust_solver.call("sync_wheel_config", i, _rust_cfg43, flags)
+	_rust_cfg_dirty = false
 
 
 func _ensure_four_compounds(cat: Dictionary, requested_id: String) -> Array[Dictionary]:
@@ -156,6 +242,7 @@ func _rebuild_axle_profiles() -> void:
 				for k in (axle_fm as Dictionary):
 					prof[k] = (axle_fm as Dictionary)[k]
 		axle_profiles.append(prof)
+	_rust_cfg_dirty = true
 
 
 # Inversión de respaldo compartida §closure-2: misma rutina para la
@@ -406,6 +493,10 @@ func configure(
 				"surface": "Unknown",
 			}
 		)
+	_rust_cfg_dirty = true
+	if _ensure_rust_solver() != null:
+		_sync_rust_configs()
+		_rust_solver.call("reset_all")
 
 
 ## Convenio de camber (explícito §4.3):
@@ -441,6 +532,177 @@ func evaluate(
 	var axle_surface_set: Dictionary = axle_surfaces[index] if index >= 0 and index < axle_surfaces.size() else surfaces
 	if axle_surface_set.is_empty():
 		axle_surface_set = surfaces
+	if _ensure_rust_solver() != null and index >= 0 and index < 4:
+		_sync_rust_configs()
+		var t_fric := 1.0
+		var t_stiff := 1.0
+		var t_roll := 1.0
+		var t_lon := 1.0
+		var t_lat := 0.0
+		if surface_name == "SnowDeep":
+			var db: Dictionary = axle_surface_set.get("Dirt", surfaces.get("Dirt", {}))
+			t_fric = float(db.get("friction", 1.05))
+			t_stiff = 0.5
+			t_roll = 5.5
+			t_lon = float(db.get("longitudinal_grip_ratio", 1.0))
+			t_lat = float(db.get("lateral_grip_assist", 0.0))
+		else:
+			if not axle_surface_set.has(surface_name):
+				if surface_name != "Unknown" and not surface_name.is_empty() and not missing_surface_warnings.has(surface_name):
+					missing_surface_warnings[surface_name] = true
+					push_warning("Tire contact has no surface profile for '%s'; using the original gravel/road fallback." % surface_name)
+			var ts: Dictionary = axle_surface_set.get(
+				surface_name,
+				axle_surface_set.get("Gravel", axle_surface_set.get("Road", surfaces.get("Gravel", surfaces.get("Road", {})))),
+			)
+			t_fric = float(ts.get("friction", 1.0))
+			t_stiff = float(ts.get("stiffness", 1.0))
+			t_roll = float(ts.get("rolling_resistance", 1.0))
+			t_lon = float(ts.get("longitudinal_grip_ratio", 1.0))
+			t_lat = float(ts.get("lateral_grip_assist", 0.0))
+		var sidewall_max_r := maximum_tire_deflection_m[index]
+		var est_defl := 0.0
+		if normal_load_n > 1.0e-4:
+			var rig_defl := float(state.get("radial_deflection_m", 0.0))
+			if rig_defl > 0.0:
+				est_defl = clampf(rig_defl, 0.0, sidewall_max_r * 1.5)
+			else:
+				est_defl = fallback_deflection_m(
+					radial_tires, "front" if index < 2 else "rear",
+					pressure_kpa_gauge, carcass_temperature_c,
+					maxf(normal_load_n, 0.0), float(axle_optimal_carcass_c[index]),
+					sidewall_max_r, 1.5,
+				)
+		_rust_inp24[0] = normal_load_n
+		_rust_inp24[1] = longitudinal_speed_m_s
+		_rust_inp24[2] = lateral_speed_m_s
+		_rust_inp24[3] = wheel_speed_rad_s
+		_rust_inp24[4] = rolling_radius_m
+		_rust_inp24[5] = camber_rad
+		_rust_inp24[6] = thermal_grip_factor
+		_rust_inp24[7] = pressure_kpa_gauge
+		_rust_inp24[8] = delta
+		_rust_inp24[9] = carcass_temperature_c
+		_rust_inp24[10] = water_mm
+		_rust_inp24[11] = snow_mm
+		_rust_inp24[12] = ground_temperature_c
+		_rust_inp24[13] = ice_mm
+		_rust_inp24[14] = snow_coverage
+		_rust_inp24[15] = ice_coverage
+		_rust_inp24[16] = loose_gravel_coverage
+		_rust_inp24[17] = mud_factor
+		_rust_inp24[18] = t_fric
+		_rust_inp24[19] = t_stiff
+		_rust_inp24[20] = t_roll
+		_rust_inp24[21] = t_lon
+		_rust_inp24[22] = t_lat
+		_rust_inp24[23] = est_defl
+		var rflags := 0
+		if surface_name == "Road":
+			rflags |= 1
+		elif surface_name == "Gravel" or surface_name == "Dirt":
+			rflags |= 2
+		elif surface_name == "Sand":
+			rflags |= 3
+		if not winter_layer_id.is_empty():
+			if winter_layer_id == "snow_packed":
+				rflags |= (1 << 3)
+			elif winter_layer_id == "snow_loose":
+				rflags |= (2 << 3)
+			elif winter_layer_id == "snow_deep":
+				rflags |= (3 << 3)
+			elif winter_layer_id == "ice":
+				rflags |= (4 << 3)
+		if bool(state.get("recovery_low_confidence", false)):
+			rflags |= (1 << 6)
+		var out: PackedFloat64Array = _rust_solver.call("evaluate_wheel", index, _rust_inp24, rflags)
+		state.surface = surface_name
+		state.surface_initialized = true
+		state.surface_friction = out[39]
+		state.surface_stiffness = out[40]
+		state.surface_rolling = out[41]
+		state.contact_blend = out[38]
+		state.post_peak_decay_lat = out[36]
+		state.post_peak_decay_lon = out[37]
+		state.longitudinal_force = out[0]
+		state.rolling_force = out[1]
+		state.lateral_force = out[2]
+		state.aligning_torque = out[3]
+		state.friction_power = out[4]
+		state.energy_residue_w = out[5]
+		state.effective_radius_m = out[6]
+		state.enveloped_load_n = out[7]
+		state.envelope_valid = normal_load_n > 1.0e-4
+		state.slip_ratio = out[8]
+		state.slip_angle = out[9]
+		state.effective_slip_ratio = out[10]
+		state.effective_slip_angle = out[11]
+		state.combined_utilization = out[12]
+		state.instant_combined_utilization = out[13]
+		state.contact_power_w = out[14]
+		state.rolling_power_w = out[15]
+		state.slide_heat_w = out[16]
+		state["plastic_loss_j"] = out[17]
+		state.blend_loss_j = out[18]
+		state.liftoff_discard_j = out[19]
+		state.contact_work_j = out[20]
+		state.heat_work_j = out[21]
+		state.patch_pos = Vector2(out[22], out[23])
+		state.patch_energy_j = out[24]
+		state.brush_demand_n = out[25]
+		state.dynamic_contact_patch_m = out[26]
+		state.relaxation_length_m = out[27]
+		state.estimated_carcass_deflection_m = out[28]
+		state.elastic_before_j = out[42]
+		state.stiffness_loss_j = 0.0
+		state["aligning_power_w"] = 0.0
+		if normal_load_n <= 1.0e-4:
+			state.patch_forward = Vector3.ZERO
+			state.patch_right = Vector3.ZERO
+		else:
+			state["winter_layer_id"] = winter_layer_id
+			state["compound_water_factor"] = out[29]
+			state["compound_snow_factor"] = out[30]
+			state["compound_ground_factor"] = out[31]
+			state["compound_mult"] = out[32]
+			state["snow_coverage"] = maxf(snow_coverage, 0.0) if snow_coverage >= 0.0 else -1.0
+			state["ice_coverage"] = maxf(ice_coverage, 0.0) if ice_coverage >= 0.0 else -1.0
+			state["local_ice_mm"] = ice_mm
+			state["footprint_weights"] = Vector3(out[33], out[34], out[35])
+			state["loose_gravel_coverage"] = clampf(loose_gravel_coverage, 0.0, 1.0) if (surface_name == "Gravel" or surface_name == "Dirt") else 0.0
+			state["mud_factor"] = clampf(mud_factor, 0.0, 1.0) if (surface_name == "Gravel" or surface_name == "Dirt") else 0.0
+			state["local_water_mm"] = water_mm
+			state["local_snow_mm"] = snow_mm
+			state["local_ground_c"] = ground_temperature_c
+		var od: Dictionary = _rust_out_dicts[index]
+		od["longitudinal_force_n"] = out[0]
+		od["rolling_force_n"] = out[1]
+		od["lateral_force_n"] = out[2]
+		od["aligning_torque_nm"] = out[3]
+		od["friction_power_w"] = out[4]
+		od["energy_residue_w"] = out[5]
+		od["effective_radius_m"] = out[6]
+		od["enveloped_load_n"] = out[7]
+		od["slip_ratio"] = out[8]
+		od["slip_angle_rad"] = out[9]
+		od["effective_slip_ratio"] = out[10]
+		od["effective_slip_angle_rad"] = out[11]
+		od["combined_utilization"] = out[12]
+		od["instant_combined_utilization"] = out[13]
+		od["contact_power_w"] = out[14]
+		od["rolling_power_w"] = out[15]
+		od["slide_heat_w"] = out[16]
+		od["plastic_loss_j"] = out[17]
+		od["blend_loss_j"] = out[18]
+		od["liftoff_discard_j"] = out[19]
+		od["contact_work_j"] = out[20]
+		od["heat_work_j"] = out[21]
+		od["aligning_power_w"] = 0.0
+		od["surface"] = surface_name
+		od["patch_pos"] = state.patch_pos
+		od["patch_energy_j"] = out[24]
+		od["brush_demand_n"] = out[25]
+		return od
 	# Virtual deep-snow profile: Dirt friction as the starting point, soft carcass
 	# response and heavy rolling drag. No vehicle JSON carries SnowDeep; the
 	# builder assigns the contact identity from winter materials.
@@ -1141,6 +1403,8 @@ func reset_patch(index: int) -> void:
 	st.liftoff_discard_j = 0.0
 	st.slide_heat_w = 0.0
 	st.aligning_power_w = 0.0
+	if _rust_solver != null:
+		_rust_solver.call("reset_patch", index)
 
 
 func rotate_patch_frame(index: int, forward: Vector3, right: Vector3) -> void:
@@ -1148,6 +1412,8 @@ func rotate_patch_frame(index: int, forward: Vector3, right: Vector3) -> void:
 	# caller ya pasa vectores ortonormales. Solo hardening defensivo.
 	# Ortonormalización Gram-Schmidt opcional si el caller deriva.
 	var state: Dictionary = states[index]
+	if _rust_solver != null:
+		_rust_solver.call("rotate_patch_frame", index, forward, right)
 	var previous_forward: Vector3 = state.patch_forward
 	if previous_forward.length_squared() > 0.5:
 		var patch: Vector2 = state.patch_pos

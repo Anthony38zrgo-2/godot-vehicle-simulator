@@ -688,6 +688,7 @@ func apply_setup_values(values: Dictionary) -> Dictionary:
 		_setup_differential("differential_front", effective_values),
 		_setup_differential("differential_rear", effective_values)
 	)
+	powertrain_model.invalidate_rust_config()
 	powertrain_model.engine_rpm = minf(
 		powertrain_model.engine_rpm,
 		powertrain_model.maximum_rpm + 200.0,

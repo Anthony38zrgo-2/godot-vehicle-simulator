@@ -264,6 +264,148 @@ var _reaction_prev_input_omega: float = 0.0
 var _reaction_initialized: bool = false
 var _mount_prev_chassis_omega_local: Vector3 = Vector3.ZERO
 var _mount_chassis_omega_initialized: bool = false
+# Backend nativo en Rust (rally_native::RustPowertrainSolver) con fallback automático a GDScript.
+var use_rust_backend: bool = true
+var _rust_solver: RefCounted = null
+var _rust_cfg_dirty: bool = true
+var _rust_cfg_sig: float = -1.0
+var _rust_cfg50: PackedFloat64Array = PackedFloat64Array()
+var _rust_axle32: PackedFloat64Array = PackedFloat64Array()
+var _rust_inp53: PackedFloat64Array = PackedFloat64Array()
+var _rust_brake_work: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _rust_weights: Array[float] = [0.0, 0.0, 0.0, 0.0]
+
+
+func invalidate_rust_config() -> void:
+	_rust_cfg_dirty = true
+
+
+func _ensure_rust_solver() -> RefCounted:
+	if not use_rust_backend:
+		_rust_solver = null
+		return null
+	if _rust_solver == null and ClassDB.class_exists(&"RustPowertrainSolver"):
+		_rust_solver = ClassDB.instantiate(&"RustPowertrainSolver") as RefCounted
+		_rust_cfg_dirty = true
+		if _rust_cfg50.size() != 50:
+			_rust_cfg50.resize(50)
+		if _rust_axle32.size() != 32:
+			_rust_axle32.resize(32)
+		if _rust_inp53.size() != 53:
+			_rust_inp53.resize(53)
+	return _rust_solver
+
+
+func _sync_rust_config() -> void:
+	if _rust_solver == null:
+		return
+	var flags := 0
+	if driveline_compliance_enabled:
+		flags |= (1 << 0)
+	if clutch_bite_enabled:
+		flags |= (1 << 1)
+	if clutch_damper_enabled:
+		flags |= (1 << 2)
+	if chassis_reaction_enabled:
+		flags |= (1 << 3)
+	if chassis_reaction_mount_model == "second_order":
+		flags |= (1 << 4)
+	if chassis_reaction_orientation == "transverse":
+		flags |= (1 << 5)
+	if freewheel_enabled:
+		flags |= (1 << 6)
+	var sig := float(flags) * 1.0e6 + final_drive_ratio * 131.0 + front_torque_split * 97.0 + front_differential_preload_nm * 0.13 + rear_differential_preload_nm * 0.17 + torsional_stiffness_nm_per_rad * 0.001 + driveline_backlash_rad * 1000.0
+	if not _rust_cfg_dirty and absf(sig - _rust_cfg_sig) <= 1.0e-9:
+		return
+	_rust_cfg50[0] = engine_inertia_kg_m2
+	_rust_cfg50[1] = gearbox_input_inertia_kg_m2
+	_rust_cfg50[2] = clutch_damper_disc_inertia_kg_m2
+	_rust_cfg50[3] = output_shaft_inertia_kg_m2
+	_rust_cfg50[4] = front_torque_split
+	_rust_cfg50[5] = final_drive_ratio
+	_rust_cfg50[6] = peak_torque_nm
+	_rust_cfg50[7] = clutch_max_torque_nm
+	_rust_cfg50[8] = clutch_max_torque_ratio
+	_rust_cfg50[9] = clutch_bite_start
+	_rust_cfg50[10] = clutch_bite_full
+	_rust_cfg50[11] = clutch_bite_exponent
+	_rust_cfg50[12] = clutch_mu_static_ratio
+	_rust_cfg50[13] = clutch_static_slip_rad_s
+	_rust_cfg50[14] = clutch_damper_idle_stiffness_nm_per_rad
+	_rust_cfg50[15] = clutch_damper_idle_travel_deg
+	_rust_cfg50[16] = clutch_damper_main_stiffness_nm_per_rad
+	_rust_cfg50[17] = clutch_damper_travel_deg
+	_rust_cfg50[18] = clutch_damper_stop_stiffness_factor
+	_rust_cfg50[19] = clutch_damper_hysteresis_nm
+	_rust_cfg50[20] = clutch_damper_viscous_nms_per_rad
+	_rust_cfg50[21] = torsional_stiffness_nm_per_rad
+	_rust_cfg50[22] = torsional_damping_nms_per_rad
+	_rust_cfg50[23] = driveline_backlash_rad
+	_rust_cfg50[24] = driveline_backlash_damping_ratio
+	_rust_cfg50[25] = driveline_contact_soft_zone_rad
+	_rust_cfg50[26] = driveline_contact_restitution
+	_rust_cfg50[27] = driveline_end_stop_margin
+	_rust_cfg50[28] = driveline_end_stop_stiffness_factor
+	_rust_cfg50[29] = synchronizer_capacity_nm
+	_rust_cfg50[30] = synchronizer_tolerance_rad_s
+	_rust_cfg50[31] = shift_time_seconds
+	_rust_cfg50[32] = gear_inertia_shift_seconds
+	_rust_cfg50[33] = differential_slip_transition_threshold_rad_s
+	_rust_cfg50[34] = chassis_reaction_scale
+	_rust_cfg50[35] = chassis_reaction_crank_sign
+	_rust_cfg50[36] = chassis_reaction_driveshaft_roll_fraction
+	_rust_cfg50[37] = chassis_reaction_transaxle_pitch_fraction
+	_rust_cfg50[38] = chassis_reaction_mount_tau_s
+	_rust_cfg50[39] = chassis_reaction_mount_frequency_hz
+	_rust_cfg50[40] = chassis_reaction_mount_damping_ratio
+	_rust_cfg50[41] = chassis_reaction_roll_inertia_kg_m2
+	_rust_cfg50[42] = chassis_reaction_pitch_inertia_kg_m2
+	_rust_cfg50[43] = chassis_reaction_snubber_angle_deg
+	_rust_cfg50[44] = chassis_reaction_snubber_stiffness_factor
+	_rust_cfg50[45] = absf(gear_ratios[0]) if not gear_ratios.is_empty() else 1.0
+	var mech_cfg := mechanical_damage_config
+	_rust_cfg50[46] = clampf(float(mech_cfg.get("minimum_clutch_capacity_factor", 0.70)), 0.1, 1.0)
+	_rust_cfg50[47] = clampf(float(mech_cfg.get("minimum_synchronizer_factor", 0.35)), 0.05, 1.0)
+	_rust_cfg50[48] = maxf(float(mech_cfg.get("maximum_damage_backlash_rad", 0.05)), 0.0)
+	_rust_cfg50[49] = MAX_CHASSIS_REACTION_NM
+
+	_rust_axle32[0] = 1.0 if (front_differential_type in DIFFERENTIAL_FRICTION_TYPES) else 0.0
+	_rust_axle32[1] = front_differential_preload_nm
+	_rust_axle32[2] = front_differential_power_ratio
+	_rust_axle32[3] = front_differential_coast_ratio
+	_rust_axle32[4] = front_differential_power_ramp_angle_deg
+	_rust_axle32[5] = front_differential_coast_ramp_angle_deg
+	_rust_axle32[6] = front_differential_clutches
+	_rust_axle32[7] = front_differential_ramp_gain
+	_rust_axle32[8] = front_differential_lock_stiffness_nm_per_rad
+	_rust_axle32[9] = front_differential_lock_damping_ratio
+	_rust_axle32[10] = front_differential_pressure_tau_s
+	_rust_axle32[11] = front_differential_release_tau_s
+	_rust_axle32[12] = front_differential_blend_band_fraction
+	_rust_axle32[13] = front_differential_blend_band_nm
+	_rust_axle32[14] = front_differential_static_friction_factor
+	_rust_axle32[15] = front_differential_slip_reference_rad_s
+
+	_rust_axle32[16] = 1.0 if (rear_differential_type in DIFFERENTIAL_FRICTION_TYPES) else 0.0
+	_rust_axle32[17] = rear_differential_preload_nm
+	_rust_axle32[18] = rear_differential_power_ratio
+	_rust_axle32[19] = rear_differential_coast_ratio
+	_rust_axle32[20] = rear_differential_power_ramp_angle_deg
+	_rust_axle32[21] = rear_differential_coast_ramp_angle_deg
+	_rust_axle32[22] = rear_differential_clutches
+	_rust_axle32[23] = rear_differential_ramp_gain
+	_rust_axle32[24] = rear_differential_lock_stiffness_nm_per_rad
+	_rust_axle32[25] = rear_differential_lock_damping_ratio
+	_rust_axle32[26] = rear_differential_pressure_tau_s
+	_rust_axle32[27] = rear_differential_release_tau_s
+	_rust_axle32[28] = rear_differential_blend_band_fraction
+	_rust_axle32[29] = rear_differential_blend_band_nm
+	_rust_axle32[30] = rear_differential_static_friction_factor
+	_rust_axle32[31] = rear_differential_slip_reference_rad_s
+
+	_rust_solver.call("sync_config", _rust_cfg50, _rust_axle32, flags)
+	_rust_cfg_dirty = false
+	_rust_cfg_sig = sig
 
 
 func configure(domains: Dictionary) -> Dictionary:
@@ -1507,10 +1649,12 @@ func set_final_drive_preset(preset: String) -> bool:
 	if preset == "gravel" and final_drive_gravel > 0.0:
 		final_drive_ratio = final_drive_gravel
 		final_drive_preset = preset
+		_rust_cfg_dirty = true
 		return true
 	if preset == "tarmac" and final_drive_tarmac > 0.0:
 		final_drive_ratio = final_drive_tarmac
 		final_drive_preset = preset
+		_rust_cfg_dirty = true
 		return true
 	return false
 
@@ -2007,6 +2151,155 @@ func solve_rotation(
 	# en advance con el acelerador del conductor): sin inferir acelerador a
 	# partir del signo del par ni reevaluar aquí (plan §1).
 	var connected := (geared or synchronizing) and not (freewheel_enabled and freewheel_active)
+	if _ensure_rust_solver() != null:
+		_sync_rust_config()
+		_rust_inp53[0] = h
+		for i in 4:
+			_rust_inp53[1 + i] = spins[i]
+			_rust_inp53[5 + i] = float(inertias[i])
+			_rust_inp53[9 + i] = float(tire_torques[i])
+			_rust_inp53[13 + i] = float(brakes[i])
+			_rust_inp53[17 + i] = float(spin_damping[i]) if i < spin_damping.size() else 0.0
+		_rust_inp53[21] = chassis_omega_local.x
+		_rust_inp53[22] = chassis_omega_local.y
+		_rust_inp53[23] = chassis_omega_local.z
+		_rust_inp53[24] = engine_rpm
+		_rust_inp53[25] = input_shaft_omega_rad_s
+		_rust_inp53[26] = output_shaft_omega_rad_s
+		_rust_inp53[27] = clutch_engagement
+		_rust_inp53[28] = ratio
+		_rust_inp53[29] = _ratio_for_gear(current_gear) if current_gear != 0 else 0.0
+		_rust_inp53[30] = shift_phase_seconds
+		_rust_inp53[31] = transmission_damage
+		_rust_inp53[32] = clutch_damper_twist_rad
+		_rust_inp53[33] = driveline_twist_rad
+		_rust_inp53[34] = float(driveline_backlash_flank)
+		_rust_inp53[35] = engine_mount_roll_rad
+		_rust_inp53[36] = engine_mount_roll_omega_rad_s
+		_rust_inp53[37] = engine_mount_pitch_rad
+		_rust_inp53[38] = engine_mount_pitch_omega_rad_s
+		_rust_inp53[39] = front_lsd_lock_twist_rad
+		_rust_inp53[40] = rear_lsd_lock_twist_rad
+		_rust_inp53[41] = front_lsd_filtered_torque_nm
+		_rust_inp53[42] = rear_lsd_filtered_torque_nm
+		_rust_inp53[43] = front_lsd_blend
+		_rust_inp53[44] = rear_lsd_blend
+		_rust_inp53[45] = _reaction_prev_engine_omega
+		_rust_inp53[46] = _reaction_prev_input_omega
+		_rust_inp53[47] = chassis_reaction_torque_local_nm.x
+		_rust_inp53[48] = chassis_reaction_torque_local_nm.y
+		_rust_inp53[49] = chassis_reaction_torque_local_nm.z
+		_rust_inp53[50] = _mount_prev_chassis_omega_local.x
+		_rust_inp53[51] = _mount_prev_chassis_omega_local.y
+		_rust_inp53[52] = _mount_prev_chassis_omega_local.z
+		var step_flags := 0
+		if connected:
+			step_flags |= (1 << 0)
+		if synchronizing:
+			step_flags |= (1 << 1)
+		if current_gear != 0:
+			step_flags |= (1 << 2)
+		if pending_gear != 0:
+			step_flags |= (1 << 3)
+		if shift_phase == "synchronizing":
+			step_flags |= (1 << 4)
+		if _reaction_initialized:
+			step_flags |= (1 << 5)
+		if _mount_chassis_omega_initialized:
+			step_flags |= (1 << 6)
+		var out: PackedFloat64Array = _rust_solver.call("solve_rotation", _rust_inp53, step_flags)
+		for i in 4:
+			spins[i] = out[i]
+			_rust_brake_work[i] = out[4 + i]
+		engine_rpm = out[8]
+		input_shaft_omega_rad_s = out[9]
+		output_shaft_omega_rad_s = out[10]
+		clutch_bite = out[11]
+		clutch_torque_nm = out[12]
+		clutch_slip_rad_s = out[13]
+		clutch_slip_power_w = out[14]
+		clutch_damper_twist_rad = out[15]
+		clutch_damper_twist_deg = out[16]
+		clutch_damper_torque_nm = out[17]
+		clutch_damper_at_stop = out[18] > 0.5
+		if driveline_compliance_enabled:
+			driveline_twist_rad = out[19]
+			driveline_backlash_flank = int(round(out[20]))
+			driveline_in_backlash = out[21] > 0.5
+			driveline_backlash_impact_rad_s = out[22]
+			driveline_torque_nm = out[23]
+			driveline_energy_j = out[24]
+			driveline_dissipation_w = out[25]
+		var shaft_torque_r := out[26]
+		engine_mount_roll_rad = out[27]
+		engine_mount_roll_omega_rad_s = out[28]
+		engine_mount_pitch_rad = out[29]
+		engine_mount_pitch_omega_rad_s = out[30]
+		engine_roll_deg = out[31]
+		engine_pitch_deg = out[32]
+		chassis_reaction_torque_local_nm = Vector3(out[33], out[34], out[35])
+		if out[36] > 0.5:
+			current_gear = pending_gear
+			shift_phase = "closing"
+			shift_phase_seconds = 0.0
+		last_front_diff_speed_rad_s = out[37]
+		last_front_lsd_capacity_nm = out[38]
+		last_front_lsd_torque_nm = out[39]
+		last_front_lsd_saturation = out[40]
+		front_lsd_filtered_torque_nm = out[41]
+		last_front_lsd_filtered_torque_nm = out[41]
+		front_lsd_blend = out[42]
+		last_front_lsd_blend = out[42]
+		front_lsd_lock_twist_rad = out[43]
+		last_front_lsd_lock_twist_rad = out[43]
+		last_rear_diff_speed_rad_s = out[44]
+		last_rear_lsd_capacity_nm = out[45]
+		last_rear_lsd_torque_nm = out[46]
+		last_rear_lsd_saturation = out[47]
+		rear_lsd_filtered_torque_nm = out[48]
+		last_rear_lsd_filtered_torque_nm = out[48]
+		rear_lsd_blend = out[49]
+		last_rear_lsd_blend = out[49]
+		rear_lsd_lock_twist_rad = out[50]
+		last_rear_lsd_lock_twist_rad = out[50]
+		var sel_b := 37 if front_torque_split >= 1.0 else 44
+		last_diff_speed_rad_s = out[sel_b]
+		last_lsd_capacity_nm = out[sel_b + 1]
+		last_lsd_torque_nm = out[sel_b + 2]
+		last_lsd_saturation = out[sel_b + 3]
+		last_lsd_filtered_torque_nm = out[sel_b + 4]
+		last_lsd_blend = out[sel_b + 5]
+		last_lsd_lock_twist_rad = out[sel_b + 6]
+		_reaction_prev_engine_omega = out[51]
+		_reaction_prev_input_omega = out[52]
+		_reaction_initialized = true
+		_mount_prev_chassis_omega_local = chassis_omega_local
+		_mount_chassis_omega_initialized = true
+		_rust_weights[0] = front_torque_split * 0.5
+		_rust_weights[1] = front_torque_split * 0.5
+		_rust_weights[2] = (1.0 - front_torque_split) * 0.5
+		_rust_weights[3] = (1.0 - front_torque_split) * 0.5
+		var overrev_r := _evaluate_mechanical_overrev_and_missgear(
+			h,
+			spins,
+			_rust_weights,
+			ratio,
+			connected,
+			synchronizing,
+			out[53],
+			shaft_torque_r,
+		)
+		return {
+			"brake_work_j": _rust_brake_work,
+			"shaft_torque_nm": shaft_torque_r,
+			"chassis_reaction_torque_local_nm": chassis_reaction_torque_local_nm,
+			"engine_roll_deg": engine_roll_deg,
+			"engine_pitch_deg": engine_pitch_deg,
+			"engine_overrev_damage": float(overrev_r["engine_overrev_damage"]),
+			"transmission_overrev_damage": float(overrev_r["transmission_overrev_damage"]),
+			"missgear_active": missgear_active,
+			"missgear_intensity": missgear_intensity,
+		}
 	var use_clutch_damper := clutch_damper_enabled and connected and not synchronizing
 	var shaft_inertia := clutch_damper_disc_inertia_kg_m2 if clutch_damper_enabled else gearbox_input_inertia_kg_m2
 	var weights: Array[float] = [
