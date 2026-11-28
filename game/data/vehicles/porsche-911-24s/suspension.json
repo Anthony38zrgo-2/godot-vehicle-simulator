@@ -5,34 +5,35 @@
     "front": {
       "spring_architecture": "torsion_bar",
       "spring_can_unseat": true,
-      "arb_ratio": 0.18,
+      "arb_ratio": 0.16,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.01745,
-      "camber_gain_rad_per_m": -0.018,
-      "damping_ratio": 0.46,
+      "camber_gain_rad_per_m": -0.18,
+      "damping_ratio": 0.44,
       "rebound_damp_multiplier": 1.35,
       "resting_ratio": 0.35,
       "spring_length": 0.3,
       "toe": 0.001745,
       "toe_gain_rad_per_m": 0.006,
-      "ride_frequency_hz": 1.55
+      "ride_frequency_hz": 1.5,
+      "anti_dive_ratio": 0.14
     },
     "rear": {
-      "spring_architecture": "torsion_bar",
+      "spring_architecture": "semi_trailing_arm",
       "spring_can_unseat": true,
-      "arb_ratio": 0.14,
+      "arb_ratio": 0.18,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.02618,
-      "camber_gain_rad_per_m": -0.014,
-      "damping_ratio": 0.48,
+      "camber_gain_rad_per_m": -0.38,
+      "damping_ratio": 0.46,
       "rebound_damp_multiplier": 1.35,
       "resting_ratio": 0.35,
       "spring_length": 0.3,
       "toe": 0.002618,
-      "toe_gain_rad_per_m": 0.004,
-      "ride_frequency_hz": 1.65
+      "toe_gain_rad_per_m": 0.03,
+      "ride_frequency_hz": 1.72
     },
     "geometry_physical": {
       "version": 1,
@@ -57,11 +58,12 @@
         "spring_installed_length_m": 0.25,
         "spring_rate_N_per_m": 22500.0,
         "wheel_bump_m": 0.14,
-        "wheel_droop_m": 0.12
+        "wheel_droop_m": 0.12,
+        "anti_dive_ratio": 0.14
       },
       "front_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.18
+        "ratio": 0.16
       },
       "rear": {
         "arb_damper_Ns_per_m": 95.0,
@@ -88,7 +90,7 @@
       },
       "rear_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.14
+        "ratio": 0.18
       }
     },
     "model": "geometric",

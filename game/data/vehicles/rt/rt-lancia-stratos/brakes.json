@@ -3,8 +3,8 @@
     "abs_pulse_time": 0.03,
     "abs_spin_diff_threshold": 10.0,
     "enable_abs": false,
-    "front_brake_bias": 0.55,
-    "max_brake_torque": 6000.0,
+    "front_brake_bias": 0.5,
+    "max_brake_torque": 5800.0,
     "thermal": {
       "braking_heat_fraction": 0.95,
       "cold_efficiency": 0.85,
@@ -85,6 +85,8 @@
       "enabled": false,
       "gain": 0.82
     },
-    "manual_proportioning": true
+    "manual_proportioning": true,
+    "proportioning_knee": 0.8,
+    "proportioning_slope": 0.75
   }
 }

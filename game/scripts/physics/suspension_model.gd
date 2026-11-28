@@ -403,6 +403,87 @@ static func default_instant_center_kinematics(
 				"anti_lift_ratio": 0.20,
 				"solid_axle": true,
 			}
+		"live_axle_coil":
+			return {
+				"roll_center_height_m": 0.20,
+				"roll_center_height_gain": -0.15,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.30,
+				"anti_lift_ratio": 0.18,
+				"solid_axle": true,
+			}
+		"dead_axle_coil":
+			return {
+				"roll_center_height_m": 0.19,
+				"roll_center_height_gain": -0.15,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.20,
+				"anti_lift_ratio": 0.16,
+				"solid_axle": true,
+			}
+		"semi_trailing_arm":
+			return {
+				"roll_center_height_m": 0.16,
+				"roll_center_height_gain": -0.42,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.30,
+				"anti_lift_ratio": 0.14,
+				"solid_axle": false,
+			}
+		"swing_axle":
+			return {
+				"roll_center_height_m": 0.28,
+				"roll_center_height_gain": -0.35,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.22,
+				"anti_lift_ratio": 0.12,
+				"solid_axle": false,
+			}
+		"trailing_arm_torsion":
+			if is_front:
+				return {
+					"roll_center_height_m": 0.055,
+					"roll_center_height_gain": -0.25,
+					"anti_dive_ratio": 0.10,
+					"anti_squat_ratio": 0.0,
+					"anti_lift_ratio": 0.08,
+					"solid_axle": false,
+				}
+			return {
+				"roll_center_height_m": 0.17,
+				"roll_center_height_gain": -0.20,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.18,
+				"anti_lift_ratio": 0.16,
+				"solid_axle": false,
+			}
+		"torsion_bar":
+			if is_front:
+				return {
+					"roll_center_height_m": 0.080,
+					"roll_center_height_gain": -0.45,
+					"anti_dive_ratio": 0.14,
+					"anti_squat_ratio": 0.0,
+					"anti_lift_ratio": 0.10,
+					"solid_axle": false,
+				}
+			return {
+				"roll_center_height_m": 0.16,
+				"roll_center_height_gain": -0.40,
+				"anti_dive_ratio": 0.0,
+				"anti_squat_ratio": 0.28,
+				"anti_lift_ratio": 0.14,
+				"solid_axle": false,
+			}
+		"twin_i_beam_coil":
+			return {
+				"roll_center_height_m": 0.14,
+				"roll_center_height_gain": -0.20,
+				"anti_dive_ratio": 0.08,
+				"anti_squat_ratio": 0.0,
+				"anti_lift_ratio": 0.06,
+				"solid_axle": false,
+			}
 		_:
 			if is_front:
 				return {
@@ -474,6 +555,78 @@ static func default_elastokinematics(
 				"compliance_camber_lat_rad_per_n": 0.045 * DEG_PER_KN,
 				"compliance_camber_lon_rad_per_n": 0.0,
 				"compliance_tau_s": 0.024,
+			}
+		"live_axle_coil":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.045 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.030 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.045 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.022,
+			}
+		"dead_axle_coil":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.045 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.025 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.040 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.024,
+			}
+		"semi_trailing_arm":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.025 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.080 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.20 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.025 * DEG_PER_KN,
+				"compliance_tau_s": 0.020,
+			}
+		"swing_axle":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.020 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.060 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.22 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.020 * DEG_PER_KN,
+				"compliance_tau_s": 0.020,
+			}
+		"trailing_arm_torsion":
+			if is_front:
+				return {
+					"compliance_steer_lat_rad_per_n": 0.085 * DEG_PER_KN,
+					"compliance_toe_lon_rad_per_n": 0.040 * DEG_PER_KN,
+					"compliance_camber_lat_rad_per_n": 0.16 * DEG_PER_KN,
+					"compliance_camber_lon_rad_per_n": -0.015 * DEG_PER_KN,
+					"compliance_tau_s": 0.022,
+				}
+			return {
+				"compliance_steer_lat_rad_per_n": 0.040 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.020 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.12 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.0,
+				"compliance_tau_s": 0.022,
+			}
+		"torsion_bar":
+			if is_front:
+				return {
+					"compliance_steer_lat_rad_per_n": 0.080 * DEG_PER_KN,
+					"compliance_toe_lon_rad_per_n": 0.045 * DEG_PER_KN,
+					"compliance_camber_lat_rad_per_n": 0.20 * DEG_PER_KN,
+					"compliance_camber_lon_rad_per_n": -0.020 * DEG_PER_KN,
+					"compliance_tau_s": 0.020,
+				}
+			return {
+				"compliance_steer_lat_rad_per_n": 0.030 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.065 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.19 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": 0.020 * DEG_PER_KN,
+				"compliance_tau_s": 0.020,
+			}
+		"twin_i_beam_coil":
+			return {
+				"compliance_steer_lat_rad_per_n": 0.14 * DEG_PER_KN,
+				"compliance_toe_lon_rad_per_n": 0.070 * DEG_PER_KN,
+				"compliance_camber_lat_rad_per_n": 0.18 * DEG_PER_KN,
+				"compliance_camber_lon_rad_per_n": -0.025 * DEG_PER_KN,
+				"compliance_tau_s": 0.026,
 			}
 		_:
 			if is_front:

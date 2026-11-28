@@ -5,7 +5,7 @@
     "front": {
       "spring_architecture": "macpherson_coil",
       "spring_can_unseat": true,
-      "arb_ratio": 0.2,
+      "arb_ratio": 0.18,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.017453,
@@ -254,7 +254,7 @@
       },
       "front_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.2
+        "ratio": 0.18
       },
       "rear": {
         "arb_damper_Ns_per_m": 80.0,
@@ -281,7 +281,7 @@
       },
       "rear_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.08
+        "ratio": 0.1
       },
       "version": 1
     },
@@ -290,7 +290,7 @@
     "rear": {
       "spring_architecture": "live_axle_leaf",
       "spring_can_unseat": false,
-      "arb_ratio": 0.08,
+      "arb_ratio": 0.1,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": 0.0,

@@ -5,19 +5,20 @@
     "front": {
       "spring_architecture": "sla_coil_over_upper_arm",
       "spring_can_unseat": true,
-      "arb_ratio": 0.2,
+      "arb_ratio": 0.18,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.017453,
-      "camber_gain_rad_per_m": -0.015,
-      "damping_ratio": 0.45,
+      "camber_gain_rad_per_m": -0.08,
+      "damping_ratio": 0.34,
       "rebound_damp_multiplier": 1.3333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.32,
       "toe": 0.001745,
       "toe_gain_rad_per_m": 0.01,
-      "ride_frequency_hz": 1.45,
-      "spring_rate_N_per_m": 36480.0
+      "ride_frequency_hz": 1.15,
+      "spring_rate_N_per_m": 36480.0,
+      "anti_dive_ratio": 0.08
     },
     "geometry_physical": {
       "corners": {
@@ -252,11 +253,12 @@
         "spring_rate_N_per_m": 36480.0,
         "wheel_bump_m": 0.16,
         "wheel_droop_m": 0.18,
-        "track_width_m": 1.51192
+        "track_width_m": 1.51192,
+        "anti_dive_ratio": 0.08
       },
       "front_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.2
+        "ratio": 0.18
       },
       "rear": {
         "arb_damper_Ns_per_m": 80.0,
@@ -284,7 +286,7 @@
       },
       "rear_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.06
+        "ratio": 0.05
       },
       "version": 1
     },
@@ -293,18 +295,18 @@
     "rear": {
       "spring_architecture": "live_axle_leaf",
       "spring_can_unseat": false,
-      "arb_ratio": 0.06,
+      "arb_ratio": 0.05,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": 0.0,
       "camber_gain_rad_per_m": 0.0,
-      "damping_ratio": 0.48,
+      "damping_ratio": 0.38,
       "rebound_damp_multiplier": 1.3333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.3,
       "toe": 0.0,
       "toe_gain_rad_per_m": 0.0,
-      "ride_frequency_hz": 1.55,
+      "ride_frequency_hz": 1.28,
       "spring_rate_N_per_m": 34925.0
     },
     "tri_ray_spacing_ratio": 0.35,

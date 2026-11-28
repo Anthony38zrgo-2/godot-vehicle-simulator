@@ -38,6 +38,7 @@ var base_contact_patch_m: Array[float] = []
 var base_relaxation_length_m: Array[float] = []
 var static_deflection_ratio: Array[float] = []
 var static_wheel_load_n: Array[float] = []
+var nominal_mu_load_n: Array[float] = []
 var maximum_tire_deflection_m: Array[float] = []
 var reference_hot_pressure_kpa: Array[float] = []
 var load_sensitivity_per_newton: float = 1.5e-5
@@ -80,8 +81,8 @@ func _ensure_rust_solver() -> RefCounted:
 	if _rust_solver == null and ClassDB.class_exists(&"RustTireSolver"):
 		_rust_solver = ClassDB.instantiate(&"RustTireSolver") as RefCounted
 		_rust_cfg_dirty = true
-		if _rust_cfg43.size() != 43:
-			_rust_cfg43.resize(43)
+		if _rust_cfg43.size() != 44:
+			_rust_cfg43.resize(44)
 		if _rust_inp24.size() != 24:
 			_rust_inp24.resize(24)
 	return _rust_solver
@@ -92,6 +93,8 @@ func _sync_rust_configs() -> void:
 		return
 	if axle_profiles.size() != 4 or static_wheel_load_n.size() != 4:
 		return
+	if _rust_cfg43.size() != 44:
+		_rust_cfg43.resize(44)
 	for i in 4:
 		var prof: Dictionary = axle_profiles[i]
 		var comp: Dictionary = wheel_compounds[i] if i < wheel_compounds.size() else active_compound
@@ -141,6 +144,7 @@ func _sync_rust_configs() -> void:
 		var for_gravel := bool(comp.get("for_gravel", true))
 		var is_asphalt := bool(comp.get("is_asphalt_tire", false))
 		_rust_cfg43[42] = 1.0 if (for_gravel and not is_asphalt) else (0.82 if (for_gravel and is_asphalt) else 0.64)
+		_rust_cfg43[43] = nominal_mu_load_n[i] if i < nominal_mu_load_n.size() else static_wheel_load_n[i]
 		var flags := 0
 		if bool(prof.get("combined_migration_v2_enabled", false)):
 			flags |= (1 << 0)
@@ -299,7 +303,8 @@ static func load_adjusted_mu(mu0: float, fz_n: float, fz_nominal_n: float, k_loa
 
 
 func effective_load_sensitivity(index: int) -> float:
-	return clampf(float(axle_load_sensitivity[index]) * maxf(static_wheel_load_n[index], 100.0) * float(axle_load_mult[index]), 0.10, 0.20)
+	var ref_load := nominal_mu_load_n[index] if index < nominal_mu_load_n.size() else static_wheel_load_n[index]
+	return clampf(float(axle_load_sensitivity[index]) * maxf(ref_load, 2200.0) * float(axle_load_mult[index]), 0.14, 0.24)
 
 
 func configure(
@@ -411,10 +416,14 @@ func configure(
 	base_contact_patch_m.clear()
 	base_relaxation_length_m.clear()
 	static_wheel_load_n.clear()
+	nominal_mu_load_n.clear()
 	static_deflection_ratio.clear()
 	missing_surface_warnings.clear()
 	maximum_tire_deflection_m.clear()
 	reference_hot_pressure_kpa.clear()
+	var tire_widths_m: Array[float] = []
+	var total_static_load_n := 0.0
+	var total_tire_width_m := 0.0
 	for i in 4:
 		var axle_tire: Dictionary = axle_tires[i]
 		var contact_patch := maxf(
@@ -423,9 +432,12 @@ func configure(
 		)
 		base_contact_patch_m.append(contact_patch)
 		base_relaxation_length_m.append(contact_patch * float(axle_relaxation_scale[i]))
-		static_wheel_load_n.append(
-			maxf(float(static_wheel_loads[i]) if i < static_wheel_loads.size() else 0.0, 100.0)
-		)
+		var corner_static := maxf(float(static_wheel_loads[i]) if i < static_wheel_loads.size() else 0.0, 100.0)
+		static_wheel_load_n.append(corner_static)
+		total_static_load_n += corner_static
+		var tire_w := maxf(float(axle_tire.get("nominal_section_width_m", axle_tire.get("width", 0.20))), 0.08)
+		tire_widths_m.append(tire_w)
+		total_tire_width_m += tire_w
 		maximum_tire_deflection_m.append(float(TireRadialModel.geometry(axle_tire).sidewall_m))
 		reference_hot_pressure_kpa.append(
 			maxf(float(hot_pressures.get(wheel_keys[i], 225.0)), 20.0)
@@ -440,6 +452,16 @@ func configure(
 			static_wheel_load_n[i], axle_optimal_carcass_c[i], sidewall, 1.5,
 		) / sidewall
 		static_deflection_ratio.append(ref_ratio)
+	# Carga nominal de referencia para la sensibilidad de carga de fricción:
+	# media por esquina del vehículo ponderada por ancho relativo de sección
+	# (si hay neumáticos escalonados delante/detrás). Así el eje más cargado
+	# (trasero en RR/MR, delantero en V8/FWD) experimenta caída real de mu(Fz)
+	# respecto al eje ligero en vez de normalizarse a 1.0 en cada esquina.
+	var mean_static_load_n := maxf(total_static_load_n * 0.25, 100.0)
+	var mean_tire_width_m := maxf(total_tire_width_m * 0.25, 0.08)
+	for i in 4:
+		var width_scale := clampf(tire_widths_m[i] / mean_tire_width_m, 0.75, 1.35)
+		nominal_mu_load_n.append(maxf(mean_static_load_n * width_scale, 100.0))
 
 	base_axle_profiles = [
 		resolved_filters.get("front", { }).duplicate(true),
@@ -903,13 +925,17 @@ func evaluate(
 		1.50,
 	)
 	var load_sensitivity_exp := effective_load_sensitivity(index)
-	# Paso 3.3: se usa el helper común load_adjusted_mu() (con mu0=1 para
-	# obtener el factor adimensional). load_ratio*reference_load reconstruye
-	# la Fz completa, de modo que el resultado es idéntico a pow(load_ratio,-k).
+	# Sensibilidad de carga referida a la carga nominal del neumático
+	# (media por esquina ponderada por ancho), no a la carga estática individual
+	# de cada esquina, para preservar el efecto real del reparto de pesos F/R.
+	var mu_reference_load := maxf(
+		nominal_mu_load_n[index] if index < nominal_mu_load_n.size() else reference_load,
+		100.0,
+	)
 	var load_scale := clampf(
-		load_adjusted_mu(1.0, load_ratio * reference_load, reference_load, load_sensitivity_exp),
+		load_adjusted_mu(1.0, maxf(normal_load_n, 0.0), mu_reference_load, load_sensitivity_exp),
 		0.60,
-		1.20,
+		1.22,
 	)
 	# Respuesta de compuesto/agua/nieve/suelo combinada una sola vez con la
 	# curva base y el factor térmico (sin duplicar la reducción mojada).

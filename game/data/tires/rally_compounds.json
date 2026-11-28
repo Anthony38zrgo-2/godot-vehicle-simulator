@@ -69,14 +69,14 @@
       "thermal_damage_grip_loss": 0.35,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.001,
-          "combined_lateral_peak_migration": 0.01,
-          "combined_longitudinal_peak_migration": 0.01
+          "slip_loss_tau_s": 0.012,
+          "combined_lateral_peak_migration": 0.1,
+          "combined_longitudinal_peak_migration": 0.18
         },
         "rear": {
-          "slip_loss_tau_s": 0.001,
-          "combined_lateral_peak_migration": 0.01,
-          "combined_longitudinal_peak_migration": 0.5
+          "slip_loss_tau_s": 0.012,
+          "combined_lateral_peak_migration": 0.1,
+          "combined_longitudinal_peak_migration": 0.18
         }
       }
     },
@@ -136,14 +136,14 @@
       "thermal_damage_grip_loss": 0.35,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.015,
-          "combined_lateral_peak_migration": 0.12,
-          "combined_longitudinal_peak_migration": 0.330625
+          "slip_loss_tau_s": 0.02,
+          "combined_lateral_peak_migration": 0.15,
+          "combined_longitudinal_peak_migration": 0.36
         },
         "rear": {
-          "slip_loss_tau_s": 0.025,
-          "combined_lateral_peak_migration": 0.18,
-          "combined_longitudinal_peak_migration": 0.462875
+          "slip_loss_tau_s": 0.02,
+          "combined_lateral_peak_migration": 0.15,
+          "combined_longitudinal_peak_migration": 0.36
         }
       }
     },
@@ -202,14 +202,14 @@
       "thermal_damage_grip_loss": 0.45,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.055,
-          "combined_lateral_peak_migration": 0.25,
-          "combined_longitudinal_peak_migration": 0.2875
+          "slip_loss_tau_s": 0.065,
+          "combined_lateral_peak_migration": 0.3,
+          "combined_longitudinal_peak_migration": 0.32
         },
         "rear": {
-          "slip_loss_tau_s": 0.1,
-          "combined_lateral_peak_migration": 0.45,
-          "combined_longitudinal_peak_migration": 0.4025
+          "slip_loss_tau_s": 0.065,
+          "combined_lateral_peak_migration": 0.3,
+          "combined_longitudinal_peak_migration": 0.32
         }
       }
     },
@@ -268,14 +268,14 @@
       "thermal_damage_grip_loss": 0.35,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.055,
-          "combined_lateral_peak_migration": 0.25,
-          "combined_longitudinal_peak_migration": 0.2875
+          "slip_loss_tau_s": 0.06,
+          "combined_lateral_peak_migration": 0.28,
+          "combined_longitudinal_peak_migration": 0.32
         },
         "rear": {
-          "slip_loss_tau_s": 0.1,
-          "combined_lateral_peak_migration": 0.45,
-          "combined_longitudinal_peak_migration": 0.4025
+          "slip_loss_tau_s": 0.06,
+          "combined_lateral_peak_migration": 0.28,
+          "combined_longitudinal_peak_migration": 0.32
         }
       }
     },
@@ -334,14 +334,14 @@
       "thermal_damage_grip_loss": 0.45,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.055,
-          "combined_lateral_peak_migration": 0.25,
-          "combined_longitudinal_peak_migration": 0.2875
+          "slip_loss_tau_s": 0.06,
+          "combined_lateral_peak_migration": 0.28,
+          "combined_longitudinal_peak_migration": 0.32
         },
         "rear": {
-          "slip_loss_tau_s": 0.1,
-          "combined_lateral_peak_migration": 0.45,
-          "combined_longitudinal_peak_migration": 0.4025
+          "slip_loss_tau_s": 0.06,
+          "combined_lateral_peak_migration": 0.28,
+          "combined_longitudinal_peak_migration": 0.32
         }
       }
     },
@@ -400,14 +400,14 @@
       "thermal_damage_grip_loss": 0.35,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.055,
-          "combined_lateral_peak_migration": 0.25,
-          "combined_longitudinal_peak_migration": 0.2875
+          "slip_loss_tau_s": 0.065,
+          "combined_lateral_peak_migration": 0.3,
+          "combined_longitudinal_peak_migration": 0.32
         },
         "rear": {
-          "slip_loss_tau_s": 0.1,
-          "combined_lateral_peak_migration": 0.45,
-          "combined_longitudinal_peak_migration": 0.4025
+          "slip_loss_tau_s": 0.065,
+          "combined_lateral_peak_migration": 0.3,
+          "combined_longitudinal_peak_migration": 0.32
         }
       }
     },
@@ -467,14 +467,14 @@
       "thermal_damage_grip_loss": 0.3,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.03,
-          "combined_lateral_peak_migration": 0.15,
-          "combined_longitudinal_peak_migration": 0.2
+          "slip_loss_tau_s": 0.04,
+          "combined_lateral_peak_migration": 0.2,
+          "combined_longitudinal_peak_migration": 0.26
         },
         "rear": {
-          "slip_loss_tau_s": 0.06,
-          "combined_lateral_peak_migration": 0.28,
-          "combined_longitudinal_peak_migration": 0.38
+          "slip_loss_tau_s": 0.04,
+          "combined_lateral_peak_migration": 0.2,
+          "combined_longitudinal_peak_migration": 0.26
         }
       }
     },
@@ -534,14 +534,14 @@
       "thermal_damage_grip_loss": 0.35,
       "force_model": {
         "front": {
-          "slip_loss_tau_s": 0.04,
-          "combined_lateral_peak_migration": 0.18,
-          "combined_longitudinal_peak_migration": 0.24
+          "slip_loss_tau_s": 0.05,
+          "combined_lateral_peak_migration": 0.24,
+          "combined_longitudinal_peak_migration": 0.3
         },
         "rear": {
-          "slip_loss_tau_s": 0.075,
-          "combined_lateral_peak_migration": 0.32,
-          "combined_longitudinal_peak_migration": 0.42
+          "slip_loss_tau_s": 0.05,
+          "combined_lateral_peak_migration": 0.24,
+          "combined_longitudinal_peak_migration": 0.3
         }
       }
     }
@@ -563,46 +563,46 @@
       "load_sensitivity_per_newton": 1.5e-05,
       "force_model": {
         "front": {
-          "budget_blend_width": 0.15,
-          "combined_lateral_peak_migration": 0.15,
-          "combined_longitudinal_peak_migration": 0.2,
-          "contact_ramp_tau_s": 0.0,
-          "falloff_sharpness": 1.05,
-          "lateral_peak_slip_angle_rad": 0.1825,
-          "lateral_slide_mu_ratio": 0.92,
-          "longitudinal_peak_slip_ratio": 0.18,
-          "longitudinal_slide_mu_ratio": 0.91,
+          "budget_blend_width": 0.18,
+          "combined_lateral_peak_migration": 0.18,
+          "combined_longitudinal_peak_migration": 0.22,
+          "contact_ramp_tau_s": 0.02,
+          "falloff_sharpness": 1.0,
+          "lateral_peak_slip_angle_rad": 0.185,
+          "lateral_slide_mu_ratio": 0.93,
+          "longitudinal_peak_slip_ratio": 0.19,
+          "longitudinal_slide_mu_ratio": 0.92,
           "min_relaxation_tau_s": 0.01,
           "relaxation_recovery_scale": 0.95,
-          "slip_loss_tau_s": 0.03,
+          "slip_loss_tau_s": 0.035,
           "slip_recovery_tau_s": 0.2,
           "combined_migration_v2_enabled": true,
           "peak_load_sensitivity": 0.04
         },
         "rear": {
-          "budget_blend_width": 0.25,
-          "combined_lateral_peak_migration": 0.28,
-          "combined_longitudinal_peak_migration": 0.38,
-          "contact_ramp_tau_s": 0.1,
-          "falloff_sharpness": 0.85,
-          "lateral_peak_slip_angle_rad": 0.195,
-          "lateral_slide_mu_ratio": 0.97,
-          "longitudinal_peak_slip_ratio": 0.28,
-          "longitudinal_slide_mu_ratio": 0.96,
+          "budget_blend_width": 0.18,
+          "combined_lateral_peak_migration": 0.18,
+          "combined_longitudinal_peak_migration": 0.22,
+          "contact_ramp_tau_s": 0.02,
+          "falloff_sharpness": 1.0,
+          "lateral_peak_slip_angle_rad": 0.185,
+          "lateral_slide_mu_ratio": 0.93,
+          "longitudinal_peak_slip_ratio": 0.19,
+          "longitudinal_slide_mu_ratio": 0.92,
           "min_relaxation_tau_s": 0.01,
-          "relaxation_recovery_scale": 0.94,
-          "slip_loss_tau_s": 0.06,
+          "relaxation_recovery_scale": 0.95,
+          "slip_loss_tau_s": 0.035,
           "slip_recovery_tau_s": 0.2,
           "combined_migration_v2_enabled": true,
-          "peak_load_sensitivity": 0.075
+          "peak_load_sensitivity": 0.04
         }
       },
       "front": {
         "airborne_spin_decay_torque": 1.5,
         "contact_patch": 0.2,
-        "surface_transition_tau_s": 0.092,
+        "surface_transition_tau_s": 0.085,
         "load_sensitivity_per_newton": 1.5e-05,
-        "load_sensitivity_axle_mult": 2.275,
+        "load_sensitivity_axle_mult": 4.0,
         "relaxation_length_scale": 1.25,
         "contact_patch_load_gain": 0.12,
         "contact_patch_deflection_gain": 0.2,
@@ -611,14 +611,14 @@
             "friction": 0.98,
             "stiffness": 0.9,
             "rolling_resistance": 2.2,
-            "longitudinal_grip_ratio": 0.96,
-            "lateral_grip_assist": 0.035
+            "longitudinal_grip_ratio": 1.0,
+            "lateral_grip_assist": 0.04
           },
           "Road": {
             "friction": 1.05,
             "stiffness": 3.2,
-            "longitudinal_grip_ratio": 1.05,
-            "lateral_grip_assist": 0.02,
+            "longitudinal_grip_ratio": 1.04,
+            "lateral_grip_assist": 0.0,
             "rolling_resistance": 1.0
           }
         },
@@ -701,9 +701,9 @@
       "rear": {
         "airborne_spin_decay_torque": 1.5,
         "contact_patch": 0.2,
-        "surface_transition_tau_s": 0.0805,
+        "surface_transition_tau_s": 0.085,
         "load_sensitivity_per_newton": 1.5e-05,
-        "load_sensitivity_axle_mult": 2.275,
+        "load_sensitivity_axle_mult": 4.0,
         "relaxation_length_scale": 1.25,
         "contact_patch_load_gain": 0.12,
         "contact_patch_deflection_gain": 0.2,
@@ -712,14 +712,14 @@
             "friction": 0.98,
             "stiffness": 0.9,
             "rolling_resistance": 2.2,
-            "longitudinal_grip_ratio": 1.03,
-            "lateral_grip_assist": 0.175
+            "longitudinal_grip_ratio": 1.0,
+            "lateral_grip_assist": 0.04
           },
           "Road": {
             "friction": 1.05,
             "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.04,
-            "lateral_grip_assist": 0.14,
+            "lateral_grip_assist": 0.0,
             "rolling_resistance": 1.0
           }
         },
@@ -842,72 +842,33 @@
     },
     "tire_filters": {
       "front": {
-        "combined_lateral_peak_migration": 0.15,
-        "combined_longitudinal_peak_migration": 0.2,
-        "contact_ramp_tau_s": 0.0,
+        "combined_migration_v2_enabled": true,
+        "combined_lateral_peak_migration": 0.22,
+        "combined_longitudinal_peak_migration": 0.28,
+        "contact_ramp_tau_s": 0.05,
         "min_relaxation_tau_s": 0.01,
         "relaxation_recovery_scale": 0.95,
-        "slip_loss_tau_s": 0.03,
+        "slip_loss_tau_s": 0.05,
         "slip_recovery_tau_s": 0.2,
-        "surface_transition_tau_s": 0.092,
+        "surface_transition_tau_s": 0.085,
         "load_sensitivity_per_newton": 1.5e-05,
-        "load_sensitivity_axle_mult": 2.275,
+        "load_sensitivity_axle_mult": 4.0,
         "relaxation_length_scale": 1.25,
         "contact_patch_load_gain": 0.12,
         "contact_patch_deflection_gain": 0.2,
         "surfaces": {
           "Gravel": {
-            "friction": 0.97,
+            "friction": 0.98,
             "stiffness": 0.9,
             "rolling_resistance": 2.15,
-            "longitudinal_grip_ratio": 0.96,
-            "lateral_grip_assist": 0.035
-          },
-          "Road": {
-            "friction": 1.05,
-            "stiffness": 3.2,
-            "longitudinal_grip_ratio": 1.05,
-            "lateral_grip_assist": 0.02,
-            "rolling_resistance": 1.0
-          }
-        },
-        "combined_migration_v2_enabled": true,
-        "lateral_peak_slip_angle_rad": 0.12,
-        "longitudinal_peak_slip_ratio": 0.12,
-        "lateral_slide_mu_ratio": 1.0,
-        "longitudinal_slide_mu_ratio": 0.97,
-        "falloff_sharpness": 1.05,
-        "peak_load_sensitivity": 0.04,
-        "budget_blend_width": 0.15
-      },
-      "rear": {
-        "combined_migration_v2_enabled": true,
-        "combined_lateral_peak_migration": 0.28,
-        "combined_longitudinal_peak_migration": 0.38,
-        "contact_ramp_tau_s": 0.1,
-        "min_relaxation_tau_s": 0.01,
-        "relaxation_recovery_scale": 0.94,
-        "slip_loss_tau_s": 0.06,
-        "slip_recovery_tau_s": 0.2,
-        "surface_transition_tau_s": 0.0805,
-        "load_sensitivity_per_newton": 1.5e-05,
-        "load_sensitivity_axle_mult": 2.275,
-        "relaxation_length_scale": 1.25,
-        "contact_patch_load_gain": 0.12,
-        "contact_patch_deflection_gain": 0.2,
-        "surfaces": {
-          "Gravel": {
-            "friction": 0.97,
-            "stiffness": 0.9,
-            "rolling_resistance": 2.15,
-            "longitudinal_grip_ratio": 1.03,
-            "lateral_grip_assist": 0.175
+            "longitudinal_grip_ratio": 1.0,
+            "lateral_grip_assist": 0.04
           },
           "Road": {
             "friction": 1.05,
             "stiffness": 3.2,
             "longitudinal_grip_ratio": 1.04,
-            "lateral_grip_assist": 0.128,
+            "lateral_grip_assist": 0.0,
             "rolling_resistance": 1.0
           }
         },
@@ -915,11 +876,50 @@
         "longitudinal_peak_slip_ratio": 0.12,
         "lateral_slide_mu_ratio": 1.0,
         "longitudinal_slide_mu_ratio": 0.97,
-        "falloff_sharpness": 0.95,
+        "falloff_sharpness": 1.0,
         "peak_load_sensitivity": 0.04,
-        "budget_blend_width": 0.25
+        "budget_blend_width": 0.18
       },
-      "surface_transition_tau_s": 0.092
+      "rear": {
+        "combined_migration_v2_enabled": true,
+        "combined_lateral_peak_migration": 0.22,
+        "combined_longitudinal_peak_migration": 0.28,
+        "contact_ramp_tau_s": 0.05,
+        "min_relaxation_tau_s": 0.01,
+        "relaxation_recovery_scale": 0.95,
+        "slip_loss_tau_s": 0.05,
+        "slip_recovery_tau_s": 0.2,
+        "surface_transition_tau_s": 0.085,
+        "load_sensitivity_per_newton": 1.5e-05,
+        "load_sensitivity_axle_mult": 4.0,
+        "relaxation_length_scale": 1.25,
+        "contact_patch_load_gain": 0.12,
+        "contact_patch_deflection_gain": 0.2,
+        "surfaces": {
+          "Gravel": {
+            "friction": 0.98,
+            "stiffness": 0.9,
+            "rolling_resistance": 2.15,
+            "longitudinal_grip_ratio": 1.0,
+            "lateral_grip_assist": 0.04
+          },
+          "Road": {
+            "friction": 1.05,
+            "stiffness": 3.2,
+            "longitudinal_grip_ratio": 1.04,
+            "lateral_grip_assist": 0.0,
+            "rolling_resistance": 1.0
+          }
+        },
+        "lateral_peak_slip_angle_rad": 0.12,
+        "longitudinal_peak_slip_ratio": 0.12,
+        "lateral_slide_mu_ratio": 1.0,
+        "longitudinal_slide_mu_ratio": 0.97,
+        "falloff_sharpness": 1.0,
+        "peak_load_sensitivity": 0.04,
+        "budget_blend_width": 0.18
+      },
+      "surface_transition_tau_s": 0.085
     }
   }
 }

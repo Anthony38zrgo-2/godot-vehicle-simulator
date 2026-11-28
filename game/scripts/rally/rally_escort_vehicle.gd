@@ -497,6 +497,8 @@ func _apply_resolved_mass(mass_state: Dictionary) -> void:
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = mass_state.get("center_of_mass", Vector3.ZERO)
 	inertia = mass_state.get("inertia", Vector3.ONE)
+	if simulation != null and simulation.unsprung_rig != null and mass_state.has("inertia_tensor") and mass_state["inertia_tensor"] is Basis:
+		simulation.unsprung_rig.set_local_inertia_tensor(mass_state["inertia_tensor"])
 
 
 var body_contact_audio: Dictionary = {}

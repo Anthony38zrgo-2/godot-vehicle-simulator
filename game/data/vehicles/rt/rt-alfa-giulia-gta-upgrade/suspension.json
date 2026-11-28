@@ -3,20 +3,21 @@
     "contact_shape_count": 1,
     "contact_query_type": "ShapeCast3D",
     "front": {
-      "spring_architecture": "equivalent_unverified",
+      "spring_architecture": "double_wishbone",
       "spring_can_unseat": true,
-      "arb_ratio": 0.16,
+      "arb_ratio": 0.198,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": -0.01745,
-      "camber_gain_rad_per_m": -0.015,
-      "damping_ratio": 0.5,
+      "camber_gain_rad_per_m": -0.18,
+      "damping_ratio": 0.44,
       "rebound_damp_multiplier": 1.3333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.28,
       "toe": 0.001745,
       "toe_gain_rad_per_m": 0.01,
-      "ride_frequency_hz": 1.7
+      "ride_frequency_hz": 1.68,
+      "anti_dive_ratio": 0.16
     },
     "geometry_physical": {
       "front": {
@@ -40,11 +41,12 @@
         "spring_installed_length_m": 0.24,
         "spring_rate_N_per_m": 28000.0,
         "wheel_bump_m": 0.22,
-        "wheel_droop_m": 0.18
+        "wheel_droop_m": 0.18,
+        "anti_dive_ratio": 0.16
       },
       "front_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.2
+        "ratio": 0.198
       },
       "rear": {
         "arb_damper_Ns_per_m": 80.0,
@@ -71,27 +73,27 @@
       },
       "rear_arb": {
         "mode": "legacy_ratio",
-        "ratio": 0.08
+        "ratio": 0.11
       },
       "version": 1
     },
     "model": "geometric",
     "model_version": 1,
     "rear": {
-      "spring_architecture": "equivalent_unverified",
+      "spring_architecture": "live_axle_coil",
       "spring_can_unseat": true,
-      "arb_ratio": 0.07,
+      "arb_ratio": 0.11,
       "bump_damp_multiplier": 1.0,
       "bump_stop_multiplier": 1.0,
       "camber": 0,
       "camber_gain_rad_per_m": 0.0,
-      "damping_ratio": 0.5,
+      "damping_ratio": 0.46,
       "rebound_damp_multiplier": 1.3333333333333333,
       "resting_ratio": 0.35,
       "spring_length": 0.28,
       "toe": 0.0,
       "toe_gain_rad_per_m": 0.0,
-      "ride_frequency_hz": 1.8
+      "ride_frequency_hz": 1.79
     },
     "tri_ray_spacing_ratio": 0.35,
     "use_authored_wheel_centers": true,

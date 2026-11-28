@@ -4,7 +4,7 @@
     "abs_spin_diff_threshold": 10.0,
     "enable_abs": false,
     "front_brake_bias": 0.63,
-    "max_brake_torque": 5600.0,
+    "max_brake_torque": 7000.0,
     "thermal": {
       "braking_heat_fraction": 0.95,
       "cold_efficiency": 0.85,

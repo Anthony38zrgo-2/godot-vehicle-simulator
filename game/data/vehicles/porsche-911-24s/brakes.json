@@ -3,8 +3,8 @@
     "abs_pulse_time": 0.03,
     "abs_spin_diff_threshold": 10.0,
     "enable_abs": false,
-    "front_brake_bias": 0.56,
-    "max_brake_torque": 5200.0,
+    "front_brake_bias": 0.5,
+    "max_brake_torque": 5400.0,
     "wheel_lock_blend_spin_rad_s": 6.0,
     "wheel_lock_stick_tau_s": 0.03,
     "servo_assist": {
@@ -86,6 +86,8 @@
         "pressure_recovery": 0.58,
         "rotor_cooling_fraction": 0.85
       }
-    }
+    },
+    "proportioning_knee": 0.8,
+    "proportioning_slope": 0.75
   }
 }

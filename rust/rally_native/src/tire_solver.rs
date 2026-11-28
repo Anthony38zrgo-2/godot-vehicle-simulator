@@ -56,6 +56,7 @@ struct WheelConfig {
     base_relaxation_length_m: f64,
     static_deflection_ratio: f64,
     static_wheel_load_n: f64,
+    nominal_mu_load_n: f64,
     maximum_tire_deflection_m: f64,
     reference_hot_pressure_kpa: f64,
     load_sensitivity_exp: f64,
@@ -112,6 +113,7 @@ impl Default for WheelConfig {
             base_relaxation_length_m: 0.3,
             static_deflection_ratio: 0.2,
             static_wheel_load_n: 3000.0,
+            nominal_mu_load_n: 3000.0,
             maximum_tire_deflection_m: 0.1,
             reference_hot_pressure_kpa: 225.0,
             load_sensitivity_exp: 0.15,
@@ -273,6 +275,7 @@ impl RustTireSolver {
             base_relaxation_length_m: c[2],
             static_deflection_ratio: c[3],
             static_wheel_load_n: c[4],
+            nominal_mu_load_n: if c.len() >= 44 { c[43] } else { c[4] },
             maximum_tire_deflection_m: c[5],
             reference_hot_pressure_kpa: c[6],
             load_sensitivity_exp: c[7],
@@ -598,9 +601,10 @@ impl RustTireSolver {
         let pressure_rr = pressure_ratio
             .powf(cfg.pressure_rolling.clamp(-3.0, 3.0))
             .clamp(0.75, 1.50);
-        let load_scale = ((load_ratio * reference_load).max(1.0) / reference_load.max(1.0))
+        let mu_reference_load = cfg.nominal_mu_load_n.max(100.0);
+        let load_scale = (normal_load_n.max(1.0) / mu_reference_load.max(1.0))
             .powf(-cfg.load_sensitivity_exp.clamp(0.0, 0.5))
-            .clamp(0.60, 1.20);
+            .clamp(0.60, 1.22);
 
         let mut compound_mult = 1.0;
         let mut cw_factor = 1.0;
