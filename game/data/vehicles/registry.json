@@ -202,7 +202,7 @@
       "Stage": "russia_stage1_porsche_911_24s",
       "Proving": "porsche_911_24s_proving",
       "Provenance": "HISTORICAL_PROVENANCE.json",
-      "SoundBank": "gt3-bank/porsche-911-24s",
+      "SoundBank": "engine/rt-porsche-356b-2000gs",
       "ValidateSoundHashes": true,
       "DisplayName": "Porsche 911 2.4 S"
     },

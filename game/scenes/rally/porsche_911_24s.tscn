@@ -71,5 +71,5 @@ exhaust_tip = Vector3(-0.35, 0.22, 1.98)
 
 [node name="VehicleAudio" type="Node3D" parent="."]
 script = ExtResource("7_audio")
-engine_bank_manifest_path = "res://sounds/banks/gt3-bank/porsche-911-24s/manifest.json"
+engine_bank_manifest_path = "res://sounds/banks/engine/rt-porsche-356b-2000gs/manifest.json"
 vehicle_path = NodePath("..")

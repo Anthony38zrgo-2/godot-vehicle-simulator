@@ -105,7 +105,7 @@
       "reference": 1500,
       "lower": 1100,
       "upper": 3000,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.3403
     },
     {
@@ -113,7 +113,7 @@
       "reference": 3000,
       "lower": 1500,
       "upper": 5000,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.3279
     },
     {
@@ -121,7 +121,7 @@
       "reference": 5000,
       "lower": 3000,
       "upper": 7200,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.2884
     }
   ],
@@ -139,7 +139,7 @@
       "reference": 1500,
       "lower": 1100,
       "upper": 3000,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.65
     },
     {
@@ -147,7 +147,7 @@
       "reference": 3000,
       "lower": 1500,
       "upper": 5000,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.429
     },
     {
@@ -155,7 +155,7 @@
       "reference": 5000,
       "lower": 3000,
       "upper": 7200,
-      "mode": "drive",
+      "mode": "continuous",
       "gain": 0.3477
     }
   ]

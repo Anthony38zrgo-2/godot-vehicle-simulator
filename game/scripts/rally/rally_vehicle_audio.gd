@@ -86,9 +86,9 @@ const LIMITER_NATIVE_RPM := 18000.0
 const LIMITER_GAIN := 0.0448917 # -14 dB relative to the original 0.225.
 const MISSGEAR_SAMPLE_PATH := "res://sounds/banks/commons/missgear.wav"
 const MISSGEAR_GAIN := 0.28
-const SURFACE_GAIN := 0.94875 # 0.8625 * 1.10 (+10% gain over previous)
+const SURFACE_GAIN := 1.0645150085 # 0.94875 * 10^(+1/20) (+1.0 dB)
 const SURFACE_ROLL_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
-const TYRE_CONTACT_GAIN_SCALE := 0.31622776601683794 # -10.0 dB
+const TYRE_CONTACT_GAIN_SCALE := 0.5623413251903491 # -5.0 dB (+5.0 dB over previous -10.0 dB)
 const WATERSPLASH_PATHS := [
 	"res://sounds/banks/commons/watersplash_1.wav",
 	"res://sounds/banks/commons/watersplash_2.wav",
@@ -144,6 +144,7 @@ const WHEEL_DAMAGE_GAIN_BUDGET := 0.46
 const SurfaceMixer = preload("res://scripts/audio/surface_mix.gd")
 const PhaseLockedEngineBank = preload("res://scripts/audio/phase_locked_engine_bank.gd")
 const SweepGranularEngineBank = preload("res://scripts/audio/sweep_granular_engine_bank.gd")
+const EngineLowMidSynth = preload("res://scripts/audio/engine_lowmid_synth.gd")
 
 const ENGINE_VOLUME_BASE := 0.269
 const ENGINE_VOLUME_ACCELERATION := 0.112
@@ -250,6 +251,7 @@ var view_whine_gain := 1.0
 var view_exhaust_gain := 1.0
 var phase_bank: PhaseLockedEngineBank = null
 var sweep_bank: SweepGranularEngineBank = null
+var lowmid_synth: EngineLowMidSynth = null
 
 
 func _ready() -> void:
@@ -332,6 +334,7 @@ func _ready() -> void:
 			EXHAUST_VOLUME_ACCELERATION,
 			true,
 		)
+	_configure_lowmid_synth(parsed_bank)
 	build_tyre_contact_players()
 	build_watersplash_players()
 	build_rain_ambience_player()
@@ -519,9 +522,36 @@ func play_layer(voices: Array[SampleVoice]) -> void:
 		voice.player.play()
 
 
+func _configure_lowmid_synth(parsed_bank: Dictionary) -> void:
+	var candidates: Array[String] = []
+	if vehicle != null:
+		var profile_path := str(vehicle.get("rally_profile_path"))
+		if not profile_path.is_empty():
+			var profile_dir := profile_path.get_base_dir().get_file()
+			if not profile_dir.is_empty():
+				candidates.append(profile_dir)
+		var rp = vehicle.get("rally_profile")
+		if rp is Dictionary:
+			var pid := str(rp.get("profile_id", ""))
+			if not pid.is_empty():
+				candidates.append(pid)
+	if not parsed_bank.is_empty():
+		var b_vid := str(parsed_bank.get("vehicle_id", ""))
+		if not b_vid.is_empty():
+			candidates.append(b_vid)
+		var b_pid := str(parsed_bank.get("profile_id", ""))
+		if not b_pid.is_empty():
+			candidates.append(b_pid)
+	var synth := EngineLowMidSynth.new()
+	if synth.configure(candidates, self, engine_position, exhaust_position):
+		lowmid_synth = synth
+
+
 func _process(_delta: float) -> void:
 	if sweep_bank != null:
 		sweep_bank.pump_frame(smoothed_revolutions)
+	if lowmid_synth != null:
+		lowmid_synth.pump_frame()
 
 
 func _physics_process(delta: float) -> void:
@@ -629,6 +659,17 @@ func _update_continuous_audio(packet: Dictionary, delta: float, wheel_samples: A
 	else:
 		update_layer(engine_voices, smoothed_revolutions, smoothing)
 		update_layer(exhaust_voices, smoothed_revolutions, smoothing)
+	if lowmid_synth != null:
+		lowmid_synth.update(
+			acoustic,
+			smoothed_revolutions,
+			delta,
+			view_engine_gain,
+			view_exhaust_gain,
+			cockpit_audio_blend,
+			exhaust_crackle_s,
+			self,
+		)
 	update_limiter_audio(smoothing)
 	update_missgear_audio(smoothing)
 
@@ -750,9 +791,10 @@ func update_layer(voices: Array[SampleVoice], revolutions: float, volume_smoothi
 				gain *= 1.0 + float(exhaust_cfg.get("crackle_gain", 0.1)) * (exhaust_crackle_s / 0.12)
 
 		# Equal-power transition between loaded and coast recordings.
+		var has_coast_layer := not (coast_exhaust_voices.is_empty() if voice.is_exhaust else coast_engine_voices.is_empty())
 		if voice.mode == "coast":
 			gain *= sqrt(1.0 - throttle) * smoothstep(packet_rpm_idle, packet_rpm_idle * 1.7, revolutions)
-		elif voice.mode == "drive":
+		elif voice.mode == "drive" and has_coast_layer:
 			gain *= sqrt(throttle)
 		elif voice.mode == "idle" and voice.is_exhaust and voices.size() == 1:
 			gain *= 1.0 - smoothstep(voice.reference_rpm, voice.upper_rpm, lookup_rpm)

@@ -40,7 +40,7 @@
     "underfloor_contact.json": "822455b438cac816394ddd8d5e21c2632348e1a3a1354f6759b0e226dec9f286",
     "vehicle.json": "519fb73d9643adfa8e015ceff1808b87c8f6de8417f0a241858eb1121ffbd805"
   },
-  "audio_source": "Dedicated GT3 flat-6 bank gt3-bank/porsche-911-24s built from engine (6 layers 900-6000 rpm) + exhaust (900 rpm idle + 7 layers 1400-6928 rpm) of bank 22803 (911(996) GT3) + shared res://sounds/banks/commons/ audio.",
+  "audio_source": "Engine sound bank engine/rt-porsche-356b-2000gs (shared with Porsche 356 A 1600 GS Carrera GT) + shared res://sounds/banks/commons/ audio.",
   "mass_calibration": {
     "location": "chassis.json:physical_mass_inventory.calibration",
     "reference": "https://porschecarshistory.com/wp-content/old/brochures/72/911_1972US.pdf"
